@@ -24,6 +24,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'allxsmith', // Usually your GitHub org/user name.
   projectName: 'bestack', // Usually your repo name.
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -84,9 +85,21 @@ const config = {
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'guideSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Getting Started',
+          },
+          {
+            type: 'docSidebar',
+            sidebarId: 'componentSidebar',
+            position: 'left',
+            label: 'Components',
+          },
+          {
+            type: 'docSidebar',
+            sidebarId: 'apiSidebar',
+            position: 'left',
+            label: 'APIs',
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
