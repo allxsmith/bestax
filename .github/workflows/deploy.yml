@@ -21,14 +21,16 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        working-directory: ./doc-site
         run: npm ci
       - name: Build website
+        working-directory: ./doc-site
         run: npm run build
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: doc-site/build
 
   deploy:
     name: Deploy to GitHub Pages

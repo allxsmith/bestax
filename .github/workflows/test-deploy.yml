@@ -21,6 +21,8 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        working-directory: ./doc-site
         run: npm ci
       - name: Test build website
+        working-directory: ./doc-site
         run: npm run build
