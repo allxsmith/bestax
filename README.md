@@ -1,2 +1,0 @@
-# bestack
-Bulma Component Library
