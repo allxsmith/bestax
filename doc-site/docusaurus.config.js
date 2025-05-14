@@ -10,12 +10,12 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Yoso',
+  title: 'Bestack',
   tagline: 'Application Framework',
   favicon: 'img/logo.svg',
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://bestack.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -23,7 +23,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'allxsmith', // Usually your GitHub org/user name.
-  projectName: 'yoso', // Usually your repo name.
+  projectName: 'bestack', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -46,7 +46,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/allxsmith/yoso',
+            'https://github.com/allxsmith/bestack',
         },
         blog: {
           showReadingTime: true,
@@ -57,7 +57,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/allxsmith/yoso',
+            'https://github.com/allxsmith/bestack',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -76,9 +76,9 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Yoso',
+        title: 'Bestack',
         logo: {
-          alt: 'Yoso Logo',
+          alt: 'Bestack Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -90,7 +90,7 @@ const config = {
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/allxsmith/yoso',
+            href: 'https://github.com/allxsmith/bestack',
             label: 'GitHub',
             position: 'right',
           },
@@ -113,11 +113,11 @@ const config = {
             items: [
               {
                 label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                href: 'https://stackoverflow.com/questions/tagged/bestack',
               },
               {
                 label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
+                href: 'https://discordapp.com/invite/bestack',
               },
               {
                 label: 'X',
@@ -134,12 +134,12 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/allxsmith/yoso',
+                href: 'https://github.com/allxsmith/bestack',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Yoso, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Bestack, Inc.`,
       },
       prism: {
         theme: prismThemes.github,
