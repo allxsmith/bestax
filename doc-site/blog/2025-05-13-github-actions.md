@@ -13,4 +13,6 @@ We have two github actions configured, a test-deploy and deploy.
 
 - **test-deploy**: is run whenever a pull request is made on *main*.  This action ensures the site can build successfully.
 
-- **deploy**: is run whenever a pull request is merged into main, or when someone successfully pushes to main directly.s
+- **deploy**: is run whenever a pull request is merged into main, or when someone successfully pushes to main directly.
+
+Yay CI/CD!
