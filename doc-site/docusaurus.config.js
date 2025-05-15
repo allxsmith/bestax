@@ -47,7 +47,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/allxsmith/bestack',
+            'https://github.com/allxsmith/bestack/edit/main/doc-site',
         },
         blog: {
           showReadingTime: true,
@@ -130,7 +130,7 @@ const config = {
               },
               {
                 label: 'Discord',
-                href: 'https://discordapp.com/invite/bestack',
+                href: 'https://discord.gg/zehJrQGtKu',
               },
               {
                 label: 'X',
