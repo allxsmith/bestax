@@ -134,3 +134,14 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# TurboRepo Cache
+.turbo/
+
+# Package-Specific Build Outputs (redundant but explicit)
+/lib/dist/
+/lib/coverage/
+/doc-site/build/
+
+# GitHub Actions
+.github/workflows/*.cache

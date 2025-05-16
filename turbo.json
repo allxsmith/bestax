@@ -1,0 +1,31 @@
+{
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {},
+    "test:coverage": {
+      "outputs": ["coverage/**"]
+    },
+    "bundle:stats": {
+      "outputs": ["dist/**"]
+    },
+    "typecheck": {},
+    "format": {
+      "outputs": []
+    },
+    "format:check": {
+      "outputs": []
+    },
+    "lint": {}
+  }
+}
