@@ -15,4 +15,6 @@ To speed up builds, and help manage our mono repository, we're trying [Turbo](ht
 
 I'm a longtime Babel user, but this go around I'm using [Rollup](https://rollupjs.org/) to bundle the new module.
 
+We've tested a basic the build of a basic Button component and corresponding unit test to make sure the library is building correctly.
+
 Lastly, this project is going to use Typescript instead of plain'ole Javascript. This is not us choosing sides, I know this can be a touchy issue. We are doing this to be different from past projects. The code will be new and fresh.
