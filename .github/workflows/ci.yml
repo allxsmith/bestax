@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Run build, typecheck, test, coverage, bundle stats, lint, and format check
-        run: npm run turbo run build typecheck test test:coverage bundle:stats lint format:check
+        run: npm run build && npm run typecheck && npm run test && npm run test:coverage && npm run bundle:stats && npm run lint && npm run format:check
 
       - name: Archive coverage report
         uses: actions/upload-artifact@v4

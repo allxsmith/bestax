@@ -13,16 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
       - name: Install dependencies
-        working-directory: ./doc-site
         run: npm ci
+        
       - name: Test build website
-        working-directory: ./doc-site
-        run: npm run build
+        run: npm run build -- --filter=@allxsmith/bestack-docs

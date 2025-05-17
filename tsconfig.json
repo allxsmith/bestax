@@ -16,5 +16,7 @@
       "@allxsmith/bestack": ["lib/src/index.ts"],
       "@allxsmith/bestack/shared": ["packages/shared/src/index.ts"]
     }
-  }
+  },
+  "include": [],
+  "exclude": ["node_modules", "dist", "build", "coverage", ".turbo"]
 }

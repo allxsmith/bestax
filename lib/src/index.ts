@@ -1,1 +1,1 @@
-// /lib/src/index.ts
+export * from './elements/Button';

@@ -9,6 +9,6 @@ Welcome to the first of many blog posts for the Bestack Stack!
 
 <!-- truncate -->
 
-A little bit about myself...I've been a avid programmer for various corporations, and commercial organizations for most of my life.  
+A little bit about myself...I've been a avid programmer for various corporations, and commercial organizations for most of my life.
 
-Bestack is going to be a pure opensource project. Written in my favorite language "Javascript".  With all original code.
+Bestack is going to be a pure opensource project. Written in my favorite language "Javascript". With all original code.

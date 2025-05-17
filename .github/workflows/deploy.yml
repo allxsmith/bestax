@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Build monorepo
-        run: npm run turbo run build --filter=@allxsmith/bestack-docs
+        run: npm run build -- --filter=@allxsmith/bestack-docs
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
