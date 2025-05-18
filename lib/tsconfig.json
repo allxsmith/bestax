@@ -6,7 +6,6 @@
     "module": "ESNext",
     "target": "ES2019",
     "jsx": "react-jsx",
-    "rootDir": "src",
     "noEmit": true,
     "sourceMap": true
   },

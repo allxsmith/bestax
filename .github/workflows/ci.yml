@@ -9,9 +9,12 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,21 +23,52 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run build, typecheck, test, coverage, bundle stats, lint, and format check
-        run: npm run build && npm run typecheck && npm run test && npm run test:coverage && npm run bundle:stats && npm run lint && npm run format:check
+      - name: Build
+        run: npm run build
 
-      - name: Archive coverage report
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Test Coverage
+        run: npm run test:coverage
+
+      - name: Bundle Stats
+        run: npm run bundle:stats
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format Check
+        run: npm run format:check
+
+      - name: Build Storybook (lib)
+        if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'lib/**')
+        run: npm run build-storybook -w lib
+
+      - name: Archive Coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: lib/coverage/
-          retention-days: 7
+          name: coverage
+          path: |
+            lib/coverage
+            retention-days: 7
 
-      - name: Archive bundle stats
+      - name: Archive Bundle Stats
         uses: actions/upload-artifact@v4
         with:
           name: bundle-stats
-          path: lib/dist/stats.html
+          path: |
+            lib/dist/stats.html
+            doc-site/build/stats.html
           retention-days: 7
+
+      - name: Archive Storybook
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook
+          path: lib/storybook-static

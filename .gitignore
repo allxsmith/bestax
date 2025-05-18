@@ -145,3 +145,6 @@ dist
 
 # GitHub Actions
 .github/workflows/*.cache
+*storybook.log
+
+storybook-static

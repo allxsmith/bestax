@@ -26,6 +26,12 @@
     "format:check": {
       "outputs": []
     },
-    "lint": {}
+    "lint": {},
+    "storybook": {
+      "cache": false
+    },
+    "build-storybook": {
+      "outputs": ["storybook-static/**"]
+    }
   }
 }
