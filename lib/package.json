@@ -25,7 +25,8 @@
     "clean": "rimraf dist",
     "storybook": "storybook dev -p 6006",
     "start": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "publish": "npm publish"
   },
   "dependencies": {
     "classnames": "^2.5.1",

@@ -31,7 +31,7 @@ jobs:
           path: doc-site/build
 
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy Docusaurus to GitHub Pages
     needs: build-and-deploy
     runs-on: ubuntu-latest
     permissions:

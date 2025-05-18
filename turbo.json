@@ -32,6 +32,10 @@
     },
     "build-storybook": {
       "outputs": ["storybook-static/**"]
+    },
+    "publish": {
+      "dependsOn": ["build"],
+      "outputs": []
     }
   }
 }
