@@ -26,7 +26,7 @@
     "storybook": "storybook dev -p 6006",
     "start": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "publish": "npm publish"
+    "publish": "npm publish -ws=false --access public"
   },
   "dependencies": {
     "classnames": "^2.5.1",

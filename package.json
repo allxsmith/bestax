@@ -5,8 +5,7 @@
   "type": "module",
   "workspaces": [
     "lib",
-    "doc-site",
-    "packages/*"
+    "doc-site"
   ],
   "scripts": {
     "build": "turbo run build",
