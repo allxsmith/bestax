@@ -35,7 +35,8 @@
     },
     "publish": {
       "dependsOn": ["build"],
-      "outputs": []
+      "outputs": [],
+      "env": ["NODE_AUTH_TOKEN"]
     }
   }
 }
