@@ -26,7 +26,7 @@
     "storybook": "storybook dev -p 6006",
     "start": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "publish": "echo NODE_AUTH_TOKEN=$NODE_AUTH_TOKEN && npm publish"
+    "publish": "npm publish"
   },
   "dependencies": {
     "classnames": "^2.5.1",
@@ -82,7 +82,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/allxsmith/bestack.git",
+    "url": "git+https://github.com/allxsmith/bestack.git",
     "directory": "lib"
   },
   "publishConfig": {

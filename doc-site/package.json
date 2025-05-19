@@ -40,5 +40,12 @@
   },
   "engines": {
     "node": ">=18.0"
+  },
+  "author": "Alex Smith",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allxsmith/bestack.git",
+    "directory": "lib"
   }
 }
