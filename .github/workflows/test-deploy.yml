@@ -23,4 +23,4 @@ jobs:
         run: npm ci
 
       - name: Test build website
-        run: npm run build -- --filter=@allxsmith/bestack-docs
+        run: npm run build -- --filter=@allxsmith/bestax-docs

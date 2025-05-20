@@ -5,7 +5,7 @@
     "jsx": "react-jsx",
     "baseUrl": "../src",
     "paths": {
-      "@allxsmith/bestack": ["index.ts"]
+      "@allxsmith/bestax": ["index.ts"]
     }
   },
   "include": ["../src/**/*", "./**/*"],

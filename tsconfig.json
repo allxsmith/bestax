@@ -13,8 +13,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@allxsmith/bestack": ["lib/src/index.ts"],
-      "@allxsmith/bestack/shared": ["packages/shared/src/index.ts"]
+      "@allxsmith/bestax": ["lib/src/index.ts"],
+      "@allxsmith/bestax/shared": ["packages/shared/src/index.ts"]
     }
   },
   "include": [],

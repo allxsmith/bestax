@@ -18,7 +18,7 @@ npm run all
 This **all** command is an alias for all the CI/CD commands, all in one.
 
 ```bash
-turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestack-lib
+turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestax-lib
 ```
 
 We also added the building of the storybook to our CI/CD. The artifacts are saved each build.

@@ -28,7 +28,7 @@ const config: StorybookConfig = {
     return mergeConfig(config, {
       resolve: {
         alias: {
-          '@allxsmith/bestack': '/src/index.ts',
+          '@allxsmith/bestax': '/src/index.ts',
         },
       },
       build: {

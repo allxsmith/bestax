@@ -1,5 +1,5 @@
 {
-  "name": "@allxsmith/bestack-lib",
+  "name": "@allxsmith/bestax-lib",
   "version": "1.0.9",
   "description": "A React component library with TypeScript",
   "main": "dist/cjs/index.js",
@@ -82,7 +82,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allxsmith/bestack.git",
+    "url": "git+https://github.com/allxsmith/bestax.git",
     "directory": "lib"
   },
   "publishConfig": {

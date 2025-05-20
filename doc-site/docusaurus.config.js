@@ -10,12 +10,12 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Bestack',
+  title: 'Bestax',
   tagline: 'Application Framework',
   favicon: 'img/logo.svg',
 
   // Set the production url of your site here
-  url: 'https://bestack.com',
+  url: 'https://bestax.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -23,7 +23,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'allxsmith', // Usually your GitHub org/user name.
-  projectName: 'bestack', // Usually your repo name.
+  projectName: 'bestax', // Usually your repo name.
   trailingSlash: false,
 
   onBrokenLinks: 'throw',
@@ -46,7 +46,7 @@ const config = {
           sidebarPath: './sidebars.js',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/allxsmith/bestack/edit/main/doc-site',
+          editUrl: 'https://github.com/allxsmith/bestax/edit/main/doc-site',
         },
         blog: {
           showReadingTime: true,
@@ -56,7 +56,7 @@ const config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/allxsmith/bestack',
+          editUrl: 'https://github.com/allxsmith/bestax',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -75,9 +75,9 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'Bestack',
+        title: 'Bestax',
         logo: {
-          alt: 'Bestack Logo',
+          alt: 'Bestax Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -101,7 +101,7 @@ const config = {
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
-            href: 'https://github.com/allxsmith/bestack',
+            href: 'https://github.com/allxsmith/bestax',
             label: 'GitHub',
             position: 'right',
           },
@@ -124,7 +124,7 @@ const config = {
             items: [
               {
                 label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/bestack',
+                href: 'https://stackoverflow.com/questions/tagged/bestax',
               },
               {
                 label: 'Discord',
@@ -145,12 +145,12 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/allxsmith/bestack',
+                href: 'https://github.com/allxsmith/bestax',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Bestack, Inc.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Bestax, Inc.`,
       },
       prism: {
         theme: prismThemes.github,
