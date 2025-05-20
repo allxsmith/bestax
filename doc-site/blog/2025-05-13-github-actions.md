@@ -5,7 +5,7 @@ authors: [asmith]
 tags: [github, actions, pages]
 ---
 
-If you are seeing this on **bestax.us**, that means our docusaurus site has successfully deployed on github pages with a github action workflow.
+If you are seeing this on **bestax.cc**, that means our docusaurus site has successfully deployed on github pages with a github action workflow.
 
 <!-- truncate -->
 
