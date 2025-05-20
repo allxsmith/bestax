@@ -19,7 +19,7 @@
     "lint": "turbo run lint",
     "all": "turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestack-lib",
     "storybook": "turbo run storybook --filter=@allxsmith/bestack-lib",
-    "publish": "turbo run publish --filter=@allxsmith/bestack-lib"
+    "publish": "turbo run publish-lib --filter=@allxsmith/bestack-lib"
   },
   "devDependencies": {
     "@turbo/gen": "^2.5.3",
