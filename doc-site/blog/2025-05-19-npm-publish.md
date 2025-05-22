@@ -9,7 +9,7 @@ Super basic **npm** **publish**ing is now setup and working via the CLI and via 
 
 <!-- truncate -->
 
-The next enhancements to publishing will involve changesets and pull requests. 
+The next enhancements to publishing will involve changesets and pull requests.
 
 ```bash title="Run from main directory of the mono repo"
 npm run publish
