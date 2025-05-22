@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-lib",
-  "version": "1.0.9",
+  "version": "1.0.20",
   "description": "A React component library with TypeScript",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -25,8 +25,7 @@
     "clean": "rimraf dist",
     "storybook": "storybook dev -p 6006",
     "start": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "publish-lib": "npm publish -ws=false --access public"
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "classnames": "^2.5.1",

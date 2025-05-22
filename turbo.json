@@ -32,11 +32,6 @@
     },
     "build-storybook": {
       "outputs": ["storybook-static/**"]
-    },
-    "publish-lib": {
-      "dependsOn": ["build"],
-      "outputs": [],
-      "env": ["NODE_AUTH_TOKEN"]
     }
   }
 }

@@ -19,9 +19,12 @@
     "lint": "turbo run lint",
     "all": "turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestax-lib",
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-lib",
-    "publish": "turbo run publish-lib --filter=@allxsmith/bestax-lib"
+    "changeset": "changeset",
+    "version": "changeset version",
+    "publish": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@turbo/gen": "^2.5.3",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
