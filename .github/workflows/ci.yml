@@ -7,6 +7,7 @@ on:
     branches: [main]
 permissions:
   contents: write # Allows pushing commits
+  pull-requests: write # Required for creating pull requests
 
 jobs:
   build-and-test:
@@ -106,6 +107,7 @@ jobs:
           version: npm run version # Optional: custom version script
           publish: npm run publish # Optional: custom publish script
           commit: 'chore: release new version' # Add custom commit message here
+          title: 'Release new version'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Injects NPM_TOKEN for authentication
