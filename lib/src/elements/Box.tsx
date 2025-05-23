@@ -2,7 +2,7 @@ import React from 'react';
 
 // Define the props interface
 interface BoxProps {
-  children: React.ReactNode;
+  children?: React.ReactNode; // Make children optional
   className?: string;
   padding?: string;
   margin?: string;
@@ -31,7 +31,11 @@ const Box: React.FC<BoxProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  return <div className={boxClasses}>{children}</div>;
+  return (
+    <div className={boxClasses} data-testid="box">
+      {children}
+    </div>
+  );
 };
 
 export default Box;

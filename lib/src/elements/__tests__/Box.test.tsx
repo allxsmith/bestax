@@ -41,7 +41,7 @@ describe('Box Component', () => {
   // Test no children
   test('renders without children', () => {
     render(<Box />);
-    const boxElement = screen.getByRole('generic', { name: '' });
+    const boxElement = screen.getByTestId('box'); // Use data-testid for specificity
     expect(boxElement).toBeInTheDocument();
     expect(boxElement).toHaveClass('box');
   });
