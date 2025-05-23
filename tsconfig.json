@@ -17,6 +17,6 @@
       "@allxsmith/bestax/shared": ["packages/shared/src/index.ts"]
     }
   },
-  "include": [],
+  "include": ["lib"],
   "exclude": ["node_modules", "dist", "build", "coverage", ".turbo"]
 }

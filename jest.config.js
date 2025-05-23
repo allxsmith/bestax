@@ -1,7 +1,5 @@
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  moduleNameMapper: {
-    '\\.(css|scss)$': 'identity-obj-proxy',
-  },
+export const preset = 'ts-jest';
+export const testEnvironment = 'jsdom';
+export const moduleNameMapper = {
+  '\\.(css|scss)$': 'identity-obj-proxy',
 };
