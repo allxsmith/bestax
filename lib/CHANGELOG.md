@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.0.22
+
+### Patch Changes
+
+- b22bcc1: Testing changeset with signed commits for github bot
+
 ## 1.0.21
 
 ### Patch Changes
