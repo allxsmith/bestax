@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.0.27
+
+### Patch Changes
+
+- 9d557b8: Test
+
 ## 1.0.26
 
 ### Patch Changes
