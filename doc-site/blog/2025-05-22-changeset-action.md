@@ -11,3 +11,5 @@ As the second phase of versioning. We integrated changesets into the CI/CD.
 
 In our github CI workflow, we changed the publish task to use the changeset action
 to automatically version and publish.
+
+Also, we configured **GPG** signed commits for the github bot.
