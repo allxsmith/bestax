@@ -100,31 +100,35 @@ jobs:
 
       - name: Build
         run: npm run build
-      - name: Setup GPG
+
+      - name: Setup and Debug GPG
         run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-          echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
-      - name: Debug GPG Setup
-        run: |
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch --verbose
           gpg --list-secret-keys --with-subkey-fingerprints
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-          echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
+
       - name: Configure Git for Signing
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.signingkey E68EC317C287F9D0BFB0EA18C709317D446F87CB
           git config --global commit.gpgsign true
+          git config --global gpg.program gpg
+
+      - name: Test GPG Signing
+        run: |
+          echo "Test file" > test.txt
+          git add test.txt
+          git commit -m "Test GPG signing"
+          git log --show-signature -1
 
       - name: Publish
         uses: changesets/action@v1
         with:
-          version: npm run version # Optional: custom version script
-          publish: npm run publish # Optional: custom publish script
-          commit: 'chore: release new version' # Add custom commit message here
+          version: npm run version
+          publish: npm run publish
+          commit: 'chore: release new version'
           title: 'Release new version'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Injects NPM_TOKEN for authentication
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
