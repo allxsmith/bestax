@@ -100,6 +100,17 @@ jobs:
 
       - name: Build
         run: npm run build
+      - name: Setup GPG
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
+      - name: Configure Git for Signing
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.signingkey 208D33D210FA5F9ECCE97FA5633837549663F037
+          git config --global commit.gpgsign true
 
       - name: Publish
         uses: changesets/action@v1
