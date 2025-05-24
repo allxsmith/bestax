@@ -1,5 +1,12 @@
 # @allxsmith/bestax-lib
 
+## 1.0.23
+
+### Patch Changes
+
+- ce982d9: Test configure gpg signature id
+- bcd2b85: Test changeset signed commit
+
 ## 1.0.22
 
 ### Patch Changes
