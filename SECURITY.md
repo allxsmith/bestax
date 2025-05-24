@@ -9,4 +9,4 @@
 
 ## Reporting a Vulnerability
 
-Go ahead an report an issue.  We'll deal with it as soon as possible.
+Go ahead an report an issue. We'll deal with it as soon as possible.
