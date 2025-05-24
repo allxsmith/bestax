@@ -105,6 +105,12 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
+      - name: Debug GPG Setup
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch
+          gpg --list-secret-keys --with-subkey-fingerprints
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
       - name: Configure Git for Signing
         run: |
           git config --global user.name "github-actions[bot]"
