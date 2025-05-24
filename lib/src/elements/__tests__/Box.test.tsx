@@ -25,10 +25,10 @@ describe('Box Component', () => {
         hasShadow={false}
         className="custom-class"
       >
-        Custom Box Test 10
+        Custom Box Test 11
       </Box>
     );
-    const boxElement = screen.getByText('Custom Box Test 10');
+    const boxElement = screen.getByText('Custom Box Test 11');
     expect(boxElement).toBeInTheDocument();
     expect(boxElement).toHaveClass('box');
     expect(boxElement).toHaveClass('p-3');
