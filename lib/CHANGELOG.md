@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.0.29
+
+### Patch Changes
+
+- e32730a: test
+
 ## 1.0.28
 
 ### Patch Changes
