@@ -129,6 +129,7 @@ jobs:
           publish: npm run publish
           commit: 'chore: release new version'
           title: 'Release new version'
+          commitMode: 'github-api'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
