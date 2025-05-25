@@ -106,7 +106,6 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --no-tty --batch --verbose
           gpg --list-secret-keys --with-subkey-fingerprints
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-          echo "passphrase ${{ secrets.GPG_PASSPHRASE }}" >> ~/.gnupg/gpg.conf
 
       - name: Configure Git for Signing
         run: |
