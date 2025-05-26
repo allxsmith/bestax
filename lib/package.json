@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-lib",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "A React component library with TypeScript",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
