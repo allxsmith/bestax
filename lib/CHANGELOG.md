@@ -1,5 +1,13 @@
 # @allxsmith/bestax-lib
 
+## 1.0.32
+
+### Patch Changes
+
+- f23f636: test
+- 24c6696: test
+- 182948a: test
+
 ## 1.0.31
 
 ### Patch Changes
