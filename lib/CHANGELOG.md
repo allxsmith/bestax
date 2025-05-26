@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.0.33
+
+### Patch Changes
+
+- daa7406: test
+
 ## 1.0.32
 
 ### Patch Changes
