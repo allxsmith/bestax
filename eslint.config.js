@@ -48,6 +48,8 @@ export default [
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       'react/prop-types': 'off',
+      'react/react-in-jsx-scope': 'off', // Disable the rule
+      'react/jsx-uses-react': 'off', // Disable related rule (optional, for completeness)
     },
   },
 

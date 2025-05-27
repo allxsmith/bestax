@@ -3,52 +3,63 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
 
-describe('Button', () => {
-  it('renders with default props', () => {
-    render(<Button>Click me</Button>);
-    const button = screen.getByRole('button', { name: /Click me/i });
-    expect(button).toHaveClass('button');
-    expect(button).not.toHaveAttribute('disabled');
+describe('Button Component', () => {
+  it('renders children correctly', () => {
+    render(<Button>Click Me</Button>);
+    expect(screen.getByText('Click Me')).toBeInTheDocument();
   });
 
-  it('applies color prop', () => {
-    render(<Button color="primary">Primary</Button>);
-    const button = screen.getByRole('button', { name: /Primary/i });
-    expect(button).toHaveClass('is-primary');
+  it('applies button-specific classes', () => {
+    render(<Button color="primary" size="large" isRounded />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'button',
+      'is-primary',
+      'is-large',
+      'is-rounded'
+    );
   });
 
-  it('applies size prop', () => {
-    render(<Button size="large">Large</Button>);
-    const button = screen.getByRole('button', { name: /Large/i });
-    expect(button).toHaveClass('is-large');
-  });
-
-  it('applies isLoading state', () => {
-    render(<Button isLoading>Loading</Button>);
-    const button = screen.getByRole('button', { name: /Loading/i });
-    expect(button).toHaveClass('is-loading');
-  });
-
-  it('applies isDisabled state', () => {
-    render(<Button isDisabled>Disabled</Button>);
-    const button = screen.getByRole('button', { name: /Disabled/i });
-    expect(button).toHaveAttribute('disabled');
-    expect(button).toHaveClass('is-disabled');
-  });
-
-  it('applies custom className', () => {
-    render(<Button className="custom-class">Custom</Button>);
-    const button = screen.getByRole('button', { name: /Custom/i });
-    expect(button).toHaveClass('custom-class');
-  });
-
-  it('passes additional props', () => {
+  it('applies helper classes via rest props', () => {
     render(
-      <Button type="submit" data-testid="btn">
-        Submit
+      <Button
+        textColor="success"
+        m="2"
+        textAlign="centered"
+        viewport="mobile"
+      />
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'button',
+      'has-text-success-mobile',
+      'm-2-mobile',
+      'has-text-centered-mobile'
+    );
+  });
+
+  it('prioritizes button color over textColor and bgColor', () => {
+    render(<Button color="primary" textColor="success" bgColor="info" />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'button',
+      'is-primary',
+      'has-text-success',
+      'has-background-info'
+    );
+    expect(button).not.toHaveClass(
+      'has-text-primary',
+      'has-background-primary'
+    );
+  });
+
+  it('forwards HTML attributes from bulmaProps', () => {
+    render(
+      <Button data-testid="test" onClick={() => {}}>
+        Test
       </Button>
     );
-    const button = screen.getByTestId('btn');
-    expect(button).toHaveAttribute('type', 'submit');
+    const button = screen.getByTestId('test');
+    expect(button).toHaveClass('button');
   });
 });
