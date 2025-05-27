@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.1.0
+
+### Minor Changes
+
+- d103971: Added hook useBulmaClasses which converts react properties to bulma classes
+
 ## 1.0.37
 
 ### Patch Changes
