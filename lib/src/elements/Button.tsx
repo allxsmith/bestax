@@ -4,7 +4,6 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
-  validSizes,
 } from '../helpers/useBulmaClasses';
 
 /**
@@ -12,28 +11,9 @@ import {
  *
  * Supports Bulma-style modifiers for color, size, and various states, plus additional Bulma helper classes.
  */
-interface ButtonProps
+export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    Omit<
-      BulmaClassesProps,
-      | 'color'
-      | 'backgroundColor'
-      | 'size'
-      | 'm'
-      | 'mt'
-      | 'mr'
-      | 'mb'
-      | 'ml'
-      | 'mx'
-      | 'my'
-      | 'p'
-      | 'pt'
-      | 'pr'
-      | 'pb'
-      | 'pl'
-      | 'px'
-      | 'py'
-    > {
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   size?: 'small' | 'normal' | 'medium' | 'large';
   isLight?: boolean;
@@ -50,20 +30,6 @@ interface ButtonProps
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  m?: (typeof validSizes)[number];
-  mt?: (typeof validSizes)[number];
-  mr?: (typeof validSizes)[number];
-  mb?: (typeof validSizes)[number];
-  ml?: (typeof validSizes)[number];
-  mx?: (typeof validSizes)[number];
-  my?: (typeof validSizes)[number];
-  p?: (typeof validSizes)[number];
-  pt?: (typeof validSizes)[number];
-  pr?: (typeof validSizes)[number];
-  pb?: (typeof validSizes)[number];
-  pl?: (typeof validSizes)[number];
-  px?: (typeof validSizes)[number];
-  py?: (typeof validSizes)[number];
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -84,39 +50,11 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   textColor,
   bgColor,
-  m,
-  mt,
-  mr,
-  mb,
-  ml,
-  mx,
-  my,
-  p,
-  pt,
-  pr,
-  pb,
-  pl,
-  px,
-  py,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
-    m,
-    mt,
-    mr,
-    mb,
-    ml,
-    mx,
-    my,
-    p,
-    pt,
-    pr,
-    pb,
-    pl,
-    px,
-    py,
     ...props,
   });
 
