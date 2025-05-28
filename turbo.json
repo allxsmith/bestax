@@ -30,6 +30,9 @@
     "storybook": {
       "cache": false
     },
+    "docs": {
+      "cache": false
+    },
     "build-storybook": {
       "outputs": ["storybook-static/**"]
     }

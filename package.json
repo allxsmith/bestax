@@ -19,6 +19,7 @@
     "lint": "turbo run lint",
     "all": "turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestax-lib",
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-lib",
+    "docs": "turbo run docs --filter=@allxsmith/bestax-docs",
     "changeset": "changeset",
     "version": "changeset version",
     "publish": "changeset publish"
