@@ -18,6 +18,8 @@ export const validColors = [
   'grey-light',
   'grey-lighter',
   'white',
+  'light',
+  'dark',
 ] as const;
 export const validColorShades = [
   '00',
@@ -231,7 +233,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     const addClass = (
       prefix: string,
       value: string | undefined,
-      validValues: readonly string[] = []
+      validValues: readonly string[]
     ) => {
       if (value && (!validValues.length || validValues.includes(value))) {
         const className =

@@ -221,6 +221,107 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('');
   });
 
+  // ... (previous imports and tests remain unchanged)
+
+  // Viewport Handling
+  it('applies viewport-specific classes for valid viewport', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      m: '2',
+      viewport: 'tablet',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary-tablet m-2-tablet');
+  });
+
+  it('ignores viewport for invalid viewport', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      viewport: 'invalid',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary');
+  });
+
+  it('applies text color with shade', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      colorShade: '05',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary-05');
+  });
+
+  it('applies text color with shade and viewport', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      colorShade: '05',
+      viewport: 'mobile',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary-05-mobile');
+  });
+
+  it('applies text color with shade without viewport when viewport is invalid', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      colorShade: '50',
+      viewport: 'invalid',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary-50');
+  });
+
+  it('applies background color with shade', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      backgroundColor: 'info',
+      colorShade: '10',
+    });
+    expect(bulmaHelperClasses).toBe('has-background-info-10');
+  });
+
+  it('falls back to base color class when shade is invalid', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+      colorShade: 'invalid' as string, // Simulate invalid shade
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary');
+  });
+
+  it('does not apply color class for invalid color', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'invalid' as string,
+      colorShade: '05',
+    });
+    expect(bulmaHelperClasses).toBe('');
+  });
+
+  // Background color with shade and viewport
+  describe('Background color with shade and viewport', () => {
+    it('applies background color with shade and not applicable viewport', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        backgroundColor: 'primary',
+        colorShade: '50',
+        viewport: 'mobile',
+      });
+      expect(bulmaHelperClasses).toBe('has-background-primary-50');
+    });
+
+    it('applies background color with shade without viewport when viewport is invalid', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        backgroundColor: 'primary',
+        colorShade: '50',
+        viewport: 'invalid',
+      });
+      expect(bulmaHelperClasses).toBe('has-background-primary-50');
+    });
+
+    it('applies background color with shade without viewport when viewport is undefined', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        backgroundColor: 'primary',
+        colorShade: '50',
+      });
+      expect(bulmaHelperClasses).toBe('has-background-primary-50');
+    });
+  });
+
+  // ... (rest of the tests remain unchanged)
+
   // New test cases for lines 250–253 (background color with shade and viewport)
   describe('Background color with shade and viewport', () => {
     it('applies background color with shade and not applicable viewport', () => {
