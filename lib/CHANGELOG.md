@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.2.0
+
+### Minor Changes
+
+- de5ff45: Added new Block, Box, Content components
+
 ## 1.1.0
 
 ### Minor Changes
