@@ -2,7 +2,7 @@
 slug: bulma-hook-helper
 title: Bulma Helper
 authors: [asmith]
-tags: [bulma css props hook helper]
+tags: [bulma, css, props, hook, helper]
 ---
 
 We've add a react hook that turns properties into bulma helper classes. It's pretty cool. You can add this to any custom component to leverage Bulma helper classes through properties.
