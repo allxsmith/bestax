@@ -1,41 +1,47 @@
 import React from 'react';
+import classNames from 'classnames';
+import {
+  useBulmaClasses,
+  BulmaClassesProps,
+  validColors,
+} from '../helpers/useBulmaClasses';
 
-// Define the props interface
-interface BoxProps {
-  children?: React.ReactNode; // Make children optional
+/**
+ * Box component for rendering a styled Bulma box element.
+ *
+ * Supports Bulma helper classes for styling and layout, with optional shadow control.
+ */
+export interface BoxProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
-  padding?: string;
-  margin?: string;
-  backgroundColor?: string;
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   hasShadow?: boolean;
 }
 
-// Box component
-const Box: React.FC<BoxProps> = ({
-  children,
-  className = '',
-  padding = 'p-5',
-  margin = 'm-4',
-  backgroundColor = 'has-background-white',
+export const Box: React.FC<BoxProps> = ({
+  className,
+  textColor,
+  bgColor,
   hasShadow = true,
+  children,
+  ...props
 }) => {
-  // Combine classes dynamically
-  const boxClasses = [
-    'box',
-    padding,
-    margin,
-    backgroundColor,
-    hasShadow ? 'has-shadow' : '',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
+    backgroundColor: bgColor,
+    ...props,
+  });
+
+  const boxClasses = classNames('box', className, bulmaHelperClasses, {
+    'is-shadowless': !hasShadow,
+  });
 
   return (
-    <div className={boxClasses} data-testid="box">
+    <div className={boxClasses} {...rest}>
       {children}
     </div>
   );
 };
-
-export default Box;
