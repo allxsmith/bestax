@@ -1,6 +1,6 @@
-/// <reference lib="dom" />
 import { Meta, StoryObj } from '@storybook/react';
 import { Button, ButtonProps } from './Button';
+import { Buttons } from './Buttons'; // Added import
 import { validColors } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Button> = {
@@ -186,7 +186,7 @@ export const Default: Story = {
 // Colors
 export const AllColors: Story = {
   render: () => (
-    <div className="buttons">
+    <Buttons>
       {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(
         color => (
           <Button key={color} color={color as ButtonProps['color']}>
@@ -194,7 +194,7 @@ export const AllColors: Story = {
           </Button>
         )
       )}
-    </div>
+    </Buttons>
   ),
   name: 'All Colors',
 };
@@ -202,13 +202,13 @@ export const AllColors: Story = {
 // Sizes
 export const AllSizes: Story = {
   render: () => (
-    <div className="buttons">
+    <Buttons>
       {['small', 'normal', 'medium', 'large'].map(size => (
         <Button key={size} size={size as ButtonProps['size']}>
           {size.charAt(0).toUpperCase() + size.slice(1)}
         </Button>
       ))}
-    </div>
+    </Buttons>
   ),
   name: 'All Sizes',
 };
@@ -365,11 +365,11 @@ export const FlexLayout: Story = {
 // Button Group
 export const ButtonGroup: Story = {
   render: () => (
-    <div className="buttons has-addons">
+    <Buttons hasAddons>
       <Button color="primary">Left</Button>
       <Button color="primary">Center</Button>
       <Button color="primary">Right</Button>
-    </div>
+    </Buttons>
   ),
   name: 'Button Group',
 };
