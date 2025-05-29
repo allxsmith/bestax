@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.3.0
+
+### Minor Changes
+
+- 5394252: Added Delete, Icon, IconText, and Buttons components
+
 ## 1.2.0
 
 ### Minor Changes
