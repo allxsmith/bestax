@@ -1,5 +1,11 @@
 # @allxsmith/bestax-lib
 
+## 1.4.0
+
+### Minor Changes
+
+- 9051a26: Added new components Delete, Icon, Image, Notification, Progress
+
 ## 1.3.0
 
 ### Minor Changes
