@@ -7,9 +7,13 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Box component for rendering a styled Bulma box element.
+ * Props for the Box component.
  *
- * Supports Bulma helper classes for styling and layout, with optional shadow control.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the box.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {boolean} [hasShadow=true] - Whether the box has a shadow (default: true).
  */
 export interface BoxProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -21,6 +25,15 @@ export interface BoxProps
   hasShadow?: boolean;
 }
 
+/**
+ * Box component for rendering a styled Bulma box element.
+ *
+ * Supports Bulma helper classes for styling and layout, with optional shadow control.
+ *
+ * @function
+ * @param {BoxProps} props - Props for the Box component.
+ * @returns {JSX.Element} The rendered box element.
+ */
 export const Box: React.FC<BoxProps> = ({
   className,
   textColor,

@@ -3,6 +3,9 @@ import classNames from 'classnames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 const validSubTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
+/**
+ * Valid size values for the SubTitle component (Bulma subtitle sizes).
+ */
 export type SubTitleSize = (typeof validSubTitleSizes)[number];
 
 const validSubTitleElements = [
@@ -14,12 +17,18 @@ const validSubTitleElements = [
   'h6',
   'p',
 ] as const;
+/**
+ * Valid HTML elements for the SubTitle component.
+ */
 export type SubTitleElement = (typeof validSubTitleElements)[number];
 
 /**
- * SubTitle component for rendering a styled Bulma subtitle.
+ * Props for the SubTitle component.
  *
- * Supports sizes and rendering as different HTML elements.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {SubTitleSize} [size] - Size of the subtitle (1-6).
+ * @property {SubTitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
+ * @property {React.ReactNode} [children] - Subtitle content.
  */
 export interface SubTitleProps
   extends Omit<
@@ -33,6 +42,15 @@ export interface SubTitleProps
   children?: React.ReactNode;
 }
 
+/**
+ * SubTitle component for rendering a styled Bulma subtitle.
+ *
+ * Supports Bulma subtitle sizes and rendering as different HTML elements (h1-h6, p).
+ *
+ * @function
+ * @param {SubTitleProps} props - Props for the SubTitle component.
+ * @returns {JSX.Element} The rendered subtitle element.
+ */
 export const SubTitle: React.FC<SubTitleProps> = ({
   className,
   size,

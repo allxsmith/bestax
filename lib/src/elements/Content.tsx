@@ -7,10 +7,13 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Content component for rendering a styled Bulma content block.
+ * Props for the Content component.
  *
- * Applies typographic styles to HTML content (e.g., paragraphs, headings, lists) with Bulma's content class.
- * Supports size modifiers and Bulma helper classes for additional styling.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the content.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {'small' | 'normal' | 'medium' | 'large'} [size] - Size modifier for the content.
  */
 interface ContentProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -25,6 +28,16 @@ interface ContentProps
 // Valid size modifiers for the content class
 const validSizes = ['small', 'medium', 'large'] as const;
 
+/**
+ * Content component for rendering a styled Bulma content block.
+ *
+ * Applies typographic styles to HTML content (e.g., paragraphs, headings, lists) with Bulma's content class.
+ * Supports size modifiers and Bulma helper classes for additional styling.
+ *
+ * @function
+ * @param {ContentProps} props - Props for the Content component.
+ * @returns {JSX.Element} The rendered content block.
+ */
 export const Content: React.FC<ContentProps> = ({
   className,
   textColor,

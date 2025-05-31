@@ -15,15 +15,28 @@ const validTagColors = [
   'white',
 ] as const;
 
+/**
+ * Valid color values for the Tag component.
+ */
 export type TagColor = (typeof validTagColors)[number];
 
 const validTagSizes = ['normal', 'medium', 'large'] as const;
+/**
+ * Valid size values for the Tag component.
+ */
 export type TagSize = (typeof validTagSizes)[number];
 
 /**
- * Tag component for rendering a styled Bulma tag.
+ * Props for the Tag component.
  *
- * Supports colors, sizes, rounded, delete, and hoverable variants.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {TagColor} [color] - Bulma color modifier for the tag.
+ * @property {TagSize} [size] - Size modifier for the tag.
+ * @property {boolean} [isRounded] - Whether the tag should have rounded corners.
+ * @property {boolean} [isDelete] - Whether the tag is a delete button.
+ * @property {boolean} [isHoverable] - Whether the tag is hoverable.
+ * @property {() => void} [onDelete] - Callback fired when the delete button is clicked.
+ * @property {React.ReactNode} [children] - Tag content.
  */
 export interface TagProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
@@ -35,8 +48,18 @@ export interface TagProps
   isDelete?: boolean;
   isHoverable?: boolean;
   onDelete?: () => void;
+  children?: React.ReactNode;
 }
 
+/**
+ * Tag component for rendering a styled Bulma tag.
+ *
+ * Supports colors, sizes, rounded, delete, and hoverable variants.
+ *
+ * @function
+ * @param {TagProps} props - Props for the Tag component.
+ * @returns {JSX.Element} The rendered tag element.
+ */
 export const Tag: React.FC<TagProps> = ({
   className,
   color,

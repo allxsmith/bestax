@@ -6,6 +6,17 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the Icon component.
+ *
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the icon.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {string} name - Icon class name(s), e.g., 'fas fa-star' for Font Awesome.
+ * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the icon.
+ * @property {string} [ariaLabel='icon'] - ARIA label for accessibility (default: 'icon').
+ */
 export interface IconProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     BulmaClassesProps {
@@ -18,6 +29,15 @@ export interface IconProps
   ariaLabel?: string;
 }
 
+/**
+ * Icon component for rendering a Bulma-styled icon container.
+ *
+ * Supports Bulma helper classes for styling, color, and size, and renders an <i></i> element for the icon itself.
+ *
+ * @function
+ * @param {IconProps} props - Props for the Icon component.
+ * @returns {JSX.Element} The rendered icon element.
+ */
 export const Icon: React.FC<IconProps> = ({
   className,
   textColor,

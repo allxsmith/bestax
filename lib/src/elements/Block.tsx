@@ -7,10 +7,12 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Block component for rendering a styled Bulma block element.
+ * Props for the Block component.
  *
- * A block is a simple utility element that adds spacing (margin-bottom) between elements.
- * Supports Bulma helper classes for additional styling like text color, background color, and layout.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the block.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  */
 export interface BlockProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -21,6 +23,16 @@ export interface BlockProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
+/**
+ * Block component for rendering a styled Bulma block element.
+ *
+ * A block is a simple utility element that adds spacing (margin-bottom) between elements.
+ * Supports Bulma helper classes for additional styling like text color, background color, and layout.
+ *
+ * @function
+ * @param {BlockProps} props - Props for the Block component.
+ * @returns {JSX.Element} The rendered block element.
+ */
 export const Block: React.FC<BlockProps> = ({
   className,
   textColor,

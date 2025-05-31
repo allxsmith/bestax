@@ -1,0 +1,14 @@
+{
+  "entryPoints": ["src/elements", "src/helpers"],
+  "out": "../doc-site/docs/generated",
+  "plugin": ["typedoc-plugin-markdown"],
+  "disableSources": true,
+  "hideBreadcrumbs": true,
+  "readme": "none",
+  "tsconfig": "./tsconfig.json",
+  "excludePrivate": true,
+  "excludeNotDocumented": false,
+  "entryPointStrategy": "expand",
+  "kindSortOrder": ["Function", "Interface", "Variable", "TypeAlias"],
+  "categorizeByGroup": false
+}

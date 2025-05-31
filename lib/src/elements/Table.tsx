@@ -3,9 +3,16 @@ import classNames from 'classnames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
- * Table component for rendering a styled Bulma table.
+ * Props for the Table component.
  *
- * Supports responsive, bordered, striped, narrow, hoverable, and fullwidth variants.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {boolean} [isBordered] - Adds borders to all the cells.
+ * @property {boolean} [isStriped] - Adds zebra-striping to rows.
+ * @property {boolean} [isNarrow] - Makes the table more compact by cutting cell padding in half.
+ * @property {boolean} [isHoverable] - Adds a hover effect on rows.
+ * @property {boolean} [isFullwidth] - Makes the table span the full width of its parent.
+ * @property {boolean} [isResponsive] - Makes the table horizontally scrollable on small screens.
+ * @property {React.ReactNode} [children] - Table content.
  */
 export interface TableProps
   extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'color'>,
@@ -19,6 +26,15 @@ export interface TableProps
   isResponsive?: boolean;
 }
 
+/**
+ * Table component for rendering a styled Bulma table.
+ *
+ * Supports responsive, bordered, striped, narrow, hoverable, and fullwidth variants.
+ *
+ * @function
+ * @param {TableProps} props - Props for the Table component.
+ * @returns {JSX.Element} The rendered table element.
+ */
 export const Table: React.FC<TableProps> = ({
   className,
   isBordered,
