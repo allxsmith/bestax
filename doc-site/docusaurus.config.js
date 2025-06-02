@@ -5,6 +5,11 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import { themes as prismThemes } from 'prism-react-renderer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -58,7 +63,7 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/allxsmith/bestax',
           // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
+          onInlineTags: 'ignore',
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
         },
@@ -68,7 +73,39 @@ const config = {
       }),
     ],
   ],
-
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        entryPoints: [path.join(__dirname, '../lib/src/**/*')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx', // Exclude test files
+          '**/*.test.ts',
+          '**/__tests__/**', // Optionally exclude entire __tests__ directory
+        ],
+        sidebar: {
+          autoConfiguration: true,
+          pretty: true,
+        },
+        disableSources: true,
+        hideBreadcrumbs: true,
+        readme: 'none',
+        excludePrivate: true,
+        excludeNotDocumented: false,
+        entryPointStrategy: 'expand',
+        kindSortOrder: ['Function', 'Interface', 'Variable', 'TypeAlias'],
+        categorizeByGroup: false,
+        parametersFormat: 'table',
+        name: 'Bestax API',
+        // Optional: Simplify headers if needed
+        hidePageHeader: true, // Replaces some functionality of hideMemberSymbol/hideKindTag
+      },
+    ],
+  ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -87,12 +124,12 @@ const config = {
             position: 'left',
             label: 'Getting Started',
           },
-          {
-            type: 'docSidebar',
-            sidebarId: 'componentSidebar',
-            position: 'left',
-            label: 'Components',
-          },
+          // {
+          //   type: 'docSidebar',
+          //   sidebarId: 'componentSidebar',
+          //   position: 'left',
+          //   label: 'Components',
+          // },
           {
             type: 'docSidebar',
             sidebarId: 'apiSidebar',
