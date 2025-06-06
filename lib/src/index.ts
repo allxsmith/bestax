@@ -20,4 +20,7 @@ export * from './elements/Th';
 export * from './elements/Thead';
 export * from './elements/Title';
 export * from './elements/Tr';
+
+export * from './components/Breadcrumb';
+
 export * from './helpers/useBulmaClasses';
