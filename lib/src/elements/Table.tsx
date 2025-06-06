@@ -1,3 +1,6 @@
+/**
+ * @group Table
+ */
 import React from 'react';
 import classNames from 'classnames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';

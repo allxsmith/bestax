@@ -311,7 +311,7 @@ export interface BulmaClassesProps {
 /**
  * A hook that generates Bulma helper classes from props and separates unhandled props.
  *
- * @function
+ * @function useBulmaClasses
  * @param props - Combination of BulmaClassesProps and additional props.
  * @returns An object containing the Bulma helper classes and unhandled props.
  * @example

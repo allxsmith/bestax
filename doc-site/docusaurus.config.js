@@ -77,32 +77,35 @@ const config = {
     [
       'docusaurus-plugin-typedoc',
       {
-        entryPoints: [path.join(__dirname, '../lib/src/**/*')],
+        id: 'api-elements',
+        entryPoints: [path.join(__dirname, '../lib/src/elements/*.tsx')],
         tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
-        out: 'docs/api',
+        out: 'docs/api/elements',
         exclude: [
           '**/*.stories.tsx',
           '**/*.stories.ts',
-          '**/*.test.tsx', // Exclude test files
+          '**/*.test.tsx',
           '**/*.test.ts',
-          '**/__tests__/**', // Optionally exclude entire __tests__ directory
+          '**/__tests__/**',
         ],
-        sidebar: {
-          autoConfiguration: true,
-          pretty: true,
-        },
-        disableSources: true,
-        hideBreadcrumbs: true,
         readme: 'none',
-        excludePrivate: true,
-        excludeNotDocumented: false,
-        entryPointStrategy: 'expand',
-        kindSortOrder: ['Function', 'Interface', 'Variable', 'TypeAlias'],
-        categorizeByGroup: false,
-        parametersFormat: 'table',
-        name: 'Bestax API',
-        // Optional: Simplify headers if needed
-        hidePageHeader: true, // Replaces some functionality of hideMemberSymbol/hideKindTag
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'api-helpers',
+        entryPoints: [path.join(__dirname, '../lib/src/helpers/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/helpers',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
       },
     ],
   ],

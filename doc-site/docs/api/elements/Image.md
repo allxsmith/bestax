@@ -1,0 +1,96 @@
+## Interfaces
+
+### ImageProps
+
+Props for the Image component.
+
+#### Extends
+
+- `HTMLAttributes`\<`HTMLElement`\>.`Omit`\<`BulmaClassesProps`, `"color"` \| `"backgroundColor"`\>
+
+#### Properties
+
+| Property | Type | Description | Overrides |
+| ------ | ------ | ------ | ------ |
+| <a id="aligncontent"></a> `alignContent?` | `"flex-start"` \| `"flex-end"` \| `"center"` \| `"space-between"` \| `"space-around"` \| `"space-evenly"` \| `"stretch"` | Align content (e.g., 'center', 'stretch'). | - |
+| <a id="alignitems"></a> `alignItems?` | `"flex-start"` \| `"flex-end"` \| `"center"` \| `"start"` \| `"end"` \| `"stretch"` \| `"baseline"` | Align items (e.g., 'center', 'flex-start'). | - |
+| <a id="alignself"></a> `alignSelf?` | `"auto"` \| `"flex-start"` \| `"flex-end"` \| `"center"` \| `"stretch"` \| `"baseline"` | Align self (e.g., 'auto', 'center'). | - |
+| <a id="alt"></a> `alt?` | `string` | Alternate text for the image. | - |
+| <a id="bgcolor"></a> `bgColor?` | `"primary"` \| `"link"` \| `"info"` \| `"success"` \| `"warning"` \| `"danger"` \| `"black"` \| `"black-bis"` \| `"black-ter"` \| `"grey-darker"` \| `"grey-dark"` \| `"grey"` \| `"grey-light"` \| `"grey-lighter"` \| `"white"` \| `"light"` \| `"dark"` \| `"inherit"` \| `"current"` | Background color (Bulma color, 'inherit', or 'current'). | - |
+| <a id="children"></a> `children?` | `ReactNode` | Arbitrary children (e.g., iframe or custom content). | `React.HTMLAttributes.children` |
+| <a id="classname"></a> `className?` | `string` | Additional CSS classes to apply. | `React.HTMLAttributes.className` |
+| <a id="color"></a> `color?` | `"primary"` \| `"link"` \| `"info"` \| `"success"` \| `"warning"` \| `"danger"` | Bulma color modifier for the image container. | `React.HTMLAttributes.color` |
+| <a id="colorshade"></a> `colorShade?` | `"00"` \| `"05"` \| `"10"` \| `"15"` \| `"20"` \| `"25"` \| `"30"` \| `"35"` \| `"40"` \| `"45"` \| `"50"` \| `"55"` \| `"60"` \| `"65"` \| `"70"` \| `"75"` \| `"80"` \| `"85"` \| `"90"` \| `"95"` \| `"invert"` | Color shade suffix (e.g., '00', 'invert'). | - |
+| <a id="display"></a> `display?` | `"block"` \| `"flex"` \| `"inline"` \| `"inline-block"` \| `"inline-flex"` | Display type (e.g., 'block', 'flex'). | - |
+| <a id="flexdirection"></a> `flexDirection?` | `"row"` \| `"row-reverse"` \| `"column"` \| `"column-reverse"` | Flex direction (e.g., 'row', 'column'). | - |
+| <a id="flexgrow"></a> `flexGrow?` | `"0"` \| `"1"` | Flex grow value (e.g., '0', '1'). | - |
+| <a id="flexshrink"></a> `flexShrink?` | `"0"` \| `"1"` | Flex shrink value (e.g., '0', '1'). | - |
+| <a id="flexwrap"></a> `flexWrap?` | `"nowrap"` \| `"wrap"` \| `"wrap-reverse"` | Flex wrap (e.g., 'wrap', 'nowrap'). | - |
+| <a id="float"></a> `float?` | `"left"` \| `"right"` | Float direction (e.g., 'left', 'right'). | - |
+| <a id="fontfamily"></a> `fontFamily?` | `"primary"` \| `"sans-serif"` \| `"monospace"` \| `"secondary"` \| `"code"` | Font family (e.g., 'sans-serif', 'code'). | - |
+| <a id="interaction"></a> `interaction?` | `"unselectable"` \| `"clickable"` | Interaction behavior (e.g., 'unselectable', 'clickable'). | - |
+| <a id="isretina"></a> `isRetina?` | `boolean` | Whether to use retina (2x) image source. | - |
+| <a id="isrounded"></a> `isRounded?` | `boolean` | Whether the image should have rounded corners. | - |
+| <a id="justifycontent"></a> `justifyContent?` | `"left"` \| `"right"` \| `"flex-start"` \| `"flex-end"` \| `"center"` \| `"space-between"` \| `"space-around"` \| `"space-evenly"` \| `"start"` \| `"end"` | Justify content (e.g., 'center', 'space-between'). | - |
+| <a id="m"></a> `m?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin (e.g., '0', '1'). | - |
+| <a id="mb"></a> `mb?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin bottom. | - |
+| <a id="ml"></a> `ml?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin left. | - |
+| <a id="mr"></a> `mr?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin right. | - |
+| <a id="mt"></a> `mt?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin top. | - |
+| <a id="mx"></a> `mx?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin horizontal (left and right). | - |
+| <a id="my"></a> `my?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin vertical (top and bottom). | - |
+| <a id="overflow"></a> `overflow?` | `"clipped"` | Overflow behavior (e.g., 'clipped'). | - |
+| <a id="overlay"></a> `overlay?` | `boolean` | Applies overlay styling if true. | - |
+| <a id="p"></a> `p?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding (e.g., '0', '1'). | - |
+| <a id="pb"></a> `pb?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding bottom. | - |
+| <a id="pl"></a> `pl?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding left. | - |
+| <a id="pr"></a> `pr?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding right. | - |
+| <a id="pt"></a> `pt?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding top. | - |
+| <a id="px"></a> `px?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding horizontal (left and right). | - |
+| <a id="py"></a> `py?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding vertical (top and bottom). | - |
+| <a id="radius"></a> `radius?` | `"radiusless"` | Border radius style (e.g., 'radiusless'). | - |
+| <a id="responsive"></a> `responsive?` | `"mobile"` \| `"narrow"` | Responsive behavior (e.g., 'mobile', 'narrow'). | - |
+| <a id="shadow"></a> `shadow?` | `"shadowless"` | Shadow style (e.g., 'shadowless'). | - |
+| <a id="size"></a> `size?` | `"16x16"` \| `"24x24"` \| `"32x32"` \| `"48x48"` \| `"64x64"` \| `"96x96"` \| `"128x128"` \| `"square"` \| `"1by1"` \| `"5by4"` \| `"4by3"` \| `"3by2"` \| `"5by3"` \| `"16by9"` \| `"2by1"` \| `"3by1"` \| `"4by5"` \| `"3by4"` \| `"2by3"` \| `"3by5"` \| `"9by16"` \| `"1by2"` \| `"1by3"` | Size or aspect ratio modifier (e.g., '128x128', '16by9', etc.). | - |
+| <a id="src"></a> `src?` | `string` | Image source URL. | - |
+| <a id="textalign"></a> `textAlign?` | `"centered"` \| `"justified"` \| `"left"` \| `"right"` | Text alignment (e.g., 'centered', 'left'). | - |
+| <a id="textcolor"></a> `textColor?` | `"primary"` \| `"link"` \| `"info"` \| `"success"` \| `"warning"` \| `"danger"` \| `"black"` \| `"black-bis"` \| `"black-ter"` \| `"grey-darker"` \| `"grey-dark"` \| `"grey"` \| `"grey-light"` \| `"grey-lighter"` \| `"white"` \| `"light"` \| `"dark"` \| `"inherit"` \| `"current"` | Text color (Bulma color, 'inherit', or 'current'). | - |
+| <a id="textsize"></a> `textSize?` | `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"7"` | Text size (e.g., '1', '2'). | - |
+| <a id="texttransform"></a> `textTransform?` | `"capitalized"` \| `"lowercase"` \| `"uppercase"` \| `"italic"` | Text transformation (e.g., 'uppercase', 'italic'). | - |
+| <a id="textweight"></a> `textWeight?` | `"light"` \| `"normal"` \| `"medium"` \| `"semibold"` \| `"bold"` | Text weight (e.g., 'light', 'bold'). | - |
+| <a id="viewport"></a> `viewport?` | `"mobile"` \| `"tablet"` \| `"desktop"` \| `"widescreen"` \| `"fullhd"` | Viewport for responsive classes (e.g., 'mobile', 'desktop'). | - |
+| <a id="visibility"></a> `visibility?` | `"hidden"` \| `"sr-only"` | Visibility (e.g., 'hidden', 'sr-only'). | - |
+
+## Functions
+
+### Image()
+
+> **Image**(`props`, `deprecatedLegacyContext?`): `ReactNode`
+
+Image component for rendering a styled Bulma image element.
+
+Supports fixed-size containers, aspect ratios, rounded images, retina images, and arbitrary children (e.g., iframe).
+
+#### Parameters
+
+##### props
+
+[`ImageProps`](#imageprops)
+
+Props for the Image component.
+
+##### deprecatedLegacyContext?
+
+`any`
+
+**Deprecated**
+
+**See**
+
+[React Docs](https://legacy.reactjs.org/docs/legacy-context.html#referencing-context-in-lifecycle-methods)
+
+#### Returns
+
+`ReactNode`
+
+The rendered image element.

@@ -1,0 +1,26 @@
+{
+  "disableSources": true, // Removes "Defined in" links
+  "excludeExternals": true, // Excludes external dependencies
+  "excludePrivate": true, // Excludes private members
+  "excludeProtected": true, // Excludes protected members
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-frontmatter"], // Ensure Markdown plugin is included
+  "router": "module",
+  "interfacePropertiesFormat": "table", // Render interfaces as tables
+  "classPropertiesFormat": "table", // Render class properties as tables
+  "propertyMembersFormat": "table",
+  "tableColumnSettings": {
+    "hideSources": true, // Hides the "Defined in" column
+    "hideInherited": true
+  },
+  "pageTitleTemplates": {
+    "index": "{projectName} {version}",
+    "member": "{kind}: {name}",
+    "module": "{name}"
+  },
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "hidePageTitle": true,
+  "readmeFrontmatter": {
+    "sidebar_position": 1
+  }
+}

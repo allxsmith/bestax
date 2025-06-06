@@ -16,6 +16,7 @@ import {
  * @property {boolean} [hasShadow=true] - Whether the box has a shadow (default: true).
  */
 export interface BoxProps
+  /** @ignore */
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
