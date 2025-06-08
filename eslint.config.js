@@ -5,6 +5,13 @@ import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import globals from 'globals';
+
+function cleanGlobals(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => key.trim() === key) // no leading/trailing whitespace
+  );
+}
 
 export default [
   // Base JavaScript recommended rules
@@ -30,7 +37,7 @@ export default [
     },
     languageOptions: {
       globals: {
-        browser: true,
+        ...cleanGlobals(globals.browser),
       },
       parserOptions: {
         ecmaFeatures: {
