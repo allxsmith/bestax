@@ -12,7 +12,7 @@ const DismissibleNotification: React.FC<NotificationProps> = props => {
 };
 
 const meta: Meta<typeof Notification> = {
-  title: 'Components/Notification',
+  title: 'Elements/Notification',
   component: Notification,
   argTypes: {
     color: {

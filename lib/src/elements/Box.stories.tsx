@@ -3,7 +3,7 @@ import { Box } from './Box'; // Adjust the import path based on your project str
 
 // Meta configuration for the Box component
 const meta: Meta<typeof Box> = {
-  title: 'Components/Box',
+  title: 'Elements/Box',
   component: Box,
   parameters: {
     layout: 'centered',

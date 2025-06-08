@@ -8,7 +8,7 @@ import { Td } from './Td';
 import { Tfoot } from './Tfoot';
 
 const meta: Meta<typeof Table> = {
-  title: 'Components/Table',
+  title: 'Elements/Table',
   component: Table,
   argTypes: {
     isBordered: { control: 'boolean' },

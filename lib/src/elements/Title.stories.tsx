@@ -4,7 +4,7 @@ import { SubTitle } from './SubTitle';
 import { Block } from './Block';
 
 const meta: Meta<typeof Title> = {
-  title: 'Components/Title',
+  title: 'Elements/Title',
   component: Title,
   argTypes: {
     size: {

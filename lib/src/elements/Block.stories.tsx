@@ -3,7 +3,7 @@ import { Block } from './Block'; // Adjust the import path based on your project
 
 // Meta configuration for the Block component
 const meta: Meta<typeof Block> = {
-  title: 'Components/Block',
+  title: 'Elements/Block',
   component: Block,
   parameters: {
     layout: 'centered',

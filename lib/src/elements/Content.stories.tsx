@@ -3,7 +3,7 @@ import { Content } from './Content'; // Adjust the import path based on your pro
 
 // Meta configuration for the Content component
 const meta: Meta<typeof Content> = {
-  title: 'Components/Content',
+  title: 'Elements/Content',
   component: Content,
   parameters: {
     layout: 'centered',

@@ -7,7 +7,7 @@ import {
 } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Icon> = {
-  title: 'Components/Icon',
+  title: 'Elements/Icon',
   component: Icon,
   argTypes: {
     className: { control: 'text' },

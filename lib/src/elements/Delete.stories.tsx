@@ -7,7 +7,7 @@ import {
 } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Delete> = {
-  title: 'Components/Delete',
+  title: 'Elements/Delete',
   component: Delete,
   argTypes: {
     className: { control: 'text' },

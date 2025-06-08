@@ -27,7 +27,7 @@ const DismissibleTagWithDeleteWrapper: React.FC = () => {
 };
 
 const meta: Meta<typeof Tags> = {
-  title: 'Components/Tags',
+  title: 'Elements/Tags',
   component: Tags,
   argTypes: {
     hasAddons: { control: 'boolean' },

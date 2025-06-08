@@ -4,7 +4,7 @@ import { Buttons } from './Buttons'; // Added import
 import { validColors } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Button> = {
-  title: 'Components/Button',
+  title: 'Elements/Button',
   component: Button,
   parameters: {
     docs: {

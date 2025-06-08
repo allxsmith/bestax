@@ -10,7 +10,7 @@ import {
 } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Buttons> = {
-  title: 'Components/Buttons',
+  title: 'Elements/Buttons',
   component: Buttons,
   argTypes: {
     className: { control: 'text' },

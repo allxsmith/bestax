@@ -31,7 +31,7 @@ const CombinedTagWithDeleteWrapper: React.FC<TagProps> = props => {
 };
 
 const meta: Meta<typeof Tag> = {
-  title: 'Components/Tag',
+  title: 'Elements/Tag',
   component: Tag,
   argTypes: {
     color: {
