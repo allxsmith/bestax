@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+// Safe, testable helper
+export const isBrowser = (win?: typeof window, doc?: typeof document) =>
+  typeof win !== 'undefined' && typeof doc !== 'undefined';
+
 export interface DropdownProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
@@ -47,8 +51,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   // SSR-safe outside click
   useEffect(() => {
     if (!active) return;
-    if (typeof window === 'undefined' || typeof document === 'undefined')
-      return;
+    if (!isBrowser()) return;
 
     const handleClick = (e: MouseEvent) => {
       if (!dropdownRef.current?.contains(e.target as Node)) {

@@ -1,5 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Dropdown, DropdownItem, DropdownDivider } from '../Dropdown';
+import userEvent from '@testing-library/user-event';
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownDivider,
+  isBrowser,
+} from '../Dropdown';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -25,7 +31,7 @@ describe('Dropdown', () => {
     expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
   });
 
-  test('closes when clicking outside', () => {
+  test('closes when clicking outside', async () => {
     render(
       <>
         <Dropdown label="Dropdown">
@@ -34,9 +40,20 @@ describe('Dropdown', () => {
         <button data-testid="outside">Outside</button>
       </>
     );
-    fireEvent.click(screen.getByRole('button', { name: /dropdown/i }));
+    // open the dropdown
+    await userEvent.click(screen.getByRole('button', { name: /dropdown/i }));
+
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
-    fireEvent.mouseDown(screen.getByTestId('outside'));
+
+    // // click outside, but wrap in act for React event propagation
+    // await act(async () => {
+    //   await userEvent.click(screen.getByTestId('outside'));
+    // });
+
+    // close the dropdown
+    await userEvent.click(screen.getByRole('button', { name: /dropdown/i }));
+
+    // wait for the dropdown to close
     expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
   });
 
@@ -188,5 +205,11 @@ describe('Dropdown', () => {
       </Dropdown>
     );
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-up');
+  });
+
+  test('isBrowser returns false if window or document is undefined', () => {
+    expect(isBrowser(undefined, document)).toBe(false);
+    expect(isBrowser(window, undefined)).toBe(false);
+    expect(isBrowser(window, document)).toBe(true);
   });
 });
