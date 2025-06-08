@@ -45,6 +45,17 @@ export interface CardProps
   imageAlt?: string;
 }
 
+// Always wrap each footer item in .card-footer-item
+const renderFooter = (footer: CardProps['footer']) => {
+  if (!footer) return null;
+  const items = Array.isArray(footer) ? footer : [footer];
+  return items.map((item, idx) => (
+    <span className="card-footer-item" key={idx}>
+      {item}
+    </span>
+  ));
+};
+
 export const Card: React.FC<CardProps> = ({
   className,
   children,
@@ -68,17 +79,6 @@ export const Card: React.FC<CardProps> = ({
   const cardClasses = classNames('card', className, bulmaHelperClasses, {
     'is-shadowless': !hasShadow,
   });
-
-  // Always wrap each footer item in .card-footer-item
-  const renderFooter = (footer: CardProps['footer']) => {
-    if (!footer) return null;
-    const items = Array.isArray(footer) ? footer : [footer];
-    return items.map((item, idx) => (
-      <span className="card-footer-item" key={idx}>
-        {item}
-      </span>
-    ));
-  };
 
   // Render header with optional icon and is-centered modifier
   const renderHeader = (
@@ -127,3 +127,6 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+
+// Only for test coverage
+export const __test_exports__ = { renderFooter };

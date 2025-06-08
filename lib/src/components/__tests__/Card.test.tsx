@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { Card } from '../Card';
+import { Card, __test_exports__ } from '../Card';
 
 describe('Card Component', () => {
   test('renders children content', () => {
@@ -175,7 +175,6 @@ describe('Card Component', () => {
     expect(card).not.toHaveClass('m-invalid-size');
   });
 
-  // Additional: headerIcon and headerCentered
   test('renders headerIcon if provided', () => {
     render(
       <Card
@@ -202,5 +201,62 @@ describe('Card Component', () => {
       .getByText('Centered')
       .closest('.card-header-title');
     expect(headerTitle).toHaveClass('is-centered');
+  });
+
+  // Coverage for: if (!header && !headerIcon) return null;
+  test('does not render header if both header and headerIcon are missing', () => {
+    render(<Card>Just content</Card>);
+    expect(document.querySelector('.card-header')).toBeNull();
+  });
+
+  // Coverage for: only headerIcon present, header falsy
+  test('renders header with only headerIcon (no header)', () => {
+    render(<Card headerIcon={<span data-testid="icon" />} />);
+    expect(screen.getByTestId('icon')).toBeInTheDocument();
+    expect(document.querySelector('.card-header-title')).toBeNull();
+    expect(document.querySelector('.card-header')).not.toBeNull();
+  });
+
+  // Coverage for: footer not rendered if falsy
+  test('does not render footer if footer is not provided', () => {
+    render(<Card>Just content</Card>);
+    expect(document.querySelector('.card-footer')).toBeNull();
+  });
+
+  test('renders footer when footer is a string', () => {
+    render(<Card footer="Footer String">Test</Card>);
+    expect(screen.getByText('Footer String')).toBeInTheDocument();
+  });
+
+  test('renders footer when footer is an array', () => {
+    render(<Card footer={['Footer1', 'Footer2']}>Test</Card>);
+    expect(screen.getByText('Footer1')).toBeInTheDocument();
+    expect(screen.getByText('Footer2')).toBeInTheDocument();
+  });
+
+  test('renders <img> with default alt if imageAlt is not provided', () => {
+    render(<Card image="img.png">Test</Card>);
+    const img = screen.getByRole('img');
+    expect(img).toHaveAttribute('src', 'img.png');
+    expect(img).toHaveAttribute('alt', 'Card image');
+  });
+
+  test('renders <img> with provided alt if imageAlt is given', () => {
+    render(
+      <Card image="img.png" imageAlt="Custom Alt">
+        Test
+      </Card>
+    );
+    const img = screen.getByRole('img');
+    expect(img).toHaveAttribute('src', 'img.png');
+    expect(img).toHaveAttribute('alt', 'Custom Alt');
+  });
+
+  test('renderFooter returns null if footer is falsy', () => {
+    expect(__test_exports__.renderFooter(undefined)).toBeNull();
+    expect(__test_exports__.renderFooter(null)).toBeNull();
+    expect(__test_exports__.renderFooter(false)).toBeNull();
+    expect(__test_exports__.renderFooter('')).toBeNull();
+    expect(__test_exports__.renderFooter(0)).toBeNull();
   });
 });
