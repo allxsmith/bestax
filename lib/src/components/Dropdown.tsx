@@ -51,7 +51,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
   // SSR-safe outside click
   useEffect(() => {
     if (!active) return;
-    if (!isBrowser()) return;
+
+    if (!isBrowser(window, document)) return;
 
     const handleClick = (e: MouseEvent) => {
       if (!dropdownRef.current?.contains(e.target as Node)) {
@@ -65,6 +66,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   const handleToggle = () => {
     if (disabled) return;
+
     const newActive = !active;
     setActive(newActive);
     onActiveChange?.(newActive);

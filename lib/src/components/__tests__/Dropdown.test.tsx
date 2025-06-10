@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Dropdown,
@@ -6,6 +6,7 @@ import {
   DropdownDivider,
   isBrowser,
 } from '../Dropdown';
+import * as DropdownModule from '../Dropdown';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -45,16 +46,13 @@ describe('Dropdown', () => {
 
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
 
-    // // click outside, but wrap in act for React event propagation
-    // await act(async () => {
-    //   await userEvent.click(screen.getByTestId('outside'));
-    // });
-
     // close the dropdown
-    await userEvent.click(screen.getByRole('button', { name: /dropdown/i }));
+    await userEvent.click(screen.getByTestId('outside'));
 
     // wait for the dropdown to close
-    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    await waitFor(() =>
+      expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active')
+    );
   });
 
   test('renders all dropdown items and divider', () => {
@@ -211,5 +209,112 @@ describe('Dropdown', () => {
     expect(isBrowser(undefined, document)).toBe(false);
     expect(isBrowser(window, undefined)).toBe(false);
     expect(isBrowser(window, document)).toBe(true);
+  });
+
+  test('does not attach event listeners in SSR (isBrowser false)', () => {
+    const isBrowserSpy = jest
+      .spyOn(DropdownModule, 'isBrowser')
+      .mockReturnValue(false);
+    render(
+      <DropdownModule.Dropdown label="SSR">
+        <DropdownModule.DropdownItem>SSR Item</DropdownModule.DropdownItem>
+      </DropdownModule.Dropdown>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /SSR/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    isBrowserSpy.mockRestore();
+  });
+
+  test('applies menuClassName, id, and aria-controls', () => {
+    render(
+      <Dropdown
+        label="With Menu Class"
+        menuClassName="my-menu"
+        id="dropdown-id"
+      >
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    // menuClassName
+    expect(screen.getByTestId('dropdown-menu')).toHaveClass('my-menu');
+    // id and aria-controls
+    expect(
+      screen.getByRole('button', { name: /with menu class/i })
+    ).toHaveAttribute('aria-controls', 'dropdown-id-menu');
+    expect(screen.getByTestId('dropdown-menu').id).toBe('dropdown-id-menu');
+  });
+
+  test('applies up, right, hoverable, disabled class', () => {
+    render(
+      <Dropdown label="Modifiers" up right hoverable disabled>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    const root = screen.getByTestId('dropdown-root');
+    expect(root).toHaveClass('is-up');
+    expect(root).toHaveClass('is-right');
+    expect(root).toHaveClass('is-hoverable');
+    expect(root).toHaveClass('is-disabled');
+    // Disabled: click does nothing
+    fireEvent.click(screen.getByRole('button', { name: /modifiers/i }));
+    expect(root).not.toHaveClass('is-active');
+  });
+
+  test('DropdownItem renders as button', () => {
+    render(
+      <Dropdown label="As Button">
+        <DropdownItem as="button">Button Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('Button Item').tagName.toLowerCase()).toBe(
+      'button'
+    );
+  });
+
+  test('DropdownItem renders as div', () => {
+    render(
+      <Dropdown label="As Div">
+        <DropdownItem as="div">Div Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByText('Div Item').tagName.toLowerCase()).toBe('div');
+  });
+
+  test('Dropdown renders with no children', () => {
+    render(<Dropdown label="Empty">{null}</Dropdown>);
+    expect(screen.getByTestId('dropdown-root')).toBeInTheDocument();
+  });
+
+  test('Dropdown root and menu accept custom className', () => {
+    render(
+      <Dropdown label="Class" className="root-class" menuClassName="menu-class">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('root-class');
+    expect(screen.getByTestId('dropdown-menu')).toHaveClass('menu-class');
+  });
+
+  test('does NOT close when clicking inside the dropdown', async () => {
+    render(
+      <Dropdown label="Dropdown" closeOnClick={false}>
+        <DropdownItem data-testid="inside-item">Item</DropdownItem>
+      </Dropdown>
+    );
+    await userEvent.click(screen.getByRole('button', { name: /dropdown/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    await userEvent.click(screen.getByTestId('inside-item'));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('renders without id and does not set aria-controls or menu id', () => {
+    render(
+      <Dropdown label="NoID">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /noid/i });
+    expect(button).not.toHaveAttribute('aria-controls');
+    expect(screen.getByTestId('dropdown-menu').id).toBe('');
   });
 });
