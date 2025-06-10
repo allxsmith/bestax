@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { SubTitle, SubTitleProps } from './SubTitle';
 import { Title } from './Title';
 import { Block } from './Block';

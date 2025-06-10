@@ -1,6 +1,6 @@
 // src/hooks/useBulmaClasses.stories.tsx
 import React from 'react';
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
 
 // Allow arbitrary props to satisfy Record<string, unknown>

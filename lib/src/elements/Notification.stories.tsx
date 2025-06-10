@@ -1,5 +1,5 @@
 import React from 'react';
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Notification, NotificationProps } from './Notification';
 
 // Separate component for dismissible notification to comply with react-hooks/rules-of-hooks

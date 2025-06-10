@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Progress } from './Progress';
 
 const meta: Meta<typeof Progress> = {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Meta, StoryObj } from '@storybook/react';
-import { within, userEvent } from '@storybook/test';
+import { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent } from 'storybook/test';
 import { Tag, TagProps } from './Tag';
 import { Tags } from './Tags';
 import { Delete } from './Delete';

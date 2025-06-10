@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Box } from './Box'; // Adjust the import path based on your project structure
 
 // Meta configuration for the Box component

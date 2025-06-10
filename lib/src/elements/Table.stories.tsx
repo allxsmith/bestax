@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Table } from './Table';
 import { Thead } from './Thead';
 import { Tbody } from './Tbody';

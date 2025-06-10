@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Button, ButtonProps } from './Button';
 import { Buttons } from './Buttons'; // Added import
 import { validColors } from '../helpers/useBulmaClasses';

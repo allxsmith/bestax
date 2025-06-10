@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Content } from './Content'; // Adjust the import path based on your project structure
 
 // Meta configuration for the Content component

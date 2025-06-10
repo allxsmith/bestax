@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Message, MessageProps } from './Message';
 
 // Latin version of the Declaration of Independence's first paragraph:

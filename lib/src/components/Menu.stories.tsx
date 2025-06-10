@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu, MenuLabel, MenuList, MenuItem } from './Menu';
 
 const meta: Meta<typeof Menu> = {
