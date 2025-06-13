@@ -39,6 +39,9 @@ export const Navbar: React.FC<NavbarProps> & {
   Menu: typeof NavbarMenu;
   Start: typeof NavbarStart;
   End: typeof NavbarEnd;
+  Dropdown: typeof NavbarDropdown;
+  DropdownMenu: typeof NavbarDropdownMenu;
+  Divider: typeof NavbarDivider;
 } = ({
   className,
   textColor,
@@ -269,6 +272,80 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
   );
 };
 
+// Navbar Dropdown
+export interface NavbarDropdownProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  right?: boolean;
+  up?: boolean;
+  hoverable?: boolean;
+  active?: boolean;
+  children?: React.ReactNode;
+}
+
+export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
+  className,
+  right,
+  up,
+  hoverable,
+  active,
+  children,
+  ...props
+}) => (
+  <div
+    className={classNames(
+      'navbar-item',
+      'has-dropdown',
+      {
+        'is-right': right,
+        'is-up': up,
+        'is-hoverable': hoverable,
+        'is-active': active,
+      },
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </div>
+);
+
+// Navbar Dropdown Menu
+export interface NavbarDropdownMenuProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  right?: boolean;
+  up?: boolean;
+  children?: React.ReactNode;
+}
+
+export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
+  className,
+  right,
+  up,
+  children,
+  ...props
+}) => (
+  <div
+    className={classNames(
+      'navbar-dropdown',
+      {
+        'is-right': right,
+        'is-up': up,
+      },
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </div>
+);
+
+// Navbar Divider
+export const NavbarDivider: React.FC<
+  React.HTMLAttributes<HTMLHRElement>
+> = props => <hr className="navbar-divider" {...props} />;
+
 // Attach subcomponents
 Navbar.Brand = NavbarBrand;
 Navbar.Item = NavbarItem;
@@ -276,5 +353,8 @@ Navbar.Burger = NavbarBurger;
 Navbar.Menu = NavbarMenu;
 Navbar.Start = NavbarStart;
 Navbar.End = NavbarEnd;
+Navbar.Dropdown = NavbarDropdown;
+Navbar.DropdownMenu = NavbarDropdownMenu;
+Navbar.Divider = NavbarDivider;
 
 export default Navbar;

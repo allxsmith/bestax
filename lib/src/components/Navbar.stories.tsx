@@ -4,7 +4,7 @@ import Navbar from './Navbar';
 import logo from '../../images/logo.svg';
 
 const meta: Meta<typeof Navbar> = {
-  title: 'Elements/Navbar',
+  title: 'Components/Navbar',
   component: Navbar,
   parameters: {
     layout: 'fullscreen',
@@ -135,16 +135,16 @@ export const ItemsNavLinksAndDropdown: Story = {
         <Navbar.Start>
           <Navbar.Item href="#">Home</Navbar.Item>
           <Navbar.Item href="#">Docs</Navbar.Item>
-          <div className="navbar-item has-dropdown is-hoverable">
+          <Navbar.Dropdown hoverable>
             <Navbar.Item as="a">More</Navbar.Item>
-            <div className="navbar-dropdown">
+            <Navbar.DropdownMenu>
               <Navbar.Item href="#">About</Navbar.Item>
               <Navbar.Item href="#">Jobs</Navbar.Item>
               <Navbar.Item href="#">Contact</Navbar.Item>
-              <hr className="navbar-divider" />
+              <Navbar.Divider />
               <Navbar.Item href="#">Report an issue</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>
@@ -167,14 +167,14 @@ export const Dropdown: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <div className="navbar-item has-dropdown is-hoverable">
+          <Navbar.Dropdown hoverable>
             <Navbar.Item as="a">Dropdown</Navbar.Item>
-            <div className="navbar-dropdown">
+            <Navbar.DropdownMenu>
               <Navbar.Item href="#">First</Navbar.Item>
               <Navbar.Item href="#">Second</Navbar.Item>
               <Navbar.Item href="#">Third</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>
@@ -187,13 +187,13 @@ export const DropdownRight: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.End>
-          <div className="navbar-item has-dropdown is-hoverable is-right">
+          <Navbar.Dropdown hoverable right>
             <Navbar.Item as="a">Right Dropdown</Navbar.Item>
-            <div className="navbar-dropdown is-right">
+            <Navbar.DropdownMenu right>
               <Navbar.Item href="#">Profile</Navbar.Item>
               <Navbar.Item href="#">Settings</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.End>
       </Navbar.Menu>
     </Navbar>
@@ -206,13 +206,13 @@ export const Dropup: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <div className="navbar-item has-dropdown is-hoverable is-up">
+          <Navbar.Dropdown hoverable up>
             <Navbar.Item as="a">Dropup</Navbar.Item>
-            <div className="navbar-dropdown is-up">
+            <Navbar.DropdownMenu up>
               <Navbar.Item href="#">Up1</Navbar.Item>
               <Navbar.Item href="#">Up2</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>
@@ -225,13 +225,13 @@ export const DropdownNoArrow: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <div className="navbar-item has-dropdown is-hoverable no-arrow">
+          <Navbar.Dropdown hoverable className="no-arrow">
             <Navbar.Item as="a">No Arrow</Navbar.Item>
-            <div className="navbar-dropdown">
+            <Navbar.DropdownMenu>
               <Navbar.Item href="#">A</Navbar.Item>
               <Navbar.Item href="#">B</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>
@@ -244,13 +244,13 @@ export const ActiveDropdownItem: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <div className="navbar-item has-dropdown is-active">
+          <Navbar.Dropdown active>
             <Navbar.Item as="a">Active Dropdown</Navbar.Item>
-            <div className="navbar-dropdown">
+            <Navbar.DropdownMenu>
               <Navbar.Item href="#">A1</Navbar.Item>
               <Navbar.Item href="#">A2</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>
@@ -263,15 +263,15 @@ export const DropdownWithDivider: Story = {
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <div className="navbar-item has-dropdown is-hoverable">
+          <Navbar.Dropdown hoverable>
             <Navbar.Item as="a">With Divider</Navbar.Item>
-            <div className="navbar-dropdown">
+            <Navbar.DropdownMenu>
               <Navbar.Item href="#">One</Navbar.Item>
               <Navbar.Item href="#">Two</Navbar.Item>
-              <hr className="navbar-divider" />
+              <Navbar.Divider />
               <Navbar.Item href="#">Three</Navbar.Item>
-            </div>
-          </div>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
         </Navbar.Start>
       </Navbar.Menu>
     </Navbar>

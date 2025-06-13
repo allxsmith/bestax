@@ -238,3 +238,51 @@ describe('Navbar.Start & Navbar.End', () => {
     expect(screen.getByTestId('end')).toHaveClass('navbar-end');
   });
 });
+
+describe('Navbar.Dropdown', () => {
+  it('renders dropdown with correct classes', () => {
+    render(
+      <Navbar.Dropdown hoverable right active data-testid="dropdown">
+        <Navbar.Item as="a">Dropdown</Navbar.Item>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const dropdown = screen.getByTestId('dropdown');
+    expect(dropdown).toHaveClass('has-dropdown');
+    expect(dropdown).toHaveClass('is-hoverable');
+    expect(dropdown).toHaveClass('is-right');
+    expect(dropdown).toHaveClass('is-active');
+  });
+
+  it('renders dropdown menu with correct classes', () => {
+    render(
+      <Navbar.Dropdown>
+        <Navbar.Item as="a">Dropdown</Navbar.Item>
+        <Navbar.DropdownMenu right data-testid="dropdown-menu">
+          <Navbar.Item href="#">A</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const menu = screen.getByTestId('dropdown-menu');
+    expect(menu).toHaveClass('navbar-dropdown');
+    expect(menu).toHaveClass('is-right');
+  });
+
+  it('renders divider', () => {
+    render(
+      <Navbar.Dropdown>
+        <Navbar.Item as="a">Dropdown</Navbar.Item>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">A</Navbar.Item>
+          <Navbar.Divider data-testid="divider" />
+          <Navbar.Item href="#">B</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    );
+    const divider = screen.getByTestId('divider');
+    expect(divider.tagName).toBe('HR');
+    expect(divider).toHaveClass('navbar-divider');
+  });
+});
