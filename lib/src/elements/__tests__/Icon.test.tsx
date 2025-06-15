@@ -1,53 +1,71 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Icon } from '../Icon';
 
-describe('Icon Component', () => {
-  it('renders with required name prop', () => {
-    render(<Icon name="fas fa-star" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('icon');
-    expect(icon.querySelector('i')).toHaveClass('fas fa-star');
+describe('Icon', () => {
+  it('renders a Font Awesome icon by default', () => {
+    const { container } = render(<Icon name="star" />);
+    const i = container.querySelector('i');
+    expect(i).toBeInTheDocument();
+    expect(i).toHaveClass('fas', 'fa-star');
   });
 
-  it('applies custom className', () => {
-    render(<Icon name="fas fa-star" className="custom-icon" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('icon custom-icon');
+  it('respects Font Awesome libraryFeatures', () => {
+    const { container } = render(
+      <Icon name="star" libraryFeatures={['fas', 'fa-lg', 'fa-fw']} />
+    );
+    const i = container.querySelector('i');
+    expect(i).toHaveClass('fas', 'fa-star', 'fa-lg', 'fa-fw');
   });
 
-  it('applies size modifier', () => {
-    render(<Icon name="fas fa-star" size="large" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('icon is-large');
+  it('renders Material Design Icons when library is mdi', () => {
+    const { container } = render(<Icon name="account" library="mdi" />);
+    const i = container.querySelector('i');
+    expect(i).toHaveClass('mdi', 'mdi-account');
   });
 
-  it('applies textColor using useBulmaClasses', () => {
-    render(<Icon name="fas fa-star" textColor="primary" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('has-text-primary');
+  it('renders Ionicons when library is ion', () => {
+    const { container } = render(<Icon name="person" library="ion" />);
+    const i = container.querySelector('i');
+    expect(i).toHaveClass('ion', 'ion-person');
   });
 
-  it('applies bgColor using useBulmaClasses', () => {
-    render(<Icon name="fas fa-star" bgColor="info" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('has-background-info');
+  it('renders aria-label and passes style to span', () => {
+    const { container } = render(
+      <Icon name="star" ariaLabel="star icon" style={{ color: 'red' }} />
+    );
+    const span = container.querySelector('span');
+    expect(span).toHaveAttribute('aria-label', 'star icon');
+    expect(span).toHaveStyle({ color: 'red' });
   });
 
-  it('applies margin using useBulmaClasses', () => {
-    render(<Icon name="fas fa-star" m="2" />);
-    const icon = screen.getByLabelText('icon');
-    expect(icon).toHaveClass('m-2');
+  it('applies Bulma size modifier', () => {
+    const { container } = render(<Icon name="star" size="large" />);
+    const span = container.querySelector('span.icon');
+    expect(span).toHaveClass('is-large');
   });
 
-  it('uses custom aria-label', () => {
-    render(<Icon name="fas fa-star" ariaLabel="Star icon" />);
-    const icon = screen.getByLabelText('Star icon');
-    expect(icon).toBeInTheDocument();
+  it('applies custom className and Bulma helpers', () => {
+    const { container } = render(
+      <Icon name="star" className="my-custom-class" m="2" textColor="primary" />
+    );
+    const span = container.querySelector('span.icon');
+    expect(span).toHaveClass('my-custom-class');
+    // m="2" and textColor="primary" should result in Bulma classes
+    expect(span?.className).toMatch(/has-text-primary/);
+    expect(span?.className).toMatch(/m-2/);
   });
 
-  it('passes through non-Bulma props via rest', () => {
-    render(<Icon name="fas fa-star" data-testid="test-icon" />);
-    const icon = screen.getByTestId('test-icon');
-    expect(icon).toBeInTheDocument();
+  it('defaults to "fas" style when no Font Awesome style is provided', () => {
+    const { container } = render(
+      <Icon name="star" library="fa" libraryFeatures={['fa-lg']} />
+    );
+    const i = container.querySelector('i');
+    expect(i).toHaveClass('fas', 'fa-star', 'fa-lg');
+  });
+
+  it('supports single string as libraryFeatures', () => {
+    const { container } = render(<Icon name="star" libraryFeatures="fa-lg" />);
+    const i = container.querySelector('i');
+    expect(i).toHaveClass('fas', 'fa-star', 'fa-lg');
   });
 });

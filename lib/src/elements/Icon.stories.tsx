@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from '@storybook/react-vite';
+import { Meta, StoryObj } from '@storybook/react';
 import { Icon } from './Icon';
 import {
   validColors,
@@ -12,6 +12,7 @@ const meta: Meta<typeof Icon> = {
   argTypes: {
     className: { control: 'text' },
     name: { control: 'text' },
+    libraryFeatures: { control: 'object' },
     textColor: {
       control: 'select',
       options: [...validColors, 'inherit', 'current'],
@@ -29,7 +30,7 @@ const meta: Meta<typeof Icon> = {
     docs: {
       description: {
         component:
-          'A Bulma Icon component for displaying icons (e.g., Font Awesome) with Bulma styling. Uses useBulmaClasses for helper classes.',
+          'A Bulma Icon component for displaying Font Awesome icons with Bulma styling.',
       },
     },
   },
@@ -41,47 +42,55 @@ type Story = StoryObj<typeof Icon>;
 
 export const Default: Story = {
   args: {
-    name: 'fas fa-star',
+    name: 'star',
     ariaLabel: 'Star icon',
   },
 };
 
-export const Small: Story = {
+export const FontAwesomeLarge: Story = {
   args: {
-    name: 'fas fa-star',
-    size: 'small',
-    ariaLabel: 'Star icon',
+    name: 'star',
+    libraryFeatures: ['fas', 'fa-2x'],
+    ariaLabel: 'Star icon large',
   },
 };
 
-export const Medium: Story = {
+export const FontAwesomeSpin: Story = {
   args: {
-    name: 'fas fa-star',
-    size: 'medium',
-    ariaLabel: 'Star icon',
+    name: 'spinner',
+    libraryFeatures: ['fas', 'fa-spin', 'fa-2x'],
+    ariaLabel: 'Loading spinner',
   },
 };
 
-export const Large: Story = {
+export const FontAwesomeBorderFw: Story = {
   args: {
-    name: 'fas fa-star',
-    size: 'large',
-    ariaLabel: 'Star icon',
+    name: 'star',
+    libraryFeatures: ['fas', 'fa-fw', 'fa-border', 'fa-lg'],
+    ariaLabel: 'Star bordered fixed width',
   },
 };
 
 export const WithTextColor: Story = {
   args: {
-    name: 'fas fa-star',
+    name: 'star',
     textColor: 'primary',
-    ariaLabel: 'Star icon',
+    ariaLabel: 'Star icon with primary text color',
   },
 };
 
 export const WithMargin: Story = {
   args: {
-    name: 'fas fa-star',
+    name: 'star',
     m: '2',
-    ariaLabel: 'Star icon',
+    ariaLabel: 'Star icon with margin',
+  },
+};
+
+export const WithSize: Story = {
+  args: {
+    name: 'star',
+    size: 'large',
+    ariaLabel: 'Star icon large container',
   },
 };
