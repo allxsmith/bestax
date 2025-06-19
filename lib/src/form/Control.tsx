@@ -125,8 +125,14 @@ const Control = React.forwardRef<
       className
     );
 
+    // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (
-      <Component className={controlClass} ref={ref as typeof ref} {...rest}>
+      <Component
+        className={controlClass}
+        ref={ref as typeof ref}
+        {...restProps}
+        {...rest}
+      >
         {children}
         {leftIconProps && leftIconProps.name && (
           <Icon {...leftIconProps} className="is-left" />
