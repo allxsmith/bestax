@@ -68,4 +68,18 @@ describe('Icon', () => {
     const i = container.querySelector('i');
     expect(i).toHaveClass('fas', 'fa-star', 'fa-lg');
   });
+
+  it('renders fallback icon class for unknown library', () => {
+    const { container } = render(
+      <Icon
+        name="star"
+        // @ts-expect-error Testing unknown library value
+        library="unknown"
+        libraryFeatures={['weird', 'iconic']}
+      />
+    );
+    const i = container.querySelector('i');
+    // The default case just joins name + features
+    expect(i).toHaveClass('star', 'weird', 'iconic');
+  });
 });
