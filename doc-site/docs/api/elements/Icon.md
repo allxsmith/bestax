@@ -30,6 +30,8 @@ Props for the Icon component.
 | <a id="fontfamily"></a> `fontFamily?` | `"primary"` \| `"sans-serif"` \| `"monospace"` \| `"secondary"` \| `"code"` | Font family (e.g., 'sans-serif', 'code'). | - |
 | <a id="interaction"></a> `interaction?` | `"unselectable"` \| `"clickable"` | Interaction behavior (e.g., 'unselectable', 'clickable'). | - |
 | <a id="justifycontent"></a> `justifyContent?` | `"left"` \| `"right"` \| `"flex-start"` \| `"flex-end"` \| `"center"` \| `"space-between"` \| `"space-around"` \| `"space-evenly"` \| `"start"` \| `"end"` | Justify content (e.g., 'center', 'space-between'). | - |
+| <a id="library"></a> `library?` | `IconLibrary` | The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons). | - |
+| <a id="libraryfeatures"></a> `libraryFeatures?` | `string` \| `string`[] | Additional library-specific classes, e.g. 'fa-lg', 'fa-spin', or ['fa-lg', 'fa-fw']. | - |
 | <a id="m"></a> `m?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin (e.g., '0', '1'). | - |
 | <a id="mb"></a> `mb?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin bottom. | - |
 | <a id="ml"></a> `ml?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin left. | - |
@@ -37,7 +39,7 @@ Props for the Icon component.
 | <a id="mt"></a> `mt?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin top. | - |
 | <a id="mx"></a> `mx?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin horizontal (left and right). | - |
 | <a id="my"></a> `my?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Margin vertical (top and bottom). | - |
-| <a id="name"></a> `name` | `string` | Icon class name(s), e.g., 'fas fa-star' for Font Awesome. | - |
+| <a id="name"></a> `name` | `string` | The icon name (without library prefix). | - |
 | <a id="overflow"></a> `overflow?` | `"clipped"` | Overflow behavior (e.g., 'clipped'). | - |
 | <a id="overlay"></a> `overlay?` | `boolean` | Applies overlay styling if true. | - |
 | <a id="p"></a> `p?` | `"0"` \| `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"auto"` | Padding (e.g., '0', '1'). | - |
@@ -51,6 +53,7 @@ Props for the Icon component.
 | <a id="responsive"></a> `responsive?` | `"mobile"` \| `"narrow"` | Responsive behavior (e.g., 'mobile', 'narrow'). | - |
 | <a id="shadow"></a> `shadow?` | `"shadowless"` | Shadow style (e.g., 'shadowless'). | - |
 | <a id="size"></a> `size?` | `"medium"` \| `"small"` \| `"large"` | Size modifier for the icon. | - |
+| <a id="style"></a> `style?` | `CSSProperties` | Inline style object. | `React.HTMLAttributes.style` |
 | <a id="textalign"></a> `textAlign?` | `"centered"` \| `"justified"` \| `"left"` \| `"right"` | Text alignment (e.g., 'centered', 'left'). | - |
 | <a id="textcolor"></a> `textColor?` | `"primary"` \| `"link"` \| `"info"` \| `"success"` \| `"warning"` \| `"danger"` \| `"black"` \| `"black-bis"` \| `"black-ter"` \| `"grey-darker"` \| `"grey-dark"` \| `"grey"` \| `"grey-light"` \| `"grey-lighter"` \| `"white"` \| `"light"` \| `"dark"` \| `"inherit"` \| `"current"` | Text color (Bulma color, 'inherit', or 'current'). | - |
 | <a id="textsize"></a> `textSize?` | `"1"` \| `"2"` \| `"3"` \| `"4"` \| `"5"` \| `"6"` \| `"7"` | Text size (e.g., '1', '2'). | - |
