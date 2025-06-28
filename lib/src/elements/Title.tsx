@@ -76,3 +76,5 @@ export const Title: React.FC<TitleProps> = ({
     </Tag>
   );
 };
+
+export default Title;

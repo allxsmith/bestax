@@ -86,3 +86,5 @@ export const SubTitle: React.FC<SubTitleProps> = ({
     </Tag>
   );
 };
+
+export default SubTitle;
