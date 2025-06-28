@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
 
@@ -60,5 +60,73 @@ describe('Button Component', () => {
     );
     const button = screen.getByTestId('test');
     expect(button).toHaveClass('button');
+  });
+
+  describe('as="a" anchor rendering', () => {
+    it('renders as <a> with correct classes and href', () => {
+      render(
+        <Button as="a" href="https://example.com" color="info">
+          Link Button
+        </Button>
+      );
+      const link = screen.getByRole('link');
+      expect(link).toHaveClass('button', 'is-info');
+      expect(link).toHaveAttribute('href', 'https://example.com');
+      expect(link.tagName).toBe('A');
+      expect(link).toHaveTextContent('Link Button');
+    });
+
+    it('handles onClick for <a> and isDisabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <Button as="a" href="https://example.com" onClick={handleClick}>
+          Anchor Button
+        </Button>
+      );
+      const link = screen.getByRole('link');
+      fireEvent.click(link);
+      expect(handleClick).toHaveBeenCalled();
+    });
+
+    it('prevents default when isDisabled for <a>', () => {
+      const handleClick = jest.fn();
+      render(
+        <Button
+          as="a"
+          href="https://example.com"
+          isDisabled
+          onClick={handleClick}
+        >
+          Disabled Anchor
+        </Button>
+      );
+      const link = screen.getByRole('link');
+      fireEvent.click(link);
+      expect(handleClick).not.toHaveBeenCalled();
+      expect(link).toHaveAttribute('aria-disabled', 'true');
+      expect(link).toHaveAttribute('tabindex', '-1');
+    });
+  });
+
+  describe('as="button" native button rendering', () => {
+    it('renders as <button> by default', () => {
+      render(<Button>Button</Button>);
+      const button = screen.getByRole('button');
+      expect(button.tagName).toBe('BUTTON');
+      expect(button).toHaveClass('button');
+    });
+
+    it('handles onClick for <button> and isDisabled', () => {
+      const handleClick = jest.fn();
+      render(
+        <Button onClick={handleClick} isDisabled>
+          Disabled Button
+        </Button>
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(handleClick).not.toHaveBeenCalled();
+      expect(button).toBeDisabled();
+    });
   });
 });

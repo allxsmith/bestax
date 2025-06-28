@@ -6,33 +6,12 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
-/**
- * Button component for rendering a styled button element.
- *
- * Supports Bulma-style modifiers for color, size, and various states, plus additional Bulma helper classes.
- *
- * @param {ButtonProps} props - Props for the Button component.
- * @param {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [props.color] - Bulma color modifier.
- * @param {'small' | 'normal' | 'medium' | 'large'} [props.size] - Bulma size modifier.
- * @param {boolean} [props.isLight] - Use the light color variant.
- * @param {boolean} [props.isRounded] - Use rounded corners.
- * @param {boolean} [props.isLoading] - Show a loading spinner.
- * @param {boolean} [props.isStatic] - Make the button static (unclickable).
- * @param {boolean} [props.isFullWidth] - Make the button take the full width of its container.
- * @param {boolean} [props.isOutlined] - Use the outlined style.
- * @param {boolean} [props.isInverted] - Use the inverted color scheme.
- * @param {boolean} [props.isFocused] - Apply the focused style.
- * @param {boolean} [props.isActive] - Apply the active style.
- * @param {boolean} [props.isHovered] - Apply the hovered style.
- * @param {boolean} [props.isDisabled] - Disable the button.
- * @param {string} [props.className] - Additional CSS classes.
- * @param {React.ReactNode} [props.children] - Button content.
- * @param {string} [props.textColor] - Text color (Bulma color or 'inherit'/'current').
- * @param {string} [props.bgColor] - Background color (Bulma color or 'inherit'/'current').
- * @returns {JSX.Element} The rendered button element.
- */
+// Omit onClick from button props so we can define our own
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      'color' | 'onClick'
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   size?: 'small' | 'normal' | 'medium' | 'large';
@@ -50,11 +29,16 @@ export interface ButtonProps
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  as?: 'a' | 'button';
+  href?: string;
+  // Accept both button and anchor click handlers
+  onClick?:
+    | React.MouseEventHandler<HTMLButtonElement>
+    | React.MouseEventHandler<HTMLAnchorElement>;
+  target?: string;
+  rel?: string;
 }
 
-/**
- * Renders a Bulma-styled button with various modifiers and helper classes.
- */
 export const Button: React.FC<ButtonProps> = ({
   color,
   size,
@@ -73,6 +57,11 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   textColor,
   bgColor,
+  as = 'button',
+  href,
+  onClick,
+  target,
+  rel,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
@@ -97,8 +86,41 @@ export const Button: React.FC<ButtonProps> = ({
     'is-disabled': isDisabled,
   });
 
+  if (as === 'a') {
+    // Remove button-specific props (like 'type') from rest
+    const { ...anchorRest } =
+      rest as React.AnchorHTMLAttributes<HTMLAnchorElement>;
+    return (
+      <a
+        className={buttonClasses}
+        href={href}
+        target={target}
+        rel={rel}
+        aria-disabled={isDisabled}
+        tabIndex={isDisabled ? -1 : undefined}
+        onClick={
+          isDisabled
+            ? e => e.preventDefault()
+            : (onClick as
+                | React.MouseEventHandler<HTMLAnchorElement>
+                | undefined)
+        }
+        {...anchorRest}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <button className={buttonClasses} disabled={isDisabled} {...rest}>
+    <button
+      className={buttonClasses}
+      disabled={isDisabled}
+      onClick={
+        onClick as React.MouseEventHandler<HTMLButtonElement> | undefined
+      }
+      {...rest}
+    >
       {children}
     </button>
   );
