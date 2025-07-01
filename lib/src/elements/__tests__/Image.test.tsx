@@ -85,4 +85,35 @@ describe('Image Component', () => {
     const container = screen.getByAltText('Test image').closest('div');
     expect(container).toHaveClass('image custom-class');
   });
+
+  test('renders with "as" prop as <p> and correct classes', () => {
+    render(<Image {...defaultProps} as="p" size="64x64" data-testid="as-p" />);
+    const container = screen.getByTestId('as-p');
+    expect(container.tagName.toLowerCase()).toBe('p');
+    expect(container).toHaveClass('image is-64x64');
+    expect(screen.getByAltText('Test image')).toBeInTheDocument();
+  });
+
+  test('renders with "as" prop as <div> and correct classes', () => {
+    render(
+      <Image {...defaultProps} as="div" size="64x64" data-testid="as-div" />
+    );
+    const container = screen.getByTestId('as-div');
+    expect(container.tagName.toLowerCase()).toBe('div');
+    expect(container).toHaveClass('image is-64x64');
+  });
+
+  test('renders with "as" prop as <figure> and correct classes', () => {
+    render(
+      <Image
+        {...defaultProps}
+        as="figure"
+        size="64x64"
+        data-testid="as-figure"
+      />
+    );
+    const container = screen.getByTestId('as-figure');
+    expect(container.tagName.toLowerCase()).toBe('figure');
+    expect(container).toHaveClass('image is-64x64');
+  });
 });

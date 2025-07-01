@@ -19,6 +19,7 @@ import {
  * @property {string} [src] - Image source URL.
  * @property {string} [alt] - Alternate text for the image.
  * @property {React.ReactNode} [children] - Arbitrary children (e.g., iframe or custom content).
+ * @property {keyof JSX.IntrinsicElements} [as] - The tag to render. Defaults to 'figure', but can be 'p', 'div', etc.
  */
 export interface ImageProps
   extends React.HTMLAttributes<HTMLElement>,
@@ -56,6 +57,7 @@ export interface ImageProps
   src?: string;
   alt?: string;
   children?: React.ReactNode;
+  as?: 'figure' | 'div' | 'p';
 }
 
 /**
@@ -63,11 +65,14 @@ export interface ImageProps
  *
  * Supports fixed-size containers, aspect ratios, rounded images, retina images, and arbitrary children (e.g., iframe).
  *
+ * The "as" prop allows rendering as <figure>, <p>, <div>, etc.
+ *
  * @function
  * @param {ImageProps} props - Props for the Image component.
  * @returns {JSX.Element} The rendered image element.
  */
 export const Image: React.FC<ImageProps> = ({
+  as,
   className,
   textColor,
   bgColor,
@@ -87,11 +92,19 @@ export const Image: React.FC<ImageProps> = ({
 
   const imageClasses = classNames('image', className, bulmaHelperClasses, {
     [`is-${size}`]: size,
-    'has-ratio': size && size.includes('by'), // Aspect ratio needs has-ratio
+    'has-ratio': size && typeof size === 'string' && size.includes('by'),
   });
 
-  // Use figure for aspect ratio sizes or when children are provided
-  const useFigure = size && size.includes('by');
+  // Default tag logic: if "as" is provided, use it.
+  // If not, use <figure> for aspect ratios or children, <div> otherwise.
+  let Tag: 'figure' | 'div' | 'p';
+  if (as) {
+    Tag = as;
+  } else if (size && typeof size === 'string' && size.includes('by')) {
+    Tag = 'figure';
+  } else {
+    Tag = 'div';
+  }
 
   const content = children ? (
     children
@@ -104,17 +117,11 @@ export const Image: React.FC<ImageProps> = ({
     />
   );
 
-  if (useFigure) {
-    return (
-      <figure className={imageClasses} {...rest}>
-        {content}
-      </figure>
-    );
-  }
-
   return (
-    <div className={imageClasses} {...rest}>
+    <Tag className={imageClasses} {...rest}>
       {content}
-    </div>
+    </Tag>
   );
 };
+
+export default Image;
