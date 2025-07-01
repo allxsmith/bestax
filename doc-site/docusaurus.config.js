@@ -94,6 +94,92 @@ const config = {
     [
       'docusaurus-plugin-typedoc',
       {
+        id: 'api-components',
+        entryPoints: [path.join(__dirname, '../lib/src/components/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/components',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'api-form',
+        entryPoints: [path.join(__dirname, '../lib/src/form/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/form',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'api-columns',
+        entryPoints: [path.join(__dirname, '../lib/src/columns/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/columns',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'api-grid',
+        entryPoints: [path.join(__dirname, '../lib/src/grid/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/grid',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'api-layout',
+        entryPoints: [path.join(__dirname, '../lib/src/layout/*.tsx')],
+        tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
+        out: 'docs/api/layout',
+        exclude: [
+          '**/*.stories.tsx',
+          '**/*.stories.ts',
+          '**/*.test.tsx',
+          '**/*.test.ts',
+          '**/__tests__/**',
+        ],
+        readme: 'none',
+      },
+    ],
+
+    [
+      'docusaurus-plugin-typedoc',
+      {
         id: 'api-helpers',
         entryPoints: [path.join(__dirname, '../lib/src/helpers/*.tsx')],
         tsconfig: path.join(__dirname, '../lib/tsconfig.json'),
