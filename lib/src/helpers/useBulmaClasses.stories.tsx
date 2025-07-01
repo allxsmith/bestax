@@ -12,7 +12,7 @@ const UseBulmaClassesDemo: React.FC<
 };
 
 const meta: Meta<typeof UseBulmaClassesDemo> = {
-  title: 'Hooks/useBulmaClasses',
+  title: 'Helpers/useBulmaClasses',
   component: UseBulmaClassesDemo,
   argTypes: {
     color: {
