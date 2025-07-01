@@ -89,15 +89,20 @@ const LevelRight: React.FC<LevelRightProps> = ({
 };
 
 export interface LevelItemProps
-  extends React.HTMLAttributes<HTMLDivElement | HTMLParagraphElement>,
+  extends React.HTMLAttributes<
+      HTMLDivElement | HTMLParagraphElement | HTMLAnchorElement
+    >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  as?: 'div' | 'p';
+  as?: 'div' | 'p' | 'a';
   hasTextCentered?: boolean;
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   className?: string;
   children?: React.ReactNode;
+  href?: string; // For <a>
+  target?: string; // For <a>
+  rel?: string; // For <a>
 }
 
 const LevelItem: React.FC<LevelItemProps> = ({
@@ -105,10 +110,31 @@ const LevelItem: React.FC<LevelItemProps> = ({
   hasTextCentered,
   className,
   children,
+  href,
+  target,
+  rel,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const Tag = as;
+
+  // If rendering as "a", only pass anchor-specific props
+  if (Tag === 'a') {
+    return (
+      <a
+        className={classNames('level-item', bulmaHelperClasses, className, {
+          'has-text-centered': hasTextCentered,
+        })}
+        href={href}
+        target={target}
+        rel={rel}
+        {...rest}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Tag
       className={classNames('level-item', bulmaHelperClasses, className, {

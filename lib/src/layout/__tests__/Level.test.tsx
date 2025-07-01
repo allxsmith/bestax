@@ -100,4 +100,27 @@ describe('Level', () => {
     );
     expect(screen.getByTestId('level-item')).toHaveClass('m-2');
   });
+
+  it('renders as <a> when requested with href and anchor props', () => {
+    render(
+      <Level>
+        <Level.Item
+          as="a"
+          href="https://example.com"
+          target="_blank"
+          rel="noopener"
+          data-testid="level-a"
+        >
+          Link Item
+        </Level.Item>
+      </Level>
+    );
+    const anchor = screen.getByTestId('level-a');
+    expect(anchor.tagName).toBe('A');
+    expect(anchor).toHaveAttribute('href', 'https://example.com');
+    expect(anchor).toHaveAttribute('target', '_blank');
+    expect(anchor).toHaveAttribute('rel', 'noopener');
+    expect(anchor).toHaveClass('level-item');
+    expect(anchor).toHaveTextContent('Link Item');
+  });
 });
