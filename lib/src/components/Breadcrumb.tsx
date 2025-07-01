@@ -32,7 +32,7 @@ export type BreadcrumbSize = (typeof validBreadcrumbSizes)[number];
  * @property {BreadcrumbAlignment} [alignment] - Alignment modifier for the breadcrumb.
  * @property {BreadcrumbSeparator} [separator] - Separator style for the breadcrumb.
  * @property {BreadcrumbSize} [size] - Size modifier for the breadcrumb.
- * @property {React.ReactNode} [children] - Breadcrumb items (e.g., <a> or <span> elements).
+ * @property {React.ReactNode} [children] - Breadcrumb items (e.g., "a" or "span" html elements).
  */
 export interface BreadcrumbProps
   extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>,

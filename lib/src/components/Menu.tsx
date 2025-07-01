@@ -101,7 +101,7 @@ export interface MenuItemProps
 
 /**
  * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link
- * Ensures data-testid is only applied to <li>
+ * Ensures data-testid is only applied to "li" html elements
  */
 export const MenuItem: React.FC<MenuItemProps> = ({
   className,

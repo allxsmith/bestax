@@ -65,7 +65,7 @@ export interface ImageProps
  *
  * Supports fixed-size containers, aspect ratios, rounded images, retina images, and arbitrary children (e.g., iframe).
  *
- * The "as" prop allows rendering as <figure>, <p>, <div>, etc.
+ * The "as" prop allows rendering as "figure", "p", or "div" tags etc.
  *
  * @function
  * @param {ImageProps} props - Props for the Image component.
