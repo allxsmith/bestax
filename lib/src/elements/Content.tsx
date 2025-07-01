@@ -62,3 +62,5 @@ export const Content: React.FC<ContentProps> = ({
     </div>
   );
 };
+
+export default Content;
