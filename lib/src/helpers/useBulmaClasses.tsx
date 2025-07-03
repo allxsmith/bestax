@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import classNames from 'classnames';
+import classNames from '../helpers/classNames';
 
 /**
  * Valid Bulma color classes.
