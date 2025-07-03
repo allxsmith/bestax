@@ -28,10 +28,10 @@
     },
     "lint": {},
     "storybook": {
-      "cache": false
+      "cache": true
     },
     "docs": {
-      "cache": false
+      "cache": true
     },
     "build-storybook": {
       "outputs": ["storybook-static/**"]
