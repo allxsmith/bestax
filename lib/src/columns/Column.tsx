@@ -6,6 +6,9 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Possible values for Bulma column size.
+ */
 export type BulmaColumnSize =
   | number
   | 'full'
@@ -19,6 +22,38 @@ export type BulmaColumnSize =
   | 'three-fifths'
   | 'four-fifths';
 
+/**
+ * Props for the Column component.
+ *
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the column.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ *
+ * @property {BulmaColumnSize} [size] - Column size.
+ * @property {BulmaColumnSize} [sizeMobile] - Mobile column size.
+ * @property {BulmaColumnSize} [sizeTablet] - Tablet column size.
+ * @property {BulmaColumnSize} [sizeDesktop] - Desktop column size.
+ * @property {BulmaColumnSize} [sizeWidescreen] - Widescreen column size.
+ * @property {BulmaColumnSize} [sizeFullhd] - FullHD column size.
+ *
+ * @property {BulmaColumnSize} [offset] - Column offset.
+ * @property {BulmaColumnSize} [offsetMobile] - Mobile column offset.
+ * @property {BulmaColumnSize} [offsetTablet] - Tablet column offset.
+ * @property {BulmaColumnSize} [offsetDesktop] - Desktop column offset.
+ * @property {BulmaColumnSize} [offsetWidescreen] - Widescreen column offset.
+ * @property {BulmaColumnSize} [offsetFullhd] - FullHD column offset.
+ *
+ * @property {boolean} [isNarrow] - The column is narrow.
+ * @property {boolean} [isNarrowMobile] - The column is narrow on mobile.
+ * @property {boolean} [isNarrowTablet] - The column is narrow on tablet.
+ * @property {boolean} [isNarrowTouch] - The column is narrow on touch devices.
+ * @property {boolean} [isNarrowDesktop] - The column is narrow on desktop.
+ * @property {boolean} [isNarrowWidescreen] - The column is narrow on widescreen.
+ * @property {boolean} [isNarrowFullhd] - The column is narrow on fullhd.
+ *
+ * @property {React.ReactNode} [children] - Children to render inside the column.
+ */
 export interface ColumnProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
@@ -27,7 +62,6 @@ export interface ColumnProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 
-  // Generic and responsive sizes
   size?: BulmaColumnSize;
   sizeMobile?: BulmaColumnSize;
   sizeTablet?: BulmaColumnSize;
@@ -35,7 +69,6 @@ export interface ColumnProps
   sizeWidescreen?: BulmaColumnSize;
   sizeFullhd?: BulmaColumnSize;
 
-  // Generic and responsive offsets
   offset?: BulmaColumnSize;
   offsetMobile?: BulmaColumnSize;
   offsetTablet?: BulmaColumnSize;
@@ -43,7 +76,6 @@ export interface ColumnProps
   offsetWidescreen?: BulmaColumnSize;
   offsetFullhd?: BulmaColumnSize;
 
-  // Generic and responsive isNarrow
   isNarrow?: boolean;
   isNarrowMobile?: boolean;
   isNarrowTablet?: boolean;
@@ -55,6 +87,9 @@ export interface ColumnProps
   children?: React.ReactNode;
 }
 
+/**
+ * Builds Bulma column and offset class names for the Column component.
+ */
 function getColumnClassNames(props: ColumnProps): string[] {
   const classList: string[] = [];
   // Sizes
@@ -103,6 +138,14 @@ function getColumnClassNames(props: ColumnProps): string[] {
   return classList;
 }
 
+/**
+ * Bulma Column component for responsive grid layouts.
+ *
+ * @function
+ * @param {ColumnProps} props - Props for the Column component.
+ * @returns {JSX.Element} The rendered column.
+ * @see {@link https://bulma.io/documentation/columns/ | Bulma Columns documentation}
+ */
 export const Column: React.FC<ColumnProps> = ({
   className,
   textColor,

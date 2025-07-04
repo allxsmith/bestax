@@ -6,6 +6,9 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Possible values for the Bulma columns gap size.
+ */
 export type BulmaGapSize =
   | 0
   | 1
@@ -26,6 +29,27 @@ export type BulmaGapSize =
   | '7'
   | '8';
 
+/**
+ * Props for the Columns component.
+ *
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for columns.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {boolean} [isCentered] - Center the columns container.
+ * @property {boolean} [isGapless] - Remove all column gaps.
+ * @property {boolean} [isMultiline] - Allow columns to wrap to multiple lines.
+ * @property {boolean} [isVCentered] - Vertically center columns.
+ * @property {boolean} [isMobile] - Only apply columns styles on mobile.
+ * @property {boolean} [isDesktop] - Only apply columns styles on desktop.
+ * @property {BulmaGapSize} [gapSize] - Gap size for all breakpoints.
+ * @property {BulmaGapSize} [gapSizeMobile] - Gap size for mobile.
+ * @property {BulmaGapSize} [gapSizeTablet] - Gap size for tablet.
+ * @property {BulmaGapSize} [gapSizeDesktop] - Gap size for desktop.
+ * @property {BulmaGapSize} [gapSizeWidescreen] - Gap size for widescreen.
+ * @property {BulmaGapSize} [gapSizeFullhd] - Gap size for fullhd.
+ * @property {React.ReactNode} [children] - Columns to render within the container.
+ */
 export interface ColumnsProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
@@ -50,6 +74,9 @@ export interface ColumnsProps
   children?: React.ReactNode;
 }
 
+/**
+ * Builds Bulma gap classes for the Columns component.
+ */
 function getGapClasses(props: ColumnsProps): string[] {
   const gapClassMap = [
     { prop: 'gapSize', prefix: 'is' },
@@ -71,6 +98,14 @@ function getGapClasses(props: ColumnsProps): string[] {
   });
 }
 
+/**
+ * Bulma Columns container for flexible, responsive layouts.
+ *
+ * @function
+ * @param {ColumnsProps} props - Props for the Columns component.
+ * @returns {JSX.Element} The rendered columns container.
+ * @see {@link https://bulma.io/documentation/columns/ | Bulma Columns documentation}
+ */
 export const Columns: React.FC<ColumnsProps> = ({
   className,
   textColor,
