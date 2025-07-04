@@ -139,9 +139,9 @@ const LevelRight: React.FC<LevelRightProps> = ({
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
  * @property {string} [className] - Additional CSS classes.
  * @property {React.ReactNode} [children] - Content.
- * @property {string} [href] - Href for <a>.
- * @property {string} [target] - Target for <a>.
- * @property {string} [rel] - Rel for <a>.
+ * @property {string} [href] - Href for "a" tag.
+ * @property {string} [target] - Target for "a" tag
+ * @property {string} [rel] - Rel for "a" tag
  */
 export interface LevelItemProps
   extends React.HTMLAttributes<
