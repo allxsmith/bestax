@@ -35,6 +35,7 @@ export interface ProgressProps
  * @function
  * @param {ProgressProps} props - Props for the Progress component.
  * @returns {JSX.Element} The rendered progress bar element.
+ * @see {@link https://bulma.io/documentation/elements/progress/ | Bulma Progress documentation}
  */
 export const Progress: React.FC<ProgressProps> = ({
   className,
@@ -45,6 +46,9 @@ export const Progress: React.FC<ProgressProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });

@@ -13,6 +13,7 @@ import {
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the block.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {React.ReactNode} [children] - Content to be rendered inside the block.
  */
 export interface BlockProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -21,6 +22,7 @@ export interface BlockProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  children?: React.ReactNode;
 }
 
 /**
@@ -32,6 +34,7 @@ export interface BlockProps
  * @function
  * @param {BlockProps} props - Props for the Block component.
  * @returns {JSX.Element} The rendered block element.
+ * @see {@link https://bulma.io/documentation/elements/block/ | Bulma Block documentation}
  */
 export const Block: React.FC<BlockProps> = ({
   className,
@@ -40,6 +43,9 @@ export const Block: React.FC<BlockProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

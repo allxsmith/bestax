@@ -46,6 +46,7 @@ export interface TdProps
  * @function
  * @param {TdProps} props - Props for the Td component.
  * @returns {JSX.Element} The rendered table cell element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-body | Bulma Table documentation}
  */
 export const Td: React.FC<TdProps> = ({
   className,
@@ -53,6 +54,9 @@ export const Td: React.FC<TdProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tdClasses = classNames(className, bulmaHelperClasses, {

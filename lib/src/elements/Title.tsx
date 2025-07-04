@@ -44,6 +44,7 @@ export interface TitleProps
  * @function
  * @param {TitleProps} props - Props for the Title component.
  * @returns {JSX.Element} The rendered title element.
+ * @see {@link https://bulma.io/documentation/elements/title/ | Bulma Title documentation}
  */
 export const Title: React.FC<TitleProps> = ({
   className,
@@ -53,6 +54,9 @@ export const Title: React.FC<TitleProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   // Validate 'as' prop at runtime

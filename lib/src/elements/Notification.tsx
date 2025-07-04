@@ -14,6 +14,7 @@ import {
  * @property {boolean} [isLight] - Use the light color variant.
  * @property {boolean} [hasDelete] - Show a delete (close) button.
  * @property {() => void} [onDelete] - Callback fired when the delete button is clicked.
+ * @property {React.ReactNode} [children] - Content to be rendered inside the notification.
  */
 export interface NotificationProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -23,6 +24,7 @@ export interface NotificationProps
   isLight?: boolean;
   hasDelete?: boolean;
   onDelete?: () => void;
+  children?: React.ReactNode;
 }
 
 /**
@@ -33,6 +35,7 @@ export interface NotificationProps
  * @function
  * @param {NotificationProps} props - Props for the Notification component.
  * @returns {JSX.Element} The rendered notification element.
+ * @see {@link https://bulma.io/documentation/elements/notification/ | Bulma Notification documentation}
  */
 export const Notification: React.FC<NotificationProps> = ({
   className,
@@ -43,6 +46,9 @@ export const Notification: React.FC<NotificationProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });

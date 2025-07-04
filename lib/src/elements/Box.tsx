@@ -14,6 +14,7 @@ import {
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the box.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  * @property {boolean} [hasShadow=true] - Whether the box has a shadow (default: true).
+ * @property {React.ReactNode} [children] - Content to be rendered inside the box.
  */
 export interface BoxProps
   /** @ignore */
@@ -24,6 +25,7 @@ export interface BoxProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   hasShadow?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
@@ -34,6 +36,7 @@ export interface BoxProps
  * @function
  * @param {BoxProps} props - Props for the Box component.
  * @returns {JSX.Element} The rendered box element.
+ * @see {@link https://bulma.io/documentation/elements/box/ | Bulma Box documentation}
  */
 export const Box: React.FC<BoxProps> = ({
   className,
@@ -43,6 +46,9 @@ export const Box: React.FC<BoxProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

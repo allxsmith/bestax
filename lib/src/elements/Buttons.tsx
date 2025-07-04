@@ -39,6 +39,7 @@ interface ButtonsProps
  * @function
  * @param {ButtonsProps} props - Props for the Buttons component.
  * @returns {JSX.Element} The rendered group of buttons.
+ * @see {@link https://bulma.io/documentation/elements/button/#group | Bulma Button Group documentation}
  */
 export const Buttons: React.FC<ButtonsProps> = ({
   className,
@@ -50,6 +51,9 @@ export const Buttons: React.FC<ButtonsProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

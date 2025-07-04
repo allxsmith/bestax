@@ -26,12 +26,16 @@ export interface TheadProps
  * @function
  * @param {TheadProps} props - Props for the Thead component.
  * @returns {JSX.Element} The rendered table header element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-head | Bulma Table documentation}
  */
 export const Thead: React.FC<TheadProps> = ({
   className,
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const theadClasses = classNames(className, bulmaHelperClasses);

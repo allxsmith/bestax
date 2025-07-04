@@ -26,12 +26,16 @@ export interface TfootProps
  * @function
  * @param {TfootProps} props - Props for the Tfoot component.
  * @returns {JSX.Element} The rendered table footer element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-footer | Bulma Table documentation}
  */
 export const Tfoot: React.FC<TfootProps> = ({
   className,
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tfootClasses = classNames(className, bulmaHelperClasses);

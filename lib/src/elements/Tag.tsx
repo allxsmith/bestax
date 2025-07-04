@@ -16,13 +16,13 @@ const validTagColors = [
 ] as const;
 
 /**
- * Valid color values for the Tag component.
+ * Valid color values for the Tag component (Bulma tag colors).
  */
 export type TagColor = (typeof validTagColors)[number];
 
 const validTagSizes = ['normal', 'medium', 'large'] as const;
 /**
- * Valid size values for the Tag component.
+ * Valid size values for the Tag component (Bulma tag sizes).
  */
 export type TagSize = (typeof validTagSizes)[number];
 
@@ -59,6 +59,7 @@ export interface TagProps
  * @function
  * @param {TagProps} props - Props for the Tag component.
  * @returns {JSX.Element} The rendered tag element.
+ * @see {@link https://bulma.io/documentation/elements/tag/ | Bulma Tag documentation}
  */
 export const Tag: React.FC<TagProps> = ({
   className,
@@ -71,6 +72,9 @@ export const Tag: React.FC<TagProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tagClasses = classNames('tag', className, bulmaHelperClasses, {

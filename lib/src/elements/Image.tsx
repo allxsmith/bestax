@@ -19,7 +19,7 @@ import {
  * @property {string} [src] - Image source URL.
  * @property {string} [alt] - Alternate text for the image.
  * @property {React.ReactNode} [children] - Arbitrary children (e.g., iframe or custom content).
- * @property {keyof JSX.IntrinsicElements} [as] - The tag to render. Defaults to 'figure', but can be 'p', 'div', etc.
+ * @property {'figure' | 'div' | 'p'} [as] - The tag to render. Defaults to 'figure', but can be 'p', 'div', etc.
  */
 export interface ImageProps
   extends React.HTMLAttributes<HTMLElement>,
@@ -70,6 +70,7 @@ export interface ImageProps
  * @function
  * @param {ImageProps} props - Props for the Image component.
  * @returns {JSX.Element} The rendered image element.
+ * @see {@link https://bulma.io/documentation/elements/image/ | Bulma Image documentation}
  */
 export const Image: React.FC<ImageProps> = ({
   as,
@@ -84,6 +85,9 @@ export const Image: React.FC<ImageProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

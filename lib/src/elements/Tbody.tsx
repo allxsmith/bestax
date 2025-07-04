@@ -26,12 +26,16 @@ export interface TbodyProps
  * @function
  * @param {TbodyProps} props - Props for the Tbody component.
  * @returns {JSX.Element} The rendered table body element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-body | Bulma Table documentation}
  */
 export const Tbody: React.FC<TbodyProps> = ({
   className,
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tbodyClasses = classNames(className, bulmaHelperClasses);

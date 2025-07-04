@@ -14,6 +14,7 @@ import {
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the content.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  * @property {'small' | 'normal' | 'medium' | 'large'} [size] - Size modifier for the content.
+ * @property {React.ReactNode} [children] - Content to be rendered inside the block.
  */
 interface ContentProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -23,6 +24,7 @@ interface ContentProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   size?: 'small' | 'normal' | 'medium' | 'large';
+  children?: React.ReactNode;
 }
 
 // Valid size modifiers for the content class
@@ -37,6 +39,7 @@ const validSizes = ['small', 'medium', 'large'] as const;
  * @function
  * @param {ContentProps} props - Props for the Content component.
  * @returns {JSX.Element} The rendered content block.
+ * @see {@link https://bulma.io/documentation/elements/content/ | Bulma Content documentation}
  */
 export const Content: React.FC<ContentProps> = ({
   className,
@@ -46,6 +49,9 @@ export const Content: React.FC<ContentProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

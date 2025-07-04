@@ -39,6 +39,7 @@ interface DeleteProps
  * @function
  * @param {DeleteProps} props - Props for the Delete component.
  * @returns {JSX.Element} The rendered delete button.
+ * @see {@link https://bulma.io/documentation/elements/delete/ | Bulma Delete documentation}
  */
 export const Delete: React.FC<DeleteProps> = ({
   className,
@@ -50,6 +51,9 @@ export const Delete: React.FC<DeleteProps> = ({
   disabled = false,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

@@ -49,6 +49,7 @@ interface IconTextProps
  * @function
  * @param {IconTextProps} props - Props for the IconText component.
  * @returns {JSX.Element} The rendered icon text element.
+ * @see {@link https://bulma.io/documentation/elements/icon/#icon-text | Bulma IconText documentation}
  */
 export const IconText: React.FC<IconTextProps> = ({
   className,
@@ -59,6 +60,9 @@ export const IconText: React.FC<IconTextProps> = ({
   items,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

@@ -31,6 +31,7 @@ export interface TrProps
  * @function
  * @param {TrProps} props - Props for the Tr component.
  * @returns {JSX.Element} The rendered table row element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-row | Bulma Table documentation}
  */
 export const Tr: React.FC<TrProps> = ({
   className,
@@ -39,6 +40,9 @@ export const Tr: React.FC<TrProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const trClasses = classNames(className, bulmaHelperClasses, {

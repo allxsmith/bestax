@@ -27,6 +27,7 @@ export interface TableProps
   isHoverable?: boolean;
   isFullwidth?: boolean;
   isResponsive?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
@@ -37,6 +38,7 @@ export interface TableProps
  * @function
  * @param {TableProps} props - Props for the Table component.
  * @returns {JSX.Element} The rendered table element.
+ * @see {@link https://bulma.io/documentation/elements/table/ | Bulma Table documentation}
  */
 export const Table: React.FC<TableProps> = ({
   className,
@@ -49,6 +51,9 @@ export const Table: React.FC<TableProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tableClasses = classNames('table', className, bulmaHelperClasses, {

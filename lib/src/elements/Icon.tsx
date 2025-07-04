@@ -39,6 +39,11 @@ export interface IconProps
 
 /**
  * Gets the correct classes for the icon element based on the library and features.
+ *
+ * @param {IconLibrary} library - The icon library.
+ * @param {string} name - The icon name.
+ * @param {string | string[]} [libraryFeatures] - Additional library-specific classes.
+ * @returns {string} The combined class string for the icon.
  */
 function getIconClasses(
   library: IconLibrary,
@@ -90,6 +95,7 @@ function getIconClasses(
  * @function
  * @param {IconProps} props - Props for the Icon component.
  * @returns {JSX.Element} The rendered icon element.
+ * @see {@link https://bulma.io/documentation/elements/icon/ | Bulma Icon documentation}
  */
 export const Icon: React.FC<IconProps> = ({
   className,
@@ -103,6 +109,9 @@ export const Icon: React.FC<IconProps> = ({
   style,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

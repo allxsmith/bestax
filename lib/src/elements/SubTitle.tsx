@@ -50,6 +50,7 @@ export interface SubTitleProps
  * @function
  * @param {SubTitleProps} props - Props for the SubTitle component.
  * @returns {JSX.Element} The rendered subtitle element.
+ * @see {@link https://bulma.io/documentation/elements/title/#subtitle | Bulma Subtitle documentation}
  */
 export const SubTitle: React.FC<SubTitleProps> = ({
   className,
@@ -58,6 +59,9 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   // Validate 'as' prop at runtime

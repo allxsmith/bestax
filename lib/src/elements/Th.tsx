@@ -39,6 +39,7 @@ export interface ThProps
  * @function
  * @param {ThProps} props - Props for the Th component.
  * @returns {JSX.Element} The rendered table header cell element.
+ * @see {@link https://bulma.io/documentation/elements/table/#table-head | Bulma Table documentation}
  */
 export const Th: React.FC<ThProps> = ({
   className,
@@ -48,6 +49,9 @@ export const Th: React.FC<ThProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const thClasses = classNames(className, bulmaHelperClasses, {

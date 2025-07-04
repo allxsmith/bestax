@@ -27,6 +27,7 @@ export interface TagsProps
  * @function
  * @param {TagsProps} props - Props for the Tags component.
  * @returns {JSX.Element} The rendered tags container.
+ * @see {@link https://bulma.io/documentation/elements/tag/#list-of-tags | Bulma Tags documentation}
  */
 export const Tags: React.FC<TagsProps> = ({
   className,
@@ -35,6 +36,9 @@ export const Tags: React.FC<TagsProps> = ({
   children,
   ...props
 }) => {
+  /**
+   * Generates Bulma helper classes and separates out remaining props.
+   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   const tagsClasses = classNames('tags', className, bulmaHelperClasses, {
