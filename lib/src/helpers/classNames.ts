@@ -1,3 +1,17 @@
+/**
+ * Returns a space-separated string of class names based on input arguments.
+ *
+ * Accepts any mix of strings, numbers, arrays, or objects. Falsy values are ignored.
+ * Array and object values are recursively flattened, and object keys are included
+ * if their value is truthy. Duplicate class names are removed.
+ *
+ * @param {...(string | number | undefined | null | false | Record<string, unknown> | unknown[])} args - Class values to join.
+ * @returns {string} A space-separated string of unique class names.
+ *
+ * @example
+ * classNames('foo', ['bar', { baz: true }], { qux: false, quux: true });
+ * // => 'foo bar baz quux'
+ */
 export function classNames(
   ...args: (
     | string
