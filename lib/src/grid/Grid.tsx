@@ -6,7 +6,13 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Allowed gap values for Bulma grid.
+ */
 export type BulmaGapValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+/**
+ * Allowed minimum column values for Bulma grid.
+ */
 export type BulmaMinColValue =
   | 1
   | 2
@@ -40,6 +46,9 @@ export type BulmaMinColValue =
   | 30
   | 31
   | 32;
+/**
+ * Allowed fixed grid columns for Bulma grid.
+ */
 export type BulmaFixedGridCols =
   | 0
   | 1
@@ -54,66 +63,55 @@ export type BulmaFixedGridCols =
   | 10
   | 11
   | 12;
+/**
+ * Allowed fixed grid columns prop for Bulma grid.
+ */
 export type BulmaFixedGridColsProp = BulmaFixedGridCols | 'auto';
 
+/**
+ * Props for the Grid component.
+ *
+ * @property {boolean} [isFixed] - Use a fixed grid layout (Bulma's .fixed-grid > .grid).
+ * @property {BulmaGapValue} [gap] - Main gap for grid (applies is-gap-X, 0-8).
+ * @property {BulmaGapValue} [columnGap] - Column gap for grid (applies is-column-gap-X, 0-8).
+ * @property {BulmaGapValue} [rowGap] - Row gap for grid (applies is-row-gap-X, 0-8).
+ * @property {BulmaMinColValue} [minCol] - Minimum column width for the grid (applies is-col-min-X, 1-32).
+ * @property {BulmaFixedGridColsProp} [fixedCols] - For fixed grid only: explicit column count (applies has-X-cols, 0-12), or 'auto' for has-auto-count.
+ * @property {BulmaFixedGridCols} [fixedColsMobile] - For fixed grid only: explicit column count for mobile.
+ * @property {BulmaFixedGridCols} [fixedColsTablet] - For fixed grid only: explicit column count for tablet.
+ * @property {BulmaFixedGridCols} [fixedColsDesktop] - For fixed grid only: explicit column count for desktop.
+ * @property {BulmaFixedGridCols} [fixedColsWidescreen] - For fixed grid only: explicit column count for widescreen.
+ * @property {BulmaFixedGridCols} [fixedColsFullhd] - For fixed grid only: explicit column count for fullhd.
+ * @property {string} [className] - Additional CSS class names.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the grid.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
+ * @property {React.ReactNode} [children] - Children to render inside the grid.
+ */
 export interface GridProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /**
-   * Use a fixed grid layout (Bulma's .fixed-grid > .grid).
-   * If false, renders a plain .grid.
-   */
   isFixed?: boolean;
-  /**
-   * Main gap for grid (applies is-gap-X, 0-8)
-   */
   gap?: BulmaGapValue;
-  /**
-   * Column gap for grid (applies is-column-gap-X, 0-8)
-   */
   columnGap?: BulmaGapValue;
-  /**
-   * Row gap for grid (applies is-row-gap-X, 0-8)
-   */
   rowGap?: BulmaGapValue;
-  /**
-   * Minimum column width for the grid (applies is-col-min-X, 1-32)
-   */
   minCol?: BulmaMinColValue;
-  /**
-   * For fixed grid only: explicit column count (applies has-X-cols, 0-12), or 'auto' for has-auto-count
-   */
   fixedCols?: BulmaFixedGridColsProp;
-  /**
-   * For fixed grid only: explicit column count per breakpoint (0-12)
-   */
   fixedColsMobile?: BulmaFixedGridCols;
   fixedColsTablet?: BulmaFixedGridCols;
   fixedColsDesktop?: BulmaFixedGridCols;
   fixedColsWidescreen?: BulmaFixedGridCols;
   fixedColsFullhd?: BulmaFixedGridCols;
-  /**
-   * Additional CSS class names
-   */
   className?: string;
-  /**
-   * Text color (Bulma color, 'inherit', or 'current')
-   */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /**
-   * Bulma color modifier for the cell text
-   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /**
-   * Background color (Bulma color, 'inherit', or 'current')
-   */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /**
-   * Children to render inside the cell
-   */
   children?: React.ReactNode;
 }
 
+/**
+ * Builds Bulma grid inner classes for the Grid component.
+ */
 function getGridInnerClasses({
   gap,
   columnGap,
@@ -128,6 +126,9 @@ function getGridInnerClasses({
   return classes;
 }
 
+/**
+ * Builds Bulma fixed grid classes for the Grid component.
+ */
 function getFixedGridClasses({
   fixedCols,
   fixedColsMobile,
@@ -164,6 +165,14 @@ function getFixedGridClasses({
   return classes;
 }
 
+/**
+ * Bulma Grid component for CSS Grid layouts, supports both fixed and responsive grid modes.
+ *
+ * @function
+ * @param {GridProps} props - Props for the Grid component.
+ * @returns {JSX.Element} The rendered grid.
+ * @see {@link https://bulma.io/documentation/grid/ | Bulma Grid documentation}
+ */
 export const Grid: React.FC<GridProps> = ({
   isFixed = false,
   gap,
