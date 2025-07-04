@@ -2,6 +2,13 @@ import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the Panel component.
+ *
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the panel.
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Panel content.
+ */
 export interface PanelProps
   extends React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
@@ -20,17 +27,36 @@ export interface PanelProps
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelHeading component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Heading content.
+ */
 export interface PanelHeadingProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelTabs component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Tabs content.
+ */
 export interface PanelTabsProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelBlock component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {boolean} [active] - Whether the block is active.
+ * @property {React.ReactNode} [children] - Block content.
+ */
 export interface PanelBlockProps
   extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   className?: string;
@@ -38,11 +64,25 @@ export interface PanelBlockProps
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelIcon component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Icon content.
+ */
 export interface PanelIconProps extends React.HTMLAttributes<HTMLSpanElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelInputBlock component.
+ *
+ * @property {string} [value] - Input value.
+ * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Input change handler.
+ * @property {string} [placeholder] - Input placeholder.
+ * @property {string} [iconClassName] - Icon class for left icon (default 'fas fa-search').
+ */
 export interface PanelInputBlockProps
   extends React.HTMLAttributes<HTMLDivElement> {
   value?: string;
@@ -51,6 +91,13 @@ export interface PanelInputBlockProps
   iconClassName?: string;
 }
 
+/**
+ * Props for the PanelCheckboxBlock component.
+ *
+ * @property {boolean} [checked] - Whether the checkbox is checked.
+ * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Checkbox change handler.
+ * @property {React.ReactNode} [children] - Label/content.
+ */
 export interface PanelCheckboxBlockProps
   extends Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> {
   checked?: boolean;
@@ -58,11 +105,24 @@ export interface PanelCheckboxBlockProps
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the PanelButtonBlock component.
+ *
+ * @property {React.ReactNode} [children] - Button content.
+ */
 export interface PanelButtonBlockProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
 }
 
+/**
+ * Bulma Panel component, supports various panel subcomponents.
+ *
+ * @function
+ * @param {PanelProps} props - Props for the Panel component.
+ * @returns {JSX.Element} The rendered panel.
+ * @see {@link https://bulma.io/documentation/components/panel/ | Bulma Panel documentation}
+ */
 export const Panel: React.FC<PanelProps> & {
   Heading: typeof PanelHeading;
   Tabs: typeof PanelTabs;
@@ -88,6 +148,9 @@ export const Panel: React.FC<PanelProps> & {
   );
 };
 
+/**
+ * Bulma Panel heading.
+ */
 export const PanelHeading: React.FC<PanelHeadingProps> = ({
   className,
   children,
@@ -98,6 +161,9 @@ export const PanelHeading: React.FC<PanelHeadingProps> = ({
   </p>
 );
 
+/**
+ * Bulma Panel tabs.
+ */
 export const PanelTabs: React.FC<PanelTabsProps> = ({
   className,
   children,
@@ -108,6 +174,9 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
   </p>
 );
 
+/**
+ * Bulma Panel block.
+ */
 export const PanelBlock: React.FC<PanelBlockProps> = ({
   className,
   active,
@@ -122,6 +191,9 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
   </a>
 );
 
+/**
+ * Bulma Panel icon.
+ */
 export const PanelIcon: React.FC<PanelIconProps> = ({
   className,
   children,
@@ -132,6 +204,9 @@ export const PanelIcon: React.FC<PanelIconProps> = ({
   </span>
 );
 
+/**
+ * Bulma Panel input block.
+ */
 export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   value,
   onChange,
@@ -155,6 +230,9 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   </div>
 );
 
+/**
+ * Bulma Panel checkbox block.
+ */
 export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
   checked,
   onChange,
@@ -167,6 +245,9 @@ export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
   </label>
 );
 
+/**
+ * Bulma Panel button block.
+ */
 export const PanelButtonBlock: React.FC<PanelButtonBlockProps> = ({
   children,
   className,

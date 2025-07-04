@@ -6,6 +6,22 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the Card component.
+ *
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the card.
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the card.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the card.
+ * @property {boolean} [hasShadow] - Whether the card has a shadow (default: true).
+ * @property {React.ReactNode} [header] - Card header content, rendered inside `.card-header-title`.
+ * @property {boolean} [headerCentered] - If true, centers the header title.
+ * @property {React.ReactNode} [headerIcon] - Card header icon, rendered as a sibling to the header title.
+ * @property {React.ReactNode|React.ReactNode[]} [footer] - Card footer content, each wrapped in `.card-footer-item`.
+ * @property {React.ReactNode|string} [image] - Card image node or image src string.
+ * @property {string} [imageAlt] - Alternate text for the card image.
+ * @property {React.ReactNode} [children] - Card content.
+ */
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
@@ -14,35 +30,13 @@ export interface CardProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   hasShadow?: boolean;
-  /**
-   * Card header content.
-   * Rendered inside `.card-header-title`.
-   */
   header?: React.ReactNode;
-  /**
-   * If true, adds the Bulma `is-centered` modifier to the header title.
-   */
   headerCentered?: boolean;
-  /**
-   * Card header icon, rendered as a sibling to the header title, outside `.card-header-title`.
-   * Use for `.card-header-icon` elements per Bulma docs.
-   */
   headerIcon?: React.ReactNode;
-  /**
-   * Card footer content.
-   * Can be a single node/string or an array of nodes/strings.
-   * Each will be wrapped in .card-footer-item automatically.
-   */
   footer?: React.ReactNode | React.ReactNode[];
-  /**
-   * Card image node or a string (img src).
-   */
   image?: React.ReactNode | string;
-  /**
-   * Alternate text for the card image, if image is a string.
-   * Defaults to "Card image" if not provided.
-   */
   imageAlt?: string;
+  children?: React.ReactNode;
 }
 
 // Always wrap each footer item in .card-footer-item
@@ -56,6 +50,14 @@ const renderFooter = (footer: CardProps['footer']) => {
   ));
 };
 
+/**
+ * Card component for rendering a styled Bulma card.
+ *
+ * @function
+ * @param {CardProps} props - Props for the Card component.
+ * @returns {JSX.Element} The rendered card element.
+ * @see {@link https://bulma.io/documentation/components/card/ | Bulma Card documentation}
+ */
 export const Card: React.FC<CardProps> = ({
   className,
   children,

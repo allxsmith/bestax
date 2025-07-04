@@ -2,10 +2,31 @@ import React, { useState, useRef, useEffect } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
-// Safe, testable helper
+/**
+ * Checks if code is running in a browser environment.
+ * @param win - Window object.
+ * @param doc - Document object.
+ * @returns {boolean} True if in browser, false otherwise.
+ */
 export const isBrowser = (win?: typeof window, doc?: typeof document) =>
   typeof win !== 'undefined' && typeof doc !== 'undefined';
 
+/**
+ * Props for the Dropdown component.
+ *
+ * @property {React.ReactNode} label - The dropdown button content.
+ * @property {React.ReactNode} children - The menu items.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {string} [menuClassName] - Additional CSS classes for the dropdown menu.
+ * @property {boolean} [active] - Whether the dropdown is open (controlled).
+ * @property {boolean} [up] - Dropdown direction up.
+ * @property {boolean} [right] - Dropdown aligned to the right.
+ * @property {boolean} [hoverable] - Dropdown opens on hover.
+ * @property {boolean} [disabled] - Disables the dropdown trigger.
+ * @property {(active: boolean) => void} [onActiveChange] - Called when active state changes.
+ * @property {boolean} [closeOnClick=true] - Close dropdown when clicking a menu item.
+ * @property {string} [id] - ID for the root element.
+ */
 export interface DropdownProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
@@ -23,6 +44,14 @@ export interface DropdownProps
   id?: string;
 }
 
+/**
+ * Bulma Dropdown component.
+ *
+ * @function
+ * @param {DropdownProps} props - Props for the Dropdown component.
+ * @returns {JSX.Element} The rendered dropdown.
+ * @see {@link https://bulma.io/documentation/components/dropdown/ | Bulma Dropdown documentation}
+ */
 export const Dropdown: React.FC<DropdownProps> = ({
   label,
   children,
@@ -134,14 +163,30 @@ export const Dropdown: React.FC<DropdownProps> = ({
   );
 };
 
+/**
+ * Props for the DropdownItem component.
+ *
+ * @property {boolean} [active] - Whether the item is active.
+ * @property {string} [className] - Additional CSS classes.
+ * @property {'a'|'div'|'button'} [as] - The element type to render.
+ * @property {React.ReactNode} [children] - Item content.
+ */
 export interface DropdownItemProps
   extends Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   active?: boolean;
   className?: string;
   as?: 'a' | 'div' | 'button';
+  children?: React.ReactNode;
 }
 
+/**
+ * Bulma Dropdown item.
+ *
+ * @function
+ * @param {DropdownItemProps} props - Props for the DropdownItem component.
+ * @returns {JSX.Element} The rendered dropdown item.
+ */
 export const DropdownItem: React.FC<DropdownItemProps> = ({
   children,
   active,
@@ -168,6 +213,11 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   );
 };
 
+/**
+ * Bulma Dropdown divider.
+ *
+ * @returns {JSX.Element} The divider element.
+ */
 export const DropdownDivider: React.FC = () => (
   <hr className="dropdown-divider" />
 );

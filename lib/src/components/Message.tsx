@@ -15,6 +15,7 @@ import {
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the message.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma or 'inherit'/'current').
  * @property {() => void} [onClose] - Called when the close button is clicked.
+ * @property {React.ReactNode} [children] - Message body content.
  */
 export interface MessageProps
   extends Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
@@ -25,12 +26,18 @@ export interface MessageProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   onClose?: () => void;
+  children?: React.ReactNode;
 }
 
 /**
  * Bulma-styled Message component.
  *
  * Supports Bulma helper classes, color, and an optional close button.
+ *
+ * @function
+ * @param {MessageProps} props - Props for the Message component.
+ * @returns {JSX.Element} The rendered message.
+ * @see {@link https://bulma.io/documentation/components/message/ | Bulma Message documentation}
  */
 export const Message: React.FC<MessageProps> = ({
   className,

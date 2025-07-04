@@ -5,6 +5,12 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
 
+/**
+ * Props for the Menu component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} children - Menu content.
+ */
 export interface MenuProps
   extends Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
@@ -12,6 +18,14 @@ export interface MenuProps
   children: React.ReactNode;
 }
 
+/**
+ * Bulma Menu component.
+ *
+ * @function
+ * @param {MenuProps} props - Props for the Menu component.
+ * @returns {JSX.Element} The rendered menu.
+ * @see {@link https://bulma.io/documentation/components/menu/ | Bulma Menu documentation}
+ */
 export const Menu: React.FC<MenuProps> = ({
   className,
   children,
@@ -29,6 +43,12 @@ export const Menu: React.FC<MenuProps> = ({
   );
 };
 
+/**
+ * Props for the MenuLabel component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} children - Label content.
+ */
 export interface MenuLabelProps
   extends Omit<
       React.HTMLAttributes<HTMLParagraphElement>,
@@ -39,6 +59,13 @@ export interface MenuLabelProps
   children: React.ReactNode;
 }
 
+/**
+ * Bulma Menu label component.
+ *
+ * @function
+ * @param {MenuLabelProps} props - Props for the MenuLabel component.
+ * @returns {JSX.Element} The rendered menu label.
+ */
 export const MenuLabel: React.FC<MenuLabelProps> = ({
   className,
   children,
@@ -56,6 +83,12 @@ export const MenuLabel: React.FC<MenuLabelProps> = ({
   );
 };
 
+/**
+ * Props for the MenuList component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} children - List items.
+ */
 export interface MenuListProps
   extends Omit<React.HTMLAttributes<HTMLUListElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
@@ -65,6 +98,10 @@ export interface MenuListProps
 
 /**
  * MenuList applies `menu-list` class only at the top level (not for nested lists).
+ *
+ * @function
+ * @param {MenuListProps} props - Props for the MenuList component.
+ * @returns {JSX.Element} The rendered menu list.
  */
 export const MenuList: React.FC<MenuListProps> = ({
   className,
@@ -88,6 +125,15 @@ export const MenuList: React.FC<MenuListProps> = ({
   );
 };
 
+/**
+ * Props for the MenuItem component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {boolean} [active] - Whether the item is active.
+ * @property {string} [href] - Href for link items.
+ * @property {React.ElementType} [as] - Render as a custom component.
+ * @property {React.ReactNode} children - Item content and optional nested MenuList.
+ */
 export interface MenuItemProps
   extends Omit<React.LiHTMLAttributes<HTMLLIElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
@@ -100,8 +146,11 @@ export interface MenuItemProps
 }
 
 /**
- * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link
- * Ensures data-testid is only applied to "li" html elements
+ * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
+ *
+ * @function
+ * @param {MenuItemProps} props - Props for the MenuItem component.
+ * @returns {JSX.Element} The rendered menu item.
  */
 export const MenuItem: React.FC<MenuItemProps> = ({
   className,

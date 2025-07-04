@@ -52,6 +52,7 @@ export interface BreadcrumbProps
  * @function
  * @param {BreadcrumbProps} props - Props for the Breadcrumb component.
  * @returns {JSX.Element} The rendered breadcrumb element.
+ * @see {@link https://bulma.io/documentation/components/breadcrumb/ | Bulma Breadcrumb documentation}
  */
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   className,
