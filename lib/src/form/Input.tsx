@@ -2,6 +2,20 @@ import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the Input component.
+ *
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the input.
+ * @property {'small'|'medium'|'large'} [size] - Size modifier for the input.
+ * @property {boolean} [isRounded] - Renders the input with rounded corners.
+ * @property {boolean} [isStatic] - Renders the input as static text.
+ * @property {boolean} [isHovered] - Applies the hovered state.
+ * @property {boolean} [isFocused] - Applies the focused state.
+ * @property {boolean} [isLoading] - Shows loading indicator.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {boolean} [disabled] - Whether the input is disabled.
+ * @property {boolean} [readOnly] - Whether the input is read-only.
+ */
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
@@ -19,14 +33,22 @@ export interface InputProps
   size?: 'small' | 'medium' | 'large';
   isRounded?: boolean;
   isStatic?: boolean;
-  isHovered?: boolean; // Bulma state modifier
-  isFocused?: boolean; // Bulma state modifier
-  isLoading?: boolean; // Optional, for loading state
+  isHovered?: boolean;
+  isFocused?: boolean;
+  isLoading?: boolean;
   className?: string;
-  disabled?: boolean; // Standard HTML input attribute
-  readOnly?: boolean; // Standard HTML input attribute
+  disabled?: boolean;
+  readOnly?: boolean;
 }
 
+/**
+ * Bulma Input component with full Bulma helper class support.
+ *
+ * @function
+ * @param {InputProps} props - Props for the Input component.
+ * @returns {JSX.Element} The rendered input element.
+ * @see {@link https://bulma.io/documentation/form/input/ | Bulma Input documentation}
+ */
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {

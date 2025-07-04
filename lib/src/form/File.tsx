@@ -2,6 +2,23 @@ import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the File component.
+ *
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the file input.
+ * @property {'small'|'medium'|'large'} [size] - Size modifier for the file input.
+ * @property {boolean} [isBoxed] - Whether the file input is boxed.
+ * @property {boolean} [isFullwidth] - Whether the file input expands to full width.
+ * @property {boolean} [isRight] - Align file input to the right.
+ * @property {boolean} [isCentered] - Center the file input.
+ * @property {boolean} [hasName] - Show a file name indicator.
+ * @property {React.ReactNode} [label] - Custom label text or node.
+ * @property {React.ReactNode} [iconLeft] - Left icon element.
+ * @property {React.ReactNode} [iconRight] - Right icon element.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {string} [inputClassName] - Additional CSS classes for the input.
+ * @property {string} [fileName] - File name to display.
+ */
 export interface FileProps
   extends Omit<
       React.InputHTMLAttributes<HTMLInputElement>,
@@ -30,12 +47,17 @@ export interface FileProps
   iconRight?: React.ReactNode;
   className?: string;
   inputClassName?: string;
-  fileName?: string; // For custom file name display
+  fileName?: string;
 }
 
 /**
  * Bulma File upload component with full Bulma helper class support.
  * isRight and isCentered are mutually exclusive (Bulma spec).
+ *
+ * @function
+ * @param {FileProps} props - Props for the File component.
+ * @returns {JSX.Element} The rendered file upload field.
+ * @see {@link https://bulma.io/documentation/form/file/ | Bulma File documentation}
  */
 const File = forwardRef<HTMLInputElement, FileProps>(
   (

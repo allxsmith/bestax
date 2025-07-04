@@ -7,6 +7,28 @@ import {
 } from '../helpers/useBulmaClasses';
 import { Icon, IconProps } from '../elements/Icon';
 
+/**
+ * Props for the Control component.
+ *
+ * @property {boolean} [hasIconsLeft] - Adds left icon container.
+ * @property {boolean} [hasIconsRight] - Adds right icon container.
+ * @property {boolean} [isLoading] - Shows loading indicator.
+ * @property {boolean} [isExpanded] - Makes the control expand to fill available space.
+ * @property {'small'|'medium'|'large'} [size] - Sets the control size.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Sets text color.
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color for the control.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
+ * @property {IconProps} [iconLeft] - Icon props for left icon.
+ * @property {IconProps} [iconRight] - Icon props for right icon.
+ * @property {string} [iconLeftName] - Shortcut for left icon name.
+ * @property {'small'|'medium'|'large'} [iconLeftSize] - Shortcut for left icon size.
+ * @property {string} [iconRightName] - Shortcut for right icon name.
+ * @property {'small'|'medium'|'large'} [iconRightSize] - Shortcut for right icon size.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {React.ReactNode} [children] - Content inside the control.
+ * @property {'div'|'p'} [as] - Element type for the control (default: 'div').
+ * @property {React.Ref<HTMLDivElement|HTMLParagraphElement>} [ref] - Ref for the control element.
+ */
 export interface ControlBaseProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
@@ -40,6 +62,14 @@ type ControlProps =
 
 const allowedColors = [...validColors, 'inherit', 'current'] as const;
 
+/**
+ * Bulma Control component for form controls, with icons, loading, and Bulma helper support.
+ *
+ * @function
+ * @param {ControlProps} props - Props for the Control component.
+ * @returns {JSX.Element} The rendered control container.
+ * @see {@link https://bulma.io/documentation/form/general/#control | Bulma Control documentation}
+ */
 const Control = React.forwardRef<
   HTMLDivElement | HTMLParagraphElement,
   ControlProps

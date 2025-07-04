@@ -2,6 +2,20 @@ import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/**
+ * Props for the Select component.
+ *
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the select.
+ * @property {'small'|'medium'|'large'} [size] - Size modifier for the select.
+ * @property {boolean} [isRounded] - Renders the select with rounded corners.
+ * @property {boolean} [isLoading] - Shows loading indicator.
+ * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {boolean} [disabled] - Whether the select is disabled.
+ * @property {boolean} [multiple] - Whether the select allows multiple values.
+ * @property {number} [multipleSize] - For multiple select: number of visible options.
+ * @property {React.ReactNode} [children] - Option elements.
+ */
 export interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
@@ -19,12 +33,22 @@ export interface SelectProps
   size?: 'small' | 'medium' | 'large';
   isRounded?: boolean;
   isLoading?: boolean;
-  isActive?: boolean; // Bulma's is-active modifier
+  isActive?: boolean;
   className?: string;
   disabled?: boolean;
-  multipleSize?: number; // NEW: for multiple select, maps to <select size>
+  multiple?: boolean;
+  multipleSize?: number;
+  children?: React.ReactNode;
 }
 
+/**
+ * Bulma Select component with full Bulma helper class support.
+ *
+ * @function
+ * @param {SelectProps} props - Props for the Select component.
+ * @returns {JSX.Element} The rendered select element.
+ * @see {@link https://bulma.io/documentation/form/select/ | Bulma Select documentation}
+ */
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
@@ -37,7 +61,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
       disabled,
       children,
       multiple,
-      multipleSize, // NEW
+      multipleSize,
       ...props
     },
     ref
