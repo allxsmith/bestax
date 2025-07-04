@@ -6,30 +6,48 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 
+/**
+ * Bulma container breakpoints.
+ */
 export type ContainerBreakpoint = 'tablet' | 'desktop' | 'widescreen';
 
+/**
+ * Props for the Container component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
+ * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
+ * @property {boolean} [fluid] - Full-width container.
+ * @property {boolean} [widescreen] - Container is widescreen.
+ * @property {boolean} [fullhd] - Container is fullhd.
+ * @property {ContainerBreakpoint} [breakpoint] - Responsive breakpoint.
+ * @property {boolean} [isMax] - Use is-max-* class for breakpoint.
+ * @property {React.ReactNode} [children] - Content inside the container.
+ */
 export interface ContainerProps
   extends React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /**
-   * Bulma color modifier for the cell text
-   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   fluid?: boolean;
   widescreen?: boolean;
   fullhd?: boolean;
-  /** Bulma container breakpoint ('tablet', 'desktop', or 'widescreen') */
   breakpoint?: ContainerBreakpoint;
-  /** If true, applies the is-max-* class for the breakpoint (only if breakpoint is tablet, desktop, or widescreen) */
   isMax?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
  * Container component for Bulma.
  * Adds optional responsive, fluid, and color support, including is-max-* and breakpoint classes.
+ *
+ * @function
+ * @param {ContainerProps} props - Props for the Container component.
+ * @returns {JSX.Element} The rendered container.
+ * @see {@link https://bulma.io/documentation/layout/container/ | Bulma Container documentation}
  */
 export const Container: React.FC<ContainerProps> = ({
   className,
