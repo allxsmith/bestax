@@ -25,8 +25,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.8.1",
-    "@docusaurus/types": "^3.8.1",
-    "docusaurus-plugin-typedoc": "^1.4.0"
+    "@docusaurus/types": "^3.8.1"
   },
   "browserslist": {
     "production": [
