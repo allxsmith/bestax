@@ -2,6 +2,6 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "eslint.workingDirectories": ["lib", "doc-site"],
+  "eslint.workingDirectories": ["bulma-ui", "docs"],
   "typescript.tsdk": "node_modules/typescript/lib"
 }

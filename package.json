@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "lib",
-    "doc-site"
+    "bulma-ui",
+    "docs"
   ],
   "scripts": {
     "build": "turbo run build",

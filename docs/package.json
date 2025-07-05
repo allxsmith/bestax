@@ -47,6 +47,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/allxsmith/bestax.git",
-    "directory": "lib"
+    "directory": "bulma-ui"
   }
 }

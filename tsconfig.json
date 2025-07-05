@@ -14,10 +14,10 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@allxsmith/bestax": ["lib/src/index.ts"],
+      "@allxsmith/bestax": ["bulma-ui/src/index.ts"],
       "@allxsmith/bestax/shared": ["packages/shared/src/index.ts"]
     }
   },
-  "include": ["lib"],
+  "include": ["bulma-ui"],
   "exclude": ["node_modules", "dist", "build", "coverage", ".turbo"]
 }

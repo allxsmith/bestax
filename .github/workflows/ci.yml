@@ -54,7 +54,7 @@ jobs:
         run: npm run format:check
 
       - name: Build Storybook (lib)
-        if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'lib/**')
+        if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'bulma-ui/**')
         run: npm run build-storybook -w lib
 
       - name: Archive Coverage
@@ -62,7 +62,7 @@ jobs:
         with:
           name: coverage
           path: |
-            lib/coverage
+            bulma-ui/coverage
           retention-days: 7
 
       - name: Archive Bundle Stats
@@ -70,15 +70,15 @@ jobs:
         with:
           name: bundle-stats
           path: |
-            lib/dist/stats.html
-            doc-site/build/stats.html
+            bulma-ui/dist/stats.html
+            docs/build/stats.html
           retention-days: 7
 
       - name: Archive Storybook
         uses: actions/upload-artifact@v4
         with:
           name: storybook
-          path: lib/storybook-static
+          path: bulma-ui/storybook-static
 
   publish:
     name: Publish to npm
