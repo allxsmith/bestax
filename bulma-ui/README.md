@@ -42,12 +42,10 @@ Or add it via CDN in your HTML:
 
 ### 3. (Optional) Add an Icon Library
 
-Many components work well with icons. We recommend [Font Awesome](https://fontawesome.com/) or [react-icons](https://react-icons.github.io/react-icons/):
+Many components work well with icons. We recommend [Font Awesome](https://fontawesome.com/):
 
 ```bash
 npm install @fortawesome/fontawesome-free
-# or
-npm install react-icons
 ```
 
 And then import in your code as needed.

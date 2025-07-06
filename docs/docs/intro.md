@@ -39,8 +39,6 @@ The latest Bulma V1 is supported by **bestax-bulma**.
 
    ```bash
    npm install @fortawesome/fontawesome-free
-   # or
-   npm install react-icons
    ```
 
 ---
@@ -59,7 +57,7 @@ Basic Bulma elements made available as React components.
 - [Buttons](/docs/api/elements/buttons) – A container for grouping buttons.
 - [Content](/docs/api/elements/content) – A container for html content, great for content from services and WYSIWYG editors.
 - [Delete](/docs/api/elements/delete) – An element to signify delete or close. Useful in tons of situations.
-- [Icon](/docs/api/elements/icon) – Standardized icon wrapper for Bulma/Font Awesome/react-icons.
+- [Icon](/docs/api/elements/icon) – Standardized icon wrapper for Bulma/Font Awesome.
 - [Image](/docs/api/elements/image) – A container for images, fixed and responsive.
 - [Notification](/docs/api/elements/notification) – A colored block to notify.
 - [Progress](/docs/api/elements/progress) – A decent looking progress bar.
