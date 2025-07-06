@@ -113,7 +113,6 @@ export const DefaultSize: StoryObj<MessageProps> = {
 export const Small: StoryObj<MessageProps> = {
   args: {
     title: 'Small',
-    className: 'is-small',
     children: declarationLatin,
   },
 };
@@ -121,7 +120,6 @@ export const Small: StoryObj<MessageProps> = {
 export const Medium: StoryObj<MessageProps> = {
   args: {
     title: 'Medium',
-    className: 'is-medium',
     children: declarationLatin,
   },
 };
@@ -129,7 +127,6 @@ export const Medium: StoryObj<MessageProps> = {
 export const Large: StoryObj<MessageProps> = {
   args: {
     title: 'Large',
-    className: 'is-large',
     children: declarationLatin,
   },
 };
