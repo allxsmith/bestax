@@ -52,7 +52,7 @@ export interface DropdownProps
  * @returns {JSX.Element} The rendered dropdown.
  * @see {@link https://bulma.io/documentation/components/dropdown/ | Bulma Dropdown documentation}
  */
-export const Dropdown: React.FC<DropdownProps> = ({
+const DropdownComponent: React.FC<DropdownProps> = ({
   label,
   children,
   className,
@@ -221,3 +221,11 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
 export const DropdownDivider: React.FC = () => (
   <hr className="dropdown-divider" />
 );
+
+// Assign static subcomponents
+export const Dropdown = Object.assign(DropdownComponent, {
+  Item: DropdownItem,
+  Divider: DropdownDivider,
+});
+
+export default Dropdown;

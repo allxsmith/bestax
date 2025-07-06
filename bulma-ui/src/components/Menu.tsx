@@ -26,7 +26,7 @@ export interface MenuProps
  * @returns {JSX.Element} The rendered menu.
  * @see {@link https://bulma.io/documentation/components/menu/ | Bulma Menu documentation}
  */
-export const Menu: React.FC<MenuProps> = ({
+const MenuComponent: React.FC<MenuProps> = ({
   className,
   children,
   ...props
@@ -203,3 +203,12 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     </li>
   );
 };
+
+// Attach static subcomponents
+export const Menu = Object.assign(MenuComponent, {
+  Label: MenuLabel,
+  List: MenuList,
+  Item: MenuItem,
+});
+
+export default Menu;
