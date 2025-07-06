@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.4
+
+### Patch Changes
+
+- 65aaf7b: Update package to contain bestax homepage, and reword special thanks in readme
+
 ## 1.0.3
 
 ### Patch Changes
