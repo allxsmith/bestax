@@ -82,6 +82,10 @@
     "url": "git+https://github.com/allxsmith/bestax.git",
     "directory": "bulma-ui"
   },
+  "homepage": "https://bestax.cc",
+  "bugs": {
+    "url": "https://github.com/allxsmith/bestax/issues"
+  },
   "publishConfig": {
     "access": "public"
   },

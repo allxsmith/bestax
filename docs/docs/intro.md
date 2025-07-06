@@ -153,8 +153,10 @@ However, this documentation site is the primary and most complete resource for u
 
 ## 🙏 Special Thanks
 
-bestax-bulma is built on top of [Bulma](https://github.com/jgthms/bulma).  
-**Special thanks to [Jeremy Thomas](https://github.com/jgthms) for creating such an awesome CSS framework!**  
-Consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support Bulma’s future.
+bestax-bulma is built on top of the incredible [@jgthms/bulma](https://github.com/jgthms/bulma) CSS framework.
+
+If you find Bulma useful, please consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support the continued development of Bulma.
+
+_Note: We are not affiliated with Bulma or Jeremy Thomas in any way...We’re just big fans of the Bulma framework!_
 
 ---

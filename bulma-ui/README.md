@@ -125,9 +125,9 @@ Explore live, interactive component examples in our Storybook:
 
 bestax-bulma is built on top of the incredible [@jgthms/bulma](https://github.com/jgthms/bulma) CSS framework.
 
-**Special thanks to [Jeremy Thomas](https://github.com/jgthms) for creating such an awesome CSS framework and for continually inspiring the open-source community!**
-
 If you find Bulma useful, please consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support the continued development of Bulma.
+
+_Note: We are not affiliated with Bulma or Jeremy Thomas in any way...We’re just big fans of the Bulma framework!_
 
 ---
 
