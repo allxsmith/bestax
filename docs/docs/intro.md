@@ -1,47 +1,160 @@
+# Getting Started with bestax-bulma
+
+Welcome to **bestax-bulma** – a modern, flexible React component library powered by the latest Bulma v1 and TypeScript.
+
 ---
-sidebar_position: 1
+
+## Installation
+
+1. **Install the package:**
+
+   ```bash
+   npm install @allxsmith/bestax-bulma
+   # or
+   yarn add @allxsmith/bestax-bulma
+   ```
+
+2. **Include Bulma CSS in your project:**
+   - **In your main JS/TS file:**
+     ```js
+     import 'bulma/css/bulma.min.css';
+     ```
+   - **Or via CDN in your HTML:**
+     ```html
+     <link
+       rel="stylesheet"
+       href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
+     />
+     ```
+
+3. **(Optional) Add an icon library:**
+
+   Many components support icons. We recommend:
+
+   ```bash
+   npm install @fortawesome/fontawesome-free
+   # or
+   npm install react-icons
+   ```
+
 ---
 
-# Tutorial Intro
+## Component Overview
 
-Let's discover **Docusaurus in less than 5 minutes**.
+bestax-bulma is organized into several major directories. Here’s a high-level overview:
 
-## Getting Started
+### 🟢 Elements
 
-Get started by **creating a new site**.
+Basic Bulma elements made available as React components.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+- **Box** – Container with optional color/shadow.
+- **Tag** – Labels with colors and sizes.
+- **Tags** – Group tags together.
+- **Icon** – Standardized icon wrapper for Bulma/Font Awesome/react-icons.
+- **Table** – `Td`, `Th`, `Tr` for styled tables.
 
-### What you'll need
+### 🟦 Columns
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+Responsive and flexible grid layouts using Bulma’s columns system.
 
-## Generate a new site
+- **Columns** – Row container for columns.
+- **Column** – Individual grid column.
 
-Generate a new Docusaurus site using the **classic template**.
+### 🟩 Grid
 
-The classic template will automatically be added to your project after you run the command:
+CSS Grid support, using Bulma’s new grid utilities.
 
-```bash
-npm init docusaurus@latest my-website classic
+- **Grid** – CSS grid container.
+- **Cell** – CSS grid cell.
+
+### 🟨 Layout
+
+High-level layout primitives for structuring your app.
+
+- **Container** – Responsive maximum width container.
+- **Section** – Page section wrapper.
+- **Hero** – Prominent hero banner (with `Hero.Head`, `Hero.Body`, `Hero.Foot`).
+- **Level** – Horizontal alignment container and items.
+- **Media** – Flexible media object for avatars/media + content.
+- **Footer** – Page footer.
+
+### 🟧 Components
+
+Reusable UI widgets and navigation components.
+
+- **Card** – Content card with header, image, content, and footer.
+- **Menu** – Vertical navigation menu with nested items.
+- **Navbar** – Responsive top navigation bar and items.
+- **Panel** – Sidebar menu/panel with subcomponents (tabs, blocks, icons).
+- **Tabs/Tab** – Tab navigation with tab list and tab item.
+- **Modal** – Dialog/modal window.
+
+### 🟪 Form
+
+Accessible, fully styled form controls supporting all Bulma modifiers.
+
+- **Field** – Form field wrapper with label and layout.
+- **Control** – Form control container (handles icons, loading, etc).
+- **Input** – Styled input field.
+- **Select** – Styled select dropdown.
+- **File** – File input.
+- **Radio & Radios** – Radio button and grouped radios.
+
+---
+
+## Example Usage
+
+```tsx
+import React from 'react';
+import {
+  Box,
+  Button,
+  Columns,
+  Column,
+  Field,
+  Input,
+} from '@allxsmith/bestax-bulma';
+import 'bulma/css/bulma.min.css';
+
+function Demo() {
+  return (
+    <Box>
+      <Columns>
+        <Column>
+          <Field label="Username">
+            <Input placeholder="Enter your username" />
+          </Field>
+          <Button color="primary">Submit</Button>
+        </Column>
+      </Columns>
+    </Box>
+  );
+}
 ```
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+---
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+## Next Steps
 
-## Start your site
+- **Keep exploring right here in the documentation site!**
+- **Get started with the [API component docs](/docs/api)** for detailed usage, props, and examples for every component.
+  - For example, check out [Button](/docs/api/elements/button) or browse other components in the sidebar.
+- **Try out code samples and experiment as you go.**
 
-Run the development server:
+---
 
-```bash
-cd my-website
-npm run start
-```
+## Storybook
 
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
+We also provide a [Storybook site](https://bestax.cc/storybook) that we use for UI development and visual testing of all components.  
+If you prefer the Storybook format, feel free to explore it for live demos and interaction.  
+However, this documentation site is the primary and most complete resource for usage guides and real-world examples.
 
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
+---
 
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+## 🙏 Special Thanks
+
+bestax-bulma is built on top of [Bulma](https://github.com/jgthms/bulma).  
+**Special thanks to [Jeremy Thomas](https://github.com/jgthms) for creating such an awesome CSS framework!**  
+Consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support Bulma’s future.
+
+---

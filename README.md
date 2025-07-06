@@ -1,6 +1,15 @@
 # bestax-bulma
 
-A modern, flexible React component library built with [Bulma](https://bulma.io/) and TypeScript.
+A modern, flexible React component library built with the latest Bulma v1 and TypeScript.
+
+---
+
+## 📚 Comprehensive Documentation
+
+**Looking for full documentation, guides, API references, and best practices?**  
+👉 **Visit our official docs at [https://bestax.cc](https://bestax.cc)**
+
+> The documentation site is the best place to learn about all bestax-bulma features, usage patterns, and updates. We strongly recommend using the docs as your primary resource!
 
 ---
 
@@ -13,8 +22,6 @@ npm install @allxsmith/bestax-bulma
 # or
 yarn add @allxsmith/bestax-bulma
 ```
-
----
 
 ### 2. Import Bulma CSS
 
@@ -33,8 +40,6 @@ Or add it via CDN in your HTML:
 />
 ```
 
----
-
 ### 3. (Optional) Add an Icon Library
 
 Many components work well with icons. We recommend [Font Awesome](https://fontawesome.com/) or [react-icons](https://react-icons.github.io/react-icons/):
@@ -46,8 +51,6 @@ npm install react-icons
 ```
 
 And then import in your code as needed.
-
----
 
 ### 4. Quick Example
 
@@ -77,6 +80,8 @@ export default App;
 
 - **Supports the latest Bulma v1.x**  
   Other React Bulma libraries are stuck on Bulma 0.9.4 — bestax-bulma is built for the future.
+- **Super small unpacked size**  
+  Just over 700kB unpacked — smaller than most other Bulma React packages.
 - **Zero external dependencies**  
   Clean install, smaller bundle, fewer codeql security issues.
 - **99% unit test coverage**  
@@ -88,13 +93,20 @@ export default App;
 
 ---
 
+## 📦 NPM Package
+
+View the package on npmjs:  
+👉 [https://www.npmjs.com/package/@allxsmith/bestax-bulma](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
+
+---
+
 ## 📚 Documentation
 
-**For full documentation, guides, and best practices, please use our Docusaurus site:**
+**For full documentation, guides, and best practices, please use our official docs site:**
 
 👉 [https://bestax.cc](https://bestax.cc)
 
-> **Always refer to the [Docusaurus docs](https://bestax.cc) first:**  
+> **Always refer to the [documentation site](https://bestax.cc) first:**  
 > It’s the most complete and up-to-date source for everything bestax-bulma!
 
 ---
