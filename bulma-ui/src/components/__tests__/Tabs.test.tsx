@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Tabs from '../Tab';
+import Tabs from '../Tabs';
 
 describe('Tabs', () => {
   it('renders tabs container', () => {

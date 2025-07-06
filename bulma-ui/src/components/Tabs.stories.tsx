@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
-import Tabs from './Tab';
+import Tabs from './Tabs';
 import { Icon } from '../elements/Icon';
 
 const meta: Meta<typeof Tabs> = {
