@@ -167,7 +167,7 @@ Use the `Checkboxes` wrapper for a vertical group.
 ## Additional Resources
 
 - [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
-- [Storybook: Checkbox Stories](https://storybook.bestax.cc/?path=/story/form-checkbox--default)
+- [Storybook: Checkbox Stories](https://bestax.cc/storybook/?path=/story/form-checkbox--default)
 
 ---
 
@@ -182,4 +182,4 @@ Use the `Checkboxes` wrapper for a vertical group.
 ## Additional Resources
 
 - [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
-- [Storybook: Checkbox Stories](https://storybook.bestax.cc/?path=/story/form-checkbox--default)
+- [Storybook: Checkbox Stories](https://bestax.cc/storybook/?path=/story/form-checkbox--default)

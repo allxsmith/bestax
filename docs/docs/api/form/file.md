@@ -218,4 +218,4 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma File Documentation](https://bulma.io/documentation/form/file/)
-- [Storybook: File Stories](https://storybook.bestax.cc/?path=/story/form-file--default)
+- [Storybook: File Stories](https://bestax.cc/storybook/?path=/story/form-file--default)

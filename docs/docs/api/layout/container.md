@@ -156,7 +156,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma Container Documentation](https://bulma.io/documentation/layout/container/)
-- [Storybook: Container Stories](https://storybook.bestax.cc/?path=/story/layout-container--default)
+- [Storybook: Container Stories](https://bestax.cc/storybook/?path=/story/layout-container--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Container />` for powerful utility-based styling.

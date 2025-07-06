@@ -132,4 +132,4 @@ Always provide clear, actionable text inside notifications.
 ## Additional Resources
 
 - [Bulma Notification Documentation](https://bulma.io/documentation/elements/notification/)
-- [Storybook: Notification Stories](https://storybook.bestax.cc/?path=/story/elements-notification--default)
+- [Storybook: Notification Stories](https://bestax.cc/storybook/?path=/story/elements-notification--default)

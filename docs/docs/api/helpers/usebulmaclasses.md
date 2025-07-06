@@ -363,4 +363,4 @@ const { bulmaHelperClasses } = useBulmaClasses({
 
 - [classNames helper](./classnames.md)
 - [Bulma Classes Reference](https://bulma.io/documentation/helpers/)
-- [Storybook: useBulmaClasses Demo](https://storybook.bestax.cc/?path=/story/helpers-usebulmaclasses--default)
+- [Storybook: useBulmaClasses Demo](https://bestax.cc/storybook/?path=/story/helpers-usebulmaclasses--default)

@@ -220,4 +220,4 @@ For star ratings or icon lists, use `items` with `iconProps` and optional `text`
 ## Additional Resources
 
 - [Bulma IconText Documentation](https://bulma.io/documentation/elements/icon/#icon-text)
-- [Storybook: IconText Stories](https://storybook.bestax.cc/?path=/story/elements-icontext--default)
+- [Storybook: IconText Stories](https://bestax.cc/storybook/?path=/story/elements-icontext--default)

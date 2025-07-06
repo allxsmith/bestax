@@ -299,7 +299,7 @@ When using fullheight or fullheight-with-navbar, ensure your layout remains keyb
 ## Additional Resources
 
 - [Bulma Hero Documentation](https://bulma.io/documentation/layout/hero/)
-- [Storybook: Hero Stories](https://storybook.bestax.cc/?path=/story/layout-hero--default)
+- [Storybook: Hero Stories](https://bestax.cc/storybook/?path=/story/layout-hero--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.

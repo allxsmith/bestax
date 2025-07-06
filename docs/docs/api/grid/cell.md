@@ -205,4 +205,4 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 - [Grid component](./grid.md)
 - [Bulma Grid Documentation](https://bulma.io/documentation/grid/)
-- [Storybook: Cell Story](https://storybook.bestax.cc/?path=/story/grid-cell--column-start)
+- [Storybook: Cell Story](https://bestax.cc/storybook/?path=/story/grid-cell--column-start)

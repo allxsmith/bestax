@@ -127,4 +127,4 @@ Use `hasAddons` for tightly grouped tags (no space between them).
 ## Additional Resources
 
 - [Bulma Tags Documentation](https://bulma.io/documentation/elements/tag/#list-of-tags)
-- [Storybook: Tag Stories](https://storybook.bestax.cc/?path=/story/elements-tag--default)
+- [Storybook: Tag Stories](https://bestax.cc/storybook/?path=/story/elements-tag--default)

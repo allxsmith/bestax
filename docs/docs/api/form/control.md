@@ -244,4 +244,4 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma Control Documentation](https://bulma.io/documentation/form/general/#control)
-- [Storybook: Input Stories](https://storybook.bestax.cc/?path=/story/form-input--default)
+- [Storybook: Input Stories](https://bestax.cc/storybook/?path=/story/form-input--default)

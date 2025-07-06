@@ -338,4 +338,4 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma Breadcrumb Documentation](https://bulma.io/documentation/components/breadcrumb/)
-- [Storybook: Breadcrumb Stories](https://storybook.bestax.cc/?path=/story/components-breadcrumb--default)
+- [Storybook: Breadcrumb Stories](https://bestax.cc/storybook/?path=/story/components-breadcrumb--default)

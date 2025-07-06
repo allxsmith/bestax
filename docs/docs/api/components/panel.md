@@ -184,7 +184,7 @@ For keyboard navigation, ensure interactive Panel blocks are focusable and provi
 ## Additional Resources
 
 - [Bulma Panel Documentation](https://bulma.io/documentation/components/panel/)
-- [Storybook: Panel Stories](https://storybook.bestax.cc/?path=/story/components-panel--revolutionary-war)
+- [Storybook: Panel Stories](https://bestax.cc/storybook/?path=/story/components-panel--revolutionary-war)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel />` and its subcomponents for powerful utility-based styling.

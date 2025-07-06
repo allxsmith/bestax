@@ -324,7 +324,7 @@ For full accessibility in dropdowns, ensure that focus, keyboard navigation, and
 ## Additional Resources
 
 - [Bulma Navbar Documentation](https://bulma.io/documentation/components/navbar/)
-- [Storybook: Navbar Stories](https://storybook.bestax.cc/?path=/story/components-navbar--default)
+- [Storybook: Navbar Stories](https://bestax.cc/storybook/?path=/story/components-navbar--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents for powerful utility-based styling.

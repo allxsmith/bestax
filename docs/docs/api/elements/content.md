@@ -179,7 +179,7 @@ The `Content` component does not add ARIA roles. You are responsible for semanti
 
 - [Bulma Content Documentation](https://bulma.io/documentation/elements/content/)
 - [MDN: HTML Content Categories](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories)
-- [Storybook: Content Stories](https://storybook.bestax.cc/?path=/story/elements-content--default)
+- [Storybook: Content Stories](https://bestax.cc/storybook/?path=/story/elements-content--default)
 
 :::info
 Use `Content` for any rich HTML or markdown output to ensure consistent Bulma styling.

@@ -169,7 +169,7 @@ For custom keyboard navigation or focus management, add handlers as needed.
 ## Additional Resources
 
 - [Bulma Dropdown Documentation](https://bulma.io/documentation/components/dropdown/)
-- [Storybook: Dropdown Stories](https://storybook.bestax.cc/?path=/story/components-dropdown--default)
+- [Storybook: Dropdown Stories](https://bestax.cc/storybook/?path=/story/components-dropdown--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />`, `<Dropdown.Item />`, and `<Dropdown.Divider />` for utility-based styling.

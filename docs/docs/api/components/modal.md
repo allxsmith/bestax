@@ -152,7 +152,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 ## Additional Resources
 
 - [Bulma Modal Documentation](https://bulma.io/documentation/components/modal/)
-- [Storybook: Modal Stories](https://storybook.bestax.cc/?path=/story/components-modal--modal-card)
+- [Storybook: Modal Stories](https://bestax.cc/storybook/?path=/story/components-modal--modal-card)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.

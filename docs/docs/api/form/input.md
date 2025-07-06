@@ -328,4 +328,4 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma Input Documentation](https://bulma.io/documentation/form/input/)
-- [Storybook: Input Stories](https://storybook.bestax.cc/?path=/story/form-input--default)
+- [Storybook: Input Stories](https://bestax.cc/storybook/?path=/story/form-input--default)

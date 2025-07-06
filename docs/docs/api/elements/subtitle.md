@@ -115,4 +115,4 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 ## Additional Resources
 
 - [Bulma Title Documentation (Subtitle)](https://bulma.io/documentation/elements/title/#subtitle)
-- [Storybook: SubTitle Stories](https://storybook.bestax.cc/?path=/story/elements-subtitle--default)
+- [Storybook: SubTitle Stories](https://bestax.cc/storybook/?path=/story/elements-subtitle--default)

@@ -118,4 +118,4 @@ Ensure your progress bars have sufficient color contrast for users with visual i
 ## Additional Resources
 
 - [Bulma Progress Documentation](https://bulma.io/documentation/elements/progress/)
-- [Storybook: Progress Stories](https://storybook.bestax.cc/?path=/story/elements-progress--default)
+- [Storybook: Progress Stories](https://bestax.cc/storybook/?path=/story/elements-progress--default)

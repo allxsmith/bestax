@@ -155,4 +155,4 @@ Do not use `Image` for decorative images without `alt=""`, unless purely present
 ## Additional Resources
 
 - [Bulma Image Documentation](https://bulma.io/documentation/elements/image/)
-- [Storybook: Image Stories](https://storybook.bestax.cc/?path=/story/elements-image--default)
+- [Storybook: Image Stories](https://bestax.cc/storybook/?path=/story/elements-image--default)

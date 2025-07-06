@@ -190,4 +190,4 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ## Additional Resources
 
-- [Storybook: Card Stories](https://storybook.bestax.cc/?path=/story/components-card--default)
+- [Storybook: Card Stories](https://bestax.cc/storybook/?path=/story/components-card--default)

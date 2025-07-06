@@ -539,4 +539,4 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 - [Column component](./column.md)
 - [Bulma Columns Documentation](https://bulma.io/documentation/columns/)
-- [Storybook: Columns Story](https://storybook.bestax.cc/?path=/story/columns-columns--mobile-columns)
+- [Storybook: Columns Story](https://bestax.cc/storybook/?path=/story/columns-columns--mobile-columns)

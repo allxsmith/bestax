@@ -143,4 +143,4 @@ For custom close actions, use the `onClick` prop.
 ## Additional Resources
 
 - [Bulma Delete Documentation](https://bulma.io/documentation/elements/delete/)
-- [Storybook: Delete Stories](https://storybook.bestax.cc/?path=/story/elements-delete--default)
+- [Storybook: Delete Stories](https://bestax.cc/storybook/?path=/story/elements-delete--default)

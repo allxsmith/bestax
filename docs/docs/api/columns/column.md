@@ -321,4 +321,4 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
 - [Columns container](./columns.md)
 - [Bulma Columns Documentation](https://bulma.io/documentation/columns/)
-- [Storybook: Column Story](https://storybook.bestax.cc/?path=/story/columns-column--default)
+- [Storybook: Column Story](https://bestax.cc/storybook/?path=/story/columns-column--default)

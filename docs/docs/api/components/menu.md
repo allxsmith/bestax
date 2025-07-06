@@ -177,7 +177,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 ## Additional Resources
 
 - [Bulma Menu Documentation](https://bulma.io/documentation/components/menu/)
-- [Storybook: Menu Stories](https://storybook.bestax.cc/?path=/story/components-menu--basic)
+- [Storybook: Menu Stories](https://bestax.cc/storybook/?path=/story/components-menu--basic)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.

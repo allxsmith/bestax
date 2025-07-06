@@ -175,4 +175,4 @@ Combine `Tag` with `Tags` for grouped, multi-tag UIs.
 ## Additional Resources
 
 - [Bulma Tag Documentation](https://bulma.io/documentation/elements/tag/)
-- [Storybook: Tag Stories](https://storybook.bestax.cc/?path=/story/elements-tag--default)
+- [Storybook: Tag Stories](https://bestax.cc/storybook/?path=/story/elements-tag--default)
