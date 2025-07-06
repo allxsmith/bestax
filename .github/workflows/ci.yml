@@ -53,9 +53,9 @@ jobs:
       - name: Format Check
         run: npm run format:check
 
-      - name: Build Storybook (lib)
+      - name: Build Storybook (bulma-ui)
         if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'bulma-ui/**')
-        run: npm run build-storybook -w lib
+        run: npm run build-storybook -w bulma-ui
 
       - name: Archive Coverage
         uses: actions/upload-artifact@v4
