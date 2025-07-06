@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-bulma",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A React component library with TypeScript",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
