@@ -152,6 +152,10 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/allxsmith/bestax',
               },
+              {
+                label: 'NPM',
+                href: 'https://www.npmjs.com/package/@allxsmith/bestax-bulma',
+              },
             ],
           },
         ],
