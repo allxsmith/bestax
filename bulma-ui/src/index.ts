@@ -10,7 +10,7 @@ export * from './components/Modal';
 export * from './components/Navbar';
 export * from './components/Pagination';
 export * from './components/Panel';
-export * from './components/Tab';
+export * from './components/Tabs';
 
 export * from './elements/Block';
 export * from './elements/Box';
