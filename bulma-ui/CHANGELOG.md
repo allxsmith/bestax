@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.1
+
+### Patch Changes
+
+- 28ec7f2: Updated readme
+
 ## 1.0.0
 
 ### Major Changes
