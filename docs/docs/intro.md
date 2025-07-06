@@ -137,7 +137,7 @@ function Demo() {
 ## Next Steps
 
 - **Keep exploring right here in the documentation site!**
-- **Get started with the [API component docs](/docs/api)** for detailed usage, props, and examples for every component.
+- **Get started with the [API component docs](/docs/category/elements)** for detailed usage, props, and examples for every component.
   - For example, check out [Button](/docs/api/elements/button) or browse other components in the sidebar.
 - **Try out code samples and experiment as you go.**
 
