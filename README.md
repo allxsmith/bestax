@@ -103,7 +103,7 @@ export default App;
 
 Explore live, interactive component examples in our Storybook:
 
-👉 [https://bestax.css](https://bestax.css)
+👉 [https://bestax.cc/storybook](https://bestax.cc/storybook)
 
 ---
 
