@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.5
+
+### Patch Changes
+
+- f9001fb: Removed references to unsupported icon package
+
 ## 1.0.4
 
 ### Patch Changes
