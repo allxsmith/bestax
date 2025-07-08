@@ -78,6 +78,8 @@ export default App;
 
 - **Supports the latest Bulma v1.x**  
   Other React Bulma libraries are stuck on Bulma 0.9.4 — bestax-bulma is built for the future.
+- **Super small bundle size**
+  The published ESM build (dist/index.esm.js) is just over 110kB. Smaller than most other CSS based React frameworks.
 - **Super small unpacked size**  
   Just over 700kB unpacked — smaller than most other Bulma React packages.
 - **Zero external dependencies**  
