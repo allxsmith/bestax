@@ -8,6 +8,7 @@ This project is a modern, flexible React component library built on top of Bulma
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [Setting Up & Running the Project](#setting-up--running-the-project)
 - [Development Workflow](#development-workflow)
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Semantic Release & Publishing](#semantic-release--publishing)
@@ -32,8 +33,58 @@ Before contributing, your PR **must** satisfy the following:
 - **Documentation is up-to-date**
   - Update or create relevant markdown files for the [Docusaurus docs](./docs)
 - **CI/CD checks pass** (`npm run all`)
-- **Pull request targets the `main` branch**  
+- **Pull request targets the `main` branch**
   - **Direct pushes to `main` are not allowed.** PRs are required and will be reviewed.
+
+---
+
+## Setting Up & Running the Project
+
+Get up and running quickly with these steps, whether you want to contribute or just explore the project locally.
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/allxsmith/bestax.git
+cd bestax
+npm install
+```
+
+### 2. Run the Documentation Site
+
+From the root of the monorepo, start the Docusaurus documentation site:
+
+```bash
+npm run docs
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to view the docs.
+
+### 3. Run Storybook
+
+To explore and develop components interactively:
+
+```bash
+npm run storybook
+```
+
+Visit the displayed local URL to view Storybook.
+
+### 4. Build All Packages
+
+To build all packages in the repo:
+
+```bash
+npm run build
+```
+
+### 5. Run All Checks
+
+This will run build, typecheck, tests (with coverage), lint, format check, and Storybook build:
+
+```bash
+npm run all
+```
 
 ---
 
@@ -44,7 +95,7 @@ Before contributing, your PR **must** satisfy the following:
    ```bash
    git checkout -b my-feature
    ```
-3. **Install dependencies** from the root:
+3. **Install dependencies** from the root if you haven't already:
    ```bash
    npm install
    ```
@@ -53,9 +104,11 @@ Before contributing, your PR **must** satisfy the following:
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
+
    ```bash
    npm run all
    ```
+
    This command will run build, typecheck, tests (w/ coverage), lint, format check, and Storybook build.
 
 9. **Commit your changes** following the [commit message guidelines](#commit-message-guidelines).
@@ -102,6 +155,7 @@ We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publ
   - **Optional paragraph describing the motivation or context**
 
 **Example:**
+
 ```
 Add support for Bulma breadcrumb component
 
