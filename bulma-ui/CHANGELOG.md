@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.6
+
+### Patch Changes
+
+- 145d521: Update internal react version to 19, update peer deps to allow react 16 17 18 19
+
 ## 1.0.5
 
 ### Patch Changes
