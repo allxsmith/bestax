@@ -66,8 +66,8 @@
   "peerDependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "bulma": "^1.0.4",
-    "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0"
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "keywords": [
     "react",
