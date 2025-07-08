@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.7
+
+### Patch Changes
+
+- b846939: Fix package module and main paths
+
 ## 1.0.6
 
 ### Patch Changes
