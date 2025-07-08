@@ -1,11 +1,11 @@
 ---
-name: "✨ Feature Request"
-about: Suggest an idea forSuggest a new feature or improvement for the bestax or bestax-bulma
+name: '✨ Feature Request'
+about:
+  Suggest an idea forSuggest a new feature or improvement for the bestax or bestax-bulma
   this project
-title: "[Feature] <short description>"
+title: '[Feature] <short description>'
 labels: enhancement, triage
 assignees: allxsmith
-
 ---
 
 ## Affected Package(s)

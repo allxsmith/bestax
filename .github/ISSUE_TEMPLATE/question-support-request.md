@@ -1,11 +1,11 @@
 ---
-name: "❓ Question / Support Request"
-about: Ask a question or request support regarding the bestax, bestax-bulma, its usage,
+name: '❓ Question / Support Request'
+about:
+  Ask a question or request support regarding the bestax, bestax-bulma, its usage,
   or components.
-title: "[Question] <short description>"
+title: '[Question] <short description>'
 labels: question, triage
 assignees: allxsmith
-
 ---
 
 ## Affected Package(s)

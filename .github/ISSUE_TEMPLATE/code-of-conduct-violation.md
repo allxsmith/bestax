@@ -1,10 +1,9 @@
 ---
 name: Code of Conduct Violation
 about: Report an incident or behavior that violates the Code of Conduct
-title: "[Code of Conduct] Violation Report"
+title: '[Code of Conduct] Violation Report'
 labels: code of conduct, triage
 assignees: allxsmith
-
 ---
 
 ## Summary
@@ -19,13 +18,14 @@ Please provide a brief summary of the incident.
 - [ ] Pull Request
 - [ ] Discussion
 - [ ] Commit
-- [ ] Other (please specify): 
+- [ ] Other (please specify):
 
 ---
 
 ## Description
 
 Please describe the incident in detail, including:
+
 - What happened?
 - When did it happen?
 - Who was involved (if known)?
@@ -46,4 +46,4 @@ A maintainer will contact you privately to follow up.
 
 ---
 
-*Thank you for helping us keep the bestax-bulma community safe and welcoming.*
+_Thank you for helping us keep the bestax-bulma community safe and welcoming._

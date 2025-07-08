@@ -1,10 +1,9 @@
 ---
-name: "\U0001F41B Bug Report"
-about: Report a bug or unexpected behavior in the bestax
-title: "[Bug] <short description>"
-labels: bug, triage
+name: '🐛 Bug Report'
+about: Report a bug or unexpected behavior in the bestax monorepo, or bestax-bulma package.
+title: '[Bug] <short description>'
+labels: ['bug', 'triage']
 assignees: allxsmith
-
 ---
 
 ## Affected Package(s)
