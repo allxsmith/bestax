@@ -1,5 +1,11 @@
 # @allxsmith/bestax-bulma
 
+## 1.0.8
+
+### Patch Changes
+
+- 8483bd2: Inline sources in tsconfig for proper source map functionality
+
 ## 1.0.7
 
 ### Patch Changes
