@@ -129,6 +129,13 @@ _Note: We are not affiliated with Bulma or Jeremy Thomas in any way...We’re ju
 
 ---
 
+## Attribution
+
+- The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
+- Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
+
+See [Bulma’s license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
+
 ## License
 
-MIT
+Source code licensed MIT

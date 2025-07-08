@@ -1,41 +1,43 @@
-# Website
+# Bestax Bulma Documentation
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+This is the documentation site for [`@allxsmith/bestax-bulma`](https://github.com/allxsmith/bestax-bulma), built with [Docusaurus](https://docusaurus.io/).
 
-### Installation
+## Getting Started
 
-```
-$ yarn
-```
+You can run the documentation site from the root of the monorepo with:
 
-### Local Development
-
-```
-$ yarn start
+```bash
+npm run docs
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+Alternatively, to run the docs locally from within this package:
 
-### Build
-
-```
-$ yarn build
-```
-
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Deployment
-
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
+```bash
+npm install
+npm run start
 ```
 
-Not using SSH:
+This will start the Docusaurus development server. Visit [http://localhost:3000](http://localhost:3000) to view the documentation.
 
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
+## Building the Docs
+
+To build the static site, run:
+
+```bash
+npm run build
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+The output will appear in the `build/` directory.
+
+## Contributing
+
+Contributions are welcome! Please open issues or pull requests in the [main repo](https://github.com/allxsmith/bestax-bulma).
+
+## Attribution
+
+- The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
+- Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
+
+See [Bulma’s license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
+
+---
