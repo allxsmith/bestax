@@ -33,6 +33,11 @@
     "docs": {
       "cache": true
     },
+    "release": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false
+    },
     "build-storybook": {
       "outputs": ["storybook-static/**"]
     }
