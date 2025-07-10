@@ -101,6 +101,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Import GPG key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo RELOADAGENT | gpg-connect-agent
+          git config --global user.signingkey "$GPG_KEY_ID"
+          git config --global commit.gpgsign true
+          git config --global gpg.program gpg
+          echo -e "5\ny\n" | gpg --command-fd 0 --expert --edit-key $GPG_KEY_ID trust
+
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
         env:
@@ -109,5 +123,4 @@ jobs:
         run: npx semantic-release
 
       - name: Verify Published Commits
-        run: |
-          git log --show-signature -1
+        run: git log --show-signature -1
