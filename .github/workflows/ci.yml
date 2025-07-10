@@ -101,11 +101,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Semantic Release
+      - name: Semantic Release (bulma-ui)
+        working-directory: bulma-ui
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm run release
+        run: npx semantic-release
 
       - name: Verify Published Commits
         run: |
