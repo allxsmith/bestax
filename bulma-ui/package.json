@@ -1,7 +1,7 @@
 {
   "name": "@allxsmith/bestax-bulma",
   "version": "1.0.8",
-  "description": "A React component library with TypeScript",
+  "description": "A fully-typed React component library for the Bulma CSS framework. Build modern UIs quickly with reusable, accessible, and customizable Bulma-based React components.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/types/index.d.ts",
@@ -71,11 +71,50 @@
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "keywords": [
+    "bulma",
+    "bulma-react",
+    "bulma components",
+    "bulma ui",
     "react",
-    "components",
+    "react components",
+    "react bulma",
+    "react bulma components",
+    "react ui",
     "typescript",
-    "ui"
+    "component library",
+    "ui library",
+    "ui kit",
+    "design system",
+    "frontend",
+    "web components",
+    "css framework",
+    "bootstrap alternative",
+    "material alternative",
+    "storybook",
+    "bestax"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/allxsmith"
+  },
+  "engines": {
+    "node": ">=16",
+    "npm": ">=7"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/types/*"
+      ]
+    }
+  },
   "author": "Alex Smith",
   "license": "MIT",
   "repository": {
