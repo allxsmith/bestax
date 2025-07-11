@@ -117,6 +117,14 @@ jobs:
           git config --global gpg.program gpg
           git config --list
 
+      - name: Test GPG Signing
+        run: |
+          gpg --list-secret-keys  # Confirm key is imported
+          echo "Test file" > test.txt
+          git add test.txt
+          git commit -m "Test signed commit"
+          git log --show-signature -1  # Should show "gpg: Good signature from..." with your key details
+          git reset --hard HEAD~1  # Clean up the test commit
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
         env:
