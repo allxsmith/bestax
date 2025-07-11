@@ -110,11 +110,11 @@ jobs:
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --yes --import
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo RELOADAGENT | gpg-connect-agent
           git config --global user.signingkey "$GPG_KEY_ID"
           git config --global commit.gpgsign true
           git config --global gpg.program gpg
-          echo "$GPG_KEY_ID:6:" | gpg --import-ownertrust
 
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
