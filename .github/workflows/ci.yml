@@ -129,6 +129,8 @@ jobs:
       - name: Semantic Release (bulma-ui)
         working-directory: bulma-ui
         env:
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
