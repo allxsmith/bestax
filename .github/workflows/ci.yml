@@ -131,7 +131,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: |
+          git log -1 --show-signature
+          npx semantic-release
 
       - name: Verify Published Commits
         run: git log --show-signature -1
