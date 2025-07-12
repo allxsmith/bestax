@@ -13,7 +13,7 @@ export default {
     [
       '@semantic-release/npm',
       {
-        pkgRoot: 'bulma-ui',
+        pkgRoot: '.',
       },
     ],
     [
