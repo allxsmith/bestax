@@ -1,3 +1,16 @@
+## [1.0.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.8...@allxsmith/bestax-bulma@1.0.9) (2025-07-12)
+
+
+### Bug Fixes
+
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([cc3a3e2](https://github.com/allxsmith/bestax/commit/cc3a3e2416361d3da3288c97c894d700a4323a36))
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([314bc39](https://github.com/allxsmith/bestax/commit/314bc394d57b4766d20590ae6fd59fe433443c8f))
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([c930693](https://github.com/allxsmith/bestax/commit/c930693439e8a289f373c87a568b48fecabc53ae))
+* **bulma-ui:** correct NPM_TOKEN env variable in ci.yml ([94b48b4](https://github.com/allxsmith/bestax/commit/94b48b47aec94b83d25f94dade6af793fd7b1672))
+* **bulma-ui:** Initial semantic release changes ([b78d785](https://github.com/allxsmith/bestax/commit/b78d785e5d3e7aec5b49f178784aad3d97b5434c))
+* **bulma-ui:** setup gpg signing with semantic-release ([3e24722](https://github.com/allxsmith/bestax/commit/3e24722d05cd231638864eebb5ff768991633c42))
+* **bulma-ui:** update package.json for better seo, exports, types, engines, funding, etc ([98cbc56](https://github.com/allxsmith/bestax/commit/98cbc5637b81c6cba560953bf95eb4c6371b4392))
+
 # @allxsmith/bestax-bulma
 
 ## 1.0.8
