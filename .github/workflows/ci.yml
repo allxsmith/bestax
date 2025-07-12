@@ -135,5 +135,10 @@ jobs:
           git log -1 --show-signature
           npx semantic-release
 
+      - name: Confirm GPG Signature on Last Commit
+        if: always()
+        run: |
+          git log -1 --show-signature
+
       - name: Verify Published Commits
         run: git log --show-signature -1
