@@ -1,5 +1,6 @@
 export default {
   branches: ['main'],
+  tagFormat: '@allxsmith/bestax-bulma@${version}', // Ensures correct tag format for this package
   plugins: [
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
@@ -9,7 +10,12 @@ export default {
         changelogFile: 'CHANGELOG.md',
       },
     ],
-    '@semantic-release/npm',
+    [
+      '@semantic-release/npm',
+      {
+        pkgRoot: 'bulma-ui',
+      },
+    ],
     [
       '@semantic-release/git',
       {
@@ -17,6 +23,7 @@ export default {
         message:
           'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
         commitArgs: ['-S'],
+        author: 'Alex Smith <asmith62378@gmail.com>',
       },
     ],
     '@semantic-release/github',
