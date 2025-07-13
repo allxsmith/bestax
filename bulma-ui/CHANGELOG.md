@@ -1,3 +1,10 @@
+## [1.0.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.9...@allxsmith/bestax-bulma@1.0.10) (2025-07-13)
+
+
+### Bug Fixes
+
+* **bulma-ui:** Add build step to publish in ci.yml ([e3707fc](https://github.com/allxsmith/bestax/commit/e3707fcdc0c4ba59dc1d68d81fdd9dc57d4436be))
+
 ## [1.0.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.8...@allxsmith/bestax-bulma@1.0.9) (2025-07-12)
 
 
