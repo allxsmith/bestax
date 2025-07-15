@@ -63,10 +63,10 @@ No props. Renders as a menu divider (`<hr>`).
 
 ### Default Dropdown
 
-```tsx
+```tsx live
 import { Dropdown } from '@allxsmith/bestax-bulma';
 
-export default function Example() {
+function Example() {
   return (
     <Dropdown label="Dropdown Menu">
       <Dropdown.Item>First Item</Dropdown.Item>
@@ -84,7 +84,7 @@ export default function Example() {
 
 ### Custom Tags (button, div, anchor)
 
-```tsx
+```tsx live
 <Dropdown label="Custom Dropdown Content">
   <Dropdown.Item as="a" href="https://example.com" target="_blank">
     Anchor Item
@@ -100,7 +100,7 @@ export default function Example() {
 
 ### Hoverable and Always Active
 
-```tsx
+```tsx live
 <Dropdown label="Hoverable + Active" hoverable active>
   <Dropdown.Item>Hover or Always Open</Dropdown.Item>
   <Dropdown.Item>Second</Dropdown.Item>
@@ -113,7 +113,7 @@ export default function Example() {
 
 ### Right-Aligned Dropdown
 
-```tsx
+```tsx live
 <Dropdown label="Dropdown Right" right>
   <Dropdown.Item>Right 1</Dropdown.Item>
   <Dropdown.Item>Right 2</Dropdown.Item>
@@ -124,7 +124,7 @@ export default function Example() {
 
 ### Upward Dropdown
 
-```tsx
+```tsx live
 <Dropdown label="Dropdown Up" up>
   <Dropdown.Item>Up 1</Dropdown.Item>
   <Dropdown.Item>Up 2</Dropdown.Item>
@@ -135,13 +135,21 @@ export default function Example() {
 
 ## Controlled Dropdown Example
 
-```tsx
-const [open, setOpen] = useState(false);
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
 
-<Dropdown label="Controlled Dropdown" active={open} onActiveChange={setOpen}>
-  <Dropdown.Item>Item A</Dropdown.Item>
-  <Dropdown.Item>Item B</Dropdown.Item>
-</Dropdown>;
+  return (
+    <Dropdown
+      label="Controlled Dropdown"
+      active={open}
+      onActiveChange={setOpen}
+    >
+      <Dropdown.Item>Item A</Dropdown.Item>
+      <Dropdown.Item>Item B</Dropdown.Item>
+    </Dropdown>
+  );
+}
 ```
 
 ---

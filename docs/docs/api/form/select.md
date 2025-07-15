@@ -41,7 +41,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default Select
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Select>
@@ -57,7 +57,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Multi Select
 
-```tsx
+```tsx live
 <Field label="Multi Select">
   <Control>
     <Select multiple multipleSize={10}>
@@ -80,7 +80,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Colored Select
 
-```tsx
+```tsx live
 <Field label="Primary">
   <Control>
     <Select color="primary">
@@ -140,7 +140,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Rounded Style
 
-```tsx
+```tsx live
 <Field label="Rounded">
   <Control>
     <Select isRounded>
@@ -156,7 +156,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
-```tsx
+```tsx live
 <Field label="Small">
   <Control>
     <Select size="small">
@@ -202,7 +202,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### States
 
-```tsx
+```tsx live
 <Field label="Normal">
   <Control>
     <Select>
@@ -248,7 +248,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### With Icons
 
-```tsx
+```tsx live
 <Field label="With Icons">
   <Control hasIconsLeft iconLeft={{ name: 'person' }}>
     <Select>
@@ -266,7 +266,7 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### With Icons and Size Variations
 
-```tsx
+```tsx live
 <Field label="With Icons Small">
   <Control
     hasIconsLeft

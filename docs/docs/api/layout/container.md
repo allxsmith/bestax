@@ -45,7 +45,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Default Container
 
-```tsx
+```tsx live
 <Container>
   <Notification color="primary">
     By default the container is <strong>centered</strong> on desktop viewports
@@ -58,7 +58,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Widescreen Container
 
-```tsx
+```tsx live
 <Container widescreen>
   <Notification color="primary">
     If <code>breakpoint="widescreen"</code> the container is{' '}
@@ -72,7 +72,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### FullHD Container
 
-```tsx
+```tsx live
 <Container fullhd>
   <Notification color="primary">
     If <code>breakpoint="fullhd"</code> the container is{' '}
@@ -86,7 +86,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Max Tablet Width
 
-```tsx
+```tsx live
 <Container breakpoint="tablet" isMax>
   <Notification color="primary">
     If the container has <code>breakpoint="tablet"</code> and <code>isMax</code>{' '}
@@ -100,7 +100,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Max Width Desktop
 
-```tsx
+```tsx live
 <Container breakpoint="desktop" isMax>
   <Notification color="primary">
     If the container has <code>breakpoint="desktop"</code> and{' '}
@@ -114,7 +114,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Max Width Widescreen
 
-```tsx
+```tsx live
 <Container breakpoint="widescreen" isMax>
   <Notification color="primary">
     If the container has <code>breakpoint="widescreen"</code> and{' '}
@@ -128,7 +128,7 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Fluid Container
 
-```tsx
+```tsx live
 <Container fluid>
   <Notification color="primary">
     If the container has <code>fluid</code> it will expand to the full width of

@@ -36,7 +36,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Default Breadcrumb
 
-```tsx
+```tsx live
 <Breadcrumb>
   <li>
     <a href="#">
@@ -60,7 +60,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Centered Alignment
 
-```tsx
+```tsx live
 <Breadcrumb alignment="centered">
   <li>
     <a href="#">
@@ -84,7 +84,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Right Alignment
 
-```tsx
+```tsx live
 <Breadcrumb alignment="right">
   <li>
     <a href="#">
@@ -108,7 +108,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Arrow Separator
 
-```tsx
+```tsx live
 <Breadcrumb separator="arrow">
   <li>
     <a href="#">
@@ -132,7 +132,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Bullet Separator
 
-```tsx
+```tsx live
 <Breadcrumb separator="bullet">
   <li>
     <a href="#">
@@ -156,7 +156,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Dot Separator
 
-```tsx
+```tsx live
 <Breadcrumb separator="dot">
   <li>
     <a href="#">
@@ -180,7 +180,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Succeeds Separator
 
-```tsx
+```tsx live
 <Breadcrumb separator="succeeds">
   <li>
     <a href="#">
@@ -204,7 +204,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Small Size
 
-```tsx
+```tsx live
 <Breadcrumb size="small">
   <li>
     <a href="#">
@@ -228,7 +228,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Medium Size
 
-```tsx
+```tsx live
 <Breadcrumb size="medium">
   <li>
     <a href="#">
@@ -252,7 +252,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Large Size
 
-```tsx
+```tsx live
 <Breadcrumb size="large">
   <li>
     <a href="#">
@@ -276,7 +276,7 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### With Icons, Alignment, Separator, Size, and Text Weight
 
-```tsx
+```tsx live
 <Breadcrumb
   alignment="centered"
   separator="dot"

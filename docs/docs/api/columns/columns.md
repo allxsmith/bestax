@@ -49,7 +49,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Basic Columns
 
-```tsx
+```tsx live
 <Columns>
   <Column>
     <Notification color="primary">First column</Notification>
@@ -70,51 +70,57 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Columns on Mobile and Desktop
 
-```tsx
-// Columns enabled on mobile screens and up
-<Columns isMobile>
-  <Column>
-    <Notification color="primary">1</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">2</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">3</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">4</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">5</Notification>
-  </Column>
-</Columns>
+```tsx live
+<>
+  {
+    // Columns enabled on mobile screens and up
+  }
+  <Columns isMobile>
+    <Column>
+      <Notification color="primary">1</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">2</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">3</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">4</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">5</Notification>
+    </Column>
+  </Columns>
 
-// Columns enabled on desktop screens and up
-<Columns isDesktop>
-  <Column>
-    <Notification color="primary">1</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">2</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">3</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">4</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">5</Notification>
-  </Column>
-</Columns>
+  {
+    // Columns enabled on desktop screens and up
+  }
+  <Columns isDesktop>
+    <Column>
+      <Notification color="primary">1</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">2</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">3</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">4</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">5</Notification>
+    </Column>
+  </Columns>
+</>
 ```
 
 ---
 
 ### Different Column Sizes Per Breakpoint
 
-```tsx
+```tsx live
 <Columns isMobile>
   <Column
     sizeMobile="three-quarters"
@@ -154,7 +160,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Nested Columns
 
-```tsx
+```tsx live
 <Columns>
   <Column>
     <Notification color="primary">First column</Notification>
@@ -188,73 +194,83 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Gap Sizes & Responsive Gaps
 
-```tsx
-<Columns gapSize={0}>
-  <Column>
-    <Notification color="primary">gapSize=0</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">gapSize=0</Notification>
-  </Column>
-</Columns>
-<Columns gapSize={3}>
-  <Column>
-    <Notification color="primary">gapSize=3</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">gapSize=3</Notification>
-  </Column>
-</Columns>
-<Columns gapSizeMobile={1} gapSizeTablet={3} gapSizeDesktop={6}>
-  <Column>
-    <Notification color="primary">
-      gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
-    </Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">
-      gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
-    </Notification>
-  </Column>
-</Columns>
+```tsx live
+<>
+  <Columns gapSize={0}>
+    <Column>
+      <Notification color="primary">gapSize=0</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">gapSize=0</Notification>
+    </Column>
+  </Columns>
+  <Columns gapSize={3}>
+    <Column>
+      <Notification color="primary">gapSize=3</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">gapSize=3</Notification>
+    </Column>
+  </Columns>
+  <Columns gapSizeMobile={1} gapSizeTablet={3} gapSizeDesktop={6}>
+    <Column>
+      <Notification color="primary">
+        gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+      </Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">
+        gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+      </Notification>
+    </Column>
+  </Columns>
+</>
 ```
 
 ---
 
 ### Offsets
 
-```tsx
-<Columns isMobile>
-  <Column size="half" offset="one-quarter">
-    <Notification color="primary">
-      is-half is-offset-one-quarter
-    </Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size="three-fifths" offset="one-fifth">
-    <Notification color="primary">
-      is-three-fifths is-offset-one-fifth
-    </Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size={4} offset={8}>
-    <Notification color="primary">is-4 is-offset-8</Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size={11} offset={1}>
-    <Notification color="primary">is-11 is-offset-1</Notification>
-  </Column>
-</Columns>
+```tsx live
+<>
+  <Columns isMobile>
+    <Column size="half" offset="one-quarter">
+      <Notification color="primary">
+        <code>size="half" offset="one-quarter"</code>
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size="three-fifths" offset="one-fifth">
+      <Notification color="primary">
+        <code>size="three-fifths" offset="one-fifth"</code>
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size={4} offset={8}>
+      <Notification color="primary">
+        <code>
+          size={4} offset={8}
+        </code>
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size={11} offset={1}>
+      <Notification color="primary">
+        <code>size=11 offset=1</code>
+      </Notification>
+    </Column>
+  </Columns>
+</>
 ```
 
 ---
 
 ### Narrow Columns
 
-```tsx
+```tsx live
 <Columns>
   <Column isNarrow>
     <Notification color="primary" style={{ width: 200 }}>
@@ -277,7 +293,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Gapless Columns
 
-```tsx
+```tsx live
 <Columns isGapless>
   <Column>
     <Notification color="primary">1</Notification>
@@ -298,7 +314,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Multiline and Gapless
 
-```tsx
+```tsx live
 <Columns isGapless isMultiline isMobile>
   <Column size="one-quarter">
     <Notification color="primary">is-one-quarter</Notification>
@@ -334,52 +350,54 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Variable Gap
 
-```tsx
-<Columns gapSize={2}>
-  <Column size={3}>
-    <Notification color="primary" className="has-text-centered">
-      Side
-    </Notification>
-  </Column>
-  <Column size={9}>
-    <Notification color="primary" className="has-text-centered">
-      Main
-    </Notification>
-  </Column>
-</Columns>
-<Columns gapSize={2}>
-  <Column size={4}>
-    <Notification color="primary" className="has-text-centered">
-      Three columns
-    </Notification>
-  </Column>
-  <Column size={4}>
-    <Notification color="primary" className="has-text-centered">
-      Three columns
-    </Notification>
-  </Column>
-  <Column size={4}>
-    <Notification color="primary" className="has-text-centered">
-      Three columns
-    </Notification>
-  </Column>
-</Columns>
-<Columns gapSize={2}>
-  {Array.from({ length: 12 }).map((_, i) => (
-    <Column key={i + 1}>
+```tsx live
+<>
+  <Columns gapSize={2}>
+    <Column size={3}>
       <Notification color="primary" className="has-text-centered">
-        {i + 1}
+        Side
       </Notification>
     </Column>
-  ))}
-</Columns>
+    <Column size={9}>
+      <Notification color="primary" className="has-text-centered">
+        Main
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns gapSize={2}>
+    <Column size={4}>
+      <Notification color="primary" className="has-text-centered">
+        Three columns
+      </Notification>
+    </Column>
+    <Column size={4}>
+      <Notification color="primary" className="has-text-centered">
+        Three columns
+      </Notification>
+    </Column>
+    <Column size={4}>
+      <Notification color="primary" className="has-text-centered">
+        Three columns
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns gapSize={2}>
+    {Array.from({ length: 12 }).map((_, i) => (
+      <Column key={i + 1}>
+        <Notification color="primary" className="has-text-centered">
+          {i + 1}
+        </Notification>
+      </Column>
+    ))}
+  </Columns>
+</>
 ```
 
 ---
 
 ### Breakpoint Based Column Gaps
 
-```tsx
+```tsx live
 <Columns
   gapSizeMobile={1}
   gapSizeTablet={4}
@@ -399,7 +417,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Vertical Alignment
 
-```tsx
+```tsx live
 <Columns isVCentered>
   <Column size={8}>
     <Notification color="primary">First column</Notification>
@@ -417,7 +435,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Multiline Columns
 
-```tsx
+```tsx live
 <Columns isMultiline isMobile>
   <Column size="one-quarter">
     <Notification color="primary">
@@ -469,7 +487,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Centering Columns
 
-```tsx
+```tsx live
 <Columns isMobile isCentered>
   <Column size="half">
     <Notification color="primary">
@@ -484,7 +502,7 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Multiline Centered Columns
 
-```tsx
+```tsx live
 <Columns isMobile isMultiline isCentered>
   <Column isNarrow>
     <Notification color="primary">

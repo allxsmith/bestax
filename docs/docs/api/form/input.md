@@ -41,7 +41,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default Input
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Input placeholder="Default input" />
@@ -53,7 +53,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Color Inputs
 
-```tsx
+```tsx live
 <Field label="Primary">
   <Control>
     <Input color="primary" placeholder="Primary input" />
@@ -95,7 +95,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
-```tsx
+```tsx live
 <Field label="Small">
   <Control>
     <Input size="small" placeholder="Small input" />
@@ -125,7 +125,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Style: Rounded
 
-```tsx
+```tsx live
 <Field label="Rounded">
   <Control>
     <Input isRounded placeholder="Rounded input" />
@@ -137,7 +137,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### States
 
-```tsx
+```tsx live
 <Field label="Normal">
   <Control>
     <Input placeholder="Normal state" />
@@ -167,7 +167,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Loading States by Size
 
-```tsx
+```tsx live
 <Field label="Loading Small">
   <Control isLoading size="small">
     <Input size="small" placeholder="Loading small" />
@@ -197,7 +197,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Disabled & Read Only
 
-```tsx
+```tsx live
 <Field label="Disabled">
   <Control>
     <Input disabled placeholder="Disabled input" />
@@ -215,7 +215,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Static State
 
-```tsx
+```tsx live
 <Field horizontal label="Username">
   <Control>
     <Input isStatic value="Static value" />
@@ -232,7 +232,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### With Icons (Left and Right)
 
-```tsx
+```tsx live
 <Field>
   <Control
     hasIconsLeft
@@ -260,7 +260,7 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### With Icons and Size Variations
 
-```tsx
+```tsx live
 <Field>
   <Control
     hasIconsLeft

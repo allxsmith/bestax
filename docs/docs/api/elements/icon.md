@@ -45,13 +45,13 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### Default Icon (Font Awesome)
 
-```tsx
+```tsx live
 <Icon name="star" ariaLabel="Star icon" />
 ```
 
 ### Font Awesome Large
 
-```tsx
+```tsx live
 <Icon
   name="star"
   libraryFeatures={['fas', 'fa-2x']}
@@ -61,7 +61,7 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### Spinning Icon
 
-```tsx
+```tsx live
 <Icon
   name="spinner"
   libraryFeatures={['fas', 'fa-spin', 'fa-2x']}
@@ -71,7 +71,7 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### Bordered and Fixed Width
 
-```tsx
+```tsx live
 <Icon
   name="star"
   libraryFeatures={['fas', 'fa-fw', 'fa-border', 'fa-lg']}
@@ -81,7 +81,7 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### With Text Color
 
-```tsx
+```tsx live
 <Icon
   name="star"
   textColor="primary"
@@ -91,13 +91,13 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
-```tsx
+```tsx live
 <Icon name="star" m="2" ariaLabel="Star icon with margin" />
 ```
 
 ### With Container Size
 
-```tsx
+```tsx live
 <Icon name="star" size="large" ariaLabel="Star icon large container" />
 ```
 

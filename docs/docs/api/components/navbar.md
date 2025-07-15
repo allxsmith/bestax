@@ -54,40 +54,44 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 
 ### Complete Navbar with Burger and Menu
 
-```tsx
-const [active, setActive] = useState(false);
+```tsx live
+function example() {
+  const [active, setActive] = useState(false);
 
-<Navbar>
-  <Navbar.Brand>
-    <Navbar.Item href="#">
-      <img src="logo.svg" alt="Logo" width="112" height="28" />
-    </Navbar.Item>
-    <Navbar.Burger
-      active={active}
-      onClick={() => setActive(a => !a)}
-      aria-label="menu"
-      aria-expanded={active}
-    />
-  </Navbar.Brand>
-  <Navbar.Menu active={active}>
-    <Navbar.Start>
-      <Navbar.Item href="#">Home</Navbar.Item>
-      <Navbar.Item href="#">Docs</Navbar.Item>
-      <Navbar.Item href="#">About</Navbar.Item>
-      <Navbar.Item href="#">Contact</Navbar.Item>
-    </Navbar.Start>
-    <Navbar.End>
-      <Navbar.Item href="#">Login</Navbar.Item>
-    </Navbar.End>
-  </Navbar.Menu>
-</Navbar>;
+  return (
+    <Navbar>
+      <Navbar.Brand>
+        <Navbar.Item href="#">
+          <img src="logo.svg" alt="Logo" width="112" height="28" />
+        </Navbar.Item>
+        <Navbar.Burger
+          active={active}
+          onClick={() => setActive(a => !a)}
+          aria-label="menu"
+          aria-expanded={active}
+        />
+      </Navbar.Brand>
+      <Navbar.Menu active={active}>
+        <Navbar.Start>
+          <Navbar.Item href="#">Home</Navbar.Item>
+          <Navbar.Item href="#">Docs</Navbar.Item>
+          <Navbar.Item href="#">About</Navbar.Item>
+          <Navbar.Item href="#">Contact</Navbar.Item>
+        </Navbar.Start>
+        <Navbar.End>
+          <Navbar.Item href="#">Login</Navbar.Item>
+        </Navbar.End>
+      </Navbar.Menu>
+    </Navbar>
+  );
+}
 ```
 
 ---
 
 ### Brand Only
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Brand>
     <Navbar.Item href="#">
@@ -101,7 +105,7 @@ const [active, setActive] = useState(false);
 
 ### Burger Only
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Burger aria-label="menu" aria-expanded={false} />
 </Navbar>
@@ -111,7 +115,7 @@ const [active, setActive] = useState(false);
 
 ### Burger Active
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Burger active aria-label="menu" aria-expanded />
 </Navbar>
@@ -121,7 +125,7 @@ const [active, setActive] = useState(false);
 
 ### Menu with Start and End
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
@@ -138,7 +142,7 @@ const [active, setActive] = useState(false);
 
 ### Navigation Links and Dropdowns
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Brand>
     <Navbar.Item>
@@ -168,7 +172,7 @@ const [active, setActive] = useState(false);
 
 ### Transparent Navbar
 
-```tsx
+```tsx live
 <Navbar transparent>{/* ...brand and menu... */}</Navbar>
 ```
 
@@ -176,7 +180,7 @@ const [active, setActive] = useState(false);
 
 ### Fixed Navbar
 
-```tsx
+```tsx live
 <Navbar fixed="top">{/* ...brand and menu... */}</Navbar>
 ```
 
@@ -184,7 +188,7 @@ const [active, setActive] = useState(false);
 
 ### Dropdown Right
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.End>
@@ -204,7 +208,7 @@ const [active, setActive] = useState(false);
 
 ### Dropup
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
@@ -224,7 +228,7 @@ const [active, setActive] = useState(false);
 
 ### Dropdown without Arrow
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
@@ -244,7 +248,7 @@ const [active, setActive] = useState(false);
 
 ### Active Dropdown Item
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
@@ -264,7 +268,7 @@ const [active, setActive] = useState(false);
 
 ### Dropdown with Divider
 
-```tsx
+```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
@@ -286,17 +290,19 @@ const [active, setActive] = useState(false);
 
 ### Color Modifiers
 
-```tsx
-<Navbar color="primary">{/* ... */}</Navbar>
-<Navbar color="link">{/* ... */}</Navbar>
-<Navbar color="info">{/* ... */}</Navbar>
-<Navbar color="success">{/* ... */}</Navbar>
-<Navbar color="warning">{/* ... */}</Navbar>
-<Navbar color="danger">{/* ... */}</Navbar>
-<Navbar color="black">{/* ... */}</Navbar>
-<Navbar color="dark">{/* ... */}</Navbar>
-<Navbar color="light">{/* ... */}</Navbar>
-<Navbar color="white">{/* ... */}</Navbar>
+```tsx live
+<>
+  <Navbar color="primary">{/* ... */}</Navbar>
+  <Navbar color="link">{/* ... */}</Navbar>
+  <Navbar color="info">{/* ... */}</Navbar>
+  <Navbar color="success">{/* ... */}</Navbar>
+  <Navbar color="warning">{/* ... */}</Navbar>
+  <Navbar color="danger">{/* ... */}</Navbar>
+  <Navbar color="black">{/* ... */}</Navbar>
+  <Navbar color="dark">{/* ... */}</Navbar>
+  <Navbar color="light">{/* ... */}</Navbar>
+  <Navbar color="white">{/* ... */}</Navbar>
+</>
 ```
 
 ---

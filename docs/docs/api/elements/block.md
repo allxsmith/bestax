@@ -40,25 +40,25 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Default Block
 
-```tsx
+```tsx live
 <Block>Default Block</Block>
 ```
 
 ### Primary Text Color
 
-```tsx
+```tsx live
 <Block textColor="primary">Block with Primary Text</Block>
 ```
 
 ### Light Background
 
-```tsx
+```tsx live
 <Block bgColor="light">Block with Light Background</Block>
 ```
 
 ### Spacing and Alignment
 
-```tsx
+```tsx live
 <Block m="4" p="4" textAlign="centered">
   Block with Margin, Padding, and Centered Text
 </Block>
@@ -66,13 +66,13 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Custom Class
 
-```tsx
+```tsx live
 <Block className="custom-block-class">Block with Custom Class</Block>
 ```
 
 ### Viewport-Specific Text Color
 
-```tsx
+```tsx live
 <Block textColor="primary" viewport="tablet">
   Block with Tablet-specific Primary Text
 </Block>
@@ -80,7 +80,7 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Interactive Block with Multiple Props
 
-```tsx
+```tsx live
 <Block textColor="success" bgColor="dark" m="3" p="3" textAlign="right">
   Interactive Block
 </Block>
@@ -88,19 +88,33 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Stacked Blocks (Demonstrating Vertical Spacing)
 
-```tsx
+:::note
+
+The notificaiton blocks have zero margin bottom assigned to illustrate the spacing the blocks provide.
+
+:::
+
+```tsx live
 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-  <Block bgColor="primary" textColor="white">
-    First Block
+  <Block>
+    <Notification color="primary" mb={0}>
+      First Block
+    </Notification>
   </Block>
-  <Block bgColor="info" textColor="white">
-    Second Block
+  <Block>
+    <Notification color="info" mb={0}>
+      Second Block
+    </Notification>
   </Block>
-  <Block bgColor="success" textColor="white">
-    Third Block
+  <Block>
+    <Notification color="success" mb={0}>
+      Third Block
+    </Notification>
   </Block>
-  <Block bgColor="warning" textColor="black">
-    Fourth Block
+  <Block>
+    <Notification color="warning" mb={0}>
+      Fourth Block
+    </Notification>
   </Block>
 </div>
 ```

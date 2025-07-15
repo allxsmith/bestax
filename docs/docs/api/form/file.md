@@ -44,7 +44,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Default
 
-```tsx
+```tsx live
 <File label="Choose a file..." iconLeft={<Icon name="upload" />} />
 ```
 
@@ -52,7 +52,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### With `hasName` and Filename Display
 
-```tsx
+```tsx live
 <File
   hasName
   fileName="resume.pdf"
@@ -65,7 +65,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Right-Aligned
 
-```tsx
+```tsx live
 <File
   hasName
   isRight
@@ -79,7 +79,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Full Width
 
-```tsx
+```tsx live
 <File
   hasName
   isFullwidth
@@ -93,7 +93,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Boxed Style
 
-```tsx
+```tsx live
 <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
 ```
 
@@ -101,7 +101,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Boxed and Has Name
 
-```tsx
+```tsx live
 <File
   isBoxed
   hasName
@@ -115,7 +115,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Colors
 
-```tsx
+```tsx live
 <File color="primary" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File color="info" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File color="warning" label="Choose a file..." iconLeft={<Icon name="upload" />} />
@@ -126,7 +126,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
-```tsx
+```tsx live
 <File size="small" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
 <File size="medium" label="Choose a file..." iconLeft={<Icon name="upload" />} />
@@ -137,7 +137,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Sizes with Name
 
-```tsx
+```tsx live
 <File size="small" hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File size="medium" hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
@@ -148,7 +148,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Sizes with Boxed
 
-```tsx
+```tsx live
 <File size="small" isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
 <File size="medium" isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
@@ -159,7 +159,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Sizes with Name and Boxed
 
-```tsx
+```tsx live
 <File size="small" isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} />
 <File isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
 <File size="medium" isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} />
@@ -170,7 +170,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Alignment: Centered
 
-```tsx
+```tsx live
 <File
   color="info"
   isCentered
@@ -186,7 +186,7 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ### Alignment: Right
 
-```tsx
+```tsx live
 <File
   color="primary"
   isRight

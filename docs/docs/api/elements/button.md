@@ -57,13 +57,13 @@ import { Button } from '@allxsmith/bestax-bulma';
 
 ### Default Button
 
-```tsx
+```tsx live
 <Button>Default Button</Button>
 ```
 
 ### All Colors
 
-```tsx
+```tsx live
 import { Buttons } from './Buttons';
 
 <Buttons>
@@ -77,7 +77,7 @@ import { Buttons } from './Buttons';
 
 ### All Sizes
 
-```tsx
+```tsx live
 <Buttons>
   {['small', 'normal', 'medium', 'large'].map(size => (
     <Button key={size} size={size}>
@@ -89,7 +89,7 @@ import { Buttons } from './Buttons';
 
 ### Light Variant
 
-```tsx
+```tsx live
 <Button color="primary" isLight>
   Light Primary Button
 </Button>
@@ -97,7 +97,7 @@ import { Buttons } from './Buttons';
 
 ### Rounded
 
-```tsx
+```tsx live
 <Button color="info" isRounded>
   Rounded Button
 </Button>
@@ -105,7 +105,7 @@ import { Buttons } from './Buttons';
 
 ### Loading
 
-```tsx
+```tsx live
 <Button color="success" isLoading>
   Loading Button
 </Button>
@@ -113,13 +113,13 @@ import { Buttons } from './Buttons';
 
 ### Static
 
-```tsx
+```tsx live
 <Button isStatic>Static Button</Button>
 ```
 
 ### Full Width
 
-```tsx
+```tsx live
 <Button color="warning" isFullWidth>
   Full Width Button
 </Button>
@@ -127,7 +127,7 @@ import { Buttons } from './Buttons';
 
 ### Outlined
 
-```tsx
+```tsx live
 <Button color="danger" isOutlined>
   Outlined Button
 </Button>
@@ -135,7 +135,7 @@ import { Buttons } from './Buttons';
 
 ### Inverted
 
-```tsx
+```tsx live
 <Button color="link" isInverted>
   Inverted Button
 </Button>
@@ -143,7 +143,7 @@ import { Buttons } from './Buttons';
 
 ### Focused
 
-```tsx
+```tsx live
 <Button color="primary" isFocused>
   Focused Button
 </Button>
@@ -151,7 +151,7 @@ import { Buttons } from './Buttons';
 
 ### Active
 
-```tsx
+```tsx live
 <Button color="info" isActive>
   Active Button
 </Button>
@@ -159,7 +159,7 @@ import { Buttons } from './Buttons';
 
 ### Hovered
 
-```tsx
+```tsx live
 <Button color="success" isHovered>
   Hovered Button
 </Button>
@@ -167,7 +167,7 @@ import { Buttons } from './Buttons';
 
 ### Disabled
 
-```tsx
+```tsx live
 <Button color="warning" isDisabled disabled>
   Disabled Button
 </Button>
@@ -175,7 +175,7 @@ import { Buttons } from './Buttons';
 
 ### Custom Text and Background Color
 
-```tsx
+```tsx live
 <Button textColor="danger" bgColor="info">
   Custom Text &amp; Background
 </Button>
@@ -183,7 +183,7 @@ import { Buttons } from './Buttons';
 
 ### Spacing Helpers
 
-```tsx
+```tsx live
 <Button m="2" p="3" mx="4" my="5" mt="1" mr="2" mb="3" ml="4">
   Button with Spacing
 </Button>
@@ -191,19 +191,19 @@ import { Buttons } from './Buttons';
 
 ### Text Alignment
 
-```tsx
+```tsx live
 <Button textAlign="centered">Centered Text Button</Button>
 ```
 
 ### Responsive Viewport
 
-```tsx
+```tsx live
 <Button viewport="mobile">Mobile Responsive Button</Button>
 ```
 
 ### Flexbox Layout
 
-```tsx
+```tsx live
 <Button display="flex" justifyContent="center" alignItems="center">
   Flex Button
 </Button>
@@ -211,7 +211,7 @@ import { Buttons } from './Buttons';
 
 ### Button Group
 
-```tsx
+```tsx live
 <Buttons hasAddons>
   <Button color="primary">Left</Button>
   <Button color="primary">Center</Button>
@@ -221,7 +221,7 @@ import { Buttons } from './Buttons';
 
 ### With HTML Attributes
 
-```tsx
+```tsx live
 <Button type="submit" className="custom-class">
   Submit Button
 </Button>

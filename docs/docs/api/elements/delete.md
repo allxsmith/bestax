@@ -43,51 +43,53 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### Default Delete
 
-```tsx
+```tsx live
 <Delete />
 ```
 
 ### Small, Medium, Large
 
-```tsx
-<Delete size="small" />
-<Delete size="medium" />
-<Delete size="large" />
+```tsx live
+<>
+  <Delete size="small" />
+  <Delete size="medium" />
+  <Delete size="large" />
+</>
 ```
 
 ### Disabled
 
-```tsx
+```tsx live
 <Delete disabled />
 ```
 
 ### With Custom Class
 
-```tsx
+```tsx live
 <Delete className="custom-delete" />
 ```
 
 ### With Text Color
 
-```tsx
+```tsx live
 <Delete textColor="primary" />
 ```
 
 ### With Background Color
 
-```tsx
+```tsx live
 <Delete bgColor="info" />
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Delete m="2" />
 ```
 
 ### In a Tag
 
-```tsx
+```tsx live
 <span className="tag is-info is-medium">
   Example Tag
   <Delete size="small" textColor="danger" ariaLabel="Remove tag" />
@@ -96,7 +98,7 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### In a Notification
 
-```tsx
+```tsx live
 <div className="notification is-primary">
   <Delete bgColor="warning" ariaLabel="Close notification" />
   <p>This is a primary notification with a delete button.</p>
@@ -105,7 +107,7 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### In a Message Header
 
-```tsx
+```tsx live
 <article className="message is-success">
   <div className="message-header">
     <p>Success Message</p>

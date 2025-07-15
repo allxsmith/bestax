@@ -29,7 +29,7 @@ The latest Bulma V1 is supported by **bestax-bulma**.
      ```html
      <link
        rel="stylesheet"
-       href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
+       href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
      />
      ```
 
@@ -133,7 +133,7 @@ Little helpers used throughout this package to aid with translating properties t
 
 ## Example Usage
 
-```tsx
+```tsx live
 import React from 'react';
 import {
   Box,

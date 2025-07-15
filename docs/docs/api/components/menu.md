@@ -64,7 +64,7 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Basic Menu with Nested Lists
 
-```tsx
+```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
@@ -99,27 +99,31 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Custom Link Component
 
-```tsx
-import { Link } from 'react-router-dom';
-
-<Menu>
-  <Menu.Label>App</Menu.Label>
-  <Menu.List>
-    <Menu.Item as={Link} to="/dashboard">
-      Dashboard
-    </Menu.Item>
-    <Menu.Item as={Link} to="/settings">
-      Settings
-    </Menu.Item>
-  </Menu.List>
-</Menu>;
+```tsx live
+// import { Link } from 'react-router-dom';
+function example() {
+  const Link = props => <a>{props.children}</a>;
+  return (
+    <Menu>
+      <Menu.Label>App</Menu.Label>
+      <Menu.List>
+        <Menu.Item as={Link} to="/dashboard">
+          Dashboard
+        </Menu.Item>
+        <Menu.Item as={Link} to="/settings">
+          Settings
+        </Menu.Item>
+      </Menu.List>
+    </Menu>
+  );
+}
 ```
 
 ---
 
 ### Active Menu Item
 
-```tsx
+```tsx live
 <Menu>
   <Menu.Label>Active Example</Menu.Label>
   <Menu.List>
@@ -134,7 +138,7 @@ import { Link } from 'react-router-dom';
 
 ### Deeply Nested Menu
 
-```tsx
+```tsx live
 <Menu>
   <Menu.Label>Levels</Menu.Label>
   <Menu.List>

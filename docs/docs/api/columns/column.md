@@ -56,7 +56,7 @@ import { Column } from '@allxsmith/bestax-bulma';
 
 ### Basic Columns Example
 
-```tsx
+```tsx live
 import { Columns, Column } from '@allxsmith/bestax-bulma';
 import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
@@ -80,143 +80,156 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
 ### Column Sizes
 
-```tsx
-<Columns>
-  <Column size="four-fifths">
-    <Notification color="primary">is-four-fifths</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+```tsx live
+<>
+  <Columns>
+    <Column size="four-fifths">
+      <Notification color="primary">is-four-fifths</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="three-quarters">
-    <Notification color="primary">is-three-quarters</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="three-quarters">
+      <Notification color="primary">is-three-quarters</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="two-thirds">
-    <Notification color="primary">is-two-thirds</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="two-thirds">
+      <Notification color="primary">is-two-thirds</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="three-fifths">
-    <Notification color="primary">is-three-fifths</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="three-fifths">
+      <Notification color="primary">is-three-fifths</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="half">
-    <Notification color="primary">is-half</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="half">
+      <Notification color="primary">is-half</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="two-fifths">
-    <Notification color="primary">is-two-fifths</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="two-fifths">
+      <Notification color="primary">is-two-fifths</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="one-third">
-    <Notification color="primary">is-one-third</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="one-third">
+      <Notification color="primary">is-one-third</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="one-quarter">
+      <Notification color="primary">is-one-quarter</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
 
-<Columns>
-  <Column size="one-fifth">
-    <Notification color="primary">is-one-fifth</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-  <Column>
-    <Notification color="primary">Auto</Notification>
-  </Column>
-</Columns>
+  <Columns>
+    <Column size="one-fifth">
+      <Notification color="primary">is-one-fifth</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+    <Column>
+      <Notification color="primary">Auto</Notification>
+    </Column>
+  </Columns>
+</>
 ```
 
 ---
 
 ### 12 Column System
 
-```tsx
-{
-  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+```tsx live
+<>
+  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
     <Columns key={num}>
       <Column size={num}>
-        <Notification color="primary">is-{num}</Notification>
+        <Notification color="primary">
+          {num === 1 ? 1 : `is-${num}`}
+        </Notification>
       </Column>
-      <Column>
-        <Notification color="primary">Auto</Notification>
-      </Column>
-      <Column>
-        <Notification color="primary">Auto</Notification>
-      </Column>
+      {num === 11 && (
+        <Column>
+          <Notification color="primary">1</Notification>
+        </Column>
+      )}
+      {num < 11 && (
+        <Column>
+          <Notification color="primary">Auto</Notification>
+        </Column>
+      )}
+      {num < 10 && (
+        <Column>
+          <Notification color="primary">Auto</Notification>
+        </Column>
+      )}
     </Columns>
-  ));
-}
+  ))}
+</>
 ```
 
 ---
 
 ### Responsive Column Sizes
 
-```tsx
+```tsx live
 <Columns isMobile>
   <Column
     sizeMobile="three-quarters"
@@ -256,38 +269,38 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
 ### Offsets
 
-```tsx
-<Columns isMobile>
-  <Column size="half" offset="one-quarter">
-    <Notification color="primary">
-      is-half is-offset-one-quarter
-    </Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size="three-fifths" offset="one-fifth">
-    <Notification color="primary">
-      is-three-fifths is-offset-one-fifth
-    </Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size={4} offset={8}>
-    <Notification color="primary">is-4 is-offset-8</Notification>
-  </Column>
-</Columns>
-<Columns isMobile>
-  <Column size={11} offset={1}>
-    <Notification color="primary">is-11 is-offset-1</Notification>
-  </Column>
-</Columns>
+```tsx live
+<>
+  <Columns isMobile>
+    <Column size="half" offset="one-quarter">
+      <Notification color="primary">is-half is-offset-one-quarter</Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size="three-fifths" offset="one-fifth">
+      <Notification color="primary">
+        is-three-fifths is-offset-one-fifth
+      </Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size={4} offset={8}>
+      <Notification color="primary">is-4 is-offset-8</Notification>
+    </Column>
+  </Columns>
+  <Columns isMobile>
+    <Column size={11} offset={1}>
+      <Notification color="primary">is-11 is-offset-1</Notification>
+    </Column>
+  </Columns>
+</>
 ```
 
 ---
 
 ### Narrow Columns
 
-```tsx
+```tsx live
 <Columns>
   <Column isNarrow>
     <Notification color="primary" style={{ width: 180 }}>

@@ -45,7 +45,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### Default Card (Header, Image, Content, Footer)
 
-```tsx
+```tsx live
 <Card
   header="Card Header"
   image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
@@ -67,7 +67,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### With Header Only
 
-```tsx
+```tsx live
 <Card header="Card Header">
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
 </Card>
@@ -77,7 +77,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### With Footer Only
 
-```tsx
+```tsx live
 <Card
   footer={[
     <span key="save" className="card-footer-item">
@@ -96,7 +96,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### With Image Only
 
-```tsx
+```tsx live
 <Card
   image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
   imageAlt="Beautiful forest"
@@ -107,7 +107,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### With Image and Content
 
-```tsx
+```tsx live
 <Card
   image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
   imageAlt="Beautiful forest"
@@ -120,7 +120,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### No Shadow
 
-```tsx
+```tsx live
 <Card hasShadow={false}>
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
 </Card>
@@ -130,7 +130,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### Spaced (Margin and Padding)
 
-```tsx
+```tsx live
 <Card m="4" p="4">
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
 </Card>
@@ -140,7 +140,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### Viewport Specific (Text Color on Tablet)
 
-```tsx
+```tsx live
 <Card textColor="primary" viewport="tablet">
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
 </Card>
@@ -150,7 +150,7 @@ import { Card } from '@allxsmith/bestax-bulma';
 
 ### Interactive (Colors, Spacing, Alignment, Footer)
 
-```tsx
+```tsx live
 <Card
   header="Interactive Card"
   textColor="success"

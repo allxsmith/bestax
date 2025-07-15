@@ -49,7 +49,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Centered Alignment
 
-```tsx
+```tsx live
 <Tabs align="centered">
   <Tabs.List>
     <Tabs.Item active>
@@ -69,7 +69,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Right Alignment
 
-```tsx
+```tsx live
 <Tabs align="right">
   <Tabs.List>
     <Tabs.Item>
@@ -89,7 +89,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### With Icons
 
-```tsx
+```tsx live
 <Tabs>
   <Tabs.List>
     <Tabs.Item active>
@@ -124,55 +124,57 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Small, Medium, and Large Tabs
 
-```tsx
-<Tabs size="small">
-  <Tabs.List>
-    <Tabs.Item active>
-      <a>Tab 1</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 2</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 3</a>
-    </Tabs.Item>
-  </Tabs.List>
-</Tabs>
+```tsx live
+<>
+  <Tabs size="small">
+    <Tabs.List>
+      <Tabs.Item active>
+        <a>Tab 1</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 2</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 3</a>
+      </Tabs.Item>
+    </Tabs.List>
+  </Tabs>
 
-<Tabs size="medium">
-  <Tabs.List>
-    <Tabs.Item active>
-      <a>Tab 1</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 2</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 3</a>
-    </Tabs.Item>
-  </Tabs.List>
-</Tabs>
+  <Tabs size="medium">
+    <Tabs.List>
+      <Tabs.Item active>
+        <a>Tab 1</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 2</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 3</a>
+      </Tabs.Item>
+    </Tabs.List>
+  </Tabs>
 
-<Tabs size="large">
-  <Tabs.List>
-    <Tabs.Item active>
-      <a>Tab 1</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 2</a>
-    </Tabs.Item>
-    <Tabs.Item>
-      <a>Tab 3</a>
-    </Tabs.Item>
-  </Tabs.List>
-</Tabs>
+  <Tabs size="large">
+    <Tabs.List>
+      <Tabs.Item active>
+        <a>Tab 1</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 2</a>
+      </Tabs.Item>
+      <Tabs.Item>
+        <a>Tab 3</a>
+      </Tabs.Item>
+    </Tabs.List>
+  </Tabs>
+</>
 ```
 
 ---
 
 ### Boxed Tabs
 
-```tsx
+```tsx live
 <Tabs boxed>
   <Tabs.List>
     <Tabs.Item active>
@@ -192,7 +194,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Tabs
 
-```tsx
+```tsx live
 <Tabs toggle>
   <Tabs.List>
     <Tabs.Item active>
@@ -212,7 +214,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Rounded Tabs
 
-```tsx
+```tsx live
 <Tabs toggle rounded>
   <Tabs.List>
     <Tabs.Item active>
@@ -232,7 +234,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Fullwidth Tabs
 
-```tsx
+```tsx live
 <Tabs fullwidth>
   <Tabs.List>
     <Tabs.Item active>
@@ -255,7 +257,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Centered Boxed Tabs with Icons
 
-```tsx
+```tsx live
 <Tabs align="centered" boxed>
   <Tabs.List>
     <Tabs.Item active>
@@ -284,7 +286,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Fullwidth Tabs with Icons
 
-```tsx
+```tsx live
 <Tabs toggle fullwidth>
   <Tabs.List>
     <Tabs.Item active>
@@ -313,7 +315,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Centered Boxed Medium Tabs with Icons
 
-```tsx
+```tsx live
 <Tabs align="centered" boxed size="medium">
   <Tabs.List>
     <Tabs.Item active>
@@ -342,7 +344,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Fullwidth Large Tabs with Icons
 
-```tsx
+```tsx live
 <Tabs toggle fullwidth size="large">
   <Tabs.List>
     <Tabs.Item active>

@@ -47,7 +47,7 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Default Level
 
-```tsx
+```tsx live
 <Level>
   <Level.Left>
     <Level.Item>
@@ -92,7 +92,7 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Centered Level (Statistics)
 
-```tsx
+```tsx live
 <Level>
   <Level.Item hasTextCentered>
     <div>
@@ -125,7 +125,7 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Centered Level Menu
 
-```tsx
+```tsx live
 <Level>
   <Level.Item as="p" hasTextCentered>
     <a className="link is-info">Getting Started</a>
@@ -153,7 +153,7 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Mobile Level
 
-```tsx
+```tsx live
 <Level isMobile>
   <Level.Item hasTextCentered>
     <div>

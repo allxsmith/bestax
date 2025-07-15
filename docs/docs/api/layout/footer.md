@@ -41,7 +41,7 @@ import { Footer } from '@allxsmith/bestax-bulma';
 
 ### Default Footer
 
-```tsx
+```tsx live
 import { Footer } from '@allxsmith/bestax-bulma';
 import { Content } from '@allxsmith/bestax-bulma';
 

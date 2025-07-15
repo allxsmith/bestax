@@ -47,7 +47,7 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### Default Hero
 
-```tsx
+```tsx live
 <Hero>
   <Hero.Body>
     <Container>
@@ -62,7 +62,7 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### All Colors
 
-```tsx
+```tsx live
 <>
   <Hero color="link">
     <Hero.Body>
@@ -119,7 +119,7 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### All Sizes
 
-```tsx
+```tsx live
 <>
   <Hero color="info" size="small">
     <Hero.Body>
@@ -160,7 +160,7 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### Fullheight with Navbar
 
-```tsx
+```tsx live
 <>
   <Navbar>
     <Container>
@@ -196,7 +196,7 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### Fullheight with Head, Body, and Foot
 
-```tsx
+```tsx live
 <Hero color="primary" size="medium">
   <Hero.Head>
     <Navbar>

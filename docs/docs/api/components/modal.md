@@ -44,66 +44,105 @@ import { Modal } from '@allxsmith/bestax-bulma';
 
 ### Modal Card (with title and footer)
 
-```tsx
-const [open, setOpen] = useState(false);
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
 
-<>
-  <button onClick={() => setOpen(true)}>Show Modal</button>
-  <Modal
-    active={open}
-    onClose={() => setOpen(false)}
-    modalCardTitle="Modal Card Title"
-    modalCardFoot={
-      <>
-        <button className="button is-success">Save</button>
-        <button className="button">Cancel</button>
-      </>
-    }
-  >
-    Modal card body content goes here...
-  </Modal>
-</>;
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardTitle="Modal Card Title"
+        modalCardFoot={
+          <Buttons>
+            <Button color="primary" className="button is-success">Save</Button>
+            <Button color="warning" className="button">Cancel</Button>
+          </>
+        }
+      >
+        Modal card body content goes here...
+      </Modal>
+    </>
+  );
+}
 ```
 
 ---
 
 ### Modal Card (title only)
 
-```tsx
-<Modal
-  active={open}
-  onClose={() => setOpen(false)}
-  modalCardTitle="Modal Card Title Only"
->
-  Modal body content...
-</Modal>
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardTitle="Modal Card Title Only"
+      >
+        Modal body content...
+      </Modal>
+    </>
+  );
+}
 ```
 
 ---
 
 ### Modal Card (footer only)
 
-```tsx
-<Modal
-  active={open}
-  onClose={() => setOpen(false)}
-  modalCardFoot={<button className="button is-success">Save</button>}
->
-  Modal body content...
-</Modal>
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        modalCardFoot={<button className="button is-success">Save</button>}
+      >
+        Modal body content...
+      </Modal>
+    </>
+  );
+}
 ```
 
 ---
 
 ### Modal Content (no card title or footer)
 
-```tsx
-<Modal active={open} onClose={() => setOpen(false)}>
-  <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-    <h3 className="title is-4">Custom Content</h3>
-    <p>Put any content here!</p>
-  </div>
-</Modal>
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal active={open} onClose={() => setOpen(false)}>
+        <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
+          <h3 className="title is-4">Custom Content</h3>
+          <p>Put any content here!</p>
+        </div>
+      </Modal>
+    </>
+  );
+}
 ```
 
 ---
@@ -112,18 +151,40 @@ const [open, setOpen] = useState(false);
 
 #### Force content style
 
-```tsx
-<Modal active={open} onClose={() => setOpen(false)} type="content">
-  <div>Custom content modal (forced type="content")</div>
-</Modal>
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal active={open} onClose={() => setOpen(false)} type="content">
+        <div>Custom content modal (forced type="content")</div>
+      </Modal>
+    </>
+  );
+}
 ```
 
 #### Force card style
 
-```tsx
-<Modal active={open} onClose={() => setOpen(false)} type="card">
-  Modal card body (forced type="card")
-</Modal>
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal active={open} onClose={() => setOpen(false)} type="card">
+        Modal card body (forced type="card")
+      </Modal>
+    </>
+  );
+}
 ```
 
 ---

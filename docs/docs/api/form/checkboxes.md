@@ -33,7 +33,7 @@ import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 
 ### Grouped Checkboxes
 
-```tsx
+```tsx live
 <Checkboxes>
   <Checkbox>Make the bed</Checkbox>
   <Checkbox>Brush teeth</Checkbox>

@@ -41,31 +41,31 @@ import { Box } from '@allxsmith/bestax-bulma';
 
 ### Default Box
 
-```tsx
+```tsx live
 <Box>Default Box</Box>
 ```
 
 ### Primary Text Color
 
-```tsx
+```tsx live
 <Box textColor="primary">Box with Primary Text</Box>
 ```
 
 ### Light Background
 
-```tsx
+```tsx live
 <Box bgColor="grey-light">Box with Light Background</Box>
 ```
 
 ### No Shadow
 
-```tsx
+```tsx live
 <Box hasShadow={false}>Box without Shadow</Box>
 ```
 
 ### Spacing and Alignment
 
-```tsx
+```tsx live
 <Box m="4" p="4" textAlign="centered">
   Box with Margin, Padding, and Centered Text
 </Box>
@@ -73,13 +73,13 @@ import { Box } from '@allxsmith/bestax-bulma';
 
 ### Custom Class
 
-```tsx
+```tsx live
 <Box className="custom-box-class">Box with Custom Class</Box>
 ```
 
 ### Viewport-Specific Text Color
 
-```tsx
+```tsx live
 <Box textColor="primary" viewport="tablet">
   Box with Tablet-specific Primary Text
 </Box>
@@ -87,7 +87,7 @@ import { Box } from '@allxsmith/bestax-bulma';
 
 ### Interactive Box
 
-```tsx
+```tsx live
 <Box textColor="success" bgColor="black" m="3" p="3" textAlign="right">
   Interactive Box
 </Box>

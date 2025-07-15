@@ -33,7 +33,7 @@ import { Radios, Radio } from '@allxsmith/bestax-bulma';
 
 ### Grouped Radios (All Disabled Example)
 
-```tsx
+```tsx live
 <Radios>
   <Radio name="event" disabled>
     {' '}

@@ -48,7 +48,7 @@ import { Panel } from '@allxsmith/bestax-bulma';
 
 ### Complete Panel (Revolutionary Figures)
 
-```tsx
+```tsx live
 <Panel>
   <Panel.Heading>Revolutionary Figures</Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
@@ -110,55 +110,60 @@ import { Panel } from '@allxsmith/bestax-bulma';
 
 ### Color Variants
 
-```tsx
-<Panel color="primary">
-  <Panel.Heading>Primary Panel</Panel.Heading>
-  <Panel.InputBlock placeholder="Search" />
-  <Panel.Block active>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
-    George Washington
-  </Panel.Block>
-  <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
-    Marquis de Lafayette
-  </Panel.Block>
-  <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
-    Nathanael Greene
-  </Panel.Block>
-  <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-flag" aria-hidden="true"></i>
-    </Panel.Icon>
-    Battle of Trenton
-  </Panel.Block>
-  <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-flag" aria-hidden="true"></i>
-    </Panel.Icon>
-    Yorktown
-  </Panel.Block>
-  <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-</Panel>
+```tsx live
+<>
+  {[
+    'primary',
+    'link',
+    'info',
+    'success',
+    'warning',
+    'danger',
+    'black',
+    'dark',
+    'light',
+    'white',
+  ].map(color => (
+    <Panel key={color} color={color}>
+      <Panel.Heading>
+        {color.charAt(0).toUpperCase() + color.slice(1)} Panel
+      </Panel.Heading>
+      <Panel.InputBlock placeholder="Search" />
+      <Panel.Block active>
+        <Panel.Icon>
+          <i className="fas fa-user" aria-hidden="true"></i>
+        </Panel.Icon>
+        George Washington
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon>
+          <i className="fas fa-user" aria-hidden="true"></i>
+        </Panel.Icon>
+        Marquis de Lafayette
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon>
+          <i className="fas fa-user" aria-hidden="true"></i>
+        </Panel.Icon>
+        Nathanael Greene
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon>
+          <i className="fas fa-flag" aria-hidden="true"></i>
+        </Panel.Icon>
+        Battle of Trenton
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon>
+          <i className="fas fa-flag" aria-hidden="true"></i>
+        </Panel.Icon>
+        Yorktown
+      </Panel.Block>
+      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+    </Panel>
+  ))}
+</>
 ```
-
-Repeat the above block for these color values:
-
-- `color="link"`
-- `color="info"`
-- `color="success"`
-- `color="warning"`
-- `color="danger"`
-- `color="black"`
-- `color="dark"`
-- `color="light"`
-- `color="white"`
 
 ---
 

@@ -38,13 +38,13 @@ import { Checkbox } from '@allxsmith/bestax-bulma';
 
 ### Basic Checkbox
 
-```tsx
+```tsx live
 <Checkbox>Stay Signed In</Checkbox>
 ```
 
 ### Checkbox With Link
 
-```tsx
+```tsx live
 <Checkbox>
   I have read and agree to the
   <a href="#" target="_blank" rel="noopener noreferrer">
@@ -56,7 +56,7 @@ import { Checkbox } from '@allxsmith/bestax-bulma';
 
 ### Disabled Checkbox
 
-```tsx
+```tsx live
 <Checkbox disabled>Stay Signed In</Checkbox>
 ```
 
@@ -84,7 +84,7 @@ The `Checkbox` component provides a Bulma-styled checkbox input. Pass the label 
 
 ## Import
 
-```tsx
+```tsx live
 import Checkbox from '@allxsmith/bestax-bulma';
 import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 ```
@@ -106,13 +106,13 @@ import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 
 ### Basic Checkbox
 
-```tsx
+```tsx live
 <Checkbox>Stay Signed In</Checkbox>
 ```
 
 ### Checkbox With Link In Label
 
-```tsx
+```tsx live
 <Checkbox>
   I have read and agree to the{' '}
   <a href="#" target="_blank" rel="noopener noreferrer">
@@ -124,7 +124,7 @@ import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 
 ### Disabled Checkbox
 
-```tsx
+```tsx live
 <Checkbox disabled>Stay Signed In</Checkbox>
 ```
 
@@ -132,7 +132,7 @@ import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 
 Use the `Checkboxes` wrapper for a vertical group.
 
-```tsx
+```tsx live
 <Checkboxes>
   <Checkbox>Make the bed</Checkbox>
   <Checkbox>Brush teeth</Checkbox>

@@ -28,3 +28,19 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+pre.prism-code {
+  border-radius: 0;
+}
+
+.live-preview {
+  margin-bottom: var(--ifm-leading);
+}
+
+.live-editor {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.live-error {
+  border: none;
+}

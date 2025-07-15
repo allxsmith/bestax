@@ -91,7 +91,7 @@ import {
 
 ### Basic Table
 
-```tsx
+```tsx live
 <Table>
   <Thead>
     <Tr>
@@ -110,7 +110,7 @@ import {
 
 ### All Modifiers
 
-```tsx
+```tsx live
 <Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>
   <Thead>
     <Tr>
@@ -133,7 +133,7 @@ import {
 
 ### Responsive Table (horizontal scroll on mobile)
 
-```tsx
+```tsx live
 <Table isResponsive>
   <Thead>
     <Tr>
@@ -158,7 +158,7 @@ import {
 
 ### Colored Cells
 
-```tsx
+```tsx live
 <Table isBordered isFullwidth>
   <Thead>
     <Tr>
@@ -182,7 +182,7 @@ import {
 
 ### Highlighted Row
 
-```tsx
+```tsx live
 <Table isFullwidth>
   <Thead>
     <Tr>
@@ -208,7 +208,7 @@ import {
 
 ### Custom Alignment and Width
 
-```tsx
+```tsx live
 <Table>
   <Thead>
     <Tr>

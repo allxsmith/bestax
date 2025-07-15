@@ -41,19 +41,19 @@ import { Notification } from '@allxsmith/bestax-bulma';
 
 ### Default Notification
 
-```tsx
+```tsx live
 <Notification>This is a default notification.</Notification>
 ```
 
 ### Primary Notification
 
-```tsx
+```tsx live
 <Notification color="primary">This is a primary notification.</Notification>
 ```
 
 ### Light Variant
 
-```tsx
+```tsx live
 <Notification color="primary" isLight>
   This is a light primary notification.
 </Notification>
@@ -61,47 +61,43 @@ import { Notification } from '@allxsmith/bestax-bulma';
 
 ### Success, Warning, Danger, Info, and Link
 
-```tsx
-<Notification color="success">
-  This is a success notification.
-</Notification>
-<Notification color="warning">
-  This is a warning notification.
-</Notification>
-<Notification color="danger">
-  This is a danger notification.
-</Notification>
-<Notification color="info">
-  This is an info notification.
-</Notification>
-<Notification color="link">
-  This is a link notification.
-</Notification>
+```tsx live
+<>
+  <Notification color="success">This is a success notification.</Notification>
+  <Notification color="warning">This is a warning notification.</Notification>
+  <Notification color="danger">This is a danger notification.</Notification>
+  <Notification color="info">This is an info notification.</Notification>
+  <Notification color="link">This is a link notification.</Notification>
+</>
 ```
 
 ### With Dismiss Button
 
-```tsx
-const [visible, setVisible] = React.useState(true);
+```tsx live
+function example() {
+  const [visible, setVisible] = React.useState(true);
 
-{
-  visible && (
-    <Notification hasDelete onDelete={() => setVisible(false)}>
-      Click the delete button to dismiss this notification.
-    </Notification>
+  return (
+    <>
+      {visible && (
+        <Notification hasDelete onDelete={() => setVisible(false)}>
+          Click the delete button to dismiss this notification.
+        </Notification>
+      )}
+    </>
   );
 }
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Notification m="4">This notification has a margin.</Notification>
 ```
 
 ### Custom Content
 
-```tsx
+```tsx live
 <Notification color="warning">
   <strong>Warning!</strong> This notification contains{' '}
   <a href="#">custom content</a>.

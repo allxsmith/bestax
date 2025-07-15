@@ -43,44 +43,46 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Default Tag
 
-```tsx
+```tsx live
 <Tag>Default Tag</Tag>
 ```
 
 ### Colored Tag
 
-```tsx
+```tsx live
 <Tag color="primary">Primary Tag</Tag>
 ```
 
 ### Medium and Large Tag
 
-```tsx
-<Tag size="medium">Medium Tag</Tag>
-<Tag size="large">Large Tag</Tag>
+```tsx live
+<Tags>
+  <Tag size="medium">Medium Tag</Tag>
+  <Tag size="large">Large Tag</Tag>
+</Tags>
 ```
 
 ### Rounded Tag
 
-```tsx
+```tsx live
 <Tag isRounded>Rounded Tag</Tag>
 ```
 
 ### Delete Tag (Button)
 
-```tsx
+```tsx live
 <Tag isDelete onDelete={() => alert('Deleted!')} />
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Tag m="4">Tag with Margin</Tag>
 ```
 
 ### Combined Styles
 
-```tsx
+```tsx live
 <Tag color="success" size="medium" isRounded m="2">
   Combined Tag
 </Tag>
@@ -88,8 +90,8 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### All Colors
 
-```tsx
-<>
+```tsx live
+<Tags>
   {[
     'primary',
     'link',
@@ -106,13 +108,13 @@ import { Tag } from '@allxsmith/bestax-bulma';
       {color.charAt(0).toUpperCase() + color.slice(1)}
     </Tag>
   ))}
-</>
+</Tags>
 ```
 
 ### Sizes Together
 
-```tsx
-<>
+```tsx live
+<Tags>
   {['primary', 'success', 'danger'].map(color => (
     <div key={color} style={{ display: 'flex', gap: '10px' }}>
       <Tag color={color} size="normal" isHoverable>
@@ -126,12 +128,12 @@ import { Tag } from '@allxsmith/bestax-bulma';
       </Tag>
     </div>
   ))}
-</>
+</Tags>
 ```
 
 ### Hoverable Tag
 
-```tsx
+```tsx live
 <Tag color="primary" isHoverable>
   Hoverable Tag
 </Tag>
@@ -139,7 +141,7 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Tag with Delete Component
 
-```tsx
+```tsx live
 import { Tags, Delete } from '@allxsmith/bestax-bulma';
 
 <Tags hasAddons>

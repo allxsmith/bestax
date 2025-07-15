@@ -73,7 +73,11 @@ const config = {
       }),
     ],
   ],
-  plugins: [],
+  themes: [
+    '@docusaurus/theme-live-codeblock',
+    // '@docusaurus/theme-mermaid',
+    // '@docusaurus/theme-search-algolia',
+  ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({

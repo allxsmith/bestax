@@ -229,54 +229,76 @@ export interface BulmaClassesProps {
 
 ### Basic Example
 
-```tsx
-const { bulmaHelperClasses, rest } = useBulmaClasses({
-  color: 'primary',
-  p: '4',
-  textAlign: 'centered',
-  className: 'custom-card',
-  id: 'card1',
-});
+```tsx live
+function example() {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: 'link',
+    backgroundColor: 'primary',
+    p: '4',
+    textAlign: 'centered',
+    id: 'card1',
+  });
 
-// bulmaHelperClasses: 'has-text-primary p-4 has-text-centered'
-// rest: { className: 'custom-card', id: 'card1' }
+  return JSON.stringify({ bulmaHelperClasses, rest });
+  // bulmaHelperClasses: 'has-text-link has-background-primary p-4 has-text-centered'
+  // rest: { className: 'custom-card', id: 'card1' }
+}
 ```
 
 Apply to your component:
 
-```tsx
-<div className={bulmaHelperClasses} {...rest}>
-  Card content
-</div>
+```tsx live
+function example() {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: 'link',
+    backgroundColor: 'primary',
+    p: '4',
+    textAlign: 'centered',
+    id: 'card1',
+  });
+
+  return (
+    <div className={classNames('custom-card', bulmaHelperClasses)} {...rest}>
+      Card content
+    </div>
+  );
+}
 ```
 
 ---
 
 ### Responsive Props
 
-```tsx
-const { bulmaHelperClasses } = useBulmaClasses({
-  color: 'info',
-  m: '2',
-  textAlign: 'centered',
-  viewport: 'mobile',
-});
-// bulmaHelperClasses: 'has-text-info-mobile m-2-mobile has-text-centered-mobile'
+```tsx live
+function example() {
+  const { bulmaHelperClasses } = useBulmaClasses({
+    color: 'link',
+    backgroundColor: 'primary',
+    m: '2',
+    textAlign: 'centered',
+    viewport: 'mobile',
+  });
+  return JSON.stringify({ bulmaHelperClasses });
+  // bulmaHelperClasses: 'has-text-info-mobile m-2-mobile has-text-centered-mobile'
+}
 ```
 
 ---
 
 ### With Flexbox Helpers
 
-```tsx
-const { bulmaHelperClasses } = useBulmaClasses({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: '4',
-});
-// bulmaHelperClasses: 'is-flex is-flex-direction-column is-align-items-center is-justify-content-center'
+```tsx live
+function example() {
+  const { bulmaHelperClasses } = useBulmaClasses({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4',
+  });
+  return JSON.stringify({ bulmaHelperClasses });
+  // bulmaHelperClasses: 'is-flex is-flex-direction-column is-align-items-center is-justify-content-center'
+}
 ```
 
 ---
@@ -285,68 +307,100 @@ const { bulmaHelperClasses } = useBulmaClasses({
 
 #### Columns
 
-```tsx
+```tsx live
+function example() {
+  const props = {
+    isGapless = true,
+  };
+
+  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const columnsClasses = classNames(
+    'columns',
+    { 'is-gapless': isGapless },
+    bulmaHelperClasses
+  );
+  return (
+    <div className={columnsClasses} {...rest}>
+      {children}
+    </div>
+  );
+}
+
 // Inside Columns.tsx
-const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-const columnsClasses = classNames(
-  'columns',
-  { 'is-gapless': isGapless },
-  bulmaHelperClasses
-);
-return (
-  <div className={columnsClasses} {...rest}>
-    {children}
-  </div>
-);
 ```
 
 #### Card
 
-```tsx
-const { bulmaHelperClasses, rest } = useBulmaClasses({
-  color: textColor,
-  backgroundColor: bgColor,
-  ...props,
-});
-const cardClasses = classNames('card', className, bulmaHelperClasses, {
-  'is-shadowless': !hasShadow,
-});
-return (
-  <div className={cardClasses} {...rest}>
-    {children}
-  </div>
-);
+```tsx live
+function example() {
+  const props = {};
+
+  const textColor = 'white';
+  const bgColor = 'primary';
+  const hasShadow = true;
+  const className = 'custom-card';
+  const children = <p>Making a custom card</p>;
+  const p = '4';
+
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
+    backgroundColor: bgColor,
+    p,
+    ...props,
+  });
+  const cardClasses = classNames('card', className, bulmaHelperClasses, {
+    'is-shadowless': !hasShadow,
+  });
+  return (
+    <div className={cardClasses} {...rest}>
+      {children}
+    </div>
+  );
+}
 ```
 
 #### Dropdown
 
-```tsx
-const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-const dropdownClasses = classNames(
-  'dropdown',
-  bulmaHelperClasses,
-  {
-    'is-active': active,
-    'is-right': right,
-    // ...
-  },
-  className
-);
+```tsx live
+function example() {
+  const props = {};
+  const active = true;
+  const right = true;
+  const className = 'custom-dropdown';
+
+  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const dropdownClasses = classNames(
+    'dropdown',
+    bulmaHelperClasses,
+    {
+      'is-active': active,
+      'is-right': right,
+      // ...
+    },
+    className
+  );
+
+  return dropdownClasses;
+}
 ```
 
 ---
 
 ### Storybook Example
 
-```tsx
+```tsx live
 // Helper to preview Bulma classes
-const { bulmaHelperClasses } = useBulmaClasses({
-  color: 'success',
-  m: '3',
-  textAlign: 'left',
-  viewport: 'desktop',
-});
-// bulmaHelperClasses: 'has-text-success m-3 has-text-left-desktop'
+function example() {
+  const { bulmaHelperClasses } = useBulmaClasses({
+    color: 'success',
+    m: '3',
+    textAlign: 'left',
+    viewport: 'desktop',
+  });
+  return JSON.stringify({ bulmaHelperClasses });
+
+  // bulmaHelperClasses: 'has-text-success m-3 has-text-left-desktop'
+}
 ```
 
 ---

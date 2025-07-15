@@ -48,7 +48,7 @@ import { Grid, Cell } from '@allxsmith/bestax-bulma';
 
 ### Smart Grid
 
-```tsx
+```tsx live
 <Grid>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
@@ -62,7 +62,7 @@ import { Grid, Cell } from '@allxsmith/bestax-bulma';
 
 ### Minimum Column Width
 
-```tsx
+```tsx live
 <Grid minCol={4}>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
@@ -78,7 +78,7 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Gap
 
-```tsx
+```tsx live
 <Grid gap={2}>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
@@ -92,7 +92,7 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Column Gap
 
-```tsx
+```tsx live
 <Grid columnGap={2}>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
@@ -106,7 +106,7 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Row Gap
 
-```tsx
+```tsx live
 <Grid rowGap={2}>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
@@ -120,7 +120,7 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Fixed Grid
 
-```tsx
+```tsx live
 <Grid isFixed>
   {[...Array(12)].map((_, i) => (
     <Cell key={i}>
@@ -134,7 +134,7 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Fixed Grid Cols
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   {[...Array(12)].map((_, i) => (
     <Cell key={i}>
@@ -150,7 +150,7 @@ You can select the number of fixed columns interactively; see the story for a de
 
 ### Fixed Grid Cols By Breakpoint
 
-```tsx
+```tsx live
 <Grid
   isFixed
   fixedCols={4}
@@ -172,7 +172,7 @@ You can select the number of fixed columns interactively; see the story for a de
 
 ### Fixed Grid Auto Count
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols="auto">
   {[...Array(16)].map((_, i) => (
     <Cell key={i}>

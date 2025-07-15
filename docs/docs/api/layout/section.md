@@ -41,7 +41,7 @@ import { Section } from '@allxsmith/bestax-bulma';
 
 ### Default Section
 
-```tsx
+```tsx live
 <Section>
   <Title>Section</Title>
   <SubTitle>
@@ -54,7 +54,7 @@ import { Section } from '@allxsmith/bestax-bulma';
 
 ### Medium Section
 
-```tsx
+```tsx live
 <Section size="medium">
   <Title>Medium Section</Title>
   <SubTitle>
@@ -68,7 +68,7 @@ import { Section } from '@allxsmith/bestax-bulma';
 
 ### Large Section
 
-```tsx
+```tsx live
 <Section size="large">
   <Title>Large Section</Title>
   <SubTitle>

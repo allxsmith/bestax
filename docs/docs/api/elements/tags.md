@@ -39,7 +39,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Default Tags
 
-```tsx
+```tsx live
 <Tags>
   <Tag color="primary">Primary</Tag>
   <Tag color="info">Info</Tag>
@@ -49,7 +49,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Add-ons (Grouped)
 
-```tsx
+```tsx live
 <Tags hasAddons>
   <Tag color="primary">Package</Tag>
   <Tag color="success">Ready</Tag>
@@ -59,7 +59,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Multiline
 
-```tsx
+```tsx live
 <Tags isMultiline>
   <Tag color="primary">Bulma</Tag>
   <Tag color="success">React</Tag>
@@ -71,7 +71,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
-```tsx
+```tsx live
 <Tags m="4">
   <Tag color="primary">With Margin</Tag>
 </Tags>
@@ -79,7 +79,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Mixed Tags
 
-```tsx
+```tsx live
 <Tags isMultiline>
   <Tag color="primary" size="medium">
     Primary Medium
@@ -95,7 +95,7 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Add-ons with Delete Tag
 
-```tsx
+```tsx live
 <Tags hasAddons>
   <Tag color="danger">Allxsmith</Tag>
   <Tag isDelete onDelete={() => alert('Deleted!')} />

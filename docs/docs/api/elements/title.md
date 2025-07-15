@@ -40,13 +40,13 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Default Title
 
-```tsx
+```tsx live
 <Title>Default Title</Title>
 ```
 
 ### Different Sizes
 
-```tsx
+```tsx live
 <>
   <Title size="1">Title Size 1</Title>
   <Title size="3">Title Size 3</Title>
@@ -55,19 +55,19 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Spaced Title
 
-```tsx
+```tsx live
 <Title isSpaced>Spaced Title</Title>
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Title m="4">Title with Margin</Title>
 ```
 
 ### As Paragraph
 
-```tsx
+```tsx live
 <Title as="p" size="3">
   Title as Paragraph
 </Title>
@@ -75,7 +75,7 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### All Sizes
 
-```tsx
+```tsx live
 <>
   {['1', '2', '3', '4', '5', '6'].map(size => (
     <Title key={size} size={size}>
@@ -87,7 +87,7 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Title and Subtitle
 
-```tsx
+```tsx live
 <Block>
   <Title as="p" size="1">
     Title 1

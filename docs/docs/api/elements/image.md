@@ -46,7 +46,7 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### Default Image
 
-```tsx
+```tsx live
 <Image
   src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
   alt="Sample image"
@@ -56,37 +56,37 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### Rounded Image
 
-```tsx
+```tsx live
 <Image src="..." alt="Rounded image" size="128x128" isRounded />
 ```
 
 ### Retina Image
 
-```tsx
+```tsx live
 <Image src="..." alt="Retina image" size="128x128" isRetina />
 ```
 
 ### Aspect Ratio 16:9
 
-```tsx
+```tsx live
 <Image src="..." alt="16:9 aspect ratio image" size="16by9" />
 ```
 
 ### Aspect Ratio 4:3
 
-```tsx
+```tsx live
 <Image src="..." alt="4:3 aspect ratio image" size="4by3" />
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Image src="..." alt="Image with margin" size="128x128" m="4" />
 ```
 
 ### With Iframe
 
-```tsx
+```tsx live
 <Image size="16by9">
   <iframe
     className="has-ratio"
@@ -102,7 +102,7 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### With Custom Child
 
-```tsx
+```tsx live
 <Image size="4by3">
   <div
     className="has-ratio has-background-grey-light has-text-centered"
@@ -120,7 +120,7 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### With Text Color and Background
 
-```tsx
+```tsx live
 <Image
   src="..."
   alt="Image with text and background color"

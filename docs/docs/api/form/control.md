@@ -49,7 +49,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Input
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Input placeholder="Default input" />
@@ -61,7 +61,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Select
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Select>
@@ -77,7 +77,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With TextArea
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <TextArea placeholder="Write here..." />
@@ -89,7 +89,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Icons (Left and Right)
 
-```tsx
+```tsx live
 <Field>
   <Control
     hasIconsLeft
@@ -106,7 +106,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Only Left Icon (Shortcut Props)
 
-```tsx
+```tsx live
 <Field>
   <Control hasIconsLeft iconLeftName="user" iconLeftSize="small">
     <Input size="small" placeholder="With left icon shortcut" />
@@ -118,7 +118,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Only Right Icon (Shortcut Props)
 
-```tsx
+```tsx live
 <Field>
   <Control hasIconsRight iconRightName="check" iconRightSize="small">
     <Input size="small" placeholder="With right icon shortcut" />
@@ -130,7 +130,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Icons and Size Variations
 
-```tsx
+```tsx live
 <Field>
   <Control
     hasIconsLeft
@@ -148,7 +148,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Loading State
 
-```tsx
+```tsx live
 <Field label="Loading">
   <Control isLoading>
     <Input placeholder="Loading state" />
@@ -160,7 +160,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Loading State with Size Variations
 
-```tsx
+```tsx live
 <Field label="Loading Small">
   <Control isLoading size="small">
     <Input size="small" placeholder="Loading small" />
@@ -184,7 +184,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Expanded Control
 
-```tsx
+```tsx live
 <Field label="Expanded">
   <Control isExpanded>
     <Input placeholder="Expands to fill available space" />
@@ -196,7 +196,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Control as Paragraph (`as="p"`)
 
-```tsx
+```tsx live
 <Field label="Control as Paragraph">
   <Control as="p">
     <Input placeholder="Inside a <p> element" />
@@ -208,7 +208,7 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Radios or Checkboxes
 
-```tsx
+```tsx live
 <Field label="Options">
   <Control>
     <Radio name="option">Option 1</Radio>

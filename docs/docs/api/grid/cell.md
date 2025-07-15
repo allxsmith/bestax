@@ -43,7 +43,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Basic Usage
 
-```tsx
+```tsx live
 <Grid>
   <Cell>
     <Notification color="primary">Basic Cell</Notification>
@@ -58,7 +58,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Column Start
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
     <Notification>Cell 1</Notification>
@@ -85,7 +85,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Column From End
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
     <Notification>Cell 1</Notification>
@@ -112,7 +112,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Column Span
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
     <Notification>Cell 1</Notification>
@@ -139,7 +139,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Row Start
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
     <Notification>Cell 1</Notification>
@@ -166,7 +166,7 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Row Span
 
-```tsx
+```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
     <Notification>Cell 1</Notification>

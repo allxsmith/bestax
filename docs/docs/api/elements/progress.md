@@ -41,44 +41,48 @@ import { Progress } from '@allxsmith/bestax-bulma';
 
 ### Default Progress
 
-```tsx
+```tsx live
 <Progress value={50} max={100} />
 ```
 
 ### Colored Progress
 
-```tsx
-<Progress color="primary" value={75} max={100} />
-<Progress color="success" value={90} max={100} />
-<Progress color="warning" value={30} max={100} />
-<Progress color="danger" value={10} max={100} />
-<Progress color="info" value={60} max={100} />
-<Progress color="link" value={80} max={100} />
+```tsx live
+<>
+  <Progress color="primary" value={75} max={100} />
+  <Progress color="success" value={90} max={100} />
+  <Progress color="warning" value={30} max={100} />
+  <Progress color="danger" value={10} max={100} />
+  <Progress color="info" value={60} max={100} />
+  <Progress color="link" value={80} max={100} />
+</>
 ```
 
 ### Sizing
 
-```tsx
-<Progress size="small" value={50} max={100} />
-<Progress size="medium" value={50} max={100} />
-<Progress size="large" value={50} max={100} />
+```tsx live
+<>
+  <Progress size="small" value={50} max={100} />
+  <Progress size="medium" value={50} max={100} />
+  <Progress size="large" value={50} max={100} />
+</>
 ```
 
 ### With Margin
 
-```tsx
+```tsx live
 <Progress value={50} max={100} m="4" />
 ```
 
 ### Indeterminate Progress
 
-```tsx
+```tsx live
 <Progress color="primary" max={100} />
 ```
 
 ### Custom Content
 
-```tsx
+```tsx live
 <Progress value={50} max={100}>
   50% Complete
 </Progress>
@@ -86,7 +90,7 @@ import { Progress } from '@allxsmith/bestax-bulma';
 
 ### Multiple Indeterminate
 
-```tsx
+```tsx live
 <>
   <Progress className="is-small is-primary" max={100} />
   <Progress className="is-danger" max={100} />

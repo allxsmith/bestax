@@ -47,7 +47,7 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Default Media
 
-```tsx
+```tsx live
 <Media>
   <Media.Left>
     <Image
@@ -98,7 +98,7 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Media With Inputs
 
-```tsx
+```tsx live
 <Media>
   <Media.Left>
     <Image
@@ -136,7 +136,7 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Nested Media
 
-```tsx
+```tsx live
 <Media>
   <Media.Left>
     <Image
@@ -225,7 +225,7 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Media With Button Below
 
-```tsx
+```tsx live
 <Media>
   <Media.Left>
     <Image

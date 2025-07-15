@@ -34,7 +34,7 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ### Mutually Exclusive Radios (Only One Can Be Selected)
 
-```tsx
+```tsx live
 <Control>
   <Radio name="mutuallyExclusive"> Yes </Radio>
   <Radio name="mutuallyExclusive"> No </Radio>
@@ -46,7 +46,7 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ### Default Selected Radio
 
-```tsx
+```tsx live
 <Control>
   <Radio name="pet"> Cat </Radio>
   <Radio name="pet" defaultChecked>
@@ -60,7 +60,7 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ### Disabled Radios
 
-```tsx
+```tsx live
 <Control>
   <Radio name="response" disabled>
     {' '}
@@ -81,7 +81,7 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ### List of Radios (Grouped with the `Radios` Wrapper)
 
-```tsx
+```tsx live
 <Radios>
   <Radio name="event" disabled>
     {' '}

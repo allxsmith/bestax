@@ -41,7 +41,7 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Default Content
 
-```tsx
+```tsx live
 <Content>
   <p>This is a paragraph inside Content.</p>
 </Content>
@@ -49,25 +49,25 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Primary Text Color
 
-```tsx
+```tsx live
 <Content textColor="primary">Content with Primary Text</Content>
 ```
 
 ### Light Background
 
-```tsx
+```tsx live
 <Content bgColor="light">Content with Light Background</Content>
 ```
 
 ### Medium Size
 
-```tsx
+```tsx live
 <Content size="medium">Content with Medium Size</Content>
 ```
 
 ### Spacing and Alignment
 
-```tsx
+```tsx live
 <Content m="4" p="4" textAlign="centered">
   Content with Margin, Padding, and Centered Text
 </Content>
@@ -75,13 +75,13 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Custom Class
 
-```tsx
+```tsx live
 <Content className="custom-content-class">Content with Custom Class</Content>
 ```
 
 ### Viewport-Specific Text Color
 
-```tsx
+```tsx live
 <Content textColor="primary" viewport="tablet">
   Content with Tablet-specific Primary Text
 </Content>
@@ -89,7 +89,7 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Interactive Content
 
-```tsx
+```tsx live
 <Content
   textColor="success"
   bgColor="dark"
@@ -104,7 +104,7 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Typographic Elements
 
-```tsx
+```tsx live
 <Content textColor="info" p="3">
   <h1>Heading 1</h1>
   <p>This is a paragraph styled by Bulma’s content class.</p>
@@ -118,7 +118,7 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Rich Content (all HTML tags, various sizes)
 
-```tsx
+```tsx live
 <Content size="small" textColor="primary" p="3">
   <h1>Lorem Ipsum Heading</h1>
   <p>

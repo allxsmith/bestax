@@ -43,7 +43,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Default Button Group
 
-```tsx
+```tsx live
 <Buttons>
   <Button color="primary">Save</Button>
   <Button color="info">Edit</Button>
@@ -53,7 +53,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### All Colors Group
 
-```tsx
+```tsx live
 <Buttons>
   {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
     <Button key={color} color={color}>
@@ -65,7 +65,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### All Sizes Group
 
-```tsx
+```tsx live
 <Buttons>
   {['small', 'normal', 'medium', 'large'].map(size => (
     <Button key={size} size={size}>
@@ -77,7 +77,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Add-ons (No Spacing Between Buttons)
 
-```tsx
+```tsx live
 <Buttons hasAddons>
   <Button color="primary">Left</Button>
   <Button color="primary">Center</Button>
@@ -87,7 +87,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Centered Group
 
-```tsx
+```tsx live
 <Buttons isCentered>
   <Button color="info">One</Button>
   <Button color="info">Two</Button>
@@ -96,7 +96,7 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Right-Aligned Group
 
-```tsx
+```tsx live
 <Buttons isRight>
   <Button color="success">Accept</Button>
   <Button color="danger">Reject</Button>

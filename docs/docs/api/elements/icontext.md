@@ -42,7 +42,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Single Icon + Text
 
-```tsx
+```tsx live
 <IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }}>
   Star
 </IconText>
@@ -50,7 +50,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### With Text Color
 
-```tsx
+```tsx live
 <IconText
   iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }}
   textColor="primary"
@@ -61,7 +61,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
-```tsx
+```tsx live
 <IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }} m="2">
   Star
 </IconText>
@@ -69,7 +69,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Large Icon
 
-```tsx
+```tsx live
 <IconText
   iconProps={{
     name: 'fas fa-star',
@@ -84,7 +84,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### In a Button
 
-```tsx
+```tsx live
 <button className="button is-primary">
   <IconText
     iconProps={{
@@ -100,7 +100,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### In a Notification
 
-```tsx
+```tsx live
 <div className="notification is-info">
   <IconText
     iconProps={{
@@ -117,7 +117,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### In a Tag
 
-```tsx
+```tsx live
 <span className="tag is-success is-medium">
   <IconText
     iconProps={{
@@ -134,7 +134,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Multiple Icons and Text
 
-```tsx
+```tsx live
 <IconText
   items={[
     {
@@ -161,7 +161,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Star Rating Example
 
-```tsx
+```tsx live
 <IconText
   items={[
     { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
@@ -182,7 +182,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### With Flex
 
-```tsx
+```tsx live
 <IconText
   iconProps={{
     name: 'fas fa-info-circle',

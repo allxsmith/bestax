@@ -14,7 +14,7 @@ The `Field` component is a Bulma-styled form field container. It supports horizo
 ## Import
 
 ```tsx
-import Field from '@allxsmith/bestax-bulma';
+import { Field } from '@allxsmith/bestax-bulma';
 // Field.Label, Field.Body are available as subcomponents
 ```
 
@@ -43,7 +43,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Checkbox
 
-```tsx
+```tsx live
 <Field label="Stay Signed In">
   <Checkbox>Stay Signed In</Checkbox>
 </Field>
@@ -53,7 +53,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Checkbox and Custom Label (with link)
 
-```tsx
+```tsx live
 <Field label="Agreement">
   <Checkbox>
     I have read and agree to the{' '}
@@ -69,7 +69,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Grouped Checkboxes
 
-```tsx
+```tsx live
 <Field label="Chores">
   <Checkboxes>
     <Checkbox>Make the bed</Checkbox>
@@ -83,7 +83,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With File
 
-```tsx
+```tsx live
 <Field label="Upload Resume">
   <File label="Choose a file..." />
 </Field>
@@ -93,7 +93,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Default)
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Input placeholder="Default input" />
@@ -105,7 +105,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Sizes)
 
-```tsx
+```tsx live
 <Field label="Small">
   <Control>
     <Input size="small" placeholder="Small input" />
@@ -135,7 +135,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Rounded)
 
-```tsx
+```tsx live
 <Field label="Rounded">
   <Control>
     <Input isRounded placeholder="Rounded input" />
@@ -147,7 +147,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (States)
 
-```tsx
+```tsx live
 <Field label="Normal">
   <Control>
     <Input placeholder="Normal state" />
@@ -177,7 +177,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Disabled & Read Only)
 
-```tsx
+```tsx live
 <Field label="Disabled">
   <Control>
     <Input disabled placeholder="Disabled input" />
@@ -195,7 +195,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Static, Horizontal)
 
-```tsx
+```tsx live
 <Field horizontal label="Username">
   <Control>
     <Input isStatic value="Static value" />
@@ -212,7 +212,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Input (Icons)
 
-```tsx
+```tsx live
 <Field>
   <Control
     hasIconsLeft
@@ -229,7 +229,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Radio
 
-```tsx
+```tsx live
 <Field label="Pet">
   <Control>
     <Radio name="pet">Cat</Radio>
@@ -244,7 +244,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Grouped Radios
 
-```tsx
+```tsx live
 <Field label="Event Response">
   <Radios>
     <Radio name="event" disabled>
@@ -264,7 +264,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Select
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <Select>
@@ -280,7 +280,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Select (Multi Select)
 
-```tsx
+```tsx live
 <Field label="Multi Select">
   <Control>
     <Select multiple multipleSize={10}>
@@ -303,7 +303,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With Select (Colors, Sizes, Rounded, Loading, Icons)
 
-```tsx
+```tsx live
 <Field label="Primary">
   <Control>
     <Select color="primary">
@@ -347,7 +347,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With TextArea
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <TextArea placeholder="Carpe Diem" />
@@ -359,7 +359,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### With TextArea (Rows, Colors, Sizes, States, Loading, Fixed Size)
 
-```tsx
+```tsx live
 <Field label="Rows">
   <Control>
     <TextArea rows={8} placeholder="8 rows" />
@@ -401,7 +401,7 @@ import Field from '@allxsmith/bestax-bulma';
 
 ### Grouped Controls
 
-```tsx
+```tsx live
 <Field grouped>
   <Control>
     <Input placeholder="First" />

@@ -44,7 +44,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default
 
-```tsx
+```tsx live
 <Field label="Default">
   <Control>
     <TextArea placeholder="Carpe Diem" />
@@ -56,7 +56,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Row Count
 
-```tsx
+```tsx live
 <Field label="Rows">
   <Control>
     <TextArea rows={8} placeholder="8 rows" />
@@ -68,7 +68,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Colors
 
-```tsx
+```tsx live
 <Field label="Primary">
   <Control>
     <TextArea color="primary" placeholder="Primary (color='primary')" />
@@ -110,7 +110,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
-```tsx
+```tsx live
 <Field label="Small">
   <Control>
     <TextArea size="small" placeholder="Small" />
@@ -140,7 +140,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### States
 
-```tsx
+```tsx live
 <Field label="Normal">
   <Control>
     <TextArea placeholder="Normal state" />
@@ -170,7 +170,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Loading States by Size
 
-```tsx
+```tsx live
 <Field label="Loading Small">
   <Control isLoading size="small">
     <TextArea size="small" placeholder="Loading small" />
@@ -200,7 +200,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Disabled & Read Only
 
-```tsx
+```tsx live
 <Field label="Disabled">
   <Control>
     <TextArea disabled placeholder="Disabled textarea" />
@@ -218,7 +218,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Fixed Size
 
-```tsx
+```tsx live
 <Field label="Fixed Size">
   <Control>
     <TextArea hasFixedSize placeholder="Fixed size textarea" rows={3} />

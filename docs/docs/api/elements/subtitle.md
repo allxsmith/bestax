@@ -39,13 +39,13 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### Default SubTitle
 
-```tsx
+```tsx live
 <SubTitle>Default SubTitle</SubTitle>
 ```
 
 ### Different Sizes
 
-```tsx
+```tsx live
 <>
   <SubTitle size="2">SubTitle Size 2</SubTitle>
   <SubTitle size="4">SubTitle Size 4</SubTitle>
@@ -54,13 +54,13 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
-```tsx
+```tsx live
 <SubTitle m="4">SubTitle with Margin</SubTitle>
 ```
 
 ### As Paragraph
 
-```tsx
+```tsx live
 <SubTitle as="p" size="3">
   SubTitle as Paragraph
 </SubTitle>
@@ -68,7 +68,7 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### All Sizes
 
-```tsx
+```tsx live
 <>
   {['1', '2', '3', '4', '5', '6'].map(size => (
     <SubTitle key={size} size={size}>
@@ -80,7 +80,7 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### Title and Subtitle Pairings
 
-```tsx
+```tsx live
 <Block>
   <Title as="p" size="1">
     Title 1

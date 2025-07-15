@@ -42,52 +42,56 @@ import { Message } from '@allxsmith/bestax-bulma';
 
 ### Message with Header (per color)
 
-```tsx
-<Message color="primary" title="Primary">
-  This is a primary message.
-</Message>
-<Message color="link" title="Link">
-  This is a link message.
-</Message>
-<Message color="info" title="Info">
-  This is an info message.
-</Message>
-<Message color="success" title="Success">
-  This is a success message.
-</Message>
-<Message color="warning" title="Warning">
-  This is a warning message.
-</Message>
-<Message color="danger" title="Danger">
-  This is a danger message.
-</Message>
+```tsx live
+<>
+  <Message color="primary" title="Primary">
+    This is a primary message.
+  </Message>
+  <Message color="link" title="Link">
+    This is a link message.
+  </Message>
+  <Message color="info" title="Info">
+    This is an info message.
+  </Message>
+  <Message color="success" title="Success">
+    This is a success message.
+  </Message>
+  <Message color="warning" title="Warning">
+    This is a warning message.
+  </Message>
+  <Message color="danger" title="Danger">
+    This is a danger message.
+  </Message>
+</>
 ```
 
 ---
 
 ### Message Body Only (no header)
 
-```tsx
-<Message color="primary">
-  This is a primary message with no header.
-</Message>
-<Message color="danger">
-  This is a danger message with no header.
-</Message>
+```tsx live
+<>
+  <Message color="primary">This is a primary message with no header.</Message>
+  <Message color="danger">This is a danger message with no header.</Message>
+</>
 ```
 
 ---
 
 ### Dismissible Message
 
-```tsx
-const [open, setOpen] = useState(true);
+```tsx live
+function example() {
+  const [open, setOpen] = useState(true);
 
-{
-  open && (
-    <Message color="info" title="Dismiss Me" onClose={() => setOpen(false)}>
-      You can close this message by clicking the X button.
-    </Message>
+  return (
+    <>
+      {open && (
+        <Message color="info" title="Dismiss Me" onClose={() => setOpen(false)}>
+          You can close this message by clicking the X button.
+        </Message>
+      )}
+    </>
   );
 }
 ```
@@ -96,19 +100,13 @@ const [open, setOpen] = useState(true);
 
 ### Sizes
 
-```tsx
-<Message title="Default Size">
-  This is the default size message.
-</Message>
-<Message title="Small">
-  This is a small message.
-</Message>
-<Message title="Medium">
-  This is a medium message.
-</Message>
-<Message title="Large">
-  This is a large message.
-</Message>
+```tsx live
+<>
+  <Message title="Default Size">This is the default size message.</Message>
+  <Message title="Small">This is a small message.</Message>
+  <Message title="Medium">This is a medium message.</Message>
+  <Message title="Large">This is a large message.</Message>
+</>
 ```
 
 ---
