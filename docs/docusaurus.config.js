@@ -15,8 +15,8 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Bestax',
-  tagline: 'Application Framework',
+  title: 'Bestax-Bulma',
+  tagline: 'A Bulma React Component Libary',
   favicon: 'img/logo.svg',
 
   // Set the production url of your site here
@@ -81,6 +81,13 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      announcementBar: {
+        id: 'support_v1',
+        content: 'Full support for Bulma v1 !!!',
+        backgroundColor: '#fafbfc',
+        textColor: '#091E42',
+        isCloseable: true,
+      },
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
