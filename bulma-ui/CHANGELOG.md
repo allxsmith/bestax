@@ -1,3 +1,10 @@
+## [1.0.13](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.12...@allxsmith/bestax-bulma@1.0.13) (2025-07-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** Fix release.config.js to include package-lock.json ([390da59](https://github.com/allxsmith/bestax/commit/390da5938deeb9a790d063c79c2ca693f9b7d0b9))
+
 ## [1.0.12](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.11...@allxsmith/bestax-bulma@1.0.12) (2025-07-15)
 
 
