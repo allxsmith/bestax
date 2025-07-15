@@ -1,3 +1,10 @@
+## [1.0.11](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.10...@allxsmith/bestax-bulma@1.0.11) (2025-07-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add missing exports ([0d16633](https://github.com/allxsmith/bestax/commit/0d166338a8843df55af265d30a079858e0bf7da1))
+
 ## [1.0.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.9...@allxsmith/bestax-bulma@1.0.10) (2025-07-13)
 
 
