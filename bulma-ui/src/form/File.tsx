@@ -59,7 +59,7 @@ export interface FileProps
  * @returns {JSX.Element} The rendered file upload field.
  * @see {@link https://bulma.io/documentation/form/file/ | Bulma File documentation}
  */
-const File = forwardRef<HTMLInputElement, FileProps>(
+export const File = forwardRef<HTMLInputElement, FileProps>(
   (
     {
       color,

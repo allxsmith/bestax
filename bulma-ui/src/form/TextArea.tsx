@@ -55,7 +55,7 @@ export interface TextAreaProps
  * @returns {JSX.Element} The rendered textarea element.
  * @see {@link https://bulma.io/documentation/form/textarea/ | Bulma Textarea documentation}
  */
-const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
     {
       color,

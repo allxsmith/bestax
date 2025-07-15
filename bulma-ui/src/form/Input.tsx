@@ -49,7 +49,7 @@ export interface InputProps
  * @returns {JSX.Element} The rendered input element.
  * @see {@link https://bulma.io/documentation/form/input/ | Bulma Input documentation}
  */
-const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       color,

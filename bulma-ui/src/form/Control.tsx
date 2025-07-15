@@ -70,7 +70,7 @@ const allowedColors = [...validColors, 'inherit', 'current'] as const;
  * @returns {JSX.Element} The rendered control container.
  * @see {@link https://bulma.io/documentation/form/general/#control | Bulma Control documentation}
  */
-const Control = React.forwardRef<
+export const Control = React.forwardRef<
   HTMLDivElement | HTMLParagraphElement,
   ControlProps
 >(

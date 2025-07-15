@@ -49,7 +49,7 @@ export interface SelectProps
  * @returns {JSX.Element} The rendered select element.
  * @see {@link https://bulma.io/documentation/form/select/ | Bulma Select documentation}
  */
-const Select = forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
       color,

@@ -35,7 +35,7 @@ export interface LevelProps
  * @returns {JSX.Element} The rendered level.
  * @see {@link https://bulma.io/documentation/layout/level/ | Bulma Level documentation}
  */
-const Level: React.FC<LevelProps> & {
+export const Level: React.FC<LevelProps> & {
   Left: typeof LevelLeft;
   Right: typeof LevelRight;
   Item: typeof LevelItem;
@@ -75,7 +75,7 @@ export interface LevelLeftProps
 /**
  * Bulma Level left section.
  */
-const LevelLeft: React.FC<LevelLeftProps> = ({
+export const LevelLeft: React.FC<LevelLeftProps> = ({
   className,
   children,
   ...props
@@ -113,7 +113,7 @@ export interface LevelRightProps
 /**
  * Bulma Level right section.
  */
-const LevelRight: React.FC<LevelRightProps> = ({
+export const LevelRight: React.FC<LevelRightProps> = ({
   className,
   children,
   ...props
@@ -163,7 +163,7 @@ export interface LevelItemProps
 /**
  * Bulma Level item section.
  */
-const LevelItem: React.FC<LevelItemProps> = ({
+export const LevelItem: React.FC<LevelItemProps> = ({
   as = 'div',
   hasTextCentered,
   className,

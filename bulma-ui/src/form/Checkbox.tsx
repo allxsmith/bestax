@@ -26,7 +26,7 @@ export interface CheckboxProps
  * @param {CheckboxProps} props - Props for the Checkbox component.
  * @returns {JSX.Element} The rendered checkbox element.
  */
-const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ disabled, className, children, ...props }, ref) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       ...props,

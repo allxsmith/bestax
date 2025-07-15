@@ -86,7 +86,7 @@ export interface FieldBodyProps
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
  */
-const FieldLabel: React.FC<FieldLabelProps> = ({
+export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
   textColor,
   bgColor,
@@ -121,7 +121,7 @@ const FieldLabel: React.FC<FieldLabelProps> = ({
  * @param {FieldBodyProps} props - Props for the FieldBody component.
  * @returns {JSX.Element} The rendered field body.
  */
-const FieldBody: React.FC<FieldBodyProps> = ({
+export const FieldBody: React.FC<FieldBodyProps> = ({
   textColor,
   bgColor,
   className,
@@ -156,7 +156,7 @@ const FieldBody: React.FC<FieldBodyProps> = ({
  * @returns {JSX.Element} The rendered field container.
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
  */
-const Field: React.FC<FieldProps> & {
+export const Field: React.FC<FieldProps> & {
   Label: typeof FieldLabel;
   Body: typeof FieldBody;
 } = ({

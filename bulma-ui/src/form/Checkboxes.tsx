@@ -22,7 +22,7 @@ export interface CheckboxesProps extends Omit<BulmaClassesProps, 'color'> {
  * @returns {JSX.Element} The rendered checkboxes group.
  * @see {@link https://bulma.io/documentation/form/checkbox/#grouped-checkboxes | Bulma Checkboxes documentation}
  */
-const Checkboxes: React.FC<CheckboxesProps> = ({
+export const Checkboxes: React.FC<CheckboxesProps> = ({
   children,
   className,
   ...props

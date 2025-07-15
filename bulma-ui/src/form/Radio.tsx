@@ -26,7 +26,7 @@ export interface RadioProps
  * @param {RadioProps} props - Props for the Radio component.
  * @returns {JSX.Element} The rendered radio element.
  */
-const Radio = forwardRef<HTMLInputElement, RadioProps>(
+export const Radio = forwardRef<HTMLInputElement, RadioProps>(
   ({ disabled, className, children, ...props }, ref) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       ...props,

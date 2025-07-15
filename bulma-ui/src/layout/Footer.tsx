@@ -36,7 +36,7 @@ export interface FooterProps
  * </Footer>
  * @see {@link https://bulma.io/documentation/layout/footer/ | Bulma Footer documentation}
  */
-const Footer: React.FC<FooterProps> = ({
+export const Footer: React.FC<FooterProps> = ({
   as = 'footer',
   className,
   children,
