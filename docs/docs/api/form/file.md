@@ -116,10 +116,28 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ### Colors
 
 ```tsx live
-<File color="primary" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File color="info" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File color="warning" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File color="danger" label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<>
+  <File
+    color="primary"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    color="info"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    color="warning"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    color="danger"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+</>
 ```
 
 ---
@@ -127,10 +145,25 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ### Sizes
 
 ```tsx live
-<File size="small" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
-<File size="medium" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File size="large" label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<>
+  <File
+    size="small"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File label="Choose a file..." iconLeft={<Icon name="upload" />} />{' '}
+  {/* Normal */}
+  <File
+    size="medium"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    size="large"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+</>
 ```
 
 ---
@@ -138,10 +171,35 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ### Sizes with Name
 
 ```tsx live
-<File size="small" hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File size="medium" hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File size="large" hasName fileName="sample.txt" label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<>
+  <File
+    size="small"
+    hasName
+    fileName="sample.txt"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    hasName
+    fileName="sample.txt"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    size="medium"
+    hasName
+    fileName="sample.txt"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    size="large"
+    hasName
+    fileName="sample.txt"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+</>
 ```
 
 ---
@@ -149,10 +207,28 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ### Sizes with Boxed
 
 ```tsx live
-<File size="small" isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
-<File size="medium" isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File size="large" isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<>
+  <File
+    size="small"
+    isBoxed
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />{' '}
+  {/* Normal */}
+  <File
+    size="medium"
+    isBoxed
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    size="large"
+    isBoxed
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+</>
 ```
 
 ---
@@ -160,10 +236,40 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 ### Sizes with Name and Boxed
 
 ```tsx live
-<File size="small" isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} /> {/* Normal */}
-<File size="medium" isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} />
-<File size="large" isBoxed hasName fileName="summary.docx" label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<>
+  <File
+    size="small"
+    isBoxed
+    hasName
+    fileName="summary.docx"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    isBoxed
+    hasName
+    fileName="summary.docx"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />{' '}
+  {/* Normal */}
+  <File
+    size="medium"
+    isBoxed
+    hasName
+    fileName="summary.docx"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+  <File
+    size="large"
+    isBoxed
+    hasName
+    fileName="summary.docx"
+    label="Choose a file..."
+    iconLeft={<Icon name="upload" />}
+  />
+</>
 ```
 
 ---

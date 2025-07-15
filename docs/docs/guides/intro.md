@@ -135,14 +135,15 @@ Little helpers used throughout this package to aid with translating properties t
 
 ```tsx live
 import React from 'react';
-import {
-  Box,
-  Button,
-  Columns,
-  Column,
-  Field,
-  Input,
-} from '@allxsmith/bestax-bulma';
+// import {
+//   Box,
+//   Button,
+//   Columns,
+//   Column,
+//   Field,
+//   Input,
+// } from '@allxsmith/bestax-bulma';
+// Line above commented out for live example
 import 'bulma/css/bulma.min.css';
 
 function Demo() {

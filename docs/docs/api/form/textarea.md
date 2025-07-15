@@ -69,41 +69,43 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ### Colors
 
 ```tsx live
-<Field label="Primary">
-  <Control>
-    <TextArea color="primary" placeholder="Primary (color='primary')" />
-  </Control>
-</Field>
+<>
+  <Field label="Primary">
+    <Control>
+      <TextArea color="primary" placeholder="Primary (color='primary')" />
+    </Control>
+  </Field>
 
-<Field label="Link">
-  <Control>
-    <TextArea color="link" placeholder="Link (color='link')" />
-  </Control>
-</Field>
+  <Field label="Link">
+    <Control>
+      <TextArea color="link" placeholder="Link (color='link')" />
+    </Control>
+  </Field>
 
-<Field label="Info">
-  <Control>
-    <TextArea color="info" placeholder="Info (color='info')" />
-  </Control>
-</Field>
+  <Field label="Info">
+    <Control>
+      <TextArea color="info" placeholder="Info (color='info')" />
+    </Control>
+  </Field>
 
-<Field label="Success">
-  <Control>
-    <TextArea color="success" placeholder="Success (color='success')" />
-  </Control>
-</Field>
+  <Field label="Success">
+    <Control>
+      <TextArea color="success" placeholder="Success (color='success')" />
+    </Control>
+  </Field>
 
-<Field label="Warning">
-  <Control>
-    <TextArea color="warning" placeholder="Warning (color='warning')" />
-  </Control>
-</Field>
+  <Field label="Warning">
+    <Control>
+      <TextArea color="warning" placeholder="Warning (color='warning')" />
+    </Control>
+  </Field>
 
-<Field label="Danger">
-  <Control>
-    <TextArea color="danger" placeholder="Danger (color='danger')" />
-  </Control>
-</Field>
+  <Field label="Danger">
+    <Control>
+      <TextArea color="danger" placeholder="Danger (color='danger')" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -111,29 +113,31 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ### Sizes
 
 ```tsx live
-<Field label="Small">
-  <Control>
-    <TextArea size="small" placeholder="Small" />
-  </Control>
-</Field>
+<>
+  <Field label="Small">
+    <Control>
+      <TextArea size="small" placeholder="Small" />
+    </Control>
+  </Field>
 
-<Field label="Normal">
-  <Control>
-    <TextArea placeholder="Normal" />
-  </Control>
-</Field>
+  <Field label="Normal">
+    <Control>
+      <TextArea placeholder="Normal" />
+    </Control>
+  </Field>
 
-<Field label="Medium">
-  <Control>
-    <TextArea size="medium" placeholder="Medium" />
-  </Control>
-</Field>
+  <Field label="Medium">
+    <Control>
+      <TextArea size="medium" placeholder="Medium" />
+    </Control>
+  </Field>
 
-<Field label="Large">
-  <Control>
-    <TextArea size="large" placeholder="Large" />
-  </Control>
-</Field>
+  <Field label="Large">
+    <Control>
+      <TextArea size="large" placeholder="Large" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -141,29 +145,31 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ### States
 
 ```tsx live
-<Field label="Normal">
-  <Control>
-    <TextArea placeholder="Normal state" />
-  </Control>
-</Field>
+<>
+  <Field label="Normal">
+    <Control>
+      <TextArea placeholder="Normal state" />
+    </Control>
+  </Field>
 
-<Field label="Hover">
-  <Control>
-    <TextArea isHovered placeholder="Hovered state" />
-  </Control>
-</Field>
+  <Field label="Hover">
+    <Control>
+      <TextArea isHovered placeholder="Hovered state" />
+    </Control>
+  </Field>
 
-<Field label="Focus">
-  <Control>
-    <TextArea isFocused placeholder="Focused state" />
-  </Control>
-</Field>
+  <Field label="Focus">
+    <Control>
+      <TextArea isFocused placeholder="Focused state" />
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <TextArea placeholder="Loading state" />
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <TextArea placeholder="Loading state" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -171,29 +177,31 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ### Loading States by Size
 
 ```tsx live
-<Field label="Loading Small">
-  <Control isLoading size="small">
-    <TextArea size="small" placeholder="Loading small" />
-  </Control>
-</Field>
+<>
+  <Field label="Loading Small">
+    <Control isLoading size="small">
+      <TextArea size="small" placeholder="Loading small" />
+    </Control>
+  </Field>
 
-<Field label="Loading Normal">
-  <Control isLoading>
-    <TextArea placeholder="Loading normal" />
-  </Control>
-</Field>
+  <Field label="Loading Normal">
+    <Control isLoading>
+      <TextArea placeholder="Loading normal" />
+    </Control>
+  </Field>
 
-<Field label="Loading Medium">
-  <Control isLoading size="medium">
-    <TextArea size="medium" placeholder="Loading medium" />
-  </Control>
-</Field>
+  <Field label="Loading Medium">
+    <Control isLoading size="medium">
+      <TextArea size="medium" placeholder="Loading medium" />
+    </Control>
+  </Field>
 
-<Field label="Loading Large">
-  <Control isLoading size="large">
-    <TextArea size="large" placeholder="Loading large" />
-  </Control>
-</Field>
+  <Field label="Loading Large">
+    <Control isLoading size="large">
+      <TextArea size="large" placeholder="Loading large" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -201,17 +209,19 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ### Disabled & Read Only
 
 ```tsx live
-<Field label="Disabled">
-  <Control>
-    <TextArea disabled placeholder="Disabled textarea" />
-  </Control>
-</Field>
+<>
+  <Field label="Disabled">
+    <Control>
+      <TextArea disabled placeholder="Disabled textarea" />
+    </Control>
+  </Field>
 
-<Field label="Read Only">
-  <Control>
-    <TextArea readOnly value="Read only value" />
-  </Control>
-</Field>
+  <Field label="Read Only">
+    <Control>
+      <TextArea readOnly value="Read only value" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---

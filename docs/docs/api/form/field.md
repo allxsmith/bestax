@@ -106,29 +106,31 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Input (Sizes)
 
 ```tsx live
-<Field label="Small">
-  <Control>
-    <Input size="small" placeholder="Small input" />
-  </Control>
-</Field>
+<>
+  <Field label="Small">
+    <Control>
+      <Input size="small" placeholder="Small input" />
+    </Control>
+  </Field>
 
-<Field label="Normal">
-  <Control>
-    <Input placeholder="Normal input" />
-  </Control>
-</Field>
+  <Field label="Normal">
+    <Control>
+      <Input placeholder="Normal input" />
+    </Control>
+  </Field>
 
-<Field label="Medium">
-  <Control>
-    <Input size="medium" placeholder="Medium input" />
-  </Control>
-</Field>
+  <Field label="Medium">
+    <Control>
+      <Input size="medium" placeholder="Medium input" />
+    </Control>
+  </Field>
 
-<Field label="Large">
-  <Control>
-    <Input size="large" placeholder="Large input" />
-  </Control>
-</Field>
+  <Field label="Large">
+    <Control>
+      <Input size="large" placeholder="Large input" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -148,29 +150,31 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Input (States)
 
 ```tsx live
-<Field label="Normal">
-  <Control>
-    <Input placeholder="Normal state" />
-  </Control>
-</Field>
+<>
+  <Field label="Normal">
+    <Control>
+      <Input placeholder="Normal state" />
+    </Control>
+  </Field>
 
-<Field label="Hover">
-  <Control>
-    <Input isHovered placeholder="Hovered state" />
-  </Control>
-</Field>
+  <Field label="Hover">
+    <Control>
+      <Input isHovered placeholder="Hovered state" />
+    </Control>
+  </Field>
 
-<Field label="Focus">
-  <Control>
-    <Input isFocused placeholder="Focused state" />
-  </Control>
-</Field>
+  <Field label="Focus">
+    <Control>
+      <Input isFocused placeholder="Focused state" />
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <Input placeholder="Loading state" />
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <Input placeholder="Loading state" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -178,17 +182,19 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Input (Disabled & Read Only)
 
 ```tsx live
-<Field label="Disabled">
-  <Control>
-    <Input disabled placeholder="Disabled input" />
-  </Control>
-</Field>
+<>
+  <Field label="Disabled">
+    <Control>
+      <Input disabled placeholder="Disabled input" />
+    </Control>
+  </Field>
 
-<Field label="Read Only">
-  <Control>
-    <Input readOnly value="Read only value" />
-  </Control>
-</Field>
+  <Field label="Read Only">
+    <Control>
+      <Input readOnly value="Read only value" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -196,16 +202,18 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Input (Static, Horizontal)
 
 ```tsx live
-<Field horizontal label="Username">
-  <Control>
-    <Input isStatic value="Static value" />
-  </Control>
-</Field>
-<Field horizontal label="Password">
-  <Control>
-    <Input placeholder="Editable value" />
-  </Control>
-</Field>
+<>
+  <Field horizontal label="Username">
+    <Control>
+      <Input isStatic value="Static value" />
+    </Control>
+  </Field>
+  <Field horizontal label="Password">
+    <Control>
+      <Input placeholder="Editable value" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -281,22 +289,37 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Select (Multi Select)
 
 ```tsx live
-<Field label="Multi Select">
-  <Control>
-    <Select multiple multipleSize={10}>
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-      <option value="becky">Becky Thatcher</option>
-      <option value="jim">Jim</option>
-      <option value="pap">Pap Finn</option>
-      <option value="duke">The Duke</option>
-      <option value="king">The King</option>
-      <option value="widow">Widow Douglas</option>
-      <option value="judge">Judge Thatcher</option>
-      <option value="sid">Sid Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Multi Select">
+    <Control>
+      <Select multiple multipleSize={10}>
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+        <option value="becky">Becky Thatcher</option>
+        <option value="jim">Jim</option>
+        <option value="pap">Pap Finn</option>
+        <option value="duke">The Duke</option>
+        <option value="king">The King</option>
+        <option value="widow">Widow Douglas</option>
+        <option value="judge">Judge Thatcher</option>
+        <option value="sid">Sid Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+</>
 ```
 
 ---
@@ -304,43 +327,45 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With Select (Colors, Sizes, Rounded, Loading, Icons)
 
 ```tsx live
-<Field label="Primary">
-  <Control>
-    <Select color="primary">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Primary">
+    <Control>
+      <Select color="primary">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Rounded">
-  <Control>
-    <Select isRounded>
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Rounded">
+    <Control>
+      <Select isRounded>
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="With Icons">
-  <Control hasIconsLeft iconLeft={{ name: 'person' }}>
-    <Select>
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="With Icons">
+    <Control hasIconsLeft iconLeft={{ name: 'person' }}>
+      <Select>
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <Select isLoading>
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <Select isLoading>
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -360,41 +385,43 @@ import { Field } from '@allxsmith/bestax-bulma';
 ### With TextArea (Rows, Colors, Sizes, States, Loading, Fixed Size)
 
 ```tsx live
-<Field label="Rows">
-  <Control>
-    <TextArea rows={8} placeholder="8 rows" />
-  </Control>
-</Field>
+<>
+  <Field label="Rows">
+    <Control>
+      <TextArea rows={8} placeholder="8 rows" />
+    </Control>
+  </Field>
 
-<Field label="Primary">
-  <Control>
-    <TextArea color="primary" placeholder="Primary (color='primary')" />
-  </Control>
-</Field>
+  <Field label="Primary">
+    <Control>
+      <TextArea color="primary" placeholder="Primary (color='primary')" />
+    </Control>
+  </Field>
 
-<Field label="Small">
-  <Control>
-    <TextArea size="small" placeholder="Small" />
-  </Control>
-</Field>
+  <Field label="Small">
+    <Control>
+      <TextArea size="small" placeholder="Small" />
+    </Control>
+  </Field>
 
-<Field label="Hover">
-  <Control>
-    <TextArea isHovered placeholder="Hovered state" />
-  </Control>
-</Field>
+  <Field label="Hover">
+    <Control>
+      <TextArea isHovered placeholder="Hovered state" />
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <TextArea placeholder="Loading state" />
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <TextArea placeholder="Loading state" />
+    </Control>
+  </Field>
 
-<Field label="Fixed Size">
-  <Control>
-    <TextArea hasFixedSize placeholder="Fixed size textarea" rows={3} />
-  </Control>
-</Field>
+  <Field label="Fixed Size">
+    <Control>
+      <TextArea hasFixedSize placeholder="Fixed size textarea" rows={3} />
+    </Control>
+  </Field>
+</>
 ```
 
 ---

@@ -22,26 +22,29 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop            | Type                                                                                                                                                                                                                                                                                     | Description                                      |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | -------- | ----------------------------- | --------- | --------- | --------------------- |
-| `hasIconsLeft`  | `boolean`                                                                                                                                                                                                                                                                                | Adds left icon container.                        |
-| `hasIconsRight` | `boolean`                                                                                                                                                                                                                                                                                | Adds right icon container.                       |
-| `isLoading`     | `boolean`                                                                                                                                                                                                                                                                                | Shows loading indicator.                         |
-| `isExpanded`    | `boolean`                                                                                                                                                                                                                                                                                | Makes the control expand to fill space.          |
-| `size`          | `'small' \| 'medium' \| 'large'`                                                                                                                                                                                                                                                         | Sets control size.                               |
-| `textColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color.                                      |
-| `color`         | `'primary'                                                                                                                                                                                                                                                                               | 'link'                                           | 'info'   | 'success'                     | 'warning' | 'danger'` | Bulma color modifier. |
-| `bgColor`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color.                                |
-| `iconLeft`      | `IconProps`                                                                                                                                                                                                                                                                              | Props for left icon.                             |
-| `iconRight`     | `IconProps`                                                                                                                                                                                                                                                                              | Props for right icon.                            |
-| `iconLeftName`  | `string`                                                                                                                                                                                                                                                                                 | Shortcut for left icon name.                     |
-| `iconLeftSize`  | `'small'                                                                                                                                                                                                                                                                                 | 'medium'                                         | 'large'` | Shortcut for left icon size.  |
-| `iconRightName` | `string`                                                                                                                                                                                                                                                                                 | Shortcut for right icon name.                    |
-| `iconRightSize` | `'small'                                                                                                                                                                                                                                                                                 | 'medium'                                         | 'large'` | Shortcut for right icon size. |
-| `className`     | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes.                          |
-| `children`      | `React.ReactNode`                                                                                                                                                                                                                                                                        | Content inside the control.                      |
-| `as`            | `'div' \| 'p'`                                                                                                                                                                                                                                                                           | Element type for the container (default: `div`). |
-| ...             | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop            | Type                                                                  | Description                                                                         |
+| --------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `hasIconsLeft`  | `boolean`                                                             | Adds left icon container.                                                           |
+| `hasIconsRight` | `boolean`                                                             | Adds right icon container.                                                          |
+| `isLoading`     | `boolean`                                                             | Shows loading indicator.                                                            |
+| `isExpanded`    | `boolean`                                                             | Makes the control expand to fill available space.                                   |
+| `size`          | `'small' \| 'medium' \| 'large'`                                      | Sets the control size.                                                              |
+| `textColor`     | [Bulma color]\*, `'inherit'`, `'current'`                             | Sets text color.                                                                    |
+| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Bulma color for the control.                                                        |
+| `bgColor`       | [Bulma color]\*, `'inherit'`, `'current'`                             | Background color.                                                                   |
+| `iconLeft`      | `IconProps`                                                           | Icon props for left icon.                                                           |
+| `iconRight`     | `IconProps`                                                           | Icon props for right icon.                                                          |
+| `iconLeftName`  | `string`                                                              | Shortcut for left icon name.                                                        |
+| `iconLeftSize`  | `'small' \| 'medium' \| 'large'`                                      | Shortcut for left icon size.                                                        |
+| `iconRightName` | `string`                                                              | Shortcut for right icon name.                                                       |
+| `iconRightSize` | `'small' \| 'medium' \| 'large'`                                      | Shortcut for right icon size.                                                       |
+| `className`     | `string`                                                              | Additional CSS classes to apply.                                                    |
+| `children`      | `React.ReactNode`                                                     | Content inside the control.                                                         |
+| `as`            | `'div' \| 'p'`                                                        | Element type for the control (`div` by default).                                    |
+| `ref`           | `React.Ref<HTMLDivElement \| HTMLParagraphElement>`                   | Ref for the control element.                                                        |
+| ...             | All standard HTML and Bulma helper props                              | See [Helper Props](../helpers/usebulmaclasses.md) for available Bulma helper props. |
+
+\* [Bulma color] options include: `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'white-bis'`, `'white-ter'`.
 
 ---
 
@@ -161,23 +164,25 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ### Loading State with Size Variations
 
 ```tsx live
-<Field label="Loading Small">
-  <Control isLoading size="small">
-    <Input size="small" placeholder="Loading small" />
-  </Control>
-</Field>
+<>
+  <Field label="Loading Small">
+    <Control isLoading size="small">
+      <Input size="small" placeholder="Loading small" />
+    </Control>
+  </Field>
 
-<Field label="Loading Medium">
-  <Control isLoading size="medium">
-    <Input size="medium" placeholder="Loading medium" />
-  </Control>
-</Field>
+  <Field label="Loading Medium">
+    <Control isLoading size="medium">
+      <Input size="medium" placeholder="Loading medium" />
+    </Control>
+  </Field>
 
-<Field label="Loading Large">
-  <Control isLoading size="large">
-    <Input size="large" placeholder="Loading large" />
-  </Control>
-</Field>
+  <Field label="Loading Large">
+    <Control isLoading size="large">
+      <Input size="large" placeholder="Loading large" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -209,19 +214,21 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ### With Radios or Checkboxes
 
 ```tsx live
-<Field label="Options">
-  <Control>
-    <Radio name="option">Option 1</Radio>
-    <Radio name="option">Option 2</Radio>
-  </Control>
-</Field>
+<>
+  <Field label="Options">
+    <Control>
+      <Radio name="option">Option 1</Radio>
+      <Radio name="option">Option 2</Radio>
+    </Control>
+  </Field>
 
-<Field label="Preferences">
-  <Control>
-    <Checkbox>Enable notifications</Checkbox>
-    <Checkbox>Subscribe to newsletter</Checkbox>
-  </Control>
-</Field>
+  <Field label="Preferences">
+    <Control>
+      <Checkbox>Enable notifications</Checkbox>
+      <Checkbox>Subscribe to newsletter</Checkbox>
+    </Control>
+  </Field>
+</>
 ```
 
 ---

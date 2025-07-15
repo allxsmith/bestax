@@ -58,22 +58,37 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ### Multi Select
 
 ```tsx live
-<Field label="Multi Select">
-  <Control>
-    <Select multiple multipleSize={10}>
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-      <option value="becky">Becky Thatcher</option>
-      <option value="jim">Jim</option>
-      <option value="pap">Pap Finn</option>
-      <option value="duke">The Duke</option>
-      <option value="king">The King</option>
-      <option value="widow">Widow Douglas</option>
-      <option value="judge">Judge Thatcher</option>
-      <option value="sid">Sid Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Multi Select">
+    <Control>
+      <Select multiple multipleSize={10}>
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+        <option value="becky">Becky Thatcher</option>
+        <option value="jim">Jim</option>
+        <option value="pap">Pap Finn</option>
+        <option value="duke">The Duke</option>
+        <option value="king">The King</option>
+        <option value="widow">Widow Douglas</option>
+        <option value="judge">Judge Thatcher</option>
+        <option value="sid">Sid Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+</>
 ```
 
 ---
@@ -81,59 +96,61 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ### Colored Select
 
 ```tsx live
-<Field label="Primary">
-  <Control>
-    <Select color="primary">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Primary">
+    <Control>
+      <Select color="primary">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Link">
-  <Control>
-    <Select color="link">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Link">
+    <Control>
+      <Select color="link">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Info">
-  <Control>
-    <Select color="info">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Info">
+    <Control>
+      <Select color="info">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Success">
-  <Control>
-    <Select color="success">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Success">
+    <Control>
+      <Select color="success">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Warning">
-  <Control>
-    <Select color="warning">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Warning">
+    <Control>
+      <Select color="warning">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Danger">
-  <Control>
-    <Select color="danger">
-      <option value="1">Option 1</option>
-      <option value="2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Danger">
+    <Control>
+      <Select color="danger">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -157,45 +174,47 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ### Sizes
 
 ```tsx live
-<Field label="Small">
-  <Control>
-    <Select size="small">
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Small">
+    <Control>
+      <Select size="small">
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Normal">
-  <Control>
-    <Select>
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Normal">
+    <Control>
+      <Select>
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Medium">
-  <Control>
-    <Select size="medium">
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Medium">
+    <Control>
+      <Select size="medium">
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Large">
-  <Control>
-    <Select size="large">
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Large">
+    <Control>
+      <Select size="large">
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -203,45 +222,47 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ### States
 
 ```tsx live
-<Field label="Normal">
-  <Control>
-    <Select>
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="Normal">
+    <Control>
+      <Select>
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Hover">
-  <Control>
-    <Select className="is-hovered">
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Hover">
+    <Control>
+      <Select className="is-hovered">
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Focus">
-  <Control>
-    <Select className="is-focused">
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Focus">
+    <Control>
+      <Select className="is-focused">
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <Select isLoading>
-      <option value="">Please select</option>
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <Select isLoading>
+        <option value="">Please select</option>
+        <option value="option1">Option 1</option>
+        <option value="option2">Option 2</option>
+      </Select>
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -267,53 +288,55 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ### With Icons and Size Variations
 
 ```tsx live
-<Field label="With Icons Small">
-  <Control
-    hasIconsLeft
-    iconLeft={{ name: 'person', size: 'small' }}
-    size="small"
-  >
-    <Select size="small">
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+<>
+  <Field label="With Icons Small">
+    <Control
+      hasIconsLeft
+      iconLeft={{ name: 'person', size: 'small' }}
+      size="small"
+    >
+      <Select size="small">
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="With Icons Normal">
-  <Control hasIconsLeft iconLeft={{ name: 'person' }}>
-    <Select>
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="With Icons Normal">
+    <Control hasIconsLeft iconLeft={{ name: 'person' }}>
+      <Select>
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="With Icons Medium">
-  <Control
-    hasIconsLeft
-    iconLeft={{ name: 'person', size: 'medium' }}
-    size="medium"
-  >
-    <Select size="medium">
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="With Icons Medium">
+    <Control
+      hasIconsLeft
+      iconLeft={{ name: 'person', size: 'medium' }}
+      size="medium"
+    >
+      <Select size="medium">
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
 
-<Field label="With Icons Large">
-  <Control
-    hasIconsLeft
-    iconLeft={{ name: 'person', size: 'large' }}
-    size="large"
-  >
-    <Select size="large">
-      <option value="huck">Huckleberry Finn</option>
-      <option value="tom">Tom Sawyer</option>
-    </Select>
-  </Control>
-</Field>
+  <Field label="With Icons Large">
+    <Control
+      hasIconsLeft
+      iconLeft={{ name: 'person', size: 'large' }}
+      size="large"
+    >
+      <Select size="large">
+        <option value="huck">Huckleberry Finn</option>
+        <option value="tom">Tom Sawyer</option>
+      </Select>
+    </Control>
+  </Field>
+</>
 ```
 
 ---

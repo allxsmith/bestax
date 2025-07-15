@@ -54,41 +54,43 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### Color Inputs
 
 ```tsx live
-<Field label="Primary">
-  <Control>
-    <Input color="primary" placeholder="Primary input" />
-  </Control>
-</Field>
+<>
+  <Field label="Primary">
+    <Control>
+      <Input color="primary" placeholder="Primary input" />
+    </Control>
+  </Field>
 
-<Field label="Link">
-  <Control>
-    <Input color="link" placeholder="Link input" />
-  </Control>
-</Field>
+  <Field label="Link">
+    <Control>
+      <Input color="link" placeholder="Link input" />
+    </Control>
+  </Field>
 
-<Field label="Info">
-  <Control>
-    <Input color="info" placeholder="Info input" />
-  </Control>
-</Field>
+  <Field label="Info">
+    <Control>
+      <Input color="info" placeholder="Info input" />
+    </Control>
+  </Field>
 
-<Field label="Success">
-  <Control>
-    <Input color="success" placeholder="Success input" />
-  </Control>
-</Field>
+  <Field label="Success">
+    <Control>
+      <Input color="success" placeholder="Success input" />
+    </Control>
+  </Field>
 
-<Field label="Warning">
-  <Control>
-    <Input color="warning" placeholder="Warning input" />
-  </Control>
-</Field>
+  <Field label="Warning">
+    <Control>
+      <Input color="warning" placeholder="Warning input" />
+    </Control>
+  </Field>
 
-<Field label="Danger">
-  <Control>
-    <Input color="danger" placeholder="Danger input" />
-  </Control>
-</Field>
+  <Field label="Danger">
+    <Control>
+      <Input color="danger" placeholder="Danger input" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -96,29 +98,31 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### Sizes
 
 ```tsx live
-<Field label="Small">
-  <Control>
-    <Input size="small" placeholder="Small input" />
-  </Control>
-</Field>
+<>
+  <Field label="Small">
+    <Control>
+      <Input size="small" placeholder="Small input" />
+    </Control>
+  </Field>
 
-<Field label="Normal">
-  <Control>
-    <Input placeholder="Normal input" />
-  </Control>
-</Field>
+  <Field label="Normal">
+    <Control>
+      <Input placeholder="Normal input" />
+    </Control>
+  </Field>
 
-<Field label="Medium">
-  <Control>
-    <Input size="medium" placeholder="Medium input" />
-  </Control>
-</Field>
+  <Field label="Medium">
+    <Control>
+      <Input size="medium" placeholder="Medium input" />
+    </Control>
+  </Field>
 
-<Field label="Large">
-  <Control>
-    <Input size="large" placeholder="Large input" />
-  </Control>
-</Field>
+  <Field label="Large">
+    <Control>
+      <Input size="large" placeholder="Large input" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -138,29 +142,31 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### States
 
 ```tsx live
-<Field label="Normal">
-  <Control>
-    <Input placeholder="Normal state" />
-  </Control>
-</Field>
+<>
+  <Field label="Normal">
+    <Control>
+      <Input placeholder="Normal state" />
+    </Control>
+  </Field>
 
-<Field label="Hover">
-  <Control>
-    <Input isHovered placeholder="Hovered state" />
-  </Control>
-</Field>
+  <Field label="Hover">
+    <Control>
+      <Input isHovered placeholder="Hovered state" />
+    </Control>
+  </Field>
 
-<Field label="Focus">
-  <Control>
-    <Input isFocused placeholder="Focused state" />
-  </Control>
-</Field>
+  <Field label="Focus">
+    <Control>
+      <Input isFocused placeholder="Focused state" />
+    </Control>
+  </Field>
 
-<Field label="Loading">
-  <Control isLoading>
-    <Input placeholder="Loading state" />
-  </Control>
-</Field>
+  <Field label="Loading">
+    <Control isLoading>
+      <Input placeholder="Loading state" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -168,29 +174,31 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### Loading States by Size
 
 ```tsx live
-<Field label="Loading Small">
-  <Control isLoading size="small">
-    <Input size="small" placeholder="Loading small" />
-  </Control>
-</Field>
+<>
+  <Field label="Loading Small">
+    <Control isLoading size="small">
+      <Input size="small" placeholder="Loading small" />
+    </Control>
+  </Field>
 
-<Field label="Loading Normal">
-  <Control isLoading>
-    <Input placeholder="Loading normal" />
-  </Control>
-</Field>
+  <Field label="Loading Normal">
+    <Control isLoading>
+      <Input placeholder="Loading normal" />
+    </Control>
+  </Field>
 
-<Field label="Loading Medium">
-  <Control isLoading size="medium">
-    <Input size="medium" placeholder="Loading medium" />
-  </Control>
-</Field>
+  <Field label="Loading Medium">
+    <Control isLoading size="medium">
+      <Input size="medium" placeholder="Loading medium" />
+    </Control>
+  </Field>
 
-<Field label="Loading Large">
-  <Control isLoading size="large">
-    <Input size="large" placeholder="Loading large" />
-  </Control>
-</Field>
+  <Field label="Loading Large">
+    <Control isLoading size="large">
+      <Input size="large" placeholder="Loading large" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -198,17 +206,19 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### Disabled & Read Only
 
 ```tsx live
-<Field label="Disabled">
-  <Control>
-    <Input disabled placeholder="Disabled input" />
-  </Control>
-</Field>
+<>
+  <Field label="Disabled">
+    <Control>
+      <Input disabled placeholder="Disabled input" />
+    </Control>
+  </Field>
 
-<Field label="Read Only">
-  <Control>
-    <Input readOnly value="Read only value" />
-  </Control>
-</Field>
+  <Field label="Read Only">
+    <Control>
+      <Input readOnly value="Read only value" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -216,16 +226,18 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### Static State
 
 ```tsx live
-<Field horizontal label="Username">
-  <Control>
-    <Input isStatic value="Static value" />
-  </Control>
-</Field>
-<Field horizontal label="Password">
-  <Control>
-    <Input placeholder="Editable value" />
-  </Control>
-</Field>
+<>
+  <Field horizontal label="Username">
+    <Control>
+      <Input isStatic value="Static value" />
+    </Control>
+  </Field>
+  <Field horizontal label="Password">
+    <Control>
+      <Input placeholder="Editable value" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -233,27 +245,29 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### With Icons (Left and Right)
 
 ```tsx live
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    iconLeft={{ name: 'user' }}
-    iconRight={{ name: 'check' }}
-  >
-    <Input placeholder="With icons" />
-  </Control>
-</Field>
+<>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      iconLeft={{ name: 'user' }}
+      iconRight={{ name: 'check' }}
+    >
+      <Input placeholder="With icons" />
+    </Control>
+  </Field>
 
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    iconLeft={{ name: 'envelope' }}
-    iconRight={{ name: 'exclamation-triangle' }}
-  >
-    <Input placeholder="Another input" />
-  </Control>
-</Field>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      iconLeft={{ name: 'envelope' }}
+      iconRight={{ name: 'exclamation-triangle' }}
+    >
+      <Input placeholder="Another input" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
@@ -261,52 +275,54 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ### With Icons and Size Variations
 
 ```tsx live
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    size="small"
-    iconLeft={{ name: 'user', size: 'small' }}
-    iconRight={{ name: 'check', size: 'small' }}
-  >
-    <Input size="small" placeholder="Icons left/right small" />
-  </Control>
-</Field>
+<>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      size="small"
+      iconLeft={{ name: 'user', size: 'small' }}
+      iconRight={{ name: 'check', size: 'small' }}
+    >
+      <Input size="small" placeholder="Icons left/right small" />
+    </Control>
+  </Field>
 
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    iconLeft={{ name: 'user' }}
-    iconRight={{ name: 'check' }}
-  >
-    <Input placeholder="Icons left/right normal" />
-  </Control>
-</Field>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      iconLeft={{ name: 'user' }}
+      iconRight={{ name: 'check' }}
+    >
+      <Input placeholder="Icons left/right normal" />
+    </Control>
+  </Field>
 
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    size="medium"
-    iconLeft={{ name: 'user', size: 'medium' }}
-    iconRight={{ name: 'check', size: 'medium' }}
-  >
-    <Input size="medium" placeholder="Icons left/right medium" />
-  </Control>
-</Field>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      size="medium"
+      iconLeft={{ name: 'user', size: 'medium' }}
+      iconRight={{ name: 'check', size: 'medium' }}
+    >
+      <Input size="medium" placeholder="Icons left/right medium" />
+    </Control>
+  </Field>
 
-<Field>
-  <Control
-    hasIconsLeft
-    hasIconsRight
-    size="large"
-    iconLeft={{ name: 'user', size: 'large' }}
-    iconRight={{ name: 'check', size: 'large' }}
-  >
-    <Input size="large" placeholder="Icons left/right large" />
-  </Control>
-</Field>
+  <Field>
+    <Control
+      hasIconsLeft
+      hasIconsRight
+      size="large"
+      iconLeft={{ name: 'user', size: 'large' }}
+      iconRight={{ name: 'check', size: 'large' }}
+    >
+      <Input size="large" placeholder="Icons left/right large" />
+    </Control>
+  </Field>
+</>
 ```
 
 ---
