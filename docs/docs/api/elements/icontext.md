@@ -72,8 +72,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```tsx live
 <IconText
   iconProps={{
-    name: 'fas fa-star',
-    size: 'large',
+    name: 'fas fa-star fa-lg',
     ariaLabel: 'Star icon',
     textColor: 'danger',
   }}
@@ -124,7 +123,6 @@ import { IconText } from '@allxsmith/bestax-bulma';
       name: 'fas fa-check',
       ariaLabel: 'Check icon',
       textColor: 'white',
-      size: 'small',
     }}
   >
     Success
@@ -164,14 +162,29 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```tsx live
 <IconText
   items={[
-    { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
-    { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
-    { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
+    {
+      iconProps: {
+        name: 'fas fa-star',
+        ariaLabel: 'Star icon',
+      },
+    },
+    {
+      iconProps: {
+        name: 'fas fa-star',
+        ariaLabel: 'Star icon',
+      },
+    },
+    {
+      iconProps: {
+        name: 'fas fa-star',
+        ariaLabel: 'Star icon',
+      },
+    },
     {
       iconProps: { name: 'fas fa-star-half-alt', ariaLabel: 'Half star icon' },
     },
     {
-      iconProps: { name: 'far fa-star', ariaLabel: 'Empty star icon' },
+      iconProps: { name: 'fa-regular fa-star', ariaLabel: 'Empty star icon' },
       text: '3.5/5',
     },
   ]}

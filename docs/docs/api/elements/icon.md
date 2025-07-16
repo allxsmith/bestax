@@ -69,13 +69,14 @@ import { Icon } from '@allxsmith/bestax-bulma';
 />
 ```
 
-### Bordered and Fixed Width
+### Bordered
 
 ```tsx live
 <Icon
   name="star"
-  libraryFeatures={['fas', 'fa-fw', 'fa-border', 'fa-lg']}
-  ariaLabel="Star bordered fixed width"
+  size="large"
+  libraryFeatures={['fas', 'fa-border', 'fa-2x']}
+  ariaLabel="Star bordered"
 />
 ```
 
