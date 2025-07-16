@@ -99,6 +99,13 @@ const config = {
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'algolia-site-verification', content: '23EA554671D943E3' },
       ],
+      algolia: {
+        appId: 'O2KH2Y2NMJ',
+        apiKey: '03541df6645f47b7c9833bc1c162fe96',
+        indexName: 'bestax_cc_o2kh2y2nmj_pages',
+        contextualSearch: true, // Recommended for multi-language or multi-version sites
+        searchPagePath: 'search', // Enables a dedicated search page at /search
+      },
 
       navbar: {
         title: 'Bestax',
