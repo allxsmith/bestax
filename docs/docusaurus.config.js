@@ -97,6 +97,7 @@ const config = {
             'bulma, bulma-react, bulma components, bulma ui, react, react components, react bulma, react-bulma-components, react ui, typescript, component library, ui library, ui kit, design system, frontend, web components, css framework, bootstrap alternative, material alternative, storybook',
         },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'algolia-site-verification', content: '23EA554671D943E3' },
       ],
 
       navbar: {
