@@ -122,7 +122,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'apiSidebar',
             position: 'left',
-            label: 'APIs',
+            label: 'Components',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
