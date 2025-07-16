@@ -90,6 +90,15 @@ const config = {
       },
       // Replace with your project's social card
       image: 'img/bestax-social-card.jpg',
+      metadata: [
+        {
+          name: 'keywords',
+          content:
+            'bulma, bulma-react, bulma components, bulma ui, react, react components, react bulma, react-bulma-components, react ui, typescript, component library, ui library, ui kit, design system, frontend, web components, css framework, bootstrap alternative, material alternative, storybook',
+        },
+        { name: 'twitter:card', content: 'summary_large_image' },
+      ],
+
       navbar: {
         title: 'Bestax',
         logo: {
