@@ -6,6 +6,8 @@ import root from 'react-shadow'; // Import from react-shadow
 import { useColorMode } from '@docusaurus/theme-common';
 import * as BestaxBulma from '@allxsmith/bestax-bulma';
 import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
+import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import BrowserWindow from '../../components/ BrowserWindow';
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
@@ -13,6 +15,10 @@ const bulmaStyles = rawBulmaStyles
   .replace(/:root/g, ':host')
   .replace(/@media\s*\(prefers-color-scheme:\s*dark\){/g, ':host(.dark){')
   .replace(/@media\s*\(prefers-color-scheme:\s*light\){/g, ':host(.light){');
+
+const fontAwesomeStyles = rawFontAwesomeStyles
+  .replace(/:root/g, ':host') // Fix vars like Bulma
+  .replace(/url\(\.\.\/webfonts\//g, 'url(/webfonts/');
 
 function isLiveCodeBlock(props) {
   return !!props.live;
@@ -36,7 +42,7 @@ const scope = {
 };
 
 export default function CodeBlockEnhancer(props) {
-  const { isDarkTheme } = useColorMode();
+  const { colorMode } = useColorMode();
 
   return isLiveCodeBlock(props) ? (
     <LiveProvider
@@ -46,9 +52,12 @@ export default function CodeBlockEnhancer(props) {
     >
       <root.div
         mode="open"
-        className={isDarkTheme ? ' live-preview dark' : 'live-preview light'}
+        className={
+          colorMode === 'dark' ? ' live-preview dark' : 'live-preview light'
+        }
       >
         <style>{bulmaStyles}</style>
+        <style>{fontAwesomeStyles}</style>
         <LivePreview />
       </root.div>
       <LiveError className="live-error alert alert--danger" />
