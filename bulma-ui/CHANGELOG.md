@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.13...@allxsmith/bestax-bulma@1.1.0) (2025-07-18)
+
+
+### Features
+
+* **bulma-ui:** Add skeletons ([6c46e4b](https://github.com/allxsmith/bestax/commit/6c46e4b97a73a127406a25272ca584f2e84ea5fa))
+
 ## [1.0.13](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.12...@allxsmith/bestax-bulma@1.0.13) (2025-07-15)
 
 
