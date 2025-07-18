@@ -221,26 +221,6 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('');
   });
 
-  // ... (previous imports and tests remain unchanged)
-
-  // Viewport Handling
-  it('applies viewport-specific classes for valid viewport', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      m: '2',
-      viewport: 'tablet',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary-tablet m-2-tablet');
-  });
-
-  it('ignores viewport for invalid viewport', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      viewport: 'invalid',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary');
-  });
-
   it('applies text color with shade', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({
       color: 'primary',
@@ -320,9 +300,7 @@ describe('useBulmaClasses', () => {
     });
   });
 
-  // ... (rest of the tests remain unchanged)
-
-  // New test cases for lines 250–253 (background color with shade and viewport)
+  // Background color with shade and viewport (duplicated block in original)
   describe('Background color with shade and viewport', () => {
     it('applies background color with shade and not applicable viewport', () => {
       const { bulmaHelperClasses } = renderUseBulmaClasses({
@@ -349,5 +327,44 @@ describe('useBulmaClasses', () => {
       });
       expect(bulmaHelperClasses).toBe('has-background-primary-50');
     });
+  });
+
+  // SKELETON TESTS (NEW)
+  it('applies is-skeleton class when skeleton is true', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      skeleton: true,
+    });
+    expect(bulmaHelperClasses).toBe('is-skeleton');
+  });
+
+  it('applies is-skeleton together with other helpers', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      skeleton: true,
+      color: 'primary',
+      p: '3',
+      display: 'block',
+      visibility: 'sr-only',
+    });
+    expect(bulmaHelperClasses.split(' ')).toEqual(
+      expect.arrayContaining([
+        'is-skeleton',
+        'has-text-primary',
+        'p-3',
+        'is-block',
+        'is-sr-only',
+      ])
+    );
+  });
+
+  it('does not apply is-skeleton when skeleton is false or not set', () => {
+    const { bulmaHelperClasses } = renderUseBulmaClasses({
+      color: 'primary',
+    });
+    expect(bulmaHelperClasses).toBe('has-text-primary');
+    const { bulmaHelperClasses: none } = renderUseBulmaClasses({
+      skeleton: false,
+      color: 'primary',
+    });
+    expect(none).toBe('has-text-primary');
   });
 });

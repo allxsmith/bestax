@@ -1,10 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import { SubTitle, SubTitleProps } from '../SubTitle';
 
 describe('SubTitle Component', () => {
   const defaultProps: SubTitleProps = {
     children: 'Test SubTitle',
   };
+
+  afterEach(() => {
+    cleanup();
+  });
 
   test('renders subtitle with default props', () => {
     render(<SubTitle {...defaultProps} />);
@@ -54,7 +58,12 @@ describe('SubTitle Component', () => {
   );
 
   test('does not apply invalid size class and defaults to h1', () => {
-    render(<SubTitle {...defaultProps} size="invalid" />);
+    render(
+      <SubTitle
+        {...defaultProps}
+        size={'invalid' as unknown as SubTitleProps['size']}
+      />
+    );
     const subtitle = screen.getByRole('heading', {
       name: 'Test SubTitle',
       level: 1,
@@ -102,7 +111,12 @@ describe('SubTitle Component', () => {
   });
 
   test('defaults to h1 for invalid as prop', () => {
-    render(<SubTitle {...defaultProps} as="invalid" />);
+    render(
+      <SubTitle
+        {...defaultProps}
+        as={'invalid' as unknown as SubTitleProps['as']}
+      />
+    );
     const subtitle = screen.getByRole('heading', {
       name: 'Test SubTitle',
       level: 1,
@@ -110,5 +124,87 @@ describe('SubTitle Component', () => {
     expect(subtitle).toBeInTheDocument();
     expect(subtitle.tagName).toBe('H1');
     expect(subtitle).toHaveClass('subtitle');
+  });
+
+  // Branch coverage for the Tag selection logic (invalid size, valid/invalid as)
+  test('uses correct tag when as is valid and size is undefined', () => {
+    render(<SubTitle {...defaultProps} as="h3" />);
+    // No size provided, so should use <h3>
+    const subtitle = screen.getByText('Test SubTitle');
+    expect(subtitle.tagName).toBe('H3');
+    expect(subtitle).toHaveClass('subtitle');
+  });
+
+  test('uses correct tag when as is valid and size is also valid', () => {
+    render(<SubTitle {...defaultProps} as="h4" size="2" />);
+    // Should use <h2> because size is valid
+    const subtitle = screen.getByText('Test SubTitle');
+    expect(subtitle.tagName).toBe('H2');
+    expect(subtitle).toHaveClass('subtitle is-2');
+  });
+
+  // --- New tests for hasSkeleton and skeleton props ---
+  test('applies has-skeleton class when hasSkeleton prop is true', () => {
+    render(<SubTitle {...defaultProps} hasSkeleton />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('has-skeleton');
+  });
+
+  test('does NOT apply has-skeleton class when hasSkeleton prop is omitted', () => {
+    render(<SubTitle {...defaultProps} />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).not.toHaveClass('has-skeleton');
+  });
+
+  test('does NOT apply has-skeleton class when hasSkeleton prop is false', () => {
+    render(<SubTitle {...defaultProps} hasSkeleton={false} />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).not.toHaveClass('has-skeleton');
+  });
+
+  test('applies is-skeleton class when skeleton prop is true (via useBulmaClasses)', () => {
+    render(<SubTitle {...defaultProps} skeleton />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('is-skeleton');
+  });
+
+  test('does NOT apply is-skeleton class when skeleton prop is omitted', () => {
+    render(<SubTitle {...defaultProps} />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).not.toHaveClass('is-skeleton');
+  });
+
+  test('does NOT apply is-skeleton class when skeleton prop is false', () => {
+    render(<SubTitle {...defaultProps} skeleton={false} />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).not.toHaveClass('is-skeleton');
+  });
+
+  test('applies both has-skeleton and is-skeleton classes when both props are true', () => {
+    render(<SubTitle {...defaultProps} hasSkeleton skeleton />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('has-skeleton');
+    expect(subtitle).toHaveClass('is-skeleton');
   });
 });

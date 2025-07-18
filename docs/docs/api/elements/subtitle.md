@@ -7,7 +7,7 @@ sidebar_label: SubTitle
 
 ## Overview
 
-The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes 1–6 and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for subheadings, section captions, or as a pair with `Title`.
+The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes 1–6 and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for subheadings, section titles, and supporting text.
 
 :::info
 `SubTitle` helps create clarity in content structure, especially when paired with `Title`.
@@ -25,13 +25,15 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                  | Default | Description                                      |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                              | —       | Additional CSS classes.                          |
-| `size`      | `'1' \| '2' \| '3' \| '4' \| '5' \| '6'`              | —       | Size of the subtitle (Bulma sizes).              |
-| `as`        | `'h1' \| 'h2' \| 'h3' \| 'h4' \| 'h5' \| 'h6' \| 'p'` | `'h1'`  | HTML element to render as.                       |
-| `children`  | `React.ReactNode`                                     | —       | Subtitle content.                                |
-| ...         | All standard heading/paragraph and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop          | Type                                                  | Default | Description                                              |
+| ------------- | ----------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className`   | `string`                                              | —       | Additional CSS classes.                                  |
+| `size`        | `'1' \| '2' \| '3' \| '4' \| '5' \| '6'`              | —       | Size of the subtitle (Bulma sizes).                      |
+| `as`          | `'h1' \| 'h2' \| 'h3' \| 'h4' \| 'h5' \| 'h6' \| 'p'` | `'h1'`  | HTML element to render as.                               |
+| `hasSkeleton` | `boolean`                                             | —       | Applies the `has-skeleton` class to part of the content. |
+| `skeleton`    | `boolean`                                             | —       | Applies the `is-skeleton` class to the entire component. |
+| `children`    | `React.ReactNode`                                     | —       | Subtitle content.                                        |
+| ...           | All standard heading/paragraph and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))         |
 
 ---
 
@@ -42,6 +44,22 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 ```tsx live
 <SubTitle>Default SubTitle</SubTitle>
 ```
+
+### Has Skeleton
+
+```tsx live
+<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>
+```
+
+`hasSkeleton` will only turn a small part of the content into a skeleton, typically for partial loading effects.
+
+### Is Skeleton
+
+```tsx live
+<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>
+```
+
+`skeleton` applies the `is-skeleton` class to the entire subtitle, making the whole heading appear as a skeleton placeholder.
 
 ### Different Sizes
 

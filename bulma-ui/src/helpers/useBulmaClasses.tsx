@@ -285,7 +285,7 @@ export interface BulmaClassesProps {
   /** Align items (e.g., 'center', 'flex-start'). */
   alignItems?: (typeof validAlignItems)[number];
   /** Align self (e.g., 'auto', 'center'). */
-  alignSelf?: (typeof validAlignSelfs)[number]; // Fixed typo
+  alignSelf?: (typeof validAlignSelfs)[number];
   /** Flex grow value (e.g., '0', '1'). */
   flexGrow?: (typeof validFlexGrowShrink)[number];
   /** Flex shrink value (e.g., '0', '1'). */
@@ -306,6 +306,8 @@ export interface BulmaClassesProps {
   responsive?: 'mobile' | 'narrow';
   /** Viewport for responsive classes (e.g., 'mobile', 'desktop'). */
   viewport?: (typeof validViewports)[number];
+  /** Add Bulma skeleton class if true. */
+  skeleton?: boolean;
 }
 
 /**
@@ -367,6 +369,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     shadow,
     responsive,
     viewport,
+    skeleton,
     ...rest
   } = props;
 
@@ -483,6 +486,11 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
       addClass('is', responsive, ['mobile', 'narrow']);
     }
 
+    // Bulma Skeleton Helper
+    if (skeleton) {
+      classes.push('is-skeleton');
+    }
+
     return classNames(classes);
   }, [
     color,
@@ -525,6 +533,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     shadow,
     responsive,
     viewport,
+    skeleton,
   ]);
 
   return { bulmaHelperClasses, rest };

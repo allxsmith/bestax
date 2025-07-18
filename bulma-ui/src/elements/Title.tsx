@@ -21,6 +21,7 @@ export type TitleElement = (typeof validTitleElements)[number];
  * @property {TitleSize} [size] - Size of the title (1-6).
  * @property {boolean} [isSpaced] - Adds margin below the title.
  * @property {TitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
+ * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
  * @property {React.ReactNode} [children] - Title content.
  */
 export interface TitleProps
@@ -33,6 +34,7 @@ export interface TitleProps
   size?: TitleSize;
   isSpaced?: boolean;
   as?: TitleElement;
+  hasSkeleton?: boolean;
   children?: React.ReactNode;
 }
 
@@ -51,6 +53,7 @@ export const Title: React.FC<TitleProps> = ({
   size,
   isSpaced,
   as = 'h1',
+  hasSkeleton,
   children,
   ...props
 }) => {
@@ -68,6 +71,7 @@ export const Title: React.FC<TitleProps> = ({
   const titleClasses = classNames('title', className, bulmaHelperClasses, {
     [`is-${validSize}`]: validSize,
     'is-spaced': isSpaced,
+    'has-skeleton': hasSkeleton,
   });
 
   // Determine the tag based on 'element' and 'validSize'

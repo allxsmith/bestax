@@ -28,6 +28,7 @@ export type SubTitleElement = (typeof validSubTitleElements)[number];
  * @property {string} [className] - Additional CSS classes to apply.
  * @property {SubTitleSize} [size] - Size of the subtitle (1-6).
  * @property {SubTitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
+ * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
  * @property {React.ReactNode} [children] - Subtitle content.
  */
 export interface SubTitleProps
@@ -39,6 +40,7 @@ export interface SubTitleProps
   className?: string;
   size?: SubTitleSize;
   as?: SubTitleElement;
+  hasSkeleton?: boolean;
   children?: React.ReactNode;
 }
 
@@ -56,6 +58,7 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   className,
   size,
   as = 'h1',
+  hasSkeleton,
   children,
   ...props
 }) => {
@@ -77,6 +80,7 @@ export const SubTitle: React.FC<SubTitleProps> = ({
     bulmaHelperClasses,
     {
       [`is-${validSize}`]: validSize,
+      'has-skeleton': hasSkeleton,
     }
   );
 

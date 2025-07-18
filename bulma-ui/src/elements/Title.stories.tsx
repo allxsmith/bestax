@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Title, TitleProps } from './Title';
 import { SubTitle } from './SubTitle';
@@ -21,6 +22,8 @@ const meta: Meta<typeof Title> = {
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
     },
     className: { control: 'text' },
+    hasSkeleton: { control: 'boolean' },
+    skeleton: { control: 'boolean' },
   },
 };
 
@@ -155,6 +158,51 @@ export const TitleAndSubtitleSpaced: Story = {
       description: {
         story:
           'Shows Title and SubTitle components rendered as paragraphs with paired sizes, with spaced titles.',
+      },
+    },
+  },
+};
+
+// --- Skeleton Stories ---
+
+export const HasSkeleton: Story = {
+  args: {
+    children: 'Title',
+    hasSkeleton: true,
+    size: '2',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Applies the `has-skeleton` class to the Title component using the hasSkeleton prop.',
+      },
+    },
+  },
+};
+
+export const IsSkeleton: Story = {
+  render: () => {
+    // Move hook usage into a component
+    function SkeletonToggler() {
+      const [skeleton, setSkeleton] = useState(true);
+      useEffect(() => {
+        const timer = setInterval(() => setSkeleton(s => !s), 3000);
+        return () => clearInterval(timer);
+      }, []);
+      return (
+        <Title skeleton={skeleton} size="2">
+          Title
+        </Title>
+      );
+    }
+    return <SkeletonToggler />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Uses the `skeleton` prop (handled by useBulmaClasses) to toggle the `is-skeleton` class every 3 seconds.',
       },
     },
   },

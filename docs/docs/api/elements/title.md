@@ -7,7 +7,7 @@ sidebar_label: Title
 
 ## Overview
 
-The `Title` component renders a Bulma-styled title (heading), supporting sizes 1–6, spacing, and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for section headings, page titles, or prominent labels.
+The `Title` component renders a Bulma-styled title (heading), supporting sizes 1–6, spacing, and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for section headings, page titles, and prominent text.
 
 :::info
 Pair `Title` with `SubTitle` for semantic and visually balanced headings.
@@ -25,14 +25,16 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                  | Default | Description                                      |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                              | —       | Additional CSS classes.                          |
-| `size`      | `'1' \| '2' \| '3' \| '4' \| '5' \| '6'`              | —       | Size of the title (Bulma sizes).                 |
-| `isSpaced`  | `boolean`                                             | —       | Adds margin below the title.                     |
-| `as`        | `'h1' \| 'h2' \| 'h3' \| 'h4' \| 'h5' \| 'h6' \| 'p'` | `'h1'`  | HTML element to render as.                       |
-| `children`  | `React.ReactNode`                                     | —       | Title content.                                   |
-| ...         | All standard heading/paragraph and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop          | Type                                                  | Default | Description                                              |
+| ------------- | ----------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className`   | `string`                                              | —       | Additional CSS classes.                                  |
+| `size`        | `'1' \| '2' \| '3' \| '4' \| '5' \| '6'`              | —       | Size of the title (Bulma sizes).                         |
+| `isSpaced`    | `boolean`                                             | —       | Adds margin below the title.                             |
+| `as`          | `'h1' \| 'h2' \| 'h3' \| 'h4' \| 'h5' \| 'h6' \| 'p'` | `'h1'`  | HTML element to render as.                               |
+| `hasSkeleton` | `boolean`                                             | —       | Applies the `has-skeleton` class to part of the content. |
+| `skeleton`    | `boolean`                                             | —       | Applies the `is-skeleton` class to the entire component. |
+| `children`    | `React.ReactNode`                                     | —       | Title content.                                           |
+| ...           | All standard heading/paragraph and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))         |
 
 ---
 
@@ -43,6 +45,22 @@ import { Title } from '@allxsmith/bestax-bulma';
 ```tsx live
 <Title>Default Title</Title>
 ```
+
+### Has Skeleton
+
+```tsx live
+<Title hasSkeleton>Title with Skeleton Effect</Title>
+```
+
+`hasSkeleton` will only turn a small part of the content into a skeleton, typically for partial loading effects.
+
+### Is Skeleton
+
+```tsx live
+<Title skeleton>Title Skeleton Effect</Title>
+```
+
+`skeleton` applies the `is-skeleton` class to the entire title, making the whole heading appear as a skeleton placeholder.
 
 ### Different Sizes
 
