@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.1.0...@allxsmith/bestax-bulma@1.1.1) (2025-07-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** Add Skeleton to exports ([e481599](https://github.com/allxsmith/bestax/commit/e481599047bd4f094f894569656c878faca3e1ea))
+
 # [1.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.0.13...@allxsmith/bestax-bulma@1.1.0) (2025-07-18)
 
 
