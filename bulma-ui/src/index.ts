@@ -23,6 +23,7 @@ export * from './elements/IconText';
 export * from './elements/Image';
 export * from './elements/Notification';
 export * from './elements/Progress';
+export * from './elements/Skeleton';
 export * from './elements/SubTitle';
 export * from './elements/Table';
 export * from './elements/Tag';
