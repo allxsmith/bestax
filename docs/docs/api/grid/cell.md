@@ -43,6 +43,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Basic Usage
 
+This example shows the `Cell` component used inside a `Grid`. Each `Cell` can contain any content, and the grid will automatically arrange the cells according to the available space and grid configuration.
+
 ```tsx live
 <Grid>
   <Cell>
@@ -57,6 +59,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 ---
 
 ### Column Start
+
+Set the `colStart` prop to control which column a cell starts at. This is useful for manual placement and advanced grid layouts.
 
 ```tsx live
 <Grid isFixed fixedCols={4}>
@@ -85,6 +89,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Column From End
 
+Use the `colFromEnd` prop to specify which column the cell should end at, counting from the last column. This allows for flexible layouts, especially in responsive designs.
+
 ```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
@@ -111,6 +117,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 ---
 
 ### Column Span
+
+The `colSpan` prop defines how many columns a cell should span. This is useful for creating layouts where a cell needs to take up more space horizontally.
 
 ```tsx live
 <Grid isFixed fixedCols={4}>
@@ -139,6 +147,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 
 ### Row Start
 
+Control the starting row of a cell using the `rowStart` prop. This can be used to create gaps or align items in specific rows.
+
 ```tsx live
 <Grid isFixed fixedCols={4}>
   <Cell>
@@ -165,6 +175,8 @@ import { Cell } from '@allxsmith/bestax-bulma';
 ---
 
 ### Row Span
+
+The `rowSpan` prop allows a cell to span multiple rows. This is particularly useful for creating complex layouts where certain content needs to be larger or span across multiple sections.
 
 ```tsx live
 <Grid isFixed fixedCols={4}>

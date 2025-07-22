@@ -48,6 +48,8 @@ import { Grid, Cell } from '@allxsmith/bestax-bulma';
 
 ### Smart Grid
 
+This example shows the `Grid` component rendering a set of `Cell` components. By default, the grid will automatically fit as many columns as possible based on the available space, making it ideal for responsive layouts without manual configuration.
+
 ```tsx live
 <Grid>
   {[...Array(24)].map((_, i) => (
@@ -61,6 +63,8 @@ import { Grid, Cell } from '@allxsmith/bestax-bulma';
 ---
 
 ### Minimum Column Width
+
+Set the `minCol` prop to control the minimum width of each column in the grid. This allows you to ensure that cells never shrink below a certain size, regardless of the screen width.
 
 ```tsx live
 <Grid minCol={4}>
@@ -78,6 +82,8 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Gap
 
+This example demonstrates the `gap` prop, which sets the spacing between grid cells. Adjust the value from 0 to 8 to control the amount of space between each cell.
+
 ```tsx live
 <Grid gap={2}>
   {[...Array(24)].map((_, i) => (
@@ -91,6 +97,8 @@ You can control the minimum column width interactively; see the story for a demo
 ---
 
 ### Column Gap
+
+This example demonstrates the `columnGap` prop, which sets the horizontal spacing between columns in the grid. Adjust the value from 0 to 8 to control the space between columns only, without affecting row spacing.
 
 ```tsx live
 <Grid columnGap={2}>
@@ -106,6 +114,8 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Row Gap
 
+This example demonstrates the `rowGap` prop, which sets the vertical spacing between rows in the grid. Adjust the value from 0 to 8 to control the space between rows only, without affecting column spacing.
+
 ```tsx live
 <Grid rowGap={2}>
   {[...Array(24)].map((_, i) => (
@@ -120,6 +130,8 @@ You can control the minimum column width interactively; see the story for a demo
 
 ### Fixed Grid
 
+This example shows how to enable fixed grid mode using the `isFixed` prop. In this mode, the grid uses a strict column layout, and you can control the number of columns with the `fixedCols` prop or its breakpoint variants.
+
 ```tsx live
 <Grid isFixed>
   {[...Array(12)].map((_, i) => (
@@ -133,6 +145,8 @@ You can control the minimum column width interactively; see the story for a demo
 ---
 
 ### Fixed Grid Cols
+
+This example demonstrates the `fixedCols` prop, which specifies the number of columns in fixed grid mode. Here, the grid will always have exactly 4 columns, regardless of screen size.
 
 ```tsx live
 <Grid isFixed fixedCols={4}>
@@ -149,6 +163,8 @@ You can select the number of fixed columns interactively; see the story for a de
 ---
 
 ### Fixed Grid Cols By Breakpoint
+
+This example demonstrates how to set different column counts for each breakpoint using the `fixedCols*` props. The grid will adjust the number of columns responsively as the screen size changes.
 
 ```tsx live
 <Grid
@@ -171,6 +187,8 @@ You can select the number of fixed columns interactively; see the story for a de
 ---
 
 ### Fixed Grid Auto Count
+
+This example shows how to use `fixedCols="auto"` to let the grid automatically determine the number of columns based on the content and available space. This is useful for dynamic layouts where the number of columns may change.
 
 ```tsx live
 <Grid isFixed fixedCols="auto">
