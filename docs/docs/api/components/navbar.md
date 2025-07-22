@@ -54,6 +54,8 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 
 ### Complete Navbar with Burger and Menu
 
+This example demonstrates a fully responsive navigation bar using `Navbar` and its subcomponents. The `Navbar.Burger` toggles the mobile menu, while `Navbar.Brand` displays branding or a logo. Use the `active` prop on `Navbar.Burger` and `Navbar.Menu` to control the open state. Compose navigation links and dropdowns within `Navbar.Start` and `Navbar.End` for flexible layouts. Customize with `color`, `bgColor`, `fixed`, and `transparent` props as needed.
+
 ```tsx live
 function example() {
   const [active, setActive] = useState(false);
@@ -91,6 +93,8 @@ function example() {
 
 ### Brand Only
 
+This example shows a simple navbar with just the brand logo. The `Navbar.Brand` component is used to contain the logo image, which links to the homepage or main section of the site.
+
 ```tsx live
 <Navbar>
   <Navbar.Brand>
@@ -105,6 +109,8 @@ function example() {
 
 ### Burger Only
 
+Demonstrates the `Navbar.Burger` component, which is the mobile menu toggle. It doesn't have an associated menu in this snippet, but in practice, it would control the visibility of the `Navbar.Menu`.
+
 ```tsx live
 <Navbar>
   <Navbar.Burger aria-label="menu" aria-expanded={false} />
@@ -115,6 +121,8 @@ function example() {
 
 ### Burger Active
 
+Shows the `Navbar.Burger` in its active state, indicating that the menu it controls is open. The `active` prop is used to toggle this state.
+
 ```tsx live
 <Navbar>
   <Navbar.Burger active aria-label="menu" aria-expanded />
@@ -124,6 +132,8 @@ function example() {
 ---
 
 ### Menu with Start and End
+
+This example illustrates a `Navbar.Menu` with `Navbar.Start` and `Navbar.End` sections. The start section could contain primary navigation links, while the end section might hold user account links like login or profile.
 
 ```tsx live
 <Navbar>
@@ -141,6 +151,8 @@ function example() {
 ---
 
 ### Navigation Links and Dropdowns
+
+A more complex example with navigation links and a dropdown menu. The dropdown is used for additional links or actions related to the main navigation items.
 
 ```tsx live
 <Navbar>
@@ -172,6 +184,8 @@ function example() {
 
 ### Transparent Navbar
 
+Example of a navbar with a transparent background. This is often used for navbars that overlay content, like images or videos, giving a more integrated look.
+
 ```tsx live
 <Navbar transparent>{/* ...brand and menu... */}</Navbar>
 ```
@@ -180,6 +194,8 @@ function example() {
 
 ### Fixed Navbar
 
+Shows the navbar fixed to the top of the viewport. This is useful for keeping the navigation accessible at all times as the user scrolls.
+
 ```tsx live
 <Navbar fixed="top">{/* ...brand and menu... */}</Navbar>
 ```
@@ -187,6 +203,8 @@ function example() {
 ---
 
 ### Dropdown Right
+
+Demonstrates a dropdown menu aligned to the right. This can be useful for user account menus, notifications, or other contextual actions.
 
 ```tsx live
 <Navbar>
@@ -208,6 +226,8 @@ function example() {
 
 ### Dropup
 
+This example shows a dropdown menu that opens upwards, which can be useful in certain layout situations to prevent covering content.
+
 ```tsx live
 <Navbar>
   <Navbar.Menu active>
@@ -227,6 +247,8 @@ function example() {
 ---
 
 ### Dropdown without Arrow
+
+Demonstrates a dropdown menu styled without the default arrow indicator. This might be used to achieve a specific design aesthetic.
 
 ```tsx live
 <Navbar>
@@ -248,6 +270,8 @@ function example() {
 
 ### Active Dropdown Item
 
+Shows a dropdown menu with an active item. The active state is typically used to indicate the currently selected or active page/section.
+
 ```tsx live
 <Navbar>
   <Navbar.Menu active>
@@ -267,6 +291,8 @@ function example() {
 ---
 
 ### Dropdown with Divider
+
+This example shows a dropdown menu that includes a divider, which is used to separate groups of items within the menu for better organization and readability.
 
 ```tsx live
 <Navbar>
@@ -289,6 +315,8 @@ function example() {
 ---
 
 ### Color Modifiers
+
+Demonstrates the use of different color modifiers for the navbar. Each `Navbar` component has a different color prop to showcase the available options.
 
 ```tsx live
 <>

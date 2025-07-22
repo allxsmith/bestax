@@ -48,6 +48,8 @@ import { Panel } from '@allxsmith/bestax-bulma';
 
 ### Complete Panel (Revolutionary Figures)
 
+This example shows a complete panel layout using `Panel` and its subcomponents. The `Panel.Heading` provides a title, `Panel.InputBlock` adds a search field, and `Panel.Tabs` enables filtering. Use `Panel.Block` for each selectable item, optionally with an `active` state, and `Panel.Icon` to display icons. This structure is ideal for sidebars, filter lists, or admin menus. The `color` prop customizes the panel's appearance.
+
 ```tsx live
 <Panel>
   <Panel.Heading>Revolutionary Figures</Panel.Heading>
@@ -109,6 +111,8 @@ import { Panel } from '@allxsmith/bestax-bulma';
 ---
 
 ### Color Variants
+
+This example demonstrates the `Panel` component's color variants. The `color` prop applies Bulma's color modifiers to the panel. Each panel in this example uses a different color, showcasing the flexibility of the `Panel` component in adapting to various design requirements.
 
 ```tsx live
 <>

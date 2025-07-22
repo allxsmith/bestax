@@ -49,6 +49,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Centered Alignment
 
+This example demonstrates a tab navigation with centered alignment using the `align="centered"` prop. Compose your tabs with `Tabs.List` and `Tabs.Item`, and use the `active` prop to highlight the selected tab. This layout is ideal for main navigation or switching between views.
+
 ```tsx live
 <Tabs align="centered">
   <Tabs.List>
@@ -69,6 +71,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Right Alignment
 
+This example shows how to align tabs to the right using the `align="right"` prop. The `active` prop marks the current tab, and you can add as many `Tabs.Item` components as needed for your navigation structure.
+
 ```tsx live
 <Tabs align="right">
   <Tabs.List>
@@ -88,6 +92,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons
+
+This example demonstrates using icons in your tabs. Each tab can contain an icon and text, making your navigation more visually appealing and informative. The `active` tab is highlighted, and you can use any Font Awesome icons or your custom icons.
 
 ```tsx live
 <Tabs>
@@ -123,6 +129,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### Small, Medium, and Large Tabs
+
+Easily adjust the size of your tabs using the `size` prop. This example shows the three available sizes: small, medium, and large. Each size variation can be used to emphasize different levels of navigation or to fit different design requirements.
 
 ```tsx live
 <>
@@ -174,6 +182,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Boxed Tabs
 
+The boxed style gives your tabs a distinct, separated look. This example demonstrates how to create boxed tabs using the `boxed` prop. Boxed tabs are great for categorizing content or features distinctly.
+
 ```tsx live
 <Tabs boxed>
   <Tabs.List>
@@ -193,6 +203,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### Toggle Tabs
+
+Toggle tabs are useful for binary views or filters, such as showing all items versus only active items. This example shows how to create toggle tabs using the `toggle` prop. The active tab indicates the current filter or view.
 
 ```tsx live
 <Tabs toggle>
@@ -214,6 +226,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Rounded Tabs
 
+Combine the toggle style with rounded corners for a pill-like appearance. This example demonstrates toggle rounded tabs, which are especially useful in mobile interfaces or where a softer look is desired.
+
 ```tsx live
 <Tabs toggle rounded>
   <Tabs.List>
@@ -233,6 +247,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### Fullwidth Tabs
+
+Make your tabs span the entire width of their container with the `fullwidth` prop. This example shows fullwidth tabs, which are useful for emphasizing the tab navigation or when you have many tabs to display.
 
 ```tsx live
 <Tabs fullwidth>
@@ -256,6 +272,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### Centered Boxed Tabs with Icons
+
+This example combines several features: centered alignment, boxed style, and icons. Such a combination is perfect for a dashboard or a complex application where you need to save space and still provide clear navigation.
 
 ```tsx live
 <Tabs align="centered" boxed>
@@ -286,6 +304,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Toggle Fullwidth Tabs with Icons
 
+Enhance your toggle tabs with icons for better visual communication. This example also uses the `fullwidth` prop to make the tabs span the entire width, which is useful for mobile views or when you want to emphasize the tab bar.
+
 ```tsx live
 <Tabs toggle fullwidth>
   <Tabs.List>
@@ -315,6 +335,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Centered Boxed Medium Tabs with Icons
 
+This example features centered, boxed tabs in medium size, each with an icon. It's a great layout for a feature-rich application where you want to provide quick access to important sections.
+
 ```tsx live
 <Tabs align="centered" boxed size="medium">
   <Tabs.List>
@@ -343,6 +365,8 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ### Toggle Fullwidth Large Tabs with Icons
+
+The final example showcases toggle tabs with fullwidth and large size, including icons. This combination is powerful for applications with complex navigation needs, ensuring that users can easily understand and access different sections.
 
 ```tsx live
 <Tabs toggle fullwidth size="large">

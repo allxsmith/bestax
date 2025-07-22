@@ -63,6 +63,8 @@ No props. Renders as a menu divider (`<hr>`).
 
 ### Default Dropdown
 
+To create a dropdown menu, use the `Dropdown` component with a `label` for the trigger and `Dropdown.Item` children for each menu option. You can add a `Dropdown.Divider` to separate groups of items. This pattern is ideal for navigation menus, action lists, or custom pop-up menus in your UI.
+
 ```tsx live
 import { Dropdown } from '@allxsmith/bestax-bulma';
 
@@ -84,6 +86,8 @@ function Example() {
 
 ### Custom Tags (button, div, anchor)
 
+Use the `as` prop on `Dropdown.Item` to render different HTML elements, such as `a`, `div`, or `button`. This allows you to customize the behavior and semantics of each dropdown item, supporting links, actions, or custom content.
+
 ```tsx live
 <Dropdown label="Custom Dropdown Content">
   <Dropdown.Item as="a" href="https://example.com" target="_blank">
@@ -100,6 +104,8 @@ function Example() {
 
 ### Hoverable and Always Active
 
+Add the `hoverable` prop to open the dropdown on hover, and the `active` prop to keep it always open. This is useful for menus that should remain visible or for previewing dropdown content without a click.
+
 ```tsx live
 <Dropdown label="Hoverable + Active" hoverable active>
   <Dropdown.Item>Hover or Always Open</Dropdown.Item>
@@ -113,6 +119,8 @@ function Example() {
 
 ### Right-Aligned Dropdown
 
+Set the `right` prop to align the dropdown menu to the right edge of its trigger. This is useful for menus in toolbars or when space is limited on the left.
+
 ```tsx live
 <Dropdown label="Dropdown Right" right>
   <Dropdown.Item>Right 1</Dropdown.Item>
@@ -124,6 +132,8 @@ function Example() {
 
 ### Upward Dropdown
 
+Use the `up` prop to make the dropdown menu open upward instead of downward. This is helpful when the dropdown is near the bottom of the viewport or container.
+
 ```tsx live
 <Dropdown label="Dropdown Up" up>
   <Dropdown.Item>Up 1</Dropdown.Item>
@@ -133,7 +143,9 @@ function Example() {
 
 ---
 
-## Controlled Dropdown Example
+### Controlled Dropdown Example
+
+Control the open/close state of the dropdown by setting the `active` prop and handling state changes with `onActiveChange`. This pattern is useful for advanced interactions or integrating with other UI state.
 
 ```tsx live
 function example() {

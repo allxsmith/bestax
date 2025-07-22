@@ -64,6 +64,8 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Basic Menu with Nested Lists
 
+To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization.
+
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
@@ -99,6 +101,8 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Custom Link Component
 
+Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. This enables seamless integration with client-side routing libraries, allowing you to pass additional props like `to` or `href` as needed for navigation.
+
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
@@ -123,6 +127,8 @@ function example() {
 
 ### Active Menu Item
 
+Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section.
+
 ```tsx live
 <Menu>
   <Menu.Label>Active Example</Menu.Label>
@@ -137,6 +143,8 @@ function example() {
 ---
 
 ### Deeply Nested Menu
+
+Create multi-level navigation by nesting `Menu.List` components inside `Menu.Item`. This is ideal for complex sidebars or admin panels with grouped and deeply nested navigation links.
 
 ```tsx live
 <Menu>

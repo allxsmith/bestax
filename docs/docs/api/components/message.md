@@ -42,6 +42,8 @@ import { Message } from '@allxsmith/bestax-bulma';
 
 ### Message with Header (per color)
 
+To display a message box with a header, use the `Message` component with the `color` and `title` props. This allows you to visually distinguish messages by context—such as `primary`, `info`, `success`, `warning`, or `danger`—and provide a clear heading for the content. The `onClose` prop adds a close button for dismissible messages, and you can use Bulma helper props for further customization.
+
 ```tsx live
 <>
   <Message color="primary" title="Primary">
@@ -69,6 +71,8 @@ import { Message } from '@allxsmith/bestax-bulma';
 
 ### Message Body Only (no header)
 
+You can omit the `title` prop to render a message with only a body section. This is useful for simple notifications or inline feedback without a heading.
+
 ```tsx live
 <>
   <Message color="primary">This is a primary message with no header.</Message>
@@ -79,6 +83,8 @@ import { Message } from '@allxsmith/bestax-bulma';
 ---
 
 ### Dismissible Message
+
+Add the `onClose` prop to make the message dismissible. When the close button is clicked, your callback will be triggered, allowing you to hide or remove the message from the UI.
 
 ```tsx live
 function example() {
@@ -99,6 +105,8 @@ function example() {
 ---
 
 ### Sizes
+
+You can use Bulma size helpers or custom styles to adjust the size of the message box for different contexts.
 
 ```tsx live
 <>
