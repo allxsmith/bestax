@@ -39,6 +39,8 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Default Tags
 
+A basic `Tags` container groups several `Tag` components in a single line. Use this for simple tag lists or keyword clouds.
+
 ```tsx live
 <Tags>
   <Tag color="primary">Primary</Tag>
@@ -49,6 +51,8 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Add-ons (Grouped)
 
+Set the `hasAddons` prop to group tags together as add-ons, removing spacing between them for a compact, connected look.
+
 ```tsx live
 <Tags hasAddons>
   <Tag color="primary">Package</Tag>
@@ -58,6 +62,8 @@ import { Tags } from '@allxsmith/bestax-bulma';
 ```
 
 ### Multiline
+
+Use the `isMultiline` prop to allow tags to wrap onto multiple lines, making the tag group responsive for long lists.
 
 ```tsx live
 <Tags isMultiline>
@@ -71,6 +77,8 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma helper props like `m="4"` to add margin around the tag group for spacing within layouts.
+
 ```tsx live
 <Tags m="4">
   <Tag color="primary">With Margin</Tag>
@@ -79,21 +87,31 @@ import { Tags } from '@allxsmith/bestax-bulma';
 
 ### Mixed Tags
 
+Combine props such as `isMultiline`, `size`, `isRounded`, and `isDelete` to create flexible, interactive tag groups for advanced UIs.
+
 ```tsx live
-<Tags isMultiline>
-  <Tag color="primary" size="medium">
-    Primary Medium
-  </Tag>
-  <Tag color="success" isRounded>
-    Success Rounded
-  </Tag>
-  {/* Dismissible tag */}
-  {show && <Tag color="danger" isDelete onDelete={() => setShow(false)} />}
-  <Tag color="info">Info</Tag>
-</Tags>
+function example() {
+  const [show, setShow] = useState();
+
+  return (
+    <Tags isMultiline>
+      <Tag color="primary" size="medium">
+        Primary Medium
+      </Tag>
+      <Tag color="success" isRounded>
+        Success Rounded
+      </Tag>
+      {/* Dismissible tag */}
+      {show && <Tag color="danger" isDelete onDelete={() => setShow(false)} />}
+      <Tag color="info">Info</Tag>
+    </Tags>
+  );
+}
 ```
 
 ### Add-ons with Delete Tag
+
+You can combine `hasAddons` with a delete tag to create a tightly grouped, dismissible tag set.
 
 ```tsx live
 <Tags hasAddons>

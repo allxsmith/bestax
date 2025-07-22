@@ -43,17 +43,23 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Default Tag
 
+A basic `Tag` renders a simple label. Use this for static status indicators or simple badges.
+
 ```tsx live
 <Tag>Default Tag</Tag>
 ```
 
 ### Colored Tag
 
+Set the `color` prop to apply a Bulma color modifier, such as `color="primary"`, for visual emphasis or to indicate status.
+
 ```tsx live
 <Tag color="primary">Primary Tag</Tag>
 ```
 
 ### Medium and Large Tag
+
+Use the `size` prop with values like `size="medium"` or `size="large"` to adjust the tag's size for different UI contexts.
 
 ```tsx live
 <Tags>
@@ -64,11 +70,15 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Rounded Tag
 
+Add the `isRounded` prop to render a tag with fully rounded corners, making it stand out as a pill-shaped badge.
+
 ```tsx live
 <Tag isRounded>Rounded Tag</Tag>
 ```
 
 ### Delete Tag (Button)
+
+Set `isDelete` to render a tag as a delete button. Use the `onDelete` callback to handle removal actions.
 
 ```tsx live
 <Tag isDelete onDelete={() => alert('Deleted!')} />
@@ -76,11 +86,15 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma helper props like `m="4"` to add margin around the tag for spacing within layouts.
+
 ```tsx live
 <Tag m="4">Tag with Margin</Tag>
 ```
 
 ### Combined Styles
+
+Combine multiple props such as `color`, `size`, `isRounded`, and spacing helpers to create visually distinct tags.
 
 ```tsx live
 <Tag color="success" size="medium" isRounded m="2">
@@ -89,6 +103,8 @@ import { Tag } from '@allxsmith/bestax-bulma';
 ```
 
 ### All Colors
+
+Render a set of tags with different `color` values to display a palette of available Bulma color modifiers. The `isHoverable` prop adds a hover effect to each tag.
 
 ```tsx live
 <Tags>
@@ -113,6 +129,8 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Sizes Together
 
+You can combine `color`, `size`, and `isHoverable` props to show all size variants for each color in a single layout.
+
 ```tsx live
 <Tags>
   {['primary', 'success', 'danger'].map(color => (
@@ -133,6 +151,8 @@ import { Tag } from '@allxsmith/bestax-bulma';
 
 ### Hoverable Tag
 
+Set `isHoverable` to add a hover effect, making the tag interactive for mouse users.
+
 ```tsx live
 <Tag color="primary" isHoverable>
   Hoverable Tag
@@ -140,6 +160,8 @@ import { Tag } from '@allxsmith/bestax-bulma';
 ```
 
 ### Tag with Delete Component
+
+You can combine `Tag` with the `Delete` component for custom dismissible tags. Use `hasAddons` on the `Tags` container to group them visually.
 
 ```tsx live
 import { Tags, Delete } from '@allxsmith/bestax-bulma';

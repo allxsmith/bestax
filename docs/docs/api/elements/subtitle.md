@@ -7,7 +7,7 @@ sidebar_label: SubTitle
 
 ## Overview
 
-The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes 1–6 and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for subheadings, section titles, and supporting text.
+The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1`–`6` and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for subheadings, section titles, and supporting text.
 
 :::info
 `SubTitle` helps create clarity in content structure, especially when paired with `Title`.
@@ -41,11 +41,15 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### Default SubTitle
 
+A basic `SubTitle` renders a secondary heading. Use this for subheadings or supporting text below a main title.
+
 ```tsx live
 <SubTitle>Default SubTitle</SubTitle>
 ```
 
 ### Has Skeleton
+
+Set the `hasSkeleton` prop to apply a skeleton effect to part of the subtitle, useful for partial loading states.
 
 ```tsx live
 <SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>
@@ -55,6 +59,8 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### Is Skeleton
 
+Set the `skeleton` prop to apply a skeleton effect to the entire subtitle, indicating that the whole heading is loading.
+
 ```tsx live
 <SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>
 ```
@@ -62,6 +68,8 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 `skeleton` applies the `is-skeleton` class to the entire subtitle, making the whole heading appear as a skeleton placeholder.
 
 ### Different Sizes
+
+Adjust the `size` prop to change the subtitle size, with available options from `1` to `6`, corresponding to Bulma's size classes.
 
 ```tsx live
 <>
@@ -72,11 +80,15 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+Utilize margin props like `m="4"` to add spacing around the subtitle, helping to separate it from other content.
+
 ```tsx live
 <SubTitle m="4">SubTitle with Margin</SubTitle>
 ```
 
 ### As Paragraph
+
+Render the subtitle as a paragraph element by setting the `as` prop to `"p"`. This is useful for body text that requires emphasis.
 
 ```tsx live
 <SubTitle as="p" size="3">
@@ -85,6 +97,8 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 ```
 
 ### All Sizes
+
+Quickly render all subtitle sizes from `1` to `6` using a map function. This is helpful for demonstrating or testing styles.
 
 ```tsx live
 <>
@@ -97,6 +111,8 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 ```
 
 ### Title and Subtitle Pairings
+
+Combine `Title` and `SubTitle` components for a structured heading and subheading layout. This is ideal for section titles.
 
 ```tsx live
 <Block>

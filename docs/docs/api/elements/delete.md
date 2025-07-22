@@ -43,11 +43,15 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### Default Delete
 
+The default usage of the `Delete` component renders a Bulma-styled close button. Use this for dismissing modals, notifications, tags, or any element that needs a consistent close/delete action.
+
 ```tsx live
 <Delete />
 ```
 
 ### Small, Medium, Large
+
+The `size` prop allows you to adjust the button size. Use `size="small"`, `size="medium"`, or `size="large"` to match the context of your UI.
 
 ```tsx live
 <>
@@ -59,11 +63,15 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### Disabled
 
+The `disabled` prop disables the button, making it non-interactive and visually muted. Use this when the close action should be temporarily unavailable.
+
 ```tsx live
 <Delete disabled />
 ```
 
 ### With Custom Class
+
+Add your own CSS classes with the `className` prop to further customize the delete button's appearance or behavior.
 
 ```tsx live
 <Delete className="custom-delete" />
@@ -71,11 +79,15 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### With Text Color
 
+Set the text color using the `textColor` prop. For example, `textColor="primary"` applies Bulma's primary color to the button.
+
 ```tsx live
 <Delete textColor="primary" />
 ```
 
 ### With Background Color
+
+Apply a background color using the `bgColor` prop. Here, `bgColor="info"` gives the button a colored background.
 
 ```tsx live
 <Delete bgColor="info" />
@@ -83,11 +95,15 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma spacing helpers like `m` to add margin around the button for better layout control.
+
 ```tsx live
 <Delete m="2" />
 ```
 
 ### In a Tag
+
+The `Delete` component is often used inside a `Tag` for removable labels. This example shows a small, colored delete button inside a tag.
 
 ```tsx live
 <span className="tag is-info is-medium">
@@ -98,6 +114,8 @@ import { Delete } from '@allxsmith/bestax-bulma';
 
 ### In a Notification
 
+Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages.
+
 ```tsx live
 <div className="notification is-primary">
   <Delete bgColor="warning" ariaLabel="Close notification" />
@@ -106,6 +124,8 @@ import { Delete } from '@allxsmith/bestax-bulma';
 ```
 
 ### In a Message Header
+
+The `Delete` component can be placed in a message header for dismissible messages. Combine with spacing and color props for best results.
 
 ```tsx live
 <article className="message is-success">

@@ -45,11 +45,15 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### Default Icon (Font Awesome)
 
+The simplest use of the `Icon` component, displaying a Font Awesome star icon. The `ariaLabel` prop provides an accessible name for the icon.
+
 ```tsx live
 <Icon name="star" ariaLabel="Star icon" />
 ```
 
 ### Font Awesome Large
+
+You can use the `libraryFeatures` prop to add Font Awesome-specific classes. In this example, `fa-2x` increases the icon size to 2x its normal size.
 
 ```tsx live
 <Icon
@@ -61,6 +65,8 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### Spinning Icon
 
+The `libraryFeatures` prop can be used to add Font Awesome modifiers like `fa-spin` for animated icons. This example shows a spinning loading icon with increased size.
+
 ```tsx live
 <Icon
   name="spinner"
@@ -70,6 +76,8 @@ import { Icon } from '@allxsmith/bestax-bulma';
 ```
 
 ### Bordered
+
+You can add a border to the icon using Font Awesome's `fa-border` class via the `libraryFeatures` prop. This is useful for icons that need to stand out or be visually separated.
 
 ```tsx live
 <Icon
@@ -82,6 +90,8 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### With Text Color
 
+Set the icon color using the `textColor` prop. For example, `textColor="primary"` applies Bulma's primary color to the icon.
+
 ```tsx live
 <Icon
   name="star"
@@ -92,11 +102,15 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma spacing helpers like `m` to add margin around the icon for better layout control.
+
 ```tsx live
 <Icon name="star" m="2" ariaLabel="Star icon with margin" />
 ```
 
 ### With Container Size
+
+The `size` prop adjusts the size of the icon container. Use `size="large"` for a bigger icon wrapper, which is useful for emphasis or visual hierarchy.
 
 ```tsx live
 <Icon name="star" size="large" ariaLabel="Star icon large container" />
