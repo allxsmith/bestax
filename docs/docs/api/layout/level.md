@@ -47,6 +47,8 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Default Level
 
+This example shows the `Level` component with `Level.Left` and `Level.Right` subcomponents. Use `Level` to align content horizontally, such as toolbars, status bars, or summary sections. The `Level.Item` subcomponent is used for each item in the left or right section.
+
 ```tsx live
 <Level>
   <Level.Left>
@@ -92,6 +94,8 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Centered Level (Statistics)
 
+This example demonstrates using the `Level` component to create a centered statistics display. Each `Level.Item` in this example is centered and contains a heading and a value, making it suitable for displaying key metrics or statistics.
+
 ```tsx live
 <Level>
   <Level.Item hasTextCentered>
@@ -125,6 +129,8 @@ import { Level } from '@allxsmith/bestax-bulma';
 
 ### Centered Level Menu
 
+This example shows how to create a centered navigation menu using the `Level` component. Each item in the menu is centered and can be used for navigation links or important actions.
+
 ```tsx live
 <Level>
   <Level.Item as="p" hasTextCentered>
@@ -152,6 +158,8 @@ import { Level } from '@allxsmith/bestax-bulma';
 ---
 
 ### Mobile Level
+
+This example demonstrates the `Level` component's mobile layout. When the `isMobile` prop is set, the `Level` component stacks its items vertically, making it suitable for mobile interfaces.
 
 ```tsx live
 <Level isMobile>

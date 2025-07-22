@@ -41,6 +41,8 @@ import { Footer } from '@allxsmith/bestax-bulma';
 
 ### Default Footer
 
+This example shows the `Footer` component with centered content. Use the `Footer` at the bottom of your layout to display copyright, links, or extra information. The `as` prop can be used to render as a `<footer>` or `<div>`.
+
 ```tsx live
 import { Footer } from '@allxsmith/bestax-bulma';
 import { Content } from '@allxsmith/bestax-bulma';

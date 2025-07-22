@@ -47,6 +47,8 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Default Media
 
+This example demonstrates the `Media` component with its subcomponents: `Media.Left` for an image or icon, `Media.Content` for the main content, and `Media.Right` for actions or controls. Use this pattern for comments, posts, or any layout that requires media and content alignment.
+
 ```tsx live
 <Media>
   <Media.Left>
@@ -98,6 +100,8 @@ import { Media } from '@allxsmith/bestax-bulma';
 
 ### Media With Inputs
 
+This example shows the `Media` component used with form inputs. The `Media.Content` section contains a `TextArea` for input and a `Button` for submission. This pattern is useful for comment sections or any interactive content area.
+
 ```tsx live
 <Media>
   <Media.Left>
@@ -135,6 +139,8 @@ import { Media } from '@allxsmith/bestax-bulma';
 ---
 
 ### Nested Media
+
+Demonstrates the `Media` component's ability to nest for threaded comments or related content. Each `Media` component can contain its own `Media.Left`, `Media.Content`, and `Media.Right`, allowing for complex layouts.
 
 ```tsx live
 <Media>
@@ -224,6 +230,8 @@ import { Media } from '@allxsmith/bestax-bulma';
 ---
 
 ### Media With Button Below
+
+In this variation, a button is placed below the input area within the `Media.Content`. This layout can be used for comment submission or any action requiring a button.
 
 ```tsx live
 <Media>

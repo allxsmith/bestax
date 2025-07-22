@@ -45,6 +45,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Default Container
 
+This example shows the `Container` component, which centers and constrains content horizontally. Use the `Container` to maintain consistent margins and maximum width for your content on desktop viewports and up.
+
 ```tsx live
 <Container>
   <Notification color="primary">
@@ -57,6 +59,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 ---
 
 ### Widescreen Container
+
+Set the `widescreen` prop to make the container full-width until the `widescreen` breakpoint. This is useful for layouts that need to expand on larger screens.
 
 ```tsx live
 <Container widescreen>
@@ -72,6 +76,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### FullHD Container
 
+Set the `fullhd` prop to make the container full-width until the `fullhd` breakpoint. Use this for layouts that need to take advantage of very large screens.
+
 ```tsx live
 <Container fullhd>
   <Notification color="primary">
@@ -85,6 +91,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 ---
 
 ### Max Tablet Width
+
+This example demonstrates using the `breakpoint` and `isMax` props together. Setting `breakpoint="tablet"` and `isMax` will limit the container's maximum width to that of the tablet size, minus the container offset.
 
 ```tsx live
 <Container breakpoint="tablet" isMax>
@@ -100,6 +108,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Max Width Desktop
 
+Similarly, this example sets the `breakpoint` to `desktop` with the `isMax` prop. The container's width will be constrained to the desktop size at this breakpoint.
+
 ```tsx live
 <Container breakpoint="desktop" isMax>
   <Notification color="primary">
@@ -114,6 +124,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 
 ### Max Width Widescreen
 
+For widescreen layouts, set the `breakpoint` to `widescreen` with `isMax`. This restricts the container's width to the widescreen size at the widescreen breakpoint.
+
 ```tsx live
 <Container breakpoint="widescreen" isMax>
   <Notification color="primary">
@@ -127,6 +139,8 @@ import { Container } from '@allxsmith/bestax-bulma';
 ---
 
 ### Fluid Container
+
+The `fluid` prop makes the container expand to the full width of the screen, with a small 32px gap on each side. This is ideal for creating full-width sections with consistent padding.
 
 ```tsx live
 <Container fluid>
