@@ -52,6 +52,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Input
 
+This example shows the `Control` component wrapping an `Input` inside a `Field`. Use `Control` to provide consistent spacing and icon placement for form elements. The `placeholder` prop on `Input` provides hint text.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -63,6 +65,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Select
+
+This example demonstrates using the `Control` component to wrap a `Select` element. The `Control` ensures proper Bulma styling and layout for the select dropdown.
 
 ```tsx live
 <Field label="Default">
@@ -80,6 +84,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With TextArea
 
+This example shows a `Control` wrapping a `TextArea`. The `Control` component provides a styled container that can include icons, loading indicators, and size variations.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -91,6 +97,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons (Left and Right)
+
+This example demonstrates using the `Control` component with icons on both sides. The `hasIconsLeft` and `hasIconsRight` props add icon containers, and the `iconLeft` and `iconRight` props define the icons to be used.
 
 ```tsx live
 <Field>
@@ -109,6 +117,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Only Left Icon (Shortcut Props)
 
+This example shows how to use shortcut props for quickly adding an icon to the left of the input. The `iconLeftName` and `iconLeftSize` props are used for specifying the icon's name and size, respectively.
+
 ```tsx live
 <Field>
   <Control hasIconsLeft iconLeftName="user" iconLeftSize="small">
@@ -121,6 +131,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### With Only Right Icon (Shortcut Props)
 
+Similar to the previous example, this one demonstrates adding an icon to the right of the input using shortcut props. The `iconRightName` and `iconRightSize` props define the icon's characteristics.
+
 ```tsx live
 <Field>
   <Control hasIconsRight iconRightName="check" iconRightSize="small">
@@ -132,6 +144,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons and Size Variations
+
+This example combines icon usage with size variations. The `size` prop on `Control` and `Input` adjusts the size, while the `iconLeft` and `iconRight` props with size specifications control the icon sizes.
 
 ```tsx live
 <Field>
@@ -151,6 +165,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Loading State
 
+The `isLoading` prop can be used to indicate a loading state for the control. This example shows a control with an input field in a loading state.
+
 ```tsx live
 <Field label="Loading">
   <Control isLoading>
@@ -162,6 +178,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ---
 
 ### Loading State with Size Variations
+
+This example demonstrates the loading state with different size variations. The `size` prop is used to control the size of the `Control` and `Input` components.
 
 ```tsx live
 <>
@@ -189,6 +207,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Expanded Control
 
+The `isExpanded` prop makes the control expand to fill the available space. This example shows an expanded control with an input field.
+
 ```tsx live
 <Field label="Expanded">
   <Control isExpanded>
@@ -201,6 +221,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 
 ### Control as Paragraph (`as="p"`)
 
+The `as` prop allows rendering the control as a different HTML element. This example shows the control rendered as a paragraph (`<p>`), which can be useful for inline forms or specific layout requirements.
+
 ```tsx live
 <Field label="Control as Paragraph">
   <Control as="p">
@@ -212,6 +234,8 @@ import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Radios or Checkboxes
+
+The `Control` component can also be used with radio buttons or checkboxes. This example shows how to group radio buttons and checkboxes within a control.
 
 ```tsx live
 <>

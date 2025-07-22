@@ -44,6 +44,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default
 
+This example shows a standard multi-line text input using the `TextArea` component, wrapped in a `Field` and `Control` for proper Bulma form structure. The `placeholder` prop provides hint text for the user.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -56,6 +58,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Row Count
 
+Set the `rows` prop to control the visible number of text lines in the `TextArea`. This is useful for customizing the input size for different use cases, such as comments or longer form entries.
+
 ```tsx live
 <Field label="Rows">
   <Control>
@@ -67,6 +71,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Colors
+
+This example demonstrates the `color` prop, which applies Bulma color modifiers to the textarea. Use `color="primary"`, `color="link"`, `color="info"`, `color="success"`, `color="warning"`, or `color="danger"` to visually distinguish input fields based on context or validation state.
 
 ```tsx live
 <>
@@ -112,6 +118,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
+This example demonstrates the `size` prop, which controls the overall size of the textarea. Use `size="small"`, `size="medium"`, or `size="large"` to match your form's scale. The default size is normal.
+
 ```tsx live
 <>
   <Field label="Small">
@@ -143,6 +151,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### States
+
+This example shows how to use the `isHovered`, `isFocused`, and `isLoading` props to visually indicate different states of the textarea. These states help users understand the current interaction or loading status.
 
 ```tsx live
 <>
@@ -176,6 +186,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Loading States by Size
 
+This example demonstrates loading indicators for different textarea sizes. Combine the `isLoading` and `size` props on both `Control` and `TextArea` for consistent UI feedback.
+
 ```tsx live
 <>
   <Field label="Loading Small">
@@ -208,6 +220,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Disabled & Read Only
 
+This example shows how to use the `disabled` and `readOnly` props to render non-interactive or read-only textareas. Use `disabled` to prevent user input, and `readOnly` to display static content that cannot be edited.
+
 ```tsx live
 <>
   <Field label="Disabled">
@@ -227,6 +241,8 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Fixed Size
+
+Set the `hasFixedSize` prop to prevent the textarea from being resized by the user. This is useful for layouts where you want to maintain a consistent height.
 
 ```tsx live
 <Field label="Fixed Size">

@@ -41,6 +41,8 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default Select
 
+This example shows a standard dropdown using the `Select` component, wrapped in a `Field` and `Control` for proper Bulma form structure. The `children` prop provides the `<option>` elements for the dropdown.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -56,6 +58,8 @@ import { Select, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Multi Select
+
+Set the `multiple` prop to enable multi-selection in the `Select` component. The `multipleSize` prop controls the number of visible options. Use this for lists where users can select more than one value.
 
 ```tsx live
 <>

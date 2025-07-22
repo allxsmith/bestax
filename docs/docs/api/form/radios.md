@@ -33,6 +33,8 @@ import { Radios, Radio } from '@allxsmith/bestax-bulma';
 
 ### Grouped Radios (All Disabled Example)
 
+This example demonstrates the `Radios` component wrapping multiple `Radio` children, all with the same `name` prop for mutual exclusivity. The `disabled` prop is set on each `Radio` to render them as non-interactive. Use this pattern for vertical lists of mutually exclusive options, such as RSVP or selection lists.
+
 ```tsx live
 <Radios>
   <Radio name="event" disabled>

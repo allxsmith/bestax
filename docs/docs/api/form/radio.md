@@ -34,6 +34,8 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ### Mutually Exclusive Radios (Only One Can Be Selected)
 
+This example shows how to use the `Radio` component for mutually exclusive choices. Assign the same `name` prop to each `Radio` in a group to ensure only one can be selected at a time. Use within a `Control` for proper Bulma styling.
+
 ```tsx live
 <Control>
   <Radio name="mutuallyExclusive"> Yes </Radio>
@@ -45,6 +47,8 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Default Selected Radio
+
+Set the `defaultChecked` prop on a `Radio` to make it selected by default. This is useful for pre-selecting a common or recommended option in a group.
 
 ```tsx live
 <Control>
@@ -59,6 +63,8 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Disabled Radios
+
+Use the `disabled` prop to render radios that cannot be selected. This is helpful for indicating unavailable options in a group.
 
 ```tsx live
 <Control>
@@ -80,6 +86,8 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### List of Radios (Grouped with the `Radios` Wrapper)
+
+Render a list of radios using the `Radios` wrapper component. This is useful for grouping related radio buttons together, especially when they share the same `name` prop. In this example, all radios are disabled.
 
 ```tsx live
 <Radios>
