@@ -8,7 +8,7 @@ sidebar_position: 2
 
 ## Overview
 
-The `Column` component provides a single responsive grid column using Bulma's flexbox-based column system. It supports all Bulma column size modifiers, responsive sizes and offsets, color/background helpers, "narrow" behavior, and utility/HTML props. Use together with [`Columns`](./columns.md) for powerful, declarative layouts.
+The `Column` component provides a single responsive layout column using Bulma's flexbox-based column system. It supports all Bulma column size modifiers, responsive sizes and offsets, color/background helpers, "narrow" behavior, and utility/HTML props. Use together with [`Columns`](./columns.md) for powerful, declarative layouts.
 
 ---
 
@@ -56,6 +56,8 @@ import { Column } from '@allxsmith/bestax-bulma';
 
 ### Basic Columns Example
 
+This example shows the `Column` component used within a `Columns` container. Each `Column` can accept Bulma size, color, and offset props to control its width and appearance. Use this pattern for building flexible horizontal layouts with multiple columns.
+
 ```tsx live
 import { Columns, Column } from '@allxsmith/bestax-bulma';
 import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
@@ -79,6 +81,8 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 ---
 
 ### Column Sizes
+
+This section demonstrates the various size options for columns. Sizes can be set using Bulma's fractional values or keywords like `full`, `half`, `one-third`, etc. Combine these with offset props to control the column's position within the row.
 
 ```tsx live
 <>
@@ -196,6 +200,8 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
 ### 12 Column System
 
+In Bulma's 12 column system, you can specify column sizes from 1 to 12, allowing for a wide range of layout possibilities. This example demonstrates how each column size behaves, including automatic sizing for remaining space.
+
 ```tsx live
 <>
   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
@@ -228,6 +234,8 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 ---
 
 ### Responsive Column Sizes
+
+Columns can have different sizes at different breakpoints, allowing for a fully responsive design. This example shows a column that changes size from mobile to desktop views.
 
 ```tsx live
 <Columns isMobile>
@@ -269,6 +277,8 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 
 ### Offsets
 
+Offsets are used to push columns to the right, creating space between columns. This is particularly useful for centering columns or creating specific layouts.
+
 ```tsx live
 <>
   <Columns isMobile>
@@ -299,6 +309,8 @@ import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
 ---
 
 ### Narrow Columns
+
+Narrow columns only take up as much width as their content, which can be useful for sidebar menus, buttons, or any content that doesn't need to stretch the full width of the column.
 
 ```tsx live
 <Columns>
