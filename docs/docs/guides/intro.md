@@ -1,3 +1,9 @@
+---
+title: Getting Started
+sidebar_label: Getting Started
+sidebar_position: 1
+---
+
 # Getting Started
 
 Welcome to **bestax-bulma** – a modern, flexible React component library powered by the latest Bulma v1 and TypeScript.
