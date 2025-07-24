@@ -16,6 +16,10 @@ import { SubTitle } from '../elements/SubTitle';
 import Input from '../form/Input';
 import TextArea from '../form/TextArea';
 import Content from '../elements/Content';
+import { Box } from '../elements/Box';
+import { Columns } from '../columns/Columns';
+import { Column } from '../columns/Column';
+import { Message } from '../components/Message';
 
 // Allow arbitrary props to satisfy Record<string, unknown>
 const UseBulmaClassesDemo: React.FC<
@@ -104,74 +108,36 @@ function useSkeletonToggle(intervalMs = 3000) {
 
 // --- Skeleton Stories for Each Component, using Skeleton Toggle ---
 
-// Skeleton Button Component
-const SkeletonButtonComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Button skeleton={skeleton} style={{ width: 120 }}>
-      Skeleton Button
-    </Button>
-  );
-};
 export const SkeletonButton: Story = {
-  render: () => <SkeletonButtonComponent />,
+  render: () => <Button skeleton>Skeleton Button</Button>,
   name: 'Skeleton Button (Toggles)',
 };
 
-// Skeleton Buttons Group Component
-const SkeletonButtonsComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Buttons>
-      <Button skeleton={skeleton} style={{ width: 120 }}>
-        Skeleton
-      </Button>
-      <Button skeleton={skeleton} style={{ width: 120 }}>
-        Skeleton
-      </Button>
-      <Button skeleton={skeleton} style={{ width: 120 }}>
-        Skeleton
-      </Button>
-    </Buttons>
-  );
-};
 export const SkeletonButtons: Story = {
-  render: () => <SkeletonButtonsComponent />,
+  render: () => (
+    <Buttons>
+      <Button skeleton>Skeleton</Button>
+      <Button skeleton>Skeleton</Button>
+      <Button skeleton>Skeleton</Button>
+    </Buttons>
+  ),
   name: 'Skeleton Buttons Group (Toggles)',
 };
 
-// Skeleton Icon Component
-const SkeletonIconComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Icon
-      name="star"
-      skeleton={skeleton}
-      ariaLabel="Star icon skeleton"
-      style={{ fontSize: 32 }}
-    />
-  );
-};
 export const SkeletonIcon: Story = {
-  render: () => <SkeletonIconComponent />,
+  render: () => <Icon name="star" skeleton ariaLabel="Star icon skeleton" />,
   name: 'Skeleton Icon (Toggles)',
 };
 
-// Skeleton Image Component
-const SkeletonImageComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
+export const SkeletonImage: Story = {
+  render: () => (
     <Image
-      skeleton={skeleton}
+      skeleton
       src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
       alt="Skeleton image"
       size="128x128"
-      style={{ width: 128, height: 128 }}
     />
-  );
-};
-export const SkeletonImage: Story = {
-  render: () => <SkeletonImageComponent />,
+  ),
   name: 'Skeleton Image (Toggles)',
 };
 
@@ -207,91 +173,363 @@ export const SkeletonMedia: Story = {
   name: 'Skeleton Media (Toggles)',
 };
 
-// Skeleton Notification Component
-const SkeletonNotificationComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Notification skeleton={skeleton} style={{ width: 300 }}>
-      Skeleton notification message.
-    </Notification>
-  );
-};
 export const SkeletonNotification: Story = {
-  render: () => <SkeletonNotificationComponent />,
+  render: () => (
+    <Notification skeleton>Skeleton notification message.</Notification>
+  ),
   name: 'Skeleton Notification (Toggles)',
 };
 
-// Skeleton Tag Component
-const SkeletonTagComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Tag skeleton={skeleton} style={{ width: 100, display: 'inline-block' }}>
-      Skeleton Tag
-    </Tag>
-  );
-};
 export const SkeletonTag: Story = {
-  render: () => <SkeletonTagComponent />,
+  render: () => <Tag skeleton>Skeleton Tag</Tag>,
   name: 'Skeleton Tag (Toggles)',
 };
 
-// Skeleton Title Component
-const SkeletonTitleComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Title skeleton={skeleton} size="2" style={{ width: 180 }}>
+export const SkeletonTitle: Story = {
+  render: () => (
+    <Title skeleton size="2">
       Skeleton Title
     </Title>
-  );
-};
-export const SkeletonTitle: Story = {
-  render: () => <SkeletonTitleComponent />,
+  ),
   name: 'Skeleton Title (Toggles)',
 };
 
-// Skeleton SubTitle Component
-const SkeletonSubTitleComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <SubTitle skeleton={skeleton} size="4" style={{ width: 140 }}>
+export const SkeletonSubTitle: Story = {
+  render: () => (
+    <SubTitle skeleton size="4">
       Skeleton SubTitle
     </SubTitle>
-  );
-};
-export const SkeletonSubTitle: Story = {
-  render: () => <SkeletonSubTitleComponent />,
+  ),
   name: 'Skeleton SubTitle (Toggles)',
 };
 
-// Skeleton Input Component
-const SkeletonInputComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <Input
-      skeleton={skeleton}
-      placeholder="Skeleton Input"
-      style={{ width: 160 }}
-    />
-  );
-};
 export const SkeletonInput: Story = {
-  render: () => <SkeletonInputComponent />,
+  render: () => <Input skeleton placeholder="Skeleton Input" />,
   name: 'Skeleton Input (Toggles)',
 };
 
-// Skeleton TextArea Component
-const SkeletonTextAreaComponent: React.FC = () => {
-  const skeleton = useSkeletonToggle();
-  return (
-    <TextArea
-      skeleton={skeleton}
-      placeholder="Skeleton TextArea"
-      rows={3}
-      style={{ width: 220 }}
-    />
-  );
-};
 export const SkeletonTextArea: Story = {
-  render: () => <SkeletonTextAreaComponent />,
+  render: () => <TextArea skeleton placeholder="Skeleton TextArea" rows={3} />,
   name: 'Skeleton TextArea (Toggles)',
+};
+
+// --- Custom Stories for useBulmaClasses Example Coverage ---
+
+export const Colors: Story = {
+  render: () => (
+    <Buttons>
+      <Button color="primary">Primary</Button>
+      <Button color="link">Link</Button>
+      <Button color="info">Info</Button>
+      <Button color="success">Success</Button>
+      <Button color="warning">Warning</Button>
+      <Button color="danger">Danger</Button>
+    </Buttons>
+  ),
+  name: 'Colors',
+};
+
+export const BackgroundColors: Story = {
+  render: () => (
+    <Columns isMultiline>
+      <Column size="one-quarter">
+        <Box bgColor="primary">Primary</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="link">Link</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="info">Info</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="success">Success</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="warning">Warning</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="danger">Danger</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="black">Black</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="white">White</Box>
+      </Column>
+    </Columns>
+  ),
+  name: 'Background Colors',
+};
+
+export const ColorShades: Story = {
+  render: () => (
+    <Buttons>
+      <Button color="primary" colorShade="10">
+        Primary 10
+      </Button>
+      <Button color="primary" colorShade="30">
+        Primary 30
+      </Button>
+      <Button color="primary" colorShade="60">
+        Primary 60
+      </Button>
+      <Button color="primary" colorShade="90">
+        Primary 90
+      </Button>
+      <Button color="primary" colorShade="invert">
+        Primary Invert
+      </Button>
+    </Buttons>
+  ),
+  name: 'Color Shades',
+};
+
+export const BackgroundColorShades: Story = {
+  render: () => (
+    <Columns isMultiline>
+      <Column size="one-quarter">
+        <Box bgColor="primary" colorShade="10">
+          Primary 10
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="primary" colorShade="30">
+          Primary 30
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="primary" colorShade="60">
+          Primary 60
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="primary" colorShade="90">
+          Primary 90
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="primary" colorShade="invert">
+          Primary Invert
+        </Box>
+      </Column>
+    </Columns>
+  ),
+  name: 'Background Color Shades',
+};
+
+export const Margin: Story = {
+  render: () => (
+    <>
+      <Buttons>
+        <Button>Left</Button>
+        <Button m="4">Margin 4</Button>
+        <Button>Right</Button>
+      </Buttons>
+      <Buttons mt="5" mb="5">
+        <Button>Top/Bottom Margin</Button>
+        <Button>Row 2</Button>
+      </Buttons>
+    </>
+  ),
+  name: 'Margin',
+};
+
+export const TextSize: Story = {
+  render: () => (
+    <>
+      <Notification textSize="1">Size 1</Notification>
+      <Notification textSize="3">Size 3</Notification>
+      <Notification textSize="5">Size 5</Notification>
+      <Notification textSize="7">Size 7</Notification>
+    </>
+  ),
+  name: 'Text Size',
+};
+
+export const TextAlign: Story = {
+  render: () => (
+    <>
+      <Box textAlign="centered">Centered text</Box>
+      <Box textAlign="right">Right aligned text</Box>
+      <Box textAlign="left">Left aligned text</Box>
+    </>
+  ),
+  name: 'Text Align',
+};
+
+export const TextTransform: Story = {
+  render: () => (
+    <>
+      <Content textTransform="uppercase">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textTransform="lowercase">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textTransform="capitalized">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textTransform="italic">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+    </>
+  ),
+  name: 'Text Transform',
+};
+
+export const TextWeight: Story = {
+  render: () => (
+    <>
+      <Content textWeight="light">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textWeight="normal">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textWeight="medium">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content textWeight="bold">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+    </>
+  ),
+  name: 'Text Weight',
+};
+
+export const FontFamily: Story = {
+  render: () => (
+    <>
+      <Content fontFamily="sans-serif">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content fontFamily="monospace">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content fontFamily="primary">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content fontFamily="secondary">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+      <Content fontFamily="code">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
+    </>
+  ),
+  name: 'Font Family',
+};
+
+export const Visibility: Story = {
+  render: () => (
+    <Buttons>
+      <Button visibility="hidden">Hidden</Button>
+      <Button visibility="sr-only">Screen Reader Only</Button>
+      <Button>Visible</Button>
+    </Buttons>
+  ),
+  name: 'Visibility',
+};
+
+export const Overflow: Story = {
+  render: () => (
+    <Box overflow="clipped" style={{ width: 200, height: 50 }}>
+      This is a very long line of text that will be clipped and not overflow the
+      box.
+    </Box>
+  ),
+  name: 'Overflow',
+};
+
+export const Overlay: Story = {
+  render: () => (
+    <Box overlay>
+      <span style={{ position: 'relative', zIndex: 1 }}>Content</span>
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.3)',
+          zIndex: 2,
+        }}
+      />
+    </Box>
+  ),
+  name: 'Overlay',
+};
+
+export const Interaction: Story = {
+  render: () => (
+    <>
+      <Box interaction="unselectable">This text cannot be selected.</Box>
+      <Box interaction="clickable">This box is clickable.</Box>
+    </>
+  ),
+  name: 'Interaction',
+};
+
+export const Radius: Story = {
+  render: () => (
+    <Buttons>
+      <Button radius="radiusless">Radiusless</Button>
+      <Button>Normal</Button>
+    </Buttons>
+  ),
+  name: 'Radius',
+};
+
+export const Shadowless: Story = {
+  render: () => <Box shadow="shadowless">This box has no shadow.</Box>,
+  name: 'Shadowless',
+};
+
+export const ClassName: Story = {
+  render: () => (
+    <Message className="custom-message">
+      This message uses a custom className.
+    </Message>
+  ),
+  name: 'ClassName',
 };
