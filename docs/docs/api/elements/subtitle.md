@@ -7,7 +7,7 @@ sidebar_label: SubTitle
 
 ## Overview
 
-The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1–6` and rendering as any heading or paragraph element (`h1–h6`, `p`). Use it for subheadings, section titles, and supporting text.
+The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`). Use it for subheadings, section titles, and supporting text.
 
 :::info
 `SubTitle` helps create clarity in content structure, especially when paired with `Title`.
