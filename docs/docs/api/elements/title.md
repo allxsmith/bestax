@@ -7,7 +7,7 @@ sidebar_label: Title
 
 ## Overview
 
-The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`–`6`, spacing, and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for section headings, page titles, and prominent text.
+The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`). Use it for section headings, page titles, and prominent text.
 
 :::info
 Pair `Title` with `SubTitle` for semantic and visually balanced headings.
