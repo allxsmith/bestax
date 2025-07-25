@@ -53,7 +53,11 @@ The latest Bulma V1 is supported by **bestax-bulma**.
 
 bestax-bulma is organized into several major directories. Here’s a high-level overview with links to API docs for each section:
 
-### 🟢 [Elements](/docs/category/elements)
+### 🟢 Elements
+
+:::info
+See the [Elements summary](./elements.md) for a quick overview, or browse all [Elements](/docs/category/elements) in the API docs.
+:::
 
 Basic Bulma elements made available as React components.
 
@@ -73,21 +77,33 @@ Basic Bulma elements made available as React components.
 - [Title](/docs/api/elements/title) – A styled title.
 - [SubTitle](/docs/api/elements/subtitle) – A styled SubTitle, goes well under a Title.
 
-### 🟦 [Columns](/docs/category/columns)
+### 🟦 Columns
+
+:::info
+See the [Columns summary](./columns.md) for a quick overview, or browse all [Columns](/docs/category/columns) in the API docs.
+:::
 
 Responsive and flexible row-column layouts using Bulma’s columns system.
 
 - [Columns](/docs/api/columns) – Row container for columns.
 - [Column](/docs/api/columns/column) – Individual grid column.
 
-### 🟩 [Grid](/docs/category/grid)
+### 🟩 Grid
+
+:::info
+See the [Grid summary](./grid.md) for a quick overview, or browse all [Grid](/docs/category/grid) in the API docs.
+:::
 
 CSS Grid support, using Bulma’s new grid utilities.
 
 - [Grid](/docs/api/grid) – CSS grid container.
 - [Cell](/docs/api/grid/cell) – CSS grid cell.
 
-### 🟨 [Layout](/docs/category/layout)
+### 🟨 Layout
+
+:::info
+See the [Layout summary](./layout.md) for a quick overview, or browse all [Layout](/docs/category/layout) in the API docs.
+:::
 
 High-level layout primitives for structuring your app.
 
@@ -98,7 +114,11 @@ High-level layout primitives for structuring your app.
 - [Media](/docs/api/layout/media) – Flexible media object for avatars/media + content.
 - [Footer](/docs/api/layout/footer) – Page footer.
 
-### 🟧 [Components](/docs/category/components)
+### 🟧 Components
+
+:::info
+See the [Components summary](./components.md) for a quick overview, or browse all [Components](/docs/category/components) in the API docs.
+:::
 
 Reusable UI widgets and navigation components.
 
@@ -113,7 +133,11 @@ Reusable UI widgets and navigation components.
 - [Panel](/docs/api/components/panel) – Sidebar menu/panel with subcomponents (tabs, blocks, icons).
 - [Tabs/Tab](/docs/api/components/tabs) – Tab navigation with tab list and tab item.
 
-### 🟪 [Form](/docs/category/form)
+### 🟪 Form
+
+:::info
+See the [Form summary](./form.md) for a quick overview, or browse all [Form](/docs/category/form) in the API docs.
+:::
 
 Accessible, fully styled form controls supporting all Bulma modifiers.
 
@@ -128,7 +152,11 @@ Accessible, fully styled form controls supporting all Bulma modifiers.
 
 ---
 
-### 🟦 [Helpers](/docs/category/helpers)
+### 🟦 Helpers
+
+:::info
+See the [Helpers summary](./helpers.md) for a quick overview, or browse all [Helpers](/docs/category/helpers) in the API docs.
+:::
 
 Little helpers used throughout this package to aid with translating properties to bulma classes. Recommended to use if you want to create your own components that are bulma powered.
 

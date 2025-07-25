@@ -161,7 +161,7 @@ A responsive navigation bar with support for branding, menus, dropdowns, and mor
 <Navbar>
   <Navbar.Brand>
     <Navbar.Item href="#">
-      <img src="logo.svg" alt="Logo" width="112" height="28" />
+      <img src="/img/logo.svg" alt="Logo" />
     </Navbar.Item>
     <Navbar.Burger active={false} onClick={() => {}} />
   </Navbar.Brand>

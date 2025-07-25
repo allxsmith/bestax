@@ -29,7 +29,7 @@ A responsive layout wrapper for centering and constraining content. Supports fix
 A visually striking section for headers, banners, or landing areas. Supports color, size, fullheight, and composition with `Hero.Head`, `Hero.Body`, and `Hero.Foot`.
 
 ```tsx live
-<Hero>
+<Hero color="link">
   <Hero.Body>
     <Container>
       <Title>Hero title</Title>
@@ -48,9 +48,9 @@ A visually striking section for headers, banners, or landing areas. Supports col
 A semantic, accessible site footer for copyright, links, or extra info. Supports color, background, and custom content.
 
 ```tsx live
-<Footer>
+<Footer backgroundColor="dark">
   <Content textAlign="centered">
-    <p>Copyright © 2025</p>
+    <p>Copyright © 2025 Bestax-Bulma</p>
   </Content>
 </Footer>
 ```
@@ -104,13 +104,22 @@ Implements Bulma’s media object layout for aligning images/icons with content 
 ```tsx live
 <Media>
   <Media.Left>
-    <img src="avatar.png" alt="avatar" />
+    <Image src="/img/logo.svg" size="64x64" />
   </Media.Left>
   <Media.Content>
-    <p>Main content</p>
+    <p>
+      <strong>Bestax Bulma</strong> <small>@allxsmith/bestax</small>{' '}
+      <small>TS</small>
+      <br />
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam ultricies
+      nisi neque, eu accumsan dui tempus id. Nunc fringilla, est at tincidunt
+      iaculis, diam dui aliquet magna, in imperdiet leo lorem eget augue.
+      Pellentesque vel nisl non sem condimentum elementum non sed nibh. Donec
+      venenatis a diam a tempor.
+    </p>
   </Media.Content>
   <Media.Right>
-    <button>Reply</button>
+    <Delete />
   </Media.Right>
 </Media>
 ```
