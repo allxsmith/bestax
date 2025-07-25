@@ -207,7 +207,7 @@ Use the `textColor` and `bgColor` props to override default colors with custom c
 
 ```tsx live
 <Button textColor="danger" bgColor="info">
-  Custom Text & Background
+  Custom Text &amp; Background
 </Button>
 ```
 
