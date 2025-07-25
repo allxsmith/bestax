@@ -44,6 +44,8 @@ import { Modal } from '@allxsmith/bestax-bulma';
 
 ### Modal Card (with title and footer)
 
+To display a modal dialog with a header and footer, use the `Modal` component with the `active` prop to control visibility, and provide `modalCardTitle` and `modalCardFoot` for the card layout. The `onClose` prop handles closing the modal, and you can use Bulma color helpers for further customization. This pattern is ideal for forms, confirmations, or any content that requires user attention in a focused overlay.
+
 ```tsx live
 function example() {
   const [open, setOpen] = useState(false);
@@ -75,6 +77,8 @@ function example() {
 
 ### Modal Card (title only)
 
+Provide only the `modalCardTitle` prop to display a modal card with a header and body, but no footer. This is useful for simple dialogs or information popups that do not require actions in the footer area.
+
 ```tsx live
 function example() {
   const [open, setOpen] = useState(false);
@@ -100,6 +104,8 @@ function example() {
 
 ### Modal Card (footer only)
 
+Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for confirmation dialogs or actions that do not require a title.
+
 ```tsx live
 function example() {
   const [open, setOpen] = useState(false);
@@ -124,6 +130,8 @@ function example() {
 ---
 
 ### Modal Content (no card title or footer)
+
+Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for popovers, custom layouts, or when you want full control over the modal's appearance.
 
 ```tsx live
 function example() {
@@ -151,6 +159,8 @@ function example() {
 
 #### Force content style
 
+Set the `type` prop to `content` to force the modal to use the content style, regardless of whether a title or footer is provided. This is useful for custom layouts or when you want to avoid the card structure.
+
 ```tsx live
 function example() {
   const [open, setOpen] = useState(false);
@@ -169,6 +179,8 @@ function example() {
 ```
 
 #### Force card style
+
+Set the `type` prop to `card` to force the modal to use the card style, even if no title or footer is provided. This is helpful for consistent styling across your app.
 
 ```tsx live
 function example() {

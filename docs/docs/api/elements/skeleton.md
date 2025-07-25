@@ -39,11 +39,15 @@ import { Skeleton } from '@allxsmith/bestax-bulma';
 
 ### Default Skeleton
 
+The default usage of the `Skeleton` component renders a block placeholder, ideal for simulating loading content such as cards, images, or sections.
+
 ```tsx live
 <Skeleton />
 ```
 
 ### Skeleton Text
+
+Use the `children` prop to display placeholder text or content inside the skeleton block. This is useful for simulating paragraphs or multi-line content while data is loading.
 
 ```tsx live
 <Skeleton>
@@ -60,6 +64,8 @@ import { Skeleton } from '@allxsmith/bestax-bulma';
 
 ### Lines Skeleton
 
+The `lines` variant of the `Skeleton` component renders multiple line placeholders, perfect for simulating text content loading. Use the `lines` prop to specify the number of lines.
+
 ```tsx live
 <Skeleton variant="lines" lines={5} />
 ```
@@ -72,6 +78,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 
 #### Skeleton Button
 
+Demonstrates a button with a skeleton loader, useful for indicating an action is in progress.
+
 ```tsx live
 <Button skeleton style={{ width: 120 }}>
   Skeleton Button
@@ -79,6 +87,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 ```
 
 #### Skeleton Buttons Group
+
+A group of buttons with skeleton loaders, ideal for simulating multiple actions loading simultaneously.
 
 ```tsx live
 <Buttons>
@@ -96,6 +106,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 
 #### Skeleton Icon
 
+An icon with a skeleton loader, perfect for indicating an icon's action is loading.
+
 ```tsx live
 <Icon
   name="star"
@@ -106,6 +118,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 ```
 
 #### Skeleton Image
+
+An image with a skeleton loader, great for simulating image loading.
 
 ```tsx live
 <Image
@@ -118,6 +132,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 ```
 
 #### Skeleton Media
+
+Media object with a skeleton loader, useful for indicating media content is loading.
 
 ```tsx live
 <Media skeleton>
@@ -144,6 +160,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 
 #### Skeleton Notification
 
+A notification with a skeleton loader, ideal for indicating a message or alert is loading.
+
 ```tsx live
 <Notification skeleton style={{ width: 300 }}>
   Skeleton notification message.
@@ -151,6 +169,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 ```
 
 #### Skeleton Tag
+
+A tag with a skeleton loader, great for simulating tag or category loading.
 
 ```tsx live
 <Tag skeleton style={{ width: 100, display: 'inline-block' }}>
@@ -160,6 +180,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 
 #### Skeleton Title
 
+A title with a skeleton loader, useful for indicating a section or heading is loading.
+
 ```tsx live
 <Title skeleton size="2" style={{ width: 180 }}>
   Skeleton Title
@@ -167,6 +189,8 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 ```
 
 #### Skeleton SubTitle
+
+A subtitle with a skeleton loader, perfect for simulating secondary heading loading.
 
 ```tsx live
 <SubTitle skeleton size="4" style={{ width: 140 }}>
@@ -176,11 +200,15 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 
 #### Skeleton Input
 
+An input field with a skeleton loader, ideal for indicating form input is loading.
+
 ```tsx live
 <Input skeleton placeholder="Skeleton Input" style={{ width: 160 }} />
 ```
 
 #### Skeleton TextArea
+
+A textarea with a skeleton loader, useful for simulating multi-line text input loading.
 
 ```tsx live
 <TextArea

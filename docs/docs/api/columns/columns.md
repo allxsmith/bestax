@@ -49,6 +49,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Basic Columns
 
+This example shows the `Columns` component containing multiple `Column` children. Each `Column` can contain any content, and the columns will be distributed evenly across the container. Use this pattern for flexible horizontal layouts.
+
 ```tsx live
 <Columns>
   <Column>
@@ -69,6 +71,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Columns on Mobile and Desktop
+
+This example demonstrates the `isMobile` prop, which enables the columns layout on mobile screens and up. Use this to ensure your layout is responsive and adapts to smaller devices.
 
 ```tsx live
 <>
@@ -120,6 +124,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Different Column Sizes Per Breakpoint
 
+This example demonstrates how to set different column sizes for various breakpoints using the `size` props. This allows for a highly responsive design that can adapt to different screen sizes.
+
 ```tsx live
 <Columns isMobile>
   <Column
@@ -160,6 +166,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Nested Columns
 
+This example shows how columns can be nested within each other. Nested columns inherit the properties of their parent columns, allowing for complex and flexible layouts.
+
 ```tsx live
 <Columns>
   <Column>
@@ -193,6 +201,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Gap Sizes & Responsive Gaps
+
+This example demonstrates the use of the `gapSize` prop to control the space between columns. Responsive gap sizes can also be set for different screen sizes.
 
 ```tsx live
 <>
@@ -230,6 +240,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Offsets
+
+This example shows how to use the `offset` prop to create space between columns. Offsets can be used to center columns or create more complex layouts.
 
 ```tsx live
 <>
@@ -270,6 +282,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Narrow Columns
 
+This example demonstrates the `isNarrow` prop, which can be applied to columns to make them take up only as much space as their content. This is useful for sidebar or menu columns.
+
 ```tsx live
 <Columns>
   <Column isNarrow>
@@ -293,6 +307,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Gapless Columns
 
+This example shows how to create columns without any gaps between them using the `isGapless` prop. This can be useful for creating a more seamless look.
+
 ```tsx live
 <Columns isGapless>
   <Column>
@@ -313,6 +329,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Multiline and Gapless
+
+This example demonstrates using the `isMultiline` and `isGapless` props together. This allows for a grid that wraps onto multiple lines without any gaps between the columns.
 
 ```tsx live
 <Columns isGapless isMultiline isMobile>
@@ -349,6 +367,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Variable Gap
+
+This example demonstrates how to use the `gapSize` prop to create columns with variable widths. This can be useful for creating layouts with sidebars or varying content widths.
 
 ```tsx live
 <>
@@ -397,6 +417,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Breakpoint Based Column Gaps
 
+This example shows how to set different gap sizes for different breakpoints. This allows for fine-tuned control over the layout on various screen sizes.
+
 ```tsx live
 <Columns
   gapSizeMobile={1}
@@ -417,6 +439,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Vertical Alignment
 
+This example demonstrates the `isVCentered` prop, which vertically centers the content of the columns. This can be useful for creating evenly aligned layouts.
+
 ```tsx live
 <Columns isVCentered>
   <Column size={8}>
@@ -434,6 +458,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Multiline Columns
+
+This example shows how columns can automatically wrap onto multiple lines when there isn't enough space to display them in a single line. This is controlled by the `isMultiline` prop.
 
 ```tsx live
 <Columns isMultiline isMobile>
@@ -487,6 +513,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ### Centering Columns
 
+This example demonstrates the `isCentered` prop, which horizontally centers the columns within the container. This is particularly useful for creating balanced layouts.
+
 ```tsx live
 <Columns isMobile isCentered>
   <Column size="half">
@@ -501,6 +529,8 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 ---
 
 ### Multiline Centered Columns
+
+This example shows how to combine the `isCentered` prop with multiline columns. This allows for a centered, responsive grid that adapts to different screen sizes.
 
 ```tsx live
 <Columns isMobile isMultiline isCentered>

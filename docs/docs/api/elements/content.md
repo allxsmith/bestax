@@ -41,6 +41,8 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Default Content
 
+The simplest use of the `Content` component, rendering a paragraph with default styles.
+
 ```tsx live
 <Content>
   <p>This is a paragraph inside Content.</p>
@@ -49,11 +51,15 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Primary Text Color
 
+Use the `textColor` prop to apply Bulma's text color helpers. This example uses `textColor="primary"` to make the text color primary.
+
 ```tsx live
 <Content textColor="primary">Content with Primary Text</Content>
 ```
 
 ### Light Background
+
+The `bgColor` prop applies a background color helper. Here, `bgColor="light"` gives the content a light background.
 
 ```tsx live
 <Content bgColor="light">Content with Light Background</Content>
@@ -61,11 +67,15 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Medium Size
 
+The `size` prop allows you to adjust the overall font size and spacing of the content. Here, `size="medium"` increases the text size and padding for better readability.
+
 ```tsx live
 <Content size="medium">Content with Medium Size</Content>
 ```
 
 ### Spacing and Alignment
+
+You can use Bulma helper props like `m`, `p`, and `textAlign` to control margin, padding, and text alignment. This example centers the text and adds margin and padding for a visually balanced content block.
 
 ```tsx live
 <Content m="4" p="4" textAlign="centered">
@@ -75,11 +85,15 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Custom Class
 
+Add your own CSS classes with the `className` prop to further customize the content's appearance or behavior, such as adding custom backgrounds or effects.
+
 ```tsx live
 <Content className="custom-content-class">Content with Custom Class</Content>
 ```
 
 ### Viewport-Specific Text Color
+
+The `viewport` prop lets you apply color or other helpers at specific breakpoints. Here, `textColor="primary"` is only applied on tablet and larger screens, making the content adapt to different devices.
 
 ```tsx live
 <Content textColor="primary" viewport="tablet">
@@ -88,6 +102,8 @@ import { Content } from '@allxsmith/bestax-bulma';
 ```
 
 ### Interactive Content
+
+Combine multiple props such as `textColor`, `bgColor`, `size`, `m`, `p`, and `textAlign` to create visually distinct and interactive content blocks for advanced layouts or callouts.
 
 ```tsx live
 <Content
@@ -104,6 +120,8 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 ### Typographic Elements
 
+The `Content` component automatically styles HTML elements like headings, paragraphs, lists, and blockquotes. This example demonstrates how various HTML tags are rendered with Bulma's typographic styles.
+
 ```tsx live
 <Content textColor="info" p="3">
   <h1>Heading 1</h1>
@@ -117,6 +135,8 @@ import { Content } from '@allxsmith/bestax-bulma';
 ```
 
 ### Rich Content (all HTML tags, various sizes)
+
+This example shows a mix of headings, lists, blockquotes, and tables, with the `size` and `textColor` props applied. Use this for rendering rich, markdown-like content with consistent Bulma styling.
 
 ```tsx live
 <Content size="small" textColor="primary" p="3">

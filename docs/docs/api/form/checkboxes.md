@@ -33,6 +33,8 @@ import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 
 ### Grouped Checkboxes
 
+This example demonstrates the `Checkboxes` component wrapping multiple `Checkbox` children. Use this pattern for vertical lists of boolean options, such as to-do lists or preference selections. Each `Checkbox` receives its own label via the `children` prop.
+
 ```tsx live
 <Checkboxes>
   <Checkbox>Make the bed</Checkbox>

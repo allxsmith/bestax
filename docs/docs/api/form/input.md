@@ -41,6 +41,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Default Input
 
+This example shows a standard text input using the `Input` component, wrapped in a `Field` and `Control` for proper Bulma form structure. The `placeholder` prop provides hint text for the user.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -52,6 +54,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### Color Inputs
+
+This example demonstrates the `color` prop, which applies Bulma color modifiers to the input. Use `color="primary"`, `color="link"`, `color="info"`, or `color="success"` to visually distinguish input fields based on context or validation state.
 
 ```tsx live
 <>
@@ -97,6 +101,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Sizes
 
+This section demonstrates the `size` prop, allowing you to control the input's size. Options include `size="small"`, `size="medium"`, and `size="large"`.
+
 ```tsx live
 <>
   <Field label="Small">
@@ -129,6 +135,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Style: Rounded
 
+This example shows the `isRounded` prop, which gives the input rounded corners for a softer appearance.
+
 ```tsx live
 <Field label="Rounded">
   <Control>
@@ -140,6 +148,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### States
+
+This section demonstrates the various states an input can have. The `isHovered`, `isFocused`, and `isLoading` props control these states.
 
 ```tsx live
 <>
@@ -173,6 +183,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Loading States by Size
 
+This example shows how the loading indicator looks with different input sizes. The `isLoading` prop is used in conjunction with the `size` prop.
+
 ```tsx live
 <>
   <Field label="Loading Small">
@@ -205,6 +217,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Disabled & Read Only
 
+This example demonstrates the `disabled` and `readOnly` props. Disabled inputs cannot be interacted with, while read-only inputs can be focused but not edited.
+
 ```tsx live
 <>
   <Field label="Disabled">
@@ -225,6 +239,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ### Static State
 
+The static state is useful for displaying non-editable information alongside editable fields. The `isStatic` prop makes the input non-interactive.
+
 ```tsx live
 <>
   <Field horizontal label="Username">
@@ -243,6 +259,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons (Left and Right)
+
+This example shows how to add icons to the left and right of the input using the `hasIconsLeft` and `hasIconsRight` props. The `iconLeft` and `iconRight` props define the icons to be used.
 
 ```tsx live
 <>
@@ -273,6 +291,8 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons and Size Variations
+
+This example demonstrates using icons with different size variations of the input. The `size` prop is used to control the input size, while the icon sizes are controlled via the `iconLeft` and `iconRight` props.
 
 ```tsx live
 <>

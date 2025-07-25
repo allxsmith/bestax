@@ -41,11 +41,15 @@ import { Progress } from '@allxsmith/bestax-bulma';
 
 ### Default Progress
 
+The default usage of the `Progress` component displays a horizontal progress bar. Set the `value` and `max` props to indicate completion percentage or progress toward a goal.
+
 ```tsx live
 <Progress value={50} max={100} />
 ```
 
 ### Colored Progress
+
+Set the `color` prop to visually distinguish different types of progress. Use color variants like `primary`, `success`, `warning`, `danger`, `info`, or `link` to match the context of the task or status.
 
 ```tsx live
 <>
@@ -60,6 +64,8 @@ import { Progress } from '@allxsmith/bestax-bulma';
 
 ### Sizing
 
+Adjust the size of the progress bar using the `size` prop. Options include `small`, `medium`, or `large` to fit the design requirements of your application.
+
 ```tsx live
 <>
   <Progress size="small" value={50} max={100} />
@@ -70,17 +76,23 @@ import { Progress } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+Utilize Bulma's spacing helpers by adding margin props like `m="4"` to control the progress bar's margin. This example applies a margin of 4 units.
+
 ```tsx live
 <Progress value={50} max={100} m="4" />
 ```
 
 ### Indeterminate Progress
 
+For tasks with unknown progress, use the indeterminate state by omitting the `value` prop. This example shows a primary colored indeterminate progress bar.
+
 ```tsx live
 <Progress color="primary" max={100} />
 ```
 
 ### Custom Content
+
+The `Progress` component allows for custom content inside the progress bar. This example shows how to display text content indicating the completion percentage.
 
 ```tsx live
 <Progress value={50} max={100}>
@@ -89,6 +101,8 @@ import { Progress } from '@allxsmith/bestax-bulma';
 ```
 
 ### Multiple Indeterminate
+
+Easily create multiple indeterminate progress bars with different sizes and colors. This example demonstrates a combination of small, medium, and large indeterminate bars.
 
 ```tsx live
 <>

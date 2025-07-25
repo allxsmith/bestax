@@ -7,7 +7,7 @@ sidebar_label: Title
 
 ## Overview
 
-The `Title` component renders a Bulma-styled title (heading), supporting sizes 1–6, spacing, and rendering as any heading or paragraph element (`h1`–`h6`, `p`). Use it for section headings, page titles, and prominent text.
+The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`). Use it for section headings, page titles, and prominent text.
 
 :::info
 Pair `Title` with `SubTitle` for semantic and visually balanced headings.
@@ -42,11 +42,15 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Default Title
 
+A basic `Title` renders a prominent heading. Use this for main section or page titles.
+
 ```tsx live
 <Title>Default Title</Title>
 ```
 
 ### Has Skeleton
+
+Set the `hasSkeleton` prop to apply a skeleton effect to part of the title, useful for partial loading states.
 
 ```tsx live
 <Title hasSkeleton>Title with Skeleton Effect</Title>
@@ -56,6 +60,8 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Is Skeleton
 
+Set the `skeleton` prop to apply a skeleton effect to the entire title, indicating that the whole heading is loading.
+
 ```tsx live
 <Title skeleton>Title Skeleton Effect</Title>
 ```
@@ -63,6 +69,8 @@ import { Title } from '@allxsmith/bestax-bulma';
 `skeleton` applies the `is-skeleton` class to the entire title, making the whole heading appear as a skeleton placeholder.
 
 ### Different Sizes
+
+Adjust the `size` prop to render the title in different Bulma-styled sizes, from `1` to `6`.
 
 ```tsx live
 <>
@@ -73,17 +81,23 @@ import { Title } from '@allxsmith/bestax-bulma';
 
 ### Spaced Title
 
+Use the `isSpaced` prop to add margin below the title, creating visual separation from other content.
+
 ```tsx live
 <Title isSpaced>Spaced Title</Title>
 ```
 
 ### With Margin
 
+Utilize margin helper props like `m="4"` to add custom margins around the title.
+
 ```tsx live
 <Title m="4">Title with Margin</Title>
 ```
 
 ### As Paragraph
+
+Render the title as a paragraph element by setting the `as` prop to `"p"`, while still applying heading styles.
 
 ```tsx live
 <Title as="p" size="3">
@@ -92,6 +106,8 @@ import { Title } from '@allxsmith/bestax-bulma';
 ```
 
 ### All Sizes
+
+Quickly render titles of all sizes from `1` to `6` using a map function. This is useful for demonstrating or testing all size variations.
 
 ```tsx live
 <>
@@ -104,6 +120,8 @@ import { Title } from '@allxsmith/bestax-bulma';
 ```
 
 ### Title and Subtitle
+
+Combine `Title` with `SubTitle` for a structured heading and subheading layout. This is ideal for emphasizing the relationship between a title and its subtitle.
 
 ```tsx live
 <Block>

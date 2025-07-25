@@ -41,6 +41,8 @@ import { Section } from '@allxsmith/bestax-bulma';
 
 ### Default Section
 
+This example shows a standard `Section` component, which provides vertical spacing and visual separation for your content. Use the `Section` component to break up your page into logical areas, such as headers, main content, or footers.
+
 ```tsx live
 <Section>
   <Title>Section</Title>
@@ -53,6 +55,8 @@ import { Section } from '@allxsmith/bestax-bulma';
 ---
 
 ### Medium Section
+
+Set the `size` prop to `"medium"` to increase the vertical spacing of the section. This is useful for visually emphasizing certain areas of your layout.
 
 ```tsx live
 <Section size="medium">
@@ -67,6 +71,8 @@ import { Section } from '@allxsmith/bestax-bulma';
 ---
 
 ### Large Section
+
+Set the `size` prop to `"large"` for even more vertical spacing. Use this for prominent page sections or to create clear separation between major content blocks.
 
 ```tsx live
 <Section size="large">

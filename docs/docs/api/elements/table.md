@@ -89,26 +89,37 @@ import {
 
 ## Usage
 
-### Basic Table
+### Default Table
+
+To create a basic table, use the `Table` component along with its subcomponents: `Thead`, `Tbody`, `Tr`, `Th`, and `Td`. This approach provides a clear, semantic structure for your data and leverages Bulma's default table styling. Use this pattern for any standard tabular data display in your application.
 
 ```tsx live
 <Table>
   <Thead>
     <Tr>
-      <Th>Column 1</Th>
-      <Th>Column 2</Th>
+      <Th>Name</Th>
+      <Th>Age</Th>
+      <Th>Role</Th>
     </Tr>
   </Thead>
   <Tbody>
     <Tr>
-      <Td>Cell 1</Td>
-      <Td>Cell 2</Td>
+      <Td>Alice</Td>
+      <Td>30</Td>
+      <Td>Engineer</Td>
+    </Tr>
+    <Tr>
+      <Td>Bob</Td>
+      <Td>28</Td>
+      <Td>Designer</Td>
     </Tr>
   </Tbody>
 </Table>
 ```
 
 ### All Modifiers
+
+Showcase the full range of table customization by combining multiple props on the `Table` component. Use `isBordered` to add borders, `isStriped` for zebra-striping, `isNarrow` for compact cells, `isHoverable` for row hover effects, `isFullwidth` to stretch the table to its container, and `isResponsive` for horizontal scrolling on small screens. These modifiers can be mixed and matched to achieve the exact look and behavior you need.
 
 ```tsx live
 <Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>
@@ -132,6 +143,8 @@ import {
 ```
 
 ### Responsive Table (horizontal scroll on mobile)
+
+Enable the `isResponsive` prop to make your table horizontally scrollable on small screens. This ensures that wide tables with many columns remain accessible and readable on mobile devices, without breaking the layout or hiding data.
 
 ```tsx live
 <Table isResponsive>
@@ -158,6 +171,8 @@ import {
 
 ### Colored Cells
 
+Apply the `color` prop to individual `Td` cells to use Bulma's color modifiers. This is helpful for highlighting important data, categorizing information, or simply making your tables more visually engaging. You can use colors like `primary`, `success`, `warning`, `danger`, `info`, and more.
+
 ```tsx live
 <Table isBordered isFullwidth>
   <Thead>
@@ -181,6 +196,8 @@ import {
 ```
 
 ### Highlighted Row
+
+Use the `isSelected` prop on a `Tr` to highlight a specific row. This is ideal for drawing attention to active selections, search results, or rows that require user action.
 
 ```tsx live
 <Table isFullwidth>
@@ -207,6 +224,8 @@ import {
 ```
 
 ### Custom Alignment and Width
+
+To control the alignment and width of table header cells, use the `isAligned` and `width` props on the `Th` component. Set `isAligned` to `left`, `right`, or `centered` to adjust text alignment, and use `width` with a number or string (e.g., `width={200}` or `width="100px"`) to specify the column width. This is useful for formatting tables with specific layout requirements or for emphasizing certain columns.
 
 ```tsx live
 <Table>

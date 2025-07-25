@@ -47,6 +47,8 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### Default Hero
 
+This example shows a standard `Hero` component with a centered title and subtitle. Use the `Hero` component to create visually striking banners or headers for your app. The `Hero.Body` subcomponent centers the content vertically.
+
 ```tsx live
 <Hero>
   <Hero.Body>
@@ -61,6 +63,8 @@ import { Hero } from '@allxsmith/bestax-bulma';
 ---
 
 ### All Colors
+
+This example demonstrates the `color` prop, which applies Bulma color modifiers to the hero section. Use different `color` values to visually distinguish sections or indicate context.
 
 ```tsx live
 <>
@@ -119,6 +123,8 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### All Sizes
 
+This example showcases the `size` prop to demonstrate the different predefined hero sizes. Combine with the `color` prop for varied visual effects.
+
 ```tsx live
 <>
   <Hero color="info" size="small">
@@ -160,6 +166,8 @@ import { Hero } from '@allxsmith/bestax-bulma';
 
 ### Fullheight with Navbar
 
+This example demonstrates using the `fullheightWithNavbar` prop to create a hero that takes the full height of the screen, adjusting for the height of the navbar. This is useful for landing pages or sections that require prominent visibility.
+
 ```tsx live
 <>
   <Navbar>
@@ -195,6 +203,8 @@ import { Hero } from '@allxsmith/bestax-bulma';
 ---
 
 ### Fullheight with Head, Body, and Foot
+
+This example shows a comprehensive usage of the `Hero` component with all its subcomponents: `Hero.Head`, `Hero.Body`, and `Hero.Foot`. It's a complete layout for a hero section, including navigation, main content, and footer tabs.
 
 ```tsx live
 <Hero color="primary" size="medium">

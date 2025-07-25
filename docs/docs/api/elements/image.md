@@ -46,6 +46,8 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### Default Image
 
+The simplest usage of the `Image` component, requiring only the `src` and `alt` props. The `size` prop controls the dimensions.
+
 ```tsx live
 <Image
   src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
@@ -56,11 +58,15 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### Rounded Image
 
+The `isRounded` prop adds rounded corners to the image, useful for profile pictures or any image where a softer look is desired.
+
 ```tsx live
 <Image src="..." alt="Rounded image" size="128x128" isRounded />
 ```
 
 ### Retina Image
+
+The `isRetina` prop enables support for high-resolution (2x) images, ensuring crisp visuals on retina displays. Use this for logos or images that need to look sharp on all devices.
 
 ```tsx live
 <Image src="..." alt="Retina image" size="128x128" isRetina />
@@ -68,11 +74,15 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### Aspect Ratio 16:9
 
+Set the `size` prop to `16by9` to create a responsive image container with a 16:9 aspect ratio. This is ideal for video thumbnails or wide images.
+
 ```tsx live
 <Image src="..." alt="16:9 aspect ratio image" size="16by9" />
 ```
 
 ### Aspect Ratio 4:3
+
+Set the `size` prop to `4by3` for a classic photo or video aspect ratio. This helps maintain consistent layouts for media content.
 
 ```tsx live
 <Image src="..." alt="4:3 aspect ratio image" size="4by3" />
@@ -80,11 +90,15 @@ import { Image } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma spacing helpers like `m` to add margin around the image for better layout control.
+
 ```tsx live
 <Image src="..." alt="Image with margin" size="128x128" m="4" />
 ```
 
 ### With Iframe
+
+The `Image` component can wrap arbitrary children, such as iframes, to provide responsive aspect ratios and Bulma styling for embedded media.
 
 ```tsx live
 <Image size="16by9">
@@ -101,6 +115,8 @@ import { Image } from '@allxsmith/bestax-bulma';
 ```
 
 ### With Custom Child
+
+You can also wrap custom content inside the `Image` component, such as a styled div or any React node, to maintain aspect ratio and Bulma styling.
 
 ```tsx live
 <Image size="4by3">
@@ -119,6 +135,8 @@ import { Image } from '@allxsmith/bestax-bulma';
 ```
 
 ### With Text Color and Background
+
+Combine the `textColor` and `bgColor` props to style the image container for branding or emphasis.
 
 ```tsx live
 <Image

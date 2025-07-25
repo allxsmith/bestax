@@ -42,6 +42,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Single Icon + Text
 
+A basic usage of the `IconText` component with a single icon and text. The `iconProps` object receives the icon's name and an `ariaLabel` for accessibility.
+
 ```tsx live
 <IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }}>
   Star
@@ -49,6 +51,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### With Text Color
+
+You can customize the text color using Bulma's color helpers. This example shows a primary colored text.
 
 ```tsx live
 <IconText
@@ -61,6 +65,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### With Margin
 
+You can use Bulma spacing helpers like `m` to add margin around the `IconText` component for better layout control.
+
 ```tsx live
 <IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }} m="2">
   Star
@@ -68,6 +74,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### Large Icon
+
+The `iconProps` object can include Font Awesome size classes (like `fa-lg`) and color props for larger, more prominent icons. This example shows a large, colored star icon with text.
 
 ```tsx live
 <IconText
@@ -82,6 +90,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### In a Button
+
+Use `IconText` inside a button to combine an icon and label, ensuring proper alignment and spacing.
 
 ```tsx live
 <button className="button is-primary">
@@ -98,6 +108,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### In a Notification
+
+Place `IconText` inside a notification to visually pair an icon with a message, using color and margin helpers for emphasis.
 
 ```tsx live
 <div className="notification is-info">
@@ -116,6 +128,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### In a Tag
 
+Use `IconText` inside a tag for labeled icons, such as status indicators or badges.
+
 ```tsx live
 <span className="tag is-success is-medium">
   <IconText
@@ -131,6 +145,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### Multiple Icons and Text
+
+The `items` prop allows you to render a sequence of icons and optional text, perfect for visualizing progress, routes, or multi-step processes.
 
 ```tsx live
 <IconText
@@ -158,6 +174,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### Star Rating Example
+
+This example uses the `items` prop to display a star rating with icons and text, demonstrating how to build composite icon+text UIs.
 
 ```tsx live
 <IconText
@@ -194,6 +212,8 @@ import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
 ### With Flex
+
+The `display` prop can be used to apply Bulma's flexbox helpers, allowing for flexible alignment and layout of icon and text content.
 
 ```tsx live
 <IconText

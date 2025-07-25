@@ -43,6 +43,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Default Button Group
 
+The default usage of the `Buttons` component groups multiple `Button` elements together with consistent spacing. Use this for toolbars, button clusters, or any UI where you want a visually unified group of buttons.
+
 ```tsx live
 <Buttons>
   <Button color="primary">Save</Button>
@@ -52,6 +54,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 ```
 
 ### All Colors Group
+
+This example shows a group of buttons, each with a different `color` prop (`primary`, `link`, `info`, `success`, `warning`, `danger`). Use this to visually distinguish actions or statuses within a button group.
 
 ```tsx live
 <Buttons>
@@ -65,6 +69,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### All Sizes Group
 
+Demonstrates a group of buttons with different `size` props (`small`, `normal`, `medium`, `large`). Use this to show how button groups adapt to various sizing needs.
+
 ```tsx live
 <Buttons>
   {['small', 'normal', 'medium', 'large'].map(size => (
@@ -77,6 +83,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Add-ons (No Spacing Between Buttons)
 
+The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for segmented controls or tightly grouped actions.
+
 ```tsx live
 <Buttons hasAddons>
   <Button color="primary">Left</Button>
@@ -87,6 +95,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 
 ### Centered Group
 
+The `isCentered` prop centers the button group within its container. Use this for balanced layouts or when you want the group to stand out.
+
 ```tsx live
 <Buttons isCentered>
   <Button color="info">One</Button>
@@ -95,6 +105,8 @@ import { Buttons } from '@allxsmith/bestax-bulma';
 ```
 
 ### Right-Aligned Group
+
+The `isRight` prop aligns the button group to the right edge of its container. This is useful for actions that should be visually separated from other content.
 
 ```tsx live
 <Buttons isRight>

@@ -7,77 +7,6 @@ sidebar_label: Checkbox
 
 ## Overview
 
-The `Checkbox` component provides a Bulma-styled checkbox input with flexible labels and helper classes. Use it for single boolean choices, forms, or within a group using the `Checkboxes` component.
-
-:::info
-Use `Checkbox` for toggling a single item. For groups, use with `Checkboxes`.
-:::
-
----
-
-## Import
-
-```tsx
-import { Checkbox } from '@allxsmith/bestax-bulma';
-```
-
----
-
-## Props
-
-| Prop        | Type                                               | Default | Description                                      |
-| ----------- | -------------------------------------------------- | ------- | ------------------------------------------------ |
-| `disabled`  | `boolean`                                          | —       | Whether the checkbox is disabled.                |
-| `className` | `string`                                           | —       | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                  | —       | Label/content for the checkbox.                  |
-| ...         | All standard HTML `<input>` and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
----
-
-## Usage
-
-### Basic Checkbox
-
-```tsx live
-<Checkbox>Stay Signed In</Checkbox>
-```
-
-### Checkbox With Link
-
-```tsx live
-<Checkbox>
-  I have read and agree to the
-  <a href="#" target="_blank" rel="noopener noreferrer">
-    terms and conditions
-  </a>
-  .
-</Checkbox>
-```
-
-### Disabled Checkbox
-
-```tsx live
-<Checkbox disabled>Stay Signed In</Checkbox>
-```
-
----
-
-## Accessibility
-
-- The checkbox is rendered as a `<label>` wrapping an `<input type="checkbox">`.
-- The `children` prop provides the accessible label.
-
----
-
-title: Checkbox
-sidebar_label: Checkbox
-
----
-
-# Checkbox
-
-## Overview
-
 The `Checkbox` component provides a Bulma-styled checkbox input. Pass the label as children; you can include plain text, links, or custom JSX. Use it for boolean choices and combine with the `Checkboxes` component for grouped options.
 
 ---
@@ -85,8 +14,7 @@ The `Checkbox` component provides a Bulma-styled checkbox input. Pass the label 
 ## Import
 
 ```tsx live
-import Checkbox from '@allxsmith/bestax-bulma';
-import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
+import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 ```
 
 ---
@@ -106,15 +34,19 @@ import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 
 ### Basic Checkbox
 
+This example shows a simple `Checkbox` component for a single boolean choice. The label is provided as the `children` prop, and the checkbox is fully accessible and styled with Bulma.
+
 ```tsx live
 <Checkbox>Stay Signed In</Checkbox>
 ```
 
-### Checkbox With Link In Label
+### Checkbox With Link
+
+This example demonstrates using the `Checkbox` component with a custom label that includes a link. The `children` prop can contain any React nodes, such as anchor tags, to create rich, accessible labels for agreements or terms.
 
 ```tsx live
 <Checkbox>
-  I have read and agree to the{' '}
+  I have read and agree to the
   <a href="#" target="_blank" rel="noopener noreferrer">
     terms and conditions
   </a>
@@ -124,13 +56,15 @@ import Checkboxes from '@allxsmith/bestax-bulma'; // for groups
 
 ### Disabled Checkbox
 
+Set the `disabled` prop to render a non-interactive checkbox. This is useful for indicating unavailable options in forms, and the checkbox will appear visually disabled and cannot be toggled by the user.
+
 ```tsx live
 <Checkbox disabled>Stay Signed In</Checkbox>
 ```
 
 ### Group/List of Checkboxes
 
-Use the `Checkboxes` wrapper for a vertical group.
+This example uses the `Checkboxes` component to render a vertical group of checkboxes. Each `Checkbox` receives its own label via the `children` prop. Use this pattern for lists of boolean options, such as tasks or preferences.
 
 ```tsx live
 <Checkboxes>

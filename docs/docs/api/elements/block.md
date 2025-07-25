@@ -40,11 +40,15 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Default Block
 
+The default usage of the `Block` component creates a vertical space between content sections. Use this for separating paragraphs, images, or UI elements in your layout.
+
 ```tsx live
 <Block>Default Block</Block>
 ```
 
 ### Primary Text Color
+
+Set the text color using the `textColor` prop. For example, `textColor="primary"` applies Bulma's primary color to the text inside the block, making it stand out for emphasis or branding.
 
 ```tsx live
 <Block textColor="primary">Block with Primary Text</Block>
@@ -52,11 +56,15 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Light Background
 
+Apply a background color using the `bgColor` prop. Here, `bgColor="light"` gives the block a subtle light background, making its content stand out from the rest of the page.
+
 ```tsx live
 <Block bgColor="light">Block with Light Background</Block>
 ```
 
 ### Spacing and Alignment
+
+You can use Bulma helper props like `m`, `p`, and `textAlign` to control margin, padding, and text alignment. This example centers the text and adds margin and padding for a visually balanced block.
 
 ```tsx live
 <Block m="4" p="4" textAlign="centered">
@@ -66,11 +74,15 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Custom Class
 
+Add your own CSS classes with the `className` prop to further customize the block's appearance or behavior, such as adding custom backgrounds or effects.
+
 ```tsx live
 <Block className="custom-block-class">Block with Custom Class</Block>
 ```
 
 ### Viewport-Specific Text Color
+
+The `viewport` prop lets you apply color or other helpers at specific breakpoints. Here, `textColor="primary"` is only applied on tablet and larger screens, making the block adapt to different devices.
 
 ```tsx live
 <Block textColor="primary" viewport="tablet">
@@ -80,6 +92,8 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Interactive Block with Multiple Props
 
+Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign` to create visually distinct and interactive blocks for advanced layouts or callouts.
+
 ```tsx live
 <Block textColor="success" bgColor="dark" m="3" p="3" textAlign="right">
   Interactive Block
@@ -88,10 +102,10 @@ import { Block } from '@allxsmith/bestax-bulma';
 
 ### Stacked Blocks (Demonstrating Vertical Spacing)
 
+This example shows how stacking multiple `Block` components creates consistent vertical spacing between each section. The inner `Notification` components have `mb={0}` to highlight the spacing provided by `Block`.
+
 :::note
-
-The notificaiton blocks have zero margin bottom assigned to illustrate the spacing the blocks provide.
-
+The notification blocks have zero margin bottom assigned to illustrate the spacing the blocks provide.
 :::
 
 ```tsx live

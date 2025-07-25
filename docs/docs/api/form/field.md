@@ -43,6 +43,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Checkbox
 
+This example demonstrates using the `Field` component to label a single `Checkbox`. The `label` prop provides the field label, and the `Checkbox` is rendered as the field's content.
+
 ```tsx live
 <Field label="Stay Signed In">
   <Checkbox>Stay Signed In</Checkbox>
@@ -52,6 +54,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Checkbox and Custom Label (with link)
+
+Use the `Field` component to group a `Checkbox` with a custom label containing a link. This pattern is useful for agreements or terms and conditions.
 
 ```tsx live
 <Field label="Agreement">
@@ -69,6 +73,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Grouped Checkboxes
 
+This example shows how to use the `Field` component to label a group of checkboxes. The `Checkboxes` component is used as the field content, and each `Checkbox` receives its own label.
+
 ```tsx live
 <Field label="Chores">
   <Checkboxes>
@@ -83,6 +89,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With File
 
+This example demonstrates using the `Field` component to label a file upload control. The `File` component is used as the field's content, with a custom label for the file input.
+
 ```tsx live
 <Field label="Upload Resume">
   <File label="Choose a file..." />
@@ -92,6 +100,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Input (Default)
+
+The `Field` component can be used to wrap an `Input` control, providing a label and styling. In this example, a default-styled `Input` is used.
 
 ```tsx live
 <Field label="Default">
@@ -104,6 +114,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Input (Sizes)
+
+This example demonstrates using the `Field` component with `Input` controls of various sizes. The `size` prop on `Input` controls the visual size of the input.
 
 ```tsx live
 <>
@@ -137,6 +149,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Input (Rounded)
 
+This example shows how to create a `Field` with a rounded `Input`. The `isRounded` prop on `Input` gives it a pill-shaped appearance.
+
 ```tsx live
 <Field label="Rounded">
   <Control>
@@ -148,6 +162,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Input (States)
+
+The `Field` component can be used with `Input` controls to demonstrate different states like hover, focus, and loading. This example shows how to apply these states to an `Input`.
 
 ```tsx live
 <>
@@ -181,6 +197,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Input (Disabled & Read Only)
 
+This example demonstrates using the `Field` component with `Input` controls that are disabled or read-only. The `disabled` and `readOnly` props control the respective states of the `Input`.
+
 ```tsx live
 <>
   <Field label="Disabled">
@@ -201,6 +219,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Input (Static, Horizontal)
 
+You can use the `Field` component to create horizontal layouts for static and editable inputs. This example shows a static `Input` next to an editable one.
+
 ```tsx live
 <>
   <Field horizontal label="Username">
@@ -220,6 +240,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Input (Icons)
 
+This example demonstrates adding icons to an `Input` within a `Field`. The `hasIconsLeft` and `hasIconsRight` props add icons to the left and right of the input, respectively.
+
 ```tsx live
 <Field>
   <Control
@@ -237,6 +259,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Radio
 
+The `Field` component can be used to group `Radio` buttons. In this example, two `Radio` buttons are grouped under the "Pet" label.
+
 ```tsx live
 <Field label="Pet">
   <Control>
@@ -251,6 +275,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Grouped Radios
+
+This example shows how to use the `Field` component to create a group of `Radio` buttons that are disabled. The `Radios` component is used to group the `Radio` buttons.
 
 ```tsx live
 <Field label="Event Response">
@@ -272,6 +298,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With Select
 
+The `Field` component can be used with a `Select` dropdown. This example shows a basic `Select` with two options.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -287,6 +315,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Select (Multi Select)
+
+This example demonstrates using the `Field` component with a multi-select `Select`. The `multiple` and `multipleSize` props on `Select` enable multiple selections.
 
 ```tsx live
 <>
@@ -325,6 +355,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Select (Colors, Sizes, Rounded, Loading, Icons)
+
+In this example, the `Field` component is used with a `Select` that has various enhancements: color, rounded corners, loading state, and icons.
 
 ```tsx live
 <>
@@ -372,6 +404,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 
 ### With TextArea
 
+The `Field` component can also be used with a `TextArea`. This example shows a basic usage with a label.
+
 ```tsx live
 <Field label="Default">
   <Control>
@@ -383,6 +417,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### With TextArea (Rows, Colors, Sizes, States, Loading, Fixed Size)
+
+This example demonstrates the versatility of the `TextArea` component used within a `Field`. It showcases various props like `rows`, `color`, `size`, and states like `loading`.
 
 ```tsx live
 <>
@@ -427,6 +463,8 @@ import { Field } from '@allxsmith/bestax-bulma';
 ---
 
 ### Grouped Controls
+
+This example demonstrates using the `Field` component to create a group of controls. The `grouped` prop is used on the `Field`, and each control is placed inside a `Control` component.
 
 ```tsx live
 <Field grouped>

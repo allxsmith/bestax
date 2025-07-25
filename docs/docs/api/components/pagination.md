@@ -51,6 +51,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 
 ### Basic Pagination
 
+This example demonstrates a basic pagination navigation using `Pagination`, `Pagination.List`, and `Pagination.Link` subcomponents. The `active` prop highlights the current page, while previous/next arrows and an ellipsis provide navigation for larger sets. Adjust the structure to match your data set or navigation needs.
+
 ```tsx live
 <Pagination>
   <Pagination.List>
@@ -68,6 +70,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 ---
 
 ### Sizes
+
+Showcases the use of the `size` prop to render paginations in different sizes. Set `size="small"`, `size="medium"`, or `size="large"` to match the pagination to your UI scale. Each instance below demonstrates a different size, with the `active` prop indicating the current page.
 
 ```tsx live
 <>
@@ -99,6 +103,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 
 ### Alignment
 
+Demonstrates the `align` prop to control the pagination alignment. Use `align="centered"` to center the pagination, or `align="right"` to align it to the right. This affects the entire pagination component, including the list of links and any additional content.
+
 ```tsx live
 <>
   <Pagination align="centered" style={{ marginBottom: 8 }}>
@@ -122,6 +128,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 
 ### Rounded
 
+This example demonstrates the `rounded` prop, which renders the pagination with rounded corners for a softer, modern look. Use `rounded` to visually distinguish pagination controls or match your app's design language.
+
 ```tsx live
 <Pagination rounded>
   <Pagination.List>
@@ -135,6 +143,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Disabled
+
+This example shows how to use the `disabled` prop on `Pagination.Link` to indicate unavailable navigation options. Here, the first link is disabled, preventing user interaction. Use `disabled` for links that should not be clickable, such as when on the first or last page.
 
 ```tsx live
 <Pagination>
@@ -153,6 +163,8 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 ---
 
 ### Controlled Pagination
+
+This example demonstrates a controlled pagination pattern using the `page` state and the `onClick` handler on each `Pagination.Link`. The current page is tracked in state, and clicking a link updates the page. Use this approach for paginations where you need to manage the current page in your app logic.
 
 ```tsx live
 const [page, setPage] = useState(1);
@@ -176,6 +188,8 @@ const [page, setPage] = useState(1);
 ---
 
 ### Previous/Next with Pagination List
+
+This example combines the `Pagination.Previous` and `Pagination.Next` subcomponents with a `Pagination.List` for a more advanced navigation pattern. Use `Previous` and `Next` for clear navigation controls, and combine with `Pagination.Link` and `Pagination.Ellipsis` for complex paginations.
 
 ```tsx live
 <Pagination align="centered">

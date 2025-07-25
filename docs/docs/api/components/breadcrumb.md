@@ -36,6 +36,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Default Breadcrumb
 
+To create a navigation trail, use the `Breadcrumb` component with a series of `<li>` elements as children. You can include icons, text, and links for each breadcrumb item. This pattern helps users understand their current location within the app and easily navigate back to previous sections. Customize the appearance using props like `alignment`, `separator`, and `size` for different layouts and styles.
+
 ```tsx live
 <Breadcrumb>
   <li>
@@ -59,6 +61,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ---
 
 ### Centered Alignment
+
+Set the `alignment` prop to `centered` to center the breadcrumb navigation horizontally. This is useful for layouts where you want the navigation to be visually balanced in the middle of the page or section. All other features, such as icons and separators, remain available.
 
 ```tsx live
 <Breadcrumb alignment="centered">
@@ -84,6 +88,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Right Alignment
 
+Use the `alignment` prop with the value `right` to align the breadcrumb navigation to the right edge of its container. This is helpful for layouts where navigation should be flush with the right margin, such as in toolbars or headers.
+
 ```tsx live
 <Breadcrumb alignment="right">
   <li>
@@ -107,6 +113,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ---
 
 ### Arrow Separator
+
+Set the `separator` prop to `arrow` to use arrow icons between breadcrumb items. This style is visually clear and works well for step-by-step navigation.
 
 ```tsx live
 <Breadcrumb separator="arrow">
@@ -132,6 +140,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Bullet Separator
 
+Use the `separator` prop with the value `bullet` to display bullet points between breadcrumb items. This provides a subtle, minimalist look for navigation trails.
+
 ```tsx live
 <Breadcrumb separator="bullet">
   <li>
@@ -155,6 +165,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ---
 
 ### Dot Separator
+
+Set the `separator` prop to `dot` to use dot separators between breadcrumb items. This style is clean and works well for compact navigation.
 
 ```tsx live
 <Breadcrumb separator="dot">
@@ -180,6 +192,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Succeeds Separator
 
+Use the `separator` prop with the value `succeeds` to show a chevron-style separator between breadcrumb items. This is another option for visually indicating progression.
+
 ```tsx live
 <Breadcrumb separator="succeeds">
   <li>
@@ -203,6 +217,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ---
 
 ### Small Size
+
+Set the `size` prop to `small` to render a compact breadcrumb navigation. This is useful for tight layouts or when breadcrumbs are a secondary navigation element.
 
 ```tsx live
 <Breadcrumb size="small">
@@ -228,6 +244,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Medium Size
 
+Use the `size` prop with the value `medium` to increase the breadcrumb's size for better visibility or emphasis in your layout.
+
 ```tsx live
 <Breadcrumb size="medium">
   <li>
@@ -252,6 +270,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 
 ### Large Size
 
+Set the `size` prop to `large` to make the breadcrumb navigation more prominent. This is ideal for main navigation or when breadcrumbs need to stand out.
+
 ```tsx live
 <Breadcrumb size="large">
   <li>
@@ -275,6 +295,8 @@ import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ---
 
 ### With Icons, Alignment, Separator, Size, and Text Weight
+
+Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight` to fully customize the breadcrumb's appearance. You can also use the `textColor` and `size` props on the `Icon` component for even more control over the look of each breadcrumb item.
 
 ```tsx live
 <Breadcrumb

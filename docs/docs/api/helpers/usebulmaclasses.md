@@ -386,21 +386,445 @@ function example() {
 
 ---
 
-### Storybook Example
+### Colors
+
+Use the `color` prop to apply Bulma color classes. Here, each button demonstrates a different color:
 
 ```tsx live
-// Helper to preview Bulma classes
-function example() {
-  const { bulmaHelperClasses } = useBulmaClasses({
-    color: 'success',
-    m: '3',
-    textAlign: 'left',
-    viewport: 'desktop',
-  });
-  return JSON.stringify({ bulmaHelperClasses });
+<Buttons>
+  <Button color="primary">Primary</Button>
+  <Button color="link">Link</Button>
+  <Button color="info">Info</Button>
+  <Button color="success">Success</Button>
+  <Button color="warning">Warning</Button>
+  <Button color="danger">Danger</Button>
+  <Button color="black">Black</Button>
+  <Button color="white">White</Button>
+</Buttons>
+```
 
-  // bulmaHelperClasses: 'has-text-success m-3 has-text-left-desktop'
+### Background Color
+
+Use the `backgroundColor` prop to set the background color. Here, each Box demonstrates a different background color:
+
+```tsx live
+<Columns isMultiline>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary">Primary</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="link">Link</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="info">Info</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="success">Success</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="warning">Warning</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="danger">Danger</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="black">Black</Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="white">White</Box>
+  </Column>
+</Columns>
+```
+
+### Color Shade
+
+Use the `color` and `colorShade` props to apply color shades. Here, each button demonstrates a different shade:
+
+```tsx live
+<Buttons>
+  <Button color="primary" colorShade="10">
+    Primary 10
+  </Button>
+  <Button color="primary" colorShade="30">
+    Primary 30
+  </Button>
+  <Button color="primary" colorShade="60">
+    Primary 60
+  </Button>
+  <Button color="primary" colorShade="90">
+    Primary 90
+  </Button>
+  <Button color="primary" colorShade="invert">
+    Primary Invert
+  </Button>
+</Buttons>
+```
+
+### Background Color Shade
+
+Use the `backgroundColor` and `colorShade` props to apply background color shades. Here, each Box demonstrates a different shade:
+
+```tsx live
+<Columns isMultiline>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary" colorShade="10">
+      Primary 10
+    </Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary" colorShade="30">
+      Primary 30
+    </Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary" colorShade="60">
+      Primary 60
+    </Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary" colorShade="90">
+      Primary 90
+    </Box>
+  </Column>
+  <Column size="one-quarter">
+    <Box backgroundColor="primary" colorShade="invert">
+      Primary Invert
+    </Box>
+  </Column>
+</Columns>
+```
+
+### Margin
+
+Use margin props to add spacing. Here, margin is applied to buttons, and to a row of buttons using the `Buttons` component:
+
+```tsx live
+<>
+  <Buttons>
+    <Button>Left</Button>
+    <Button m="4">Margin 4</Button>
+    <Button>Right</Button>
+  </Buttons>
+  <Buttons mt="5" mb="5">
+    <Button>Top/Bottom Margin</Button>
+    <Button>Row 2</Button>
+  </Buttons>
+</>
+```
+
+### Text Size
+
+Apply `textSize` to Notifications to illustrate different sizes:
+
+```tsx live
+<>
+  <Notification textSize="1">Size 1</Notification>
+  <Notification textSize="3">Size 3</Notification>
+  <Notification textSize="5">Size 5</Notification>
+  <Notification textSize="7">Size 7</Notification>
+</>
+```
+
+### Text Align
+
+Apply `textAlign` to a Box to illustrate text alignment:
+
+```tsx live
+<>
+  <Box textAlign="centered">Centered text</Box>
+  <Box textAlign="right">Right aligned text</Box>
+  <Box textAlign="left">Left aligned text</Box>
+</>
+```
+
+### Text Transform
+
+Apply `textTransform` to a Content tag with a paragraph of the Declaration of Independence:
+
+```tsx live
+<>
+  <Box>
+    <Content textTransform="uppercase">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textTransform="lowercase">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textTransform="capitalized">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textTransform="italic">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+</>
+```
+
+### Text Weight
+
+Apply `textWeight` to Content tags to illustrate different font weights:
+
+```tsx live
+<>
+  <Box>
+    <Content textWeight="light">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textWeight="normal">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textWeight="medium">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textWeight="bold">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+</>
+```
+
+### Font Family
+
+Use Content blocks with different font families:
+
+```tsx live
+<>
+  <Box>
+    <Content fontFamily="sans-serif">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content fontFamily="monospace">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content fontFamily="primary">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content fontFamily="secondary">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content fontFamily="code">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+</>
+```
+
+### Visibility
+
+Show three buttons, one hidden, one screen-reader only:
+
+```tsx live
+<Buttons>
+  <Button visibility="hidden">Hidden</Button>
+  <Button visibility="sr-only">Screen Reader Only</Button>
+  <Button>Visible</Button>
+</Buttons>
+```
+
+### Overflow
+
+Show a Box with clipped overflow:
+
+```tsx live
+<Box overflow="clipped" style={{ width: 200, height: 50 }}>
+  This is a very long line of text that will be clipped and not overflow the
+  box.
+</Box>
+```
+
+### Overlay
+
+Show an overlay (toggle with button click):
+
+```tsx
+function OverlayExample() {
+  const [show, setShow] = useState(false);
+  return (
+    <Box overlay={show}>
+      <Button onClick={() => setShow(s => !s)}>
+        {show ? 'Hide Overlay' : 'Show Overlay'}
+      </Button>
+    </Box>
+  );
 }
+```
+
+### Interaction
+
+Show text in a Box with `unselectable`, and another Box with `clickable`:
+
+```tsx live
+<>
+  <Box interaction="unselectable">This text cannot be selected.</Box>
+  <Box interaction="clickable">This box is clickable.</Box>
+</>
+```
+
+### Radius
+
+Show buttons with `radiusless`:
+
+```tsx live
+<Buttons>
+  <Button radius="radiusless">Radiusless</Button>
+  <Button>Normal</Button>
+</Buttons>
+```
+
+### Shadowless
+
+Show a Box with `shadowless`:
+
+```tsx live
+<Box shadow="shadowless">This box has no shadow.</Box>
+```
+
+### ClassName
+
+Show a Message with a custom className:
+
+```tsx live
+<Message className="custom-message">
+  This message uses a custom className.
+</Message>
+```
+
+---
+
+### Skeleton Examples
+
+The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples for each component:
+
+#### Skeleton Button
+
+```tsx live
+<Button skeleton>Skeleton Button</Button>
+```
+
+#### Skeleton Buttons Group
+
+```tsx live
+<Buttons>
+  <Button skeleton>Skeleton</Button>
+  <Button skeleton>Skeleton</Button>
+  <Button skeleton>Skeleton</Button>
+</Buttons>
+```
+
+#### Skeleton Icon
+
+```tsx live
+<Icon name="star" skeleton ariaLabel="Star icon skeleton" />
+```
+
+#### Skeleton Image
+
+```tsx live
+<Image
+  skeleton
+  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
+  alt="Skeleton image"
+  size="128x128"
+/>
+```
+
+#### Skeleton Notification
+
+```tsx live
+<Notification skeleton>Skeleton notification message.</Notification>
+```
+
+#### Skeleton Tag
+
+```tsx live
+<Tag skeleton>Skeleton Tag</Tag>
+```
+
+#### Skeleton Title
+
+```tsx live
+<Title skeleton size="2">
+  Skeleton Title
+</Title>
+```
+
+#### Skeleton SubTitle
+
+```tsx live
+<SubTitle skeleton size="4">
+  Skeleton SubTitle
+</SubTitle>
+```
+
+#### Skeleton Input
+
+```tsx live
+<Input skeleton placeholder="Skeleton Input" />
+```
+
+#### Skeleton TextArea
+
+```tsx live
+<TextArea skeleton placeholder="Skeleton TextArea" rows={3} />
 ```
 
 ---
