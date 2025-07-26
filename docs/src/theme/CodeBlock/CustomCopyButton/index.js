@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import Button from '@theme/CodeBlock/Buttons/Button';
 import IconCopy from '@theme/Icon/Copy';
@@ -10,6 +10,8 @@ import styles from './styles.module.css';
 function CustomCopyButton({ code, className }) {
   const [isCopied, setIsCopied] = useState(false);
   const [isError, setIsError] = useState(false);
+  const copyTimeoutRef = useRef(null);
+  const errorTimeoutRef = useRef(null);
 
   const timeoutRef = useRef([]);
 
@@ -25,15 +27,24 @@ function CustomCopyButton({ code, className }) {
     try {
       await navigator.clipboard.writeText(code);
       setIsCopied(true);
-      timeoutRef.current.push(setTimeout(() => setIsCopied(false), 2000));
-      
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 1300);
     } catch (error) {
       console.error('Failed to copy text to clipboard:', error);
       setIsError(true);
       setIsCopied(false);
-      timeoutRef.current.push(setTimeout(() => setIsError(false), 2000));
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = setTimeout(() => setIsError(false), 1300);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      // Clear all timeouts on component unmount
+      copyTimeoutRef.current && clearTimeout(copyTimeoutRef.current);
+      errorTimeoutRef.current && clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <Button
