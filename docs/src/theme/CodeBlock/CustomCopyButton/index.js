@@ -15,9 +15,8 @@ function CustomCopyButton({ code, className }) {
     try {
       await navigator.clipboard.writeText(code);
       setIsCopied(true);
-      setIsError(false);
       setTimeout(() => setIsCopied(false), 2000);
-      setTimeout(() => setIsError(false), 2000);
+      
     } catch (error) {
       console.error('Failed to copy text to clipboard:', error);
       setIsError(true);
