@@ -50,3 +50,16 @@ pre.prism-code {
   margin-right: 0.5rem;
   width: 0.8rem;
 }
+
+.buttonGroup button {
+  display: flex;
+  align-items: center;
+  background: var(--prism-background-color);
+  color: var(--prism-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  padding: 0.4rem;
+  line-height: 0;
+  transition: opacity var(--ifm-transition-fast) ease-in-out;
+  opacity: 1;
+}

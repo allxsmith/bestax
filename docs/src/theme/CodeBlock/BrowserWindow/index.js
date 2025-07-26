@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import clsx from 'clsx';
+import { LiveContext } from 'react-live';
+import CustomCopyButton from '../CustomCopyButton';
+
 import styles from './styles.module.css';
 
 export default function BrowserWindow({
@@ -9,6 +12,8 @@ export default function BrowserWindow({
   style,
   bodyStyle,
 }) {
+  const { code } = useContext(LiveContext);
+
   return (
     <div className={clsx(styles.browserWindow)} style={style}>
       <div className={styles.browserWindowHeader}>
@@ -18,6 +23,9 @@ export default function BrowserWindow({
           <span className={styles.dot} style={{ background: '#58cb42' }} />
         </div>
         <div className={styles.browserWindowAddressBar}>{url}</div>
+        <div className={styles.buttonGroup}>
+          <CustomCopyButton code={code} />
+        </div>
       </div>
       <div
         className={styles.browserWindowBody}
