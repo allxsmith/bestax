@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
-import Translate from '@docusaurus/Translate';
 import Button from '@theme/CodeBlock/Buttons/Button';
 import IconCopy from '@theme/Icon/Copy';
 import IconSuccess from '@theme/Icon/Success';
@@ -28,7 +27,7 @@ function CustomCopyButton({ code, className }) {
       title="Copy"
       className={clsx(
         className,
-        styles.copyButton,
+        // styles.copyButton,
         isCopied && styles.copyButtonCopied
       )}
       onClick={handleCopy}
