@@ -11,17 +11,27 @@ function CustomCopyButton({ code, className }) {
   const [isCopied, setIsCopied] = useState(false);
   const [isError, setIsError] = useState(false);
 
+  const timeoutRef = useRef([]);
+
+  useEffect(() => {
+    return () => {
+      // Clear all timeouts on component unmount
+      timeoutRef.current.forEach(clearTimeout);
+      timeoutRef.current = [];
+    };
+  }, []);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      timeoutRef.current.push(setTimeout(() => setIsCopied(false), 2000));
       
     } catch (error) {
       console.error('Failed to copy text to clipboard:', error);
       setIsError(true);
       setIsCopied(false);
-      setTimeout(() => setIsError(false), 2000);
+      timeoutRef.current.push(setTimeout(() => setIsError(false), 2000));
     }
   };
 
