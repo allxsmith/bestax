@@ -33,7 +33,6 @@ function CustomCopyButton({ code, className }) {
       title="Copy"
       className={clsx(
         className,
-        // styles.copyButton,
         isCopied && styles.copyButtonCopied,
         isError && styles.copyButtonError
       )}
