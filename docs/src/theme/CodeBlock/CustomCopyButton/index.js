@@ -13,16 +13,6 @@ function CustomCopyButton({ code, className }) {
   const copyTimeoutRef = useRef(null);
   const errorTimeoutRef = useRef(null);
 
-  const timeoutRef = useRef([]);
-
-  useEffect(() => {
-    return () => {
-      // Clear all timeouts on component unmount
-      timeoutRef.current.forEach(clearTimeout);
-      timeoutRef.current = [];
-    };
-  }, []);
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
