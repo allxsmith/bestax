@@ -7,7 +7,7 @@ sidebar_label: Checkboxes
 
 ## Overview
 
-The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group. Use for vertical lists of boolean choices, such as preference lists or to-do checklists.
+The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group. Use for lists of boolean choices, such as preference lists or to-do checklists.
 
 ---
 
@@ -33,20 +33,20 @@ import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 
 ### Grouped Checkboxes
 
-This example demonstrates the `Checkboxes` component wrapping multiple `Checkbox` children. Use this pattern for vertical lists of boolean options, such as to-do lists or preference selections. Each `Checkbox` receives its own label via the `children` prop.
+This example demonstrates the `Checkboxes` component wrapping multiple `Checkbox` children. Use this pattern for lists of boolean options, such as to-do lists or preference selections. Each `Checkbox` receives its own label via the `children` prop.
 
 ```tsx live
 <Checkboxes>
-  <Checkbox>Make the bed</Checkbox>
-  <Checkbox>Brush teeth</Checkbox>
-  <Checkbox>Do homework</Checkbox>
-  <Checkbox>Feed the pet</Checkbox>
-  <Checkbox>Take out the trash</Checkbox>
-  <Checkbox>Clean your room</Checkbox>
-  <Checkbox>Set the table</Checkbox>
-  <Checkbox>Help with dishes</Checkbox>
-  <Checkbox>Water the plants</Checkbox>
-  <Checkbox>Put away toys</Checkbox>
+  <Checkbox> Make the bed </Checkbox>
+  <Checkbox> Brush teeth </Checkbox>
+  <Checkbox> Do homework </Checkbox>
+  <Checkbox> Feed the pet </Checkbox>
+  <Checkbox> Take out the trash </Checkbox>
+  <Checkbox> Clean your room </Checkbox>
+  <Checkbox> Set the table </Checkbox>
+  <Checkbox> Help with dishes </Checkbox>
+  <Checkbox> Water the plants </Checkbox>
+  <Checkbox> Put away toys </Checkbox>
 </Checkboxes>
 ```
 

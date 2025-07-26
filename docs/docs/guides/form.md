@@ -15,7 +15,7 @@ This page provides a summary of all Bulma-styled form components in Bestax, with
 A Bulma-styled checkbox input for boolean choices. Pass the label as children; supports custom JSX and links.
 
 ```tsx live
-<Checkbox>Stay Signed In</Checkbox>
+<Checkbox> Stay Signed In </Checkbox>
 ```
 
 [View full documentation.](../api/form/checkbox)
@@ -28,8 +28,8 @@ Wraps multiple `Checkbox` components in a vertical group for lists of boolean op
 
 ```tsx live
 <Checkboxes>
-  <Checkbox>Option 1</Checkbox>
-  <Checkbox>Option 2</Checkbox>
+  <Checkbox> Option 1 </Checkbox>
+  <Checkbox> Option 2 </Checkbox>
 </Checkboxes>
 ```
 
@@ -42,8 +42,10 @@ Wraps multiple `Checkbox` components in a vertical group for lists of boolean op
 A Bulma-styled radio button for mutually exclusive choices. Use the same `name` prop for grouping.
 
 ```tsx live
-<Radio name="group">Option A</Radio>
-<Radio name="group">Option B</Radio>
+<>
+  <Radio name="group"> Option A </Radio>
+  <Radio name="group"> Option B </Radio>
+</>
 ```
 
 [View full documentation.](../api/form/radio)
@@ -56,8 +58,8 @@ Groups multiple `Radio` components vertically for single-choice lists (e.g., RSV
 
 ```tsx live
 <Radios>
-  <Radio name="event">Attend</Radio>
-  <Radio name="event">Decline</Radio>
+  <Radio name="event"> Attend </Radio>
+  <Radio name="event"> Decline </Radio>
 </Radios>
 ```
 
