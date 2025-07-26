@@ -3,20 +3,26 @@ import clsx from 'clsx';
 import Button from '@theme/CodeBlock/Buttons/Button';
 import IconCopy from '@theme/Icon/Copy';
 import IconSuccess from '@theme/Icon/Success';
+import IconClose from '../IconClose';
 
 import styles from './styles.module.css';
 
 function CustomCopyButton({ code, className }) {
   const [isCopied, setIsCopied] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
       setIsCopied(true);
+      setIsError(false);
       setTimeout(() => setIsCopied(false), 2000);
+      setTimeout(() => setIsError(false), 2000);
     } catch (error) {
       console.error('Failed to copy text to clipboard:', error);
-      alert('Failed to copy text. Please try again.');
+      setIsError(true);
+      setIsCopied(false);
+      setTimeout(() => setIsError(false), 2000);
     }
   };
 
@@ -28,13 +34,15 @@ function CustomCopyButton({ code, className }) {
       className={clsx(
         className,
         // styles.copyButton,
-        isCopied && styles.copyButtonCopied
+        isCopied && styles.copyButtonCopied,
+        isError && styles.copyButtonError
       )}
       onClick={handleCopy}
     >
       <span className={styles.copyButtonIcons} aria-hidden="true">
         <IconCopy className={styles.copyButtonIcon} />
         <IconSuccess className={styles.copyButtonSuccessIcon} />
+        <IconClose className={styles.copyButtonErrorIcon} />
       </span>
     </Button>
   );

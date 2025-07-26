@@ -15,8 +15,14 @@
   height: 1.125rem;
 }
 
+.copyButtonError {
+  width: 1rem;
+  height: 1rem;
+}
+
 .copyButtonIcon,
-.copyButtonSuccessIcon {
+.copyButtonSuccessIcon,
+.copyButtonErrorIcon {
   position: absolute;
   top: 0;
   left: 0;
@@ -35,12 +41,33 @@
   color: #00d600;
 }
 
-.copyButtonCopied .copyButtonIcon {
+.copyButtonErrorIcon {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.33);
+  opacity: 0;
+  color: #d53035;
+}
+
+.copyButtonCopied .copyButtonIcon,
+.copyButtonCopied .copyButtonErrorIcon {
   transform: scale(0.33);
   opacity: 0;
 }
 
 .copyButtonCopied .copyButtonSuccessIcon {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  transition-delay: 0.075s;
+}
+
+.copyButtonError .copyButtonIcon,
+.copyButtonError .copyButtonSuccessIcon {
+  transform: scale(0.33);
+  opacity: 0;
+}
+
+.copyButtonError .copyButtonErrorIcon {
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
   transition-delay: 0.075s;
