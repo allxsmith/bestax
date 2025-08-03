@@ -65,3 +65,5 @@ export const Box: React.FC<BoxProps> = ({
     </div>
   );
 };
+
+export default Box;
