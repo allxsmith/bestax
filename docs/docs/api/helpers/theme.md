@@ -970,7 +970,7 @@ All props are fully typed in TypeScript. Use IDE autocomplete to discover availa
 // TypeScript will provide autocomplete for all available props
 <Theme
   primaryH="270"
-  cardContent{/* TypeScript autocomplete will show all card-related props */}
+  cardContent={/* TypeScript autocomplete will show all card-related props */}
 />
 ```
 
