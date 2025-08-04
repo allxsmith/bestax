@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.1.1...@allxsmith/bestax-bulma@2.0.0) (2025-08-04)
+
+
+### Features
+
+* add theme system and config provider with comprehensive test coverage ([f3ca7f0](https://github.com/allxsmith/bestax/commit/f3ca7f08bc756c89d5b939c8d5e193b68578782f))
+
+
+### BREAKING CHANGES
+
+* None - all changes are additive and backward compatible
+
 ## [1.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.1.0...@allxsmith/bestax-bulma@1.1.1) (2025-07-19)
 
 
