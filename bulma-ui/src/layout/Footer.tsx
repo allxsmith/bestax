@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Footer component.
@@ -42,11 +43,13 @@ export const Footer: React.FC<FooterProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const Tag = as;
+  const mainClass = classPrefix ? `${classPrefix}footer` : 'footer';
   return (
     <Tag
-      className={classNames('footer', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}

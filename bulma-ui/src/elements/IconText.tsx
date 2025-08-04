@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 import { Icon, IconProps } from './Icon';
 
 /**
@@ -60,6 +61,8 @@ export const IconText: React.FC<IconTextProps> = ({
   items,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -69,11 +72,8 @@ export const IconText: React.FC<IconTextProps> = ({
     ...props,
   });
 
-  const iconTextClasses = classNames(
-    'icon-text',
-    bulmaHelperClasses,
-    className
-  );
+  const mainClass = classPrefix ? `${classPrefix}icon-text` : 'icon-text';
+  const iconTextClasses = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <span className={iconTextClasses} {...rest}>

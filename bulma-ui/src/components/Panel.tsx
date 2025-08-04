@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Panel component.
@@ -132,12 +133,14 @@ export const Panel: React.FC<PanelProps> & {
   CheckboxBlock: typeof PanelCheckboxBlock;
   ButtonBlock: typeof PanelButtonBlock;
 } = ({ color, className, children, ...props }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color,
     ...props,
   });
 
-  const panelClasses = classNames('panel', bulmaHelperClasses, className, {
+  const mainClass = classPrefix ? `${classPrefix}panel` : 'panel';
+  const panelClasses = classNames(mainClass, bulmaHelperClasses, className, {
     [`is-${color}`]: color,
   });
 
@@ -213,22 +216,27 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   placeholder,
   iconClassName = 'fas fa-search',
   ...props
-}) => (
-  <div className="panel-block" {...props}>
-    <p className="control has-icons-left">
-      <input
-        className="input"
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-      />
-      <span className="icon is-left">
-        <i className={iconClassName} aria-hidden="true"></i>
-      </span>
-    </p>
-  </div>
-);
+}) => {
+  const { classPrefix } = useConfig();
+  const inputClass = classPrefix ? `${classPrefix}input` : 'input';
+
+  return (
+    <div className="panel-block" {...props}>
+      <p className="control has-icons-left">
+        <input
+          className={inputClass}
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
+        <span className="icon is-left">
+          <i className={iconClassName} aria-hidden="true"></i>
+        </span>
+      </p>
+    </div>
+  );
+};
 
 /**
  * Bulma Panel checkbox block.

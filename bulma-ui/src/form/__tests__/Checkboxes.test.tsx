@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Checkboxes from '../Checkboxes';
 import Checkbox from '../Checkbox';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Checkboxes', () => {
   it('renders children (Checkbox components) inside a div with class "checkboxes"', () => {
@@ -47,6 +48,18 @@ describe('Checkboxes', () => {
   it('renders with no children without crashing', () => {
     render(<Checkboxes />);
     const wrapper = document.querySelector('.checkboxes');
+    expect(wrapper).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Checkboxes>
+          <Checkbox>Test</Checkbox>
+        </Checkboxes>
+      </ConfigProvider>
+    );
+    const wrapper = screen.getByText('Test').closest('.custom-checkboxes');
     expect(wrapper).toBeInTheDocument();
   });
 });

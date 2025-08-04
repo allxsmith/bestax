@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Columns } from '../Columns';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Columns', () => {
   it('renders children', () => {
@@ -16,6 +17,16 @@ describe('Columns', () => {
   it('applies the columns class', () => {
     const { container } = render(<Columns />);
     expect(container.firstChild).toHaveClass('columns');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Columns />
+      </ConfigProvider>
+    );
+    expect(container.firstChild).toHaveClass('bulma-columns');
+    expect(container.firstChild).not.toHaveClass('columns');
   });
 
   it('applies is-centered, is-gapless, is-multiline, is-vcentered, is-mobile, is-desktop classes', () => {

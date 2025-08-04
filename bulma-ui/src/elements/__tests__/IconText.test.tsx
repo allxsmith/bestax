@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { IconText } from '../IconText';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('IconText Component', () => {
   const defaultIconProps = { name: 'fas fa-star', ariaLabel: 'Star icon' };
@@ -93,5 +94,16 @@ describe('IconText Component', () => {
     );
     const iconText = screen.getByTestId('test-icon-text');
     expect(iconText).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <IconText iconProps={defaultIconProps}>Star</IconText>
+      </ConfigProvider>
+    );
+    const iconText = screen.getByText('Star').parentElement;
+    expect(iconText).toHaveClass('bulma-icon-text');
+    expect(iconText).not.toHaveClass('icon-text');
   });
 });

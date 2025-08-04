@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Buttons component.
@@ -51,6 +52,8 @@ export const Buttons: React.FC<ButtonsProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -60,7 +63,8 @@ export const Buttons: React.FC<ButtonsProps> = ({
     ...props,
   });
 
-  const buttonsClasses = classNames('buttons', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}buttons` : 'buttons';
+  const buttonsClasses = classNames(mainClass, className, bulmaHelperClasses, {
     'is-centered': isCentered,
     'is-right': isRight,
     'has-addons': hasAddons,

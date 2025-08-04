@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Possible values for Bulma column size.
@@ -178,8 +179,11 @@ export const Column: React.FC<ColumnProps> = ({
     ...props,
   });
 
+  const { classPrefix } = useConfig();
+  const mainClass = classPrefix ? `${classPrefix}column` : 'column';
+
   const columnClasses = classNames(
-    'column',
+    mainClass,
     ...getColumnClassNames({
       size,
       sizeMobile,

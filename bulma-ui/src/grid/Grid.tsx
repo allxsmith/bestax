@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Allowed gap values for Bulma grid.
@@ -198,8 +199,11 @@ export const Grid: React.FC<GridProps> = ({
     ...props,
   });
 
+  const { classPrefix } = useConfig();
+  const mainClass = classPrefix ? `${classPrefix}grid` : 'grid';
+
   const gridClasses = classNames(
-    'grid',
+    mainClass,
     ...getGridInnerClasses({ gap, columnGap, rowGap, minCol }),
     bulmaHelperClasses,
     className

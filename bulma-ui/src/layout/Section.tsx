@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Section size values for Bulma.
@@ -46,9 +47,11 @@ export const Section: React.FC<SectionProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const sectionClasses = classNames('section', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}section` : 'section';
+  const sectionClasses = classNames(mainClass, className, bulmaHelperClasses, {
     [`is-${size}`]: size,
   });
 

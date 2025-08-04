@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the TextArea component.
@@ -75,13 +76,15 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     },
     ref
   ) => {
+    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
     });
 
+    const mainClass = classPrefix ? `${classPrefix}textarea` : 'textarea';
     const textareaClass = classNames(
-      'textarea',
+      mainClass,
       bulmaHelperClasses,
       {
         [`is-${color}`]: color,

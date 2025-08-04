@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 import { Icon, IconProps } from '../elements/Icon';
 
 /**
@@ -97,6 +98,7 @@ export const Control = React.forwardRef<
     ref
   ) => {
     const Component = (as === 'p' ? 'p' : 'div') as 'div' | 'p';
+    const { classPrefix } = useConfig();
 
     // Remove textColor/bgColor from props before spreading
     const {
@@ -142,8 +144,9 @@ export const Control = React.forwardRef<
           }
         : undefined);
 
+    const mainClass = classPrefix ? `${classPrefix}control` : 'control';
     const controlClass = classNames(
-      'control',
+      mainClass,
       bulmaHelperClasses,
       {
         'has-icons-left': hasIconsLeft || !!leftIconProps,

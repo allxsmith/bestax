@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import Control from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Mock Icon so we can test for its appearance
 jest.mock('../../elements/Icon', () => ({
@@ -129,5 +130,16 @@ describe('Control', () => {
     render(<Control>Nothing</Control>);
     // Should not find any icon
     expect(screen.queryByTestId(/icon-/)).not.toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Control>Test content</Control>
+      </ConfigProvider>
+    );
+    const control = container.querySelector('.bulma-control');
+    expect(control).toBeInTheDocument();
+    expect(control).not.toHaveClass('control');
   });
 });

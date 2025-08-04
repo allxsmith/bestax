@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Checks if code is running in a browser environment.
@@ -67,10 +68,14 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   id,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const [active, setActive] = useState<boolean>(!!activeProp);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+
+  const mainClass = classPrefix ? `${classPrefix}dropdown` : 'dropdown';
+  const buttonClass = classPrefix ? `${classPrefix}button` : 'button';
 
   // Controlled mode support
   useEffect(() => {
@@ -109,7 +114,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   };
 
   const dropdownClasses = classNames(
-    'dropdown',
+    mainClass,
     bulmaHelperClasses,
     {
       'is-active': active,
@@ -131,7 +136,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
     >
       <div className="dropdown-trigger">
         <button
-          className="button"
+          className={buttonClass}
           aria-haspopup="true"
           aria-controls={id ? `${id}-menu` : undefined}
           aria-expanded={active}

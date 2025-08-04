@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Table, TableProps } from '../Table';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Table Component', () => {
   const defaultProps: TableProps = {
@@ -78,5 +79,49 @@ describe('Table Component', () => {
   test('renders children content', () => {
     render(<Table {...defaultProps} />);
     expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    test('applies classPrefix to main table class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Table {...defaultProps} />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('my-prefix-table');
+    });
+
+    test('applies classPrefix to table-container when responsive', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Table {...defaultProps} isResponsive />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('my-prefix-table');
+      expect(table.parentElement).toHaveClass('my-prefix-table-container');
+    });
+
+    test('uses default classes when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Table {...defaultProps} isResponsive />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('table');
+      expect(table.parentElement).toHaveClass('table-container');
+    });
+
+    test('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Table {...defaultProps} />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('table');
+    });
   });
 });

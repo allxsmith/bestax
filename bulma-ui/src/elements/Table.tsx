@@ -4,6 +4,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Table component.
@@ -51,12 +52,15 @@ export const Table: React.FC<TableProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tableClasses = classNames('table', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}table` : 'table';
+  const tableClasses = classNames(mainClass, className, bulmaHelperClasses, {
     'is-bordered': isBordered,
     'is-striped': isStriped,
     'is-narrow': isNarrow,
@@ -70,9 +74,12 @@ export const Table: React.FC<TableProps> = ({
     </table>
   );
 
-  return isResponsive ? (
-    <div className="table-container">{tableElement}</div>
-  ) : (
-    tableElement
-  );
+  if (isResponsive) {
+    const containerClass = classPrefix
+      ? `${classPrefix}table-container`
+      : 'table-container';
+    return <div className={containerClass}>{tableElement}</div>;
+  }
+
+  return tableElement;
 };

@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Bulma container breakpoints.
@@ -61,6 +62,7 @@ export const Container: React.FC<ContainerProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -82,8 +84,9 @@ export const Container: React.FC<ContainerProps> = ({
     }
   }
 
+  const mainClass = classPrefix ? `${classPrefix}container` : 'container';
   const containerClasses = classNames(
-    'container',
+    mainClass,
     {
       'is-fluid': fluid,
       'is-widescreen': widescreen,

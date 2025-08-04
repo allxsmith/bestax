@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Delete } from '../Delete';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Delete Component', () => {
   it('renders with default props', () => {
@@ -7,6 +8,17 @@ describe('Delete Component', () => {
     const button = screen.getByRole('button', { name: /close/i });
     expect(button).toHaveClass('delete');
     expect(button).not.toBeDisabled();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Delete />
+      </ConfigProvider>
+    );
+    const button = screen.getByRole('button', { name: /close/i });
+    expect(button).toHaveClass('bulma-delete');
+    expect(button).not.toHaveClass('delete');
   });
 
   it('applies custom className', () => {

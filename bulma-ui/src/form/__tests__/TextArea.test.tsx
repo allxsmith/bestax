@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TextArea from '../TextArea';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('TextArea', () => {
   it('renders a textarea', () => {
@@ -77,5 +78,16 @@ describe('TextArea', () => {
   it('passes other props to textarea', () => {
     render(<TextArea data-testid="my-textarea" />);
     expect(screen.getByTestId('my-textarea')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <TextArea />
+      </ConfigProvider>
+    );
+    const textarea = container.querySelector('.bulma-textarea');
+    expect(textarea).toBeInTheDocument();
+    expect(textarea).not.toHaveClass('textarea');
   });
 });

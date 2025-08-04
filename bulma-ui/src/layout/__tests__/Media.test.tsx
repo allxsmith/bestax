@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Media from '../Media';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Media', () => {
   it('renders as <article> by default', () => {
@@ -42,6 +43,16 @@ describe('Media', () => {
     const media = screen.getByTestId('media-attrs');
     expect(media).toHaveAttribute('id', 'my-media');
     expect(media).toHaveAttribute('aria-label', 'aria-test');
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Media data-testid="media-test">Test Media</Media>
+      </ConfigProvider>
+    );
+    const media = screen.getByTestId('media-test');
+    expect(media).toHaveClass('custom-media');
   });
 
   describe('Media.Left', () => {

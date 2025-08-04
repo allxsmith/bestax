@@ -1,5 +1,6 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import { SubTitle, SubTitleProps } from '../SubTitle';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('SubTitle Component', () => {
   const defaultProps: SubTitleProps = {
@@ -206,5 +207,19 @@ describe('SubTitle Component', () => {
     });
     expect(subtitle).toHaveClass('has-skeleton');
     expect(subtitle).toHaveClass('is-skeleton');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <SubTitle {...defaultProps} />
+      </ConfigProvider>
+    );
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('bulma-subtitle');
+    expect(subtitle).not.toHaveClass('subtitle');
   });
 });

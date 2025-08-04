@@ -7,6 +7,7 @@ import {
   isBrowser,
 } from '../Dropdown';
 import * as DropdownModule from '../Dropdown';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -316,5 +317,192 @@ describe('Dropdown', () => {
     const button = screen.getByRole('button', { name: /noid/i });
     expect(button).not.toHaveAttribute('aria-controls');
     expect(screen.getByTestId('dropdown-menu').id).toBe('');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Dropdown label="Dropdown with prefix" data-testid="dropdown">
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+      </ConfigProvider>
+    );
+
+    const dropdown = screen.getByTestId('dropdown');
+    expect(dropdown).toHaveClass('custom-dropdown');
+    expect(dropdown).not.toHaveClass('dropdown');
+
+    const button = screen.getByRole('button', {
+      name: /dropdown with prefix/i,
+    });
+    expect(button).toHaveClass('custom-button');
+    expect(button).not.toHaveClass('button');
+  });
+
+  test('handles activeProp being non-boolean (undefined)', () => {
+    render(
+      <Dropdown label="Undefined Active" active={undefined}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('handles closeOnClick being explicitly false', () => {
+    render(
+      <Dropdown label="No Close" closeOnClick={false}>
+        <DropdownItem>Item 1</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /no close/i });
+    fireEvent.click(button); // open
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    const item = screen.getByText('Item 1');
+    fireEvent.click(item); // click item - should not close
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('handles onActiveChange being undefined', () => {
+    render(
+      <Dropdown label="No Callback">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /no callback/i });
+    // Should not throw when onActiveChange is undefined
+    expect(() => fireEvent.click(button)).not.toThrow();
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('cleans up event listeners when component unmounts', () => {
+    const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+    const { unmount } = render(
+      <Dropdown label="Cleanup Test">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open the dropdown to trigger the useEffect
+    fireEvent.click(screen.getByRole('button', { name: /cleanup test/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Unmount should trigger cleanup
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      'mousedown',
+      expect.any(Function)
+    );
+    removeEventListenerSpy.mockRestore();
+  });
+
+  test('handleMenuClick does nothing when closeOnClick is falsy', () => {
+    render(
+      <Dropdown label="Menu" closeOnClick={false}>
+        <DropdownItem>Item 1</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Click on the dropdown content area (not the item)
+    const dropdownContent = screen
+      .getByTestId('dropdown-menu')
+      .querySelector('.dropdown-content');
+    fireEvent.click(dropdownContent!);
+
+    // Should still be active since closeOnClick is false
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('covers event listener edge case when dropdownRef.current is null', () => {
+    const { unmount } = render(
+      <Dropdown label="Ref Test">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByRole('button', { name: /ref test/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Simulate clicking outside - this should trigger the event listener path
+    fireEvent.mouseDown(document.body);
+
+    // Should close the dropdown
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+
+    unmount();
+  });
+
+  test('covers useEffect dependency array changes', () => {
+    const onActiveChange = jest.fn();
+    const { rerender } = render(
+      <Dropdown label="Deps Test" onActiveChange={onActiveChange}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByRole('button', { name: /deps test/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Change the onActiveChange callback to trigger useEffect
+    const newCallback = jest.fn();
+    rerender(
+      <Dropdown label="Deps Test" onActiveChange={newCallback}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Dropdown should still be active
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  });
+
+  test('covers dropdownRef.current contains logic', () => {
+    render(
+      <Dropdown label="Contains Test">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByRole('button', { name: /contains test/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Click on the dropdown itself (should NOT close)
+    const dropdownItem = screen.getByText('Item');
+    fireEvent.mouseDown(dropdownItem);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+
+    // Click outside the dropdown (should close)
+    fireEvent.mouseDown(document.body);
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('covers cleanup function when effect dependencies change', () => {
+    const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+    const { rerender } = render(
+      <Dropdown label="Cleanup Deps">
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // Open dropdown first
+    fireEvent.click(screen.getByRole('button', { name: /cleanup deps/i }));
+
+    // Change active state which should trigger cleanup and re-setup
+    rerender(
+      <Dropdown label="Cleanup Deps" active={false}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+    );
+
+    // The removeEventListener should have been called during cleanup
+    expect(removeEventListenerSpy).toHaveBeenCalled();
+    removeEventListenerSpy.mockRestore();
   });
 });

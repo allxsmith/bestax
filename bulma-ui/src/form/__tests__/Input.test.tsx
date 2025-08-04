@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Input from '../Input';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Input', () => {
   it('renders an input', () => {
@@ -67,5 +68,16 @@ describe('Input', () => {
   it('passes other props to input', () => {
     render(<Input data-testid="my-input" />);
     expect(screen.getByTestId('my-input')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Input />
+      </ConfigProvider>
+    );
+    const input = container.querySelector('.bulma-input');
+    expect(input).toBeInTheDocument();
+    expect(input).not.toHaveClass('input');
   });
 });

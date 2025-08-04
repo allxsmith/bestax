@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Cell } from '../Cell';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Cell', () => {
   it('renders children', () => {
@@ -11,6 +12,16 @@ describe('Cell', () => {
   it('always applies the .cell class', () => {
     const { container } = render(<Cell>Cell</Cell>);
     expect(container.querySelector('.cell')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Cell>Test content</Cell>
+      </ConfigProvider>
+    );
+    expect(container.querySelector('.bulma-cell')).toBeInTheDocument();
+    expect(container.querySelector('.cell')).not.toBeInTheDocument();
   });
 
   it('applies col/row grid modifiers as classes', () => {

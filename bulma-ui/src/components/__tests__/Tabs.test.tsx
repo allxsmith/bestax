@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Tabs from '../Tabs';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tabs', () => {
   it('renders tabs container', () => {
@@ -13,6 +14,23 @@ describe('Tabs', () => {
       </Tabs>
     );
     expect(screen.getByTestId('tabs')).toHaveClass('tabs');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Tabs data-testid="tabs">
+          <Tabs.List>
+            <Tabs.Item>
+              <a>Tab</a>
+            </Tabs.Item>
+          </Tabs.List>
+        </Tabs>
+      </ConfigProvider>
+    );
+    const tabs = screen.getByTestId('tabs');
+    expect(tabs).toHaveClass('bulma-tabs');
+    expect(tabs).not.toHaveClass('tabs');
   });
 
   it('applies alignment, size, and modifiers', () => {

@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Message component.
@@ -49,14 +50,18 @@ export const Message: React.FC<MessageProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}message` : 'message';
+  const deleteClass = classPrefix ? `${classPrefix}delete` : 'delete';
+
   const messageClasses = classNames(
-    'message',
+    mainClass,
     color && `is-${color}`,
     className,
     bulmaHelperClasses
@@ -69,7 +74,7 @@ export const Message: React.FC<MessageProps> = ({
           {title && <span>{title}</span>}
           {onClose && (
             <button
-              className="delete"
+              className={deleteClass}
               aria-label="delete"
               onClick={onClose}
               type="button"

@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 const validTagColors = [
   'primary',
@@ -72,12 +73,15 @@ export const Tag: React.FC<TagProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tagClasses = classNames('tag', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}tag` : 'tag';
+  const tagClasses = classNames(mainClass, className, bulmaHelperClasses, {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
     'is-rounded': isRounded,

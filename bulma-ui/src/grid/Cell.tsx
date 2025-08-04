@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Type for grid cell span values.
@@ -89,8 +90,12 @@ export const Cell: React.FC<CellProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+
+  const { classPrefix } = useConfig();
+  const mainClass = classPrefix ? `${classPrefix}cell` : 'cell';
+
   const cellClasses = classNames(
-    'cell',
+    mainClass,
     ...getCellGridClasses({
       colStart,
       colFromEnd,

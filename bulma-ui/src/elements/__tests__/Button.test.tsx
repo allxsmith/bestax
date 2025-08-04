@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Button Component', () => {
   it('renders children correctly', () => {
@@ -127,6 +128,35 @@ describe('Button Component', () => {
       fireEvent.click(button);
       expect(handleClick).not.toHaveBeenCalled();
       expect(button).toBeDisabled();
+    });
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('my-prefix-button');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('button');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('button');
     });
   });
 });

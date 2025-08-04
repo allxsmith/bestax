@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Notification, NotificationProps } from '../Notification';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Notification Component', () => {
   const defaultProps: NotificationProps = {
@@ -71,5 +72,18 @@ describe('Notification Component', () => {
     const notification = screen.getByTestId('custom-notification');
     expect(notification).toBeInTheDocument();
     expect(notification).toHaveClass('notification');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Notification {...defaultProps} />
+      </ConfigProvider>
+    );
+    const notification = screen
+      .getByText('This is a notification')
+      .closest('div');
+    expect(notification).toHaveClass('bulma-notification');
+    expect(notification).not.toHaveClass('notification');
   });
 });

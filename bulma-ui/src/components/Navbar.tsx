@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Navbar component.
@@ -67,13 +68,15 @@ export const Navbar: React.FC<NavbarProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const navbarClasses = classNames('navbar', bulmaHelperClasses, className, {
+  const mainClass = classPrefix ? `${classPrefix}navbar` : 'navbar';
+  const navbarClasses = classNames(mainClass, bulmaHelperClasses, className, {
     [`is-${color}`]: color,
     'is-transparent': transparent,
     [`is-fixed-${fixed}`]: fixed,

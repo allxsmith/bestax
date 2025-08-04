@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the File component.
@@ -79,6 +80,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     },
     ref
   ) => {
+    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
@@ -95,8 +97,9 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       alignmentClass = 'is-centered';
     }
 
+    const mainClass = classPrefix ? `${classPrefix}file` : 'file';
     const fileClass = classNames(
-      'file',
+      mainClass,
       bulmaHelperClasses,
       {
         [`is-${color}`]: color,

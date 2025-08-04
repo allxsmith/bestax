@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Possible values for the Bulma columns gap size.
@@ -131,8 +132,11 @@ export const Columns: React.FC<ColumnsProps> = ({
     ...props,
   });
 
+  const { classPrefix } = useConfig();
+  const mainClass = classPrefix ? `${classPrefix}columns` : 'columns';
+
   const columnsClasses = classNames(
-    'columns',
+    mainClass,
     {
       'is-centered': isCentered,
       'is-gapless': isGapless,

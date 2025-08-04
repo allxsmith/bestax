@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Breadcrumb, BreadcrumbProps } from '../Breadcrumb';
 import { Icon } from '../../elements/Icon';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Sample breadcrumb items for reuse in tests
 const defaultItems = (
@@ -124,5 +125,16 @@ describe('Breadcrumb', () => {
     } as Partial<BreadcrumbProps> & React.HTMLAttributes<HTMLElement>);
     const breadcrumb = screen.getByTestId('breadcrumb-test');
     expect(breadcrumb).toHaveAttribute('id', 'breadcrumb-nav');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Breadcrumb>{defaultItems}</Breadcrumb>
+      </ConfigProvider>
+    );
+    const breadcrumb = screen.getByRole('navigation');
+    expect(breadcrumb).toHaveClass('bulma-breadcrumb');
+    expect(breadcrumb).not.toHaveClass('breadcrumb');
   });
 });

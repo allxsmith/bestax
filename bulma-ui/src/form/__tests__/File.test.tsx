@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import File from '../File';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('File', () => {
   it('renders a file input with default label', () => {
@@ -34,6 +35,17 @@ describe('File', () => {
     expect(wrapper).toHaveClass('is-boxed');
     expect(wrapper).toHaveClass('is-fullwidth');
     expect(wrapper).toHaveClass('has-name');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <File />
+      </ConfigProvider>
+    );
+    const wrapper = container.querySelector('.bulma-file');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveClass('bulma-file');
   });
 
   it('renders left and right icons', () => {

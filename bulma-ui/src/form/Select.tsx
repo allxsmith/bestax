@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Select component.
@@ -66,13 +67,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
+    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
     });
 
+    const mainClass = classPrefix ? `${classPrefix}select` : 'select';
     const selectClass = classNames(
-      'select',
+      mainClass,
       bulmaHelperClasses,
       {
         [`is-${color}`]: color,

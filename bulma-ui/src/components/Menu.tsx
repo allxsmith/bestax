@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
@@ -31,11 +32,13 @@ const MenuComponent: React.FC<MenuProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
+  const mainClass = classPrefix ? `${classPrefix}menu` : 'menu';
   return (
     <aside
-      className={classNames('menu', className, bulmaHelperClasses)}
+      className={classNames(mainClass, className, bulmaHelperClasses)}
       {...rest}
     >
       {children}

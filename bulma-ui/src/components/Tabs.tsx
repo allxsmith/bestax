@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Tabs component.
@@ -88,13 +89,15 @@ export const Tabs: React.FC<TabsProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color,
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}tabs` : 'tabs';
   const tabsClass = classNames(
-    'tabs',
+    mainClass,
     bulmaHelperClasses,
     {
       [`is-${align}`]: align,

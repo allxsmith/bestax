@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Tag, TagProps } from '../Tag';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tag Component', () => {
   const defaultProps: TagProps = {
@@ -95,5 +96,16 @@ describe('Tag Component', () => {
     expect(tag.tagName).toBe('SPAN');
     expect(tag).toHaveClass('tag');
     expect(tag).toBeEmptyDOMElement();
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Tag {...defaultProps} />
+      </ConfigProvider>
+    );
+    const tag = screen.getByText('Test Tag');
+    expect(tag).toHaveClass('bulma-tag');
+    expect(tag).not.toHaveClass('tag');
   });
 });

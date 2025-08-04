@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Checkbox from '../Checkbox';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Checkbox', () => {
   it('renders with children as label', () => {
@@ -15,6 +16,16 @@ describe('Checkbox', () => {
     const label = container.querySelector('label');
     expect(label).toHaveClass('checkbox');
     expect(label).toHaveClass('custom-class');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Checkbox>Test</Checkbox>
+      </ConfigProvider>
+    );
+    const label = container.querySelector('label');
+    expect(label).toHaveClass('bulma-checkbox');
   });
 
   it('renders as unchecked by default', () => {

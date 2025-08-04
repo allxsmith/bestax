@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Content } from '../Content'; // Adjust the import path based on your project structure
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Content Component', () => {
   // Test 1: Renders children correctly
@@ -158,5 +159,34 @@ describe('Content Component', () => {
     expect(screen.getByText('Heading')).toBeInTheDocument();
     expect(screen.getByText('Paragraph')).toBeInTheDocument();
     expect(screen.getByText('Item')).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    test('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Content data-testid="content">Test</Content>
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('content')).toHaveClass('my-prefix-content');
+    });
+
+    test('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Content data-testid="content">Test</Content>
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('content')).toHaveClass('content');
+    });
+
+    test('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Content data-testid="content">Test</Content>
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('content')).toHaveClass('content');
+    });
   });
 });

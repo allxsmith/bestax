@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Radios component.
@@ -27,11 +28,13 @@ export const Radios: React.FC<RadiosProps> = ({
   className,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });
 
-  const wrapperClass = classNames('radios', bulmaHelperClasses, className);
+  const mainClass = classPrefix ? `${classPrefix}radios` : 'radios';
+  const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <div className={wrapperClass} {...rest}>

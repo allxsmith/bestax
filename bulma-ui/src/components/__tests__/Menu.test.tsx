@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Menu, MenuLabel, MenuList, MenuItem } from '../Menu';
+import { ConfigProvider } from '../../helpers/Config';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -26,6 +27,19 @@ describe('Menu', () => {
       </Menu>
     );
     expect(screen.getByTestId('menu-root')).toHaveClass('menu');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Menu data-testid="menu-root">
+          <MenuLabel>Label</MenuLabel>
+        </Menu>
+      </ConfigProvider>
+    );
+    const menu = screen.getByTestId('menu-root');
+    expect(menu).toHaveClass('bulma-menu');
+    expect(menu).not.toHaveClass('menu');
   });
 
   it('renders menu-label correctly', () => {
