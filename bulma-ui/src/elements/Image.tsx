@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Image component.
@@ -85,6 +86,8 @@ export const Image: React.FC<ImageProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -94,7 +97,8 @@ export const Image: React.FC<ImageProps> = ({
     ...props,
   });
 
-  const imageClasses = classNames('image', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}image` : 'image';
+  const imageClasses = classNames(mainClass, className, bulmaHelperClasses, {
     [`is-${size}`]: size,
     'has-ratio': size && typeof size === 'string' && size.includes('by'),
   });

@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Field component.
@@ -94,14 +95,16 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}field-label` : 'field-label';
   const fieldLabelClass = classNames(
-    'field-label',
+    mainClass,
     bulmaHelperClasses,
     { [`is-${size}`]: size },
     className
@@ -128,17 +131,15 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const fieldBodyClass = classNames(
-    'field-body',
-    bulmaHelperClasses,
-    className
-  );
+  const mainClass = classPrefix ? `${classPrefix}field-body` : 'field-body';
+  const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
   // Spread ...props and ...rest so custom props like data-testid are included
   return (
     <div className={fieldBodyClass} {...props} {...rest}>
@@ -172,14 +173,16 @@ export const Field: React.FC<FieldProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}field` : 'field';
   const fieldClass = classNames(
-    'field',
+    mainClass,
     bulmaHelperClasses,
     {
       'is-horizontal': horizontal,
@@ -202,12 +205,13 @@ export const Field: React.FC<FieldProps> & {
 
   let renderedLabel = null;
   if (label) {
+    const labelClass = classPrefix ? `${classPrefix}label` : 'label';
     if (horizontal) {
       renderedLabel = (
         <FieldLabel size={mappedLabelSize}>
           <label
             {...labelProps}
-            className={classNames('label', labelProps?.className)}
+            className={classNames(labelClass, labelProps?.className)}
             style={labelProps?.style}
           >
             {label}
@@ -218,7 +222,7 @@ export const Field: React.FC<FieldProps> & {
       renderedLabel = (
         <label
           {...labelProps}
-          className={classNames('label', labelProps?.className)}
+          className={classNames(labelClass, labelProps?.className)}
           style={{ display: 'block', ...(labelProps?.style || {}) }}
         >
           {label}

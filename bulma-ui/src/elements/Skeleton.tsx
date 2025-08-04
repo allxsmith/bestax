@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
+import { useConfig } from '../helpers/Config';
 
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes to apply */
@@ -24,9 +25,14 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   if (variant === 'lines') {
+    const linesClass = classPrefix
+      ? `${classPrefix}skeleton-lines`
+      : 'skeleton-lines';
     return (
-      <div className={classNames('skeleton-lines', className)} {...props}>
+      <div className={classNames(linesClass, className)} {...props}>
         {Array.from({ length: lines }).map((_, i) => (
           <div key={i} />
         ))}
@@ -34,8 +40,11 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     );
   }
 
+  const blockClass = classPrefix
+    ? `${classPrefix}skeleton-block`
+    : 'skeleton-block';
   return (
-    <div className={classNames('skeleton-block', className)} {...props}>
+    <div className={classNames(blockClass, className)} {...props}>
       {children}
     </div>
   );

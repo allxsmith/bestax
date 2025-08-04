@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Card, __test_exports__ } from '../Card';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Card Component', () => {
   test('renders children content', () => {
@@ -258,5 +259,17 @@ describe('Card Component', () => {
     expect(__test_exports__.renderFooter(false)).toBeNull();
     expect(__test_exports__.renderFooter('')).toBeNull();
     expect(__test_exports__.renderFooter(0)).toBeNull();
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Card>Test content</Card>
+      </ConfigProvider>
+    );
+    // Find the card element by its class
+    const card = container.querySelector('.bulma-card');
+    expect(card).toBeInTheDocument();
+    expect(card).not.toHaveClass('card');
   });
 });

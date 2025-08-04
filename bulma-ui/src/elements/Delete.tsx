@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Delete component.
@@ -51,6 +52,8 @@ export const Delete: React.FC<DeleteProps> = ({
   disabled = false,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -60,8 +63,9 @@ export const Delete: React.FC<DeleteProps> = ({
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}delete` : 'delete';
   const classes = classNames(
-    'delete',
+    mainClass,
     {
       [`is-${size}`]: size,
       'is-disabled': disabled,

@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Level component.
@@ -40,10 +41,12 @@ export const Level: React.FC<LevelProps> & {
   Right: typeof LevelRight;
   Item: typeof LevelItem;
 } = ({ isMobile, className, children, ...props }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const mainClass = classPrefix ? `${classPrefix}level` : 'level';
   return (
     <nav
-      className={classNames('level', bulmaHelperClasses, className, {
+      className={classNames(mainClass, bulmaHelperClasses, className, {
         'is-mobile': isMobile,
       })}
       {...rest}
@@ -80,10 +83,12 @@ export const LevelLeft: React.FC<LevelLeftProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const mainClass = classPrefix ? `${classPrefix}level-left` : 'level-left';
   return (
     <div
-      className={classNames('level-left', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}
@@ -118,10 +123,12 @@ export const LevelRight: React.FC<LevelRightProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const mainClass = classPrefix ? `${classPrefix}level-right` : 'level-right';
   return (
     <div
-      className={classNames('level-right', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}
@@ -173,14 +180,16 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   rel,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const Tag = as;
+  const mainClass = classPrefix ? `${classPrefix}level-item` : 'level-item';
 
   // If rendering as "a", only pass anchor-specific props
   if (Tag === 'a') {
     return (
       <a
-        className={classNames('level-item', bulmaHelperClasses, className, {
+        className={classNames(mainClass, bulmaHelperClasses, className, {
           'has-text-centered': hasTextCentered,
         })}
         href={href}
@@ -195,7 +204,7 @@ export const LevelItem: React.FC<LevelItemProps> = ({
 
   return (
     <Tag
-      className={classNames('level-item', bulmaHelperClasses, className, {
+      className={classNames(mainClass, bulmaHelperClasses, className, {
         'has-text-centered': hasTextCentered,
       })}
       {...rest}

@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Content component.
@@ -49,6 +50,8 @@ export const Content: React.FC<ContentProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -58,7 +61,8 @@ export const Content: React.FC<ContentProps> = ({
     ...props,
   });
 
-  const contentClasses = classNames('content', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}content` : 'content';
+  const contentClasses = classNames(mainClass, className, bulmaHelperClasses, {
     [`is-${size}`]: size && size !== 'normal' && validSizes.includes(size),
   });
 

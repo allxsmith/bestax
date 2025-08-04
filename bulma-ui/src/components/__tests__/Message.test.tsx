@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Message } from '../Message';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Message', () => {
   it('renders with title and body', () => {
@@ -43,5 +44,16 @@ describe('Message', () => {
       </Message>
     );
     expect(screen.getByTestId('message')).toHaveClass('extra-class');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Message title="Hello">World</Message>
+      </ConfigProvider>
+    );
+    const message = screen.getByTestId('message');
+    expect(message).toHaveClass('bulma-message');
+    expect(message).not.toHaveClass('message');
   });
 });

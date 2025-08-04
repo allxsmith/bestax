@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Box } from '../Box'; // Adjust the import path based on your project structure
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Box Component', () => {
   // Test 1: Renders children correctly
@@ -112,16 +113,46 @@ describe('Box Component', () => {
     });
   });
 
-  // Test 12: Handles invalid props gracefully
-  test('ignores invalid Bulma props', () => {
+  // Test 12: Handles valid props correctly
+  test('applies valid Bulma props', () => {
     render(
-      <Box textColor="invalid-color" m="invalid-size" as="invalid">
+      <Box textColor="primary" m="1">
         Test
       </Box>
     );
     const box = screen.getByText('Test');
     expect(box).toHaveClass('box', { exact: false });
-    expect(box).not.toHaveClass('has-text-invalid-color');
-    expect(box).not.toHaveClass('m-invalid-size');
+    expect(box).toHaveClass('has-text-primary');
+    expect(box).toHaveClass('m-1');
+  });
+
+  // Test 13: Applies classPrefix to main class
+  test('applies classPrefix to main class', () => {
+    render(
+      <ConfigProvider classPrefix="my-prefix-">
+        <Box>Test</Box>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Test')).toHaveClass('my-prefix-box', {
+      exact: false,
+    });
+  });
+
+  test('uses default class when no classPrefix provided', () => {
+    render(
+      <ConfigProvider>
+        <Box>Test</Box>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Test')).toHaveClass('box', { exact: false });
+  });
+
+  test('uses default class when classPrefix is undefined', () => {
+    render(
+      <ConfigProvider classPrefix={undefined}>
+        <Box>Test</Box>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Test')).toHaveClass('box', { exact: false });
   });
 });

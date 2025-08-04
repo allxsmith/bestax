@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Radio from '../Radio';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Radio', () => {
   it('renders with children as label', () => {
@@ -15,6 +16,16 @@ describe('Radio', () => {
     const label = container.querySelector('label');
     expect(label).toHaveClass('radio');
     expect(label).toHaveClass('custom-class');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="custom-">
+        <Radio>Test Radio</Radio>
+      </ConfigProvider>
+    );
+    const label = container.querySelector('label');
+    expect(label).toHaveClass('custom-radio');
   });
 
   it('renders as unchecked by default', () => {

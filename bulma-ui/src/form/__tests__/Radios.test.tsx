@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Radios from '../Radios';
 import Radio from '../Radio';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Radios', () => {
   it('renders children (Radio components) inside a div with class "radios"', () => {
@@ -42,10 +43,22 @@ describe('Radios', () => {
     expect(screen.getByTestId('radios-wrapper')).toBeInTheDocument();
   });
 
-  it('renders with no children without crashing', () => {
-    render(<Radios />);
+  it('renders with empty content without crashing', () => {
+    render(<Radios>{null}</Radios>);
     // Should not throw; no assertion needed, but can check existence
     const wrapper = document.querySelector('.radios');
+    expect(wrapper).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Radios>
+          <Radio name="test">Test Radio</Radio>
+        </Radios>
+      </ConfigProvider>
+    );
+    const wrapper = screen.getByText('Test Radio').closest('.custom-radios');
     expect(wrapper).toBeInTheDocument();
   });
 });

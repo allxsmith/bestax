@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Footer from '../Footer';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Footer', () => {
   it('renders as <footer> by default', () => {
@@ -68,5 +69,15 @@ describe('Footer', () => {
     expect(screen.getByTestId('footer-children')).toContainHTML(
       '<span>Footer Child</span>'
     );
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Footer data-testid="footer-test">Test Footer</Footer>
+      </ConfigProvider>
+    );
+    const footer = screen.getByTestId('footer-test');
+    expect(footer).toHaveClass('custom-footer');
   });
 });

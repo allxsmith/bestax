@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Buttons } from '../Buttons';
 import { Button } from '../Button';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Buttons Component', () => {
   it('renders children within buttons container', () => {
@@ -85,5 +86,43 @@ describe('Buttons Component', () => {
     );
     const buttons = screen.getByTestId('test-buttons');
     expect(buttons).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Buttons data-testid="test-buttons">
+            <Button>Test</Button>
+          </Buttons>
+        </ConfigProvider>
+      );
+      const buttons = screen.getByTestId('test-buttons');
+      expect(buttons).toHaveClass('my-prefix-buttons');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Buttons data-testid="test-buttons">
+            <Button>Test</Button>
+          </Buttons>
+        </ConfigProvider>
+      );
+      const buttons = screen.getByTestId('test-buttons');
+      expect(buttons).toHaveClass('buttons');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Buttons data-testid="test-buttons">
+            <Button>Test</Button>
+          </Buttons>
+        </ConfigProvider>
+      );
+      const buttons = screen.getByTestId('test-buttons');
+      expect(buttons).toHaveClass('buttons');
+    });
   });
 });

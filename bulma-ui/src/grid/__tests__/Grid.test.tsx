@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Grid } from '../Grid';
 import { Cell } from '../Cell';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Simple test cell contents
 const TestCell = ({ children = 'Cell' }) => <Cell>{children}</Cell>;
@@ -128,5 +129,18 @@ describe('Grid', () => {
     );
     expect(container.querySelector('.fixed-grid')).not.toBeInTheDocument();
     expect(container.querySelector('.grid')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Grid>
+          <TestCell />
+        </Grid>
+      </ConfigProvider>
+    );
+    const grid = container.querySelector('.bulma-grid');
+    expect(grid).toBeInTheDocument();
+    expect(container.querySelector('.grid')).not.toBeInTheDocument();
   });
 });

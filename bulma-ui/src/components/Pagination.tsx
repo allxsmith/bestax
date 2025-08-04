@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Pagination component.
@@ -144,13 +145,16 @@ export const Pagination: React.FC<PaginationProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
+
+  const mainClass = classPrefix ? `${classPrefix}pagination` : 'pagination';
   const paginationClasses = classNames(
-    'pagination',
+    mainClass,
     bulmaHelperClasses,
     className,
     {

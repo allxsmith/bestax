@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Image, ImageProps } from '../Image';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Image Component', () => {
   const defaultProps: ImageProps = {
@@ -115,5 +116,17 @@ describe('Image Component', () => {
     const container = screen.getByTestId('as-figure');
     expect(container.tagName.toLowerCase()).toBe('figure');
     expect(container).toHaveClass('image is-64x64');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Image {...defaultProps} />
+      </ConfigProvider>
+    );
+    const img = screen.getByAltText('Test image');
+    const container = img.closest('div');
+    expect(container).toHaveClass('bulma-image');
+    expect(container).not.toHaveClass('image');
   });
 });

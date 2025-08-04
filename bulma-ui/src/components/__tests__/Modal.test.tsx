@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Modal } from '../Modal';
+import { ConfigProvider } from '../../helpers/Config';
 
 const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
@@ -97,5 +98,16 @@ describe('Modal', () => {
     );
     expect(screen.getByTestId('modal-content')).toBeInTheDocument();
     expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Modal active>{latin}</Modal>
+      </ConfigProvider>
+    );
+    const modal = screen.getByTestId('modal');
+    expect(modal).toHaveClass('bulma-modal');
+    expect(modal).not.toHaveClass('modal');
   });
 });

@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Icon } from '../Icon';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Icon', () => {
   it('renders a Font Awesome icon by default', () => {
@@ -81,5 +82,16 @@ describe('Icon', () => {
     const i = container.querySelector('i');
     // The default case just joins name + features
     expect(i).toHaveClass('star', 'weird', 'iconic');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Icon name="star" />
+      </ConfigProvider>
+    );
+    const span = container.querySelector('span');
+    expect(span).toHaveClass('bulma-icon');
+    expect(span).not.toHaveClass('icon');
   });
 });

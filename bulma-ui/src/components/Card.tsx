@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Card component.
@@ -72,13 +73,15 @@ export const Card: React.FC<CardProps> = ({
   imageAlt,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const cardClasses = classNames('card', className, bulmaHelperClasses, {
+  const mainClass = classPrefix ? `${classPrefix}card` : 'card';
+  const cardClasses = classNames(mainClass, className, bulmaHelperClasses, {
     'is-shadowless': !hasShadow,
   });
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '../Navbar';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Navbar', () => {
   it('renders children content', () => {
@@ -68,6 +69,17 @@ describe('Navbar', () => {
     expect(nav).not.toHaveAttribute('textColor');
     expect(nav).not.toHaveAttribute('bgColor');
     expect(nav).not.toHaveAttribute('color');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Navbar>Test</Navbar>
+      </ConfigProvider>
+    );
+    const navbar = screen.getByRole('navigation');
+    expect(navbar).toHaveClass('bulma-navbar');
+    expect(navbar).not.toHaveClass('navbar');
   });
 });
 

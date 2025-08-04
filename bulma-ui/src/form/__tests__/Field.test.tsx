@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Field from '../Field';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Mocks for Bulma classes
 jest.mock('../../helpers/useBulmaClasses', () => ({
@@ -202,5 +203,57 @@ describe('Field', () => {
       </Field>
     );
     expect(screen.getByTestId('fake-body')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Field label="Test Label">Test content</Field>
+      </ConfigProvider>
+    );
+    const field = container.querySelector('.bulma-field');
+    expect(field).toBeInTheDocument();
+    expect(field).not.toHaveClass('field');
+
+    const label = screen.getByText('Test Label');
+    expect(label).toHaveClass('bulma-label');
+    expect(label).not.toHaveClass('label');
+  });
+
+  it('applies classPrefix to FieldLabel and FieldBody components', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Field>
+          <Field.Label data-testid="field-label">Label with prefix</Field.Label>
+          <Field.Body data-testid="field-body">Body with prefix</Field.Body>
+        </Field>
+      </ConfigProvider>
+    );
+
+    const fieldLabel = screen.getByTestId('field-label');
+    const fieldBody = screen.getByTestId('field-body');
+
+    expect(fieldLabel).toHaveClass('custom-field-label');
+    expect(fieldLabel).not.toHaveClass('field-label');
+    expect(fieldBody).toHaveClass('custom-field-body');
+    expect(fieldBody).not.toHaveClass('field-body');
+  });
+
+  it('applies classPrefix to horizontal field labels', () => {
+    render(
+      <ConfigProvider classPrefix="prefix-">
+        <Field horizontal label="Horizontal Label">
+          <input type="text" />
+        </Field>
+      </ConfigProvider>
+    );
+
+    const label = screen.getByText('Horizontal Label');
+    expect(label).toHaveClass('prefix-label');
+    expect(label).not.toHaveClass('label');
+
+    const fieldLabel = label.closest('.prefix-field-label');
+    expect(fieldLabel).toBeInTheDocument();
+    expect(fieldLabel).not.toHaveClass('field-label');
   });
 });

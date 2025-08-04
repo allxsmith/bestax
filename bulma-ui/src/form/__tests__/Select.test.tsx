@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Select from '../Select';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Select', () => {
   it('renders options as children', () => {
@@ -105,5 +106,18 @@ describe('Select', () => {
       </Select>
     );
     expect(screen.getByTestId('my-select')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Select>
+          <option>test</option>
+        </Select>
+      </ConfigProvider>
+    );
+    const select = container.querySelector('.bulma-select');
+    expect(select).toBeInTheDocument();
+    expect(select).not.toHaveClass('select');
   });
 });

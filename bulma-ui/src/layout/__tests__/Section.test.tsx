@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { Section } from '../Section';
 import { Title } from '../../elements/Title';
 import { SubTitle } from '../../elements/SubTitle';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Section', () => {
   it('renders section with children and region role when labelled', () => {
@@ -48,5 +49,15 @@ describe('Section', () => {
   it('allows custom className', () => {
     render(<Section className="custom" data-testid="section" />);
     expect(screen.getByTestId('section')).toHaveClass('custom');
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Section data-testid="section-test">Test Section</Section>
+      </ConfigProvider>
+    );
+    const section = screen.getByTestId('section-test');
+    expect(section).toHaveClass('custom-section');
   });
 });

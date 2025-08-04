@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Modal component.
@@ -53,6 +54,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -65,8 +67,11 @@ export const Modal: React.FC<ModalProps> = ({
   else if (type === 'content') isModalCard = false;
   else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
+  const mainClass = classPrefix ? `${classPrefix}modal` : 'modal';
+  const deleteClass = classPrefix ? `${classPrefix}delete` : 'delete';
+
   const modalClasses = classNames(
-    'modal',
+    mainClass,
     { 'is-active': active },
     className,
     bulmaHelperClasses
@@ -86,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
               <p className="modal-card-title">{modalCardTitle}</p>
               {onClose && (
                 <button
-                  className="delete"
+                  className={deleteClass}
                   aria-label="close"
                   onClick={onClose}
                   type="button"

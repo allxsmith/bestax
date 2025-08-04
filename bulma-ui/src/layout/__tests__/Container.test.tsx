@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Container } from '../Container';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Container', () => {
   it('renders children', () => {
@@ -10,6 +11,15 @@ describe('Container', () => {
   it('applies the container class', () => {
     const { container } = render(<Container>Content</Container>);
     expect(container.firstChild).toHaveClass('container');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="custom-">
+        <Container>Test Content</Container>
+      </ConfigProvider>
+    );
+    expect(container.firstChild).toHaveClass('custom-container');
   });
 
   it('applies custom className', () => {

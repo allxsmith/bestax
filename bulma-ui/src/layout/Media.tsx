@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Media component.
@@ -40,11 +41,13 @@ export const Media: React.FC<MediaProps> & {
   Content: typeof MediaContent;
   Right: typeof MediaRight;
 } = ({ as = 'article', className, children, ...props }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const Tag = as;
+  const mainClass = classPrefix ? `${classPrefix}media` : 'media';
   return (
     <Tag
-      className={classNames('media', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}

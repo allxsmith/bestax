@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Progress, ProgressProps } from '../Progress';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Progress Component', () => {
   const defaultProps: ProgressProps = {
@@ -60,5 +61,16 @@ describe('Progress Component', () => {
     render(<Progress {...defaultProps}>50%</Progress>);
     const progress = screen.getByRole('progressbar');
     expect(progress).toHaveTextContent('50%');
+  });
+
+  test('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Progress {...defaultProps} />
+      </ConfigProvider>
+    );
+    const progress = screen.getByRole('progressbar');
+    expect(progress).toHaveClass('bulma-progress');
+    expect(progress).not.toHaveClass('progress');
   });
 });

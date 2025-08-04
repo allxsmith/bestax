@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Checkboxes component.
@@ -27,11 +28,13 @@ export const Checkboxes: React.FC<CheckboxesProps> = ({
   className,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });
 
-  const wrapperClass = classNames('checkboxes', bulmaHelperClasses, className);
+  const mainClass = classPrefix ? `${classPrefix}checkboxes` : 'checkboxes';
+  const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <div className={wrapperClass} {...rest}>

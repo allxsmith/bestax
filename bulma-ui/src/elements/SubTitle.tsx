@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 const validSubTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
 /**
@@ -62,6 +63,8 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -74,15 +77,11 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   const validSize =
     size && validSubTitleSizes.includes(size) ? size : undefined;
 
-  const subTitleClasses = classNames(
-    'subtitle',
-    className,
-    bulmaHelperClasses,
-    {
-      [`is-${validSize}`]: validSize,
-      'has-skeleton': hasSkeleton,
-    }
-  );
+  const mainClass = classPrefix ? `${classPrefix}subtitle` : 'subtitle';
+  const subTitleClasses = classNames(mainClass, className, bulmaHelperClasses, {
+    [`is-${validSize}`]: validSize,
+    'has-skeleton': hasSkeleton,
+  });
 
   // Determine the tag based on 'element' and 'validSize'
   const Tag: React.ElementType =

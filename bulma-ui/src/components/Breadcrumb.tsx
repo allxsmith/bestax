@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 const validBreadcrumbAlignments = ['centered', 'right'] as const;
 /**
@@ -62,10 +63,12 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
+  const mainClass = classPrefix ? `${classPrefix}breadcrumb` : 'breadcrumb';
   const breadcrumbClasses = classNames(
-    'breadcrumb',
+    mainClass,
     className,
     bulmaHelperClasses,
     {

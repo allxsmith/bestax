@@ -5,6 +5,7 @@ import Button from '../../elements/Button';
 import Field from '../../form/Field';
 import Control from '../../form/Control';
 import Input from '../../form/Input';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Level', () => {
   it('renders default layout with Bulma helpers', () => {
@@ -122,5 +123,30 @@ describe('Level', () => {
     expect(anchor).toHaveAttribute('rel', 'noopener');
     expect(anchor).toHaveClass('level-item');
     expect(anchor).toHaveTextContent('Link Item');
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Level data-testid="level-test">Test Level</Level>
+      </ConfigProvider>
+    );
+    const level = screen.getByTestId('level-test');
+    expect(level).toHaveClass('custom-level');
+  });
+
+  it('applies classPrefix to Level subcomponents when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Level>
+          <Level.Left data-testid="left">Left</Level.Left>
+          <Level.Right data-testid="right">Right</Level.Right>
+          <Level.Item data-testid="item">Item</Level.Item>
+        </Level>
+      </ConfigProvider>
+    );
+    expect(screen.getByTestId('left')).toHaveClass('custom-level-left');
+    expect(screen.getByTestId('right')).toHaveClass('custom-level-right');
+    expect(screen.getByTestId('item')).toHaveClass('custom-level-item');
   });
 });

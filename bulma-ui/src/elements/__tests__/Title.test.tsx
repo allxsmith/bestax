@@ -1,5 +1,6 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import { Title, TitleProps } from '../Title';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Title Component', () => {
   const defaultProps: TitleProps = {
@@ -178,5 +179,37 @@ describe('Title Component', () => {
     const title = screen.getByRole('heading', { name: 'Test Title', level: 1 });
     expect(title).toHaveClass('has-skeleton');
     expect(title).toHaveClass('is-skeleton');
+  });
+
+  describe('ClassPrefix', () => {
+    test('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Title>Test Title</Title>
+        </ConfigProvider>
+      );
+      const title = screen.getByRole('heading');
+      expect(title).toHaveClass('my-prefix-title');
+    });
+
+    test('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Title>Test Title</Title>
+        </ConfigProvider>
+      );
+      const title = screen.getByRole('heading');
+      expect(title).toHaveClass('title');
+    });
+
+    test('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Title>Test Title</Title>
+        </ConfigProvider>
+      );
+      const title = screen.getByRole('heading');
+      expect(title).toHaveClass('title');
+    });
   });
 });

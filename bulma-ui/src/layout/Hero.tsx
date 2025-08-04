@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Possible values for Bulma hero size.
@@ -58,14 +59,16 @@ export const Hero: React.FC<HeroProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color,
     backgroundColor: bgColor,
     ...props,
   });
 
+  const mainClass = classPrefix ? `${classPrefix}hero` : 'hero';
   const heroClasses = classNames(
-    'hero',
+    mainClass,
     bulmaHelperClasses,
     className,
     color && `is-${color}`,
@@ -113,14 +116,16 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
   textColor,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = classPrefix ? `${classPrefix}hero-head` : 'hero-head';
   return (
     <div
-      className={classNames('hero-head', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}
@@ -158,14 +163,16 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
   textColor,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = classPrefix ? `${classPrefix}hero-body` : 'hero-body';
   return (
     <div
-      className={classNames('hero-body', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}
@@ -203,14 +210,16 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
   textColor,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = classPrefix ? `${classPrefix}hero-foot` : 'hero-foot';
   return (
     <div
-      className={classNames('hero-foot', bulmaHelperClasses, className)}
+      className={classNames(mainClass, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}

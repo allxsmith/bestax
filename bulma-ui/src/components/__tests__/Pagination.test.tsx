@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Pagination from '../Pagination';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Pagination', () => {
   it('renders nav with pagination class', () => {
@@ -9,6 +10,17 @@ describe('Pagination', () => {
       'aria-label',
       'pagination'
     );
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Pagination data-testid="pagination" />
+      </ConfigProvider>
+    );
+    const pagination = screen.getByTestId('pagination');
+    expect(pagination).toHaveClass('bulma-pagination');
+    expect(pagination).not.toHaveClass('pagination');
   });
 
   it('applies color and size classes', () => {

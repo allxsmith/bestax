@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Panel from '../Panel';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Panel', () => {
   it('renders panel nav with panel class', () => {
@@ -24,6 +25,33 @@ describe('Panel', () => {
       </Panel>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Panel data-testid="panel" />
+      </ConfigProvider>
+    );
+    const panel = screen.getByTestId('panel');
+    expect(panel).toHaveClass('bulma-panel');
+    expect(panel).not.toHaveClass('panel');
+  });
+
+  it('applies classPrefix to PanelInputBlock input when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Panel.InputBlock
+          placeholder="Search with prefix"
+          data-testid="input-block"
+        />
+      </ConfigProvider>
+    );
+
+    const inputBlock = screen.getByTestId('input-block');
+    const input = inputBlock.querySelector('input');
+    expect(input).toHaveClass('custom-input');
+    expect(input).not.toHaveClass('input');
   });
 });
 

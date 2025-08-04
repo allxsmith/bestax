@@ -52,6 +52,8 @@ export * from './grid/Grid';
 
 export * from './helpers/classNames';
 export * from './helpers/useBulmaClasses';
+export * from './helpers/Theme';
+export * from './helpers/Config';
 
 export * from './layout/Container';
 export * from './layout/Footer';

@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Skeleton } from '../Skeleton'; // Adjust the import path as needed
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Skeleton', () => {
   it('renders a block skeleton by default', () => {
@@ -31,5 +32,47 @@ describe('Skeleton', () => {
     render(<Skeleton className="my-custom-class" data-testid="skeleton" />);
     const skeleton = screen.getByTestId('skeleton');
     expect(skeleton).toHaveClass('my-custom-class');
+  });
+
+  describe('ClassPrefix', () => {
+    test('applies classPrefix to skeleton-block class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Skeleton data-testid="skeleton" />
+        </ConfigProvider>
+      );
+      const skeleton = screen.getByTestId('skeleton');
+      expect(skeleton).toHaveClass('my-prefix-skeleton-block');
+    });
+
+    test('applies classPrefix to skeleton-lines class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Skeleton variant="lines" data-testid="skeleton" />
+        </ConfigProvider>
+      );
+      const skeleton = screen.getByTestId('skeleton');
+      expect(skeleton).toHaveClass('my-prefix-skeleton-lines');
+    });
+
+    test('uses default classes when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Skeleton data-testid="skeleton" />
+        </ConfigProvider>
+      );
+      const skeleton = screen.getByTestId('skeleton');
+      expect(skeleton).toHaveClass('skeleton-block');
+    });
+
+    test('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Skeleton variant="lines" data-testid="skeleton" />
+        </ConfigProvider>
+      );
+      const skeleton = screen.getByTestId('skeleton');
+      expect(skeleton).toHaveClass('skeleton-lines');
+    });
   });
 });

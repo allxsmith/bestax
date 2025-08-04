@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import Hero from '../Hero';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Hero', () => {
   it('renders children', () => {
@@ -94,5 +95,30 @@ describe('Hero', () => {
     expect(head.className).toMatch(/has-background-white/);
     expect(foot.className).toMatch(/has-text-danger/);
     expect(foot.className).toMatch(/has-background-dark/);
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="custom-">
+        <Hero data-testid="hero-test">Test Hero</Hero>
+      </ConfigProvider>
+    );
+    const hero = container.querySelector('.custom-hero');
+    expect(hero).toBeInTheDocument();
+  });
+
+  it('applies classPrefix to Hero subcomponents when provided', () => {
+    const { getByTestId } = render(
+      <ConfigProvider classPrefix="custom-">
+        <Hero>
+          <Hero.Head data-testid="head">Head Content</Hero.Head>
+          <Hero.Body data-testid="body">Body Content</Hero.Body>
+          <Hero.Foot data-testid="foot">Foot Content</Hero.Foot>
+        </Hero>
+      </ConfigProvider>
+    );
+    expect(getByTestId('head')).toHaveClass('custom-hero-head');
+    expect(getByTestId('body')).toHaveClass('custom-hero-body');
+    expect(getByTestId('foot')).toHaveClass('custom-hero-foot');
   });
 });

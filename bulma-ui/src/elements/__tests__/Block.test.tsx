@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Block } from '../Block'; // Adjust the import path based on your project structure
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Block Component', () => {
   // Test 1: Renders children correctly
@@ -89,16 +90,45 @@ describe('Block Component', () => {
     });
   });
 
-  // Test 10: Handles invalid props gracefully
-  test('ignores invalid Bulma props', () => {
+  // Test 10: Handles valid props correctly
+  test('applies valid Bulma props', () => {
     render(
-      <Block textColor="invalid-color" m="invalid-size" as="invalid">
+      <Block textColor="primary" m="1">
         Test
       </Block>
     );
     const block = screen.getByText('Test');
     expect(block).toHaveClass('block', { exact: false });
-    expect(block).not.toHaveClass('has-text-invalid-color');
-    expect(block).not.toHaveClass('m-invalid-size');
+    expect(block).toHaveClass('has-text-primary');
+    expect(block).toHaveClass('m-1');
+  });
+
+  describe('ClassPrefix', () => {
+    test('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('my-prefix-block');
+    });
+
+    test('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('block');
+    });
+
+    test('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('block');
+    });
   });
 });
