@@ -8,7 +8,7 @@ import * as BestaxBulma from '@allxsmith/bestax-bulma';
 import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
 import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import BrowserWindow from '../../components/ BrowserWindow';
+import BrowserWindow from './BrowserWindow';
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
 // Also handle color mode classes instead of media queries
@@ -123,6 +123,19 @@ const scope = {
   useEffect,
 };
 
+function BrowserEditor() {
+  return (
+    <BrowserWindow>
+      <LiveEditor
+        style={{
+          backgroundColor: 'var(--prism-background-color)',
+          font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
+        }}
+      />
+    </BrowserWindow>
+  );
+}
+
 export default function CodeBlockEnhancer(props) {
   const { colorMode } = useColorMode();
   const shadowRef = React.useRef();
@@ -198,14 +211,7 @@ export default function CodeBlockEnhancer(props) {
           </div>
         </root.div>
         <LiveError className="live-error alert alert--danger" />
-        <BrowserWindow>
-          <LiveEditor
-            style={{
-              backgroundColor: 'var(--prism-background-color)',
-              font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
-            }}
-          />
-        </BrowserWindow>
+        <BrowserEditor />
       </LiveProvider>
     </ShadowThemeContext.Provider>
   ) : (
