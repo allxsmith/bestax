@@ -208,6 +208,7 @@ export default function CodeBlockEnhancer(props) {
     let timeoutId = null;
 
     if (!styleElement) {
+      const SHADOW_DOM_INIT_TIMEOUT_MS = 50;
       timeoutId = setTimeout(() => {
         styleElement = setupShadowStyleElement();
       }, SHADOW_DOM_INIT_TIMEOUT_MS); // Give shadow DOM time to initialize
