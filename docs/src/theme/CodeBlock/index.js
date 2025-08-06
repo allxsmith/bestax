@@ -45,6 +45,20 @@ function updateShadowThemeElement(styleElement, themeVars) {
 const ShadowThemeContext = React.createContext(null);
 
 // Custom Theme component that works with shadow DOM (for isRoot={true} only)
+/**
+ * ShadowTheme is a React component that manages theming for components rendered inside a shadow DOM.
+ * It updates CSS custom properties (variables) in the shadow DOM based on provided theme props.
+ *
+ * @param {Object} props - The props for the component.
+ * @param {React.ReactNode} props.children - Child components to render.
+ * @param {Object} [props.bulmaVars] - An object containing Bulma CSS variable overrides (key-value pairs).
+ * @param {boolean} [props.isRoot] - If true, applies global theming to the shadow DOM root.
+ * @param {Object} [themeProps] - Additional theme properties, each mapped to a CSS variable (--bulma-<prop>).
+ * @returns {React.ReactNode} The rendered children.
+ *
+ * This component only applies theming when isRoot is true. It uses the ShadowThemeContext to update
+ * CSS variables in the shadow DOM, supporting both Bulma variables and custom theme properties.
+ */
 function ShadowTheme({ children, bulmaVars, isRoot, ...themeProps }) {
   const updateShadowTheme = React.useContext(ShadowThemeContext);
 
