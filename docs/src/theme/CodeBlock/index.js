@@ -98,6 +98,16 @@ function ShadowTheme({ children, bulmaVars, isRoot, ...themeProps }) {
 }
 
 // Smart Theme selector that chooses between regular Theme and ShadowTheme
+/**
+ * Selects the appropriate theme component based on the isRoot parameter.
+ * If isRoot is true, uses ShadowTheme for global theming in a shadow DOM context.
+ * Otherwise, uses the regular Theme component for local theming.
+ *
+ * @param {Object} props - The props for the theme component.
+ * @param {boolean} [props.isRoot=false] - Whether to use ShadowTheme (true) or RegularTheme (false).
+ * @param {React.ReactNode} props.children - The child elements to render within the theme.
+ * @returns {React.ReactElement} The themed component.
+ */
 function SmartTheme({ isRoot = false, children, ...props }) {
   const { Theme: RegularTheme } = BestaxBulma;
 
