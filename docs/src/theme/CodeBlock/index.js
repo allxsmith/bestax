@@ -210,7 +210,7 @@ export default function CodeBlockEnhancer(props) {
     if (!styleElement) {
       timeoutId = setTimeout(() => {
         styleElement = setupShadowStyleElement();
-      }, 50); // Give shadow DOM time to initialize
+      }, SHADOW_DOM_INIT_TIMEOUT_MS); // Give shadow DOM time to initialize
     }
 
     // Cleanup on unmount
