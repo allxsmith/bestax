@@ -86,7 +86,7 @@ function ShadowTheme({ children, bulmaVars, isRoot, ...themeProps }) {
 
     // Handle individual theme props
     Object.entries(themeProps).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value != null) {
         // Convert camelCase to kebab-case and add bulma prefix
         const cssVar = `--bulma-${key
           .replace(/([A-Z])/g, '-$1')
