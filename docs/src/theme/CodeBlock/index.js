@@ -28,7 +28,13 @@ function isLiveCodeBlock(props) {
   return !!props.live;
 }
 
-// Function to update a shadow DOM style element with theme variables
+/**
+ * Updates a style element in the shadow DOM with the provided theme variables.
+ *
+ * @param {HTMLStyleElement} styleElement - The style element to update within the shadow DOM.
+ * @param {Object} themeVars - An object mapping CSS variable names (e.g., '--bulma-primary') to their values.
+ * This function sets the text content of the style element to a :host CSS block containing the variables.
+ */
 function updateShadowThemeElement(styleElement, themeVars) {
   if (styleElement && styleElement.parentNode) {
     let cssVars = '';
