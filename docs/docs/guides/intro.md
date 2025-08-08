@@ -1,6 +1,6 @@
 ---
-title: Getting Started
-sidebar_label: Getting Started
+title: Introduction
+sidebar_label: Introduction
 sidebar_position: 1
 ---
 
@@ -16,7 +16,7 @@ The latest Bulma V1 is supported by **bestax-bulma**.
 
 ---
 
-## Installation
+## Quick Start
 
 1. **Install the package:**
 
@@ -39,13 +39,15 @@ The latest Bulma V1 is supported by **bestax-bulma**.
      />
      ```
 
-3. **(Optional) Add an icon library:**
+:::tip Need More Detailed Setup Instructions?
 
-   Many components support icons. We recommend:
+For comprehensive installation instructions including icon libraries, TypeScript setup, and troubleshooting, see our **[Installation Guide](./getting-started/installation.md)**.
 
-   ```bash
-   npm install @fortawesome/fontawesome-free
-   ```
+For different Bulma CSS variations (prefixed, no helpers, custom branding, etc.), check out **[Bulma Variations](./getting-started/bulma-variations.md)**.
+
+For framework-specific setup guides (Vite, Next.js, Create React App, SSR), visit **[React Setups](./getting-started/react-setups.md)**.
+
+:::
 
 ---
 
@@ -200,10 +202,30 @@ function Demo() {
 
 ## Next Steps
 
-- **Keep exploring right here in the documentation site!**
-- **Get started with the [API component docs](/docs/category/elements/)** for detailed usage, props, and examples for every component.
-  - For example, check out [Button](/docs/api/elements/button) or browse other components in the sidebar.
-- **Try out code samples and experiment as you go.**
+Now that you have a basic understanding of bestax-bulma:
+
+### 📦 Installation & Setup
+
+- **[Installation Guide](./getting-started/installation.md)** – Complete setup instructions with examples, icon libraries, and troubleshooting
+- **[Bulma Variations](./getting-started/bulma-variations.md)** – Different Bulma CSS options (prefixed, no helpers, custom branding)
+- **[React Setups](./getting-started/react-setups.md)** – Framework-specific guides for Vite, Next.js, Create React App, and SSR
+
+### 📚 Component Documentation
+
+- **[Elements](/docs/category/elements)** – Basic building blocks like Button, Box, Title
+- **[Components](/docs/category/components)** – Complex widgets like Modal, Navbar, Dropdown
+- **[Form](/docs/category/form)** – Input, Select, Checkbox, and other form controls
+- **[Layout](/docs/category/layout)** – Structural components like Container, Section, Hero
+
+### ⚙️ Advanced Features
+
+- **[ConfigProvider](/docs/api/helpers/config)** – Global configuration and CSS class prefixing
+- **[Theme](/docs/api/helpers/theme)** – CSS variable-based theming and customization
+
+### 🔧 Development
+
+- **Try out code samples and experiment as you go**
+- **Check out our [Storybook](https://bestax.cc/storybook)** for interactive component examples
 
 ---
 
