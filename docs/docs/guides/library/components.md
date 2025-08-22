@@ -22,7 +22,7 @@ Below is a summary of each component, including a brief description, a usage exa
 
 ### Breadcrumb
 
-A Bulma-styled breadcrumb navigation for showing the user's location in the app. [View full documentation.](../api/components/breadcrumb.md)
+A Bulma-styled breadcrumb navigation for showing the user's location in the app. [View full documentation.](../../api/components/breadcrumb.md)
 
 ```tsx live
 <Breadcrumb>
@@ -48,7 +48,7 @@ A Bulma-styled breadcrumb navigation for showing the user's location in the app.
 
 ### Card
 
-A Bulma-styled card with optional header, image, content, and footer. [View full documentation.](../api/components/card.md)
+A Bulma-styled card with optional header, image, content, and footer. [View full documentation.](../../api/components/card.md)
 
 ```tsx live
 <Card
@@ -72,7 +72,7 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 
 ### Dropdown
 
-A versatile dropdown menu for navigation, actions, or pop-up lists. [View full documentation.](../api/components/dropdown.md)
+A versatile dropdown menu for navigation, actions, or pop-up lists. [View full documentation.](../../api/components/dropdown.md)
 
 ```tsx live
 <Dropdown label="Dropdown Menu">
@@ -89,7 +89,7 @@ A versatile dropdown menu for navigation, actions, or pop-up lists. [View full d
 
 ### Menu
 
-A vertical navigation menu for sidebars, dashboards, or grouped navigation. [View full documentation.](../api/components/menu.md)
+A vertical navigation menu for sidebars, dashboards, or grouped navigation. [View full documentation.](../../api/components/menu.md)
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
@@ -110,7 +110,7 @@ A vertical navigation menu for sidebars, dashboards, or grouped navigation. [Vie
 
 ### Message
 
-A Bulma-styled message box for feedback, alerts, or notifications. [View full documentation.](../api/components/message.md)
+A Bulma-styled message box for feedback, alerts, or notifications. [View full documentation.](../../api/components/message.md)
 
 ```tsx live
 <Message color="primary" title="Primary">
@@ -122,7 +122,7 @@ A Bulma-styled message box for feedback, alerts, or notifications. [View full do
 
 ### Modal
 
-A flexible, accessible modal dialog for dialogs, confirmations, or custom content. [View full documentation.](../api/components/modal.md)
+A flexible, accessible modal dialog for dialogs, confirmations, or custom content. [View full documentation.](../../api/components/modal.md)
 
 ```tsx live
 function example() {
@@ -155,7 +155,7 @@ function example() {
 
 ### Navbar
 
-A responsive navigation bar with support for branding, menus, dropdowns, and more. [View full documentation.](../api/components/navbar.md)
+A responsive navigation bar with support for branding, menus, dropdowns, and more. [View full documentation.](../../api/components/navbar.md)
 
 ```tsx live
 <Navbar>
@@ -182,7 +182,7 @@ A responsive navigation bar with support for branding, menus, dropdowns, and mor
 
 ### Pagination
 
-A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../api/components/pagination.md)
+A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)
 
 ```tsx live
 <Pagination>
@@ -202,7 +202,7 @@ A flexible, composable pagination navigation for lists or multi-page content. [V
 
 ### Panel
 
-A vertical panel block for lists, filters, or grouped actions. [View full documentation.](../api/components/panel.md)
+A vertical panel block for lists, filters, or grouped actions. [View full documentation.](../../api/components/panel.md)
 
 ```tsx live
 <Panel>
@@ -240,7 +240,7 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
 
 ### Tabs
 
-A flexible tab navigation system for switching between views or filtering content. [View full documentation.](../api/components/tabs.md)
+A flexible tab navigation system for switching between views or filtering content. [View full documentation.](../../api/components/tabs.md)
 
 ```tsx live
 <Tabs align="centered">

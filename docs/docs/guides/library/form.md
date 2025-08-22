@@ -18,7 +18,7 @@ A Bulma-styled checkbox input for boolean choices. Pass the label as children; s
 <Checkbox> Stay Signed In </Checkbox>
 ```
 
-[View full documentation.](../api/form/checkbox)
+[View full documentation.](../../api/form/checkbox)
 
 ---
 
@@ -33,7 +33,7 @@ Wraps multiple `Checkbox` components in a vertical group for lists of boolean op
 </Checkboxes>
 ```
 
-[View full documentation.](../api/form/checkboxes)
+[View full documentation.](../../api/form/checkboxes)
 
 ---
 
@@ -48,7 +48,7 @@ A Bulma-styled radio button for mutually exclusive choices. Use the same `name` 
 </>
 ```
 
-[View full documentation.](../api/form/radio)
+[View full documentation.](../../api/form/radio)
 
 ---
 
@@ -63,7 +63,7 @@ Groups multiple `Radio` components vertically for single-choice lists (e.g., RSV
 </Radios>
 ```
 
-[View full documentation.](../api/form/radios)
+[View full documentation.](../../api/form/radios)
 
 ---
 
@@ -75,7 +75,7 @@ A Bulma-styled text input supporting color, size, rounded, static/read-only, and
 <Input placeholder="Your name" />
 ```
 
-[View full documentation.](../api/form/input)
+[View full documentation.](../../api/form/input)
 
 ---
 
@@ -87,7 +87,7 @@ A Bulma-styled multi-line text input. Supports color, size, rounded, static/read
 <TextArea placeholder="Your message" rows={4} />
 ```
 
-[View full documentation.](../api/form/textarea)
+[View full documentation.](../../api/form/textarea)
 
 ---
 
@@ -102,7 +102,7 @@ A Bulma-styled dropdown for single or multiple selections. Supports color, size,
 </Select>
 ```
 
-[View full documentation.](../api/form/select)
+[View full documentation.](../../api/form/select)
 
 ---
 
@@ -114,7 +114,7 @@ A Bulma-styled file input with support for color, size, boxed/fullwidth/align st
 <File label="Choose a file..." />
 ```
 
-[View full documentation.](../api/form/file)
+[View full documentation.](../../api/form/file)
 
 ---
 
@@ -128,7 +128,7 @@ A Bulma-styled form field container for labels, grouped controls, and horizontal
 </Field>
 ```
 
-[View full documentation.](../api/form/field)
+[View full documentation.](../../api/form/field)
 
 :::tip
 Use `Field` to group and label form controls for accessibility and layout.
@@ -146,7 +146,7 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 </Control>
 ```
 
-[View full documentation.](../api/form/control)
+[View full documentation.](../../api/form/control)
 
 :::tip
 Wrap inputs, selects, or textareas in `Control` for proper Bulma styling and icon support.

@@ -23,7 +23,7 @@ import 'bulma/css/bulma.min.css';
 
 **Usage:**
 
-```tsx
+```tsx live
 import React from 'react';
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
 import 'bulma/css/bulma.min.css';
@@ -53,7 +53,7 @@ import 'bulma/css/versions/bulma-prefixed.min.css';
 
 **Usage:**
 
-```tsx
+```tsx live
 import React from 'react';
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
 import 'bulma/css/versions/bulma-prefixed.min.css';
@@ -61,8 +61,8 @@ import 'bulma/css/versions/bulma-prefixed.min.css';
 function App() {
   return (
     <ConfigProvider classPrefix="bulma-">
-      <Box p="4">
-        <Title>Prefixed Bulma Components</Title>
+      <Box>
+        <Title size={2}>Prefixed Bulma Components</Title>
         <p>
           All components inside this ConfigProvider will have their CSS classes
           prefixed with "bulma-". This allows you to use Bulma alongside other
@@ -79,7 +79,7 @@ function App() {
 
 This renders HTML with prefixed classes:
 
-```html
+```html live
 <div class="bulma-box">
   <h1 class="bulma-title">Prefixed Bulma Components</h1>
   <button class="bulma-button bulma-is-primary">Bulma-Prefixed Button</button>
@@ -340,5 +340,5 @@ All sizes are approximate and may vary between Bulma versions. Enable gzip compr
 
 - **Learn about configuration options**: [ConfigProvider](/docs/api/helpers/config)
 - **Explore theming capabilities**: [Theme](/docs/api/helpers/theme)
-- **Framework-specific setup**: [React Setups](/docs/guides/react-setups)
+- **Framework-specific setup**: [React Setups](/docs/guides/getting-started/react-setups)
 - **Browse all components**: [API Documentation](/docs/category/elements)

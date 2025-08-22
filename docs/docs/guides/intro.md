@@ -4,13 +4,15 @@ sidebar_label: Introduction
 sidebar_position: 1
 ---
 
-# Getting Started
+# Welcome
 
 Welcome to **bestax-bulma** – a modern, flexible React component library powered by the latest Bulma v1 and TypeScript.
 
 :::info
 
-The latest Bulma V1 is supported by **bestax-bulma**.
+The latest Bulma is supported by **bestax-bulma**.
+
+**Bulma V1**
 
 :::
 
@@ -58,7 +60,7 @@ bestax-bulma is organized into several major directories. Here’s a high-level 
 ### 🟢 Elements
 
 :::info
-See the [Elements summary](./elements.md) for a quick overview, or browse all [Elements](/docs/category/elements) in the API docs.
+See the [Elements summary](./library/elements.md) for a quick overview, or browse all [Elements](/docs/category/elements) in the API docs.
 :::
 
 Basic Bulma elements made available as React components.
@@ -73,6 +75,7 @@ Basic Bulma elements made available as React components.
 - [Image](/docs/api/elements/image) – A container for images, fixed and responsive.
 - [Notification](/docs/api/elements/notification) – A colored block to notify.
 - [Progress](/docs/api/elements/progress) – A decent looking progress bar.
+- [Skeleton](/docs/api/elements/skeleton) – Loading placeholders and skeleton loaders for better UX.
 - [Table](/docs/api/elements/table) – `Thead`, `Tbody`, `Tfoot`, `Td`, `Th`, `Tr` for styled tables.
 - [Tag](/docs/api/elements/tag) – Labels with colors and sizes.
 - [Tags](/docs/api/elements/tags) – Group tags together.
@@ -82,7 +85,7 @@ Basic Bulma elements made available as React components.
 ### 🟦 Columns
 
 :::info
-See the [Columns summary](./columns.md) for a quick overview, or browse all [Columns](/docs/category/columns) in the API docs.
+See the [Columns summary](./library/columns.md) for a quick overview, or browse all [Columns](/docs/category/columns) in the API docs.
 :::
 
 Responsive and flexible row-column layouts using Bulma’s columns system.
@@ -93,7 +96,7 @@ Responsive and flexible row-column layouts using Bulma’s columns system.
 ### 🟩 Grid
 
 :::info
-See the [Grid summary](./grid.md) for a quick overview, or browse all [Grid](/docs/category/grid) in the API docs.
+See the [Grid summary](./library/grid.md) for a quick overview, or browse all [Grid](/docs/category/grid) in the API docs.
 :::
 
 CSS Grid support, using Bulma’s new grid utilities.
@@ -104,7 +107,7 @@ CSS Grid support, using Bulma’s new grid utilities.
 ### 🟨 Layout
 
 :::info
-See the [Layout summary](./layout.md) for a quick overview, or browse all [Layout](/docs/category/layout) in the API docs.
+See the [Layout summary](./library/layout.md) for a quick overview, or browse all [Layout](/docs/category/layout) in the API docs.
 :::
 
 High-level layout primitives for structuring your app.
@@ -119,7 +122,7 @@ High-level layout primitives for structuring your app.
 ### 🟧 Components
 
 :::info
-See the [Components summary](./components.md) for a quick overview, or browse all [Components](/docs/category/components) in the API docs.
+See the [Components summary](./library/components.md) for a quick overview, or browse all [Components](/docs/category/components) in the API docs.
 :::
 
 Reusable UI widgets and navigation components.
@@ -138,7 +141,7 @@ Reusable UI widgets and navigation components.
 ### 🟪 Form
 
 :::info
-See the [Form summary](./form.md) for a quick overview, or browse all [Form](/docs/category/form) in the API docs.
+See the [Form summary](./library/form.md) for a quick overview, or browse all [Form](/docs/category/form) in the API docs.
 :::
 
 Accessible, fully styled form controls supporting all Bulma modifiers.
@@ -157,7 +160,7 @@ Accessible, fully styled form controls supporting all Bulma modifiers.
 ### 🟦 Helpers
 
 :::info
-See the [Helpers summary](./helpers.md) for a quick overview, or browse all [Helpers](/docs/category/helpers) in the API docs.
+See the [Helpers summary](./library/helpers.md) for a quick overview, or browse all [Helpers](/docs/category/helpers) in the API docs.
 :::
 
 Little helpers used throughout this package to aid with translating properties to bulma classes. Recommended to use if you want to create your own components that are bulma powered.
@@ -237,21 +240,23 @@ However, this documentation site is the primary and most complete resource for u
 
 ---
 
-## 🙏 Special Thanks
-
-bestax-bulma is built on top of the incredible [@jgthms/bulma](https://github.com/jgthms/bulma) CSS framework.
-
-If you find Bulma useful, please consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support the continued development of Bulma.
-
-_Note: We are not affiliated with Bulma or Jeremy Thomas in any way—we’re just big fans of the Bulma framework!_
-
----
-
 ## Attribution
 
 - The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
 - Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
 
 See [Bulma’s license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
+
+:::tip
+
+If you find Bulma useful, please consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support the continued development of Bulma.
+
+:::
+
+:::note
+
+We are not affiliated with Bulma or Jeremy Thomas in any way—we’re just big fans of the Bulma framework!
+
+:::
 
 ---

@@ -20,7 +20,7 @@ A responsive layout wrapper for centering and constraining content. Supports fix
 </Container>
 ```
 
-[View full documentation.](../api/layout/container)
+[View full documentation.](../../api/layout/container)
 
 ---
 
@@ -39,7 +39,7 @@ A visually striking section for headers, banners, or landing areas. Supports col
 </Hero>
 ```
 
-[View full documentation.](../api/layout/hero)
+[View full documentation.](../../api/layout/hero)
 
 ---
 
@@ -55,7 +55,7 @@ A semantic, accessible site footer for copyright, links, or extra info. Supports
 </Footer>
 ```
 
-[View full documentation.](../api/layout/footer)
+[View full documentation.](../../api/layout/footer)
 
 ---
 
@@ -78,7 +78,7 @@ A flexible horizontal layout for aligning items left, right, or center. Use for 
 </Level>
 ```
 
-[View full documentation.](../api/layout/level)
+[View full documentation.](../../api/layout/level)
 
 ---
 
@@ -93,7 +93,7 @@ Provides vertical spacing and visual separation for large blocks of content. Sup
 </Section>
 ```
 
-[View full documentation.](../api/layout/section)
+[View full documentation.](../../api/layout/section)
 
 ---
 
@@ -124,7 +124,7 @@ Implements Bulma’s media object layout for aligning images/icons with content 
 </Media>
 ```
 
-[View full documentation.](../api/layout/media)
+[View full documentation.](../../api/layout/media)
 
 ---
 

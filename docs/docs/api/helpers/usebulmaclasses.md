@@ -67,8 +67,8 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `alignContent`    | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'stretch'`                                                                                                                                         | `is-align-content-stretch`                                   |
 | `alignItems`      | `'stretch'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'start'`, `'end'`                                                                                                                                                              | `is-align-items-center`                                      |
 | `alignSelf`       | `'auto'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'stretch'`                                                                                                                                                                        | `is-align-self-center`                                       |
-| `flexGrow`        | `'0'`, `'1'`                                                                                                                                                                                                                                         | `is-flex-grow-1`                                             |
-| `flexShrink`      | `'0'`, `'1'`                                                                                                                                                                                                                                         | `is-flex-shrink-0`                                           |
+| `flexGrow`        | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-grow-1`                                             |
+| `flexShrink`      | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-shrink-0`                                           |
 | `float`           | `'left'`, `'right'`                                                                                                                                                                                                                                  | `is-pulled-left`, `is-pulled-right`                          |
 | `overflow`        | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
 | `overlay`         | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
@@ -209,8 +209,8 @@ export interface BulmaClassesProps {
     | 'center'
     | 'baseline'
     | 'stretch';
-  flexGrow?: '0' | '1';
-  flexShrink?: '0' | '1';
+  flexGrow?: '0' | '1' | '2' | '3' | '4' | '5';
+  flexShrink?: '0' | '1' | '2' | '3' | '4' | '5';
   float?: 'left' | 'right';
   overflow?: 'clipped';
   overlay?: boolean;

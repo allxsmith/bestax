@@ -1,10 +1,10 @@
 ---
-title: Framework Specific Setups
-sidebar_label: Frameworks
+title: Toolchain Specific Setups
+sidebar_label: Toolchains
 sidebar_position: 3
 ---
 
-# Framework Specific Setups
+# Toolchain Specific Setups
 
 This guide provides detailed setup instructions for bestax-bulma across different **React frameworks** and **build tools**. Whether you're using modern tools like **Vite** or **Next.js**, or working with legacy setups, we've got you covered.
 

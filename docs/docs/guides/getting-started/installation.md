@@ -117,9 +117,9 @@ Font Awesome provides thousands of free icons that work seamlessly with bestax-b
 
 Here's a complete example showing how to set up your main App component:
 
-```jsx title="src/App.js"
+```jsx title="src/App.js" live
 import React from 'react';
-import { Button, Box, Title, Icon } from '@allxsmith/bestax-bulma';
+import { Button, Buttons, Box, Title, Icon } from '@allxsmith/bestax-bulma';
 
 // Import Bulma CSS
 import 'bulma/css/bulma.min.css';
@@ -129,74 +129,30 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
   return (
-    <Box className="container" mt="6">
+    <Box mt="6">
       <Title size="2" className="has-text-centered">
         Welcome to bestax-bulma!
       </Title>
 
-      <div className="buttons is-centered">
+      <Buttons isCentered>
         <Button color="primary" size="large">
           <Icon name="fas fa-rocket" />
           <span>Get Started</span>
         </Button>
 
-        <Button color="info" size="large" variant="outlined">
+        <Button color="info" size="large" isOutlined>
           <Icon name="fas fa-book" />
           <span>Documentation</span>
         </Button>
 
-        <Button color="success" size="large" variant="light">
+        <Button color="success" size="large" isLight>
           <Icon name="fab fa-github" />
           <span>GitHub</span>
         </Button>
-      </div>
+      </Buttons>
     </Box>
   );
 }
-
-export default App;
-```
-
-### TypeScript Example
-
-If you're using TypeScript, here's the same example:
-
-```tsx title="src/App.tsx"
-import React from 'react';
-import { Button, Box, Title, Icon } from '@allxsmith/bestax-bulma';
-
-// Import Bulma CSS
-import 'bulma/css/bulma.min.css';
-
-// Import Font Awesome CSS
-import '@fortawesome/fontawesome-free/css/all.min.css';
-
-const App: React.FC = () => {
-  return (
-    <Box className="container" mt="6">
-      <Title size="2" className="has-text-centered">
-        Welcome to bestax-bulma!
-      </Title>
-
-      <div className="buttons is-centered">
-        <Button color="primary" size="large">
-          <Icon name="fas fa-rocket" />
-          <span>Get Started</span>
-        </Button>
-
-        <Button color="info" size="large" variant="outlined">
-          <Icon name="fas fa-book" />
-          <span>Documentation</span>
-        </Button>
-
-        <Button color="success" size="large" variant="light">
-          <Icon name="fab fa-github" />
-          <span>GitHub</span>
-        </Button>
-      </div>
-    </Box>
-  );
-};
 
 export default App;
 ```
@@ -224,8 +180,8 @@ Now that you have bestax-bulma installed and working:
 1. **Explore Components**: Check out the [API documentation](/docs/category/elements) to see all available components
 2. **Learn About Configuration**: Read about [ConfigProvider](/docs/api/helpers/config) for global configuration options
 3. **Customize with Theming**: Discover [Theme](/docs/api/helpers/theme) for CSS variable-based customization
-4. **Try Different Bulma Variations**: See [Bulma Variations](/docs/guides/bulma-variations) for different Bulma CSS options
-5. **Framework-Specific Setup**: Check [React Setups](/docs/guides/react-setups) for detailed setup guides for Vite, Next.js, and other frameworks
+4. **Try Different Bulma Variations**: See [Bulma Variations](/docs/guides/getting-started/bulma-variations) for different Bulma CSS options
+5. **Framework-Specific Setup**: Check [React Setups](/docs/guides/getting-started/react-setups) for detailed setup guides for Vite, Next.js, and other frameworks
 
 ---
 
@@ -237,4 +193,4 @@ If you encounter any issues:
 - Verify that Bulma CSS is being imported before your custom styles
 - Check that Font Awesome CSS is imported if you're using icons
 - Ensure you're using React 16.8+ (hooks are required)
-- See our [React Setups](/docs/guides/react-setups) guide for framework-specific troubleshooting
+- See our [React Setups](/docs/guides/getting-started/react-setups) guide for framework-specific troubleshooting

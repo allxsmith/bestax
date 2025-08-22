@@ -6,6 +6,7 @@ import root from 'react-shadow'; // Import from react-shadow
 import { useColorMode } from '@docusaurus/theme-common';
 import * as BestaxBulma from '@allxsmith/bestax-bulma';
 import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
+import rawBulmaPrefixedStyles from '!!raw-loader!bulma/css/versions/bulma-prefixed.min.css';
 import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import BrowserWindow from './BrowserWindow';
@@ -13,6 +14,14 @@ import BrowserWindow from './BrowserWindow';
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
 // Also handle color mode classes instead of media queries
 const bulmaStyles = rawBulmaStyles
+  .replace(/:root/g, ':host')
+  .replace(/@media\s*\(prefers-color-scheme:\s*dark\)\s*{/g, ':host(.dark) {')
+  .replace(
+    /@media\s*\(prefers-color-scheme:\s*light\)\s*{/g,
+    ':host(.light) {'
+  );
+
+const bulmaPrefixedStyles = rawBulmaPrefixedStyles
   .replace(/:root/g, ':host')
   .replace(/@media\s*\(prefers-color-scheme:\s*dark\)\s*{/g, ':host(.dark) {')
   .replace(
@@ -134,13 +143,18 @@ function SmartTheme({ isRoot = false, children, ...props }) {
   }
 }
 
-// Define a transform function to remove import lines
+// Define a transform function to remove import lines and export default statements
 function transformCode(code) {
-  // Split into lines, filter out those starting with 'import' (after trimming whitespace),
-  // and rejoin. This handles single-line imports; for multi-line, adjust if your examples use them.
+  // Split into lines, filter out those starting with 'import' or 'export default' (after trimming whitespace),
+  // and rejoin. This handles single-line imports and exports; for multi-line, adjust if your examples use them.
   return code
     .split('\n')
-    .filter(line => !line.trim().startsWith('import'))
+    .filter(line => {
+      const trimmed = line.trim();
+      return (
+        !trimmed.startsWith('import') && !trimmed.startsWith('export default')
+      );
+    })
     .join('\n');
 }
 
@@ -235,6 +249,7 @@ export default function CodeBlockEnhancer(props) {
           ref={shadowRef}
         >
           <style>{bulmaStyles}</style>
+          <style>{bulmaPrefixedStyles}</style>
           <style>{fontAwesomeStyles}</style>
           <style id="theme-vars"></style>
           <div data-theme={colorMode}>
