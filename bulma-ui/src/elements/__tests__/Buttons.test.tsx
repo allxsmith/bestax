@@ -124,5 +124,37 @@ describe('Buttons Component', () => {
       const buttons = screen.getByTestId('test-buttons');
       expect(buttons).toHaveClass('buttons');
     });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Buttons isCentered hasAddons m="2">
+            <Button>Button 1</Button>
+            <Button>Button 2</Button>
+          </Buttons>
+        </ConfigProvider>
+      );
+
+      const buttons = container.querySelector('div');
+      expect(buttons).toHaveClass('bulma-buttons');
+      expect(buttons).toHaveClass('bulma-is-centered');
+      expect(buttons).toHaveClass('bulma-has-addons');
+      expect(buttons).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Buttons isRight hasAddons p="3">
+          <Button>Button 1</Button>
+          <Button>Button 2</Button>
+        </Buttons>
+      );
+
+      const buttons = container.querySelector('div');
+      expect(buttons).toHaveClass('buttons');
+      expect(buttons).toHaveClass('is-right');
+      expect(buttons).toHaveClass('has-addons');
+      expect(buttons).toHaveClass('p-3');
+    });
   });
 });

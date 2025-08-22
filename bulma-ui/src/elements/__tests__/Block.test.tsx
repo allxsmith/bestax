@@ -104,7 +104,7 @@ describe('Block Component', () => {
   });
 
   describe('ClassPrefix', () => {
-    test('applies classPrefix to main class', () => {
+    it('applies classPrefix to main class', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <Block>Test</Block>
@@ -113,7 +113,7 @@ describe('Block Component', () => {
       expect(screen.getByText('Test')).toHaveClass('my-prefix-block');
     });
 
-    test('uses default class when no classPrefix provided', () => {
+    it('uses default class when no classPrefix provided', () => {
       render(
         <ConfigProvider>
           <Block>Test</Block>
@@ -122,13 +122,41 @@ describe('Block Component', () => {
       expect(screen.getByText('Test')).toHaveClass('block');
     });
 
-    test('uses default class when classPrefix is undefined', () => {
+    it('uses default class when classPrefix is undefined', () => {
       render(
         <ConfigProvider classPrefix={undefined}>
           <Block>Test</Block>
         </ConfigProvider>
       );
       expect(screen.getByText('Test')).toHaveClass('block');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Block m="2" p="3">
+            Test Block
+          </Block>
+        </ConfigProvider>
+      );
+
+      const block = container.querySelector('div');
+      expect(block).toHaveClass('bulma-block');
+      expect(block).toHaveClass('bulma-m-2');
+      expect(block).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Block m="4" textAlign="centered">
+          Standard Block
+        </Block>
+      );
+
+      const block = container.querySelector('div');
+      expect(block).toHaveClass('block');
+      expect(block).toHaveClass('m-4');
+      expect(block).toHaveClass('has-text-centered');
     });
   });
 });

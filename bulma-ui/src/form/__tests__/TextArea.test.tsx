@@ -90,4 +90,56 @@ describe('TextArea', () => {
     expect(textarea).toBeInTheDocument();
     expect(textarea).not.toHaveClass('textarea');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <TextArea data-testid="textarea" />
+        </ConfigProvider>
+      );
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toHaveClass('bulma-textarea');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<TextArea data-testid="textarea" />);
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toHaveClass('textarea');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <TextArea data-testid="textarea" />
+        </ConfigProvider>
+      );
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toHaveClass('textarea');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <TextArea color="primary" isRounded m="2" data-testid="textarea" />
+        </ConfigProvider>
+      );
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toHaveClass('bulma-textarea');
+      expect(textarea).toHaveClass('bulma-is-primary');
+      expect(textarea).toHaveClass('bulma-is-rounded');
+      expect(textarea).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <TextArea color="danger" hasFixedSize p="3" data-testid="textarea" />
+      );
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toHaveClass('textarea');
+      expect(textarea).toHaveClass('is-danger');
+      expect(textarea).toHaveClass('has-fixed-size');
+      expect(textarea).toHaveClass('p-3');
+    });
+  });
 });

@@ -1,7 +1,6 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Tags component.
@@ -37,18 +36,17 @@ export const Tags: React.FC<TagsProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const mainClass = classPrefix ? `${classPrefix}tags` : 'tags';
-  const tagsClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('tags', {
     'has-addons': hasAddons,
     'are-multiline': isMultiline,
   });
+
+  const tagsClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={tagsClasses} {...rest}>

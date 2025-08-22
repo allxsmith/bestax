@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Image component.
@@ -86,8 +85,6 @@ export const Image: React.FC<ImageProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -97,11 +94,12 @@ export const Image: React.FC<ImageProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}image` : 'image';
-  const imageClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('image', {
     [`is-${size}`]: size,
     'has-ratio': size && typeof size === 'string' && size.includes('by'),
   });
+
+  const imageClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Default tag logic: if "as" is provided, use it.
   // If not, use <figure> for aspect ratios or children, <div> otherwise.
@@ -114,11 +112,13 @@ export const Image: React.FC<ImageProps> = ({
     Tag = 'div';
   }
 
+  const roundedClass = usePrefixedClassNames('is-rounded');
+
   const content = children ? (
     children
   ) : (
     <img
-      className={classNames({ 'is-rounded': isRounded })}
+      className={classNames({ [roundedClass]: isRounded })}
       src={src}
       alt={alt}
       {...(isRetina && src ? { srcSet: `${src} 2x` } : {})}

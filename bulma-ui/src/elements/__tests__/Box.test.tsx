@@ -126,33 +126,60 @@ describe('Box Component', () => {
     expect(box).toHaveClass('m-1');
   });
 
-  // Test 13: Applies classPrefix to main class
-  test('applies classPrefix to main class', () => {
-    render(
-      <ConfigProvider classPrefix="my-prefix-">
-        <Box>Test</Box>
-      </ConfigProvider>
-    );
-    expect(screen.getByText('Test')).toHaveClass('my-prefix-box', {
-      exact: false,
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('my-prefix-box');
     });
-  });
 
-  test('uses default class when no classPrefix provided', () => {
-    render(
-      <ConfigProvider>
-        <Box>Test</Box>
-      </ConfigProvider>
-    );
-    expect(screen.getByText('Test')).toHaveClass('box', { exact: false });
-  });
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('box');
+    });
 
-  test('uses default class when classPrefix is undefined', () => {
-    render(
-      <ConfigProvider classPrefix={undefined}>
-        <Box>Test</Box>
-      </ConfigProvider>
-    );
-    expect(screen.getByText('Test')).toHaveClass('box', { exact: false });
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('box');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Box hasShadow={false} m="2">
+            Test Box
+          </Box>
+        </ConfigProvider>
+      );
+
+      const box = container.querySelector('div');
+      expect(box).toHaveClass('bulma-box');
+      expect(box).toHaveClass('bulma-is-shadowless');
+      expect(box).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Box hasShadow={false} p="3">
+          Standard Box
+        </Box>
+      );
+
+      const box = container.querySelector('div');
+      expect(box).toHaveClass('box');
+      expect(box).toHaveClass('is-shadowless');
+      expect(box).toHaveClass('p-3');
+    });
   });
 });

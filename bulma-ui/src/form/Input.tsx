@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Input component.
@@ -67,27 +66,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
     });
 
-    const mainClass = classPrefix ? `${classPrefix}input` : 'input';
-    const inputClass = classNames(
-      mainClass,
-      bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-rounded': isRounded,
-        'is-static': isStatic,
-        'is-hovered': isHovered,
-        'is-focused': isFocused,
-        'is-loading': isLoading,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('input', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-rounded': isRounded,
+      'is-static': isStatic,
+      'is-hovered': isHovered,
+      'is-focused': isFocused,
+      'is-loading': isLoading,
+    });
+    const inputClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (
       <input

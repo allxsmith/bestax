@@ -23,6 +23,53 @@ describe('Pagination', () => {
     expect(pagination).not.toHaveClass('pagination');
   });
 
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Pagination data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('bulma-pagination');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Pagination data-testid="pagination" />);
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Pagination data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Pagination color="primary" m="2" data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('bulma-pagination');
+      expect(pagination).toHaveClass('bulma-is-primary');
+      expect(pagination).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(<Pagination color="danger" data-testid="pagination" />);
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+      expect(pagination).toHaveClass('is-danger');
+    });
+  });
+
   it('applies color and size classes', () => {
     render(
       <Pagination color="primary" size="large" data-testid="pagination" />

@@ -33,6 +33,87 @@ describe('Tabs', () => {
     expect(tabs).not.toHaveClass('tabs');
   });
 
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Tabs data-testid="tabs">
+            <Tabs.List>
+              <Tabs.Item>
+                <a>Tab</a>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const tabs = screen.getByTestId('tabs');
+      expect(tabs).toHaveClass('bulma-tabs');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Tabs data-testid="tabs">
+          <Tabs.List>
+            <Tabs.Item>
+              <a>Tab</a>
+            </Tabs.Item>
+          </Tabs.List>
+        </Tabs>
+      );
+      const tabs = screen.getByTestId('tabs');
+      expect(tabs).toHaveClass('tabs');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Tabs data-testid="tabs">
+            <Tabs.List>
+              <Tabs.Item>
+                <a>Tab</a>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const tabs = screen.getByTestId('tabs');
+      expect(tabs).toHaveClass('tabs');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Tabs color="primary" m="2" data-testid="tabs">
+            <Tabs.List>
+              <Tabs.Item>
+                <a>Tab</a>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const tabs = screen.getByTestId('tabs');
+      expect(tabs).toHaveClass('bulma-tabs');
+      expect(tabs).toHaveClass('bulma-is-primary');
+      expect(tabs).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Tabs color="danger" data-testid="tabs">
+          <Tabs.List>
+            <Tabs.Item>
+              <a>Tab</a>
+            </Tabs.Item>
+          </Tabs.List>
+        </Tabs>
+      );
+      const tabs = screen.getByTestId('tabs');
+      expect(tabs).toHaveClass('tabs');
+      expect(tabs).toHaveClass('is-danger');
+    });
+  });
+
   it('applies alignment, size, and modifiers', () => {
     render(
       <Tabs

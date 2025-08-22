@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Type for grid cell span values.
@@ -44,27 +43,6 @@ export interface CellProps
 }
 
 /**
- * Builds Bulma grid cell class names for the Cell component.
- */
-function getCellGridClasses(props: CellProps): string[] {
-  const classes: string[] = [];
-
-  if (props.colStart !== undefined)
-    classes.push(`is-col-start-${props.colStart}`);
-  if (props.colFromEnd !== undefined)
-    classes.push(`is-col-from-end-${props.colFromEnd}`);
-  if (props.colSpan !== undefined) classes.push(`is-col-span-${props.colSpan}`);
-
-  if (props.rowStart !== undefined)
-    classes.push(`is-row-start-${props.rowStart}`);
-  if (props.rowFromEnd !== undefined)
-    classes.push(`is-row-from-end-${props.rowFromEnd}`);
-  if (props.rowSpan !== undefined) classes.push(`is-row-span-${props.rowSpan}`);
-
-  return classes;
-}
-
-/**
  * Bulma Cell component for CSS Grid layouts.
  *
  * @function
@@ -81,6 +59,7 @@ export const Cell: React.FC<CellProps> = ({
   rowSpan,
   className,
   textColor,
+  color: _fieldColor,
   bgColor,
   children,
   ...props
@@ -91,19 +70,23 @@ export const Cell: React.FC<CellProps> = ({
     ...props,
   });
 
-  const { classPrefix } = useConfig();
-  const mainClass = classPrefix ? `${classPrefix}cell` : 'cell';
+  const mainClass = usePrefixedClassNames('cell');
+
+  // Build cell grid classes with prefixes
+  const cellGridClasses = usePrefixedClassNames('', {
+    [`is-col-start-${colStart}`]: colStart !== undefined && colStart !== null,
+    [`is-col-from-end-${colFromEnd}`]:
+      colFromEnd !== undefined && colFromEnd !== null,
+    [`is-col-span-${colSpan}`]: colSpan !== undefined && colSpan !== null,
+    [`is-row-start-${rowStart}`]: rowStart !== undefined && rowStart !== null,
+    [`is-row-from-end-${rowFromEnd}`]:
+      rowFromEnd !== undefined && rowFromEnd !== null,
+    [`is-row-span-${rowSpan}`]: rowSpan !== undefined && rowSpan !== null,
+  });
 
   const cellClasses = classNames(
     mainClass,
-    ...getCellGridClasses({
-      colStart,
-      colFromEnd,
-      colSpan,
-      rowStart,
-      rowFromEnd,
-      rowSpan,
-    }),
+    cellGridClasses,
     className,
     bulmaHelperClasses
   );

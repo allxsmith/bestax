@@ -137,4 +137,68 @@ describe('Breadcrumb', () => {
     expect(breadcrumb).toHaveClass('bulma-breadcrumb');
     expect(breadcrumb).not.toHaveClass('breadcrumb');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Breadcrumb data-testid="breadcrumb">{defaultItems}</Breadcrumb>
+        </ConfigProvider>
+      );
+      const breadcrumb = screen.getByTestId('breadcrumb');
+      expect(breadcrumb).toHaveClass('bulma-breadcrumb');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Breadcrumb data-testid="breadcrumb">{defaultItems}</Breadcrumb>);
+      const breadcrumb = screen.getByTestId('breadcrumb');
+      expect(breadcrumb).toHaveClass('breadcrumb');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Breadcrumb data-testid="breadcrumb">{defaultItems}</Breadcrumb>
+        </ConfigProvider>
+      );
+      const breadcrumb = screen.getByTestId('breadcrumb');
+      expect(breadcrumb).toHaveClass('breadcrumb');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Breadcrumb
+            alignment="centered"
+            size="large"
+            m="2"
+            data-testid="breadcrumb"
+          >
+            {defaultItems}
+          </Breadcrumb>
+        </ConfigProvider>
+      );
+      const breadcrumb = screen.getByTestId('breadcrumb');
+      expect(breadcrumb).toHaveClass('bulma-breadcrumb');
+      expect(breadcrumb).toHaveClass('bulma-is-centered');
+      expect(breadcrumb).toHaveClass('bulma-is-large');
+      expect(breadcrumb).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Breadcrumb
+          alignment="right"
+          separator="arrow"
+          data-testid="breadcrumb"
+        >
+          {defaultItems}
+        </Breadcrumb>
+      );
+      const breadcrumb = screen.getByTestId('breadcrumb');
+      expect(breadcrumb).toHaveClass('breadcrumb');
+      expect(breadcrumb).toHaveClass('is-right');
+      expect(breadcrumb).toHaveClass('has-arrow-separator');
+    });
+  });
 });

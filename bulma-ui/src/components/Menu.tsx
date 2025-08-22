@@ -1,7 +1,6 @@
 import React, { createContext, useContext } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
@@ -32,13 +31,14 @@ const MenuComponent: React.FC<MenuProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
-  const mainClass = classPrefix ? `${classPrefix}menu` : 'menu';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('menu');
+
   return (
     <aside
-      className={classNames(mainClass, className, bulmaHelperClasses)}
+      className={classNames(bulmaClasses, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}

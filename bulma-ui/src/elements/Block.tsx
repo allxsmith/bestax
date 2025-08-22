@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Block component.
@@ -44,8 +43,6 @@ export const Block: React.FC<BlockProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -55,8 +52,8 @@ export const Block: React.FC<BlockProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}block` : 'block';
-  const blockClasses = classNames(mainClass, className, bulmaHelperClasses);
+  const bulmaClasses = usePrefixedClassNames('block');
+  const blockClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={blockClasses} {...rest}>

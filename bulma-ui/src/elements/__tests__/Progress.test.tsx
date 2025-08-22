@@ -63,14 +63,65 @@ describe('Progress Component', () => {
     expect(progress).toHaveTextContent('50%');
   });
 
-  test('applies classPrefix when provided via ConfigProvider', () => {
-    render(
-      <ConfigProvider classPrefix="bulma-">
-        <Progress {...defaultProps} />
-      </ConfigProvider>
-    );
-    const progress = screen.getByRole('progressbar');
-    expect(progress).toHaveClass('bulma-progress');
-    expect(progress).not.toHaveClass('progress');
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Progress value={50} max={100} />
+        </ConfigProvider>
+      );
+      const progress = screen.getByRole('progressbar');
+      expect(progress).toHaveClass('my-prefix-progress');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Progress value={50} max={100} />
+        </ConfigProvider>
+      );
+      const progress = screen.getByRole('progressbar');
+      expect(progress).toHaveClass('progress');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Progress value={50} max={100} />
+        </ConfigProvider>
+      );
+      const progress = screen.getByRole('progressbar');
+      expect(progress).toHaveClass('progress');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Progress value={75} max={100} color="primary" size="large" m="2">
+            75%
+          </Progress>
+        </ConfigProvider>
+      );
+
+      const progress = container.querySelector('progress');
+      expect(progress).toHaveClass('bulma-progress');
+      expect(progress).toHaveClass('bulma-is-primary');
+      expect(progress).toHaveClass('bulma-is-large');
+      expect(progress).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Progress value={60} max={100} color="info" size="medium" p="3">
+          60%
+        </Progress>
+      );
+
+      const progress = container.querySelector('progress');
+      expect(progress).toHaveClass('progress');
+      expect(progress).toHaveClass('is-info');
+      expect(progress).toHaveClass('is-medium');
+      expect(progress).toHaveClass('p-3');
+    });
   });
 });

@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Box component.
@@ -47,8 +46,6 @@ export const Box: React.FC<BoxProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -58,10 +55,11 @@ export const Box: React.FC<BoxProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}box` : 'box';
-  const boxClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('box', {
     'is-shadowless': !hasShadow,
   });
+
+  const boxClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={boxClasses} {...rest}>

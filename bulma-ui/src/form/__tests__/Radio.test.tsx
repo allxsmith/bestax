@@ -28,6 +28,58 @@ describe('Radio', () => {
     expect(label).toHaveClass('custom-radio');
   });
 
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radio data-testid="radio">Test</Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-radio');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(<Radio data-testid="radio">Test</Radio>);
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Radio data-testid="radio">Test</Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radio m="2" data-testid="radio">
+            Test
+          </Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-radio');
+      expect(label).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Radio p="3" data-testid="radio">
+          Test
+        </Radio>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+      expect(label).toHaveClass('p-3');
+    });
+  });
+
   it('renders as unchecked by default', () => {
     render(<Radio>Radio Unchecked</Radio>);
     const input = screen.getByLabelText(/radio unchecked/i) as HTMLInputElement;
