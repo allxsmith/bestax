@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.0...@allxsmith/bestax-bulma@2.0.1) (2025-08-23)
+
+
+### Bug Fixes
+
+* **bulma-ui:** full classPrefix support across layout/grid + prefix utils ([4ce0b53](https://github.com/allxsmith/bestax/commit/4ce0b53b337ff2ff961cc18a17790ee75d860dfa)), closes [#53](https://github.com/allxsmith/bestax/issues/53)
+
 # [2.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@1.1.1...@allxsmith/bestax-bulma@2.0.0) (2025-08-04)
 
 
