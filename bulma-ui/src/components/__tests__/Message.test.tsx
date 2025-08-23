@@ -56,4 +56,65 @@ describe('Message', () => {
     expect(message).toHaveClass('bulma-message');
     expect(message).not.toHaveClass('message');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Message title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('bulma-message');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Message title="Hello" data-testid="message">
+          World
+        </Message>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Message title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Message color="primary" m="2" title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('bulma-message');
+      expect(message).toHaveClass('bulma-is-primary');
+      expect(message).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Message color="danger" title="Hello" data-testid="message">
+          World
+        </Message>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+      expect(message).toHaveClass('is-danger');
+    });
+  });
 });

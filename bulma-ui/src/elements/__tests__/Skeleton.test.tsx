@@ -74,5 +74,27 @@ describe('Skeleton', () => {
       const skeleton = screen.getByTestId('skeleton');
       expect(skeleton).toHaveClass('skeleton-lines');
     });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Skeleton variant="lines" lines={5} className="custom-class" />
+        </ConfigProvider>
+      );
+
+      const skeleton = container.querySelector('div');
+      expect(skeleton).toHaveClass('bulma-skeleton-lines');
+      expect(skeleton).toHaveClass('custom-class');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Skeleton variant="block" className="test-class" />
+      );
+
+      const skeleton = container.querySelector('div');
+      expect(skeleton).toHaveClass('skeleton-block');
+      expect(skeleton).toHaveClass('test-class');
+    });
   });
 });

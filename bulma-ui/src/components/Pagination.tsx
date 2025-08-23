@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Pagination component.
@@ -145,24 +144,24 @@ export const Pagination: React.FC<PaginationProps> & {
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}pagination` : 'pagination';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('pagination', {
+    [`is-${color}`]: color,
+    [`is-${size}`]: size,
+    [`is-${align}`]: align,
+    'is-rounded': rounded,
+  });
+
   const paginationClasses = classNames(
-    mainClass,
+    bulmaClasses,
     bulmaHelperClasses,
-    className,
-    {
-      [`is-${color}`]: color,
-      [`is-${size}`]: size,
-      [`is-${align}`]: align,
-      'is-rounded': rounded,
-    }
+    className
   );
 
   return (

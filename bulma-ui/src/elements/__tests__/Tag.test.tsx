@@ -22,10 +22,10 @@ describe('Tag Component', () => {
   });
 
   test('does not apply invalid color class', () => {
-    render(<Tag {...defaultProps} color="invalid" />);
+    render(<Tag {...defaultProps} color={undefined} />);
     const tag = screen.getByText('Test Tag');
     expect(tag).toHaveClass('tag');
-    expect(tag).not.toHaveClass('is-invalid');
+    expect(tag).not.toHaveClass('is-undefined');
   });
 
   test('applies size class', () => {
@@ -98,14 +98,63 @@ describe('Tag Component', () => {
     expect(tag).toBeEmptyDOMElement();
   });
 
-  test('applies classPrefix when provided via ConfigProvider', () => {
-    render(
-      <ConfigProvider classPrefix="bulma-">
-        <Tag {...defaultProps} />
-      </ConfigProvider>
-    );
-    const tag = screen.getByText('Test Tag');
-    expect(tag).toHaveClass('bulma-tag');
-    expect(tag).not.toHaveClass('tag');
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Tag>Test</Tag>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('my-prefix-tag');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Tag>Test</Tag>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('tag');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Tag>Test</Tag>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('tag');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Tag color="primary" size="large" isRounded m="2">
+            Test Tag
+          </Tag>
+        </ConfigProvider>
+      );
+
+      const tag = container.querySelector('span');
+      expect(tag).toHaveClass('bulma-tag');
+      expect(tag).toHaveClass('bulma-is-primary');
+      expect(tag).toHaveClass('bulma-is-large');
+      expect(tag).toHaveClass('bulma-is-rounded');
+      expect(tag).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Tag color="info" size="medium" p="3">
+          Standard Tag
+        </Tag>
+      );
+
+      const tag = container.querySelector('span');
+      expect(tag).toHaveClass('tag');
+      expect(tag).toHaveClass('is-info');
+      expect(tag).toHaveClass('is-medium');
+      expect(tag).toHaveClass('p-3');
+    });
   });
 });

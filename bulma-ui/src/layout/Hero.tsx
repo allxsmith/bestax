@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Possible values for Bulma hero size.
@@ -59,25 +58,18 @@ export const Hero: React.FC<HeroProps> & {
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}hero` : 'hero';
-  const heroClasses = classNames(
-    mainClass,
-    bulmaHelperClasses,
-    className,
-    color && `is-${color}`,
-    size && size !== 'fullheight-with-navbar' && `is-${size}`,
-    {
-      'is-fullheight-with-navbar':
-        fullheightWithNavbar || size === 'fullheight-with-navbar',
-    }
-  );
+  const mainClass = usePrefixedClassNames('hero', {
+    [`is-${color}`]: color,
+    [`is-${size}`]: size && size !== 'fullheight-with-navbar',
+    'is-fullheight-with-navbar':
+      fullheightWithNavbar || size === 'fullheight-with-navbar',
+  });
+  const heroClasses = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <section className={heroClasses} {...rest}>
@@ -116,18 +108,15 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
   textColor,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
-  const mainClass = classPrefix ? `${classPrefix}hero-head` : 'hero-head';
+  const mainClass = usePrefixedClassNames('hero-head');
+  const heroHeadClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames(mainClass, bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroHeadClasses} {...rest}>
       {children}
     </div>
   );
@@ -163,18 +152,15 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
   textColor,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
-  const mainClass = classPrefix ? `${classPrefix}hero-body` : 'hero-body';
+  const mainClass = usePrefixedClassNames('hero-body');
+  const heroBodyClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames(mainClass, bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroBodyClasses} {...rest}>
       {children}
     </div>
   );
@@ -210,18 +196,15 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
   textColor,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
-  const mainClass = classPrefix ? `${classPrefix}hero-foot` : 'hero-foot';
+  const mainClass = usePrefixedClassNames('hero-foot');
+  const heroFootClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames(mainClass, bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroFootClasses} {...rest}>
       {children}
     </div>
   );

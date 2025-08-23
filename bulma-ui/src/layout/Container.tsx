@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import classNames, { usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Bulma container breakpoints.
@@ -62,7 +61,6 @@ export const Container: React.FC<ContainerProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -84,15 +82,18 @@ export const Container: React.FC<ContainerProps> = ({
     }
   }
 
-  const mainClass = classPrefix ? `${classPrefix}container` : 'container';
+  const mainClass = usePrefixedClassNames('container');
+  const containerModifiers = usePrefixedClassNames('', {
+    'is-fluid': fluid,
+    'is-widescreen': widescreen,
+    'is-fullhd': fullhd,
+  });
+  const prefixedBreakpointClass = usePrefixedClassNames(breakpointClass || '');
+
   const containerClasses = classNames(
     mainClass,
-    {
-      'is-fluid': fluid,
-      'is-widescreen': widescreen,
-      'is-fullhd': fullhd,
-    },
-    breakpointClass,
+    containerModifiers,
+    prefixedBreakpointClass,
     className,
     bulmaHelperClasses
   );

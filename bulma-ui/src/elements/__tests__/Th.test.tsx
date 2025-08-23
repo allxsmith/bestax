@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Th, ThProps } from '../Th';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Th Component', () => {
   const defaultProps: ThProps = {
@@ -313,5 +314,105 @@ describe('Th Component', () => {
       </table>
     );
     expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to modifier classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <table>
+            <thead>
+              <tr>
+                <Th color="primary" isAligned="centered">
+                  Test
+                </Th>
+              </tr>
+            </thead>
+          </table>
+        </ConfigProvider>
+      );
+      const th = container.querySelector('th');
+      expect(th).toHaveClass('my-prefix-is-primary');
+      expect(th).toHaveClass('my-prefix-has-text-centered');
+    });
+
+    it('uses default classes when no classPrefix provided', () => {
+      const { container } = render(
+        <ConfigProvider>
+          <table>
+            <thead>
+              <tr>
+                <Th color="primary" isAligned="centered">
+                  Test
+                </Th>
+              </tr>
+            </thead>
+          </table>
+        </ConfigProvider>
+      );
+      const th = container.querySelector('th');
+      expect(th).toHaveClass('is-primary');
+      expect(th).toHaveClass('has-text-centered');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <table>
+            <thead>
+              <tr>
+                <Th color="primary" isAligned="centered">
+                  Test
+                </Th>
+              </tr>
+            </thead>
+          </table>
+        </ConfigProvider>
+      );
+      const th = container.querySelector('th');
+      expect(th).toHaveClass('is-primary');
+      expect(th).toHaveClass('has-text-centered');
+    });
+
+    it('applies prefix to both modifier and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <table>
+            <thead>
+              <tr>
+                <Th color="primary" isAligned="left" m="2" p="3">
+                  Test Header
+                </Th>
+              </tr>
+            </thead>
+          </table>
+        </ConfigProvider>
+      );
+
+      const th = container.querySelector('th');
+      expect(th).toHaveClass('bulma-is-primary');
+      expect(th).toHaveClass('bulma-has-text-left');
+      expect(th).toHaveClass('bulma-m-2');
+      expect(th).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <table>
+          <thead>
+            <tr>
+              <Th color="info" isAligned="right" textAlign="centered">
+                Standard Header
+              </Th>
+            </tr>
+          </thead>
+        </table>
+      );
+
+      const th = container.querySelector('th');
+      expect(th).toHaveClass('is-info');
+      expect(th).toHaveClass('has-text-right');
+      expect(th).toHaveClass('has-text-centered');
+    });
   });
 });

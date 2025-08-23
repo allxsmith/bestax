@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 import { Icon, IconProps } from '../elements/Icon';
 
 /**
@@ -98,7 +97,6 @@ export const Control = React.forwardRef<
     ref
   ) => {
     const Component = (as === 'p' ? 'p' : 'div') as 'div' | 'p';
-    const { classPrefix } = useConfig();
 
     // Remove textColor/bgColor from props before spreading
     const {
@@ -144,19 +142,14 @@ export const Control = React.forwardRef<
           }
         : undefined);
 
-    const mainClass = classPrefix ? `${classPrefix}control` : 'control';
-    const controlClass = classNames(
-      mainClass,
-      bulmaHelperClasses,
-      {
-        'has-icons-left': hasIconsLeft || !!leftIconProps,
-        'has-icons-right': hasIconsRight || !!rightIconProps,
-        'is-loading': isLoading,
-        'is-expanded': isExpanded,
-        [`is-${size}`]: !!size,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('control', {
+      'has-icons-left': hasIconsLeft || !!leftIconProps,
+      'has-icons-right': hasIconsRight || !!rightIconProps,
+      'is-loading': isLoading,
+      'is-expanded': isExpanded,
+      [`is-${size}`]: !!size,
+    });
+    const controlClass = classNames(mainClass, bulmaHelperClasses, className);
 
     // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (

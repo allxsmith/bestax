@@ -1,7 +1,6 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Panel component.
@@ -133,16 +132,17 @@ export const Panel: React.FC<PanelProps> & {
   CheckboxBlock: typeof PanelCheckboxBlock;
   ButtonBlock: typeof PanelButtonBlock;
 } = ({ color, className, children, ...props }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}panel` : 'panel';
-  const panelClasses = classNames(mainClass, bulmaHelperClasses, className, {
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('panel', {
     [`is-${color}`]: color,
   });
+
+  const panelClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <nav className={panelClasses} {...rest}>
@@ -217,8 +217,7 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   iconClassName = 'fas fa-search',
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-  const inputClass = classPrefix ? `${classPrefix}input` : 'input';
+  const inputClass = usePrefixedClassNames('input');
 
   return (
     <div className="panel-block" {...props}>

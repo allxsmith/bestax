@@ -158,5 +158,36 @@ describe('Button Component', () => {
       );
       expect(screen.getByRole('button')).toHaveClass('button');
     });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Button color="primary" size="large" m="2" isRounded>
+            Test Button
+          </Button>
+        </ConfigProvider>
+      );
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('bulma-button');
+      expect(button).toHaveClass('bulma-is-primary');
+      expect(button).toHaveClass('bulma-is-large');
+      expect(button).toHaveClass('bulma-is-rounded');
+      expect(button).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Button color="info" size="medium" p="3">
+          Standard Button
+        </Button>
+      );
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('button');
+      expect(button).toHaveClass('is-info');
+      expect(button).toHaveClass('is-medium');
+      expect(button).toHaveClass('p-3');
+    });
   });
 });

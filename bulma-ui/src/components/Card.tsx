@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Card component.
@@ -73,17 +72,19 @@ export const Card: React.FC<CardProps> = ({
   imageAlt,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}card` : 'card';
-  const cardClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('card', {
     'is-shadowless': !hasShadow,
   });
+
+  // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
+  const cardClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Render header with optional icon and is-centered modifier
   const renderHeader = (

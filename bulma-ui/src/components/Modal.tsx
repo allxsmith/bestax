@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Modal component.
@@ -54,7 +53,6 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -67,15 +65,13 @@ export const Modal: React.FC<ModalProps> = ({
   else if (type === 'content') isModalCard = false;
   else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
-  const mainClass = classPrefix ? `${classPrefix}modal` : 'modal';
-  const deleteClass = classPrefix ? `${classPrefix}delete` : 'delete';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('modal', {
+    'is-active': active,
+  });
+  const deleteClass = usePrefixedClassNames('delete');
 
-  const modalClasses = classNames(
-    mainClass,
-    { 'is-active': active },
-    className,
-    bulmaHelperClasses
-  );
+  const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={modalClasses} {...rest} data-testid="modal">

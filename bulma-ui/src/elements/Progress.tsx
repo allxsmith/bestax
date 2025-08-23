@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Progress component.
@@ -47,8 +46,6 @@ export const Progress: React.FC<ProgressProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -56,11 +53,16 @@ export const Progress: React.FC<ProgressProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}progress` : 'progress';
-  const progressClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('progress', {
     [`is-${color}`]: color && validColors.includes(color),
     [`is-${size}`]: size,
   });
+
+  const progressClasses = classNames(
+    bulmaClasses,
+    bulmaHelperClasses,
+    className
+  );
 
   return (
     <progress className={progressClasses} value={value} max={max} {...rest}>

@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Checkbox component.
@@ -29,12 +28,11 @@ export interface CheckboxProps
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ disabled, className, children, ...props }, ref) => {
-    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       ...props,
     });
 
-    const mainClass = classPrefix ? `${classPrefix}checkbox` : 'checkbox';
+    const mainClass = usePrefixedClassNames('checkbox');
     const checkboxClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (

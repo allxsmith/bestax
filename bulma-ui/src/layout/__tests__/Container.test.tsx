@@ -22,6 +22,67 @@ describe('Container', () => {
     expect(container.firstChild).toHaveClass('custom-container');
   });
 
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Container>Container content</Container>
+        </ConfigProvider>
+      );
+      const containerEl = container.firstChild;
+      expect(containerEl).toBeInTheDocument();
+      expect(containerEl).toHaveClass('bulma-container');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(<Container>Container content</Container>);
+      const containerEl = container.firstChild;
+      expect(containerEl).toBeInTheDocument();
+      expect(containerEl).toHaveClass('container');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Container>Container content</Container>
+        </ConfigProvider>
+      );
+      const containerEl = container.firstChild;
+      expect(containerEl).toBeInTheDocument();
+      expect(containerEl).toHaveClass('container');
+    });
+
+    it('applies prefix to both main class and container modifiers', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Container fluid breakpoint="desktop" isMax textColor="primary">
+            Container content
+          </Container>
+        </ConfigProvider>
+      );
+      const containerEl = container.firstChild;
+      expect(containerEl).toBeInTheDocument();
+      expect(containerEl).toHaveClass('bulma-container');
+      expect(containerEl).toHaveClass('bulma-is-fluid');
+      expect(containerEl).toHaveClass('bulma-is-max-desktop');
+      expect(containerEl).toHaveClass('bulma-has-text-primary');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Container widescreen fullhd bgColor="danger">
+          Container content
+        </Container>
+      );
+      const containerEl = container.firstChild;
+      expect(containerEl).toBeInTheDocument();
+      expect(containerEl).toHaveClass('container');
+      expect(containerEl).toHaveClass('is-widescreen');
+      expect(containerEl).toHaveClass('is-fullhd');
+      expect(containerEl).toHaveClass('has-background-danger');
+    });
+  });
+
   it('applies custom className', () => {
     const { container } = render(
       <Container className="custom-class">Content</Container>

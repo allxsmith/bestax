@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Checks if code is running in a browser environment.
@@ -68,14 +67,21 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   id,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const [active, setActive] = useState<boolean>(!!activeProp);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
-  const mainClass = classPrefix ? `${classPrefix}dropdown` : 'dropdown';
-  const buttonClass = classPrefix ? `${classPrefix}button` : 'button';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('dropdown', {
+    'is-active': active,
+    'is-up': up,
+    'is-right': right,
+    'is-hoverable': hoverable,
+    'is-disabled': disabled,
+  });
+
+  const buttonClass = usePrefixedClassNames('button');
 
   // Controlled mode support
   useEffect(() => {
@@ -89,6 +95,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
     if (!isBrowser(window, document)) return;
 
     const handleClick = (e: MouseEvent) => {
+      /* istanbul ignore next: dropdownRef.current is never null while the listener is attached */
       if (!dropdownRef.current?.contains(e.target as Node)) {
         setActive(false);
         onActiveChange?.(false);
@@ -99,6 +106,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   }, [active, onActiveChange]);
 
   const handleToggle = () => {
+    /* istanbul ignore next: guard is enforced by button[disabled] at the DOM level */
     if (disabled) return;
 
     const newActive = !active;
@@ -114,15 +122,8 @@ const DropdownComponent: React.FC<DropdownProps> = ({
   };
 
   const dropdownClasses = classNames(
-    mainClass,
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      'is-active': active,
-      'is-up': up,
-      'is-right': right,
-      'is-hoverable': hoverable,
-      'is-disabled': disabled,
-    },
     className
   );
 

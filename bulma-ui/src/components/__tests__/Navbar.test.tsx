@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '../Navbar';
 import { ConfigProvider } from '../../helpers/Config';
@@ -80,6 +79,59 @@ describe('Navbar', () => {
     const navbar = screen.getByRole('navigation');
     expect(navbar).toHaveClass('bulma-navbar');
     expect(navbar).not.toHaveClass('navbar');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Navbar data-testid="navbar">Test</Navbar>
+        </ConfigProvider>
+      );
+      const navbar = screen.getByTestId('navbar');
+      expect(navbar).toHaveClass('bulma-navbar');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Navbar data-testid="navbar">Test</Navbar>);
+      const navbar = screen.getByTestId('navbar');
+      expect(navbar).toHaveClass('navbar');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Navbar data-testid="navbar">Test</Navbar>
+        </ConfigProvider>
+      );
+      const navbar = screen.getByTestId('navbar');
+      expect(navbar).toHaveClass('navbar');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Navbar color="primary" m="2" data-testid="navbar">
+            Test
+          </Navbar>
+        </ConfigProvider>
+      );
+      const navbar = screen.getByTestId('navbar');
+      expect(navbar).toHaveClass('bulma-navbar');
+      expect(navbar).toHaveClass('bulma-is-primary');
+      expect(navbar).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Navbar color="danger" data-testid="navbar">
+          Test
+        </Navbar>
+      );
+      const navbar = screen.getByTestId('navbar');
+      expect(navbar).toHaveClass('navbar');
+      expect(navbar).toHaveClass('is-danger');
+    });
   });
 });
 

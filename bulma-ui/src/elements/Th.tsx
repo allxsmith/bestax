@@ -2,7 +2,7 @@
  * @group Table
  */
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { TableColor, validTableColors } from './Td';
 
@@ -49,15 +49,17 @@ export const Th: React.FC<ThProps> = ({
   children,
   ...props
 }) => {
+  const bulmaClasses = usePrefixedClassNames('', {
+    [`has-text-${isAligned}`]: isAligned && validAlignments.includes(isAligned),
+    [`is-${color}`]: color && validTableColors.includes(color),
+  });
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const thClasses = classNames(className, bulmaHelperClasses, {
-    [`has-text-${isAligned}`]: isAligned && validAlignments.includes(isAligned),
-    [`is-${color}`]: color && validTableColors.includes(color),
-  });
+  const thClasses = classNames(bulmaClasses, className, bulmaHelperClasses);
 
   return (
     <th

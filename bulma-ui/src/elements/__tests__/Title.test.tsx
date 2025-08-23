@@ -182,7 +182,7 @@ describe('Title Component', () => {
   });
 
   describe('ClassPrefix', () => {
-    test('applies classPrefix to main class', () => {
+    it('applies classPrefix to main class', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <Title>Test Title</Title>
@@ -192,7 +192,7 @@ describe('Title Component', () => {
       expect(title).toHaveClass('my-prefix-title');
     });
 
-    test('uses default class when no classPrefix provided', () => {
+    it('uses default class when no classPrefix provided', () => {
       render(
         <ConfigProvider>
           <Title>Test Title</Title>
@@ -202,7 +202,7 @@ describe('Title Component', () => {
       expect(title).toHaveClass('title');
     });
 
-    test('uses default class when classPrefix is undefined', () => {
+    it('uses default class when classPrefix is undefined', () => {
       render(
         <ConfigProvider classPrefix={undefined}>
           <Title>Test Title</Title>
@@ -210,6 +210,36 @@ describe('Title Component', () => {
       );
       const title = screen.getByRole('heading');
       expect(title).toHaveClass('title');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Title size="2" isSpaced m="2">
+            Test Title
+          </Title>
+        </ConfigProvider>
+      );
+
+      const title = container.querySelector('h2');
+      expect(title).toHaveClass('bulma-title');
+      expect(title).toHaveClass('bulma-is-2');
+      expect(title).toHaveClass('bulma-is-spaced');
+      expect(title).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Title size="3" isSpaced p="3">
+          Standard Title
+        </Title>
+      );
+
+      const title = container.querySelector('h3');
+      expect(title).toHaveClass('title');
+      expect(title).toHaveClass('is-3');
+      expect(title).toHaveClass('is-spaced');
+      expect(title).toHaveClass('p-3');
     });
   });
 });

@@ -533,3 +533,624 @@ export const ClassName: Story = {
   ),
   name: 'ClassName',
 };
+
+// --- Display and Viewport Stories ---
+
+export const DisplayValues: Story = {
+  render: () => (
+    <Box>
+      <h3 className="title is-5">Display Values</h3>
+      <div style={{ marginBottom: '1rem' }}>
+        <span className="tag is-info">display=&quot;block&quot;</span>
+        <Box
+          display="block"
+          style={{
+            background: '#f5f5f5',
+            padding: '0.5rem',
+            margin: '0.25rem 0',
+          }}
+        >
+          Block display (takes full width)
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <span className="tag is-info">display=&quot;inline&quot;</span>
+        <Box
+          display="inline"
+          style={{
+            background: '#f5f5f5',
+            padding: '0.5rem',
+            margin: '0.25rem',
+          }}
+        >
+          Inline display
+        </Box>
+        <Box
+          display="inline"
+          style={{
+            background: '#e8e8e8',
+            padding: '0.5rem',
+            margin: '0.25rem',
+          }}
+        >
+          Another inline
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <span className="tag is-info">display=&quot;inline-block&quot;</span>
+        <Box
+          display="inline-block"
+          style={{
+            background: '#f5f5f5',
+            padding: '0.5rem',
+            margin: '0.25rem',
+            width: '150px',
+          }}
+        >
+          Inline-block 1
+        </Box>
+        <Box
+          display="inline-block"
+          style={{
+            background: '#e8e8e8',
+            padding: '0.5rem',
+            margin: '0.25rem',
+            width: '150px',
+          }}
+        >
+          Inline-block 2
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <span className="tag is-info">display=&quot;flex&quot;</span>
+        <Box
+          display="flex"
+          style={{ background: '#f5f5f5', padding: '0.5rem', gap: '0.5rem' }}
+        >
+          <div style={{ background: '#ddd', padding: '0.5rem', flex: 1 }}>
+            Flex item 1
+          </div>
+          <div style={{ background: '#ccc', padding: '0.5rem', flex: 1 }}>
+            Flex item 2
+          </div>
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <span className="tag is-info">display=&quot;inline-flex&quot;</span>
+        <Box
+          display="inline-flex"
+          style={{
+            background: '#f5f5f5',
+            padding: '0.5rem',
+            gap: '0.5rem',
+            margin: '0.25rem',
+          }}
+        >
+          <div style={{ background: '#ddd', padding: '0.25rem' }}>Item 1</div>
+          <div style={{ background: '#ccc', padding: '0.25rem' }}>Item 2</div>
+        </Box>
+        <Box
+          display="inline-flex"
+          style={{
+            background: '#e8e8e8',
+            padding: '0.5rem',
+            gap: '0.5rem',
+            margin: '0.25rem',
+          }}
+        >
+          <div style={{ background: '#bbb', padding: '0.25rem' }}>Item 3</div>
+          <div style={{ background: '#aaa', padding: '0.25rem' }}>Item 4</div>
+        </Box>
+      </div>
+    </Box>
+  ),
+  name: 'Display Values',
+};
+
+export const ViewportSpecificDisplay: Story = {
+  render: () => (
+    <Box>
+      <h3 className="title is-5">Viewport-Specific Display</h3>
+      <p className="subtitle is-6">Resize your browser to see the effect</p>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Mobile Hidden, Tablet+ Visible</h4>
+        <Box
+          displayMobile="none"
+          displayTablet="block"
+          style={{
+            background: '#e3f2fd',
+            padding: '1rem',
+            border: '2px solid #2196f3',
+          }}
+        >
+          This box is hidden on mobile (display: none) but visible as block on
+          tablet and larger screens.
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Progressive Display Changes</h4>
+        <Box
+          displayMobile="block"
+          displayTablet="inline-block"
+          displayDesktop="flex"
+          style={{
+            background: '#f3e5f5',
+            padding: '1rem',
+            border: '2px solid #9c27b0',
+            gap: '0.5rem',
+          }}
+        >
+          <div style={{ background: '#e1bee7', padding: '0.5rem', flex: 1 }}>
+            Mobile: block | Tablet: inline-block | Desktop+: flex
+          </div>
+          <div style={{ background: '#ce93d8', padding: '0.5rem', flex: 1 }}>
+            Item 2 (visible in flex layout on desktop+)
+          </div>
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Desktop Only Flex Layout</h4>
+        <Box
+          displayMobile="block"
+          displayTablet="block"
+          displayDesktop="flex"
+          displayWidescreen="flex"
+          displayFullhd="flex"
+          style={{
+            background: '#e8f5e8',
+            padding: '1rem',
+            border: '2px solid #4caf50',
+            gap: '0.5rem',
+          }}
+        >
+          <div style={{ background: '#c8e6c9', padding: '0.5rem', flex: 1 }}>
+            Card 1
+          </div>
+          <div style={{ background: '#a5d6a7', padding: '0.5rem', flex: 1 }}>
+            Card 2
+          </div>
+          <div style={{ background: '#81c784', padding: '0.5rem', flex: 1 }}>
+            Card 3
+          </div>
+        </Box>
+        <p className="help">
+          Stacked on mobile/tablet, side-by-side on desktop+
+        </p>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Responsive Visibility Control</h4>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <Box
+            displayMobile="block"
+            displayTablet="none"
+            displayDesktop="block"
+            style={{
+              background: '#fff3e0',
+              padding: '1rem',
+              border: '2px solid #ff9800',
+              minWidth: '200px',
+            }}
+          >
+            Mobile + Desktop Only
+          </Box>
+          <Box
+            displayMobile="none"
+            displayTablet="block"
+            displayDesktop="none"
+            style={{
+              background: '#fce4ec',
+              padding: '1rem',
+              border: '2px solid #e91e63',
+              minWidth: '200px',
+            }}
+          >
+            Tablet Only
+          </Box>
+          <Box
+            displayMobile="none"
+            displayTablet="none"
+            displayDesktop="block"
+            style={{
+              background: '#e3f2fd',
+              padding: '1rem',
+              border: '2px solid #2196f3',
+              minWidth: '200px',
+            }}
+          >
+            Desktop+ Only
+          </Box>
+        </div>
+      </div>
+    </Box>
+  ),
+  name: 'Viewport-Specific Display',
+};
+
+export const GenericDisplayViewport: Story = {
+  render: () => (
+    <Box>
+      <h3 className="title is-5">Generic Display + Viewport Settings</h3>
+      <p className="subtitle is-6">
+        Using the generic display + viewport prop pattern
+      </p>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <div className="notification is-info is-light">
+          <p>
+            <strong>Note:</strong> The generic <code>display</code> +{' '}
+            <code>viewport</code> pattern supports only one display/viewport
+            combination at a time.
+          </p>
+          <p>
+            For multiple viewport combinations (e.g., hidden on mobile, flex on
+            tablet, block on desktop), use the viewport-specific display
+            properties: <code>displayMobile</code>, <code>displayTablet</code>,{' '}
+            <code>displayDesktop</code>, <code>displayWidescreen</code>,{' '}
+            <code>displayFullhd</code>.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Generic Pattern Examples</h4>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <span className="tag is-primary">
+            display=&quot;block&quot; viewport=&quot;tablet&quot;
+          </span>
+          <Box
+            display="block"
+            viewport="tablet"
+            style={{
+              background: '#fff8e1',
+              padding: '1rem',
+              border: '2px solid #ffc107',
+              marginTop: '0.5rem',
+            }}
+          >
+            Block display on tablet and larger (one combination only)
+          </Box>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <span className="tag is-primary">
+            display=&quot;flex&quot; viewport=&quot;desktop&quot;
+          </span>
+          <Box
+            display="flex"
+            viewport="desktop"
+            style={{
+              background: '#f3e5f5',
+              padding: '1rem',
+              border: '2px solid #9c27b0',
+              gap: '0.5rem',
+              marginTop: '0.5rem',
+            }}
+          >
+            <div style={{ background: '#e1bee7', padding: '0.5rem', flex: 1 }}>
+              Flex on desktop+
+            </div>
+            <div style={{ background: '#ce93d8', padding: '0.5rem', flex: 1 }}>
+              Generic pattern
+            </div>
+          </Box>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <span className="tag is-primary">
+            display=&quot;none&quot; viewport=&quot;mobile&quot;
+          </span>
+          <Box
+            display="none"
+            viewport="mobile"
+            style={{
+              background: '#ffebee',
+              padding: '1rem',
+              border: '2px solid #f44336',
+              marginTop: '0.5rem',
+            }}
+          >
+            Hidden on mobile (one combination only)
+          </Box>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">
+          Limitation: Cannot Mix Multiple Viewports
+        </h4>
+        <div className="notification is-warning is-light">
+          <p>
+            <strong>Problem:</strong> You cannot use the generic pattern to
+            achieve &quot;hidden on mobile, flex on tablet, block on
+            desktop&quot; because it only supports one display/viewport
+            combination.
+          </p>
+          <p>
+            <strong>Solution:</strong> Use viewport-specific properties like{' '}
+            <code>
+              displayMobile=&quot;none&quot; displayTablet=&quot;flex&quot;
+              displayDesktop=&quot;block&quot;
+            </code>{' '}
+            instead.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">
+          Viewport-Specific Properties Override Generic
+        </h4>
+        <p className="help">
+          When both patterns are used, viewport-specific props take precedence
+        </p>
+
+        <Box
+          display="block"
+          viewport="mobile"
+          displayMobile="flex"
+          displayDesktop="inline-flex"
+          style={{
+            background: '#e8f5e8',
+            padding: '1rem',
+            border: '2px solid #4caf50',
+            gap: '0.5rem',
+            marginTop: '0.5rem',
+          }}
+        >
+          <div style={{ background: '#c8e6c9', padding: '0.5rem', flex: 1 }}>
+            Generic: block-mobile | Override: flex-mobile, inline-flex-desktop
+          </div>
+          <div style={{ background: '#a5d6a7', padding: '0.5rem', flex: 1 }}>
+            Viewport-specific wins!
+          </div>
+        </Box>
+      </div>
+    </Box>
+  ),
+  name: 'Generic Display + Viewport',
+};
+
+export const FlexboxWithViewports: Story = {
+  render: () => (
+    <Box>
+      <h3 className="title is-5">Flexbox with Viewport-Specific Display</h3>
+      <p className="subtitle is-6">
+        Flexbox properties work when any viewport has flex display
+      </p>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Responsive Flex Direction</h4>
+        <Box
+          displayMobile="flex"
+          displayDesktop="flex"
+          flexDirection="column-reverse"
+          style={{
+            background: '#e3f2fd',
+            padding: '1rem',
+            border: '2px solid #2196f3',
+            gap: '0.5rem',
+          }}
+        >
+          <div style={{ background: '#bbdefb', padding: '0.5rem', order: 1 }}>
+            Item 1 (flex-direction: column-reverse)
+          </div>
+          <div style={{ background: '#90caf9', padding: '0.5rem', order: 2 }}>
+            Item 2
+          </div>
+          <div style={{ background: '#64b5f6', padding: '0.5rem', order: 3 }}>
+            Item 3
+          </div>
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Justify Content & Align Items</h4>
+        <Box
+          displayTablet="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          style={{
+            background: '#f3e5f5',
+            padding: '1rem',
+            border: '2px solid #9c27b0',
+            minHeight: '100px',
+          }}
+        >
+          <div style={{ background: '#e1bee7', padding: '0.5rem' }}>Start</div>
+          <div style={{ background: '#ce93d8', padding: '0.5rem' }}>Center</div>
+          <div style={{ background: '#ba68c8', padding: '0.5rem' }}>End</div>
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Flex Grow & Shrink</h4>
+        <Box
+          displayDesktop="flex"
+          style={{
+            background: '#e8f5e8',
+            padding: '1rem',
+            border: '2px solid #4caf50',
+            gap: '0.5rem',
+          }}
+        >
+          <Box
+            flexGrow="0"
+            flexShrink="0"
+            style={{
+              background: '#c8e6c9',
+              padding: '0.5rem',
+              minWidth: '150px',
+            }}
+          >
+            Fixed Width (grow: 0, shrink: 0)
+          </Box>
+          <Box
+            flexGrow="1"
+            style={{ background: '#a5d6a7', padding: '0.5rem' }}
+          >
+            Flexible (grow: 1)
+          </Box>
+          <Box
+            flexGrow="2"
+            style={{ background: '#81c784', padding: '0.5rem' }}
+          >
+            More Flexible (grow: 2)
+          </Box>
+        </Box>
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h4 className="title is-6">Flex Wrap</h4>
+        <Box
+          displayMobile="flex"
+          flexWrap="wrap"
+          justifyContent="center"
+          style={{
+            background: '#fff3e0',
+            padding: '1rem',
+            border: '2px solid #ff9800',
+            gap: '0.5rem',
+          }}
+        >
+          {Array.from({ length: 8 }, (_, i) => (
+            <div
+              key={i}
+              style={{
+                background: '#ffcc02',
+                padding: '0.5rem',
+                minWidth: '120px',
+                textAlign: 'center',
+              }}
+            >
+              Item {i + 1}
+            </div>
+          ))}
+        </Box>
+      </div>
+    </Box>
+  ),
+  name: 'Flexbox with Viewports',
+};
+
+export const ComplexResponsiveLayout: Story = {
+  render: () => (
+    <Box>
+      <h3 className="title is-5">Complex Responsive Layout Example</h3>
+      <p className="subtitle is-6">
+        Real-world responsive layout using viewport-specific display
+      </p>
+
+      {/* Header */}
+      <Box
+        displayMobile="block"
+        displayTablet="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        style={{
+          background: '#1976d2',
+          color: 'white',
+          padding: '1rem',
+          marginBottom: '1rem',
+        }}
+      >
+        <div style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>Logo</div>
+        <Box displayMobile="none" displayTablet="flex" style={{ gap: '1rem' }}>
+          <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
+            Home
+          </a>
+          <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
+            About
+          </a>
+          <a href="#" style={{ color: 'white', textDecoration: 'none' }}>
+            Contact
+          </a>
+        </Box>
+      </Box>
+
+      {/* Main Content Area */}
+      <Box
+        displayMobile="block"
+        displayDesktop="flex"
+        style={{ gap: '1rem', marginBottom: '1rem' }}
+      >
+        {/* Sidebar */}
+        <Box
+          displayMobile="block"
+          displayDesktop="block"
+          style={{
+            background: '#f5f5f5',
+            padding: '1rem',
+            marginBottom: '1rem',
+            flex: '0 0 250px',
+          }}
+        >
+          <h4 style={{ margin: '0 0 1rem 0' }}>Sidebar</h4>
+          <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+            <li style={{ marginBottom: '0.5rem' }}>Navigation Item 1</li>
+            <li style={{ marginBottom: '0.5rem' }}>Navigation Item 2</li>
+            <li style={{ marginBottom: '0.5rem' }}>Navigation Item 3</li>
+          </ul>
+        </Box>
+
+        {/* Main Content */}
+        <Box style={{ flex: 1 }}>
+          <h4 style={{ margin: '0 0 1rem 0' }}>Main Content</h4>
+
+          {/* Card Grid */}
+          <Box
+            displayMobile="block"
+            displayTablet="flex"
+            flexWrap="wrap"
+            style={{ gap: '1rem' }}
+          >
+            {Array.from({ length: 6 }, (_, i) => (
+              <Box
+                key={i}
+                displayMobile="block"
+                displayTablet="block"
+                style={{
+                  background: 'white',
+                  border: '1px solid #ddd',
+                  padding: '1rem',
+                  flex: '1 1 calc(50% - 0.5rem)',
+                  minWidth: '280px',
+                  marginBottom: '1rem',
+                }}
+              >
+                <h5 style={{ margin: '0 0 0.5rem 0' }}>Card {i + 1}</h5>
+                <p style={{ margin: 0, color: '#666' }}>
+                  This card adapts its layout based on screen size.
+                </p>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Footer */}
+      <Box
+        displayMobile="block"
+        displayTablet="flex"
+        justifyContent="center"
+        style={{
+          background: '#333',
+          color: 'white',
+          padding: '1rem',
+          textAlign: 'center',
+        }}
+      >
+        <div>© 2025 Responsive Layout Demo</div>
+      </Box>
+    </Box>
+  ),
+  name: 'Complex Responsive Layout',
+};

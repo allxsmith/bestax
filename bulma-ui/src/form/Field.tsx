@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Field component.
@@ -95,20 +94,16 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}field-label` : 'field-label';
-  const fieldLabelClass = classNames(
-    mainClass,
-    bulmaHelperClasses,
-    { [`is-${size}`]: size },
-    className
-  );
+  const mainClass = usePrefixedClassNames('field-label', {
+    [`is-${size}`]: !!size,
+  });
+  const fieldLabelClass = classNames(mainClass, bulmaHelperClasses, className);
   // Spread ...props and ...rest so custom props like data-testid are included
   return (
     <div className={fieldLabelClass} {...props} {...rest}>
@@ -131,14 +126,13 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}field-body` : 'field-body';
+  const mainClass = usePrefixedClassNames('field-body');
   const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
   // Spread ...props and ...rest so custom props like data-testid are included
   return (
@@ -168,44 +162,40 @@ export const Field: React.FC<FieldProps> & {
   labelSize,
   labelProps,
   textColor,
+  color: _fieldColor,
   bgColor,
   className,
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}field` : 'field';
-  const fieldClass = classNames(
-    mainClass,
-    bulmaHelperClasses,
-    {
-      'is-horizontal': horizontal,
-      'has-addons': !!hasAddons,
-      'is-grouped':
-        grouped === true ||
-        grouped === 'centered' ||
-        grouped === 'right' ||
-        grouped === 'multiline',
-      'is-grouped-centered': grouped === 'centered',
-      'is-grouped-right': grouped === 'right',
-      'is-grouped-multiline': grouped === 'multiline',
-    },
-    className
-  );
+  const mainClass = usePrefixedClassNames('field', {
+    'is-horizontal': horizontal,
+    'has-addons': !!hasAddons,
+    'is-grouped':
+      grouped === true ||
+      grouped === 'centered' ||
+      grouped === 'right' ||
+      grouped === 'multiline',
+    'is-grouped-centered': grouped === 'centered',
+    'is-grouped-right': grouped === 'right',
+    'is-grouped-multiline': grouped === 'multiline',
+  });
+  const fieldClass = classNames(mainClass, bulmaHelperClasses, className);
 
   // Map 'normal' to undefined for FieldLabel size prop
   const mappedLabelSize: FieldLabelProps['size'] =
     labelSize === 'normal' ? undefined : labelSize;
 
+  const labelClass = usePrefixedClassNames('label');
+
   let renderedLabel = null;
   if (label) {
-    const labelClass = classPrefix ? `${classPrefix}label` : 'label';
     if (horizontal) {
       renderedLabel = (
         <FieldLabel size={mappedLabelSize}>
