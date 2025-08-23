@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Notification component.
@@ -47,8 +46,6 @@ export const Notification: React.FC<NotificationProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -56,24 +53,24 @@ export const Notification: React.FC<NotificationProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}notification` : 'notification';
-  const deleteClass = classPrefix ? `${classPrefix}delete` : 'delete';
+  const bulmaClasses = usePrefixedClassNames('notification', {
+    [`is-${color}`]: color && validColors.includes(color),
+    'is-light': isLight,
+  });
+
+  const deleteClasses = usePrefixedClassNames('delete');
 
   const notificationClasses = classNames(
-    mainClass,
-    className,
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      [`is-${color}`]: color && validColors.includes(color),
-      'is-light': isLight,
-    }
+    className
   );
 
   return (
     <div className={notificationClasses} {...rest}>
       {hasDelete && (
         <button
-          className={deleteClass}
+          className={deleteClasses}
           onClick={onDelete}
           aria-label="Close notification"
         />

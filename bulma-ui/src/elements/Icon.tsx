@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 type IconLibrary = 'fa' | 'mdi' | 'ion'; // 'fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons
 
@@ -110,8 +109,6 @@ export const Icon: React.FC<IconProps> = ({
   style,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -121,12 +118,12 @@ export const Icon: React.FC<IconProps> = ({
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}icon` : 'icon';
+  const bulmaClasses = usePrefixedClassNames('icon', {
+    [`is-${size}`]: size,
+  });
+
   const iconContainerClasses = classNames(
-    mainClass,
-    {
-      [`is-${size}`]: size,
-    },
+    bulmaClasses,
     bulmaHelperClasses,
     className
   );

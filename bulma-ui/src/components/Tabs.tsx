@@ -1,7 +1,6 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Tabs component.
@@ -89,27 +88,22 @@ export const Tabs: React.FC<TabsProps> & {
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}tabs` : 'tabs';
-  const tabsClass = classNames(
-    mainClass,
-    bulmaHelperClasses,
-    {
-      [`is-${align}`]: align,
-      [`is-${size}`]: size,
-      'is-fullwidth': fullwidth,
-      'is-boxed': boxed,
-      'is-toggle': toggle,
-      'is-toggle-rounded': toggle && rounded,
-      [`is-${color}`]: color,
-    },
-    className
-  );
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('tabs', {
+    [`is-${align}`]: align,
+    [`is-${size}`]: size,
+    [`is-${color}`]: color,
+    'is-fullwidth': fullwidth,
+    'is-boxed': boxed,
+    'is-toggle': toggle,
+    'is-toggle-rounded': rounded,
+  });
+
+  const tabsClass = classNames(bulmaClasses, bulmaHelperClasses, className);
   return (
     <div className={tabsClass} {...rest}>
       {children}

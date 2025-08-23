@@ -129,4 +129,66 @@ describe('Image Component', () => {
     expect(container).toHaveClass('bulma-image');
     expect(container).not.toHaveClass('image');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Image {...defaultProps} data-testid="image" />
+        </ConfigProvider>
+      );
+      const container = screen.getByTestId('image');
+      expect(container).toHaveClass('bulma-image');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Image {...defaultProps} data-testid="image" />);
+      const container = screen.getByTestId('image');
+      expect(container).toHaveClass('image');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Image {...defaultProps} data-testid="image" />
+        </ConfigProvider>
+      );
+      const container = screen.getByTestId('image');
+      expect(container).toHaveClass('image');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Image
+            {...defaultProps}
+            size="64x64"
+            textColor="primary"
+            m="2"
+            data-testid="image"
+          />
+        </ConfigProvider>
+      );
+      const container = screen.getByTestId('image');
+      expect(container).toHaveClass('bulma-image');
+      expect(container).toHaveClass('bulma-is-64x64');
+      expect(container).toHaveClass('bulma-has-text-primary');
+      expect(container).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Image
+          {...defaultProps}
+          size="128x128"
+          textColor="danger"
+          data-testid="image"
+        />
+      );
+      const container = screen.getByTestId('image');
+      expect(container).toHaveClass('image');
+      expect(container).toHaveClass('is-128x128');
+      expect(container).toHaveClass('has-text-danger');
+    });
+  });
 });

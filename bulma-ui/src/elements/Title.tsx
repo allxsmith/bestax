@@ -1,7 +1,6 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 const validTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
 /**
@@ -58,8 +57,6 @@ export const Title: React.FC<TitleProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -71,12 +68,13 @@ export const Title: React.FC<TitleProps> = ({
   // Validate 'size' prop at runtime
   const validSize = size && validTitleSizes.includes(size) ? size : undefined;
 
-  const mainClass = classPrefix ? `${classPrefix}title` : 'title';
-  const titleClasses = classNames(mainClass, className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('title', {
     [`is-${validSize}`]: validSize,
     'is-spaced': isSpaced,
     'has-skeleton': hasSkeleton,
   });
+
+  const titleClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Determine the tag based on 'element' and 'validSize'
   const Tag: React.ElementType =

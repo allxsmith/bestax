@@ -3,26 +3,6 @@ import { render, screen } from '@testing-library/react';
 import Field from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
-// Mocks for Bulma classes
-jest.mock('../../helpers/useBulmaClasses', () => ({
-  useBulmaClasses: () => ({
-    bulmaHelperClasses: '',
-    rest: {},
-  }),
-  validColors: [
-    'primary',
-    'link',
-    'info',
-    'success',
-    'warning',
-    'danger',
-    'black',
-    'dark',
-    'light',
-    'white',
-  ],
-}));
-
 describe('Field', () => {
   it('renders children', () => {
     render(<Field>Test Content</Field>);
@@ -255,5 +235,64 @@ describe('Field', () => {
     const fieldLabel = label.closest('.prefix-field-label');
     expect(fieldLabel).toBeInTheDocument();
     expect(fieldLabel).not.toHaveClass('field-label');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Field label="Test">Content</Field>
+        </ConfigProvider>
+      );
+      const field = container.querySelector('.bulma-field');
+      expect(field).toBeInTheDocument();
+      expect(field).toHaveClass('bulma-field');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(<Field label="Test">Content</Field>);
+      const field = container.querySelector('.field');
+      expect(field).toBeInTheDocument();
+      expect(field).toHaveClass('field');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Field label="Test">Content</Field>
+        </ConfigProvider>
+      );
+      const field = container.querySelector('.field');
+      expect(field).toBeInTheDocument();
+      expect(field).toHaveClass('field');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Field grouped m="2" data-testid="test-field">
+            Content
+          </Field>
+        </ConfigProvider>
+      );
+
+      const field = container.querySelector('.bulma-field');
+      expect(field).toBeInTheDocument();
+      expect(field).toHaveClass('bulma-field');
+      expect(field).toHaveClass('bulma-is-grouped');
+      expect(field).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Field hasAddons p="3">
+          Content
+        </Field>
+      );
+      const field = container.querySelector('.field');
+      expect(field).toHaveClass('field');
+      expect(field).toHaveClass('has-addons');
+      expect(field).toHaveClass('p-3');
+    });
   });
 });

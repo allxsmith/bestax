@@ -36,3 +36,13 @@ export const useClassPrefix = () => {
   const { classPrefix } = useConfig();
   return classPrefix || '';
 };
+
+/**
+ * Utility function to create prefixed Bulma modifier classes.
+ * Usage: const prefixedClass = usePrefixedClass('is-primary');
+ */
+export const usePrefixedClass = () => {
+  const { classPrefix } = useConfig();
+  return (className: string) =>
+    classPrefix ? `${classPrefix}${className}` : className;
+};

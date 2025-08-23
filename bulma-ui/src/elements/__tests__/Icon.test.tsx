@@ -84,14 +84,57 @@ describe('Icon', () => {
     expect(i).toHaveClass('star', 'weird', 'iconic');
   });
 
-  it('applies classPrefix when provided via ConfigProvider', () => {
-    const { container } = render(
-      <ConfigProvider classPrefix="bulma-">
-        <Icon name="star" />
-      </ConfigProvider>
-    );
-    const span = container.querySelector('span');
-    expect(span).toHaveClass('bulma-icon');
-    expect(span).not.toHaveClass('icon');
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Icon name="star" />
+        </ConfigProvider>
+      );
+      const span = container.querySelector('span');
+      expect(span).toHaveClass('my-prefix-icon');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      const { container } = render(
+        <ConfigProvider>
+          <Icon name="star" />
+        </ConfigProvider>
+      );
+      const span = container.querySelector('span');
+      expect(span).toHaveClass('icon');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Icon name="star" />
+        </ConfigProvider>
+      );
+      const span = container.querySelector('span');
+      expect(span).toHaveClass('icon');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Icon name="star" size="large" m="2" />
+        </ConfigProvider>
+      );
+
+      const span = container.querySelector('span');
+      expect(span).toHaveClass('bulma-icon');
+      expect(span).toHaveClass('bulma-is-large');
+      expect(span).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(<Icon name="heart" size="medium" p="3" />);
+
+      const span = container.querySelector('span');
+      expect(span).toHaveClass('icon');
+      expect(span).toHaveClass('is-medium');
+      expect(span).toHaveClass('p-3');
+    });
   });
 });

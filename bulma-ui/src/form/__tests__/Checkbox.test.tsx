@@ -28,6 +28,60 @@ describe('Checkbox', () => {
     expect(label).toHaveClass('bulma-checkbox');
   });
 
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Checkbox data-testid="checkbox">Test</Checkbox>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-checkbox');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(
+        <Checkbox data-testid="checkbox">Test</Checkbox>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('checkbox');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Checkbox data-testid="checkbox">Test</Checkbox>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('checkbox');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Checkbox m="2" data-testid="checkbox">
+            Test
+          </Checkbox>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-checkbox');
+      expect(label).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Checkbox p="3" data-testid="checkbox">
+          Test
+        </Checkbox>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('checkbox');
+      expect(label).toHaveClass('p-3');
+    });
+  });
+
   it('renders as unchecked by default', () => {
     render(<Checkbox>Opt in</Checkbox>);
     const input = screen.getByLabelText(/opt in/i) as HTMLInputElement;

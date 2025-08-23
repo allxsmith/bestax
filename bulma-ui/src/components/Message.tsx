@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Message component.
@@ -50,21 +49,22 @@ export const Message: React.FC<MessageProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const mainClass = classPrefix ? `${classPrefix}message` : 'message';
-  const deleteClass = classPrefix ? `${classPrefix}delete` : 'delete';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('message', {
+    [`is-${color}`]: color,
+  });
+  const deleteClass = usePrefixedClassNames('delete');
 
   const messageClasses = classNames(
-    mainClass,
-    color && `is-${color}`,
-    className,
-    bulmaHelperClasses
+    bulmaClasses,
+    bulmaHelperClasses,
+    className
   );
 
   return (

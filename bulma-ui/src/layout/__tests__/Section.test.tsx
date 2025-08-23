@@ -60,4 +60,65 @@ describe('Section', () => {
     const section = screen.getByTestId('section-test');
     expect(section).toHaveClass('custom-section');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Section data-testid="section">Section content</Section>
+        </ConfigProvider>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toBeInTheDocument();
+      expect(section).toHaveClass('bulma-section');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Section data-testid="section">Section content</Section>);
+      const section = screen.getByTestId('section');
+      expect(section).toBeInTheDocument();
+      expect(section).toHaveClass('section');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Section data-testid="section">Section content</Section>
+        </ConfigProvider>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toBeInTheDocument();
+      expect(section).toHaveClass('section');
+    });
+
+    it('applies prefix to both main class and section modifiers', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Section data-testid="section" size="large" textColor="primary" m="3">
+            Section content
+          </Section>
+        </ConfigProvider>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toBeInTheDocument();
+      expect(section).toHaveClass('bulma-section');
+      expect(section).toHaveClass('bulma-is-large');
+      expect(section).toHaveClass('bulma-has-text-primary');
+      expect(section).toHaveClass('bulma-m-3');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Section data-testid="section" size="medium" bgColor="light" p="4">
+          Section content
+        </Section>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toBeInTheDocument();
+      expect(section).toHaveClass('section');
+      expect(section).toHaveClass('is-medium');
+      expect(section).toHaveClass('has-background-light');
+      expect(section).toHaveClass('p-4');
+    });
+  });
 });

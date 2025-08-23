@@ -1,7 +1,6 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 const validBreadcrumbAlignments = ['centered', 'right'] as const;
 /**
@@ -63,21 +62,22 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   children,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const mainClass = classPrefix ? `${classPrefix}breadcrumb` : 'breadcrumb';
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('breadcrumb', {
+    [`is-${alignment}`]:
+      alignment && validBreadcrumbAlignments.includes(alignment),
+    [`has-${separator}-separator`]:
+      separator && validBreadcrumbSeparators.includes(separator),
+    [`is-${size}`]: size && validBreadcrumbSizes.includes(size),
+  });
+
+  // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
   const breadcrumbClasses = classNames(
-    mainClass,
-    className,
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      [`is-${alignment}`]:
-        alignment && validBreadcrumbAlignments.includes(alignment),
-      [`has-${separator}-separator`]:
-        separator && validBreadcrumbSeparators.includes(separator),
-      [`is-${size}`]: size && validBreadcrumbSizes.includes(size),
-    }
+    className
   );
 
   return (

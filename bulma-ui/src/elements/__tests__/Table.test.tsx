@@ -82,7 +82,7 @@ describe('Table Component', () => {
   });
 
   describe('ClassPrefix', () => {
-    test('applies classPrefix to main table class', () => {
+    it('applies classPrefix to main table class', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <Table {...defaultProps} />
@@ -92,7 +92,7 @@ describe('Table Component', () => {
       expect(table).toHaveClass('my-prefix-table');
     });
 
-    test('applies classPrefix to table-container when responsive', () => {
+    it('applies classPrefix to table-container when responsive', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <Table {...defaultProps} isResponsive />
@@ -103,7 +103,7 @@ describe('Table Component', () => {
       expect(table.parentElement).toHaveClass('my-prefix-table-container');
     });
 
-    test('uses default classes when no classPrefix provided', () => {
+    it('uses default classes when no classPrefix provided', () => {
       render(
         <ConfigProvider>
           <Table {...defaultProps} isResponsive />
@@ -114,7 +114,7 @@ describe('Table Component', () => {
       expect(table.parentElement).toHaveClass('table-container');
     });
 
-    test('uses default classes when classPrefix is undefined', () => {
+    it('uses default classes when classPrefix is undefined', () => {
       render(
         <ConfigProvider classPrefix={undefined}>
           <Table {...defaultProps} />
@@ -122,6 +122,51 @@ describe('Table Component', () => {
       );
       const table = screen.getByRole('table');
       expect(table).toHaveClass('table');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Table isBordered isStriped isNarrow isResponsive m="2">
+            <tbody>
+              <tr>
+                <td>Test Cell</td>
+              </tr>
+            </tbody>
+          </Table>
+        </ConfigProvider>
+      );
+
+      const tableContainer = container.querySelector('.bulma-table-container');
+      expect(tableContainer).toBeInTheDocument();
+
+      const table = container.querySelector('table');
+      expect(table).toHaveClass('bulma-table');
+      expect(table).toHaveClass('bulma-is-bordered');
+      expect(table).toHaveClass('bulma-is-striped');
+      expect(table).toHaveClass('bulma-is-narrow');
+      expect(table).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Table isBordered isHoverable isResponsive p="3">
+          <tbody>
+            <tr>
+              <td>Standard Cell</td>
+            </tr>
+          </tbody>
+        </Table>
+      );
+
+      const tableContainer = container.querySelector('.table-container');
+      expect(tableContainer).toBeInTheDocument();
+
+      const table = container.querySelector('table');
+      expect(table).toHaveClass('table');
+      expect(table).toHaveClass('is-bordered');
+      expect(table).toHaveClass('is-hoverable');
+      expect(table).toHaveClass('p-3');
     });
   });
 });

@@ -2,7 +2,7 @@
  * @group Table
  */
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 export const validTableColors = [
@@ -54,14 +54,16 @@ export const Td: React.FC<TdProps> = ({
   children,
   ...props
 }) => {
+  const colorClass = usePrefixedClassNames('', {
+    [`is-${color}`]: color && validTableColors.includes(color),
+  });
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tdClasses = classNames(className, bulmaHelperClasses, {
-    [`is-${color}`]: color && validTableColors.includes(color),
-  });
+  const tdClasses = classNames(colorClass, className, bulmaHelperClasses);
 
   return (
     <td className={tdClasses} {...rest}>

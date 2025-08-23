@@ -162,7 +162,7 @@ describe('Content Component', () => {
   });
 
   describe('ClassPrefix', () => {
-    test('applies classPrefix to main class', () => {
+    it('applies classPrefix to main class', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <Content data-testid="content">Test</Content>
@@ -171,7 +171,7 @@ describe('Content Component', () => {
       expect(screen.getByTestId('content')).toHaveClass('my-prefix-content');
     });
 
-    test('uses default class when no classPrefix provided', () => {
+    it('uses default class when no classPrefix provided', () => {
       render(
         <ConfigProvider>
           <Content data-testid="content">Test</Content>
@@ -180,13 +180,42 @@ describe('Content Component', () => {
       expect(screen.getByTestId('content')).toHaveClass('content');
     });
 
-    test('uses default class when classPrefix is undefined', () => {
+    it('uses default class when classPrefix is undefined', () => {
       render(
         <ConfigProvider classPrefix={undefined}>
           <Content data-testid="content">Test</Content>
         </ConfigProvider>
       );
       expect(screen.getByTestId('content')).toHaveClass('content');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Content size="large" m="2" p="3">
+            Test Content
+          </Content>
+        </ConfigProvider>
+      );
+
+      const content = container.querySelector('div');
+      expect(content).toHaveClass('bulma-content');
+      expect(content).toHaveClass('bulma-is-large');
+      expect(content).toHaveClass('bulma-m-2');
+      expect(content).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Content size="medium" textAlign="centered">
+          Standard Content
+        </Content>
+      );
+
+      const content = container.querySelector('div');
+      expect(content).toHaveClass('content');
+      expect(content).toHaveClass('is-medium');
+      expect(content).toHaveClass('has-text-centered');
     });
   });
 });

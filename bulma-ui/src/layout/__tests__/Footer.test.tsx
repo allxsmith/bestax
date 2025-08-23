@@ -80,4 +80,65 @@ describe('Footer', () => {
     const footer = screen.getByTestId('footer-test');
     expect(footer).toHaveClass('custom-footer');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Footer data-testid="footer">Footer content</Footer>
+        </ConfigProvider>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toBeInTheDocument();
+      expect(footer).toHaveClass('bulma-footer');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Footer data-testid="footer">Footer content</Footer>);
+      const footer = screen.getByTestId('footer');
+      expect(footer).toBeInTheDocument();
+      expect(footer).toHaveClass('footer');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Footer data-testid="footer">Footer content</Footer>
+        </ConfigProvider>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toBeInTheDocument();
+      expect(footer).toHaveClass('footer');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Footer data-testid="footer" textColor="primary" bgColor="dark" p="4">
+            Footer content
+          </Footer>
+        </ConfigProvider>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toBeInTheDocument();
+      expect(footer).toHaveClass('bulma-footer');
+      expect(footer).toHaveClass('bulma-has-text-primary');
+      expect(footer).toHaveClass('bulma-has-background-dark');
+      expect(footer).toHaveClass('bulma-p-4');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Footer data-testid="footer" as="div" color="info" m="2">
+          Footer content
+        </Footer>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toBeInTheDocument();
+      expect(footer).toHaveClass('footer');
+      expect(footer).toHaveClass('has-text-info');
+      expect(footer).toHaveClass('m-2');
+      expect(footer.tagName.toLowerCase()).toBe('div');
+    });
+  });
 });

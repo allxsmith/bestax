@@ -272,4 +272,59 @@ describe('Card Component', () => {
     expect(card).toBeInTheDocument();
     expect(card).not.toHaveClass('card');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Card data-testid="card">Test content</Card>
+        </ConfigProvider>
+      );
+      const card = screen.getByTestId('card');
+      expect(card).toHaveClass('bulma-card');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Card data-testid="card">Test content</Card>);
+      const card = screen.getByTestId('card');
+      expect(card).toHaveClass('card');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Card data-testid="card">Test content</Card>
+        </ConfigProvider>
+      );
+      const card = screen.getByTestId('card');
+      expect(card).toHaveClass('card');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Card hasShadow={false} textColor="primary" m="2" data-testid="card">
+            Test content
+          </Card>
+        </ConfigProvider>
+      );
+      const card = screen.getByTestId('card');
+      expect(card).toHaveClass('bulma-card');
+      expect(card).toHaveClass('bulma-is-shadowless');
+      expect(card).toHaveClass('bulma-has-text-primary');
+      expect(card).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Card hasShadow={false} textColor="danger" data-testid="card">
+          Test content
+        </Card>
+      );
+      const card = screen.getByTestId('card');
+      expect(card).toHaveClass('card');
+      expect(card).toHaveClass('is-shadowless');
+      expect(card).toHaveClass('has-text-danger');
+    });
+  });
 });

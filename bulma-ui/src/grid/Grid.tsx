@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Allowed gap values for Bulma grid.
@@ -111,62 +110,6 @@ export interface GridProps
 }
 
 /**
- * Builds Bulma grid inner classes for the Grid component.
- */
-function getGridInnerClasses({
-  gap,
-  columnGap,
-  rowGap,
-  minCol,
-}: Pick<GridProps, 'gap' | 'columnGap' | 'rowGap' | 'minCol'>): string[] {
-  const classes: string[] = [];
-  if (gap !== undefined) classes.push(`is-gap-${gap}`);
-  if (columnGap !== undefined) classes.push(`is-column-gap-${columnGap}`);
-  if (rowGap !== undefined) classes.push(`is-row-gap-${rowGap}`);
-  if (minCol !== undefined) classes.push(`is-col-min-${minCol}`);
-  return classes;
-}
-
-/**
- * Builds Bulma fixed grid classes for the Grid component.
- */
-function getFixedGridClasses({
-  fixedCols,
-  fixedColsMobile,
-  fixedColsTablet,
-  fixedColsDesktop,
-  fixedColsWidescreen,
-  fixedColsFullhd,
-}: Pick<
-  GridProps,
-  | 'fixedCols'
-  | 'fixedColsMobile'
-  | 'fixedColsTablet'
-  | 'fixedColsDesktop'
-  | 'fixedColsWidescreen'
-  | 'fixedColsFullhd'
->): string[] {
-  const classes: string[] = [];
-  if (fixedCols === 'auto') {
-    // 'auto' overrides all other column settings
-    classes.push('has-auto-count');
-    return classes;
-  }
-  if (fixedCols !== undefined) classes.push(`has-${fixedCols}-cols`);
-  if (fixedColsMobile !== undefined)
-    classes.push(`has-${fixedColsMobile}-cols-mobile`);
-  if (fixedColsTablet !== undefined)
-    classes.push(`has-${fixedColsTablet}-cols-tablet`);
-  if (fixedColsDesktop !== undefined)
-    classes.push(`has-${fixedColsDesktop}-cols-desktop`);
-  if (fixedColsWidescreen !== undefined)
-    classes.push(`has-${fixedColsWidescreen}-cols-widescreen`);
-  if (fixedColsFullhd !== undefined)
-    classes.push(`has-${fixedColsFullhd}-cols-fullhd`);
-  return classes;
-}
-
-/**
  * Bulma Grid component for CSS Grid layouts, supports both fixed and responsive grid modes.
  *
  * @function
@@ -188,6 +131,7 @@ export const Grid: React.FC<GridProps> = ({
   fixedColsFullhd,
   className,
   textColor,
+  color: _fieldColor,
   bgColor,
   children,
   ...props
@@ -199,29 +143,41 @@ export const Grid: React.FC<GridProps> = ({
     ...props,
   });
 
-  const { classPrefix } = useConfig();
-  const mainClass = classPrefix ? `${classPrefix}grid` : 'grid';
+  const mainClass = usePrefixedClassNames('grid');
+
+  // Build grid inner classes with prefixes
+  const gridInnerClasses = usePrefixedClassNames('', {
+    [`is-gap-${gap}`]: gap !== undefined && gap !== null,
+    [`is-column-gap-${columnGap}`]:
+      columnGap !== undefined && columnGap !== null,
+    [`is-row-gap-${rowGap}`]: rowGap !== undefined && rowGap !== null,
+    [`is-col-min-${minCol}`]: minCol !== undefined && minCol !== null,
+  });
+
+  // Build fixed grid classes with prefixes (always called, used conditionally)
+  const fixedGridClasses = usePrefixedClassNames('fixed-grid', {
+    'has-auto-count': fixedCols === 'auto',
+    [`has-${fixedCols}-cols`]: fixedCols !== undefined && fixedCols !== 'auto',
+    [`has-${fixedColsMobile}-cols-mobile`]:
+      fixedColsMobile !== undefined && fixedColsMobile !== null,
+    [`has-${fixedColsTablet}-cols-tablet`]:
+      fixedColsTablet !== undefined && fixedColsTablet !== null,
+    [`has-${fixedColsDesktop}-cols-desktop`]:
+      fixedColsDesktop !== undefined && fixedColsDesktop !== null,
+    [`has-${fixedColsWidescreen}-cols-widescreen`]:
+      fixedColsWidescreen !== undefined && fixedColsWidescreen !== null,
+    [`has-${fixedColsFullhd}-cols-fullhd`]:
+      fixedColsFullhd !== undefined && fixedColsFullhd !== null,
+  });
 
   const gridClasses = classNames(
     mainClass,
-    ...getGridInnerClasses({ gap, columnGap, rowGap, minCol }),
+    gridInnerClasses,
     bulmaHelperClasses,
     className
   );
 
   if (isFixed) {
-    // Apply has-X-cols and responsive column count classes to the outer fixed-grid container
-    const fixedGridClasses = classNames(
-      'fixed-grid',
-      ...getFixedGridClasses({
-        fixedCols,
-        fixedColsMobile,
-        fixedColsTablet,
-        fixedColsDesktop,
-        fixedColsWidescreen,
-        fixedColsFullhd,
-      })
-    );
     return (
       <div className={fixedGridClasses}>
         <div className={gridClasses} {...rest}>

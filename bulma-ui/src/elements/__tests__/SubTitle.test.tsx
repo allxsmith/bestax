@@ -209,17 +209,73 @@ describe('SubTitle Component', () => {
     expect(subtitle).toHaveClass('is-skeleton');
   });
 
-  test('applies classPrefix when provided via ConfigProvider', () => {
-    render(
-      <ConfigProvider classPrefix="bulma-">
-        <SubTitle {...defaultProps} />
-      </ConfigProvider>
-    );
-    const subtitle = screen.getByRole('heading', {
-      name: 'Test SubTitle',
-      level: 1,
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <SubTitle>Test SubTitle</SubTitle>
+        </ConfigProvider>
+      );
+      const subtitle = screen.getByRole('heading', {
+        name: 'Test SubTitle',
+        level: 1,
+      });
+      expect(subtitle).toHaveClass('my-prefix-subtitle');
     });
-    expect(subtitle).toHaveClass('bulma-subtitle');
-    expect(subtitle).not.toHaveClass('subtitle');
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <SubTitle>Test SubTitle</SubTitle>
+        </ConfigProvider>
+      );
+      const subtitle = screen.getByRole('heading', {
+        name: 'Test SubTitle',
+        level: 1,
+      });
+      expect(subtitle).toHaveClass('subtitle');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <SubTitle>Test SubTitle</SubTitle>
+        </ConfigProvider>
+      );
+      const subtitle = screen.getByRole('heading', {
+        name: 'Test SubTitle',
+        level: 1,
+      });
+      expect(subtitle).toHaveClass('subtitle');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <SubTitle size="2" m="2" p="3">
+            Test SubTitle
+          </SubTitle>
+        </ConfigProvider>
+      );
+
+      const subtitle = container.querySelector('h2');
+      expect(subtitle).toHaveClass('bulma-subtitle');
+      expect(subtitle).toHaveClass('bulma-is-2');
+      expect(subtitle).toHaveClass('bulma-m-2');
+      expect(subtitle).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <SubTitle size="3" textAlign="centered">
+          Standard SubTitle
+        </SubTitle>
+      );
+
+      const subtitle = container.querySelector('h3');
+      expect(subtitle).toHaveClass('subtitle');
+      expect(subtitle).toHaveClass('is-3');
+      expect(subtitle).toHaveClass('has-text-centered');
+    });
   });
 });

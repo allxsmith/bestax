@@ -1,11 +1,10 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import classNames, { usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Footer component.
@@ -41,17 +40,21 @@ export const Footer: React.FC<FooterProps> = ({
   as = 'footer',
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
-  const { classPrefix } = useConfig();
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
   const Tag = as;
-  const mainClass = classPrefix ? `${classPrefix}footer` : 'footer';
+  const mainClass = usePrefixedClassNames('footer');
+  const footerClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <Tag
-      className={classNames(mainClass, bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <Tag className={footerClasses} {...rest}>
       {children}
     </Tag>
   );

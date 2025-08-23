@@ -120,4 +120,75 @@ describe('Select', () => {
     expect(select).toBeInTheDocument();
     expect(select).not.toHaveClass('select');
   });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Select data-testid="select">
+            <option>Test</option>
+          </Select>
+        </ConfigProvider>
+      );
+      const selectWrapper = screen
+        .getByTestId('select')
+        .closest('.bulma-select');
+      expect(selectWrapper).toBeInTheDocument();
+      expect(selectWrapper).toHaveClass('bulma-select');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Select data-testid="select">
+          <option>Test</option>
+        </Select>
+      );
+      const selectWrapper = screen.getByTestId('select').closest('.select');
+      expect(selectWrapper).toBeInTheDocument();
+      expect(selectWrapper).toHaveClass('select');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Select data-testid="select">
+            <option>Test</option>
+          </Select>
+        </ConfigProvider>
+      );
+      const selectWrapper = screen.getByTestId('select').closest('.select');
+      expect(selectWrapper).toBeInTheDocument();
+      expect(selectWrapper).toHaveClass('select');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Select color="primary" isRounded m="2" data-testid="select">
+            <option>Test</option>
+          </Select>
+        </ConfigProvider>
+      );
+      const selectWrapper = screen
+        .getByTestId('select')
+        .closest('.bulma-select');
+      expect(selectWrapper).toHaveClass('bulma-select');
+      expect(selectWrapper).toHaveClass('bulma-is-primary');
+      expect(selectWrapper).toHaveClass('bulma-is-rounded');
+      expect(selectWrapper).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Select color="danger" isLoading p="3" data-testid="select">
+          <option>Test</option>
+        </Select>
+      );
+      const selectWrapper = screen.getByTestId('select').closest('.select');
+      expect(selectWrapper).toHaveClass('select');
+      expect(selectWrapper).toHaveClass('is-danger');
+      expect(selectWrapper).toHaveClass('is-loading');
+      expect(selectWrapper).toHaveClass('p-3');
+    });
+  });
 });

@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the TextArea component.
@@ -76,29 +75,23 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     },
     ref
   ) => {
-    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
     });
 
-    const mainClass = classPrefix ? `${classPrefix}textarea` : 'textarea';
-    const textareaClass = classNames(
-      mainClass,
-      bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-rounded': isRounded,
-        'is-static': isStatic,
-        'is-hovered': isHovered,
-        'is-focused': isFocused,
-        'is-loading': isLoading,
-        'is-active': isActive,
-        'has-fixed-size': hasFixedSize,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('textarea', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-rounded': isRounded,
+      'is-static': isStatic,
+      'is-hovered': isHovered,
+      'is-focused': isFocused,
+      'is-loading': isLoading,
+      'is-active': isActive,
+      'has-fixed-size': hasFixedSize,
+    });
+    const textareaClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (
       <textarea

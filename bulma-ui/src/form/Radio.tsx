@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Radio component.
@@ -29,12 +28,11 @@ export interface RadioProps
  */
 export const Radio = forwardRef<HTMLInputElement, RadioProps>(
   ({ disabled, className, children, ...props }, ref) => {
-    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       ...props,
     });
 
-    const mainClass = classPrefix ? `${classPrefix}radio` : 'radio';
+    const mainClass = usePrefixedClassNames('radio');
     const radioClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (
