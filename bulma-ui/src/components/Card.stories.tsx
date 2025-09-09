@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Card } from './Card';
+import { Icon } from '../elements/Icon';
 
 const DECLARATION_LATIN =
   'Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae statum separatum et aequalem, ad quem iure naturali et naturae Deo habendum vocantur, sibi vindicare velit, debetur erga opiniones humani generis ut causas, quae eos ad secessionem impellunt, declaret.';
@@ -179,5 +180,145 @@ export const Interactive: Story = {
         <span className="card-footer-item">Action 2</span>
       </>
     ),
+  },
+};
+
+export const CompoundComponents: Story = {
+  render: () => (
+    <Card>
+      <Card.Header>
+        <Card.Header.Title>Compound Component Card</Card.Header.Title>
+        <Card.Header.Icon aria-label="more options">
+          <Icon name="angle-down" variant="solid" ariaLabel="expand" />
+        </Card.Header.Icon>
+      </Card.Header>
+      <Card.Image>
+        <figure className="image is-4by3">
+          <img src={TEST_IMAGE} alt="Beautiful forest" />
+        </figure>
+      </Card.Image>
+      <Card.Content>
+        <div className="content">{DECLARATION_LATIN}</div>
+      </Card.Content>
+      <Card.Footer>
+        <Card.FooterItem>
+          <button className="button is-primary">Save</button>
+        </Card.FooterItem>
+        <Card.FooterItem>
+          <button className="button">Cancel</button>
+        </Card.FooterItem>
+      </Card.Footer>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the flexible compound component API for Card, allowing fine-grained control over each section.',
+      },
+    },
+  },
+};
+
+export const CompoundComponentsMinimal: Story = {
+  render: () => (
+    <Card>
+      <Card.Header>
+        <Card.Header.Title>Simple Header</Card.Header.Title>
+      </Card.Header>
+      <Card.Content>
+        <p>Just some minimal content using compound components.</p>
+      </Card.Content>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A minimal example using only Card.Header and Card.Content compound components.',
+      },
+    },
+  },
+};
+
+export const MixedApproach: Story = {
+  render: () => (
+    <Card header="Prop-based header" textColor="primary" m="3">
+      <Card.Content className="has-background-light">
+        <p>You can mix prop-based and compound component approaches!</p>
+        <p>
+          This card uses the header prop but compound components for content.
+        </p>
+      </Card.Content>
+      <Card.Footer>
+        <Card.FooterItem>Mixed approach example</Card.FooterItem>
+      </Card.Footer>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows how you can mix the traditional prop-based API with compound components for maximum flexibility.',
+      },
+    },
+  },
+};
+
+export const HeaderTitleVariants: Story = {
+  render: () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Card>
+        <Card.Header>
+          <Card.Header.Title>Default Header Title</Card.Header.Title>
+        </Card.Header>
+        <Card.Content>
+          <p>This card uses the default header title alignment.</p>
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Header>
+          <Card.Header.Title centered>Centered Header Title</Card.Header.Title>
+        </Card.Header>
+        <Card.Content>
+          <p>This card uses a centered header title.</p>
+        </Card.Content>
+      </Card>
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the Card.Header.Title component with different alignment options.',
+      },
+    },
+  },
+};
+
+export const HeaderWithIcon: Story = {
+  render: () => (
+    <Card>
+      <Card.Header>
+        <Card.Header.Title>Expandable Card</Card.Header.Title>
+        <Card.Header.Icon aria-label="expand">
+          <Icon name="angle-down" variant="solid" ariaLabel="expand" />
+        </Card.Header.Icon>
+      </Card.Header>
+      <Card.Content>
+        This card demonstrates the Card.Header.Icon component, which renders a
+        proper Bulma card-header-icon button for actions like expand/collapse or
+        accessing more options.
+      </Card.Content>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the Card.Header.Icon component for adding action buttons to card headers.',
+      },
+    },
   },
 };

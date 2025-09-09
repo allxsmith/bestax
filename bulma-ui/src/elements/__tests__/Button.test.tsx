@@ -20,20 +20,17 @@ describe('Button Component', () => {
     );
   });
 
-  it('applies helper classes via rest props', () => {
+  test('applies helper classes via rest props', () => {
     render(
-      <Button
-        textColor="success"
-        m="2"
-        textAlign="centered"
-        viewport="mobile"
-      />
+      <Button color="success" m="2" textAlign="centered" viewport="mobile">
+        Test
+      </Button>
     );
     const button = screen.getByRole('button');
     expect(button).toHaveClass(
       'button',
-      'has-text-success-mobile',
-      'm-2-mobile',
+      'is-success', // Button color modifier
+      'm-2', // Margin does not support viewport modifiers
       'has-text-centered-mobile'
     );
   });

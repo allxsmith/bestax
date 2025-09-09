@@ -40,7 +40,7 @@ export type TagSize = (typeof validTagSizes)[number];
  */
 export interface TagProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
-    Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+    Omit<BulmaClassesProps, 'color'> {
   className?: string;
   color?: TagColor;
   size?: TagSize;

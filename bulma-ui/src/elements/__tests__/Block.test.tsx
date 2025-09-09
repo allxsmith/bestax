@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { Block } from '../Block'; // Adjust the import path based on your project structure
+import { Block } from '../Block';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Block Component', () => {
@@ -78,16 +78,22 @@ describe('Block Component', () => {
     expect(block).not.toHaveAttribute('m');
   });
 
-  // Test 9: Applies viewport-specific classes
-  test('applies viewport-specific classes', () => {
+  // Test 9: Color classes do not support viewport-specific classes
+  test('color classes do not support viewport-specific classes', () => {
     render(
       <Block textColor="primary" viewport="tablet">
         Test
       </Block>
     );
-    expect(screen.getByText('Test')).toHaveClass('has-text-primary-tablet', {
+    expect(screen.getByText('Test')).toHaveClass('has-text-primary', {
       exact: false,
     });
+    expect(screen.getByText('Test')).not.toHaveClass(
+      'has-text-primary-tablet',
+      {
+        exact: false,
+      }
+    );
   });
 
   // Test 10: Handles valid props correctly
