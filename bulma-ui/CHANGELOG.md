@@ -1,3 +1,11 @@
+## [2.0.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.1...@allxsmith/bestax-bulma@2.0.2) (2025-09-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** resolve flex item properties and Card compound component issues ([#55](https://github.com/allxsmith/bestax/issues/55)) ([e774da3](https://github.com/allxsmith/bestax/commit/e774da3b7a8890b77d7d699c5b5d0d3a20920fed))
+* **bulma-ui:** resolve flex item properties and Card compound component issues ([#55](https://github.com/allxsmith/bestax/issues/55)) ([7641a53](https://github.com/allxsmith/bestax/commit/7641a536db1c4a3928ccc7a15407b939fe205b06))
+
 ## [2.0.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.0...@allxsmith/bestax-bulma@2.0.1) (2025-08-23)
 
 
