@@ -23,3 +23,11 @@
   align-items: center;
   justify-content: center;
 }
+
+.hero__subtitle {
+  color: var(--ifm-color-emphasis-1000);
+}
+
+[data-theme='dark'] .hero__subtitle {
+  color: #000000;
+}

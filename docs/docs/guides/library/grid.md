@@ -65,7 +65,7 @@ Setting very large gaps can cause layout issues on small screens. Test your grid
 </Grid>
 ```
 
-[View full documentation.](../api/grid)
+[View full documentation.](../../api/grid)
 
 ---
 
@@ -95,7 +95,7 @@ Spanning cells is useful for headers, footers, or feature cards that need to tak
 </Grid>
 ```
 
-[View full documentation.](../api/grid/cell)
+[View full documentation.](../../api/grid/cell)
 
 ---
 

@@ -73,7 +73,7 @@ If you have more columns than fit in one row, use `isMultiline` to prevent overf
 </Columns>
 ```
 
-[View full documentation.](../api/columns)
+[View full documentation.](../../api/columns)
 
 ---
 
@@ -144,7 +144,7 @@ Offsets are useful for centering or right-aligning columns, but can cause layout
 </Columns>
 ```
 
-[View full documentation.](../api/columns/column)
+[View full documentation.](../../api/columns/column)
 
 ---
 

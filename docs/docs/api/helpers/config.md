@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ## Overview
 
-The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components. Currently, it supports setting a `classPrefix` that will be automatically applied to all Bulma CSS classes, allowing you to namespace Bulma classes to avoid conflicts with other CSS frameworks or customize the class naming convention.
+The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components. Currently, it supports setting a `classPrefix` that will be automatically applied to **all Bulma CSS classes**, including both main component classes (like `button`, `box`, `title`) and helper/modifier classes (like `is-primary`, `has-text-centered`, `m-4`), allowing you to namespace Bulma classes to avoid conflicts with other CSS frameworks or customize the class naming convention.
 
 ---
 
@@ -79,19 +79,36 @@ function App() {
       <Notification color="info" mt="4">
         <strong>Tip:</strong> Open your browser's developer tools and inspect
         the DOM elements below. You'll see that all Bulma CSS classes have the
-        "bulma-" prefix applied (e.g., "bulma-box", "bulma-title",
-        "bulma-button", "bulma-notification").
+        "bulma-" prefix applied.
       </Notification>
 
       <ConfigProvider classPrefix="bulma-">
         <Box mt="4" p="4">
+          {/* 
+            This Box will have classes:
+            - bulma-box (main class)
+            - bulma-mt-4 (helper class)
+            - bulma-p-4 (helper class)
+          */}
           <Title size="4">Prefixed Components</Title>
+          {/* 
+            This Title will have classes:
+            - bulma-title (main class)
+            - bulma-is-4 (modifier class)
+          */}
           <p>
             All components inside this ConfigProvider will have their CSS
             classes prefixed with "bulma-". This allows you to use Bulma
             alongside other CSS frameworks without class name conflicts.
           </p>
-          <Button color="primary" mt="3">
+          <Button color="primary" mt="3" isRounded>
+            {/* 
+              This Button will have classes:
+              - bulma-button (main class)
+              - bulma-is-primary (modifier class)
+              - bulma-is-rounded (modifier class)
+              - bulma-mt-3 (helper class)
+            */}
             Bulma-Prefixed Button
           </Button>
         </Box>
@@ -198,8 +215,11 @@ When wrapping Bulma UI components in your own component library:
 
 ## Notes
 
-- The `classPrefix` is applied to the main Bulma class of each component (e.g., `button`, `box`, `title`)
-- Helper classes and modifiers (e.g., `is-primary`, `has-text-centered`) are not prefixed
+- The `classPrefix` is applied to **all Bulma classes**:
+  - Main component classes (e.g., `button` → `bulma-button`, `box` → `bulma-box`)
+  - Helper/modifier classes (e.g., `is-primary` → `bulma-is-primary`, `has-text-centered` → `bulma-has-text-centered`)
+  - Spacing classes (e.g., `m-4` → `bulma-m-4`, `p-2` → `bulma-p-2`)
+  - All other Bulma utility classes
 - Changes to the `classPrefix` will affect all child components immediately
 - If no `classPrefix` is provided, components use standard Bulma class names
 - The ConfigProvider must wrap all components that should inherit the configuration

@@ -5,27 +5,114 @@ import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
 import root from 'react-shadow'; // Import from react-shadow
 import { useColorMode } from '@docusaurus/theme-common';
 import * as BestaxBulma from '@allxsmith/bestax-bulma';
-import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
-import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
+// Import CSS for document head (fonts get processed by Docusaurus)
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import '@mdi/font/css/materialdesignicons.min.css';
+// Note: ionicons now uses web components, no CSS import needed
+import 'material-icons/iconfont/material-icons.css';
+import 'material-symbols/index.css';
+
+// Import raw CSS for shadow DOM processing
+import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
+import rawBulmaPrefixedStyles from '!!raw-loader!bulma/css/versions/bulma-prefixed.min.css';
+import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
+import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css';
+// Note: ionicons now uses web components, no raw CSS needed
+import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/material-icons.css';
+import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
 import BrowserWindow from './BrowserWindow';
+
+// Enhanced preprocessing function for better CSS variable handling
+function preprocessBulmaStyles(rawStyles) {
+  let processedStyles = rawStyles.replace(/:root/g, ':host');
+
+  // Handle dark mode variables more comprehensively with nested group matching
+  processedStyles = processedStyles.replace(
+    /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
+    ':host(.dark) { $1 }'
+  );
+
+  // Handle light mode variables
+  processedStyles = processedStyles.replace(
+    /@media\s*\(prefers-color-scheme:\s*light\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
+    ':host(.light) { $1 }'
+  );
+
+  return processedStyles;
+}
+
+// Add explicit color mode variables to ensure proper dark/light mode switching
+const colorModeStyles = `
+  :host(.dark) {
+    --bulma-text-strong: hsl(0, 0%, 96%) !important;
+    --bulma-label-color: hsl(0, 0%, 96%) !important;
+    --bulma-text: hsl(0, 0%, 96%) !important;
+    --bulma-text-weak: hsl(0, 0%, 71%) !important;
+    --bulma-background: hsl(0, 0%, 14%) !important;
+    --bulma-surface: hsl(0, 0%, 21%) !important;
+    --bulma-border: hsl(0, 0%, 29%) !important;
+    --bulma-border-weak: hsl(0, 0%, 24%) !important;
+  }
+  
+  :host(.light), :host {
+    --bulma-text-strong: hsl(221, 14%, 21%) !important;
+    --bulma-label-color: hsl(221, 14%, 21%) !important;
+    --bulma-text: hsl(221, 14%, 31%) !important;
+    --bulma-text-weak: hsl(221, 14%, 41%) !important;
+    --bulma-background: hsl(0, 0%, 100%) !important;
+    --bulma-surface: hsl(0, 0%, 98%) !important;
+    --bulma-border: hsl(221, 14%, 86%) !important;
+    --bulma-border-weak: hsl(221, 14%, 93%) !important;
+  }
+`;
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
 // Also handle color mode classes instead of media queries
-const bulmaStyles = rawBulmaStyles
-  .replace(/:root/g, ':host')
-  .replace(/@media\s*\(prefers-color-scheme:\s*dark\)\s*{/g, ':host(.dark) {')
-  .replace(
-    /@media\s*\(prefers-color-scheme:\s*light\)\s*{/g,
-    ':host(.light) {'
-  );
+const bulmaStyles = preprocessBulmaStyles(rawBulmaStyles);
 
-const fontAwesomeStyles = rawFontAwesomeStyles
-  .replace(/:root/g, ':host') // Fix vars like Bulma
-  .replace(/url\(\.\.\/webfonts\//g, 'url(/webfonts/');
+const bulmaPrefixedStyles = preprocessBulmaStyles(rawBulmaPrefixedStyles);
+
+const fontAwesomeStyles = rawFontAwesomeStyles.replace(/:root/g, ':host');
+
+const mdiStyles = rawMDIStyles.replace(/:root/g, ':host');
+
+// Note: ionicons now uses web components, no CSS processing needed
+
+const materialIconsStyles = rawMaterialIconsStyles
+  .replace(/:root/g, ':host')
+  .replace(/@font-face\s*{[^}]*}/g, ''); // Remove @font-face rules - use fonts from document head
+
+const materialSymbolsStyles = rawMaterialSymbolsStyles.replace(
+  /:root/g,
+  ':host'
+);
+
+// Add specific CSS for ionicons web components
+const ioniconStyles = `
+  ion-icon {
+    display: inline-block !important;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    fill: currentColor;
+    stroke: currentColor;
+  }
+  ion-icon svg {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+  }
+`;
 
 function isLiveCodeBlock(props) {
   return !!props.live;
+}
+
+// Helper: extract title from props.metastring if props.title is not set
+function extractTitleFromMeta(metastring) {
+  if (typeof metastring !== 'string') return undefined;
+  const match = metastring.match(/(?:^|\s)title="([^"]+)"(?:\s|$)/);
+  return match ? match[1] : undefined;
 }
 
 /**
@@ -134,13 +221,18 @@ function SmartTheme({ isRoot = false, children, ...props }) {
   }
 }
 
-// Define a transform function to remove import lines
+// Define a transform function to remove import lines and export default statements
 function transformCode(code) {
-  // Split into lines, filter out those starting with 'import' (after trimming whitespace),
-  // and rejoin. This handles single-line imports; for multi-line, adjust if your examples use them.
+  // Split into lines, filter out those starting with 'import' or 'export default' (after trimming whitespace),
+  // and rejoin. This handles single-line imports and exports; for multi-line, adjust if your examples use them.
   return code
     .split('\n')
-    .filter(line => !line.trim().startsWith('import'))
+    .filter(line => {
+      const trimmed = line.trim();
+      return (
+        !trimmed.startsWith('import') && !trimmed.startsWith('export default')
+      );
+    })
     .join('\n');
 }
 
@@ -153,9 +245,9 @@ const scope = {
   useEffect,
 };
 
-function BrowserEditor() {
+function BrowserEditor({ title }) {
   return (
-    <BrowserWindow>
+    <BrowserWindow url={title}>
       <LiveEditor
         style={{
           backgroundColor: 'var(--prism-background-color)',
@@ -181,13 +273,41 @@ export default function CodeBlockEnhancer(props) {
     [themeStyleElement]
   );
 
-  // Update shadow DOM class when color mode changes
+  // Update shadow DOM class and color variables when color mode changes
   React.useEffect(() => {
     if (shadowRef.current) {
       // Update the host element class to reflect current color mode
       shadowRef.current.className = `live-preview ${colorMode}`;
+
+      // Apply explicit color mode variables for better consistency
+      if (updateShadowTheme) {
+        const colorModeVars =
+          colorMode === 'dark'
+            ? {
+                '--bulma-text-strong': 'hsl(0, 0%, 96%)',
+                '--bulma-label-color': 'hsl(0, 0%, 96%)',
+                '--bulma-text': 'hsl(0, 0%, 96%)',
+                '--bulma-text-weak': 'hsl(0, 0%, 71%)',
+                '--bulma-background': 'hsl(0, 0%, 14%)',
+                '--bulma-surface': 'hsl(0, 0%, 21%)',
+                '--bulma-border': 'hsl(0, 0%, 29%)',
+                '--bulma-border-weak': 'hsl(0, 0%, 24%)',
+              }
+            : {
+                '--bulma-text-strong': 'hsl(221, 14%, 21%)',
+                '--bulma-label-color': 'hsl(221, 14%, 21%)',
+                '--bulma-text': 'hsl(221, 14%, 31%)',
+                '--bulma-text-weak': 'hsl(221, 14%, 41%)',
+                '--bulma-background': 'hsl(0, 0%, 100%)',
+                '--bulma-surface': 'hsl(0, 0%, 98%)',
+                '--bulma-border': 'hsl(221, 14%, 86%)',
+                '--bulma-border-weak': 'hsl(221, 14%, 93%)',
+              };
+
+        updateShadowTheme(colorModeVars);
+      }
     }
-  }, [colorMode]);
+  }, [colorMode, updateShadowTheme]);
 
   React.useEffect(() => {
     // Set up the shadow style element reference after component mounts
@@ -221,6 +341,28 @@ export default function CodeBlockEnhancer(props) {
     };
   }, []);
 
+  // Load ionicons v8 web components support in live examples
+  React.useEffect(() => {
+    // Load ionicons via script tags for better compatibility with shadow DOM
+    if (!document.querySelector('script[src*="ionicons"]')) {
+      // Load ESM version
+      const esmScript = document.createElement('script');
+      esmScript.type = 'module';
+      esmScript.src =
+        'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js';
+      document.head.appendChild(esmScript);
+
+      // Load fallback version
+      const fallbackScript = document.createElement('script');
+      fallbackScript.setAttribute('nomodule', '');
+      fallbackScript.src =
+        'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js';
+      document.head.appendChild(fallbackScript);
+    }
+  }, []);
+
+  const liveTitle = props.title ?? extractTitleFromMeta(props.metastring);
+
   return isLiveCodeBlock(props) ? (
     <ShadowThemeContext.Provider value={updateShadowTheme}>
       <LiveProvider
@@ -234,15 +376,21 @@ export default function CodeBlockEnhancer(props) {
           data-theme={colorMode}
           ref={shadowRef}
         >
+          <style>{materialIconsStyles}</style>
           <style>{bulmaStyles}</style>
+          <style>{bulmaPrefixedStyles}</style>
           <style>{fontAwesomeStyles}</style>
+          <style>{mdiStyles}</style>
+          <style>{ioniconStyles}</style>
+          <style>{materialSymbolsStyles}</style>
+          <style>{colorModeStyles}</style>
           <style id="theme-vars"></style>
           <div data-theme={colorMode}>
             <LivePreview />
           </div>
         </root.div>
         <LiveError className="live-error alert alert--danger" />
-        <BrowserEditor />
+        <BrowserEditor title={liveTitle} />
       </LiveProvider>
     </ShadowThemeContext.Provider>
   ) : (

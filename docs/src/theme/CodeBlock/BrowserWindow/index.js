@@ -8,7 +8,7 @@ import styles from './styles.module.css';
 export default function BrowserWindow({
   children,
   minHeight,
-  url = 'Live Editor',
+  url = '',
   style,
   bodyStyle,
 }) {

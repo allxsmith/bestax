@@ -192,6 +192,163 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 ---
 
+## Compound Components
+
+The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
+
+### Card.Header
+
+Renders the card header section with proper styling. When used without `Card.Header.Title`, it automatically wraps content in a `.card-header-title` div. When used with `Card.Header.Title`, it renders the title component directly without additional wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
+- All standard HTML attributes for `<header>`
+
+### Card.Header.Title
+
+Renders the card header title with proper styling. This provides more granular control over the header title when using compound components. When used inside `Card.Header`, it prevents automatic wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header title
+- All standard HTML attributes for `<div>`
+
+### Card.Header.Icon
+
+Renders the card header icon button with proper styling. This is typically placed after `Card.Header.Title` for actions like expand/collapse or accessing more options.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `aria-label?`: Accessibility label (defaults to "more options")
+- All standard HTML attributes for `<button>`
+
+### Card.Image
+
+Renders the card image section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+### Card.Content
+
+Renders the main card content section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+### Card.Footer
+
+Renders the card footer section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<footer>`
+
+### Card.FooterItem
+
+Renders individual footer items with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<span>`
+
+### Compound Component Examples
+
+#### Complete Card with Compound Components
+
+```tsx live
+import { Icon, Image } from '@allxsmith/bestax-bulma';
+
+<Card>
+  <Card.Header>
+    <Card.Header.Title>Compound Component Card</Card.Header.Title>
+    <Card.Header.Icon aria-label="more options">
+      <Icon name="angle-down" variant="solid" ariaLabel="expand" />
+    </Card.Header.Icon>
+  </Card.Header>
+  <Card.Image>
+    <Image
+      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
+      alt="Beautiful forest"
+      size="4by3"
+    />
+  </Card.Image>
+  <Card.Content>
+    <div className="content">
+      This card is built using compound components for maximum flexibility.
+    </div>
+  </Card.Content>
+  <Card.Footer>
+    <Card.FooterItem>
+      <button className="button is-primary">Save</button>
+    </Card.FooterItem>
+    <Card.FooterItem>
+      <button className="button">Cancel</button>
+    </Card.FooterItem>
+  </Card.Footer>
+</Card>;
+```
+
+#### Minimal Compound Card
+
+```tsx live
+<Card>
+  <Card.Header>
+    <Card.Header.Title>Simple Header</Card.Header.Title>
+  </Card.Header>
+  <Card.Content>
+    <p>Just some minimal content using compound components.</p>
+  </Card.Content>
+</Card>
+```
+
+#### Card Header with Icon
+
+```tsx live
+import { Icon } from '@allxsmith/bestax-bulma';
+
+<Card>
+  <Card.Header>
+    <Card.Header.Title>Expandable Card</Card.Header.Title>
+    <Card.Header.Icon aria-label="expand">
+      <Icon name="angle-down" variant="solid" ariaLabel="expand" />
+    </Card.Header.Icon>
+  </Card.Header>
+  <Card.Content>
+    This card demonstrates the Card.Header.Icon component, which renders a
+    proper Bulma card-header-icon button for actions like expand/collapse or
+    accessing more options.
+  </Card.Content>
+</Card>;
+```
+
+#### Mixed Approach
+
+You can combine the traditional prop-based API with compound components:
+
+```tsx live
+<Card header="Prop-based header" textColor="primary" m="3">
+  <Card.Content className="has-background-light">
+    <p>You can mix prop-based and compound component approaches!</p>
+  </Card.Content>
+  <Card.Footer>
+    <Card.FooterItem>Mixed approach example</Card.FooterItem>
+  </Card.Footer>
+</Card>
+```
+
+---
+
 ## Accessibility
 
 - The card image uses an `alt` attribute for screen readers.
@@ -201,6 +358,8 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 ## Related Components
 
+- [`Icon`](../elements/icon.md): For icons in card headers and content.
+- [`Image`](../elements/image.md): For responsive card images with proper aspect ratios.
 - [Helper Props](../helpers/usebulmaclasses.md) for spacing, color, and alignment utilities.
 - [Bulma Card Documentation](https://bulma.io/documentation/components/card/)
 

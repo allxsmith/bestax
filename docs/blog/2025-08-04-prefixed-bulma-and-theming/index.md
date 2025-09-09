@@ -66,9 +66,14 @@ function App() {
 
 This renders the following HTML with prefixed CSS classes:
 
-```html
+```html title="Html Markup from example above"
 <div class="bulma-box">
   <h1 class="bulma-title">Prefixed Bulma Components</h1>
+  <p>
+    All components inside this ConfigProvider will have their CSS classes
+    prefixed with "bulma-". This allows you to use Bulma alongside other CSS
+    frameworks without class name conflicts.
+  </p>
   <button class="bulma-button bulma-is-primary">
     This uses bulma-button class
   </button>
