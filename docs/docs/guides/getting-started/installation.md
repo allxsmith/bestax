@@ -28,7 +28,11 @@ Before you begin, make sure your HTML document includes the required viewport me
 </html>
 ```
 
+:::tip
+
 This viewport meta tag is essential for Bulma's responsive features to work properly across different devices.
+
+:::
 
 ---
 
@@ -91,7 +95,7 @@ We recommend Option A (installing the package) as it provides better build optim
 
 ## Step 3: Install Icon Library (Optional but Recommended)
 
-Many bestax-bulma components work beautifully with icons. We recommend Font Awesome:
+Many bestax-bulma components work beautifully with icons. In this example we are going to cover installing one of the more popular icon libaries, Font Awesome:
 
 ### Install Font Awesome Free
 
@@ -108,7 +112,9 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 ```
 
 :::info
+
 Font Awesome provides thousands of free icons that work seamlessly with bestax-bulma components like Button, Notification, and many others.
+
 :::
 
 ---
@@ -136,17 +142,17 @@ function App() {
 
       <Buttons isCentered>
         <Button color="primary" size="large">
-          <Icon name="fas fa-rocket" />
+          <Icon name="rocket" />
           <span>Get Started</span>
         </Button>
 
         <Button color="info" size="large" isOutlined>
-          <Icon name="fas fa-book" />
+          <Icon name="book" />
           <span>Documentation</span>
         </Button>
 
         <Button color="success" size="large" isLight>
-          <Icon name="fab fa-github" />
+          <Icon variant="brands" name="github" />
           <span>GitHub</span>
         </Button>
       </Buttons>

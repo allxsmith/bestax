@@ -51,7 +51,7 @@ Use viewport-specific display properties when you need different display behavio
 
 ### Display Examples
 
-```tsx
+```tsx live
 import { Box, Button, Content } from '@allxsmith/bestax-bulma';
 
 function DisplayExamples() {
@@ -61,7 +61,13 @@ function DisplayExamples() {
         <strong>Block Display:</strong> Takes full width and starts on a new
         line
       </Content>
-      <Box display="block" backgroundColor="primary" color="white" p="2" mb="3">
+      <Box
+        display="block"
+        backgroundColor="primary"
+        textColor="white"
+        p="2"
+        mb="3"
+      >
         Block element
       </Box>
 
@@ -70,7 +76,7 @@ function DisplayExamples() {
       </Content>
       <p>
         Here is some text with an
-        <Box display="inline" backgroundColor="info" color="white" px="2">
+        <Box display="inline" backgroundColor="info" textColor="white" px="2">
           inline element
         </Box>
         in the middle of the sentence.
@@ -84,7 +90,7 @@ function DisplayExamples() {
         <Box
           display="inline-block"
           backgroundColor="success"
-          color="white"
+          textColor="white"
           p="2"
           mr="1"
         >
@@ -96,9 +102,13 @@ function DisplayExamples() {
       <Content mb="4" mt="4">
         <strong>Flex Display:</strong> Creates a flex container
       </Content>
-      <Box display="flex" gap="3" mb="3">
-        <Button color="primary">Flex Item 1</Button>
-        <Button color="info">Flex Item 2</Button>
+      <Box display="flex" mb="3">
+        <Button color="primary" mr="3">
+          Flex Item 1
+        </Button>
+        <Button color="info" mr="3">
+          Flex Item 2
+        </Button>
         <Button color="success">Flex Item 3</Button>
       </Box>
 
@@ -107,8 +117,8 @@ function DisplayExamples() {
       </Content>
       <p>
         Text with
-        <Box display="inline-flex" gap="2">
-          <Button size="small" color="warning">
+        <Box display="inline-flex">
+          <Button size="small" color="warning" mr="2">
             A
           </Button>
           <Button size="small" color="danger">
@@ -124,8 +134,8 @@ function DisplayExamples() {
 
 ### Viewport-Specific Display Examples
 
-```tsx
-import { Box, Notification, Button } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Box, Notification, Content } from '@allxsmith/bestax-bulma';
 
 function ViewportDisplayExamples() {
   return (
@@ -143,75 +153,41 @@ function ViewportDisplayExamples() {
         displayMobile="block"
         displayTablet="inline-block"
         displayDesktop="flex"
-        backgroundColor="primary"
-        color="white"
         p="3"
         mb="3"
-        gap="2"
       >
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.2)',
-            padding: '0.5rem',
-            flex: 1,
-          }}
-        >
+        <Notification color="primary" mb="2">
           Mobile: block | Tablet: inline-block | Desktop+: flex
-        </div>
-        <div
-          style={{
-            background: 'rgba(255,255,255,0.2)',
-            padding: '0.5rem',
-            flex: 1,
-          }}
-        >
+        </Notification>
+        <Notification color="link" mb="2">
           Item 2 (flex layout on desktop+)
-        </div>
+        </Notification>
       </Box>
 
       <Content mb="4">
         <strong>Mobile Hidden, Desktop Visible:</strong> Show/hide across
         viewports
       </Content>
-      <Box
-        displayMobile="none"
-        displayDesktop="block"
-        backgroundColor="success"
-        color="white"
-        p="3"
-        mb="3"
-      >
-        📱 Hidden on mobile/tablet, visible on desktop and larger
+      <Box displayMobile="none" displayDesktop="block" mb="3">
+        <Notification color="success">
+          📱 Hidden on mobile/tablet, visible on desktop and larger
+        </Notification>
       </Box>
 
       <Content mb="4">
         <strong>Responsive Flex Layout:</strong> Block on mobile, flex on larger
         screens
       </Content>
-      <Box
-        displayMobile="block"
-        displayTablet="flex"
-        backgroundColor="warning"
-        color="black"
-        p="3"
-        mb="3"
-        gap="2"
-      >
-        <div
-          style={{ background: 'rgba(0,0,0,0.1)', padding: '0.5rem', flex: 1 }}
-        >
+      <Box displayMobile="block" displayTablet="flex" p="3" mb="3">
+        <Notification color="warning" mr="2" mb="2">
           Stacked on mobile
-        </div>
-        <div
-          style={{ background: 'rgba(0,0,0,0.1)', padding: '0.5rem', flex: 1 }}
-        >
+        </Notification>
+        <Notification color="danger" mr="2" mb="2">
           Side-by-side on tablet+
-        </div>
-        <div
-          style={{ background: 'rgba(0,0,0,0.1)', padding: '0.5rem', flex: 1 }}
-        >
+        </Notification>
+        <Notification color="info" mb="2">
           Responsive layout
-        </div>
+        </Notification>
       </Box>
     </Box>
   );
@@ -226,12 +202,17 @@ Control element visibility across different screen sizes using responsive displa
 
 For simple show/hide scenarios affecting a single viewport, use the `display` + `viewport` combination:
 
-```tsx
-// Show only on desktop and larger
-<Box display="block" viewport="desktop">Desktop+ only content</Box>
-
-// Hide only on mobile
-<Box display="none" viewport="mobile">Hidden on mobile</Box>
+```tsx live
+<>
+  <p>Show only on desktop and larger</p>
+  <Box display="block" viewport="desktop">
+    Desktop+ only content
+  </Box>
+  <p>Hide only on mobile</p>
+  <Box display="none" viewport="mobile">
+    Hidden on mobile
+  </Box>
+</>
 ```
 
 :::warning Limitation
@@ -244,11 +225,25 @@ The generic `display` + `viewport` pattern only supports **one viewport combinat
 
 For complex responsive behavior requiring different display types across multiple viewports, use the viewport-specific display properties:
 
-```tsx
-// Hide on mobile, show as block on tablet, flex on desktop+
-<Box displayMobile="none" displayTablet="block" displayDesktop="flex">
-  Complex responsive element
-</Box>
+```tsx live
+import { Box } from '@allxsmith/bestax-bulma';
+
+function ViewportSpecificExample() {
+  return (
+    <Box p="4">
+      <Box
+        displayMobile="none"
+        displayTablet="block"
+        displayDesktop="flex"
+        backgroundColor="primary"
+        color="white"
+        p="3"
+      >
+        Hide on mobile, show as block on tablet, flex on desktop+
+      </Box>
+    </Box>
+  );
+}
 ```
 
 ## Choosing the Right Approach
@@ -257,59 +252,122 @@ For complex responsive behavior requiring different display types across multipl
 
 ✅ **Use when you need simple single-viewport control:**
 
-```tsx
-// Simple: Hide only on mobile
-<Box display="none" viewport="mobile">Hidden on mobile only</Box>
+```tsx live
+import { Box } from '@allxsmith/bestax-bulma';
 
-// Simple: Show only on desktop+
-<Box display="block" viewport="desktop">Desktop and up only</Box>
+function GenericDisplayExample() {
+  return (
+    <Box p="4">
+      <Box
+        display="none"
+        viewport="mobile"
+        backgroundColor="warning"
+        textColor="dark"
+        p="3"
+        mb="3"
+      >
+        Hidden on mobile only
+      </Box>
+      <Box
+        display="block"
+        viewport="desktop"
+        backgroundColor="success"
+        textColor="white"
+        p="3"
+      >
+        Desktop and up only
+      </Box>
+    </Box>
+  );
+}
 ```
 
 ### When to Use Viewport-Specific Properties
 
 ✅ **Use when you need multiple viewport behaviors:**
 
-```tsx
-// Complex: Different displays across multiple viewports
-<Box
-  displayMobile="none"        // Hidden on mobile
-  displayTablet="block"       // Block on tablet
-  displayDesktop="flex"       // Flex on desktop
-  displayWidescreen="grid"    // Grid on widescreen (if supported)
->
-  Multi-viewport responsive element
-</Box>
+```tsx live
+import { Box, Notification } from '@allxsmith/bestax-bulma';
 
-// Complex: Progressive enhancement
-<Box
-  displayMobile="block"       // Stacked on mobile
-  displayTablet="inline-block" // Inline blocks on tablet
-  displayDesktop="flex"       // Flex layout on desktop+
->
-  Progressive layout enhancement
-</Box>
+function MultipleViewportExample() {
+  return (
+    <Box p="4">
+      <Box
+        displayMobile="none"
+        displayTablet="block"
+        displayDesktop="flex"
+        p="3"
+        mb="3"
+      >
+        <Notification color="primary" mr="2" mb="2">
+          Different displays across multiple viewports
+        </Notification>
+        <Notification color="info" mb="2">
+          Hidden on mobile, block on tablet, flex on desktop
+        </Notification>
+      </Box>
+
+                  displayDesktop="flex"
+            p="3"
+            mb="3"
+          >
+            <Notification color="primary" mr="2" mb="2">
+              Different displays across multiple viewports
+            </Notification>
+            <Notification color="info" mb="2">
+              Hidden on mobile, block on tablet, flex on desktop
+            </Notification>
+          </Box>
+
+          <Box
+            displayMobile="block"
+            displayTablet="inline-block"
+            displayDesktop="flex"
+            p="3"
+          >
+            <Notification color="success" mr="2" mb="2">
+              Progressive layout enhancement
+            </Notification>
+            <Notification color="warning" mb="2">
+              Stacked → inline-block → flex
+            </Notification>
+          </Box>
+    </Box>
+  );
+}
 ```
 
 :::info Precedence Rule
 
 When both patterns are used together, **viewport-specific properties take precedence** over the generic `display` + `viewport` combination.
 
-```tsx
-<Box
-  display="block"
-  viewport="mobile"
-  displayMobile="flex" // This wins!
->
-  Will be flex on mobile, not block
-</Box>
+```tsx live
+import { Box } from '@allxsmith/bestax-bulma';
+
+function PrecedenceExample() {
+  return (
+    <Box p="4">
+      <Box
+        display="block"
+        viewport="mobile"
+        displayMobile="flex"
+        backgroundColor="danger"
+        color="white"
+        p="3"
+      >
+        Will be flex on mobile, not block (viewport-specific wins!)
+      </Box>
+    </Box>
+  );
+}
 ```
 
 :::
 
 ### Responsive Show/Hide Examples
 
-```tsx
-import { Box, Notification, Button } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Box, Notification, Content } from '@allxsmith/bestax-bulma';
 
 function ResponsiveShowHideExamples() {
   return (
@@ -372,7 +430,7 @@ function ResponsiveShowHideExamples() {
         displayWidescreen="block"
         displayFullhd="none"
         backgroundColor="warning"
-        color="black"
+        color="dark"
         p="3"
         mb="3"
       >
@@ -433,7 +491,7 @@ Control element hiding across different screen sizes using the `visibility` prop
 
 ### Hide Examples
 
-```tsx
+```tsx live
 import { Box, Card, Title, Content, Button } from '@allxsmith/bestax-bulma';
 
 function HideExamples() {
@@ -450,10 +508,16 @@ function HideExamples() {
           </Title>
 
           {/* Desktop navigation - hidden on mobile */}
-          <Box displayMobile="none" displayTablet="flex" gap="3" mb="3">
-            <Button variant="text">Home</Button>
-            <Button variant="text">About</Button>
-            <Button variant="text">Services</Button>
+          <Box displayMobile="none" displayTablet="flex" mb="3">
+            <Button variant="text" mr="3">
+              Home
+            </Button>
+            <Button variant="text" mr="3">
+              About
+            </Button>
+            <Button variant="text" mr="3">
+              Services
+            </Button>
             <Button variant="text">Contact</Button>
           </Box>
 
@@ -475,8 +539,8 @@ function HideExamples() {
             Content Layout
           </Title>
 
-          <Box display="flex" gap="4">
-            <Box style={{ flex: 1 }}>
+          <Box display="flex">
+            <Box style={{ flex: 1, marginRight: '1rem' }}>
               <Content>
                 This is the main content area that's always visible.
               </Content>
@@ -487,10 +551,11 @@ function HideExamples() {
               displayMobile="none"
               displayTablet="block"
               backgroundColor="light"
+              textColor="dark"
               p="3"
               style={{ width: '200px' }}
             >
-              <Title size="6" mb="2">
+              <Title size="6" mb="2" textColor="dark">
                 Sidebar
               </Title>
               <Content textSize="7">
@@ -554,8 +619,8 @@ Additional visibility utilities for specific use cases.
 
 ### Other Visibility Examples
 
-```tsx
-import { Box, Button, Content, Icon } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Box, Button, Content, Icon, Title } from '@allxsmith/bestax-bulma';
 
 function OtherVisibilityExamples() {
   return (
@@ -569,17 +634,21 @@ function OtherVisibilityExamples() {
         but they still take up space in the layout.
       </Content>
 
-      <Box display="flex" gap="3" mb="4">
-        <Button color="primary">Visible Button</Button>
-        <Button visibility="hidden" color="info">
+      <Box display="flex" mb="4">
+        <Button color="primary" mr="3">
+          Visible Button
+        </Button>
+        <Button visibility="hidden" color="info" mr="3">
           Hidden Button
         </Button>
         <Button color="success">Another Visible Button</Button>
       </Box>
 
-      <Box display="flex" gap="3" mb="4">
-        <Button color="primary">Visible Button</Button>
-        <Button visibility="invisible" color="warning">
+      <Box display="flex" mb="4">
+        <Button color="primary" mr="3">
+          Visible Button
+        </Button>
+        <Button visibility="invisible" color="warning" mr="3">
           Invisible Button
         </Button>
         <Button color="danger">Another Visible Button</Button>
@@ -614,6 +683,7 @@ function OtherVisibilityExamples() {
 When hiding content, consider the accessibility implications:
 
 - **`visibility="hidden"`**: Content is not visible and not accessible to screen readers
+- **`visibility="invisible"`**: Content is not visible but takes up space and is not accessible to screen readers
 - **`visibility="sr-only"`**: Content is only accessible to screen readers - use this for important context
 - **`display="none"`**: Content is completely removed from the document flow and accessibility tree
 
@@ -621,8 +691,8 @@ When hiding content, consider the accessibility implications:
 
 ### Accessible Hide/Show Example
 
-```tsx
-import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Box, Button, Card, Content, Title } from '@allxsmith/bestax-bulma';
 import { useState } from 'react';
 
 function AccessibleToggleExample() {
@@ -643,8 +713,6 @@ function AccessibleToggleExample() {
               color="primary"
               size="small"
               onClick={() => setIsExpanded(!isExpanded)}
-              ariaExpanded={isExpanded}
-              ariaControls="expandable-content"
             >
               {isExpanded ? 'Hide' : 'Show'} Details
             </Button>
@@ -663,10 +731,10 @@ function AccessibleToggleExample() {
 
           {/* Expandable content */}
           <Box
-            id="expandable-content"
             display={isExpanded ? 'block' : 'none'}
             mt="3"
             backgroundColor="light"
+            textColor="dark"
             p="3"
           >
             <Content>
@@ -690,7 +758,7 @@ Use a mobile-first approach where you design for mobile by default, then progres
 
 :::
 
-```tsx
+```tsx live
 import { Box, Card, Title, Content, Button } from '@allxsmith/bestax-bulma';
 
 function MobileFirstExample() {
@@ -704,8 +772,8 @@ function MobileFirstExample() {
           </Title>
 
           {/* Stack vertically on mobile, horizontal on tablet+ */}
-          <Box displayMobile="block" displayTablet="flex" gap="4">
-            <Box style={{ flex: 1 }}>
+          <Box displayMobile="block" displayTablet="flex">
+            <Box style={{ flex: 1, marginRight: '1rem' }}>
               <Content>
                 This content stacks vertically on mobile and displays
                 horizontally on tablet and larger screens.
@@ -736,12 +804,17 @@ function MobileFirstExample() {
             <Box
               displayMobile="none"
               displayTablet="flex"
-              gap="2"
               justifyContent="center"
             >
-              <Button color="primary">Save</Button>
-              <Button color="info">Edit</Button>
-              <Button color="warning">Share</Button>
+              <Button color="primary" mr="2">
+                Save
+              </Button>
+              <Button color="info" mr="2">
+                Edit
+              </Button>
+              <Button color="warning" mr="2">
+                Share
+              </Button>
               <Button variant="outlined">Cancel</Button>
             </Box>
           </Box>
@@ -754,6 +827,7 @@ function MobileFirstExample() {
               displayMobile="none"
               displayTablet="block"
               backgroundColor="light"
+              textColor="dark"
               p="3"
               mt="2"
             >

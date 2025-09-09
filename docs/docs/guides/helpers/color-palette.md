@@ -16,9 +16,404 @@ The color palette system is built on CSS variables, allowing for runtime customi
 
 :::
 
+## Available Shades
+
+:::info
+
+Bulma v1 introduces comprehensive color shades using CSS variables. You can combine the `color` prop with the `colorShade` prop for text colors, and the `backgroundColor` prop with the `backgroundColorShade` prop for background colors to access different variations of each color.
+
+:::
+
+### Numeric Shades (00-95)
+
+**Text Color Shades:**
+
+| Property          | Bulma Class Suffix | Description              |
+| ----------------- | ------------------ | ------------------------ |
+| `colorShade="00"` | `-00`              | Lightest shade (0%)      |
+| `colorShade="05"` | `-05`              | Very light shade (5%)    |
+| `colorShade="10"` | `-10`              | Light shade (10%)        |
+| `colorShade="15"` | `-15`              | Light shade (15%)        |
+| `colorShade="20"` | `-20`              | Light shade (20%)        |
+| `colorShade="25"` | `-25`              | Light shade (25%)        |
+| `colorShade="30"` | `-30`              | Light shade (30%)        |
+| `colorShade="35"` | `-35`              | Light shade (35%)        |
+| `colorShade="40"` | `-40`              | Medium light shade (40%) |
+| `colorShade="45"` | `-45`              | Medium light shade (45%) |
+| `colorShade="50"` | `-50`              | Medium shade (50%)       |
+| `colorShade="55"` | `-55`              | Medium shade (55%)       |
+| `colorShade="60"` | `-60`              | Medium dark shade (60%)  |
+| `colorShade="65"` | `-65`              | Medium dark shade (65%)  |
+| `colorShade="70"` | `-70`              | Dark shade (70%)         |
+| `colorShade="75"` | `-75`              | Dark shade (75%)         |
+| `colorShade="80"` | `-80`              | Dark shade (80%)         |
+| `colorShade="85"` | `-85`              | Dark shade (85%)         |
+| `colorShade="90"` | `-90`              | Very dark shade (90%)    |
+| `colorShade="95"` | `-95`              | Darkest shade (95%)      |
+
+**Background Color Shades:**
+
+| Property                    | Bulma Class Suffix | Description              |
+| --------------------------- | ------------------ | ------------------------ |
+| `backgroundColorShade="00"` | `-00`              | Lightest shade (0%)      |
+| `backgroundColorShade="05"` | `-05`              | Very light shade (5%)    |
+| `backgroundColorShade="10"` | `-10`              | Light shade (10%)        |
+| `backgroundColorShade="15"` | `-15`              | Light shade (15%)        |
+| `backgroundColorShade="20"` | `-20`              | Light shade (20%)        |
+| `backgroundColorShade="25"` | `-25`              | Light shade (25%)        |
+| `backgroundColorShade="30"` | `-30`              | Light shade (30%)        |
+| `backgroundColorShade="35"` | `-35`              | Light shade (35%)        |
+| `backgroundColorShade="40"` | `-40`              | Medium light shade (40%) |
+| `backgroundColorShade="45"` | `-45`              | Medium light shade (45%) |
+| `backgroundColorShade="50"` | `-50`              | Medium shade (50%)       |
+| `backgroundColorShade="55"` | `-55`              | Medium shade (55%)       |
+| `backgroundColorShade="60"` | `-60`              | Medium dark shade (60%)  |
+| `backgroundColorShade="65"` | `-65`              | Medium dark shade (65%)  |
+| `backgroundColorShade="70"` | `-70`              | Dark shade (70%)         |
+| `backgroundColorShade="75"` | `-75`              | Dark shade (75%)         |
+| `backgroundColorShade="80"` | `-80`              | Dark shade (80%)         |
+| `backgroundColorShade="85"` | `-85`              | Dark shade (85%)         |
+| `backgroundColorShade="90"` | `-90`              | Very dark shade (90%)    |
+| `backgroundColorShade="95"` | `-95`              | Darkest shade (95%)      |
+
+### Semantic Shades
+
+**Text Color Shades:**
+
+| Property                 | Bulma Class Suffix | Description                  |
+| ------------------------ | ------------------ | ---------------------------- |
+| `colorShade="invert"`    | `-invert`          | Inverted color               |
+| `colorShade="light"`     | `-light`           | Light variant                |
+| `colorShade="dark"`      | `-dark`            | Dark variant                 |
+| `colorShade="soft"`      | `-soft`            | Soft variant                 |
+| `colorShade="bold"`      | `-bold`            | Bold variant                 |
+| `colorShade="on-scheme"` | `-on-scheme`       | Contrasting color for scheme |
+
+**Background Color Shades:**
+
+| Property                           | Bulma Class Suffix | Description                  |
+| ---------------------------------- | ------------------ | ---------------------------- |
+| `backgroundColorShade="invert"`    | `-invert`          | Inverted color               |
+| `backgroundColorShade="light"`     | `-light`           | Light variant                |
+| `backgroundColorShade="dark"`      | `-dark`            | Dark variant                 |
+| `backgroundColorShade="soft"`      | `-soft`            | Soft variant                 |
+| `backgroundColorShade="bold"`      | `-bold`            | Bold variant                 |
+| `backgroundColorShade="on-scheme"` | `-on-scheme`       | Contrasting color for scheme |
+
+### Basic Shade Usage Example
+
+```tsx live
+import { Button, Box, Tag, Title } from '@allxsmith/bestax-bulma';
+
+function ColorShadeExamples() {
+  return (
+    <Box p="4">
+      {/* Text color shades */}
+      <Title color="primary" colorShade="30" mb="3">
+        Primary 30% shade title
+      </Title>
+
+      {/* Background color shades */}
+      <Box
+        backgroundColor="info"
+        backgroundColorShade="10"
+        color="dark"
+        p="3"
+        mb="3"
+      >
+        Light info background (10%)
+      </Box>
+
+      <Box
+        backgroundColor="success"
+        backgroundColorShade="70"
+        color="white"
+        p="3"
+        mb="3"
+      >
+        Dark success background (70%)
+      </Box>
+
+      {/* Button variations */}
+      <div>
+        <Button color="danger" colorShade="light" mr="2">
+          Light danger
+        </Button>
+        <Button color="warning" colorShade="dark" mr="2">
+          Dark warning
+        </Button>
+        <Button color="primary" colorShade="invert">
+          Inverted primary
+        </Button>
+      </div>
+
+      {/* Tag variations */}
+      <div className="mt-4">
+        <Tag color="info" colorShade="25" mr="2">
+          25% Info
+        </Tag>
+        <Tag color="success" colorShade="50" mr="2">
+          50% Success
+        </Tag>
+        <Tag color="warning" colorShade="75">
+          75% Warning
+        </Tag>
+      </div>
+    </Box>
+  );
+}
+```
+
 ## Bulma Primary Colors
 
 The primary color palette includes all the main Bulma colors with their full range of variations. Each color has multiple shades available through the palette system.
+
+### Applying Numeric Shades to Primary Colors
+
+You can apply any numeric shade (00-95) to any primary color by combining the `color` or `backgroundColor` prop with the appropriate shade prop:
+
+- For text colors: use `color` + `colorShade`
+- For background colors: use `backgroundColor` + `backgroundColorShade`
+
+```tsx live
+import { Box, Button, Title } from '@allxsmith/bestax-bulma';
+
+function PrimaryColorShades() {
+  return (
+    <Box p="4">
+      {/* Primary text color with numeric shades */}
+      <Title color="primary" colorShade="20" size="4" mb="3">
+        Primary 20% - Very Light
+      </Title>
+      <Title color="primary" colorShade="50" size="4" mb="3">
+        Primary 50% - Medium
+      </Title>
+      <Title color="primary" colorShade="80" size="4" mb="3">
+        Primary 80% - Dark
+      </Title>
+
+      {/* Background variations */}
+      <Box
+        backgroundColor="primary"
+        backgroundColorShade="10"
+        color="dark"
+        p="3"
+        mb="2"
+      >
+        Primary 10% Background
+      </Box>
+      <Box
+        backgroundColor="primary"
+        backgroundColorShade="30"
+        p="3"
+        mb="2"
+        color="white"
+      >
+        Primary 30% Background
+      </Box>
+      <Box
+        backgroundColor="primary"
+        backgroundColorShade="60"
+        p="3"
+        mb="2"
+        color="white"
+      >
+        Primary 60% Background
+      </Box>
+      <Box
+        backgroundColor="primary"
+        backgroundColorShade="90"
+        p="3"
+        mb="4"
+        color="white"
+      >
+        Primary 90% Background
+      </Box>
+
+      {/* Button progression */}
+      <div>
+        <Button
+          backgroundColor="primary"
+          backgroundColorShade="15"
+          color="primary"
+          mr="2"
+        >
+          15%
+        </Button>
+        <Button
+          backgroundColor="primary"
+          backgroundColorShade="35"
+          color="white"
+          mr="2"
+        >
+          35%
+        </Button>
+        <Button
+          backgroundColor="primary"
+          backgroundColorShade="55"
+          color="white"
+          mr="2"
+        >
+          55%
+        </Button>
+        <Button
+          backgroundColor="primary"
+          backgroundColorShade="75"
+          color="white"
+          mr="2"
+        >
+          75%
+        </Button>
+        <Button
+          backgroundColor="primary"
+          backgroundColorShade="95"
+          color="white"
+        >
+          95%
+        </Button>
+      </div>
+    </Box>
+  );
+}
+```
+
+### All Colors Support Numeric Shades
+
+Every Bulma color supports the full range of numeric shades:
+
+```tsx live
+import { Box, Tag } from '@allxsmith/bestax-bulma';
+
+function AllColorShades() {
+  return (
+    <Box p="4">
+      {/* Success shades */}
+      <div className="mb-4">
+        <Tag
+          backgroundColor="success"
+          backgroundColorShade="20"
+          color="success"
+          mr="2"
+        >
+          Success 20%
+        </Tag>
+        <Tag
+          backgroundColor="success"
+          backgroundColorShade="40"
+          color="white"
+          mr="2"
+        >
+          Success 40%
+        </Tag>
+        <Tag
+          backgroundColor="success"
+          backgroundColorShade="60"
+          color="white"
+          mr="2"
+        >
+          Success 60%
+        </Tag>
+        <Tag backgroundColor="success" backgroundColorShade="80" color="white">
+          Success 80%
+        </Tag>
+      </div>
+
+      {/* Info shades */}
+      <div className="mb-4">
+        <Tag
+          backgroundColor="info"
+          backgroundColorShade="25"
+          color="info"
+          mr="2"
+        >
+          Info 25%
+        </Tag>
+        <Tag
+          backgroundColor="info"
+          backgroundColorShade="45"
+          color="white"
+          mr="2"
+        >
+          Info 45%
+        </Tag>
+        <Tag
+          backgroundColor="info"
+          backgroundColorShade="65"
+          color="white"
+          mr="2"
+        >
+          Info 65%
+        </Tag>
+        <Tag backgroundColor="info" backgroundColorShade="85" color="white">
+          Info 85%
+        </Tag>
+      </div>
+
+      {/* Warning shades */}
+      <div className="mb-4">
+        <Tag
+          backgroundColor="warning"
+          backgroundColorShade="30"
+          color="warning"
+          mr="2"
+        >
+          Warning 30%
+        </Tag>
+        <Tag
+          backgroundColor="warning"
+          backgroundColorShade="50"
+          color="white"
+          mr="2"
+        >
+          Warning 50%
+        </Tag>
+        <Tag
+          backgroundColor="warning"
+          backgroundColorShade="70"
+          color="white"
+          mr="2"
+        >
+          Warning 70%
+        </Tag>
+        <Tag backgroundColor="warning" backgroundColorShade="90" color="white">
+          Warning 90%
+        </Tag>
+      </div>
+
+      {/* Danger shades */}
+      <div>
+        <Tag
+          backgroundColor="danger"
+          backgroundColorShade="35"
+          color="danger"
+          mr="2"
+        >
+          Danger 35%
+        </Tag>
+        <Tag
+          backgroundColor="danger"
+          backgroundColorShade="55"
+          color="white"
+          mr="2"
+        >
+          Danger 55%
+        </Tag>
+        <Tag
+          backgroundColor="danger"
+          backgroundColorShade="75"
+          color="white"
+          mr="2"
+        >
+          Danger 75%
+        </Tag>
+        <Tag backgroundColor="danger" backgroundColorShade="95" color="white">
+          Danger 95%
+        </Tag>
+      </div>
+    </Box>
+  );
+}
+```
 
 ### Primary Color Variations
 
@@ -30,6 +425,11 @@ The primary color palette includes all the main Bulma colors with their full ran
 | `color="primary" colorShade="soft"`      | `has-text-primary-soft`      | Soft primary variant                           |
 | `color="primary" colorShade="bold"`      | `has-text-primary-bold`      | Bold primary variant                           |
 | `color="primary" colorShade="on-scheme"` | `has-text-primary-on-scheme` | Primary color optimized for scheme backgrounds |
+| `color="primary" colorShade="00"`        | `has-text-primary-00`        | Primary 0% shade (lightest)                    |
+| `color="primary" colorShade="25"`        | `has-text-primary-25`        | Primary 25% shade                              |
+| `color="primary" colorShade="50"`        | `has-text-primary-50`        | Primary 50% shade                              |
+| `color="primary" colorShade="75"`        | `has-text-primary-75`        | Primary 75% shade                              |
+| `color="primary" colorShade="95"`        | `has-text-primary-95`        | Primary 95% shade (darkest)                    |
 
 ### Link Color Variations
 
@@ -87,7 +487,7 @@ Apply palette text colors using the `color` and `colorShade` props together. Thi
 
 ### Example Usage
 
-```tsx
+```tsx live
 import { Title, SubTitle, Content, Box } from '@allxsmith/bestax-bulma';
 
 function PaletteTextExample() {
@@ -128,30 +528,30 @@ function PaletteTextExample() {
 
 ## Background Color
 
-Apply palette background colors using the `backgroundColor` and `colorShade` props together. This creates sophisticated color schemes with semantic meaning.
+Apply palette background colors using the `backgroundColor` and `backgroundColorShade` props together. This creates sophisticated color schemes with semantic meaning.
 
 ### Primary Background Variations
 
-| Property                                       | Bulma Class                    | Description              |
-| ---------------------------------------------- | ------------------------------ | ------------------------ |
-| `backgroundColor="primary"`                    | `has-background-primary`       | Base primary background  |
-| `backgroundColor="primary" colorShade="light"` | `has-background-primary-light` | Light primary background |
-| `backgroundColor="primary" colorShade="dark"`  | `has-background-primary-dark`  | Dark primary background  |
-| `backgroundColor="primary" colorShade="soft"`  | `has-background-primary-soft`  | Soft primary background  |
-| `backgroundColor="primary" colorShade="bold"`  | `has-background-primary-bold`  | Bold primary background  |
+| Property                                                 | Bulma Class                    | Description              |
+| -------------------------------------------------------- | ------------------------------ | ------------------------ |
+| `backgroundColor="primary"`                              | `has-background-primary`       | Base primary background  |
+| `backgroundColor="primary" backgroundColorShade="light"` | `has-background-primary-light` | Light primary background |
+| `backgroundColor="primary" backgroundColorShade="dark"`  | `has-background-primary-dark`  | Dark primary background  |
+| `backgroundColor="primary" backgroundColorShade="soft"`  | `has-background-primary-soft`  | Soft primary background  |
+| `backgroundColor="primary" backgroundColorShade="bold"`  | `has-background-primary-bold`  | Bold primary background  |
 
 ### Status Background Variations
 
-| Property                                       | Bulma Class                    | Description              |
-| ---------------------------------------------- | ------------------------------ | ------------------------ |
-| `backgroundColor="success" colorShade="light"` | `has-background-success-light` | Light success background |
-| `backgroundColor="info" colorShade="soft"`     | `has-background-info-soft`     | Soft info background     |
-| `backgroundColor="warning" colorShade="light"` | `has-background-warning-light` | Light warning background |
-| `backgroundColor="danger" colorShade="soft"`   | `has-background-danger-soft`   | Soft danger background   |
+| Property                                                 | Bulma Class                    | Description              |
+| -------------------------------------------------------- | ------------------------------ | ------------------------ |
+| `backgroundColor="success" backgroundColorShade="light"` | `has-background-success-light` | Light success background |
+| `backgroundColor="info" backgroundColorShade="soft"`     | `has-background-info-soft`     | Soft info background     |
+| `backgroundColor="warning" backgroundColorShade="light"` | `has-background-warning-light` | Light warning background |
+| `backgroundColor="danger" backgroundColorShade="soft"`   | `has-background-danger-soft`   | Soft danger background   |
 
 ### Example Usage
 
-```tsx
+```tsx live
 import { Notification, Card, Box, Message } from '@allxsmith/bestax-bulma';
 
 function PaletteBackgroundExample() {
@@ -159,7 +559,7 @@ function PaletteBackgroundExample() {
     <div>
       <Notification
         backgroundColor="success"
-        colorShade="light"
+        backgroundColorShade="light"
         color="success"
         className="mb-4"
       >
@@ -168,7 +568,7 @@ function PaletteBackgroundExample() {
 
       <Notification
         backgroundColor="info"
-        colorShade="soft"
+        backgroundColorShade="soft"
         color="info"
         colorShade="dark"
         className="mb-4"
@@ -176,7 +576,11 @@ function PaletteBackgroundExample() {
         <strong>Info:</strong> System maintenance scheduled.
       </Notification>
 
-      <Card backgroundColor="warning" colorShade="light" className="mb-4">
+      <Card
+        backgroundColor="warning"
+        backgroundColorShade="light"
+        className="mb-4"
+      >
         <Card.Content>
           <Title color="warning" colorShade="dark" size="5">
             Warning Notice
@@ -187,12 +591,13 @@ function PaletteBackgroundExample() {
         </Card.Content>
       </Card>
 
-      <Message backgroundColor="danger" colorShade="soft">
+      <Message backgroundColor="danger" backgroundColorShade="soft">
         <Message.Header backgroundColor="danger" color="white">
-          Error
+          Example Error Message
         </Message.Header>
         <Message.Body color="danger" colorShade="dark">
-          Unable to connect to the server. Please try again.
+          This is an example of how error messages would appear using danger
+          color shades.
         </Message.Body>
       </Message>
     </div>
@@ -210,7 +615,7 @@ In addition to semantic shade names (light, dark, soft, bold), you can use numer
 
 ### Numeric Shade Examples
 
-```tsx
+```tsx live
 import { Box, Button, Tag } from '@allxsmith/bestax-bulma';
 
 function NumericShadeExample() {
@@ -221,31 +626,36 @@ function NumericShadeExample() {
         <Title size="5" mb="3">
           Primary Color Progression
         </Title>
-        <Box backgroundColor="primary" colorShade="10" p="2" mb="2">
+        <Box backgroundColor="primary" backgroundColorShade="10" p="2" mb="2">
           Primary 10% - Very light
         </Box>
-        <Box backgroundColor="primary" colorShade="25" p="2" mb="2">
+        <Box backgroundColor="primary" backgroundColorShade="25" p="2" mb="2">
           Primary 25% - Light
         </Box>
         <Box
           backgroundColor="primary"
-          colorShade="50"
+          backgroundColorShade="50"
           p="2"
           mb="2"
-          color="white"
+          color="dark"
         >
           Primary 50% - Medium
         </Box>
         <Box
           backgroundColor="primary"
-          colorShade="75"
+          backgroundColorShade="75"
           p="2"
           mb="2"
-          color="white"
+          color="dark"
         >
           Primary 75% - Dark
         </Box>
-        <Box backgroundColor="primary" colorShade="90" p="2" color="white">
+        <Box
+          backgroundColor="primary"
+          backgroundColorShade="90"
+          p="2"
+          color="dark"
+        >
           Primary 90% - Very dark
         </Box>
       </div>
@@ -255,16 +665,35 @@ function NumericShadeExample() {
         <Title size="5" mb="3">
           Button Variations
         </Title>
-        <Button backgroundColor="info" colorShade="20" color="info" mr="2">
+        <Button
+          backgroundColor="info"
+          backgroundColorShade="20"
+          color="info"
+          mr="2"
+        >
           20% Info
         </Button>
-        <Button backgroundColor="success" colorShade="40" color="white" mr="2">
+        <Button
+          backgroundColor="success"
+          backgroundColorShade="40"
+          color="white"
+          mr="2"
+        >
           40% Success
         </Button>
-        <Button backgroundColor="warning" colorShade="60" color="white" mr="2">
+        <Button
+          backgroundColor="warning"
+          backgroundColorShade="60"
+          color="white"
+          mr="2"
+        >
           60% Warning
         </Button>
-        <Button backgroundColor="danger" colorShade="80" color="white">
+        <Button
+          backgroundColor="danger"
+          backgroundColorShade="80"
+          color="white"
+        >
           80% Danger
         </Button>
       </div>
@@ -296,7 +725,7 @@ function NumericShadeExample() {
 
 Create sophisticated designs by combining different aspects of the color palette:
 
-```tsx
+```tsx live
 import { Card, Title, Content, Button, Box } from '@allxsmith/bestax-bulma';
 
 function AdvancedPaletteExample() {
@@ -305,7 +734,7 @@ function AdvancedPaletteExample() {
       {/* Status cards with coordinated colors */}
       <Box display="flex" flexDirection="column" gap="4">
         {/* Success Card */}
-        <Card backgroundColor="success" colorShade="05">
+        <Card backgroundColor="success" backgroundColorShade="05">
           <Card.Content>
             <Title color="success" colorShade="dark" size="5">
               Task Completed
@@ -315,7 +744,7 @@ function AdvancedPaletteExample() {
             </Content>
             <Button
               backgroundColor="success"
-              colorShade="bold"
+              backgroundColorShade="bold"
               color="white"
               size="small"
             >
@@ -325,7 +754,7 @@ function AdvancedPaletteExample() {
         </Card>
 
         {/* Info Card */}
-        <Card backgroundColor="info" colorShade="10">
+        <Card backgroundColor="info" backgroundColorShade="10">
           <Card.Content>
             <Title color="info" colorShade="dark" size="5">
               System Update
@@ -336,7 +765,7 @@ function AdvancedPaletteExample() {
             </Content>
             <Button
               backgroundColor="info"
-              colorShade="80"
+              backgroundColorShade="80"
               color="white"
               size="small"
             >
@@ -346,7 +775,7 @@ function AdvancedPaletteExample() {
         </Card>
 
         {/* Warning Card */}
-        <Card backgroundColor="warning" colorShade="15">
+        <Card backgroundColor="warning" backgroundColorShade="15">
           <Card.Content>
             <Title color="warning" colorShade="dark" size="5">
               Action Required
@@ -357,7 +786,7 @@ function AdvancedPaletteExample() {
             </Content>
             <Button
               backgroundColor="warning"
-              colorShade="bold"
+              backgroundColorShade="bold"
               color="white"
               size="small"
             >
@@ -379,7 +808,7 @@ Palette colors work seamlessly with the [Theme component](/docs/api/helpers/them
 
 :::
 
-```tsx
+```tsx live
 import { Theme, Box, Button, Title } from '@allxsmith/bestax-bulma';
 
 function ThemedPaletteExample() {

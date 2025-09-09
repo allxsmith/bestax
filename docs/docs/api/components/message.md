@@ -119,6 +119,86 @@ You can use Bulma size helpers or custom styles to adjust the size of the messag
 
 ---
 
+## Compound Components
+
+The `Message` component also supports a compound component API for maximum flexibility. This allows you to compose messages with fine-grained control over each section.
+
+### Message.Header
+
+Renders the message header section with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+### Message.Body
+
+Renders the message body section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+### Compound Component Examples
+
+#### Complete Message with Compound Components
+
+```tsx live
+<Message color="info">
+  <Message.Header>
+    <p>Compound Component Message</p>
+    <button className="delete" aria-label="delete" />
+  </Message.Header>
+  <Message.Body>
+    <p>
+      This message is built using compound components for maximum flexibility
+      and control over each section.
+    </p>
+    <p>You can include multiple paragraphs and elements in the body.</p>
+  </Message.Body>
+</Message>
+```
+
+#### Minimal Message with Body Only
+
+```tsx live
+<Message color="success">
+  <Message.Body>
+    <p>A simple message using only the Message.Body compound component.</p>
+  </Message.Body>
+</Message>
+```
+
+#### Header-Only Message
+
+```tsx live
+<Message color="warning">
+  <Message.Header>
+    <p>Header-only message</p>
+    <button className="delete" aria-label="delete" />
+  </Message.Header>
+</Message>
+```
+
+#### Mixed Approach
+
+You can combine the traditional prop-based API with compound components:
+
+```tsx live
+<Message color="danger" title="Mixed Approach">
+  <Message.Body className="has-background-light">
+    <p>You can mix prop-based and compound component approaches!</p>
+    <p>
+      This message uses the title prop but compound components for the body.
+    </p>
+  </Message.Body>
+</Message>
+```
+
+---
+
 ## Accessibility
 
 - The message is rendered as `<article class="message">`.

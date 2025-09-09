@@ -30,8 +30,8 @@ Control text size using the `textSize` prop. Bulma provides 7 size levels with s
 
 ### Size Examples
 
-```tsx
-import { Title, SubTitle, Content, Box } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Content, Box } from '@allxsmith/bestax-bulma';
 
 function SizeExamples() {
   return (
@@ -78,30 +78,17 @@ You can apply responsive text sizes that change based on screen size using the `
 
 ### Responsive Size Examples
 
-```tsx
+```tsx live
 import { Title, Content, Box } from '@allxsmith/bestax-bulma';
 
 function ResponsiveSizeExample() {
   return (
     <Box p="4">
-      <Title
-        textSize="2"
-        viewport="mobile"
-        textSize="1"
-        viewport="desktop"
-        mb="4"
-      >
+      <Title textSizeMobile="2" textSizeDesktop="1" mb="4">
         Responsive Heading
       </Title>
 
-      <Content
-        textSize="5"
-        viewport="mobile"
-        textSize="4"
-        viewport="tablet"
-        textSize="3"
-        viewport="desktop"
-      >
+      <Content textSizeMobile="5" textSizeTablet="4" textSizeDesktop="3">
         This text gets larger on bigger screens: size 5 on mobile, size 4 on
         tablet, and size 3 on desktop.
       </Content>
@@ -123,27 +110,45 @@ Control text alignment using the `textAlign` prop.
 
 ### Alignment Examples
 
-```tsx
+```tsx live
 import { Content, Box } from '@allxsmith/bestax-bulma';
 
 function AlignmentExamples() {
   return (
     <Box p="4">
-      <Content textAlign="left" mb="3" backgroundColor="light" p="3">
+      <Content
+        textAlign="left"
+        mb="3"
+        backgroundColor="light"
+        color="dark"
+        p="3"
+      >
         Left aligned text - This text is aligned to the left side of the
         container.
       </Content>
 
-      <Content textAlign="centered" mb="3" backgroundColor="light" p="3">
+      <Content
+        textAlign="centered"
+        mb="3"
+        backgroundColor="light"
+        color="dark"
+        p="3"
+      >
         Centered text - This text is centered within the container.
       </Content>
 
-      <Content textAlign="right" mb="3" backgroundColor="light" p="3">
+      <Content
+        textAlign="right"
+        mb="3"
+        backgroundColor="light"
+        color="dark"
+        p="3"
+      >
         Right aligned text - This text is aligned to the right side of the
         container.
       </Content>
 
-      <Content textAlign="justified" backgroundColor="light" p="3">
+      <Content textAlign="justified" backgroundColor="light" color="dark" p="3">
         Justified text - This longer text is justified, which means it spreads
         out to fill the entire width of the container, creating straight edges
         on both sides by adjusting the spacing between words.
@@ -159,29 +164,20 @@ Apply responsive text alignment that changes based on screen size.
 
 ### Responsive Alignment Examples
 
-```tsx
+```tsx live
 import { Title, Content, Box } from '@allxsmith/bestax-bulma';
 
 function ResponsiveAlignmentExample() {
   return (
     <Box p="4">
-      <Title
-        textAlign="centered"
-        viewport="mobile"
-        textAlign="left"
-        viewport="desktop"
-        mb="4"
-      >
+      <Title textAlignMobile="centered" textAlignDesktop="left" mb="4">
         Responsive Alignment
       </Title>
 
       <Content
-        textAlign="centered"
-        viewport="mobile"
-        textAlign="left"
-        viewport="tablet"
-        textAlign="justified"
-        viewport="desktop"
+        textAlignMobile="centered"
+        textAlignTablet="left"
+        textAlignDesktop="justified"
       >
         This text is centered on mobile, left-aligned on tablet, and justified
         on desktop screens. Resize your browser to see the changes.
@@ -204,7 +200,7 @@ Control text transformation using the `textTransform` prop.
 
 ### Text Transformation Examples
 
-```tsx
+```tsx live
 import { Content, Box } from '@allxsmith/bestax-bulma';
 
 function TextTransformExamples() {
@@ -244,7 +240,7 @@ Control font weight using the `textWeight` prop.
 
 ### Text Weight Examples
 
-```tsx
+```tsx live
 import { Content, Box } from '@allxsmith/bestax-bulma';
 
 function TextWeightExamples() {
@@ -288,7 +284,7 @@ Control font family using the `fontFamily` prop.
 
 ### Font Family Examples
 
-```tsx
+```tsx live
 import { Content, Box } from '@allxsmith/bestax-bulma';
 
 function FontFamilyExamples() {
@@ -322,7 +318,7 @@ function FontFamilyExamples() {
 
 Create sophisticated typography by combining multiple typography properties:
 
-```tsx
+```tsx live
 import { Title, SubTitle, Content, Box, Card } from '@allxsmith/bestax-bulma';
 
 function CombinedTypographyExample() {
@@ -384,15 +380,15 @@ function CombinedTypographyExample() {
 
 Here's a comprehensive example showing typography in an article layout:
 
-```tsx
-import {
-  Title,
-  SubTitle,
-  Content,
-  Box,
-  Section,
-  Container,
-} from '@allxsmith/bestax-bulma';
+```tsx live
+// import {
+//   Title,
+//   SubTitle,
+//   Content,
+//   Box,
+//   Section,
+//   Container,
+// } from '@allxsmith/bestax-bulma';
 
 function ArticleExample() {
   return (

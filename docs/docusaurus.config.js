@@ -73,6 +73,12 @@ const config = {
       }),
     ],
   ],
+  // stylesheets: [
+  //   {
+  //     href: '/css/ionicons.min.css',
+  //     type: 'text/css',
+  //   },
+  // ],
   themes: [
     '@docusaurus/theme-live-codeblock',
     // '@docusaurus/theme-mermaid',

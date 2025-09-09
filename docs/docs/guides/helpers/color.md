@@ -59,8 +59,8 @@ Use the `color` prop to apply text colors to any component. The color prop accep
 
 ### Example Usage
 
-```tsx
-import { Title, SubTitle, Button, Box } from '@allxsmith/bestax-bulma';
+```tsx live
+import { Title, SubTitle, Button, Buttons, Box } from '@allxsmith/bestax-bulma';
 
 function ColorExamples() {
   return (
@@ -68,9 +68,11 @@ function ColorExamples() {
       <Title color="primary">Primary colored title</Title>
       <SubTitle color="info">Info colored subtitle</SubTitle>
 
-      <Button color="success">Success button</Button>
-      <Button color="warning">Warning button</Button>
-      <Button color="danger">Danger button</Button>
+      <Buttons>
+        <Button color="success">Success button</Button>
+        <Button color="warning">Warning button</Button>
+        <Button color="danger">Danger button</Button>
+      </Buttons>
 
       <p>
         <span color="grey">Grey text </span>
@@ -120,7 +122,7 @@ Use the `backgroundColor` prop to apply background colors to any component. The 
 
 ### Example Usage
 
-```tsx
+```tsx live
 import { Box, Notification, Card } from '@allxsmith/bestax-bulma';
 
 function BackgroundColorExamples() {
@@ -146,128 +148,9 @@ function BackgroundColorExamples() {
 }
 ```
 
-## Color Shades
+## Advanced Color Features
 
-:::info
-
-Bulma v1 introduces comprehensive color shades using CSS variables. You can combine the `color` or `backgroundColor` prop with the `colorShade` prop to access different variations of each color.
-
-:::
-
-### Available Shades
-
-| Property          | Bulma Class Suffix | Description              |
-| ----------------- | ------------------ | ------------------------ |
-| `colorShade="00"` | `-00`              | Lightest shade (0%)      |
-| `colorShade="05"` | `-05`              | Very light shade (5%)    |
-| `colorShade="10"` | `-10`              | Light shade (10%)        |
-| `colorShade="15"` | `-15`              | Light shade (15%)        |
-| `colorShade="20"` | `-20`              | Light shade (20%)        |
-| `colorShade="25"` | `-25`              | Light shade (25%)        |
-| `colorShade="30"` | `-30`              | Light shade (30%)        |
-| `colorShade="35"` | `-35`              | Light shade (35%)        |
-| `colorShade="40"` | `-40`              | Medium light shade (40%) |
-| `colorShade="45"` | `-45`              | Medium light shade (45%) |
-| `colorShade="50"` | `-50`              | Medium shade (50%)       |
-| `colorShade="55"` | `-55`              | Medium shade (55%)       |
-| `colorShade="60"` | `-60`              | Medium dark shade (60%)  |
-| `colorShade="65"` | `-65`              | Medium dark shade (65%)  |
-| `colorShade="70"` | `-70`              | Dark shade (70%)         |
-| `colorShade="75"` | `-75`              | Dark shade (75%)         |
-| `colorShade="80"` | `-80`              | Dark shade (80%)         |
-| `colorShade="85"` | `-85`              | Dark shade (85%)         |
-| `colorShade="90"` | `-90`              | Very dark shade (90%)    |
-| `colorShade="95"` | `-95`              | Darkest shade (95%)      |
-
-### Special Shades
-
-| Property                 | Bulma Class Suffix | Description                  |
-| ------------------------ | ------------------ | ---------------------------- |
-| `colorShade="invert"`    | `-invert`          | Inverted color               |
-| `colorShade="light"`     | `-light`           | Light variant                |
-| `colorShade="dark"`      | `-dark`            | Dark variant                 |
-| `colorShade="soft"`      | `-soft`            | Soft variant                 |
-| `colorShade="bold"`      | `-bold`            | Bold variant                 |
-| `colorShade="on-scheme"` | `-on-scheme`       | Contrasting color for scheme |
-
-### Example Usage
-
-```tsx
-import { Button, Box, Tag } from '@allxsmith/bestax-bulma';
-
-function ColorShadeExamples() {
-  return (
-    <Box p="4">
-      {/* Text color shades */}
-      <Title color="primary" colorShade="30" mb="3">
-        Primary 30% shade title
-      </Title>
-
-      {/* Background color shades */}
-      <Box backgroundColor="info" colorShade="10" p="3" mb="3">
-        Light info background (10%)
-      </Box>
-
-      <Box backgroundColor="success" colorShade="70" color="white" p="3" mb="3">
-        Dark success background (70%)
-      </Box>
-
-      {/* Button variations */}
-      <div>
-        <Button color="danger" colorShade="light" mr="2">
-          Light danger
-        </Button>
-        <Button color="warning" colorShade="dark" mr="2">
-          Dark warning
-        </Button>
-        <Button color="primary" colorShade="invert">
-          Inverted primary
-        </Button>
-      </div>
-
-      {/* Tag variations */}
-      <div className="mt-4">
-        <Tag color="info" colorShade="25" mr="2">
-          25% Info
-        </Tag>
-        <Tag color="success" colorShade="50" mr="2">
-          50% Success
-        </Tag>
-        <Tag color="warning" colorShade="75">
-          75% Warning
-        </Tag>
-      </div>
-    </Box>
-  );
-}
-```
-
-## Combining Colors and Shades
-
-You can create sophisticated color schemes by combining text and background colors with different shades:
-
-```tsx
-import { Card, Title, Content, Button } from '@allxsmith/bestax-bulma';
-
-function AdvancedColorExample() {
-  return (
-    <Card backgroundColor="primary" colorShade="10" p="4">
-      <Card.Content>
-        <Title color="primary" colorShade="dark" size="4">
-          Primary Card with Shaded Background
-        </Title>
-        <Content color="primary" colorShade="70">
-          This card uses a light primary background (10% shade) with darker
-          primary text (70% shade) for optimal contrast.
-        </Content>
-        <Button backgroundColor="primary" colorShade="invert" color="primary">
-          Inverted Button
-        </Button>
-      </Card.Content>
-    </Card>
-  );
-}
-```
+For more advanced color features including comprehensive shade variations and semantic color meanings, see the [Color Shades documentation](/docs/guides/helpers/color-palette).
 
 :::tip Learn More
 
@@ -277,7 +160,7 @@ For detailed API information about color properties, see the [useBulmaClasses AP
 
 ## See Also
 
-- [Color Palette Helpers](/docs/guides/helpers/color-palette) - Extended color palette with semantic variations
+- [Color Shades](/docs/guides/helpers/color-palette) - Extended color palette with numeric and semantic shades
 - [CSS Variables](/docs/guides/features/css-variables) - Runtime color customization
 - [Theme Component](/docs/api/helpers/theme) - Dynamic theming system
 - [Bulma Color Documentation](https://bulma.io/documentation/helpers/color-helpers/) - Official Bulma color helpers

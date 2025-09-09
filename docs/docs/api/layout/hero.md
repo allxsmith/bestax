@@ -237,7 +237,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
                 <Icon
                   library="fa"
                   name="github"
-                  libraryFeatures={['fab']}
+                  variant="brands"
                   ariaLabel="github"
                 />
                 <span>Github</span>

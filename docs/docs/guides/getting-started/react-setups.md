@@ -19,10 +19,20 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 1. **Create a new Vite React project:**
 
    ```bash
-   npm create vite@latest my-bulma-app -- --template react
-   cd my-bulma-app
+   npm create vite@latest my-bulma-vite-app -- --template react
+   cd my-bulma-vite-app
    npm install
    ```
+
+   :::info Template Argument Explained
+   - `--template react`: Uses the official React template with JavaScript
+   - Alternative templates: `react-ts` (TypeScript), `react-swc` (with SWC compiler)
+   - The `--` separates npm arguments from Vite create arguments
+     :::
+
+   :::tip Vite Documentation
+   For more details about `npm create vite` and available templates, see the [official Vite documentation](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+   :::
 
 2. **Install bestax-bulma and dependencies:**
 
@@ -33,88 +43,114 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 3. **Update your main.jsx file:**
 
    ```jsx title="src/main.jsx"
-   import React from 'react';
-   import ReactDOM from 'react-dom/client';
+   import { StrictMode } from 'react';
+   import { createRoot } from 'react-dom/client';
    import App from './App.jsx';
 
    // Import Bulma CSS
    import 'bulma/css/bulma.min.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
+   import './index.css';
 
-   ReactDOM.createRoot(document.getElementById('root')).render(
-     <React.StrictMode>
+   createRoot(document.getElementById('root')).render(
+     <StrictMode>
        <App />
-     </React.StrictMode>
+     </StrictMode>
    );
    ```
 
 4. **Update your App.jsx:**
 
    ```jsx title="src/App.jsx"
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
      Columns,
      Column,
+     Container,
+     Section,
    } from '@allxsmith/bestax-bulma';
+   import './App.css';
 
    function App() {
      const [showNotification, setShowNotification] = useState(false);
 
      return (
-       <Box className="container" p="6">
-         <Title size="1" className="has-text-centered">
-           🚀 Vite + React + bestax-bulma
-         </Title>
+       <Container>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Vite + React + bestax-bulma
+             </Title>
 
-         <Subtitle size="4" className="has-text-centered has-text-grey">
-           Modern React development with Bulma components
-         </Subtitle>
+             <SubTitle size="4" textAlign="centered" color="grey">
+               Modern React development with Bulma components
+             </SubTitle>
 
-         <Columns className="is-centered" mt="5">
-           <Column size="half">
-             <Box className="has-text-centered">
-               <Button
-                 color="primary"
-                 size="large"
-                 onClick={() => setShowNotification(!showNotification)}
-               >
-                 <Icon name="fas fa-magic" />
-                 <span>Toggle Notification</span>
-               </Button>
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
 
-               {showNotification && (
-                 <Notification color="success" mt="4">
-                   <Icon name="fas fa-check-circle" />
-                   <strong>Success!</strong> Your Vite + React + bestax-bulma
-                   setup is working perfectly!
-                 </Notification>
-               )}
-             </Box>
-           </Column>
-         </Columns>
-       </Box>
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Vite + React + bestax-bulma
+                     setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
+           </Box>
+         </Section>
+       </Container>
      );
    }
 
    export default App;
    ```
 
+5. **Run your application:**
+
+   ```bash
+   npm run dev
+   ```
+
+   :::tip Application Available
+   Your Vite + React + bestax-bulma application will be available at `http://localhost:5173`
+   :::
+
 ### TypeScript Example
 
 1. **Create a new Vite React TypeScript project:**
 
    ```bash
-   npm create vite@latest my-bulma-app -- --template react-ts
-   cd my-bulma-app
+   npm create vite@latest my-bulma-vite-ts-app -- --template react-ts
+   cd my-bulma-vite-ts-app
    npm install
    ```
+
+   :::info Template Argument Explained
+   - `--template react-ts`: Uses the official React template with TypeScript
+   - Includes TypeScript configuration and type definitions out of the box
+   - Alternative: `react-swc-ts` (TypeScript with SWC compiler for faster builds)
+     :::
+
+   :::tip Vite Documentation
+   For more details about `npm create vite` and available templates, see the [official Vite documentation](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+   :::
 
 2. **Install bestax-bulma and dependencies:**
 
@@ -126,78 +162,94 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 3. **Update your main.tsx file:**
 
    ```tsx title="src/main.tsx"
-   import React from 'react';
-   import ReactDOM from 'react-dom/client';
+   import { StrictMode } from 'react';
+   import { createRoot } from 'react-dom/client';
    import App from './App.tsx';
 
    // Import Bulma CSS
    import 'bulma/css/bulma.min.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
+   import './index.css';
 
-   ReactDOM.createRoot(document.getElementById('root')!).render(
-     <React.StrictMode>
+   createRoot(document.getElementById('root')!).render(
+     <StrictMode>
        <App />
-     </React.StrictMode>
+     </StrictMode>
    );
    ```
 
 4. **Update your App.tsx:**
 
    ```tsx title="src/App.tsx"
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
      Columns,
      Column,
+     Container,
+     Section,
    } from '@allxsmith/bestax-bulma';
+   import './App.css';
 
-   const App: React.FC = () => {
+   function App() {
      const [showNotification, setShowNotification] = useState<boolean>(false);
 
      return (
-       <Box className="container" p="6">
-         <Title size="1" className="has-text-centered">
-           🚀 Vite + React + bestax-bulma
-         </Title>
+       <Container>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Vite + React + bestax-bulma
+             </Title>
 
-         <Subtitle size="4" className="has-text-centered has-text-grey">
-           Modern TypeScript React development with Bulma components
-         </Subtitle>
+             <SubTitle size="4" textAlign="centered" color="grey">
+               Modern TypeScript React development with Bulma components
+             </SubTitle>
 
-         <Columns className="is-centered" mt="5">
-           <Column size="half">
-             <Box className="has-text-centered">
-               <Button
-                 color="primary"
-                 size="large"
-                 onClick={() => setShowNotification(!showNotification)}
-               >
-                 <Icon name="fas fa-magic" />
-                 <span>Toggle Notification</span>
-               </Button>
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
 
-               {showNotification && (
-                 <Notification color="success" mt="4">
-                   <Icon name="fas fa-check-circle" />
-                   <strong>Success!</strong> Your Vite + React + bestax-bulma
-                   TypeScript setup is working perfectly!
-                 </Notification>
-               )}
-             </Box>
-           </Column>
-         </Columns>
-       </Box>
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Vite + React + bestax-bulma
+                     TypeScript setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
+           </Box>
+         </Section>
+       </Container>
      );
-   };
+   }
 
    export default App;
    ```
+
+5. **Run your application:**
+
+   ```bash
+   npm run dev
+   ```
+
+   :::tip Application Available
+   Your Vite + React + TypeScript + bestax-bulma application will be available at `http://localhost:5173`
+   :::
 
 ---
 
@@ -210,9 +262,23 @@ Next.js is a popular React framework that provides server-side rendering, static
 1. **Create a new Next.js project:**
 
    ```bash
-   npx create-next-app@latest my-bulma-app
-   cd my-bulma-app
+   npx create-next-app@latest my-bulma-next-app --js --eslint --no-tailwind --src-dir --app --import-alias "@/*" --turbopack
+   cd my-bulma-next-app
    ```
+
+   :::info Command Arguments Explained
+   - `--js`: Use JavaScript (not TypeScript)
+   - `--eslint`: Include ESLint for code quality
+   - `--no-tailwind`: Skip Tailwind CSS (we're using Bulma!)
+   - `--src-dir`: Create a `src/` directory for better organization
+   - `--app`: Use App Router (recommended for Next.js 13+)
+   - `--import-alias "@/*"`: Set up path alias for cleaner imports
+   - `--turbopack`: Use Turbopack (experimental, faster development)
+     :::
+
+   :::tip Next.js Documentation
+   For more details about `create-next-app` options, see the [official Next.js documentation](https://nextjs.org/docs/app/api-reference/create-next-app).
+   :::
 
 2. **Install bestax-bulma and dependencies:**
 
@@ -222,7 +288,7 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 3. **Update your root layout:**
 
-   ```jsx title="app/layout.js"
+   ```jsx title="src/app/layout.js"
    // Import Bulma CSS globally
    import 'bulma/css/bulma.min.css';
    import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -243,66 +309,101 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 4. **Update your main page:**
 
-   ```jsx title="app/page.js"
+   ```jsx title="src/app/page.js"
    'use client';
 
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
+     Columns,
+     Column,
      Container,
      Section,
    } from '@allxsmith/bestax-bulma';
+   // Uncomment if you want to use CSS modules within this page
+   // Note: this page.modules.css has some styles you should review since
+   //       they may not pertain to our example
+   // import styles from "./page.module.css";
 
    export default function Home() {
      const [showNotification, setShowNotification] = useState(false);
 
      return (
-       <Section>
-         <Container>
-           <Box className="has-text-centered" p="6">
-             <Title size="1">⚡ Next.js + bestax-bulma</Title>
+       <Container>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Next.js + React + bestax-bulma
+             </Title>
 
-             <Subtitle size="4" className="has-text-grey">
+             <SubTitle size="4" textAlign="centered" color="grey">
                Server-side rendering with Bulma components
-             </Subtitle>
+             </SubTitle>
 
-             <Button
-               color="primary"
-               size="large"
-               mt="5"
-               onClick={() => setShowNotification(!showNotification)}
-             >
-               <Icon name="fas fa-rocket" />
-               <span>Launch App</span>
-             </Button>
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
 
-             {showNotification && (
-               <Notification color="info" mt="4">
-                 <Icon name="fas fa-info-circle" />
-                 <strong>Great!</strong> Your Next.js + bestax-bulma setup is
-                 working!
-               </Notification>
-             )}
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Next.js + React +
+                     bestax-bulma setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
            </Box>
-         </Container>
-       </Section>
+         </Section>
+       </Container>
      );
    }
    ```
+
+5. **Run your application:**
+
+   ```bash
+   npm run dev
+   ```
+
+   :::tip Application Available
+   Your Next.js + React + bestax-bulma application will be available at `http://localhost:3000`
+   :::
 
 ### TypeScript Example (Next.js 13+ with App Router)
 
 1. **Create a new Next.js TypeScript project:**
 
    ```bash
-   npx create-next-app@latest my-bulma-app --typescript
-   cd my-bulma-app
+   npx create-next-app@latest my-bulma-next-ts-app --ts --eslint --no-tailwind --src-dir --app --import-alias "@/*" --turbopack
+   cd my-bulma-next-ts-app
    ```
+
+   :::info Command Arguments Explained
+   - `--ts`: Use TypeScript (not JavaScript)
+   - `--eslint`: Include ESLint for code quality
+   - `--no-tailwind`: Skip Tailwind CSS (we're using Bulma!)
+   - `--src-dir`: Create a `src/` directory for better organization
+   - `--app`: Use App Router (recommended for Next.js 13+)
+   - `--import-alias "@/*"`: Set up path alias for cleaner imports
+   - `--turbopack`: Use Turbopack (experimental, faster development)
+     :::
+
+   :::tip Next.js Documentation
+   For more details about `create-next-app` options, see the [official Next.js documentation](https://nextjs.org/docs/app/api-reference/create-next-app).
+   :::
 
 2. **Install bestax-bulma and dependencies:**
 
@@ -312,7 +413,7 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 3. **Update your root layout:**
 
-   ```tsx title="app/layout.tsx"
+   ```tsx title="src/app/layout.tsx"
    import type { Metadata } from 'next';
 
    // Import Bulma CSS globally
@@ -339,57 +440,77 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 4. **Update your main page:**
 
-   ```tsx title="app/page.tsx"
+   ```tsx title="src/app/page.tsx"
    'use client';
 
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
+     Columns,
+     Column,
      Container,
      Section,
    } from '@allxsmith/bestax-bulma';
-
+   // Uncomment if you want to use CSS modules within this page
+   // Note: this page.modules.css has some styles you should review since
+   //       they may not pertain to our example
+   // import styles from "./page.module.css";
    export default function Home(): JSX.Element {
      const [showNotification, setShowNotification] = useState<boolean>(false);
 
      return (
-       <Section>
-         <Container>
-           <Box className="has-text-centered" p="6">
-             <Title size="1">⚡ Next.js + bestax-bulma</Title>
+       <Container>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Next.js + React + bestax-bulma
+             </Title>
 
-             <Subtitle size="4" className="has-text-grey">
+             <SubTitle size="4" textAlign="centered" color="grey">
                Server-side rendering with TypeScript and Bulma components
-             </Subtitle>
+             </SubTitle>
 
-             <Button
-               color="primary"
-               size="large"
-               mt="5"
-               onClick={() => setShowNotification(!showNotification)}
-             >
-               <Icon name="fas fa-rocket" />
-               <span>Launch App</span>
-             </Button>
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
 
-             {showNotification && (
-               <Notification color="info" mt="4">
-                 <Icon name="fas fa-info-circle" />
-                 <strong>Great!</strong> Your Next.js TypeScript + bestax-bulma
-                 setup is working!
-               </Notification>
-             )}
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Next.js TypeScript +
+                     bestax-bulma setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
            </Box>
-         </Container>
-       </Section>
+         </Section>
+       </Container>
      );
    }
    ```
+
+5. **Run your application:**
+
+   ```bash
+   npm run dev
+   ```
+
+   :::tip Application Available
+   Your Next.js + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
+   :::
 
 ---
 
@@ -402,8 +523,8 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 1. **Create a new CRA project:**
 
    ```bash
-   npx create-react-app my-bulma-app
-   cd my-bulma-app
+   npx create-react-app my-bulma-cra-app
+   cd my-bulma-cra-app
    ```
 
 2. **Install bestax-bulma and dependencies:**
@@ -418,6 +539,7 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
    import React from 'react';
    import ReactDOM from 'react-dom/client';
    import App from './App';
+   import reportWebVitals from './reportWebVitals';
 
    // Import Bulma CSS
    import 'bulma/css/bulma.min.css';
@@ -432,63 +554,67 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
        <App />
      </React.StrictMode>
    );
+
+   // If you want to start measuring performance in your app, pass a function
+   // to log results (for example: reportWebVitals(console.log))
+   // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+   reportWebVitals();
    ```
 
 4. **Update your App.js:**
 
    ```jsx title="src/App.js"
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
+     Columns,
+     Column,
      Container,
+     Section,
    } from '@allxsmith/bestax-bulma';
 
    function App() {
-     const [count, setCount] = useState(0);
+     const [showNotification, setShowNotification] = useState(false);
 
      return (
        <Container>
-         <Box className="has-text-centered" p="6">
-           <Title size="1">⚛️ Create React App + bestax-bulma</Title>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Create React App + bestax-bulma
+             </Title>
 
-           <Subtitle size="4" className="has-text-grey">
-             Classic React setup with Bulma components
-           </Subtitle>
+             <SubTitle size="4" textAlign="centered" color="grey">
+               Client-side rendering with JavaScript and Bulma components
+             </SubTitle>
 
-           <Box mt="5">
-             <Title size="3">Count: {count}</Title>
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
 
-             <div className="buttons is-centered">
-               <Button color="success" onClick={() => setCount(count + 1)}>
-                 <Icon name="fas fa-plus" />
-                 <span>Increment</span>
-               </Button>
-
-               <Button color="danger" onClick={() => setCount(count - 1)}>
-                 <Icon name="fas fa-minus" />
-                 <span>Decrement</span>
-               </Button>
-
-               <Button color="warning" onClick={() => setCount(0)}>
-                 <Icon name="fas fa-redo" />
-                 <span>Reset</span>
-               </Button>
-             </div>
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Create React App +
+                     bestax-bulma setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
            </Box>
-
-           {count >= 10 && (
-             <Notification color="primary" mt="4">
-               <Icon name="fas fa-trophy" />
-               <strong>Achievement Unlocked!</strong> You've reached {count}{' '}
-               clicks!
-             </Notification>
-           )}
-         </Box>
+         </Section>
        </Container>
      );
    }
@@ -496,14 +622,142 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
    export default App;
    ```
 
+5. **Run your application:**
+
+   ```bash
+   npm start
+   ```
+
+   :::tip Application Available
+   Your Create React App + bestax-bulma application will be available at `http://localhost:3000`
+   :::
+
 ### TypeScript Example (Create React App)
 
 1. **Create a new CRA TypeScript project:**
 
    ```bash
-   npx create-react-app my-bulma-app --template typescript
-   cd my-bulma-app
+   npx create-react-app my-bulma-cra-ts-app --template typescript
+   cd my-bulma-cra-ts-app
    ```
+
+2. **Install bestax-bulma and dependencies:**
+
+   ```bash
+   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   ```
+
+3. **Update your index.tsx:**
+
+   ```tsx title="src/index.tsx"
+   import React from 'react';
+   import ReactDOM from 'react-dom/client';
+   import App from './App';
+   import reportWebVitals from './reportWebVitals';
+
+   // Import Bulma CSS
+   import 'bulma/css/bulma.min.css';
+   // Import Font Awesome
+   import '@fortawesome/fontawesome-free/css/all.min.css';
+   // Import default CRA styles last
+   import './index.css';
+
+   const root = ReactDOM.createRoot(
+     document.getElementById('root') as HTMLElement
+   );
+   root.render(
+     <React.StrictMode>
+       <App />
+     </React.StrictMode>
+   );
+
+   // If you want to start measuring performance in your app, pass a function
+   // to log results (for example: reportWebVitals(console.log))
+   // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+   reportWebVitals();
+   ```
+
+4. **Update your App.tsx:**
+
+   ```tsx title="src/App.tsx"
+   import { useState } from 'react';
+   import {
+     Box,
+     Button,
+     Title,
+     SubTitle,
+     Icon,
+     Notification,
+     Columns,
+     Column,
+     Container,
+     Section,
+   } from '@allxsmith/bestax-bulma';
+
+   const App: React.FC = () => {
+     const [showNotification, setShowNotification] = useState<boolean>(false);
+
+     return (
+       <Container>
+         <Section>
+           <Box textAlign="centered">
+             <Title size="1" textAlign="centered">
+               🚀 Create React App + bestax-bulma
+             </Title>
+
+             <SubTitle size="4" textAlign="centered" color="grey">
+               Client-side rendering with TypeScript and Bulma components
+             </SubTitle>
+
+             <Columns isCentered mt="5">
+               <Column size="half">
+                 <Button
+                   color="primary"
+                   size="large"
+                   onClick={() => setShowNotification(!showNotification)}
+                 >
+                   <Icon name="magic" />
+                   <span>Toggle Notification</span>
+                 </Button>
+
+                 {showNotification && (
+                   <Notification color="success" mt="4">
+                     <Icon name="check-circle" />
+                     <strong>Success!</strong> Your Create React App TypeScript
+                     + bestax-bulma setup is working perfectly!
+                   </Notification>
+                 )}
+               </Column>
+             </Columns>
+           </Box>
+         </Section>
+       </Container>
+     );
+   };
+
+   export default App;
+   ```
+
+5. **Run your application:**
+
+   ```bash
+   npm start
+   ```
+
+   Your Create React App + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
+
+---
+
+````
+
+### TypeScript Example (Create React App)
+
+1. **Create a new CRA TypeScript project:**
+
+```bash
+npx create-react-app my-bulma-cra-ts-app --template typescript
+cd my-bulma-cra-ts-app
+````
 
 2. **Install bestax-bulma and dependencies:**
 
@@ -538,64 +792,67 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 4. **Update your App.tsx:**
 
    ```tsx title="src/App.tsx"
-   import React, { useState } from 'react';
+   import { useState } from 'react';
    import {
      Box,
      Button,
      Title,
-     Subtitle,
+     SubTitle,
      Icon,
      Notification,
-     Container,
+     Columns,
+     Column,
    } from '@allxsmith/bestax-bulma';
 
    const App: React.FC = () => {
-     const [count, setCount] = useState<number>(0);
+     const [showNotification, setShowNotification] = useState<boolean>(false);
 
      return (
-       <Container>
-         <Box className="has-text-centered" p="6">
-           <Title size="1">⚛️ Create React App + bestax-bulma</Title>
+       <Box textAlign="centered">
+         <Title size="1" textAlign="centered">
+           🚀 Create React App + bestax-bulma
+         </Title>
 
-           <Subtitle size="4" className="has-text-grey">
-             Classic TypeScript React setup with Bulma components
-           </Subtitle>
+         <SubTitle size="4" textAlign="centered" color="grey">
+           Client-side rendering with TypeScript and Bulma components
+         </SubTitle>
 
-           <Box mt="5">
-             <Title size="3">Count: {count}</Title>
+         <Columns isCentered mt="5">
+           <Column size="half">
+             <Button
+               color="primary"
+               size="large"
+               onClick={() => setShowNotification(!showNotification)}
+             >
+               <Icon name="magic" />
+               <span>Toggle Notification</span>
+             </Button>
 
-             <div className="buttons is-centered">
-               <Button color="success" onClick={() => setCount(count + 1)}>
-                 <Icon name="fas fa-plus" />
-                 <span>Increment</span>
-               </Button>
-
-               <Button color="danger" onClick={() => setCount(count - 1)}>
-                 <Icon name="fas fa-minus" />
-                 <span>Decrement</span>
-               </Button>
-
-               <Button color="warning" onClick={() => setCount(0)}>
-                 <Icon name="fas fa-redo" />
-                 <span>Reset</span>
-               </Button>
-             </div>
-           </Box>
-
-           {count >= 10 && (
-             <Notification color="primary" mt="4">
-               <Icon name="fas fa-trophy" />
-               <strong>Achievement Unlocked!</strong> You've reached {count}{' '}
-               clicks!
-             </Notification>
-           )}
-         </Box>
-       </Container>
+             {showNotification && (
+               <Notification color="success" mt="4">
+                 <Icon name="check-circle" />
+                 <strong>Success!</strong> Your Create React App TypeScript +
+                 bestax-bulma setup is working perfectly!
+               </Notification>
+             )}
+           </Column>
+         </Columns>
+       </Box>
      );
    };
 
    export default App;
    ```
+
+5. **Run your application:**
+
+   ```bash
+   npm start
+   ```
+
+   :::tip Application Available
+   Your Create React App + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
+   :::
 
 ---
 

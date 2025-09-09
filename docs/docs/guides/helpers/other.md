@@ -115,15 +115,11 @@ function FloatExamples() {
 
 ## Clearfix
 
-:::info Currently Not Available as Prop
+The clearfix helper fixes an element's floating children by clearing floats. This is essential when you have floating elements inside a container and need the container to properly wrap around them.
 
-The clearfix helper is not directly available as a prop in useBulmaClasses. Use `className="is-clearfix"` when needed.
-
-:::
-
-| Property                  | Bulma Class   | CSS Property             |
-| ------------------------- | ------------- | ------------------------ |
-| `className="is-clearfix"` | `is-clearfix` | Clears floating children |
+| Property          | Bulma Class   | CSS Property             |
+| ----------------- | ------------- | ------------------------ |
+| `clearfix={true}` | `is-clearfix` | Clears floating children |
 
 The clearfix helper fixes an element's floating children by clearing floats. This is essential when you have floating elements inside a container and need the container to properly wrap around them.
 
@@ -163,12 +159,7 @@ function ClearfixExamples() {
           <Content mb="3">
             This container properly contains its floating children:
           </Content>
-          <Box
-            backgroundColor="success"
-            p="3"
-            color="white"
-            className="is-clearfix"
-          >
+          <Box backgroundColor="success" p="3" color="white" clearfix>
             <Box float="left" backgroundColor="white" color="dark" p="2" mr="2">
               Float Left
             </Box>
@@ -587,21 +578,17 @@ function InteractionExamples() {
 
 ## Position Relative
 
-:::info Currently Not Available as Prop
+The position relative helper applies `position: relative` to an element, which is essential for creating positioning contexts for absolutely positioned children.
 
-The position relative helper is not directly available as a prop in useBulmaClasses. Use `className="is-relative"` when needed.
-
-:::
-
-| Property                  | Bulma Class   | CSS Property         |
-| ------------------------- | ------------- | -------------------- |
-| `className="is-relative"` | `is-relative` | `position: relative` |
+| Property          | Bulma Class   | CSS Property         |
+| ----------------- | ------------- | -------------------- |
+| `relative={true}` | `is-relative` | `position: relative` |
 
 The position relative helper applies `position: relative` to an element, which is essential for creating positioning contexts for absolutely positioned children.
 
 ### Position Relative Examples
 
-```tsx
+````tsx
 import { Box, Content, Card, Title } from '@allxsmith/bestax-bulma';
 
 function PositionRelativeExamples() {
@@ -618,54 +605,26 @@ function PositionRelativeExamples() {
           </Content>
 
           <Box
+            relative
             backgroundColor="light"
             p="4"
-            className="is-relative"
             style={{ height: '200px', border: '2px dashed #ccc' }}
           >
             <Content>
-              This container has position: relative and acts as a positioning
-              context.
+              This container has position: relative
             </Content>
-
             <Box
-              backgroundColor="primary"
-              color="white"
-              p="2"
               style={{
                 position: 'absolute',
                 top: '10px',
                 right: '10px',
+                background: '#ff5722',
+                color: 'white',
+                padding: '0.5rem',
+                borderRadius: '4px',
               }}
             >
-              Top Right
-            </Box>
-
-            <Box
-              backgroundColor="danger"
-              color="white"
-              p="2"
-              style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: '10px',
-              }}
-            >
-              Bottom Left
-            </Box>
-
-            <Box
-              backgroundColor="success"
-              color="white"
-              p="2"
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              Centered
+              Absolutely positioned
             </Box>
           </Box>
         </Card.Content>
@@ -673,7 +632,6 @@ function PositionRelativeExamples() {
     </Box>
   );
 }
-```
 
 ## Combined Usage Example
 
@@ -699,7 +657,7 @@ function CombinedHelpersExample() {
           </Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box className="is-relative" style={{ height: '300px' }}>
+          <Box relative style={{ height: '300px' }}>
             {/* Product image */}
             <Image
               src="https://bulma.io/assets/images/placeholders/400x300.png"
@@ -729,7 +687,7 @@ function CombinedHelpersExample() {
             </Box>
 
             {/* Product info */}
-            <Box p="3" className="is-clearfix">
+            <Box p="3" clearfix>
               <Title size="5" mb="2" interaction="unselectable">
                 Premium Product
               </Title>
@@ -759,7 +717,7 @@ function CombinedHelpersExample() {
     </Box>
   );
 }
-```
+````
 
 ## Best Practices
 
@@ -769,7 +727,7 @@ function CombinedHelpersExample() {
 2. **Combine thoughtfully**: Many helpers work well together but consider the overall design
 3. **Consider accessibility**: Some helpers like `unselectable` can impact accessibility
 4. **Test interactions**: Always test clickable elements and overlays across different devices
-5. **Fallback for unsupported props**: Use `className` when a helper isn't available as a prop
+5. **Use semantic markup**: Combine helpers with appropriate semantic HTML elements
 
 :::
 
@@ -786,8 +744,8 @@ function CombinedHelpersExample() {
   </Card.Content>
 </Card>
 
-// Image gallery item
-<Box className="is-relative">
+// Image gallery item with positioning
+<Box relative>
   <Image src="..." radius="radiusless" />
   <Box overlay={true} interaction="clickable" onClick={openLightbox} />
 </Box>
@@ -801,6 +759,16 @@ function CombinedHelpersExample() {
 >
   +
 </Button>
+
+// Layout with floated sidebar and clearfix
+<Box clearfix>
+  <Box float="left" style={{ width: '200px' }}>
+    Sidebar content
+  </Box>
+  <Box style={{ marginLeft: '220px' }}>
+    Main content area
+  </Box>
+</Box>
 ```
 
 :::tip Learn More

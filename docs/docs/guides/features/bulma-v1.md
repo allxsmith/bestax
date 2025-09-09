@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Bulma V1
 
-bestax-bulma is built specifically for Bulma v1, the latest version of Bulma released in 2024. Unlike most other React Bulma libraries that target older versions, this library provides complete, up-to-date implementations of all Bulma v1 features.
+**Bestax-bulma** is built specifically for Bulma v1, the latest version of Bulma released in 2024. Unlike most other React Bulma libraries that target older versions, this library provides complete, up-to-date implementations of all Bulma v1 features.
 
 ## Why Bulma V1 Matters
 
@@ -343,4 +343,4 @@ This example showcases multiple v1 features:
 - True CSS Grid with Grid/Cell
 - Modern component APIs
 
-By choosing bestax-bulma, you're getting the most complete and up-to-date React implementation of Bulma available, with full support for all the modern features that make Bulma v1 a powerful choice for 2024 and beyond.
+By choosing bestax-bulma, you're getting the most complete and up-to-date React implementation of Bulma available, with full support for all the modern features that make Bulma v1 a powerful choice for 2024, 2025 and beyond.

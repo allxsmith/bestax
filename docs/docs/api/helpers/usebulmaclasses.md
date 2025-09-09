@@ -35,49 +35,84 @@ const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
 Below is the full list of supported props, derived from the `BulmaClassesProps` TypeScript definition:
 
-| Prop              | Type / Example Value                                                                                                                                                                                                                                 | Effect / Example Class                                       |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `color`           | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'light'`, `'dark'`, `'inherit'`, `'current'` | `has-text-primary`, `has-text-grey-dark`, `has-text-inherit` |
-| `backgroundColor` | Same as `color`                                                                                                                                                                                                                                      | `has-background-warning`                                     |
-| `colorShade`      | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-text-primary-25`, `has-background-info-dark`            |
-| `m`               | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `m-4`, `m-auto`                                              |
-| `mt`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mt-2`                                                       |
-| `mr`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mr-6`                                                       |
-| `mb`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mb-0`                                                       |
-| `ml`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `ml-auto`                                                    |
-| `mx`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mx-2`                                                       |
-| `my`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `my-5`                                                       |
-| `p`               | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `p-3`, `p-auto`                                              |
-| `pt`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pt-1`                                                       |
-| `pr`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pr-6`                                                       |
-| `pb`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pb-0`                                                       |
-| `pl`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pl-4`                                                       |
-| `px`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `px-1`                                                       |
-| `py`              | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `py-6`                                                       |
-| `textSize`        | `'1'..'7'`                                                                                                                                                                                                                                           | `is-size-3`                                                  |
-| `textAlign`       | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                     | `has-text-centered`                                          |
-| `textTransform`   | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                  |
-| `textWeight`      | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                       |
-| `fontFamily`      | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                        |
-| `display`         | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`                                                                                                                                                                                   | `is-flex`, `is-inline-block`                                 |
-| `visibility`      | `'hidden'`, `'sr-only'`                                                                                                                                                                                                                              | `is-hidden`, `is-sr-only`                                    |
-| `flexDirection`   | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                      |
-| `flexWrap`        | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                        |
-| `justifyContent`  | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'start'`, `'end'`, `'left'`, `'right'`                                                                                                             | `is-justify-content-center`                                  |
-| `alignContent`    | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'stretch'`                                                                                                                                         | `is-align-content-stretch`                                   |
-| `alignItems`      | `'stretch'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'start'`, `'end'`                                                                                                                                                              | `is-align-items-center`                                      |
-| `alignSelf`       | `'auto'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'stretch'`                                                                                                                                                                        | `is-align-self-center`                                       |
-| `flexGrow`        | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-grow-1`                                             |
-| `flexShrink`      | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-shrink-0`                                           |
-| `float`           | `'left'`, `'right'`                                                                                                                                                                                                                                  | `is-pulled-left`, `is-pulled-right`                          |
-| `overflow`        | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
-| `overlay`         | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
-| `interaction`     | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                            |
-| `radius`          | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                              |
-| `shadow`          | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                              |
-| `responsive`      | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                     |
-| `viewport`        | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'`                                                                                                                                                                                      | Adds suffix, e.g. `-mobile`, `-desktop`                      |
-| `className`       | `string`                                                                                                                                                                                                                                             | Any additional classes                                       |
+| Prop                   | Type / Example Value                                                                                                                                                                                                                                 | Effect / Example Class                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `color`                | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'light'`, `'dark'`, `'inherit'`, `'current'` | `has-text-primary`, `has-text-grey-dark`, `has-text-inherit` |
+| `backgroundColor`      | Same as `color`                                                                                                                                                                                                                                      | `has-background-warning`                                     |
+| `colorShade`           | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-text-primary-25`                                        |
+| `backgroundColorShade` | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-background-info-dark`                                   |
+| `m`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `m-4`, `m-auto`                                              |
+| `mt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mt-2`                                                       |
+| `mr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mr-6`                                                       |
+| `mb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mb-0`                                                       |
+| `ml`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `ml-auto`                                                    |
+| `mx`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mx-2`                                                       |
+| `my`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `my-5`                                                       |
+| `p`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `p-3`, `p-auto`                                              |
+| `pt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pt-1`                                                       |
+| `pr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pr-6`                                                       |
+| `pb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pb-0`                                                       |
+| `pl`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pl-4`                                                       |
+| `px`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `px-1`                                                       |
+| `py`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `py-6`                                                       |
+| `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                           | `is-size-3`                                                  |
+| `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                     | `has-text-centered`                                          |
+| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                  |
+| `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                       |
+| `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                        |
+| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`                                                                                                                                                                                   | `is-flex`, `is-inline-block`                                 |
+| `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                    |
+| `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                      |
+| `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                        |
+| `justifyContent`       | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'start'`, `'end'`, `'left'`, `'right'`                                                                                                             | `is-justify-content-center`                                  |
+| `alignContent`         | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'stretch'`                                                                                                                                         | `is-align-content-stretch`                                   |
+| `alignItems`           | `'stretch'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'start'`, `'end'`                                                                                                                                                              | `is-align-items-center`                                      |
+| `alignSelf`            | `'auto'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'stretch'`                                                                                                                                                                        | `is-align-self-center`                                       |
+| `flexGrow`             | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-grow-1`                                             |
+| `flexShrink`           | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-shrink-0`                                           |
+| `float`                | `'left'`, `'right'`                                                                                                                                                                                                                                  | `is-pulled-left`, `is-pulled-right`                          |
+| `overflow`             | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
+| `overlay`              | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
+| `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                            |
+| `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                              |
+| `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                              |
+| `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                     |
+| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'`                                                                                                                                                                                      | Adds viewport suffix to supported properties                 |
+| `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                |
+| `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                |
+| `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                |
+
+### Viewport-Specific Properties
+
+The following properties allow you to set different values for each viewport breakpoint:
+
+| Prop                   | Type / Example Value                                            | Effect / Example Class                                                     |
+| ---------------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `displayMobile`        | `'block'`, `'flex'`, `'inline'`, `'none'`, etc.                 | `is-block-mobile`, `is-flex-mobile`, `is-hidden-mobile`                    |
+| `displayTablet`        | Same as above                                                   | `is-block-tablet`, `is-flex-tablet`, `is-hidden-tablet`                    |
+| `displayDesktop`       | Same as above                                                   | `is-block-desktop`, `is-flex-desktop`, `is-hidden-desktop`                 |
+| `displayWidescreen`    | Same as above                                                   | `is-block-widescreen`, `is-flex-widescreen`                                |
+| `displayFullhd`        | Same as above                                                   | `is-block-fullhd`, `is-flex-fullhd`                                        |
+| `textSizeMobile`       | `'1'..'7'`                                                      | `is-size-3-mobile`, `is-size-5-mobile`                                     |
+| `textSizeTablet`       | `'1'..'7'`                                                      | `is-size-3-tablet`, `is-size-5-tablet`                                     |
+| `textSizeDesktop`      | `'1'..'7'`                                                      | `is-size-3-desktop`, `is-size-5-desktop`                                   |
+| `textSizeWidescreen`   | `'1'..'7'`                                                      | `is-size-3-widescreen`, `is-size-5-widescreen`                             |
+| `textSizeFullhd`       | `'1'..'7'`                                                      | `is-size-3-fullhd`, `is-size-5-fullhd`                                     |
+| `textAlignMobile`      | `'centered'`, `'left'`, `'right'`, `'justified'`                | `has-text-centered-mobile`, `has-text-left-mobile`                         |
+| `textAlignTablet`      | Same as above                                                   | `has-text-centered-tablet`, `has-text-left-tablet`                         |
+| `textAlignDesktop`     | Same as above                                                   | `has-text-centered-desktop`, `has-text-left-desktop`                       |
+| `textAlignWidescreen`  | Same as above                                                   | `has-text-centered-widescreen`, `has-text-left-widescreen`                 |
+| `textAlignFullhd`      | Same as above                                                   | `has-text-centered-fullhd`, `has-text-left-fullhd`                         |
+| `visibilityMobile`     | `'hidden'`, `'sr-only'`, `'invisible'`                          | `is-hidden-mobile`, `is-sr-only-mobile`, `is-invisible-mobile`             |
+| `visibilityTablet`     | Same as above                                                   | `is-hidden-tablet`, `is-sr-only-tablet`, `is-invisible-tablet`             |
+| `visibilityDesktop`    | Same as above                                                   | `is-hidden-desktop`, `is-sr-only-desktop`, `is-invisible-desktop`          |
+| `visibilityWidescreen` | Same as above                                                   | `is-hidden-widescreen`, `is-sr-only-widescreen`, `is-invisible-widescreen` |
+| `visibilityFullhd`     | Same as above                                                   | `is-hidden-fullhd`, `is-sr-only-fullhd`, `is-invisible-fullhd`             |
+| `responsive`           | `'mobile'`, `'narrow'`                                          | `is-mobile`, `is-narrow`                                                   |
+| `clearfix`             | `true`                                                          | `is-clearfix`                                                              |
+| `relative`             | `true`                                                          | `is-relative`                                                              |
+| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`                                    |
+| `className`            | `string`                                                        | Any additional classes                                                     |
 
 ---
 
@@ -219,6 +254,8 @@ export interface BulmaClassesProps {
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
   viewport?: 'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
+  clearfix?: boolean;
+  relative?: boolean;
   className?: string;
 }
 ```
@@ -287,6 +324,26 @@ function example() {
 
 ### With Flexbox Helpers
 
+Flexbox properties are divided into two categories:
+
+#### Container Properties
+
+These properties apply to elements with `display: flex` or `display: inline-flex`:
+
+- `flexDirection` - Direction of flex items
+- `flexWrap` - Whether items wrap
+- `justifyContent` - Alignment along main axis
+- `alignContent` - Alignment of wrapped lines
+- `alignItems` - Alignment along cross axis
+
+#### Item Properties
+
+These properties apply to flex items (children of flex containers) and **do not require** the element itself to have `display: flex`:
+
+- `alignSelf` - Override container's alignItems for this item
+- `flexGrow` - How much the item should grow
+- `flexShrink` - How much the item should shrink
+
 ```tsx live
 function example() {
   const { bulmaHelperClasses } = useBulmaClasses({
@@ -299,6 +356,22 @@ function example() {
   return JSON.stringify({ bulmaHelperClasses });
   // bulmaHelperClasses: 'is-flex is-flex-direction-column is-align-items-center is-justify-content-center'
 }
+```
+
+Example with flex items:
+
+```tsx
+// Container with display flex
+<Box display="flex" alignItems="center">
+  {/* Items don't need display flex to use alignSelf, flexGrow, flexShrink */}
+  <Button alignSelf="flex-start">Start</Button>
+  <Button alignSelf="center" flexGrow="1">
+    Center & Grow
+  </Button>
+  <Button alignSelf="flex-end" flexShrink="0">
+    End & No Shrink
+  </Button>
+</Box>
 ```
 
 ---
@@ -748,6 +821,69 @@ Show a Message with a custom className:
 </Message>
 ```
 
+### Clearfix
+
+Show containers with and without clearfix to demonstrate the importance of clearing floated elements:
+
+```tsx live
+<>
+  <Box mb="4">
+    <h4>Without Clearfix (Container Collapse)</h4>
+    <Box p="3" style={{ background: '#ffebee', border: '2px solid #f44336' }}>
+      <Button float="left" color="primary">
+        Left
+      </Button>
+      <Button float="right" color="danger">
+        Right
+      </Button>
+    </Box>
+  </Box>
+
+  <Box>
+    <h4>With Clearfix (Proper Container)</h4>
+    <Box
+      p="3"
+      clearfix
+      style={{ background: '#e8f5e8', border: '2px solid #4caf50' }}
+    >
+      <Button float="left" color="primary">
+        Left
+      </Button>
+      <Button float="right" color="danger">
+        Right
+      </Button>
+    </Box>
+  </Box>
+</>
+```
+
+### Relative Position
+
+Show a container with relative positioning that provides context for absolutely positioned children:
+
+```tsx live
+<Box
+  relative
+  p="4"
+  style={{ background: '#f5f5f5', border: '2px solid #333', height: '150px' }}
+>
+  <span>This container has position: relative</span>
+  <Box
+    style={{
+      position: 'absolute',
+      top: '20px',
+      right: '20px',
+      background: '#ff5722',
+      color: 'white',
+      padding: '0.5rem 1rem',
+      borderRadius: '4px',
+    }}
+  >
+    Absolutely positioned child
+  </Box>
+</Box>
+```
+
 ---
 
 ### Skeleton Examples
@@ -826,6 +962,75 @@ The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples f
 ```tsx live
 <TextArea skeleton placeholder="Skeleton TextArea" rows={3} />
 ```
+
+---
+
+## Responsive Design
+
+### Global Viewport Property (Legacy)
+
+The `viewport` prop applies a single viewport modifier to ALL properties that support it:
+
+```tsx
+const { bulmaHelperClasses } = useBulmaClasses({
+  color: 'primary',
+  textAlign: 'centered',
+  textSize: '4',
+  viewport: 'mobile', // Applies -mobile to ALL properties
+});
+// Result: has-text-primary-mobile has-text-centered-mobile is-size-4-mobile
+```
+
+### Viewport-Specific Properties (Recommended)
+
+Viewport-specific properties allow you to set **different values for each viewport**:
+
+```tsx
+const { bulmaHelperClasses } = useBulmaClasses({
+  // Different text sizes for each viewport
+  textSizeMobile: '6', // Small on mobile
+  textSizeTablet: '5', // Medium on tablet
+  textSizeDesktop: '4', // Large on desktop
+
+  // Different text alignment for each viewport
+  textAlignMobile: 'centered', // Center on mobile
+  textAlignDesktop: 'left', // Left align on desktop
+
+  // Different visibility for each viewport
+  visibilityMobile: 'hidden', // Hidden on mobile
+  visibilityTablet: 'invisible', // Invisible on tablet
+});
+// Result: is-size-6-mobile is-size-5-tablet is-size-4-desktop
+//         has-text-centered-mobile has-text-left-desktop is-hidden-mobile is-invisible-tablet
+```
+
+### Breakpoint Reference
+
+Bulma's responsive breakpoints:
+
+- **mobile**: up to 768px
+- **tablet**: 769px - 1023px
+- **desktop**: 1024px - 1215px
+- **widescreen**: 1216px - 1407px
+- **fullhd**: 1408px and above
+
+### Properties That Support Viewport Modifiers
+
+Only certain properties support responsive variants:
+
+**✅ Support Viewport Modifiers:**
+
+- Text size (`textSize`, `textSizeMobile`, `textSizeTablet`, etc.)
+- Text alignment (`textAlign`, `textAlignMobile`, `textAlignTablet`, etc.)
+- Display (`display`, `displayMobile`, `displayTablet`, etc.)
+- Visibility (`visibility`, `visibilityMobile`, `visibilityTablet`, etc.)
+
+**❌ Do NOT Support Viewport Modifiers:**
+
+- Spacing (`m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`)
+- Background colors (`backgroundColor`)
+- Flexbox properties (`flexDirection`, `flexWrap`, `justifyContent`, etc.)
+- Other helpers (`float`, `clearfix`, `relative`, `borderRadius`, `shadow`, etc.)
 
 ---
 

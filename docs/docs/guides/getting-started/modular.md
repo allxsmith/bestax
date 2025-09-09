@@ -61,14 +61,30 @@ After importing the base, you can selectively import styles for individual compo
 @use 'bulma/sass/components/navbar';
 ```
 
-### Grid System
+### Flex Column System
 
-The columns system does **not** require base styles since it doesn't use CSS variables:
+:::info
+
+The columns system does **not** require base styles since it doesn't use CSS variables from Bulma Themes:
+
+:::
 
 ```scss
 // Can be imported independently
 @use 'bulma/sass/grid/columns';
+```
 
+### Grid System
+
+Bulma V1 has a new full CSS Grid support.
+
+:::info
+
+The grid system also does **not** require base styles since it doesn't use CSS variables from Bulma Themes:
+
+:::
+
+```scss
 // Or import the new CSS Grid system
 @use 'bulma/sass/grid/grid';
 ```
@@ -229,6 +245,18 @@ import {
 } from '@allxsmith/bestax-bulma';
 ```
 
+:::warning
+
+The imports listed above are for reference, don't import all the elements, or forms, etc. Import just what you need.
+
+For instance, if you only need an Input and Select, import those.
+
+```jsx
+import { Input, Select } from '@allxsmith/bestax-bulma';
+```
+
+:::
+
 ## Bundle Size Optimization
 
 ### Vite Example
@@ -261,6 +289,7 @@ Import in your main component:
 import './styles/bulma-custom.scss';
 import {
   Button,
+  Buttons,
   Box,
   Notification,
   Card,
@@ -275,7 +304,9 @@ function App() {
         <Column>
           <Card>
             <Box p="4">
-              <Button color="primary">Optimized App</Button>
+              <Buttons>
+                <Button color="primary">Optimized App</Button>
+              </Buttons>
               <Notification color="success" mt="3">
                 Only loads the CSS and JS we need!
               </Notification>

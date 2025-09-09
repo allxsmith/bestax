@@ -111,7 +111,7 @@ Use margin props to add external spacing around elements. Margin creates space o
 
 ### Margin Examples
 
-```tsx
+```tsx live
 import { Box, Button, Title, Card } from '@allxsmith/bestax-bulma';
 
 function MarginExamples() {
@@ -120,14 +120,14 @@ function MarginExamples() {
       <Title mb="4">Margin Examples</Title>
 
       {/* All sides margin */}
-      <Box backgroundColor="light" p="2" m="4" mb="4">
+      <Box backgroundColor="light" color="dark" p="2" m="4" mb="4">
         Box with margin on all sides (m="4")
       </Box>
 
       {/* Specific side margins */}
       <Box
         backgroundColor="info"
-        color="white"
+        color="dark"
         p="2"
         mt="3"
         mr="6"
@@ -255,8 +255,14 @@ Use padding props to add internal spacing within elements. Padding creates space
 
 ### Padding Examples
 
-```tsx
-import { Box, Card, Notification, Button } from '@allxsmith/bestax-bulma';
+```tsx live
+// import {
+//   Box,
+//   Card,
+//   Notification,
+//   Button,
+//   Title,
+// } from '@allxsmith/bestax-bulma';
 
 function PaddingExamples() {
   return (
@@ -271,7 +277,7 @@ function PaddingExamples() {
       {/* Specific side padding */}
       <Box
         backgroundColor="info"
-        color="white"
+        color="dark"
         pt="1"
         pr="4"
         pb="2"
@@ -317,7 +323,7 @@ function PaddingExamples() {
 
 You can combine margin and padding properties to create sophisticated spacing layouts:
 
-```tsx
+```tsx live
 import { Box, Card, Title, Content, Button } from '@allxsmith/bestax-bulma';
 
 function CombinedSpacingExample() {
@@ -340,7 +346,7 @@ function CombinedSpacingExample() {
         </Card.Content>
 
         <Card.Content pt="0" px="6" pb="6">
-          <Box backgroundColor="light" p="4" mb="4">
+          <Box backgroundColor="light" color="dark" p="4" mb="4">
             <Content>
               <p>
                 This is a highlighted section with its own padding and margin
@@ -352,7 +358,7 @@ function CombinedSpacingExample() {
           <Button mr="3" px="4" py="2">
             Read More
           </Button>
-          <Button variant="outlined" px="4" py="2" backgroundColor="light">
+          <Button variant="outlined" px="4" py="2" color="dark">
             Share
           </Button>
         </Card.Content>
@@ -366,8 +372,8 @@ function CombinedSpacingExample() {
         <Box display="flex" flexWrap="wrap" mx="-2">
           {[1, 2, 3, 4, 5, 6].map(num => (
             <Box key={num} style={{ width: '33.333%' }} px="2" mb="4">
-              <Card p="4" backgroundColor="light">
-                <Title size="6" mb="2">
+              <Card p="4" backgroundColor="light" color="dark">
+                <Title size="6" mb="2" color="dark">
                   Item {num}
                 </Title>
                 <Content>
@@ -383,86 +389,55 @@ function CombinedSpacingExample() {
 }
 ```
 
-## Responsive Spacing
-
-:::info
-
-You can combine spacing properties with the `viewport` prop to create responsive spacing that adapts to different screen sizes.
-
-:::
-
-```tsx
-import { Box, Card, Title } from '@allxsmith/bestax-bulma';
-
-function ResponsiveSpacingExample() {
-  return (
-    <Box
-      p="2"
-      viewport="mobile"
-      p="4"
-      viewport="tablet"
-      p="6"
-      viewport="desktop"
-    >
-      <Card>
-        <Card.Content
-          p="3"
-          viewport="mobile"
-          p="4"
-          viewport="tablet"
-          p="6"
-          viewport="desktop"
-        >
-          <Title size="4">Responsive Spacing</Title>
-          <p>
-            This content has different padding on mobile (p="3"), tablet
-            (p="4"), and desktop (p="6") viewports.
-          </p>
-        </Card.Content>
-      </Card>
-    </Box>
-  );
-}
-```
-
 ## Best Practices
 
 :::tip Spacing Guidelines
 
-1. **Consistency**: Use the spacing scale consistently throughout your application
-2. **Hierarchy**: Use larger spacing values to create visual hierarchy
-3. **Rhythm**: Establish vertical rhythm with consistent margin values
-4. **Responsiveness**: Adjust spacing for different screen sizes when needed
+1. **Default First**: Prefer using component default spacing before customizing
+2. **Consistency**: Use the spacing scale consistently throughout your application
+3. **Hierarchy**: Use larger spacing values to create visual hierarchy
+4. **Rhythm**: Establish vertical rhythm with consistent margin values
 5. **Semantic spacing**: Use spacing to group related content together
 
 :::
 
 ### Recommended Spacing Patterns
 
+:::tip Best Practice
+
+The recommended approach is to use the default padding and spacing that comes built into Bulma components. Components are designed with appropriate spacing out of the box. Only override spacing when absolutely necessary for your specific design requirements.
+
+:::
+
 ```tsx
-// Component spacing
-<Box p="4">           // Container padding
-  <Title mb="3">      // Heading bottom margin
-  <Content mb="4">    // Content bottom margin
-  <Button mt="2">     // Action top margin
-</Box>
-
-// Section spacing
-<Section py="6">      // Vertical section padding
-  <Container px="4">  // Horizontal container padding
-    <Title mb="5">    // Large heading margin
-    <Columns>
-      <Column px="3"> // Column horizontal padding
-</Section>
-
-// Card spacing
-<Card m="3" p="0">           // Card margin, no default padding
-  <Card.Content p="5">       // Custom content padding
-    <Title mb="3">           // Heading margin
-    <Content mb="4">         // Content margin
-    <Button mt="3">          // Action margin
+// PREFERRED: Use default component spacing
+<Card>                    // Uses default Card spacing
+  <Card.Content>          // Uses default Content spacing
+    <Title>               // Uses default Title spacing
+    <Content>             // Uses default Content spacing
+    <Button>              // Uses default Button spacing
 </Card>
+
+// ACCEPTABLE: Override only when needed
+// (In an imperfect world, sometimes customization is necessary)
+<Card m="3">              // Override only when layout requires it
+  <Card.Content p="5">    // Override only for specific design needs
+    <Title mb="3">        // Override only when default doesn't work
+    <Content mb="4">      // Override sparingly
+    <Button mt="3">       // Override as last resort
+</Card>
+
+// AVOID: Excessive spacing overrides
+<Card m="3" p="0" mx="auto" my="5">     // Too many overrides
+  <Card.Content p="5" pt="6" pb="4">    // Overly complex spacing
+    <Title mb="3" mt="2" mx="1">        // Unnecessary customization
 ```
+
+:::warning Override with Caution
+
+While spacing overrides are available and sometimes necessary, they should be used sparingly. Excessive customization can lead to inconsistent designs and maintenance challenges. When you do override default spacing, document your reasoning and ensure it aligns with your design system.
+
+:::
 
 :::tip Learn More
 

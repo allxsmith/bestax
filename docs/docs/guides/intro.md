@@ -228,22 +228,27 @@ Now that you have a basic understanding of bestax-bulma:
 ### 🔧 Development
 
 - **Try out code samples and experiment as you go**
-- **Check out our [Storybook](https://bestax.cc/storybook)** for interactive component examples
+- **Check out our live examples throughout the documentation**
 
 ---
 
 ## Storybook
 
 We also provide a [Storybook site](https://bestax.cc/storybook) that we use for UI development and visual testing of all components.  
-If you prefer the Storybook format, feel free to explore it for live demos and interaction.  
-However, this documentation site is the primary and most complete resource for usage guides and real-world examples.
+If you prefer the Storybook format, feel free to explore it for live demos and interaction.
+
+:::warning[Best Examples and Guides]
+
+Although we provide a storybook site, and we love storybook... This documentation site is the primary and most complete resource for usage guides and real-world examples.
+
+:::
 
 ---
 
 ## Attribution
 
 - The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
-- Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
+- Some example content and documentation in this site are adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
 
 See [Bulma’s license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
 

@@ -40,7 +40,7 @@ The `flexDirection` prop controls the direction of the main axis in a flex conta
 
 ### Flex Direction Examples
 
-```tsx
+```tsx live
 import { Box, Button, Card } from '@allxsmith/bestax-bulma';
 
 function FlexDirectionExamples() {
@@ -145,7 +145,7 @@ The `flexWrap` prop controls whether flex items wrap to new lines when they exce
 
 ### Flex Wrap Examples
 
-```tsx
+```tsx live
 import { Box, Tag, Card, Content } from '@allxsmith/bestax-bulma';
 
 function FlexWrapExamples() {
@@ -170,20 +170,11 @@ function FlexWrapExamples() {
           <Content mb="3">
             Items overflow the container when they don't fit:
           </Content>
-          <Box
-            display="flex"
-            flexWrap="nowrap"
-            backgroundColor="light"
-            p="3"
-            style={{ overflow: 'auto' }}
-          >
+          :::tip Try This Resize your browser window to see the tags overflow
+          horizontally when the container becomes too narrow. :::
+          <Box display="flex" flexWrap="nowrap" backgroundColor="light" p="3">
             {tags.map((tag, index) => (
-              <Tag
-                key={index}
-                color="info"
-                mr="2"
-                style={{ whiteSpace: 'nowrap' }}
-              >
+              <Tag key={index} color="info" mr="2">
                 {tag}
               </Tag>
             ))}
@@ -251,7 +242,7 @@ The `justifyContent` prop controls how flex items are aligned along the main axi
 
 ### Justify Content Examples
 
-```tsx
+```tsx live
 import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
 
 function JustifyContentExamples() {
@@ -277,7 +268,6 @@ function JustifyContentExamples() {
               justifyContent={value as any}
               backgroundColor="light"
               p="3"
-              style={{ minHeight: '60px' }}
             >
               <Button color="primary" size="small">
                 A
@@ -313,7 +303,7 @@ The `alignContent` prop controls how wrapped flex lines are aligned along the cr
 
 ### Align Content Examples
 
-```tsx
+```tsx live
 import { Box, Tag, Card, Content } from '@allxsmith/bestax-bulma';
 
 function AlignContentExamples() {
@@ -347,7 +337,7 @@ function AlignContentExamples() {
               alignContent={value as any}
               backgroundColor="light"
               p="3"
-              style={{ height: '120px', width: '200px' }}
+              style={{ height: '150px' }}
             >
               {items.map((item, index) => (
                 <Tag key={index} color="info" mr="1" mb="1" size="small">
@@ -379,7 +369,7 @@ The `alignItems` prop controls how flex items are aligned along the cross axis. 
 
 ### Align Items Examples
 
-```tsx
+```tsx live
 import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
 
 function AlignItemsExamples() {
@@ -404,7 +394,6 @@ function AlignItemsExamples() {
               alignItems={value as any}
               backgroundColor="light"
               p="3"
-              style={{ height: '100px' }}
             >
               <Button color="primary" size="small" mr="2">
                 Small
@@ -437,9 +426,13 @@ The `alignSelf` prop allows individual flex items to override the `alignItems` v
 | `alignSelf="baseline"`   | `is-align-self-baseline`   | `align-self: baseline`   |
 | `alignSelf="stretch"`    | `is-align-self-stretch`    | `align-self: stretch`    |
 
+The `alignSelf` prop allows individual flex items to override the `alignItems` value set on their container. This property applies to elements that are flex items (children of a flex container), not to the flex container itself.
+
+**Important:** The element using `alignSelf` doesn't need `display="flex"` - it just needs to be a child of a flex container.
+
 ### Align Self Examples
 
-```tsx
+```tsx live
 import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
 
 function AlignSelfExamples() {
@@ -457,9 +450,9 @@ function AlignSelfExamples() {
           <Box
             display="flex"
             alignItems="flex-start"
-            backgroundColor="light"
+            bgColor="light"
             p="3"
-            style={{ height: '120px' }}
+            style={{ height: '150px' }}
           >
             <Button color="primary" alignSelf="flex-start" mr="2">
               Flex Start
@@ -509,7 +502,7 @@ The `flexGrow` and `flexShrink` props control how flex items grow and shrink rel
 
 ### Flex Grow and Shrink Examples
 
-```tsx
+```tsx live
 import { Box, Button, Card, Content } from '@allxsmith/bestax-bulma';
 
 function FlexGrowShrinkExamples() {
@@ -523,7 +516,12 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Items grow to fill available space based on their flex-grow value:
           </Content>
-          <Box display="flex" backgroundColor="light" p="3">
+          <Box
+            display="flex"
+            backgroundColor="light"
+            p="3"
+            style={{ height: '150px' }}
+          >
             <Button color="primary" flexGrow="0" mr="2">
               Grow 0 (Fixed)
             </Button>
@@ -549,29 +547,15 @@ function FlexGrowShrinkExamples() {
             display="flex"
             backgroundColor="light"
             p="3"
-            style={{ width: '300px' }}
+            style={{ height: '150px' }}
           >
-            <Button
-              color="primary"
-              flexShrink="0"
-              mr="2"
-              style={{ minWidth: '120px' }}
-            >
+            <Button color="primary" flexShrink="0" mr="2">
               No Shrink
             </Button>
-            <Button
-              color="info"
-              flexShrink="1"
-              mr="2"
-              style={{ minWidth: '120px' }}
-            >
+            <Button color="info" flexShrink="1" mr="2">
               Shrink 1
             </Button>
-            <Button
-              color="success"
-              flexShrink="3"
-              style={{ minWidth: '120px' }}
-            >
+            <Button color="success" flexShrink="3">
               Shrink 3
             </Button>
           </Box>
@@ -586,7 +570,12 @@ function FlexGrowShrinkExamples() {
           <Content mb="3">
             Responsive layout that adapts to container size:
           </Content>
-          <Box display="flex" backgroundColor="light" p="3">
+          <Box
+            display="flex"
+            backgroundColor="light"
+            p="3"
+            style={{ height: '150px' }}
+          >
             <Box
               backgroundColor="primary"
               color="white"
@@ -631,15 +620,15 @@ function FlexGrowShrinkExamples() {
 
 Here's a comprehensive example showing how to combine multiple flexbox properties to create a complex, responsive layout:
 
-```tsx
-import {
-  Box,
-  Card,
-  Title,
-  Content,
-  Button,
-  Tag,
-} from '@allxsmith/bestax-bulma';
+```tsx live
+// import {
+//   Box,
+//   Card,
+//   Title,
+//   Content,
+//   Button,
+//   Tag,
+// } from '@allxsmith/bestax-bulma';
 
 function ComplexFlexboxLayout() {
   return (
@@ -650,11 +639,7 @@ function ComplexFlexboxLayout() {
         </Card.Header>
         <Card.Content>
           {/* Main container */}
-          <Box
-            display="flex"
-            flexDirection="column"
-            style={{ height: '400px' }}
-          >
+          <Box display="flex" flexDirection="column">
             {/* Header */}
             <Box
               display="flex"
@@ -681,21 +666,14 @@ function ComplexFlexboxLayout() {
             {/* Content area */}
             <Box display="flex" flexGrow="1">
               {/* Sidebar */}
-              <Box
-                backgroundColor="light"
-                p="3"
-                flexShrink="0"
-                style={{ width: '200px' }}
-              >
-                <Content>
-                  <strong>Navigation</strong>
-                  <ul>
-                    <li>Dashboard</li>
-                    <li>Analytics</li>
-                    <li>Reports</li>
-                    <li>Settings</li>
-                  </ul>
-                </Content>
+              <Box flexShrink="0" mb="0">
+                <strong>Navigation</strong>
+                <ul>
+                  <li>Dashboard</li>
+                  <li>Analytics</li>
+                  <li>Reports</li>
+                  <li>Settings</li>
+                </ul>
               </Box>
 
               {/* Main content */}
@@ -716,7 +694,6 @@ function ComplexFlexboxLayout() {
                     color="white"
                     p="3"
                     mb="3"
-                    style={{ width: '48%', minHeight: '100px' }}
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -728,7 +705,6 @@ function ComplexFlexboxLayout() {
                     color="white"
                     p="3"
                     mb="3"
-                    style={{ width: '48%', minHeight: '100px' }}
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -739,7 +715,6 @@ function ComplexFlexboxLayout() {
                     backgroundColor="warning"
                     color="white"
                     p="3"
-                    style={{ width: '48%', minHeight: '100px' }}
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -750,7 +725,6 @@ function ComplexFlexboxLayout() {
                     backgroundColor="danger"
                     color="white"
                     p="3"
-                    style={{ width: '48%', minHeight: '100px' }}
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -797,36 +771,132 @@ function ComplexFlexboxLayout() {
 
 ### Common Flexbox Patterns
 
-```tsx
-// Centered content
-<Box display="flex" justifyContent="center" alignItems="center">
-  <Content>Perfectly centered</Content>
-</Box>
+```tsx live
+import { Box, Title, Button, Content } from '@allxsmith/bestax-bulma';
 
-// Navigation bar
-<Box display="flex" justifyContent="space-between" alignItems="center">
-  <Title>Logo</Title>
-  <Box display="flex">
-    <Button mr="2">Home</Button>
-    <Button mr="2">About</Button>
-    <Button>Contact</Button>
-  </Box>
-</Box>
+function CommonFlexboxPatterns() {
+  return (
+    <Box p="4">
+      {/* Centered content */}
+      <Box mb="6">
+        <Title size="5" mb="3">
+          Centered Content
+        </Title>
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <Content mb="0" textAlign="centered">
+            Perfectly centered
+          </Content>
+        </Box>
+      </Box>
 
-// Responsive grid alternative
-<Box display="flex" flexWrap="wrap" justifyContent="space-between">
-  <Box style={{ width: '48%' }} mb="3">Card 1</Box>
-  <Box style={{ width: '48%' }} mb="3">Card 2</Box>
-  <Box style={{ width: '48%' }} mb="3">Card 3</Box>
-  <Box style={{ width: '48%' }} mb="3">Card 4</Box>
-</Box>
+      {/* Navigation bar */}
+      <Box mb="6">
+        <Title size="5" mb="3">
+          Navigation Bar Layout
+        </Title>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          backgroundColor="primary"
+          textColor="white"
+          p="3"
+        >
+          <Title textColor="white" mb="0">
+            Logo
+          </Title>
+          <Box display="flex">
+            <Button color="light" mr="2">
+              Home
+            </Button>
+            <Button color="light" mr="2">
+              About
+            </Button>
+            <Button color="light">Contact</Button>
+          </Box>
+        </Box>
+      </Box>
 
-// Sticky footer layout
-<Box display="flex" flexDirection="column" style={{ minHeight: '100vh' }}>
-  <Box>Header</Box>
-  <Box flexGrow="1">Main content</Box>
-  <Box>Footer</Box>
-</Box>
+      {/* Responsive grid alternative */}
+      <Box mb="6">
+        <Title size="5" mb="3">
+          Responsive Grid Alternative
+        </Title>
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          justifyContent="space-between"
+          p="3"
+        >
+          <Box
+            mb="3"
+            backgroundColor="info"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Card 1
+          </Box>
+          <Box
+            mb="3"
+            backgroundColor="success"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Card 2
+          </Box>
+          <Box
+            mb="3"
+            backgroundColor="warning"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Card 3
+          </Box>
+          <Box
+            mb="3"
+            backgroundColor="danger"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Card 4
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Sticky footer layout */}
+      <Box>
+        <Title size="5" mb="3">
+          Sticky Footer Layout
+        </Title>
+        <Box display="flex" flexDirection="column" backgroundColor="light">
+          <Box
+            backgroundColor="primary"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Header
+          </Box>
+          <Box flexGrow="1" p="4" textAlign="centered">
+            Main content area that grows to fill available space
+          </Box>
+          <Box
+            backgroundColor="dark"
+            textColor="white"
+            p="3"
+            textAlign="centered"
+          >
+            Footer
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 ```
 
 :::tip Learn More

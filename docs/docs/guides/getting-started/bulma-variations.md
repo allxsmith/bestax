@@ -79,9 +79,15 @@ function App() {
 
 This renders HTML with prefixed classes:
 
-```html live
+```html title="Html Markup from example above"
 <div class="bulma-box">
   <h1 class="bulma-title">Prefixed Bulma Components</h1>
+  <p>
+    All components inside this ConfigProvider will have their CSS classes
+    prefixed with "bulma-". This allows you to use Bulma alongside other CSS
+    frameworks without class name conflicts.
+  </p>
+
   <button class="bulma-button bulma-is-primary">Bulma-Prefixed Button</button>
 </div>
 ```
@@ -244,70 +250,6 @@ This approach allows you to:
 
 ---
 
-## Alternative Icon Libraries
-
-While Font Awesome is the most popular choice, bestax-bulma works with other icon libraries as well:
-
-### Material Design Icons
-
-**Install:**
-
-```bash
-npm install @mdi/font
-```
-
-**Import:**
-
-```js
-import '@mdi/font/css/materialdesignicons.min.css';
-```
-
-**Usage:**
-
-```tsx
-import { Button, Icon } from '@allxsmith/bestax-bulma';
-
-function MaterialIconExample() {
-  return (
-    <Button color="primary">
-      <Icon name="mdi mdi-home" />
-      <span>Home</span>
-    </Button>
-  );
-}
-```
-
-### Ionicons
-
-**Install:**
-
-```bash
-npm install ionicons
-```
-
-**Import:**
-
-```js
-import 'ionicons/dist/css/ionicons.min.css';
-```
-
-**Usage:**
-
-```tsx
-import { Button, Icon } from '@allxsmith/bestax-bulma';
-
-function IoniconExample() {
-  return (
-    <Button color="info">
-      <Icon name="ion ion-ios-settings" />
-      <span>Settings</span>
-    </Button>
-  );
-}
-```
-
----
-
 ## Choosing the Right Variation
 
 | Use Case                                  | Recommended Variation                     |
@@ -322,16 +264,17 @@ function IoniconExample() {
 
 ## File Size Comparison
 
-| Variation    | Approximate Size | Use Case                    |
-| ------------ | ---------------- | --------------------------- |
-| Complete     | ~200KB           | Full-featured applications  |
-| Prefixed     | ~200KB           | Multi-framework integration |
-| Library Only | ~150KB           | Custom styling approach     |
-| No Dark Mode | ~180KB           | Light mode only             |
-| Custom Brand | Varies           | Branded applications        |
+| Variation            | Gzipped Size | Use Case                    |
+| -------------------- | ------------ | --------------------------- |
+| Complete             | ~53KB        | Full-featured applications  |
+| Prefixed             | ~54KB        | Multi-framework integration |
+| No Helpers           | ~40KB        | No helpers, library only    |
+| No Helpers, Prefixed | ~41KB        | No helpers, library only    |
+| No Dark Mode         | ~52KB        | Light mode only             |
+| Custom Brand         | ~53KB        | Branded applications        |
 
 :::tip
-All sizes are approximate and may vary between Bulma versions. Enable gzip compression on your server to significantly reduce the actual transfer size.
+All sizes are gzipped transfer sizes (what users actually download). Uncompressed file sizes are significantly larger. Enable gzip compression on your server to achieve these transfer sizes.
 :::
 
 ---
@@ -340,5 +283,6 @@ All sizes are approximate and may vary between Bulma versions. Enable gzip compr
 
 - **Learn about configuration options**: [ConfigProvider](/docs/api/helpers/config)
 - **Explore theming capabilities**: [Theme](/docs/api/helpers/theme)
+- **Alternative icon libraries**: [Alternative Icons](/docs/guides/getting-started/alternative-icons)
 - **Framework-specific setup**: [React Setups](/docs/guides/getting-started/react-setups)
 - **Browse all components**: [API Documentation](/docs/category/elements)
