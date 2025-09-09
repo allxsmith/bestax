@@ -39,7 +39,7 @@ export interface MessageProps
  * @returns {JSX.Element} The rendered message.
  * @see {@link https://bulma.io/documentation/components/message/ | Bulma Message documentation}
  */
-export const Message: React.FC<MessageProps> = ({
+const MessageComponent: React.FC<MessageProps> = ({
   className,
   title,
   textColor,
@@ -92,4 +92,50 @@ export const Message: React.FC<MessageProps> = ({
   );
 };
 
-export default Message;
+// Compound components for flexible composition
+export interface MessageHeaderProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export interface MessageBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+const MessageHeader: React.FC<MessageHeaderProps> = ({
+  className,
+  children,
+  ...props
+}) => (
+  <div className={classNames('message-header', className)} {...props}>
+    {children}
+  </div>
+);
+
+const MessageBody: React.FC<MessageBodyProps> = ({
+  className,
+  children,
+  ...props
+}) => (
+  <div className={classNames('message-body', className)} {...props}>
+    {children}
+  </div>
+);
+
+// Create a type that extends the Message component with compound components
+type MessageWithCompounds = typeof MessageComponent & {
+  Header: typeof MessageHeader;
+  Body: typeof MessageBody;
+};
+
+// Cast Message to the compound type and assign compound components
+const MessageWithSubComponents = MessageComponent as MessageWithCompounds;
+MessageWithSubComponents.Header = MessageHeader;
+MessageWithSubComponents.Body = MessageBody;
+
+// Export the compound component
+export { MessageWithSubComponents as Message };
+
+export default MessageWithSubComponents;
