@@ -28,7 +28,11 @@ export const validColors = [
 
 /**
  * Valid Bulma color shade suffixes.
+<<<<<<< HEAD
  * @example '00', '05', 'invert', 'light', 'dark'
+=======
+ * @example '00', '05', 'invert', 'light', 'dark', 'soft', 'bold', 'on-scheme'
+>>>>>>> af5b1f7 (fix(bulma-ui): resolve flex item properties and Card compound component issues (#55))
  */
 export const validColorShades = [
   '00',
@@ -131,6 +135,10 @@ export const validDisplays = [
 
 /**
  * Valid Bulma visibility classes.
+<<<<<<< HEAD
+=======
+ * These are all the valid visibility options available in Bulma.
+>>>>>>> af5b1f7 (fix(bulma-ui): resolve flex item properties and Card compound component issues (#55))
  * @example 'hidden', 'sr-only', 'invisible'
  */
 export const validVisibilities = ['hidden', 'sr-only', 'invisible'] as const;
