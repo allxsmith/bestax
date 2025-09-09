@@ -241,7 +241,7 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
                     <Icon
                       library="fa"
                       name="github"
-                      libraryFeatures={['fab']}
+                      variant="brands"
                       ariaLabel="github"
                     />
                     <span>Github</span>

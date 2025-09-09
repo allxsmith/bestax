@@ -12,7 +12,9 @@ const meta: Meta<typeof Icon> = {
   argTypes: {
     className: { control: 'text' },
     name: { control: 'text' },
-    libraryFeatures: { control: 'object' },
+    variant: { control: 'text' },
+    features: { control: 'object' },
+    libraryFeatures: { control: 'object' }, // deprecated
     textColor: {
       control: 'select',
       options: [...validColors, 'inherit', 'current'],
@@ -30,7 +32,7 @@ const meta: Meta<typeof Icon> = {
     docs: {
       description: {
         component:
-          'A Bulma Icon component for displaying Font Awesome icons with Bulma styling.',
+          'A Bulma Icon component for displaying icons from multiple libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, and Material Symbols) with Bulma styling.',
       },
     },
   },
@@ -50,7 +52,8 @@ export const Default: Story = {
 export const FontAwesomeLarge: Story = {
   args: {
     name: 'star',
-    libraryFeatures: ['fas', 'fa-2x'],
+    variant: 'solid',
+    features: 'fa-2x',
     ariaLabel: 'Star icon large',
   },
 };
@@ -58,7 +61,8 @@ export const FontAwesomeLarge: Story = {
 export const FontAwesomeSpin: Story = {
   args: {
     name: 'spinner',
-    libraryFeatures: ['fas', 'fa-spin', 'fa-2x'],
+    variant: 'solid',
+    features: ['fa-spin', 'fa-2x'],
     ariaLabel: 'Loading spinner',
   },
 };
@@ -66,7 +70,8 @@ export const FontAwesomeSpin: Story = {
 export const FontAwesomeBorderFw: Story = {
   args: {
     name: 'star',
-    libraryFeatures: ['fas', 'fa-fw', 'fa-border', 'fa-lg'],
+    variant: 'solid',
+    features: ['fa-fw', 'fa-border', 'fa-lg'],
     ariaLabel: 'Star bordered fixed width',
   },
 };
@@ -92,5 +97,110 @@ export const WithSize: Story = {
     name: 'star',
     size: 'large',
     ariaLabel: 'Star icon large container',
+  },
+};
+
+export const MaterialDesignIcon: Story = {
+  args: {
+    name: 'home',
+    library: 'mdi',
+    ariaLabel: 'Material Design home icon',
+  },
+};
+
+export const IoniconExample: Story = {
+  args: {
+    name: 'settings',
+    library: 'ion',
+    ariaLabel: 'Ionicons web component settings',
+  },
+};
+
+export const GoogleMaterialIcon: Story = {
+  args: {
+    name: 'visibility',
+    library: 'material-icons',
+    ariaLabel: 'Google Material favorite icon',
+  },
+};
+
+export const GoogleMaterialIconOutlined: Story = {
+  args: {
+    name: 'visibility',
+    library: 'material-icons',
+    variant: 'outlined',
+    ariaLabel: 'Google Material favorite icon outlined',
+  },
+};
+
+export const GoogleMaterialIconRound: Story = {
+  args: {
+    name: 'favorite',
+    library: 'material-icons',
+    variant: 'round',
+    ariaLabel: 'Google Material favorite icon round',
+  },
+};
+
+export const MaterialSymbolsDefault: Story = {
+  args: {
+    name: 'settings',
+    library: 'material-symbols',
+    ariaLabel: 'Material Symbols settings (outlined)',
+  },
+};
+
+export const MaterialSymbolsRounded: Story = {
+  args: {
+    name: 'star',
+    library: 'material-symbols',
+    variant: 'rounded',
+    ariaLabel: 'Material Symbols star rounded',
+  },
+};
+
+export const MaterialSymbolsSharp: Story = {
+  args: {
+    name: 'home',
+    library: 'material-symbols',
+    variant: 'sharp',
+    ariaLabel: 'Material Symbols home sharp',
+  },
+};
+
+export const FontAwesomeBrands: Story = {
+  args: {
+    name: 'github',
+    library: 'fa',
+    variant: 'brands',
+    ariaLabel: 'GitHub brand icon',
+  },
+};
+
+export const IoniconOutline: Story = {
+  args: {
+    name: 'heart',
+    library: 'ion',
+    variant: 'outline',
+    ariaLabel: 'Ionicon heart outline',
+  },
+};
+
+export const IoniconSharp: Story = {
+  args: {
+    name: 'settings',
+    library: 'ion',
+    variant: 'sharp',
+    ariaLabel: 'Ionicon settings sharp',
+  },
+};
+
+export const MaterialIconsWithFeatures: Story = {
+  args: {
+    name: 'star',
+    library: 'material-icons',
+    variant: 'outlined',
+    features: 'is-size-1',
+    ariaLabel: 'Material Icons with size feature',
   },
 };

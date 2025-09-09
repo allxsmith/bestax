@@ -102,15 +102,21 @@ describe('Box Component', () => {
   });
 
   // Test 11: Applies viewport-specific classes
-  test('applies viewport-specific classes', () => {
+  test('color classes do not support viewport-specific classes', () => {
     render(
       <Box textColor="primary" viewport="tablet">
         Test
       </Box>
     );
-    expect(screen.getByText('Test')).toHaveClass('has-text-primary-tablet', {
+    expect(screen.getByText('Test')).toHaveClass('has-text-primary', {
       exact: false,
     });
+    expect(screen.getByText('Test')).not.toHaveClass(
+      'has-text-primary-tablet',
+      {
+        exact: false,
+      }
+    );
   });
 
   // Test 12: Handles valid props correctly

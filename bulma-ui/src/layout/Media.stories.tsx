@@ -43,17 +43,17 @@ export const Default: StoryObj<typeof Media> = {
           <Level.Left>
             <Level.Item as="a">
               <span className="icon is-small">
-                <Icon name="reply" library="fa" libraryFeatures={['fas']} />
+                <Icon name="reply" library="fa" variant="solid" />
               </span>
             </Level.Item>
             <Level.Item as="a">
               <span className="icon is-small">
-                <Icon name="retweet" library="fa" libraryFeatures={['fas']} />
+                <Icon name="retweet" library="fa" variant="solid" />
               </span>
             </Level.Item>
             <Level.Item as="a">
               <span className="icon is-small">
-                <Icon name="heart" library="fa" libraryFeatures={['fas']} />
+                <Icon name="heart" library="fa" variant="solid" />
               </span>
             </Level.Item>
           </Level.Left>

@@ -130,3 +130,87 @@ export const Large: StoryObj<MessageProps> = {
     children: declarationLatin,
   },
 };
+
+// ----- COMPOUND COMPONENT STORIES -----
+export const CompoundComponents: StoryObj = {
+  render: () => (
+    <Message color="info">
+      <Message.Header>
+        <p>Compound Component Message</p>
+        <button className="delete" aria-label="delete" />
+      </Message.Header>
+      <Message.Body>
+        <p>
+          This message is built using compound components for maximum
+          flexibility and control over each section.
+        </p>
+        <p>{declarationLatin}</p>
+      </Message.Body>
+    </Message>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Demonstrates the flexible compound component API for Message, allowing fine-grained control over header and body.',
+      },
+    },
+  },
+};
+
+export const CompoundMinimal: StoryObj = {
+  render: () => (
+    <Message color="success">
+      <Message.Body>
+        <p>A simple message using only the Message.Body compound component.</p>
+      </Message.Body>
+    </Message>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A minimal example using only the Message.Body compound component.',
+      },
+    },
+  },
+};
+
+export const CompoundHeaderOnly: StoryObj = {
+  render: () => (
+    <Message color="warning">
+      <Message.Header>
+        <p>Header-only message</p>
+        <button className="delete" aria-label="delete" />
+      </Message.Header>
+    </Message>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story: 'Example using only the Message.Header compound component.',
+      },
+    },
+  },
+};
+
+export const MixedApproach: StoryObj = {
+  render: () => (
+    <Message color="danger" title="Mixed Approach">
+      <Message.Body className="has-background-light">
+        <p>You can mix prop-based and compound component approaches!</p>
+        <p>
+          This message uses the title prop but compound components for the body.
+        </p>
+      </Message.Body>
+    </Message>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Shows how you can mix the traditional prop-based API with compound components for maximum flexibility.',
+      },
+    },
+  },
+};

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { Content } from '../Content'; // Adjust the import path based on your project structure
+import { Content } from '../Content';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Content Component', () => {
@@ -112,16 +112,22 @@ describe('Content Component', () => {
     expect(content).not.toHaveAttribute('m');
   });
 
-  // Test 10: Applies viewport-specific classes
-  test('applies viewport-specific classes', () => {
+  // Test 10: Color classes do not support viewport-specific classes
+  test('color classes do not support viewport-specific classes', () => {
     render(
       <Content textColor="primary" viewport="tablet">
         Test
       </Content>
     );
-    expect(screen.getByText('Test')).toHaveClass('has-text-primary-tablet', {
+    expect(screen.getByText('Test')).toHaveClass('has-text-primary', {
       exact: false,
     });
+    expect(screen.getByText('Test')).not.toHaveClass(
+      'has-text-primary-tablet',
+      {
+        exact: false,
+      }
+    );
   });
 
   // Test 11: Handles invalid props gracefully
