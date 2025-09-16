@@ -31,3 +31,150 @@
 [data-theme='dark'] .hero__subtitle {
   color: #000000;
 }
+
+/* Pronunciation Section */
+.pronunciationSection {
+  padding: 2rem 0;
+  background: var(--ifm-color-emphasis-100);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .pronunciationSection {
+  background: #1e2936;
+}
+
+.pronunciationCard {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.pronunciationHeading {
+  text-align: center;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .pronunciationHeading {
+  color: var(--ifm-heading-color);
+}
+
+.pronunciationContent {
+  text-align: center;
+}
+
+.pronunciationMain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.pronunciationCorrect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ifm-color-primary);
+  font-size: 1.3rem;
+  font-style: italic;
+}
+
+[data-theme='dark'] .pronunciationCorrect {
+  color: var(--ifm-color-primary);
+}
+
+.checkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--ifm-color-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+[data-theme='dark'] .checkIcon {
+  background: var(--ifm-color-primary);
+}
+
+.pronunciationPhonetic {
+  font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+  color: #7f8c8d;
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+[data-theme='dark'] .pronunciationPhonetic {
+  color: #95a5a6;
+}
+
+.pronunciationNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+}
+
+[data-theme='dark'] .pronunciationNote {
+  color: var(--ifm-color-emphasis-600);
+}
+
+.crossIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--ifm-color-emphasis-600);
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.pronunciationExplanation {
+  color: #5a6c7d;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid #ecf0f1;
+}
+
+[data-theme='dark'] .pronunciationExplanation {
+  color: var(--ifm-color-emphasis-700);
+  border-top-color: var(--ifm-color-emphasis-300);
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+  .pronunciationSection {
+    padding: 1.5rem 1rem;
+  }
+
+  .pronunciationCard {
+    padding: 1.5rem;
+  }
+
+  .pronunciationMain {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pronunciationHeading {
+    font-size: 1.25rem;
+  }
+}
