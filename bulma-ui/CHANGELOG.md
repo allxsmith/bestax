@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.2...@allxsmith/bestax-bulma@2.1.0) (2025-09-16)
+
+
+### Features
+
+* **docs:** add pronunciation guide and dark mode support ([#58](https://github.com/allxsmith/bestax/issues/58)) ([48a8916](https://github.com/allxsmith/bestax/commit/48a8916755716d85837ac502fbf5343414d62f68))
+
 ## [2.0.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.1...@allxsmith/bestax-bulma@2.0.2) (2025-09-09)
 
 
