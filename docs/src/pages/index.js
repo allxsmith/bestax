@@ -384,6 +384,33 @@ function HomepageHeader() {
   );
 }
 
+function PronunciationSection() {
+  return (
+    <section className={styles.pronunciationSection}>
+      <div className="container">
+        <div className={styles.pronunciationCard}>
+          <Heading as="h2" className={styles.pronunciationHeading}>
+            How to Pronounce Bestax
+          </Heading>
+          <div className={styles.pronunciationContent}>
+            <div className={styles.pronunciationMain}>
+              <div className={styles.pronunciationCorrect}>
+                <strong>&ldquo;bee-stacks&rdquo;</strong>
+              </div>
+            </div>
+            <p className={styles.pronunciationExplanation}>
+              The name combines <strong>&ldquo;B&rdquo;</strong> (for Bulma) +{' '}
+              <strong>&ldquo;stacks&rdquo;</strong> (component stacks), creating
+              a memorable name that reflects building UIs with stacked Bulma
+              components.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
@@ -396,6 +423,7 @@ export default function Home() {
         <HomepageFeatures />
         <V1ComponentList />
         <ComponentLibrarySections />
+        <PronunciationSection />
       </main>
     </Layout>
   );
