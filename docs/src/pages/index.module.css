@@ -29,7 +29,7 @@
 }
 
 [data-theme='dark'] .hero__subtitle {
-  color: #000000;
+  color: var(--ifm-color-black);
 }
 
 /* Pronunciation Section */

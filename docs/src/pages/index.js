@@ -423,8 +423,8 @@ export default function Home() {
         <HomepageFeatures />
         <V1ComponentList />
         <ComponentLibrarySections />
+        <PronunciationSection />
       </main>
-      <PronunciationSection />
     </Layout>
   );
 }
