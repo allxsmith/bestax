@@ -1,12 +1,21 @@
 ---
-title: Toolchain Specific Setups
+title: Toolchains
 sidebar_label: Toolchains
 sidebar_position: 3
 ---
 
-# Toolchain Specific Setups
+# Toolchains
 
-This guide provides detailed setup instructions for bestax-bulma across different **React frameworks** and **build tools**. Whether you're using modern tools like **Vite** or **Next.js**, or working with legacy setups, we've got you covered.
+Complete integration guides for using bestax-bulma with popular React frameworks and build tools.
+
+:::info Prerequisites
+This guide assumes you've already installed bestax-bulma and understand the basics. If not, check out:
+
+- [Quick Start](/docs/guides/intro) - 2-minute setup
+- [Installation Guide](/docs/guides/getting-started/installation) - Package options, Bulma CSS, icons
+  :::
+
+Each framework has specific setup requirements and best practices. Choose your framework below for detailed instructions.
 
 ---
 
