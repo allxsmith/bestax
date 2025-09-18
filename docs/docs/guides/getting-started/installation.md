@@ -4,15 +4,31 @@ sidebar_label: Installation
 sidebar_position: 1
 ---
 
-# Installation
+# Installation Guide
 
-This comprehensive guide will walk you through installing and setting up bestax-bulma in your React project, including Bulma CSS, icon libraries, and everything you need to get started.
+This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
+
+:::tip Quick Setup
+Need to get started quickly? Check out our [Quick Start guide](/docs/guides/intro) for a 2-minute setup, or jump to [Toolchains](/docs/guides/getting-started/react-setups) for specific toolchain instructions.
+:::
+
+:::info Already Configured?
+If you've already installed everything and want to start building, explore our [Component Documentation](/docs/category/elements) to see live examples, props, and usage patterns for all bestax-bulma components.
+:::
 
 ---
 
 ## Prerequisites
 
-Before you begin, make sure your HTML document includes the required viewport meta tag for responsive design. Add this to your `index.html` file:
+### System Requirements
+
+- **Node.js**: 16.0.0 or higher
+- **npm**: 7.0.0 or higher (or yarn/pnpm)
+- **React**: 16.8.0 or higher (requires hooks support)
+
+### HTML Setup
+
+Ensure your HTML document includes the viewport meta tag for responsive design:
 
 ```html
 <!DOCTYPE html>
@@ -28,57 +44,73 @@ Before you begin, make sure your HTML document includes the required viewport me
 </html>
 ```
 
-:::tip
-
-This viewport meta tag is essential for Bulma's responsive features to work properly across different devices.
-
+:::warning Important
+The viewport meta tag is **essential** for Bulma's responsive features. Without it, mobile layouts won't work correctly.
 :::
 
 ---
 
-## Step 1: Install the Package
+## Package Installation
 
-Install bestax-bulma using your preferred package manager:
+### Using npm (recommended)
 
 ```bash
 npm install @allxsmith/bestax-bulma
 ```
 
-or
+### Using yarn
 
 ```bash
 yarn add @allxsmith/bestax-bulma
 ```
 
-or
+### Using pnpm
 
 ```bash
 pnpm add @allxsmith/bestax-bulma
 ```
 
+### Version Management
+
+To install a specific version:
+
+```bash
+npm install @allxsmith/bestax-bulma@2.0.1
+```
+
+To see available versions:
+
+```bash
+npm view @allxsmith/bestax-bulma versions
+```
+
 ---
 
-## Step 2: Install and Import Bulma CSS
+## Bulma CSS Setup
 
-You have two options for including Bulma CSS in your project:
+bestax-bulma requires Bulma CSS for styling. Choose one of these methods:
 
-### Option A: Install Bulma Package (Recommended)
+### Method 1: NPM Package (Recommended)
 
-First, install the Bulma package:
+**Pros**: Version control, offline access, build optimizations, tree shaking
+**Cons**: Slightly larger initial setup
 
 ```bash
 npm install bulma
 ```
 
-Then import the CSS in your main JavaScript/TypeScript file (usually `src/index.js`, `src/index.ts`, or `src/main.tsx`):
+Then import in your main file:
 
 ```js
 import 'bulma/css/bulma.min.css';
 ```
 
-### Option B: Use CDN
+### Method 2: CDN
 
-Alternatively, you can include Bulma via CDN by adding this link tag to your HTML `<head>`:
+**Pros**: Quick setup, no build step required, always latest version
+**Cons**: Requires internet connection, no tree shaking
+
+Add to your HTML `<head>`:
 
 ```html
 <link
@@ -87,116 +119,320 @@ Alternatively, you can include Bulma via CDN by adding this link tag to your HTM
 />
 ```
 
-:::tip
-We recommend Option A (installing the package) as it provides better build optimization, offline support, and version control.
-:::
+### Method 3: Custom Bulma Build
+
+**Pros**: Smallest bundle size, full customization
+**Cons**: More complex setup
+
+1. Install Bulma and Sass:
+
+```bash
+npm install bulma sass
+```
+
+2. Create a custom SCSS file:
+
+```scss
+// custom-bulma.scss
+@import 'bulma/sass/utilities/initial-variables';
+
+// Customize variables
+$primary: #00d1b2;
+$link: #3273dc;
+
+// Import only what you need
+@import 'bulma/sass/base/_all';
+@import 'bulma/sass/elements/button';
+@import 'bulma/sass/elements/box';
+// ... add other components as needed
+```
+
+3. Import your custom build:
+
+```js
+import './custom-bulma.scss';
+```
 
 ---
 
-## Step 3: Install Icon Library (Optional but Recommended)
+## Icon Libraries
 
-Many bestax-bulma components work beautifully with icons. In this example we are going to cover installing one of the more popular icon libaries, Font Awesome:
+bestax-bulma components support multiple icon libraries. Icons are optional but enhance the user experience.
 
-### Install Font Awesome Free
+### Font Awesome (Most Popular)
 
 ```bash
 npm install @fortawesome/fontawesome-free
 ```
 
-### Import Font Awesome CSS
-
-Add this import to your main JavaScript/TypeScript file:
+Import in your main file:
 
 ```js
 import '@fortawesome/fontawesome-free/css/all.min.css';
 ```
 
-:::info
+Usage: `<Icon name="user" />` or `<Icon name="github" variant="brands" />`
 
-Font Awesome provides thousands of free icons that work seamlessly with bestax-bulma components like Button, Notification, and many others.
+### Material Design Icons
 
+```bash
+npm install @mdi/font
+```
+
+```js
+import '@mdi/font/css/materialdesignicons.min.css';
+```
+
+Usage: `<Icon name="account" library="mdi" />`
+
+### Material Icons (Google)
+
+```bash
+npm install material-icons
+```
+
+```js
+import 'material-icons/iconfont/material-icons.css';
+```
+
+Usage: `<Icon name="person" library="material" />`
+
+### Ionicons
+
+```bash
+npm install ionicons
+```
+
+```js
+import 'ionicons/dist/css/ionicons.min.css';
+```
+
+Usage: `<Icon name="person" library="ion" />`
+
+### Using Multiple Icon Libraries
+
+You can use multiple libraries simultaneously:
+
+```js
+// Import all icon libraries
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import '@mdi/font/css/materialdesignicons.min.css';
+import 'material-icons/iconfont/material-icons.css';
+
+// Use different libraries
+<Icon name="user" />                    // Font Awesome (default)
+<Icon name="account" library="mdi" />   // Material Design Icons
+<Icon name="person" library="material" />  // Material Icons
+```
+
+---
+
+## CSS Import Order
+
+The order of CSS imports matters for proper styling precedence:
+
+```js
+// 1. First: Bulma CSS
+import 'bulma/css/bulma.min.css';
+
+// 2. Second: Icon libraries (if using)
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// 3. Third: Any theme or override CSS
+import './theme.css';
+
+// 4. Last: Your custom styles
+import './App.css';
+```
+
+:::caution Style Conflicts
+If Bulma styles are being overridden unexpectedly, check your CSS import order. Bulma should be imported before your custom styles.
 :::
 
 ---
 
-## Step 4: Complete Example
+## TypeScript Setup
 
-Here's a complete example showing how to set up your main App component:
+bestax-bulma includes TypeScript definitions. For the best experience:
 
-```jsx title="src/App.js" live
-import React from 'react';
-import { Button, Buttons, Box, Title, Icon } from '@allxsmith/bestax-bulma';
+### Install Type Definitions
 
-// Import Bulma CSS
-import 'bulma/css/bulma.min.css';
+```bash
+npm install -D typescript @types/react @types/react-dom
+```
 
-// Import Font Awesome CSS
-import '@fortawesome/fontawesome-free/css/all.min.css';
+### TypeScript Configuration
 
-function App() {
-  return (
-    <Box mt="6">
-      <Title size="2" className="has-text-centered">
-        Welcome to bestax-bulma!
-      </Title>
+Recommended `tsconfig.json` settings:
 
-      <Buttons isCentered>
-        <Button color="primary" size="large">
-          <Icon name="rocket" />
-          <span>Get Started</span>
-        </Button>
-
-        <Button color="info" size="large" isOutlined>
-          <Icon name="book" />
-          <span>Documentation</span>
-        </Button>
-
-        <Button color="success" size="large" isLight>
-          <Icon variant="brands" name="github" />
-          <span>GitHub</span>
-        </Button>
-      </Buttons>
-    </Box>
-  );
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
 }
+```
 
-export default App;
+---
+
+## Bundle Size Optimization
+
+### Tree Shaking
+
+bestax-bulma supports tree shaking. Always use named imports:
+
+```js
+// ✅ Good - Only imports what you need
+import { Button, Box, Title } from '@allxsmith/bestax-bulma';
+
+// ❌ Bad - Imports entire library
+import * as Bulma from '@allxsmith/bestax-bulma';
+```
+
+### Analyzing Bundle Size
+
+To analyze your bundle:
+
+1. Install bundle analyzer:
+
+```bash
+npm install -D webpack-bundle-analyzer
+```
+
+2. Check what's included:
+
+```bash
+npx webpack-bundle-analyzer stats.json
+```
+
+### Expected Sizes
+
+- **bestax-bulma**: ~81KB (minified)
+- **Bulma CSS**: ~200KB (minified)
+- **With PurgeCSS**: Can reduce to ~50KB total
+
+---
+
+## Environment-Specific Setup
+
+### Development
+
+For development, use unminified versions for better debugging:
+
+```js
+if (process.env.NODE_ENV === 'development') {
+  import('bulma/css/bulma.css'); // Unminified
+} else {
+  import('bulma/css/bulma.min.css'); // Minified
+}
+```
+
+### Production
+
+For production builds:
+
+1. Use minified CSS
+2. Enable CSS purging (remove unused styles)
+3. Consider CDN for better caching
+
+### Testing
+
+For testing environments:
+
+```js
+// jest.setup.js
+import '@testing-library/jest-dom';
+
+// Mock CSS imports
+jest.mock('bulma/css/bulma.min.css', () => ({}));
 ```
 
 ---
 
 ## Verification
 
-After completing the installation, you should see a page with:
+After installation, verify everything is working:
 
-- A centered title "Welcome to bestax-bulma!"
-- Three styled buttons with icons:
-  - A primary "Get Started" button with a rocket icon
-  - An outlined info "Documentation" button with a book icon
-  - A light success "GitHub" button with a GitHub icon
+### 1. Check Package Installation
 
-If you see this layout with proper styling and icons, congratulations! You've successfully installed and configured bestax-bulma.
+```bash
+npm list @allxsmith/bestax-bulma
+```
 
----
+### 2. Check Import Resolution
 
-## Next Steps
+Your IDE should autocomplete:
 
-Now that you have bestax-bulma installed and working:
+```js
+import { Button } from '@allxsmith/bestax-bulma';
+```
 
-1. **Explore Components**: Check out the [API documentation](/docs/category/elements) to see all available components
-2. **Learn About Configuration**: Read about [ConfigProvider](/docs/api/helpers/config) for global configuration options
-3. **Customize with Theming**: Discover [Theme](/docs/api/helpers/theme) for CSS variable-based customization
-4. **Try Different Bulma Variations**: See [Bulma Variations](/docs/guides/getting-started/bulma-variations) for different Bulma CSS options
-5. **Framework-Specific Setup**: Check [React Setups](/docs/guides/getting-started/react-setups) for detailed setup guides for Vite, Next.js, and other frameworks
+### 3. Check Styling
+
+Components should have Bulma styling applied. If components appear unstyled:
+
+- Verify Bulma CSS is imported
+- Check browser console for 404 errors
+- Ensure CSS import order is correct
+
+### 4. Check Icons (if using)
+
+Icons should render correctly. If you see placeholder text instead of icons:
+
+- Verify icon library CSS is imported
+- Check the icon name matches the library's naming convention
 
 ---
 
 ## Troubleshooting
 
-If you encounter any issues:
+### Common Issues
 
-- Make sure the viewport meta tag is present in your HTML
-- Verify that Bulma CSS is being imported before your custom styles
-- Check that Font Awesome CSS is imported if you're using icons
-- Ensure you're using React 16.8+ (hooks are required)
-- See our [React Setups](/docs/guides/getting-started/react-setups) guide for framework-specific troubleshooting
+**Components are unstyled**
+
+- Solution: Ensure Bulma CSS is imported in your main file
+
+**Icons not showing**
+
+- Solution: Import the icon library CSS and verify icon names
+
+**TypeScript errors**
+
+- Solution: Install `@types/react` and `@types/react-dom`
+
+**Large bundle size**
+
+- Solution: Use named imports and consider CSS purging
+
+**Mobile layout broken**
+
+- Solution: Add viewport meta tag to your HTML
+
+### Getting Help
+
+- Check our [Toolchains guide](/docs/guides/getting-started/react-setups) for toolchain-specific issues
+- View [example projects](https://github.com/allxsmith/bestax/tree/main/examples)
+- Open an [issue on GitHub](https://github.com/allxsmith/bestax/issues)
+
+---
+
+## Next Steps
+
+Now that you understand the installation options:
+
+1. **Choose your toolchain** → [Toolchains Guide](/docs/guides/getting-started/react-setups)
+2. **Explore components** → [Component Documentation](/docs/category/elements)
+3. **Customize styling** → [Theming Guide](/docs/api/helpers/theme)
+4. **Configure globally** → [Config Provider](/docs/api/helpers/config)
