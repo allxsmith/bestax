@@ -19,7 +19,6 @@ export default {
 
           // Explicitly ignore docs and other scopes
           { scope: 'docs', release: false },
-          { scope: 'docs/*', release: false },
           { type: 'docs', release: false },
           { type: 'chore', release: false },
           { type: 'ci', release: false },
