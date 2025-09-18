@@ -32,11 +32,11 @@ npm install @allxsmith/bestax-bulma bulma
 In your `src/main.jsx`:
 
 ```jsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import 'bulma/css/bulma.min.css'  // Add this line
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import 'bulma/css/bulma.min.css';  // Add this line
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
