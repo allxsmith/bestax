@@ -1,3 +1,12 @@
+## [2.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.0...@allxsmith/bestax-bulma@2.1.1) (2025-09-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** complete domain migration and fix semantic-release configuration ([#64](https://github.com/allxsmith/bestax/issues/64)) ([f4cd71d](https://github.com/allxsmith/bestax/commit/f4cd71d531b757465bf3227aeb5c4e98419cfb97))
+* **bulma-ui:** migrate domain from bestax.cc to bestax.io ([#64](https://github.com/allxsmith/bestax/issues/64)) ([4870b1e](https://github.com/allxsmith/bestax/commit/4870b1e7d9edd7295f907ae07df9fe00f1217f46))
+* **bulma-ui:** restrict semantic-release to bulma-ui scoped commits only ([2d67bf9](https://github.com/allxsmith/bestax/commit/2d67bf9a0ed65d1258c664ca741a1b0966445b79)), closes [#62](https://github.com/allxsmith/bestax/issues/62)
+
 # [2.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.0.2...@allxsmith/bestax-bulma@2.1.0) (2025-09-16)
 
 ### Features
