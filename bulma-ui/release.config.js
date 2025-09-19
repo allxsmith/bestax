@@ -24,13 +24,6 @@ export default {
           { type: 'ci', release: false },
           { type: 'test', release: false },
           { type: 'build', release: false },
-
-          // IMPORTANT: Ignore all commits without bulma-ui scope
-          { type: 'feat', release: false },
-          { type: 'fix', release: false },
-          { type: 'perf', release: false },
-          { type: 'refactor', release: false },
-          { type: 'style', release: false },
         ],
       },
     ],

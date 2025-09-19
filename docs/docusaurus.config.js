@@ -108,12 +108,12 @@ const config = {
             'bulma, bulma-react, bulma components, bulma ui, react, react components, react bulma, react-bulma-components, react ui, typescript, component library, ui library, ui kit, design system, frontend, web components, css framework, bootstrap alternative, material alternative, storybook',
         },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'algolia-site-verification', content: '23EA554671D943E3' },
+        // { name: 'algolia-site-verification', content: '23EA554671D943E3' },
       ],
       algolia: {
         appId: 'O2KH2Y2NMJ',
-        apiKey: '03541df6645f47b7c9833bc1c162fe96',
-        indexName: 'bestax_cc_o2kh2y2nmj_pages',
+        apiKey: '18510063a0a75567625bf05512573ad6',
+        indexName: 'docs_bestax.io',
         contextualSearch: true, // Recommended for multi-language or multi-version sites
         searchPagePath: 'search', // Enables a dedicated search page at /search
       },
