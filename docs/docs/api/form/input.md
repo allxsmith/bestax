@@ -364,4 +364,4 @@ This example demonstrates using icons with different size variations of the inpu
 ## Additional Resources
 
 - [Bulma Input Documentation](https://bulma.io/documentation/form/input/)
-- [Storybook: Input Stories](https://bestax.cc/storybook/?path=/story/form-input--default)
+- [Storybook: Input Stories](https://bestax.io/storybook/?path=/story/form-input--default)

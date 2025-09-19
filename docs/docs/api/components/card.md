@@ -367,4 +367,4 @@ You can combine the traditional prop-based API with compound components:
 
 ## Additional Resources
 
-- [Storybook: Card Stories](https://bestax.cc/storybook/?path=/story/components-card--default)
+- [Storybook: Card Stories](https://bestax.io/storybook/?path=/story/components-card--default)

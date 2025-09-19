@@ -69,4 +69,4 @@ This example demonstrates the `Checkboxes` component wrapping multiple `Checkbox
 ## Additional Resources
 
 - [Bulma Checkboxes Documentation](https://bulma.io/documentation/form/checkbox/#grouped-checkboxes)
-- [Storybook: Checkbox Stories](https://bestax.cc/storybook/?path=/story/form-checkbox--listofcheckboxes)
+- [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes)

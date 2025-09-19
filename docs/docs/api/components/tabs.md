@@ -417,7 +417,7 @@ Tabs do not manage tab panels or keyboard focus automatically—implement those 
 ## Additional Resources
 
 - [Bulma Tabs Documentation](https://bulma.io/documentation/components/tabs/)
-- [Storybook: Tabs Stories](https://bestax.cc/storybook/?path=/story/components-tabs--alignment-centered)
+- [Storybook: Tabs Stories](https://bestax.io/storybook/?path=/story/components-tabs--alignment-centered)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` and its subcomponents for powerful utility-based styling.

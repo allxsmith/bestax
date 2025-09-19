@@ -51,7 +51,7 @@ import { Content } from '@allxsmith/bestax-bulma';
   <Content textAlign="centered">
     <p>
       <strong>Bestax</strong> a Bulma component library by{' '}
-      <a href="https://bestax.cc">Alex Smith</a>.<br />
+      <a href="https://bestax.io">Alex Smith</a>.<br />
       <a href="https://opensource.org/license/mit">MIT Source Code License</a>
       {', '}
       Web content licensed{' '}
@@ -89,7 +89,7 @@ When using only icons or non-text content, add `aria-label` or screen-reader-onl
 ## Additional Resources
 
 - [Bulma Footer Documentation](https://bulma.io/documentation/layout/footer/)
-- [Storybook: Footer Stories](https://bestax.cc/storybook/?path=/story/layout-footer--default)
+- [Storybook: Footer Stories](https://bestax.io/storybook/?path=/story/layout-footer--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Footer />` for powerful utility-based styling.

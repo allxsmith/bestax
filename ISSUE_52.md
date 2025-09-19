@@ -82,7 +82,7 @@ Implement a new four-tier documentation structure:
   AI you fill in the details
 
   Custom Brand (custom prefix)
-  AI you fill in the details, while looking at https://bestax.cc/blog/prefixed-bulma-and-theming#custom-prefix-support
+  AI you fill in the details, while looking at https://bestax.io/blog/prefixed-bulma-and-theming#custom-prefix-support
 
   Other Icons
   - Material Design Icons

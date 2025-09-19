@@ -15,7 +15,7 @@ const config: StorybookConfig = {
 
   addons: [
     getAbsolutePath('@storybook/addon-onboarding'),
-    getAbsolutePath("@storybook/addon-docs")
+    getAbsolutePath('@storybook/addon-docs'),
   ],
 
   framework: {
@@ -45,6 +45,6 @@ const config: StorybookConfig = {
         },
       },
     });
-  }
+  },
 };
 export default config;

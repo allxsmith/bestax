@@ -989,4 +989,4 @@ const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
 - **Explore Components**: Browse the [API documentation](/docs/category/elements) to see all available components
 - **Learn Configuration**: Read about [ConfigProvider](/docs/api/helpers/config) for global settings
 - **Customize with Theming**: Discover [Theme](/docs/api/helpers/theme) for advanced customization
-- **Check Examples**: Visit our [Storybook](https://bestax.cc/storybook) for live component examples
+- **Check Examples**: Visit our [Storybook](https://bestax.io/storybook) for live component examples

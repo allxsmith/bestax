@@ -101,7 +101,7 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 ## Additional Resources
 
 - [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
-- [Storybook: Checkbox Stories](https://bestax.cc/storybook/?path=/story/form-checkbox--default)
+- [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--default)
 
 ---
 
@@ -116,4 +116,4 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 ## Additional Resources
 
 - [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
-- [Storybook: Checkbox Stories](https://bestax.cc/storybook/?path=/story/form-checkbox--default)
+- [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--default)

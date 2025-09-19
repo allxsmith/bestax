@@ -35,14 +35,14 @@ In your `src/main.jsx`:
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import 'bulma/css/bulma.min.css';  // Add this line
+import 'bulma/css/bulma.min.css'; // Add this line
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-)
+);
 ```
 
 ---
@@ -62,10 +62,7 @@ function App() {
     <Box>
       <Title>Welcome to bestax-bulma! 🎉</Title>
 
-      <Button
-        color="primary"
-        onClick={() => setShowAlert(!showAlert)}
-      >
+      <Button color="primary" onClick={() => setShowAlert(!showAlert)}>
         Click me!
       </Button>
 
@@ -98,20 +95,26 @@ npm run dev
 Now that you have bestax-bulma running:
 
 ### 📦 **Installation Options**
+
 → [Installation Guide](/docs/guides/getting-started/installation)
+
 - Different ways to include Bulma CSS
 - Adding icon libraries (Font Awesome, Material Icons)
 - Prerequisites and browser support
 
 ### 🛠️ **Toolchain Setup**
+
 → [Toolchains](/docs/guides/getting-started/react-setups)
+
 - Next.js setup (with SSR)
 - TypeScript configuration
 - Create React App setup
 - Vite advanced configuration
 
 ### 🎨 **Explore Components**
+
 → [Browse all components](/docs/category/elements)
+
 - 60+ React components
 - Full Bulma v1 support
 - Live examples and API docs
@@ -123,18 +126,23 @@ Now that you have bestax-bulma running:
 bestax-bulma provides a complete set of Bulma components organized into logical groups:
 
 ### 🟢 [Elements](/docs/category/elements)
+
 Basic building blocks like [Button](/docs/api/elements/button), [Box](/docs/api/elements/box), [Title](/docs/api/elements/title), and [Tag](/docs/api/elements/tag).
 
 ### 🟦 [Layout](/docs/category/layout)
+
 Structure your app with [Container](/docs/api/layout/container), [Section](/docs/api/layout/section), [Hero](/docs/api/layout/hero), and [Level](/docs/api/layout/level).
 
 ### 🟧 [Components](/docs/category/components)
+
 Advanced UI components like [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Card](/docs/api/components/card), and [Dropdown](/docs/api/components/dropdown).
 
 ### 🟪 [Form](/docs/category/form)
+
 Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Checkbox](/docs/api/form/checkbox), and [Field](/docs/api/form/field).
 
 ### 🟩 [Grid & Columns](/docs/category/grid)
+
 Responsive layouts with [Grid](/docs/api/grid), [Columns](/docs/api/columns), and [Cell](/docs/api/grid/cell).
 
 ---
@@ -152,17 +160,10 @@ function Demo() {
     <Box>
       <Title size="4">Interactive Demo</Title>
       <Buttons>
-        <Button
-          color="primary"
-          onClick={() => setCount(count + 1)}
-        >
+        <Button color="primary" onClick={() => setCount(count + 1)}>
           Clicked {count} times
         </Button>
-        <Button
-          color="danger"
-          isOutlined
-          onClick={() => setCount(0)}
-        >
+        <Button color="danger" isOutlined onClick={() => setCount(0)}>
           Reset
         </Button>
       </Buttons>
@@ -176,7 +177,7 @@ function Demo() {
 ## Need Help?
 
 - 📚 **[Full Documentation](/docs/guides/getting-started/installation)** - Detailed setup guides
-- 🎨 **[Storybook](https://bestax.cc/storybook)** - Interactive component explorer
+- 🎨 **[Storybook](https://bestax.io/storybook)** - Interactive component explorer
 - 💬 **[GitHub Issues](https://github.com/allxsmith/bestax/issues)** - Report bugs or request features
 - 📦 **[NPM Package](https://www.npmjs.com/package/@allxsmith/bestax-bulma)** - Package details
 

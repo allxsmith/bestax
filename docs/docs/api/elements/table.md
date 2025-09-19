@@ -270,5 +270,5 @@ For responsive tables, ensure your column headers are clear and concise for smal
 ## Additional Resources
 
 - [Bulma Table Documentation](https://bulma.io/documentation/elements/table/)
-- [Storybook: Table Stories](https://bestax.cc/storybook/?path=/story/elements-table--default)
+- [Storybook: Table Stories](https://bestax.io/storybook/?path=/story/elements-table--default)
   :::

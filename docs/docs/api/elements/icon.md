@@ -212,4 +212,4 @@ For purely decorative icons, you can use `aria-hidden="true"` via the `...rest` 
 
 - [Bulma Icon Documentation](https://bulma.io/documentation/elements/icon/)
 - [Font Awesome Docs](https://fontawesome.com/docs/web/use-with/react/)
-- [Storybook: Icon Stories](https://bestax.cc/storybook/?path=/story/elements-icon--default)
+- [Storybook: Icon Stories](https://bestax.io/storybook/?path=/story/elements-icon--default)

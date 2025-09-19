@@ -183,7 +183,7 @@ function Demo() {
 ## Need Help?
 
 - 📚 **[Full Documentation](/docs/guides/getting-started/installation)** - Detailed setup guides
-- 🎨 **[Storybook](https://bestax.cc/storybook)** - Interactive component explorer
+- 🎨 **[Storybook](https://bestax.io/storybook)** - Interactive component explorer
 - 💬 **[GitHub Issues](https://github.com/allxsmith/bestax/issues)** - Report bugs or request features
 - 📦 **[NPM Package](https://www.npmjs.com/package/@allxsmith/bestax-bulma)** - Package details
 

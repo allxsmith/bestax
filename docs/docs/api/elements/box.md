@@ -134,4 +134,4 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 ## Additional Resources
 
 - [Bulma Box Documentation](https://bulma.io/documentation/elements/box/)
-- [Storybook: Box Stories](https://bestax.cc/storybook/?path=/story/elements-box--default)
+- [Storybook: Box Stories](https://bestax.io/storybook/?path=/story/elements-box--default)

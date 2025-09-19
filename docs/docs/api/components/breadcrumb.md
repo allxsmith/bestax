@@ -360,4 +360,4 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
 ## Additional Resources
 
 - [Bulma Breadcrumb Documentation](https://bulma.io/documentation/components/breadcrumb/)
-- [Storybook: Breadcrumb Stories](https://bestax.cc/storybook/?path=/story/components-breadcrumb--default)
+- [Storybook: Breadcrumb Stories](https://bestax.io/storybook/?path=/story/components-breadcrumb--default)

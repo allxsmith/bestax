@@ -159,4 +159,4 @@ When using `as="p"`, the element is visually styled as a heading but semanticall
 ## Additional Resources
 
 - [Bulma Title Documentation](https://bulma.io/documentation/elements/title/)
-- [Storybook: Title Stories](https://bestax.cc/storybook/?path=/story/elements-title--default)
+- [Storybook: Title Stories](https://bestax.io/storybook/?path=/story/elements-title--default)

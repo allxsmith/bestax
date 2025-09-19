@@ -255,4 +255,4 @@ The following components support the `skeleton` property for Bulma skeleton load
 ## Additional Resources
 
 - [Bulma Skeleton Documentation](https://bulma.io/documentation/features/skeletons/)
-- [Storybook: Skeleton Stories](https://bestax.cc/storybook/?path=/story/elements-skeleton--default)
+- [Storybook: Skeleton Stories](https://bestax.io/storybook/?path=/story/elements-skeleton--default)
