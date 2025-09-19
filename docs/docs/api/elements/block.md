@@ -158,4 +158,4 @@ Use `Block` for logical, visually separated sections of content.
 ## Additional Resources
 
 - [Bulma Block Documentation](https://bulma.io/documentation/elements/block/)
-- [Storybook: Block Stories](https://bestax.cc/storybook/?path=/story/elements-block--default)
+- [Storybook: Block Stories](https://bestax.io/storybook/?path=/story/elements-block--default)

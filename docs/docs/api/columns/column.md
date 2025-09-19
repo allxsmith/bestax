@@ -346,4 +346,4 @@ Narrow columns only take up as much width as their content, which can be useful 
 
 - [Columns container](./columns.md)
 - [Bulma Columns Documentation](https://bulma.io/documentation/columns/)
-- [Storybook: Column Story](https://bestax.cc/storybook/?path=/story/columns-column--default)
+- [Storybook: Column Story](https://bestax.io/storybook/?path=/story/columns-column--default)

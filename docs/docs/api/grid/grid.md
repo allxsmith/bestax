@@ -220,4 +220,4 @@ See [Cell documentation](./cell.md) for granular placement using `colStart`, `co
 
 - [Cell component](./cell.md)
 - [Bulma Grid Documentation](https://bulma.io/documentation/grid/)
-- [Storybook: Grid Story](https://bestax.cc/storybook/?path=/story/grid-grid--smart-grid)
+- [Storybook: Grid Story](https://bestax.io/storybook/?path=/story/grid-grid--smart-grid)

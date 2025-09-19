@@ -233,7 +233,7 @@ Pagination links are rendered as `<a>` elements for accessibility and keyboard n
 ## Additional Resources
 
 - [Bulma Pagination Documentation](https://bulma.io/documentation/components/pagination/)
-- [Storybook: Pagination Stories](https://bestax.cc/storybook/?path=/story/components-pagination--basic)
+- [Storybook: Pagination Stories](https://bestax.io/storybook/?path=/story/components-pagination--basic)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagination />` and its subcomponents for utility-based styling.

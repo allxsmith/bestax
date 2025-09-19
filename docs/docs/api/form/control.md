@@ -275,4 +275,4 @@ The `Control` component can also be used with radio buttons or checkboxes. This 
 ## Additional Resources
 
 - [Bulma Control Documentation](https://bulma.io/documentation/form/general/#control)
-- [Storybook: Input Stories](https://bestax.cc/storybook/?path=/story/form-input--default)
+- [Storybook: Input Stories](https://bestax.io/storybook/?path=/story/form-input--default)

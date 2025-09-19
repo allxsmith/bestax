@@ -296,7 +296,7 @@ If your button has only an icon, use `aria-label` to provide accessible text.
 
 - [Bulma Button Documentation](https://bulma.io/documentation/elements/button/)
 - [React Button Accessibility](https://www.w3.org/WAI/ARIA/apg/patterns/button/)
-- [Storybook: Button Stories](https://bestax.cc/storybook/?path=/story/elements-button--default)
+- [Storybook: Button Stories](https://bestax.io/storybook/?path=/story/elements-button--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Button />` for powerful utility-based styling.

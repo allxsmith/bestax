@@ -170,7 +170,7 @@ The `fluid` prop makes the container expand to the full width of the screen, wit
 ## Additional Resources
 
 - [Bulma Container Documentation](https://bulma.io/documentation/layout/container/)
-- [Storybook: Container Stories](https://bestax.cc/storybook/?path=/story/layout-container--default)
+- [Storybook: Container Stories](https://bestax.io/storybook/?path=/story/layout-container--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Container />` for powerful utility-based styling.

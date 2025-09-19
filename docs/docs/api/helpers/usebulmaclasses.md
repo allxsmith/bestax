@@ -1046,4 +1046,4 @@ Only certain properties support responsive variants:
 
 - [classNames helper](./classnames.md)
 - [Bulma Classes Reference](https://bulma.io/documentation/helpers/)
-- [Storybook: useBulmaClasses Demo](https://bestax.cc/storybook/?path=/story/helpers-usebulmaclasses--default)
+- [Storybook: useBulmaClasses Demo](https://bestax.io/storybook/?path=/story/helpers-usebulmaclasses--default)

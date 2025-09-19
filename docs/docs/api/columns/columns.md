@@ -587,4 +587,4 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 
 - [Column component](./column.md)
 - [Bulma Columns Documentation](https://bulma.io/documentation/columns/)
-- [Storybook: Columns Story](https://bestax.cc/storybook/?path=/story/columns-columns--mobile-columns)
+- [Storybook: Columns Story](https://bestax.io/storybook/?path=/story/columns-columns--mobile-columns)

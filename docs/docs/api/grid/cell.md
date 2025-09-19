@@ -217,4 +217,4 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 
 - [Grid component](./grid.md)
 - [Bulma Grid Documentation](https://bulma.io/documentation/grid/)
-- [Storybook: Cell Story](https://bestax.cc/storybook/?path=/story/grid-cell--column-start)
+- [Storybook: Cell Story](https://bestax.io/storybook/?path=/story/grid-cell--column-start)

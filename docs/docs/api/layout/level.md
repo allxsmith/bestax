@@ -216,7 +216,7 @@ For best accessibility, use semantic elements for headings/content within items,
 ## Additional Resources
 
 - [Bulma Level Documentation](https://bulma.io/documentation/layout/level/)
-- [Storybook: Level Stories](https://bestax.cc/storybook/?path=/story/layout-level--default)
+- [Storybook: Level Stories](https://bestax.io/storybook/?path=/story/layout-level--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level />`, `<Level.Left>`, `<Level.Right>`, and `<Level.Item>` for powerful utility-based styling.

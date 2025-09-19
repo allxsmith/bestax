@@ -271,4 +271,4 @@ Set the `hasFixedSize` prop to prevent the textarea from being resized by the us
 ## Additional Resources
 
 - [Bulma Textarea Documentation](https://bulma.io/documentation/form/textarea/)
-- [Storybook: TextArea Stories](https://bestax.cc/storybook/?path=/story/form-textarea--default)
+- [Storybook: TextArea Stories](https://bestax.io/storybook/?path=/story/form-textarea--default)

@@ -221,7 +221,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 ## Additional Resources
 
 - [Bulma Message Documentation](https://bulma.io/documentation/components/message/)
-- [Storybook: Message Stories](https://bestax.cc/storybook/?path=/story/components-message--primary)
+- [Storybook: Message Stories](https://bestax.io/storybook/?path=/story/components-message--primary)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.

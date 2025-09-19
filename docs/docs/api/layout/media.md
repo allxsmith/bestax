@@ -284,7 +284,7 @@ When using only icons or controls, provide `aria-label` or screen-reader-only co
 ## Additional Resources
 
 - [Bulma Media Object Documentation](https://bulma.io/documentation/layout/media-object/)
-- [Storybook: Media Stories](https://bestax.cc/storybook/?path=/story/layout-media--default)
+- [Storybook: Media Stories](https://bestax.io/storybook/?path=/story/layout-media--default)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Media />` and its subcomponents for powerful utility-based styling.

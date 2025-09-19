@@ -16,7 +16,7 @@ If you discover a security vulnerability in this library, please report it respo
 
 ### How to Report
 
-- **Email us**: Send details to [security@bestax.cc](mailto:security@bestax.cc).
+- **Email us**: Send details to [security@bestax.io](mailto:security@bestax.io).
 - **GitHub Security Advisory**: Under GitHub's Security tab, under Advisories. Press the "Report a vulnerability" button to report a vulnerability privately.
 - Include as much information as possible: steps to reproduce, affected versions, potential impact, and any suggested fixes.
 

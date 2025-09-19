@@ -350,4 +350,4 @@ For a right-aligned file input, use the `isRight` prop. This can be useful in la
 ## Additional Resources
 
 - [Bulma File Documentation](https://bulma.io/documentation/form/file/)
-- [Storybook: File Stories](https://bestax.cc/storybook/?path=/story/form-file--default)
+- [Storybook: File Stories](https://bestax.io/storybook/?path=/story/form-file--default)
