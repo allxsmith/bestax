@@ -1,4 +1,14 @@
-# bestax-bulma
+# @allxsmith/bestax-bulma
+
+[![npm version](https://img.shields.io/npm/v/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
+[![npm downloads](https://img.shields.io/npm/dm/@allxsmith/bestax-bulma.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@allxsmith/bestax-bulma.svg)](https://bundlephobia.com/package/@allxsmith/bestax-bulma)
+[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax)
+[![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+React Bulma components library - TypeScript-first component library for Bulma CSS framework. Build accessible, modern UIs with fully-typed React components.
 
 A modern, flexible React component library built with the latest Bulma v1 and TypeScript.
 

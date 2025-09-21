@@ -46,27 +46,10 @@
     "typescript": "^5.8.3"
   },
   "keywords": [
-    "bulma",
-    "bulma-react",
-    "bulma components",
-    "bulma ui",
     "react",
-    "react components",
-    "react bulma",
-    "react-bulma-components",
-    "react ui",
+    "bulma",
     "typescript",
-    "component library",
-    "ui library",
-    "ui kit",
-    "design system",
-    "frontend",
-    "web components",
-    "css framework",
-    "bootstrap alternative",
-    "material alternative",
-    "storybook",
-    "bestax"
+    "components"
   ],
   "commitlint": {
     "extends": [
