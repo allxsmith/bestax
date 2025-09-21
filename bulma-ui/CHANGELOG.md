@@ -1,3 +1,15 @@
+## [2.1.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.1...@allxsmith/bestax-bulma@2.1.2) (2025-09-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** improve npm package discoverability with optimized keywords and badges ([#72](https://github.com/allxsmith/bestax/issues/72)) ([8c7a696](https://github.com/allxsmith/bestax/commit/8c7a69664fcc6409096cd72b9bb006ff8edf8ddc))
+
+
+### Features
+
+* **docs:** add Google Analytics tracking for usage insights ([#68](https://github.com/allxsmith/bestax/issues/68)) ([90ab951](https://github.com/allxsmith/bestax/commit/90ab951f901df9bb71e2306b2a8ff74036d9d85a))
+
 ## [2.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.0...@allxsmith/bestax-bulma@2.1.1) (2025-09-19)
 
 
