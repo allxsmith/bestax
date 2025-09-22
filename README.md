@@ -84,21 +84,21 @@ export default App;
 
 ---
 
-## 💎 Why Choose bestax-bulma?
+## ⭐ Why Choose bestax-bulma?
 
-- **Supports the latest Bulma v1.x**  
+- **Ultra-lightweight: Only 21KB gzipped** ✨
+  3-20x smaller than most popular React UI libraries (which range from 60-500KB+ gzipped)
+- **Supports the latest Bulma v1.x**
   Other React Bulma libraries are stuck on Bulma 0.9.4 — bestax-bulma is built for the future.
-- **Super small bundle size**  
-  The published ESM/CJS builds (dist/index.esm.js) are just over 81kB. Smaller than most other CSS based React frameworks.
-- **Zero external dependencies**  
-  Clean install, smaller bundle, fewer codeql security issues.
-- **99% unit test coverage**  
+- **Zero external dependencies**
+  Clean install, smaller bundle, fewer security concerns.
+- **99% unit test coverage**
   Rigorously tested for reliability and stability.
-- **100% TypeScript**  
+- **100% TypeScript**
   Full type safety for you and your team.
-- **100% Bulma Implementation**  
+- **100% Bulma Implementation**
   Complete bulma implementation.
-- **Active developer support**  
+- **Active developer support**
   Issues? Questions? PRs? Get fast responses and real improvements.
 
 ---

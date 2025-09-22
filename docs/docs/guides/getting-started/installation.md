@@ -319,9 +319,9 @@ npx webpack-bundle-analyzer stats.json
 
 ### Expected Sizes
 
-- **bestax-bulma**: ~81KB (minified)
-- **Bulma CSS**: ~200KB (minified)
-- **With PurgeCSS**: Can reduce to ~50KB total
+- **bestax-bulma**: ~21KB (gzipped)
+- **Bulma CSS**: ~30KB (gzipped)
+- **With PurgeCSS**: Can reduce Bulma CSS further
 
 ---
 
