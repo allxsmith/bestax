@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.2...@allxsmith/bestax-bulma@2.1.3) (2025-09-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** update bundle size claims to accurate 21KB gzipped ([#66](https://github.com/allxsmith/bestax/issues/66)) ([6e381bd](https://github.com/allxsmith/bestax/commit/6e381bdc16ad5572a40983ccc079e33c7882c0c6))
+
 ## [2.1.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.1...@allxsmith/bestax-bulma@2.1.2) (2025-09-21)
 
 
