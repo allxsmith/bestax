@@ -20,8 +20,8 @@ const FeatureList = [
     Svg: require('@site/static/img/card/iconmonstr-connection-2.svg').default,
     description: (
       <>
-        Super small bundle size: Just over 81kB for ESM/CJS builds. Smaller than
-        most CSS-based React frameworks. Zero external dependencies: Clean
+        Ultra-lightweight: Only 21KB gzipped. 3-20x smaller than
+        most React UI libraries. Zero external dependencies: Clean
         installs, reduced bundle size, and fewer security concerns.
       </>
     ),
