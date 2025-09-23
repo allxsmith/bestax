@@ -2,6 +2,7 @@ import { Meta, StoryObj } from '@storybook/react-vite';
 import { SubTitle, SubTitleProps } from './SubTitle';
 import { Title } from './Title';
 import { Block } from './Block';
+import React, { useEffect, useState } from 'react';
 
 const meta: Meta<typeof SubTitle> = {
   title: 'Elements/SubTitle',
@@ -20,6 +21,8 @@ const meta: Meta<typeof SubTitle> = {
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
     },
     className: { control: 'text' },
+    hasSkeleton: { control: 'boolean' },
+    skeleton: { control: 'boolean' },
   },
 };
 
@@ -147,6 +150,50 @@ export const TitleAndSubtitleSpaced: Story = {
       description: {
         story:
           'Shows Title and SubTitle components rendered as paragraphs with paired sizes, with spaced titles.',
+      },
+    },
+  },
+};
+
+// --- Skeleton Stories ---
+
+export const HasSkeleton: Story = {
+  args: {
+    children: 'SubTitle',
+    hasSkeleton: true,
+    size: '3',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Applies the `has-skeleton` class to the SubTitle component using the hasSkeleton prop.',
+      },
+    },
+  },
+};
+
+const IsSkeletonComponent: React.FC = () => {
+  // This toggles the skeleton prop every 3 seconds
+  const [skeleton, setSkeleton] = useState(true);
+  useEffect(() => {
+    const timer = setInterval(() => setSkeleton(s => !s), 3000);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <SubTitle skeleton={skeleton} size="4">
+      SubTitle
+    </SubTitle>
+  );
+};
+
+export const IsSkeleton: Story = {
+  render: () => <IsSkeletonComponent />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Uses the `skeleton` prop (handled by useBulmaClasses) to toggle the `is-skeleton` class every 3 seconds.',
       },
     },
   },

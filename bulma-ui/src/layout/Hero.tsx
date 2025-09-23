@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -59,22 +59,17 @@ export const Hero: React.FC<HeroProps> & {
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const heroClasses = classNames(
-    'hero',
-    bulmaHelperClasses,
-    className,
-    color && `is-${color}`,
-    size && size !== 'fullheight-with-navbar' && `is-${size}`,
-    {
-      'is-fullheight-with-navbar':
-        fullheightWithNavbar || size === 'fullheight-with-navbar',
-    }
-  );
+  const mainClass = usePrefixedClassNames('hero', {
+    [`is-${color}`]: color,
+    [`is-${size}`]: size && size !== 'fullheight-with-navbar',
+    'is-fullheight-with-navbar':
+      fullheightWithNavbar || size === 'fullheight-with-navbar',
+  });
+  const heroClasses = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <section className={heroClasses} {...rest}>
@@ -118,11 +113,10 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = usePrefixedClassNames('hero-head');
+  const heroHeadClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames('hero-head', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroHeadClasses} {...rest}>
       {children}
     </div>
   );
@@ -163,11 +157,10 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = usePrefixedClassNames('hero-body');
+  const heroBodyClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames('hero-body', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroBodyClasses} {...rest}>
       {children}
     </div>
   );
@@ -208,11 +201,10 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const mainClass = usePrefixedClassNames('hero-foot');
+  const heroFootClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
-      className={classNames('hero-foot', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={heroFootClasses} {...rest}>
       {children}
     </div>
   );

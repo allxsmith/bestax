@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -149,16 +149,19 @@ export const Pagination: React.FC<PaginationProps> & {
     backgroundColor: bgColor,
     ...props,
   });
+
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('pagination', {
+    [`is-${color}`]: color,
+    [`is-${size}`]: size,
+    [`is-${align}`]: align,
+    'is-rounded': rounded,
+  });
+
   const paginationClasses = classNames(
-    'pagination',
+    bulmaClasses,
     bulmaHelperClasses,
-    className,
-    {
-      [`is-${color}`]: color,
-      [`is-${size}`]: size,
-      [`is-${align}`]: align,
-      'is-rounded': rounded,
-    }
+    className
   );
 
   return (

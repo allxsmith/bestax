@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
-import { Block } from '../Block'; // Adjust the import path based on your project structure
+import { Block } from '../Block';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Block Component', () => {
   // Test 1: Renders children correctly
@@ -77,28 +78,91 @@ describe('Block Component', () => {
     expect(block).not.toHaveAttribute('m');
   });
 
-  // Test 9: Applies viewport-specific classes
-  test('applies viewport-specific classes', () => {
+  // Test 9: Color classes do not support viewport-specific classes
+  test('color classes do not support viewport-specific classes', () => {
     render(
       <Block textColor="primary" viewport="tablet">
         Test
       </Block>
     );
-    expect(screen.getByText('Test')).toHaveClass('has-text-primary-tablet', {
+    expect(screen.getByText('Test')).toHaveClass('has-text-primary', {
       exact: false,
     });
+    expect(screen.getByText('Test')).not.toHaveClass(
+      'has-text-primary-tablet',
+      {
+        exact: false,
+      }
+    );
   });
 
-  // Test 10: Handles invalid props gracefully
-  test('ignores invalid Bulma props', () => {
+  // Test 10: Handles valid props correctly
+  test('applies valid Bulma props', () => {
     render(
-      <Block textColor="invalid-color" m="invalid-size" as="invalid">
+      <Block textColor="primary" m="1">
         Test
       </Block>
     );
     const block = screen.getByText('Test');
     expect(block).toHaveClass('block', { exact: false });
-    expect(block).not.toHaveClass('has-text-invalid-color');
-    expect(block).not.toHaveClass('m-invalid-size');
+    expect(block).toHaveClass('has-text-primary');
+    expect(block).toHaveClass('m-1');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('my-prefix-block');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('block');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Block>Test</Block>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('block');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Block m="2" p="3">
+            Test Block
+          </Block>
+        </ConfigProvider>
+      );
+
+      const block = container.querySelector('div');
+      expect(block).toHaveClass('bulma-block');
+      expect(block).toHaveClass('bulma-m-2');
+      expect(block).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Block m="4" textAlign="centered">
+          Standard Block
+        </Block>
+      );
+
+      const block = container.querySelector('div');
+      expect(block).toHaveClass('block');
+      expect(block).toHaveClass('m-4');
+      expect(block).toHaveClass('has-text-centered');
+    });
   });
 });

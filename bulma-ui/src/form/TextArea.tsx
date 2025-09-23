@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -55,7 +55,7 @@ export interface TextAreaProps
  * @returns {JSX.Element} The rendered textarea element.
  * @see {@link https://bulma.io/documentation/form/textarea/ | Bulma Textarea documentation}
  */
-const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
     {
       color,
@@ -80,22 +80,18 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       ...props,
     });
 
-    const textareaClass = classNames(
-      'textarea',
-      bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-rounded': isRounded,
-        'is-static': isStatic,
-        'is-hovered': isHovered,
-        'is-focused': isFocused,
-        'is-loading': isLoading,
-        'is-active': isActive,
-        'has-fixed-size': hasFixedSize,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('textarea', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-rounded': isRounded,
+      'is-static': isStatic,
+      'is-hovered': isHovered,
+      'is-focused': isFocused,
+      'is-loading': isLoading,
+      'is-active': isActive,
+      'has-fixed-size': hasFixedSize,
+    });
+    const textareaClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (
       <textarea

@@ -123,11 +123,11 @@ export const CustomClass: Story = {
   },
 };
 
-// Box with viewport-specific text color
+// Box with viewport-specific text size (colors don't support viewport)
 export const ViewportSpecific: Story = {
   args: {
-    children: 'Box with Tablet-specific Primary Text',
-    textColor: 'primary',
+    children: 'Box with Tablet-specific Large Text',
+    textSize: '3',
     viewport: 'tablet',
   },
 };

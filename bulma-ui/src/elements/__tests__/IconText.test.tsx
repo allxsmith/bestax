@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { IconText } from '../IconText';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('IconText Component', () => {
   const defaultIconProps = { name: 'fas fa-star', ariaLabel: 'Star icon' };
@@ -93,5 +94,86 @@ describe('IconText Component', () => {
     );
     const iconText = screen.getByTestId('test-icon-text');
     expect(iconText).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <IconText iconProps={defaultIconProps}>Star</IconText>
+      </ConfigProvider>
+    );
+    const iconText = screen.getByText('Star').parentElement;
+    expect(iconText).toHaveClass('bulma-icon-text');
+    expect(iconText).not.toHaveClass('icon-text');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <IconText iconProps={defaultIconProps} data-testid="icon-text">
+            Star
+          </IconText>
+        </ConfigProvider>
+      );
+      const iconText = screen.getByTestId('icon-text');
+      expect(iconText).toHaveClass('bulma-icon-text');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <IconText iconProps={defaultIconProps} data-testid="icon-text">
+          Star
+        </IconText>
+      );
+      const iconText = screen.getByTestId('icon-text');
+      expect(iconText).toHaveClass('icon-text');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <IconText iconProps={defaultIconProps} data-testid="icon-text">
+            Star
+          </IconText>
+        </ConfigProvider>
+      );
+      const iconText = screen.getByTestId('icon-text');
+      expect(iconText).toHaveClass('icon-text');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <IconText
+            iconProps={defaultIconProps}
+            textColor="primary"
+            m="2"
+            data-testid="icon-text"
+          >
+            Star
+          </IconText>
+        </ConfigProvider>
+      );
+      const iconText = screen.getByTestId('icon-text');
+      expect(iconText).toHaveClass('bulma-icon-text');
+      expect(iconText).toHaveClass('bulma-has-text-primary');
+      expect(iconText).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <IconText
+          iconProps={defaultIconProps}
+          textColor="danger"
+          data-testid="icon-text"
+        >
+          Star
+        </IconText>
+      );
+      const iconText = screen.getByTestId('icon-text');
+      expect(iconText).toHaveClass('icon-text');
+      expect(iconText).toHaveClass('has-text-danger');
+    });
   });
 });

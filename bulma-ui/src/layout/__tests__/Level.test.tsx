@@ -5,6 +5,7 @@ import Button from '../../elements/Button';
 import Field from '../../form/Field';
 import Control from '../../form/Control';
 import Input from '../../form/Input';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Level', () => {
   it('renders default layout with Bulma helpers', () => {
@@ -122,5 +123,214 @@ describe('Level', () => {
     expect(anchor).toHaveAttribute('rel', 'noopener');
     expect(anchor).toHaveClass('level-item');
     expect(anchor).toHaveTextContent('Link Item');
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Level data-testid="level-test">Test Level</Level>
+      </ConfigProvider>
+    );
+    const level = screen.getByTestId('level-test');
+    expect(level).toHaveClass('custom-level');
+  });
+
+  it('applies classPrefix to Level subcomponents when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Level>
+          <Level.Left data-testid="left">Left</Level.Left>
+          <Level.Right data-testid="right">Right</Level.Right>
+          <Level.Item data-testid="item">Item</Level.Item>
+        </Level>
+      </ConfigProvider>
+    );
+    expect(screen.getByTestId('left')).toHaveClass('custom-level-left');
+    expect(screen.getByTestId('right')).toHaveClass('custom-level-right');
+    expect(screen.getByTestId('item')).toHaveClass('custom-level-item');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Level data-testid="level">Level content</Level>
+        </ConfigProvider>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toBeInTheDocument();
+      expect(level).toHaveClass('bulma-level');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Level data-testid="level">Level content</Level>);
+      const level = screen.getByTestId('level');
+      expect(level).toBeInTheDocument();
+      expect(level).toHaveClass('level');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Level data-testid="level">Level content</Level>
+        </ConfigProvider>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toBeInTheDocument();
+      expect(level).toHaveClass('level');
+    });
+
+    it('applies prefix to both main class and level modifiers', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Level data-testid="level" isMobile m="3">
+            Level content
+          </Level>
+        </ConfigProvider>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toBeInTheDocument();
+      expect(level).toHaveClass('bulma-level');
+      expect(level).toHaveClass('bulma-is-mobile');
+      expect(level).toHaveClass('bulma-m-3');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Level data-testid="level" isMobile p="2">
+          Level content
+        </Level>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toBeInTheDocument();
+      expect(level).toHaveClass('level');
+      expect(level).toHaveClass('is-mobile');
+      expect(level).toHaveClass('p-2');
+    });
+
+    it('applies prefix to Level subcomponents', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Level>
+            <Level.Left data-testid="left" textColor="primary">
+              Left Content
+            </Level.Left>
+            <Level.Right data-testid="right" bgColor="light">
+              Right Content
+            </Level.Right>
+            <Level.Item data-testid="item" hasTextCentered color="danger">
+              Item Content
+            </Level.Item>
+          </Level>
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('left')).toHaveClass('bulma-level-left');
+      expect(screen.getByTestId('left')).toHaveClass('bulma-has-text-primary');
+      expect(screen.getByTestId('right')).toHaveClass('bulma-level-right');
+      expect(screen.getByTestId('right')).toHaveClass(
+        'bulma-has-background-light'
+      );
+      expect(screen.getByTestId('item')).toHaveClass('bulma-level-item');
+      expect(screen.getByTestId('item')).toHaveClass('bulma-has-text-centered');
+      expect(screen.getByTestId('item')).toHaveClass('bulma-has-text-danger');
+    });
+  });
+
+  describe('Color Props Fallback', () => {
+    it('uses textColor when both textColor and color are provided for Level', () => {
+      render(
+        <Level data-testid="level" textColor="primary" color="danger">
+          Level content
+        </Level>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toHaveClass('has-text-primary');
+      expect(level).not.toHaveClass('has-text-danger');
+    });
+
+    it('falls back to color when textColor is not provided for Level', () => {
+      render(
+        <Level data-testid="level" color="warning">
+          Level content
+        </Level>
+      );
+      const level = screen.getByTestId('level');
+      expect(level).toHaveClass('has-text-warning');
+    });
+
+    it('uses textColor when both textColor and color are provided for Level.Left', () => {
+      render(
+        <Level>
+          <Level.Left data-testid="left" textColor="success" color="info">
+            Left content
+          </Level.Left>
+        </Level>
+      );
+      const left = screen.getByTestId('left');
+      expect(left).toHaveClass('has-text-success');
+      expect(left).not.toHaveClass('has-text-info');
+    });
+
+    it('falls back to color when textColor is not provided for Level.Left', () => {
+      render(
+        <Level>
+          <Level.Left data-testid="left" color="link">
+            Left content
+          </Level.Left>
+        </Level>
+      );
+      const left = screen.getByTestId('left');
+      expect(left).toHaveClass('has-text-link');
+    });
+
+    it('uses textColor when both textColor and color are provided for Level.Right', () => {
+      render(
+        <Level>
+          <Level.Right data-testid="right" textColor="dark" color="light">
+            Right content
+          </Level.Right>
+        </Level>
+      );
+      const right = screen.getByTestId('right');
+      expect(right).toHaveClass('has-text-dark');
+      expect(right).not.toHaveClass('has-text-light');
+    });
+
+    it('falls back to color when textColor is not provided for Level.Right', () => {
+      render(
+        <Level>
+          <Level.Right data-testid="right" color="black">
+            Right content
+          </Level.Right>
+        </Level>
+      );
+      const right = screen.getByTestId('right');
+      expect(right).toHaveClass('has-text-black');
+    });
+
+    it('uses textColor when both textColor and color are provided for Level.Item', () => {
+      render(
+        <Level>
+          <Level.Item data-testid="item" textColor="white" color="grey">
+            Item content
+          </Level.Item>
+        </Level>
+      );
+      const item = screen.getByTestId('item');
+      expect(item).toHaveClass('has-text-white');
+      expect(item).not.toHaveClass('has-text-grey');
+    });
+
+    it('falls back to color when textColor is not provided for Level.Item', () => {
+      render(
+        <Level>
+          <Level.Item data-testid="item" color="grey-light">
+            Item content
+          </Level.Item>
+        </Level>
+      );
+      const item = screen.getByTestId('item');
+      expect(item).toHaveClass('has-text-grey-light');
+    });
   });
 });

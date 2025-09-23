@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -59,7 +59,7 @@ export interface FileProps
  * @returns {JSX.Element} The rendered file upload field.
  * @see {@link https://bulma.io/documentation/form/file/ | Bulma File documentation}
  */
-const File = forwardRef<HTMLInputElement, FileProps>(
+export const File = forwardRef<HTMLInputElement, FileProps>(
   (
     {
       color,
@@ -95,16 +95,16 @@ const File = forwardRef<HTMLInputElement, FileProps>(
       alignmentClass = 'is-centered';
     }
 
+    const mainClass = usePrefixedClassNames('file', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-boxed': isBoxed,
+      'is-fullwidth': isFullwidth,
+      'has-name': hasName,
+    });
     const fileClass = classNames(
-      'file',
+      mainClass,
       bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-boxed': isBoxed,
-        'is-fullwidth': isFullwidth,
-        'has-name': hasName,
-      },
       alignmentClass,
       className
     );

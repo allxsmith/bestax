@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Checkboxes from '../Checkboxes';
 import Checkbox from '../Checkbox';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Checkboxes', () => {
   it('renders children (Checkbox components) inside a div with class "checkboxes"', () => {
@@ -48,5 +49,77 @@ describe('Checkboxes', () => {
     render(<Checkboxes />);
     const wrapper = document.querySelector('.checkboxes');
     expect(wrapper).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Checkboxes>
+          <Checkbox>Test</Checkbox>
+        </Checkboxes>
+      </ConfigProvider>
+    );
+    const wrapper = screen.getByText('Test').closest('.custom-checkboxes');
+    expect(wrapper).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Checkboxes data-testid="checkboxes">
+            <Checkbox>Test</Checkbox>
+          </Checkboxes>
+        </ConfigProvider>
+      );
+      const checkboxes = screen.getByTestId('checkboxes');
+      expect(checkboxes).toHaveClass('bulma-checkboxes');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Checkboxes data-testid="checkboxes">
+          <Checkbox>Test</Checkbox>
+        </Checkboxes>
+      );
+      const checkboxes = screen.getByTestId('checkboxes');
+      expect(checkboxes).toHaveClass('checkboxes');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Checkboxes data-testid="checkboxes">
+            <Checkbox>Test</Checkbox>
+          </Checkboxes>
+        </ConfigProvider>
+      );
+      const checkboxes = screen.getByTestId('checkboxes');
+      expect(checkboxes).toHaveClass('checkboxes');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Checkboxes m="2" data-testid="checkboxes">
+            <Checkbox>Test</Checkbox>
+          </Checkboxes>
+        </ConfigProvider>
+      );
+      const checkboxes = screen.getByTestId('checkboxes');
+      expect(checkboxes).toHaveClass('bulma-checkboxes');
+      expect(checkboxes).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Checkboxes p="3" data-testid="checkboxes">
+          <Checkbox>Test</Checkbox>
+        </Checkboxes>
+      );
+      const checkboxes = screen.getByTestId('checkboxes');
+      expect(checkboxes).toHaveClass('checkboxes');
+      expect(checkboxes).toHaveClass('p-3');
+    });
   });
 });

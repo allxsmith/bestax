@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -53,14 +53,15 @@ export const Progress: React.FC<ProgressProps> = ({
     ...props,
   });
 
+  const bulmaClasses = usePrefixedClassNames('progress', {
+    [`is-${color}`]: color && validColors.includes(color),
+    [`is-${size}`]: size,
+  });
+
   const progressClasses = classNames(
-    'progress',
-    className,
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      [`is-${color}`]: color && validColors.includes(color),
-      [`is-${size}`]: size,
-    }
+    className
   );
 
   return (

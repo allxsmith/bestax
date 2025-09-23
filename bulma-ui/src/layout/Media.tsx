@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -35,18 +35,25 @@ export interface MediaProps
  * @returns {JSX.Element} The rendered media container.
  * @see {@link https://bulma.io/documentation/layout/media-object/ | Bulma Media documentation}
  */
-export const Media: React.FC<MediaProps> & {
-  Left: typeof MediaLeft;
-  Content: typeof MediaContent;
-  Right: typeof MediaRight;
-} = ({ as = 'article', className, children, ...props }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+export const Media: React.FC<MediaProps> = ({
+  as = 'article',
+  className,
+  children,
+  color,
+  bgColor,
+  textColor,
+  ...props
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
   const Tag = as;
+  const mainClass = usePrefixedClassNames('media');
+  const mediaClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <Tag
-      className={classNames('media', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <Tag className={mediaClasses} {...rest}>
       {children}
     </Tag>
   );
@@ -80,15 +87,21 @@ export const MediaLeft: React.FC<MediaLeftProps> = ({
   as = 'figure',
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
   const Tag = as;
+  const mainClass = usePrefixedClassNames('media-left');
+  const mediaLeftClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <Tag
-      className={classNames('media-left', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <Tag className={mediaLeftClasses} {...rest}>
       {children}
     </Tag>
   );
@@ -119,14 +132,24 @@ export interface MediaContentProps
 export const MediaContent: React.FC<MediaContentProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  const mainClass = usePrefixedClassNames('media-content');
+  const mediaContentClasses = classNames(
+    mainClass,
+    bulmaHelperClasses,
+    className
+  );
   return (
-    <div
-      className={classNames('media-content', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={mediaContentClasses} {...rest}>
       {children}
     </div>
   );
@@ -157,21 +180,38 @@ export interface MediaRightProps
 export const MediaRight: React.FC<MediaRightProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  const mainClass = usePrefixedClassNames('media-right');
+  const mediaRightClasses = classNames(
+    mainClass,
+    bulmaHelperClasses,
+    className
+  );
   return (
-    <div
-      className={classNames('media-right', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <div className={mediaRightClasses} {...rest}>
       {children}
     </div>
   );
 };
 
-Media.Left = MediaLeft;
-Media.Content = MediaContent;
-Media.Right = MediaRight;
+interface MediaComponent extends React.FC<MediaProps> {
+  Left: React.FC<MediaLeftProps>;
+  Content: React.FC<MediaContentProps>;
+  Right: React.FC<MediaRightProps>;
+}
 
-export default Media;
+const MediaWithSubcomponents = Media as MediaComponent;
+MediaWithSubcomponents.Left = MediaLeft;
+MediaWithSubcomponents.Content = MediaContent;
+MediaWithSubcomponents.Right = MediaRight;
+
+export default MediaWithSubcomponents;

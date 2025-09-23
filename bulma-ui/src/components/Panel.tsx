@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -137,9 +137,12 @@ export const Panel: React.FC<PanelProps> & {
     ...props,
   });
 
-  const panelClasses = classNames('panel', bulmaHelperClasses, className, {
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('panel', {
     [`is-${color}`]: color,
   });
+
+  const panelClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <nav className={panelClasses} {...rest}>
@@ -213,22 +216,26 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   placeholder,
   iconClassName = 'fas fa-search',
   ...props
-}) => (
-  <div className="panel-block" {...props}>
-    <p className="control has-icons-left">
-      <input
-        className="input"
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-      />
-      <span className="icon is-left">
-        <i className={iconClassName} aria-hidden="true"></i>
-      </span>
-    </p>
-  </div>
-);
+}) => {
+  const inputClass = usePrefixedClassNames('input');
+
+  return (
+    <div className="panel-block" {...props}>
+      <p className="control has-icons-left">
+        <input
+          className={inputClass}
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
+        <span className="icon is-left">
+          <i className={iconClassName} aria-hidden="true"></i>
+        </span>
+      </p>
+    </div>
+  );
+};
 
 /**
  * Bulma Panel checkbox block.

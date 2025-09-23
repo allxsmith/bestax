@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -65,12 +65,13 @@ export const Modal: React.FC<ModalProps> = ({
   else if (type === 'content') isModalCard = false;
   else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
-  const modalClasses = classNames(
-    'modal',
-    { 'is-active': active },
-    className,
-    bulmaHelperClasses
-  );
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('modal', {
+    'is-active': active,
+  });
+  const deleteClass = usePrefixedClassNames('delete');
+
+  const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={modalClasses} {...rest} data-testid="modal">
@@ -86,7 +87,7 @@ export const Modal: React.FC<ModalProps> = ({
               <p className="modal-card-title">{modalCardTitle}</p>
               {onClose && (
                 <button
-                  className="delete"
+                  className={deleteClass}
                   aria-label="close"
                   onClick={onClose}
                   type="button"

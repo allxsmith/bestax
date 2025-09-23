@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import Hero from './Hero';
 import Navbar from '../components/Navbar';
-import Tabs from '../components/Tab';
+import Tabs from '../components/Tabs';
 import Title from '../elements/Title';
 import SubTitle from '../elements/SubTitle';
 import Container from '../layout/Container';
@@ -241,7 +241,7 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
                     <Icon
                       library="fa"
                       name="github"
-                      libraryFeatures={['fab']}
+                      variant="brands"
                       ariaLabel="github"
                     />
                     <span>Github</span>

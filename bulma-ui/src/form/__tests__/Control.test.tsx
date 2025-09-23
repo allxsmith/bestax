@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import Control from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Mock Icon so we can test for its appearance
 jest.mock('../../elements/Icon', () => ({
@@ -129,5 +130,69 @@ describe('Control', () => {
     render(<Control>Nothing</Control>);
     // Should not find any icon
     expect(screen.queryByTestId(/icon-/)).not.toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Control>Test content</Control>
+      </ConfigProvider>
+    );
+    const control = container.querySelector('.bulma-control');
+    expect(control).toBeInTheDocument();
+    expect(control).not.toHaveClass('control');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Control data-testid="control">Test</Control>
+        </ConfigProvider>
+      );
+      const control = screen.getByTestId('control');
+      expect(control).toHaveClass('bulma-control');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Control data-testid="control">Test</Control>);
+      const control = screen.getByTestId('control');
+      expect(control).toHaveClass('control');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Control data-testid="control">Test</Control>
+        </ConfigProvider>
+      );
+      const control = screen.getByTestId('control');
+      expect(control).toHaveClass('control');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Control isLoading isExpanded m="2" data-testid="control">
+            Test
+          </Control>
+        </ConfigProvider>
+      );
+      const control = screen.getByTestId('control');
+      expect(control).toHaveClass('bulma-control');
+      expect(control).toHaveClass('bulma-is-loading');
+      expect(control).toHaveClass('bulma-is-expanded');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Control isLoading p="3" data-testid="control">
+          Test
+        </Control>
+      );
+      const control = screen.getByTestId('control');
+      expect(control).toHaveClass('control');
+      expect(control).toHaveClass('is-loading');
+    });
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -58,9 +58,15 @@ export const Content: React.FC<ContentProps> = ({
     ...props,
   });
 
-  const contentClasses = classNames('content', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('content', {
     [`is-${size}`]: size && size !== 'normal' && validSizes.includes(size),
   });
+
+  const contentClasses = classNames(
+    bulmaClasses,
+    bulmaHelperClasses,
+    className
+  );
 
   return (
     <div className={contentClasses} {...rest}>

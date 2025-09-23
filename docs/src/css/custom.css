@@ -6,25 +6,56 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-primary: #1e6b99;
+  --ifm-color-primary-dark: #1a5d87;
+  --ifm-color-primary-darker: #185681;
+  --ifm-color-primary-darkest: #144769;
+  --ifm-color-primary-light: #2578ab;
+  --ifm-color-primary-lighter: #2a80b1;
+  --ifm-color-primary-lightest: #3590c3;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+  --ifm-color-primary: #3590c3;
+  --ifm-color-primary-dark: #2578ab;
+  --ifm-color-primary-darker: #1e6b99;
+  --ifm-color-primary-darkest: #185681;
+  --ifm-color-primary-light: #4098c9;
+  --ifm-color-primary-lighter: #4da0cf;
+  --ifm-color-primary-lightest: #66b0db;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+pre.prism-code {
+  border-radius: 0;
+}
+
+.live-preview {
+  margin-bottom: var(--ifm-leading);
+}
+
+.live-editor {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.live-error {
+  border: none;
+}
+
+.theme-announcement-bar {
+  --site-announcement-bar-stripe-color1: #41b1df;
+  --site-announcement-bar-stripe-color2: #359cd7;
+  background: repeating-linear-gradient(
+    35deg,
+    var(--site-announcement-bar-stripe-color1),
+    var(--site-announcement-bar-stripe-color1) 20px,
+    var(--site-announcement-bar-stripe-color2) 10px,
+    var(--site-announcement-bar-stripe-color2) 40px
+  );
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -22,12 +22,17 @@ export interface RadiosProps extends Omit<BulmaClassesProps, 'color'> {
  * @returns {JSX.Element} The rendered radios group.
  * @see {@link https://bulma.io/documentation/form/radio/#grouped-radios | Bulma Radios documentation}
  */
-const Radios: React.FC<RadiosProps> = ({ children, className, ...props }) => {
+export const Radios: React.FC<RadiosProps> = ({
+  children,
+  className,
+  ...props
+}) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });
 
-  const wrapperClass = classNames('radios', bulmaHelperClasses, className);
+  const mainClass = usePrefixedClassNames('radios');
+  const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <div className={wrapperClass} {...rest}>

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Delete } from '../Delete';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Delete Component', () => {
   it('renders with default props', () => {
@@ -7,6 +8,17 @@ describe('Delete Component', () => {
     const button = screen.getByRole('button', { name: /close/i });
     expect(button).toHaveClass('delete');
     expect(button).not.toBeDisabled();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Delete />
+      </ConfigProvider>
+    );
+    const button = screen.getByRole('button', { name: /close/i });
+    expect(button).toHaveClass('bulma-delete');
+    expect(button).not.toHaveClass('delete');
   });
 
   it('applies custom className', () => {
@@ -69,5 +81,59 @@ describe('Delete Component', () => {
     render(<Delete data-testid="test" />);
     const button = screen.getByTestId('test');
     expect(button).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Delete />
+        </ConfigProvider>
+      );
+      const button = screen.getByRole('button', { name: /close/i });
+      expect(button).toHaveClass('my-prefix-delete');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Delete />
+        </ConfigProvider>
+      );
+      const button = screen.getByRole('button', { name: /close/i });
+      expect(button).toHaveClass('delete');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Delete />
+        </ConfigProvider>
+      );
+      const button = screen.getByRole('button', { name: /close/i });
+      expect(button).toHaveClass('delete');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Delete size="large" m="2" />
+        </ConfigProvider>
+      );
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('bulma-delete');
+      expect(button).toHaveClass('bulma-is-large');
+      expect(button).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(<Delete size="medium" p="3" />);
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('delete');
+      expect(button).toHaveClass('is-medium');
+      expect(button).toHaveClass('p-3');
+    });
   });
 });

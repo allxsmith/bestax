@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -49,7 +49,7 @@ export interface SelectProps
  * @returns {JSX.Element} The rendered select element.
  * @see {@link https://bulma.io/documentation/form/select/ | Bulma Select documentation}
  */
-const Select = forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
       color,
@@ -71,18 +71,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
       ...props,
     });
 
-    const selectClass = classNames(
-      'select',
-      bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-rounded': isRounded,
-        'is-loading': isLoading,
-        'is-active': isActive,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('select', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-rounded': isRounded,
+      'is-loading': isLoading,
+      'is-active': isActive,
+    });
+    const selectClass = classNames(mainClass, bulmaHelperClasses, className);
 
     // Only set size attribute when multiple is true and multipleSize is specified
     const selectProps: React.SelectHTMLAttributes<HTMLSelectElement> = {

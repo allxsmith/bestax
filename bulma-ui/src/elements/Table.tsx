@@ -2,7 +2,7 @@
  * @group Table
  */
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -56,7 +56,7 @@ export const Table: React.FC<TableProps> = ({
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tableClasses = classNames('table', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('table', {
     'is-bordered': isBordered,
     'is-striped': isStriped,
     'is-narrow': isNarrow,
@@ -64,15 +64,18 @@ export const Table: React.FC<TableProps> = ({
     'is-fullwidth': isFullwidth,
   });
 
+  const containerClass = usePrefixedClassNames('table-container');
+  const tableClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
+
   const tableElement = (
     <table className={tableClasses} {...rest}>
       {children}
     </table>
   );
 
-  return isResponsive ? (
-    <div className="table-container">{tableElement}</div>
-  ) : (
-    tableElement
-  );
+  if (isResponsive) {
+    return <div className={containerClass}>{tableElement}</div>;
+  }
+
+  return tableElement;
 };

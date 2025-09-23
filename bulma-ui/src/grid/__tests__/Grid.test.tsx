@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Grid } from '../Grid';
 import { Cell } from '../Cell';
+import { ConfigProvider } from '../../helpers/Config';
 
 // Simple test cell contents
 const TestCell = ({ children = 'Cell' }) => <Cell>{children}</Cell>;
@@ -128,5 +129,106 @@ describe('Grid', () => {
     );
     expect(container.querySelector('.fixed-grid')).not.toBeInTheDocument();
     expect(container.querySelector('.grid')).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Grid>
+          <TestCell />
+        </Grid>
+      </ConfigProvider>
+    );
+    const grid = container.querySelector('.bulma-grid');
+    expect(grid).toBeInTheDocument();
+    expect(container.querySelector('.grid')).not.toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Grid>
+            <TestCell />
+          </Grid>
+        </ConfigProvider>
+      );
+      const grid = container.querySelector('.bulma-grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('bulma-grid');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(
+        <Grid>
+          <TestCell />
+        </Grid>
+      );
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('grid');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Grid>
+            <TestCell />
+          </Grid>
+        </ConfigProvider>
+      );
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('grid');
+    });
+
+    it('applies prefix to both main class and grid modifiers', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Grid gap={2} columnGap={1} minCol={4} m="3">
+            <TestCell />
+          </Grid>
+        </ConfigProvider>
+      );
+      const grid = container.querySelector('.bulma-grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('bulma-grid');
+      expect(grid).toHaveClass('bulma-is-gap-2');
+      expect(grid).toHaveClass('bulma-is-column-gap-1');
+      expect(grid).toHaveClass('bulma-is-col-min-4');
+      expect(grid).toHaveClass('bulma-m-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Grid rowGap={3} p="2">
+          <TestCell />
+        </Grid>
+      );
+      const grid = container.querySelector('.grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('grid');
+      expect(grid).toHaveClass('is-row-gap-3');
+      expect(grid).toHaveClass('p-2');
+    });
+
+    it('applies prefix to fixed grid classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Grid isFixed fixedCols={4} fixedColsMobile={2}>
+            <TestCell />
+          </Grid>
+        </ConfigProvider>
+      );
+      const fixedGrid = container.querySelector('.bulma-fixed-grid');
+      expect(fixedGrid).toBeInTheDocument();
+      expect(fixedGrid).toHaveClass('bulma-fixed-grid');
+      expect(fixedGrid).toHaveClass('bulma-has-4-cols');
+      expect(fixedGrid).toHaveClass('bulma-has-2-cols-mobile');
+
+      const grid = fixedGrid?.querySelector('.bulma-grid');
+      expect(grid).toBeInTheDocument();
+      expect(grid).toHaveClass('bulma-grid');
+    });
   });
 });

@@ -1,12 +1,35 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
 
-type IconLibrary = 'fa' | 'mdi' | 'ion'; // 'fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons
+// TypeScript declaration for Ionicons web component
+interface IonIconProps extends React.HTMLAttributes<HTMLElement> {
+  name?: string;
+  src?: string;
+  icon?: unknown;
+  size?: string;
+  lazy?: boolean;
+  sanitize?: boolean;
+  color?: string;
+  flipRtl?: boolean;
+  ariaLabel?: string;
+  ariaHidden?: string;
+}
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX {
+    interface IntrinsicElements {
+      'ion-icon': IonIconProps;
+    }
+  }
+}
+
+type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'; // 'fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols
 
 /**
  * Props for the Icon component.
@@ -16,8 +39,10 @@ type IconLibrary = 'fa' | 'mdi' | 'ion'; // 'fa' = Font Awesome, 'mdi' = Materia
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the icon.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  * @property {string} name - The icon name (without library prefix).
- * @property {IconLibrary} [library='fa'] - The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons).
- * @property {string | string[]} [libraryFeatures] - Additional library-specific classes, e.g. 'fa-lg', 'fa-spin', or ['fa-lg', 'fa-fw'].
+ * @property {IconLibrary} [library='fa'] - The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols).
+ * @property {string} [variant] - Icon style variant. For Font Awesome: 'solid', 'regular', 'brands', etc. For Material Icons: 'filled', 'outlined', 'round', 'sharp'. For Material Symbols: 'outlined', 'rounded', 'sharp'. For Ionicons: 'outline', 'sharp'.
+ * @property {string | string[]} [features] - Additional library-specific modifiers. For Font Awesome: 'fa-lg', 'fa-spin', etc. For others: size classes like 'is-size-1', etc.
+ * @property {string | string[]} [libraryFeatures] - DEPRECATED: Use 'variant' and 'features' instead. Additional library-specific classes.
  * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the icon.
  * @property {string} [ariaLabel='icon'] - ARIA label for accessibility (default: 'icon').
  * @property {object} [style] - Inline style object.
@@ -31,7 +56,9 @@ export interface IconProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   name: string; // e.g., 'star', 'account', 'home-outline'
   library?: IconLibrary; // default: 'fa'
-  libraryFeatures?: string | string[]; // e.g., 'fa-lg', 'fa-spin', or ['fa-lg', 'fa-fw']
+  variant?: string; // e.g., 'solid', 'outlined', 'rounded', 'sharp'
+  features?: string | string[]; // e.g., 'fa-lg', 'fa-spin', 'is-size-1'
+  libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
   size?: 'small' | 'medium' | 'large';
   ariaLabel?: string;
   style?: React.CSSProperties;
@@ -42,48 +69,73 @@ export interface IconProps
  *
  * @param {IconLibrary} library - The icon library.
  * @param {string} name - The icon name.
- * @param {string | string[]} [libraryFeatures] - Additional library-specific classes.
+ * @param {string} [variant] - Icon style variant (e.g., 'solid', 'outlined', 'rounded').
+ * @param {string | string[]} [features] - Additional library-specific modifiers.
  * @returns {string} The combined class string for the icon.
  */
 function getIconClasses(
   library: IconLibrary,
   name: string,
-  libraryFeatures?: string | string[]
+  variant?: string,
+  features?: string | string[]
 ): string {
   let baseClass = '';
   let iconClass = '';
-  let features = Array.isArray(libraryFeatures)
-    ? libraryFeatures
-    : libraryFeatures
-      ? [libraryFeatures]
+  let featureList = Array.isArray(features)
+    ? features
+    : features
+      ? [features]
       : [];
 
   switch (library) {
     case 'fa': {
-      // Font Awesome 5/6: use 'fas', 'far', 'fab', etc. as feature, icon is 'fa-<icon>'
-      // If features contains a FA style ('fas', 'far', 'fab'), use it, otherwise default to 'fas'
-      const faStyle =
-        features.find(f =>
-          ['fas', 'far', 'fab', 'fal', 'fad', 'fat'].includes(f)
-        ) || 'fas';
+      // Font Awesome: use variant as style ('solid' -> 'fas', 'regular' -> 'far', etc.)
+      const styleMap: Record<string, string> = {
+        solid: 'fas',
+        regular: 'far',
+        brands: 'fab',
+        light: 'fal',
+        duotone: 'fad',
+        thin: 'fat',
+      };
+      const faStyle = variant ? styleMap[variant] || variant : 'fas';
       baseClass = faStyle;
       iconClass = `fa-${name}`;
-      features = features.filter(f => f !== faStyle);
-      return [baseClass, iconClass, ...features].join(' ');
+      return [baseClass, iconClass, ...featureList].join(' ');
     }
     case 'mdi':
-      // Material Design Icons: always 'mdi mdi-<icon>'
+      // Material Design Icons: no variants, just features
       baseClass = 'mdi';
       iconClass = `mdi-${name}`;
-      return [baseClass, iconClass, ...features].join(' ');
-    case 'ion':
-      // Ionicons (v4+): 'ion' and 'ion-<icon>'
-      baseClass = 'ion';
-      iconClass = `ion-${name}`;
-      return [baseClass, iconClass, ...features].join(' ');
+      return [baseClass, iconClass, ...featureList].join(' ');
+    case 'material-icons': {
+      // Google Material Icons: map variants to full class names
+      const styleVariants: Record<string, string> = {
+        filled: 'material-icons',
+        outlined: 'material-icons-outlined',
+        round: 'material-icons-round',
+        sharp: 'material-icons-sharp',
+      };
+      baseClass = variant
+        ? styleVariants[variant] || `material-icons-${variant}`
+        : 'material-icons';
+      return [baseClass, ...featureList].join(' ');
+    }
+    case 'material-symbols': {
+      // Google Material Symbols: map variants to full class names
+      const styleVariants: Record<string, string> = {
+        outlined: 'material-symbols-outlined',
+        rounded: 'material-symbols-rounded',
+        sharp: 'material-symbols-sharp',
+      };
+      baseClass = variant
+        ? styleVariants[variant] || `material-symbols-${variant}`
+        : 'material-symbols-outlined';
+      return [baseClass, ...featureList].join(' ');
+    }
     default:
       // fallback: just icon name and features
-      return [name, ...features].join(' ');
+      return [name, ...featureList].join(' ');
   }
 }
 
@@ -103,31 +155,127 @@ export const Icon: React.FC<IconProps> = ({
   bgColor,
   name,
   library = 'fa', // Font Awesome is default
-  libraryFeatures,
+  variant,
+  features,
+  libraryFeatures, // Deprecated but maintained for backward compatibility
   size,
   ariaLabel = 'icon',
   style,
-  ...props
+  ...restProps
 }) => {
   /**
    * Generates Bulma helper classes and separates out remaining props.
+   * Note: variant, features, and libraryFeatures are excluded from props spread
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
-    ...props,
+    ...restProps,
+  });
+
+  const bulmaClasses = usePrefixedClassNames('icon', {
+    [`is-${size}`]: size,
   });
 
   const iconContainerClasses = classNames(
-    'icon',
-    {
-      [`is-${size}`]: size,
-    },
+    bulmaClasses,
     bulmaHelperClasses,
     className
   );
 
-  const iClasses = getIconClasses(library, name, libraryFeatures);
+  // Backward compatibility: if libraryFeatures is provided, parse it for variant and features
+  let finalVariant = variant;
+  let finalFeatures = features;
+
+  if (libraryFeatures && !variant && !features) {
+    const legacyFeatures = Array.isArray(libraryFeatures)
+      ? libraryFeatures
+      : [libraryFeatures];
+
+    // For Font Awesome, extract style from features
+    if (library === 'fa') {
+      const faStyle = legacyFeatures.find(f =>
+        [
+          'fas',
+          'far',
+          'fab',
+          'fal',
+          'fad',
+          'fat',
+          'solid',
+          'regular',
+          'brands',
+          'light',
+          'duotone',
+          'thin',
+        ].includes(f)
+      );
+      if (faStyle) {
+        finalVariant = faStyle;
+        finalFeatures = legacyFeatures.filter(f => f !== faStyle);
+      } else {
+        finalFeatures = legacyFeatures;
+      }
+    }
+    // For Material Icons/Symbols, extract style variant
+    else if (library === 'material-icons' || library === 'material-symbols') {
+      const styleVariants =
+        library === 'material-icons'
+          ? ['filled', 'outlined', 'round', 'sharp']
+          : ['outlined', 'rounded', 'sharp'];
+
+      const styleVariant = legacyFeatures.find(f => styleVariants.includes(f));
+      if (styleVariant) {
+        finalVariant = styleVariant;
+        finalFeatures = legacyFeatures.filter(f => f !== styleVariant);
+      } else {
+        finalFeatures = legacyFeatures;
+      }
+    }
+    // For others, all features go to finalFeatures
+    else {
+      finalFeatures = legacyFeatures;
+    }
+  }
+
+  // Handle web components vs CSS-based icons
+  if (library === 'ion') {
+    // For Ionicons, handle variant in the name
+    let ionName = name;
+    if (finalVariant === 'outline') {
+      ionName = `${name}-outline`;
+    } else if (finalVariant === 'sharp') {
+      ionName = `${name}-sharp`;
+    }
+
+    return (
+      <span
+        className={iconContainerClasses}
+        aria-label={ariaLabel}
+        style={style}
+        {...rest}
+      >
+        <ion-icon name={ionName} />
+      </span>
+    );
+  }
+
+  // Legacy CSS-based icons
+  const iClasses = getIconClasses(library, name, finalVariant, finalFeatures);
+
+  // Material Icons and Material Symbols use text content, not CSS classes for the icon name
+  if (library === 'material-icons' || library === 'material-symbols') {
+    return (
+      <span
+        className={iconContainerClasses}
+        aria-label={ariaLabel}
+        style={style}
+        {...rest}
+      >
+        <i className={iClasses}>{name}</i>
+      </span>
+    );
+  }
 
   return (
     <span

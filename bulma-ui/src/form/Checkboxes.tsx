@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -22,7 +22,7 @@ export interface CheckboxesProps extends Omit<BulmaClassesProps, 'color'> {
  * @returns {JSX.Element} The rendered checkboxes group.
  * @see {@link https://bulma.io/documentation/form/checkbox/#grouped-checkboxes | Bulma Checkboxes documentation}
  */
-const Checkboxes: React.FC<CheckboxesProps> = ({
+export const Checkboxes: React.FC<CheckboxesProps> = ({
   children,
   className,
   ...props
@@ -31,7 +31,8 @@ const Checkboxes: React.FC<CheckboxesProps> = ({
     ...props,
   });
 
-  const wrapperClass = classNames('checkboxes', bulmaHelperClasses, className);
+  const mainClass = usePrefixedClassNames('checkboxes');
+  const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
     <div className={wrapperClass} {...rest}>

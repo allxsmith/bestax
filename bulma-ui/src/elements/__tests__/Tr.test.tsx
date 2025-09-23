@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Tr, TrProps } from '../Tr';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tr Component', () => {
   const defaultProps: TrProps = {
@@ -90,5 +91,95 @@ describe('Tr Component', () => {
       </table>
     );
     expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to modifier classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <table>
+            <tbody>
+              <Tr color="primary" isSelected>
+                <td>Test</td>
+              </Tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      const tr = container.querySelector('tr');
+      expect(tr).toHaveClass('my-prefix-is-primary');
+      expect(tr).toHaveClass('my-prefix-is-selected');
+    });
+
+    it('uses default classes when no classPrefix provided', () => {
+      const { container } = render(
+        <ConfigProvider>
+          <table>
+            <tbody>
+              <Tr color="primary" isSelected>
+                <td>Test</td>
+              </Tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      const tr = container.querySelector('tr');
+      expect(tr).toHaveClass('is-primary');
+      expect(tr).toHaveClass('is-selected');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <table>
+            <tbody>
+              <Tr color="primary" isSelected>
+                <td>Test</td>
+              </Tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+      const tr = container.querySelector('tr');
+      expect(tr).toHaveClass('is-primary');
+      expect(tr).toHaveClass('is-selected');
+    });
+
+    it('applies prefix to both modifier and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <table>
+            <tbody>
+              <Tr color="primary" isSelected m="2" p="3">
+                <td>Test Row</td>
+              </Tr>
+            </tbody>
+          </table>
+        </ConfigProvider>
+      );
+
+      const tr = container.querySelector('tr');
+      expect(tr).toHaveClass('bulma-is-primary');
+      expect(tr).toHaveClass('bulma-is-selected');
+      expect(tr).toHaveClass('bulma-m-2');
+      expect(tr).toHaveClass('bulma-p-3');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <table>
+          <tbody>
+            <Tr color="info" isSelected textAlign="centered">
+              <td>Standard Row</td>
+            </Tr>
+          </tbody>
+        </table>
+      );
+
+      const tr = container.querySelector('tr');
+      expect(tr).toHaveClass('is-info');
+      expect(tr).toHaveClass('is-selected');
+      expect(tr).toHaveClass('has-text-centered');
+    });
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import classNames, { usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -82,14 +82,18 @@ export const Container: React.FC<ContainerProps> = ({
     }
   }
 
+  const mainClass = usePrefixedClassNames('container');
+  const containerModifiers = usePrefixedClassNames('', {
+    'is-fluid': fluid,
+    'is-widescreen': widescreen,
+    'is-fullhd': fullhd,
+  });
+  const prefixedBreakpointClass = usePrefixedClassNames(breakpointClass || '');
+
   const containerClasses = classNames(
-    'container',
-    {
-      'is-fluid': fluid,
-      'is-widescreen': widescreen,
-      'is-fullhd': fullhd,
-    },
-    breakpointClass,
+    mainClass,
+    containerModifiers,
+    prefixedBreakpointClass,
     className,
     bulmaHelperClasses
   );

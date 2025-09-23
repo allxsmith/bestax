@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Menu, MenuLabel, MenuList, MenuItem } from '../Menu';
+import { ConfigProvider } from '../../helpers/Config';
 
 // A simple link-like mock component for custom "as" prop testing
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
@@ -26,6 +27,80 @@ describe('Menu', () => {
       </Menu>
     );
     expect(screen.getByTestId('menu-root')).toHaveClass('menu');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Menu data-testid="menu-root">
+          <MenuLabel>Label</MenuLabel>
+        </Menu>
+      </ConfigProvider>
+    );
+    const menu = screen.getByTestId('menu-root');
+    expect(menu).toHaveClass('bulma-menu');
+    expect(menu).not.toHaveClass('menu');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Menu data-testid="menu">
+            <MenuLabel>Label</MenuLabel>
+          </Menu>
+        </ConfigProvider>
+      );
+      const menu = screen.getByTestId('menu');
+      expect(menu).toHaveClass('bulma-menu');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Menu data-testid="menu">
+          <MenuLabel>Label</MenuLabel>
+        </Menu>
+      );
+      const menu = screen.getByTestId('menu');
+      expect(menu).toHaveClass('menu');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Menu data-testid="menu">
+            <MenuLabel>Label</MenuLabel>
+          </Menu>
+        </ConfigProvider>
+      );
+      const menu = screen.getByTestId('menu');
+      expect(menu).toHaveClass('menu');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Menu color="primary" m="2" data-testid="menu">
+            <MenuLabel>Label</MenuLabel>
+          </Menu>
+        </ConfigProvider>
+      );
+      const menu = screen.getByTestId('menu');
+      expect(menu).toHaveClass('bulma-menu');
+      expect(menu).toHaveClass('bulma-has-text-primary');
+      expect(menu).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Menu color="danger" data-testid="menu">
+          <MenuLabel>Label</MenuLabel>
+        </Menu>
+      );
+      const menu = screen.getByTestId('menu');
+      expect(menu).toHaveClass('menu');
+      expect(menu).toHaveClass('has-text-danger');
+    });
   });
 
   it('renders menu-label correctly', () => {

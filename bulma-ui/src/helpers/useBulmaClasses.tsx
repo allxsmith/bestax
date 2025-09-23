@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames } from '../helpers/classNames';
+import { useConfig } from './Config';
 
 /**
  * Valid Bulma color classes.
@@ -27,7 +28,11 @@ export const validColors = [
 
 /**
  * Valid Bulma color shade suffixes.
- * @example '00', '05', 'invert'
+<<<<<<< HEAD
+ * @example '00', '05', 'invert', 'light', 'dark'
+=======
+ * @example '00', '05', 'invert', 'light', 'dark', 'soft', 'bold', 'on-scheme'
+>>>>>>> af5b1f7 (fix(bulma-ui): resolve flex item properties and Card compound component issues (#55))
  */
 export const validColorShades = [
   '00',
@@ -51,6 +56,11 @@ export const validColorShades = [
   '90',
   '95',
   'invert',
+  'light',
+  'dark',
+  'soft',
+  'bold',
+  'on-scheme',
 ] as const;
 
 /**
@@ -125,9 +135,13 @@ export const validDisplays = [
 
 /**
  * Valid Bulma visibility classes.
- * @example 'hidden', 'sr-only'
+<<<<<<< HEAD
+=======
+ * These are all the valid visibility options available in Bulma.
+>>>>>>> af5b1f7 (fix(bulma-ui): resolve flex item properties and Card compound component issues (#55))
+ * @example 'hidden', 'sr-only', 'invisible'
  */
-export const validVisibilities = ['hidden', 'sr-only'] as const;
+export const validVisibilities = ['hidden', 'sr-only', 'invisible'] as const;
 
 /**
  * Valid Bulma flex direction classes.
@@ -206,9 +220,9 @@ export const validAlignSelfs = [
 
 /**
  * Valid Bulma flex grow and shrink values.
- * @example '0', '1'
+ * @example '0', '1', '2', '3', '4', '5'
  */
-export const validFlexGrowShrink = ['0', '1'] as const;
+export const validFlexGrowShrink = ['0', '1', '2', '3', '4', '5'] as const;
 
 /**
  * Valid Bulma viewport classes for responsive design.
@@ -230,8 +244,10 @@ export interface BulmaClassesProps {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color class (e.g., 'primary', 'info'). */
   backgroundColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Color shade suffix (e.g., '00', 'invert'). */
+  /** Text color shade suffix (e.g., '00', 'invert'). */
   colorShade?: (typeof validColorShades)[number];
+  /** Background color shade suffix (e.g., '00', 'invert'). */
+  backgroundColorShade?: (typeof validColorShades)[number];
   /** Margin (e.g., '0', '1'). */
   m?: (typeof validSizes)[number];
   /** Margin top. */
@@ -271,7 +287,7 @@ export interface BulmaClassesProps {
   /** Font family (e.g., 'sans-serif', 'code'). */
   fontFamily?: (typeof validFontFamilies)[number];
   /** Display type (e.g., 'block', 'flex'). */
-  display?: (typeof validDisplays)[number];
+  display?: (typeof validDisplays)[number] | 'none';
   /** Visibility (e.g., 'hidden', 'sr-only'). */
   visibility?: (typeof validVisibilities)[number];
   /** Flex direction (e.g., 'row', 'column'). */
@@ -285,10 +301,10 @@ export interface BulmaClassesProps {
   /** Align items (e.g., 'center', 'flex-start'). */
   alignItems?: (typeof validAlignItems)[number];
   /** Align self (e.g., 'auto', 'center'). */
-  alignSelf?: (typeof validAlignSelfs)[number]; // Fixed typo
-  /** Flex grow value (e.g., '0', '1'). */
+  alignSelf?: (typeof validAlignSelfs)[number];
+  /** Flex grow value (e.g., '0', '1', '2', '3', '4', '5'). */
   flexGrow?: (typeof validFlexGrowShrink)[number];
-  /** Flex shrink value (e.g., '0', '1'). */
+  /** Flex shrink value (e.g., '0', '1', '2', '3', '4', '5'). */
   flexShrink?: (typeof validFlexGrowShrink)[number];
   /** Float direction (e.g., 'left', 'right'). */
   float?: 'left' | 'right';
@@ -306,6 +322,52 @@ export interface BulmaClassesProps {
   responsive?: 'mobile' | 'narrow';
   /** Viewport for responsive classes (e.g., 'mobile', 'desktop'). */
   viewport?: (typeof validViewports)[number];
+  /** Display type for mobile viewport (up to 768px). */
+  displayMobile?: (typeof validDisplays)[number] | 'none';
+  /** Display type for tablet viewport (769px - 1023px). */
+  displayTablet?: (typeof validDisplays)[number] | 'none';
+  /** Display type for desktop viewport (1024px - 1215px). */
+  displayDesktop?: (typeof validDisplays)[number] | 'none';
+  /** Display type for widescreen viewport (1216px - 1407px). */
+  displayWidescreen?: (typeof validDisplays)[number] | 'none';
+  /** Display type for fullhd viewport (1408px and above). */
+  displayFullhd?: (typeof validDisplays)[number] | 'none';
+  /** Text size for mobile viewport (up to 768px). */
+  textSizeMobile?: (typeof validTextSizes)[number];
+  /** Text size for tablet viewport (769px - 1023px). */
+  textSizeTablet?: (typeof validTextSizes)[number];
+  /** Text size for desktop viewport (1024px - 1215px). */
+  textSizeDesktop?: (typeof validTextSizes)[number];
+  /** Text size for widescreen viewport (1216px - 1407px). */
+  textSizeWidescreen?: (typeof validTextSizes)[number];
+  /** Text size for fullhd viewport (1408px and above). */
+  textSizeFullhd?: (typeof validTextSizes)[number];
+  /** Text alignment for mobile viewport (up to 768px). */
+  textAlignMobile?: (typeof validAlignments)[number];
+  /** Text alignment for tablet viewport (769px - 1023px). */
+  textAlignTablet?: (typeof validAlignments)[number];
+  /** Text alignment for desktop viewport (1024px - 1215px). */
+  textAlignDesktop?: (typeof validAlignments)[number];
+  /** Text alignment for widescreen viewport (1216px - 1407px). */
+  textAlignWidescreen?: (typeof validAlignments)[number];
+  /** Text alignment for fullhd viewport (1408px and above). */
+  textAlignFullhd?: (typeof validAlignments)[number];
+  /** Visibility for mobile viewport (up to 768px). */
+  visibilityMobile?: (typeof validVisibilities)[number];
+  /** Visibility for tablet viewport (769px - 1023px). */
+  visibilityTablet?: (typeof validVisibilities)[number];
+  /** Visibility for desktop viewport (1024px - 1215px). */
+  visibilityDesktop?: (typeof validVisibilities)[number];
+  /** Visibility for widescreen viewport (1216px - 1407px). */
+  visibilityWidescreen?: (typeof validVisibilities)[number];
+  /** Visibility for fullhd viewport (1408px and above). */
+  visibilityFullhd?: (typeof validVisibilities)[number];
+  /** Add Bulma skeleton class if true. */
+  skeleton?: boolean;
+  /** Applies clearfix to fix floating children if true. */
+  clearfix?: boolean;
+  /** Applies position: relative if true. */
+  relative?: boolean;
 }
 
 /**
@@ -326,10 +388,13 @@ export interface BulmaClassesProps {
 export const useBulmaClasses = <T extends Record<string, unknown>>(
   props: BulmaClassesProps & T
 ): { bulmaHelperClasses: string; rest: Omit<T, keyof BulmaClassesProps> } => {
+  const { classPrefix } = useConfig();
+
   const {
     color,
     backgroundColor,
     colorShade,
+    backgroundColorShade,
     m,
     mt,
     mr,
@@ -367,24 +432,64 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     shadow,
     responsive,
     viewport,
+    displayMobile,
+    displayTablet,
+    displayDesktop,
+    displayWidescreen,
+    displayFullhd,
+    textSizeMobile,
+    textSizeTablet,
+    textSizeDesktop,
+    textSizeWidescreen,
+    textSizeFullhd,
+    textAlignMobile,
+    textAlignTablet,
+    textAlignDesktop,
+    textAlignWidescreen,
+    textAlignFullhd,
+    visibilityMobile,
+    visibilityTablet,
+    visibilityDesktop,
+    visibilityWidescreen,
+    visibilityFullhd,
+    skeleton,
+    clearfix,
+    relative,
     ...rest
   } = props;
 
   const bulmaHelperClasses = useMemo(() => {
     const classes: string[] = [];
 
+    // Helper function to add class with prefix support
+    const addPrefixedClass = (className: string) => {
+      classes.push(classPrefix ? `${classPrefix}${className}` : className);
+    };
+
     // Helper to add class with optional viewport
     const addClass = (
+      prefix: string,
+      value: string | undefined,
+      validValues: readonly string[],
+      supportsViewport = false
+    ) => {
+      if (value && validValues.includes(value)) {
+        const className =
+          supportsViewport && viewport && validViewports.includes(viewport)
+            ? `${prefix}-${value}-${viewport}`
+            : `${prefix}-${value}`;
+        addPrefixedClass(className);
+      }
+    };
+
+    // Helper specifically for classes that never support viewport modifiers
+    const addClassNoViewport = (
       prefix: string,
       value: string | undefined,
       validValues: readonly string[]
     ) => {
       if (value && (!validValues.length || validValues.includes(value))) {
-        const className =
-          viewport && validViewports.includes(viewport)
-            ? `${prefix}-${value}-${viewport}`
-            : `${prefix}-${value}`;
-        classes.push(className);
+        addPrefixedClass(`${prefix}-${value}`);
       }
     };
 
@@ -397,97 +502,241 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
       if (!value || ![...validColors, 'inherit', 'current'].includes(value))
         return;
       if (shade && validColorShades.includes(shade)) {
-        const className =
-          prefix === 'has-text' && viewport && validViewports.includes(viewport)
-            ? `${prefix}-${value}-${shade}-${viewport}`
-            : `${prefix}-${value}-${shade}`;
-        classes.push(className);
+        // Color shades never support viewport modifiers in Bulma
+        const className = `${prefix}-${value}-${shade}`;
+        addPrefixedClass(className);
       } else {
-        addClass(prefix, value, [...validColors, 'inherit', 'current']);
+        // Color classes never support viewport modifiers in Bulma
+        addClass(
+          prefix,
+          value,
+          [...validColors, 'inherit', 'current'],
+          false // supportsViewport = false for all color classes
+        );
       }
     };
 
     // Color
     addColorClass('has-text', color, colorShade);
-    addColorClass('has-background', backgroundColor, colorShade);
+    addColorClass('has-background', backgroundColor, backgroundColorShade);
 
-    // Spacing
-    addClass('m', m, validSizes);
-    addClass('mt', mt, validSizes);
-    addClass('mr', mr, validSizes);
-    addClass('mb', mb, validSizes);
-    addClass('ml', ml, validSizes);
-    addClass('mx', mx, validSizes);
-    addClass('my', my, validSizes);
-    addClass('p', p, validSizes);
-    addClass('pt', pt, validSizes);
-    addClass('pr', pr, validSizes);
-    addClass('pb', pb, validSizes);
-    addClass('pl', pl, validSizes);
-    addClass('px', px, validSizes);
-    addClass('py', py, validSizes);
+    // Spacing (no viewport support in Bulma)
+    addClassNoViewport('m', m, validSizes);
+    addClassNoViewport('mt', mt, validSizes);
+    addClassNoViewport('mr', mr, validSizes);
+    addClassNoViewport('mb', mb, validSizes);
+    addClassNoViewport('ml', ml, validSizes);
+    addClassNoViewport('mx', mx, validSizes);
+    addClassNoViewport('my', my, validSizes);
+    addClassNoViewport('p', p, validSizes);
+    addClassNoViewport('pt', pt, validSizes);
+    addClassNoViewport('pr', pr, validSizes);
+    addClassNoViewport('pb', pb, validSizes);
+    addClassNoViewport('pl', pl, validSizes);
+    addClassNoViewport('px', px, validSizes);
+    addClassNoViewport('py', py, validSizes);
 
     // Typography
-    addClass('is-size', textSize, validTextSizes);
-    addClass('has-text', textAlign, validAlignments);
-    addClass('is', textTransform, validTextTransforms);
-    addClass('has-text-weight', textWeight, validTextWeights);
-    addClass('is-family', fontFamily, validFontFamilies);
+    addClass('is-size', textSize, validTextSizes, true); // supports viewport
+    addClass('has-text', textAlign, validAlignments, true); // supports viewport
+    addClassNoViewport('is', textTransform, validTextTransforms); // no viewport support
+    addClassNoViewport('has-text-weight', textWeight, validTextWeights); // no viewport support
+    addClassNoViewport('is-family', fontFamily, validFontFamilies); // no viewport support
 
-    // Visibility
-    addClass('is', display, validDisplays);
+    // Viewport-specific text sizes
+    const addViewportSpecificTextSizeClass = (
+      value: string | undefined,
+      viewportSuffix: string
+    ) => {
+      if (value && (validTextSizes as readonly string[]).includes(value)) {
+        addPrefixedClass(`is-size-${value}${viewportSuffix}`);
+      }
+    };
+
+    addViewportSpecificTextSizeClass(textSizeMobile, '-mobile');
+    addViewportSpecificTextSizeClass(textSizeTablet, '-tablet');
+    addViewportSpecificTextSizeClass(textSizeDesktop, '-desktop');
+    addViewportSpecificTextSizeClass(textSizeWidescreen, '-widescreen');
+    addViewportSpecificTextSizeClass(textSizeFullhd, '-fullhd');
+
+    // Viewport-specific text alignment
+    const addViewportSpecificTextAlignClass = (
+      value: string | undefined,
+      viewportSuffix: string
+    ) => {
+      if (value && (validAlignments as readonly string[]).includes(value)) {
+        addPrefixedClass(`has-text-${value}${viewportSuffix}`);
+      }
+    };
+
+    addViewportSpecificTextAlignClass(textAlignMobile, '-mobile');
+    addViewportSpecificTextAlignClass(textAlignTablet, '-tablet');
+    addViewportSpecificTextAlignClass(textAlignDesktop, '-desktop');
+    addViewportSpecificTextAlignClass(textAlignWidescreen, '-widescreen');
+    addViewportSpecificTextAlignClass(textAlignFullhd, '-fullhd');
+
+    // Viewport-specific visibility
+    const addViewportSpecificVisibilityClass = (
+      value: string | undefined,
+      viewportSuffix: string
+    ) => {
+      if (value === 'hidden') {
+        addPrefixedClass(`is-hidden${viewportSuffix}`);
+      } else if (value === 'sr-only') {
+        addPrefixedClass(`is-sr-only${viewportSuffix}`);
+      } else if (value === 'invisible') {
+        addPrefixedClass(`is-invisible${viewportSuffix}`);
+      }
+    };
+
+    addViewportSpecificVisibilityClass(visibilityMobile, '-mobile');
+    addViewportSpecificVisibilityClass(visibilityTablet, '-tablet');
+    addViewportSpecificVisibilityClass(visibilityDesktop, '-desktop');
+    addViewportSpecificVisibilityClass(visibilityWidescreen, '-widescreen');
+    addViewportSpecificVisibilityClass(visibilityFullhd, '-fullhd');
+
+    // Visibility and Display
+    // Handle viewport-specific display properties first (they take precedence)
+    const addDisplayClass = (
+      displayValue: string | undefined,
+      viewportSuffix: string
+    ) => {
+      if (displayValue) {
+        if (displayValue === 'none') {
+          addPrefixedClass(`is-hidden${viewportSuffix}`);
+        } else if (
+          (validDisplays as readonly string[]).includes(displayValue)
+        ) {
+          addPrefixedClass(`is-${displayValue}${viewportSuffix}`);
+        }
+      }
+    };
+
+    // Apply viewport-specific display classes
+    addDisplayClass(displayMobile, '-mobile');
+    addDisplayClass(displayTablet, '-tablet');
+    addDisplayClass(displayDesktop, '-desktop');
+    addDisplayClass(displayWidescreen, '-widescreen');
+    addDisplayClass(displayFullhd, '-fullhd');
+
+    // Apply legacy display/viewport combination if no viewport-specific display props are set
+    const hasViewportSpecificDisplay = !!(
+      displayMobile ||
+      displayTablet ||
+      displayDesktop ||
+      displayWidescreen ||
+      displayFullhd
+    );
+
+    if (!hasViewportSpecificDisplay) {
+      // Legacy display handling
+      if (display === 'none') {
+        if (viewport && validViewports.includes(viewport)) {
+          addPrefixedClass(`is-hidden-${viewport}`);
+        } else {
+          addPrefixedClass('is-hidden');
+        }
+      } else {
+        addClass('is', display, [...validDisplays], true); // display supports viewport
+      }
+    }
+
+    // Visibility (always applied regardless of display settings)
     if (visibility) {
       if (
-        visibility === 'hidden' &&
+        (visibility === 'hidden' || visibility === 'invisible') &&
         viewport &&
         validViewports.includes(viewport)
       ) {
-        classes.push(`is-hidden-${viewport}`);
+        addPrefixedClass(`is-${visibility}-${viewport}`);
       } else if (validVisibilities.includes(visibility)) {
-        classes.push(`is-${visibility}`);
+        addPrefixedClass(`is-${visibility}`);
       }
     }
 
     // Flexbox
-    if (display === 'flex' || display === 'inline-flex') {
-      addClass('is-flex-direction', flexDirection, validFlexDirections);
-      addClass('is-flex-wrap', flexWrap, validFlexWraps);
-      addClass('is-justify-content', justifyContent, validJustifyContents);
-      addClass('is-align-content', alignContent, validAlignContents);
-      addClass('is-align-items', alignItems, validAlignItems);
-      addClass('is-align-self', alignSelf, validAlignSelfs);
-      addClass('is-flex-grow', flexGrow, validFlexGrowShrink);
-      addClass('is-flex-shrink', flexShrink, validFlexGrowShrink);
+    const hasFlexDisplay =
+      display === 'flex' ||
+      display === 'inline-flex' ||
+      displayMobile === 'flex' ||
+      displayMobile === 'inline-flex' ||
+      displayTablet === 'flex' ||
+      displayTablet === 'inline-flex' ||
+      displayDesktop === 'flex' ||
+      displayDesktop === 'inline-flex' ||
+      displayWidescreen === 'flex' ||
+      displayWidescreen === 'inline-flex' ||
+      displayFullhd === 'flex' ||
+      displayFullhd === 'inline-flex';
+
+    if (hasFlexDisplay) {
+      // Flexbox container properties do not support viewport modifiers in Bulma
+      addClassNoViewport(
+        'is-flex-direction',
+        flexDirection,
+        validFlexDirections
+      );
+      addClassNoViewport('is-flex-wrap', flexWrap, validFlexWraps);
+      addClassNoViewport(
+        'is-justify-content',
+        justifyContent,
+        validJustifyContents
+      );
+      addClassNoViewport('is-align-content', alignContent, validAlignContents);
+      addClassNoViewport('is-align-items', alignItems, validAlignItems);
     }
 
-    // Other Helpers
+    // Flex item properties (can be applied to any element that is a flex item)
+    // These don't require the element itself to have display: flex
+    addClassNoViewport('is-align-self', alignSelf, validAlignSelfs);
+    addClassNoViewport('is-flex-grow', flexGrow, validFlexGrowShrink);
+    addClassNoViewport('is-flex-shrink', flexShrink, validFlexGrowShrink);
+
+    // Other Helpers (no viewport support)
     if (float) {
-      addClass('is-pulled', float, ['left', 'right']);
+      addClassNoViewport('is-pulled', float, ['left', 'right']);
     }
     if (overflow) {
-      addClass('is', overflow, ['clipped']);
+      addClassNoViewport('is', overflow, ['clipped']);
     }
     if (overlay) {
-      classes.push('is-overlay');
+      addPrefixedClass('is-overlay');
     }
     if (interaction) {
-      addClass('is', interaction, ['unselectable', 'clickable']);
+      addClassNoViewport('is', interaction, ['unselectable', 'clickable']);
     }
     if (radius) {
-      addClass('is', radius, ['radiusless']);
+      addClassNoViewport('is', radius, ['radiusless']);
     }
     if (shadow) {
-      addClass('is', shadow, ['shadowless']);
+      addClassNoViewport('is', shadow, ['shadowless']);
     }
     if (responsive) {
-      addClass('is', responsive, ['mobile', 'narrow']);
+      addClassNoViewport('is', responsive, ['mobile', 'narrow']);
+    }
+
+    // Bulma Skeleton Helper
+    if (skeleton) {
+      addPrefixedClass('is-skeleton');
+    }
+
+    // Clearfix Helper
+    if (clearfix) {
+      addPrefixedClass('is-clearfix');
+    }
+
+    // Position Relative Helper
+    if (relative) {
+      addPrefixedClass('is-relative');
     }
 
     return classNames(classes);
   }, [
+    classPrefix,
     color,
     backgroundColor,
     colorShade,
+    backgroundColorShade,
     m,
     mt,
     mr,
@@ -525,6 +774,30 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     shadow,
     responsive,
     viewport,
+    displayMobile,
+    displayTablet,
+    displayDesktop,
+    displayWidescreen,
+    displayFullhd,
+    skeleton,
+    clearfix,
+    relative,
+    // Viewport-specific properties
+    textSizeMobile,
+    textSizeTablet,
+    textSizeDesktop,
+    textSizeWidescreen,
+    textSizeFullhd,
+    textAlignMobile,
+    textAlignTablet,
+    textAlignDesktop,
+    textAlignWidescreen,
+    textAlignFullhd,
+    visibilityMobile,
+    visibilityTablet,
+    visibilityDesktop,
+    visibilityWidescreen,
+    visibilityFullhd,
   ]);
 
   return { bulmaHelperClasses, rest };

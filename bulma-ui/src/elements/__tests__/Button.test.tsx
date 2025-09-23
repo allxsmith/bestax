@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Button Component', () => {
   it('renders children correctly', () => {
@@ -19,20 +20,17 @@ describe('Button Component', () => {
     );
   });
 
-  it('applies helper classes via rest props', () => {
+  test('applies helper classes via rest props', () => {
     render(
-      <Button
-        textColor="success"
-        m="2"
-        textAlign="centered"
-        viewport="mobile"
-      />
+      <Button color="success" m="2" textAlign="centered" viewport="mobile">
+        Test
+      </Button>
     );
     const button = screen.getByRole('button');
     expect(button).toHaveClass(
       'button',
-      'has-text-success-mobile',
-      'm-2-mobile',
+      'is-success', // Button color modifier
+      'm-2', // Margin does not support viewport modifiers
       'has-text-centered-mobile'
     );
   });
@@ -127,6 +125,66 @@ describe('Button Component', () => {
       fireEvent.click(button);
       expect(handleClick).not.toHaveBeenCalled();
       expect(button).toBeDisabled();
+    });
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('my-prefix-button');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('button');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Button>Test</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('button');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Button color="primary" size="large" m="2" isRounded>
+            Test Button
+          </Button>
+        </ConfigProvider>
+      );
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('bulma-button');
+      expect(button).toHaveClass('bulma-is-primary');
+      expect(button).toHaveClass('bulma-is-large');
+      expect(button).toHaveClass('bulma-is-rounded');
+      expect(button).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Button color="info" size="medium" p="3">
+          Standard Button
+        </Button>
+      );
+
+      const button = container.querySelector('button');
+      expect(button).toHaveClass('button');
+      expect(button).toHaveClass('is-info');
+      expect(button).toHaveClass('is-medium');
+      expect(button).toHaveClass('p-3');
     });
   });
 });

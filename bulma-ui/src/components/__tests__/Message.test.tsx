@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Message } from '../Message';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Message', () => {
   it('renders with title and body', () => {
@@ -43,5 +44,163 @@ describe('Message', () => {
       </Message>
     );
     expect(screen.getByTestId('message')).toHaveClass('extra-class');
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Message title="Hello">World</Message>
+      </ConfigProvider>
+    );
+    const message = screen.getByTestId('message');
+    expect(message).toHaveClass('bulma-message');
+    expect(message).not.toHaveClass('message');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Message title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('bulma-message');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Message title="Hello" data-testid="message">
+          World
+        </Message>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Message title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Message color="primary" m="2" title="Hello" data-testid="message">
+            World
+          </Message>
+        </ConfigProvider>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('bulma-message');
+      expect(message).toHaveClass('bulma-is-primary');
+      expect(message).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Message color="danger" title="Hello" data-testid="message">
+          World
+        </Message>
+      );
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+      expect(message).toHaveClass('is-danger');
+    });
+  });
+
+  describe('Compound Components', () => {
+    test('Message.Header renders with correct classes', () => {
+      render(
+        <Message.Header data-testid="header">
+          <p>Header content</p>
+        </Message.Header>
+      );
+      const header = screen.getByTestId('header');
+      expect(header).toHaveClass('message-header');
+      expect(screen.getByText('Header content')).toBeInTheDocument();
+    });
+
+    test('Message.Header accepts custom className', () => {
+      render(
+        <Message.Header className="custom-header" data-testid="header">
+          Header
+        </Message.Header>
+      );
+      const header = screen.getByTestId('header');
+      expect(header).toHaveClass('message-header', 'custom-header');
+    });
+
+    test('Message.Body renders with correct classes', () => {
+      render(
+        <Message.Body data-testid="body">
+          <p>Body content</p>
+        </Message.Body>
+      );
+      const body = screen.getByTestId('body');
+      expect(body).toHaveClass('message-body');
+      expect(screen.getByText('Body content')).toBeInTheDocument();
+    });
+
+    test('Message.Body accepts custom className', () => {
+      render(
+        <Message.Body className="custom-body" data-testid="body">
+          Body
+        </Message.Body>
+      );
+      const body = screen.getByTestId('body');
+      expect(body).toHaveClass('message-body', 'custom-body');
+    });
+
+    test('compound components can be composed together', () => {
+      render(
+        <Message data-testid="message">
+          <Message.Header>
+            <span>Important Notice</span>
+            <button className="delete" aria-label="delete" />
+          </Message.Header>
+          <Message.Body>
+            This is a message using compound components.
+          </Message.Body>
+        </Message>
+      );
+
+      const message = screen.getByTestId('message');
+      expect(message).toHaveClass('message');
+      expect(screen.getByText('Important Notice')).toBeInTheDocument();
+      expect(
+        screen.getByText('This is a message using compound components.')
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText('delete')).toBeInTheDocument();
+    });
+
+    test('compound components accept additional HTML attributes', () => {
+      render(
+        <Message.Header id="header-id" aria-label="Header">
+          Header
+        </Message.Header>
+      );
+      const header = screen.getByLabelText('Header');
+      expect(header).toHaveAttribute('id', 'header-id');
+    });
+
+    test('Message.Body accepts additional HTML attributes', () => {
+      render(
+        <Message.Body id="body-id" aria-label="Body">
+          Body content
+        </Message.Body>
+      );
+      const body = screen.getByLabelText('Body');
+      expect(body).toHaveAttribute('id', 'body-id');
+    });
   });
 });

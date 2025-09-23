@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 const validTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
@@ -21,6 +21,7 @@ export type TitleElement = (typeof validTitleElements)[number];
  * @property {TitleSize} [size] - Size of the title (1-6).
  * @property {boolean} [isSpaced] - Adds margin below the title.
  * @property {TitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
+ * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
  * @property {React.ReactNode} [children] - Title content.
  */
 export interface TitleProps
@@ -33,6 +34,7 @@ export interface TitleProps
   size?: TitleSize;
   isSpaced?: boolean;
   as?: TitleElement;
+  hasSkeleton?: boolean;
   children?: React.ReactNode;
 }
 
@@ -51,6 +53,7 @@ export const Title: React.FC<TitleProps> = ({
   size,
   isSpaced,
   as = 'h1',
+  hasSkeleton,
   children,
   ...props
 }) => {
@@ -65,10 +68,13 @@ export const Title: React.FC<TitleProps> = ({
   // Validate 'size' prop at runtime
   const validSize = size && validTitleSizes.includes(size) ? size : undefined;
 
-  const titleClasses = classNames('title', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('title', {
     [`is-${validSize}`]: validSize,
     'is-spaced': isSpaced,
+    'has-skeleton': hasSkeleton,
   });
+
+  const titleClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Determine the tag based on 'element' and 'validSize'
   const Tag: React.ElementType =

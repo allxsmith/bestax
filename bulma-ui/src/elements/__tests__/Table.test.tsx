@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Table, TableProps } from '../Table';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Table Component', () => {
   const defaultProps: TableProps = {
@@ -78,5 +79,94 @@ describe('Table Component', () => {
   test('renders children content', () => {
     render(<Table {...defaultProps} />);
     expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main table class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Table {...defaultProps} />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('my-prefix-table');
+    });
+
+    it('applies classPrefix to table-container when responsive', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Table {...defaultProps} isResponsive />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('my-prefix-table');
+      expect(table.parentElement).toHaveClass('my-prefix-table-container');
+    });
+
+    it('uses default classes when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Table {...defaultProps} isResponsive />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('table');
+      expect(table.parentElement).toHaveClass('table-container');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Table {...defaultProps} />
+        </ConfigProvider>
+      );
+      const table = screen.getByRole('table');
+      expect(table).toHaveClass('table');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Table isBordered isStriped isNarrow isResponsive m="2">
+            <tbody>
+              <tr>
+                <td>Test Cell</td>
+              </tr>
+            </tbody>
+          </Table>
+        </ConfigProvider>
+      );
+
+      const tableContainer = container.querySelector('.bulma-table-container');
+      expect(tableContainer).toBeInTheDocument();
+
+      const table = container.querySelector('table');
+      expect(table).toHaveClass('bulma-table');
+      expect(table).toHaveClass('bulma-is-bordered');
+      expect(table).toHaveClass('bulma-is-striped');
+      expect(table).toHaveClass('bulma-is-narrow');
+      expect(table).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Table isBordered isHoverable isResponsive p="3">
+          <tbody>
+            <tr>
+              <td>Standard Cell</td>
+            </tr>
+          </tbody>
+        </Table>
+      );
+
+      const tableContainer = container.querySelector('.table-container');
+      expect(tableContainer).toBeInTheDocument();
+
+      const table = container.querySelector('table');
+      expect(table).toHaveClass('table');
+      expect(table).toHaveClass('is-bordered');
+      expect(table).toHaveClass('is-hoverable');
+      expect(table).toHaveClass('p-3');
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import Radios from '../Radios';
 import Radio from '../Radio';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Radios', () => {
   it('renders children (Radio components) inside a div with class "radios"', () => {
@@ -42,10 +43,82 @@ describe('Radios', () => {
     expect(screen.getByTestId('radios-wrapper')).toBeInTheDocument();
   });
 
-  it('renders with no children without crashing', () => {
-    render(<Radios />);
+  it('renders with empty content without crashing', () => {
+    render(<Radios>{null}</Radios>);
     // Should not throw; no assertion needed, but can check existence
     const wrapper = document.querySelector('.radios');
     expect(wrapper).toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Radios>
+          <Radio name="test">Test Radio</Radio>
+        </Radios>
+      </ConfigProvider>
+    );
+    const wrapper = screen.getByText('Test Radio').closest('.custom-radios');
+    expect(wrapper).toBeInTheDocument();
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radios data-testid="radios">
+            <Radio name="test">Test</Radio>
+          </Radios>
+        </ConfigProvider>
+      );
+      const radios = screen.getByTestId('radios');
+      expect(radios).toHaveClass('bulma-radios');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Radios data-testid="radios">
+          <Radio name="test">Test</Radio>
+        </Radios>
+      );
+      const radios = screen.getByTestId('radios');
+      expect(radios).toHaveClass('radios');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Radios data-testid="radios">
+            <Radio name="test">Test</Radio>
+          </Radios>
+        </ConfigProvider>
+      );
+      const radios = screen.getByTestId('radios');
+      expect(radios).toHaveClass('radios');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radios m="2" data-testid="radios">
+            <Radio name="test">Test</Radio>
+          </Radios>
+        </ConfigProvider>
+      );
+      const radios = screen.getByTestId('radios');
+      expect(radios).toHaveClass('bulma-radios');
+      expect(radios).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Radios p="3" data-testid="radios">
+          <Radio name="test">Test</Radio>
+        </Radios>
+      );
+      const radios = screen.getByTestId('radios');
+      expect(radios).toHaveClass('radios');
+      expect(radios).toHaveClass('p-3');
+    });
   });
 });

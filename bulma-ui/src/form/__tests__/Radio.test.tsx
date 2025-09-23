@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Radio from '../Radio';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Radio', () => {
   it('renders with children as label', () => {
@@ -15,6 +16,68 @@ describe('Radio', () => {
     const label = container.querySelector('label');
     expect(label).toHaveClass('radio');
     expect(label).toHaveClass('custom-class');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="custom-">
+        <Radio>Test Radio</Radio>
+      </ConfigProvider>
+    );
+    const label = container.querySelector('label');
+    expect(label).toHaveClass('custom-radio');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radio data-testid="radio">Test</Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-radio');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      const { container } = render(<Radio data-testid="radio">Test</Radio>);
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={undefined}>
+          <Radio data-testid="radio">Test</Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Radio m="2" data-testid="radio">
+            Test
+          </Radio>
+        </ConfigProvider>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-radio');
+      expect(label).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Radio p="3" data-testid="radio">
+          Test
+        </Radio>
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('radio');
+      expect(label).toHaveClass('p-3');
+    });
   });
 
   it('renders as unchecked by default', () => {

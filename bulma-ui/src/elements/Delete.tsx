@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -60,15 +60,12 @@ export const Delete: React.FC<DeleteProps> = ({
     ...props,
   });
 
-  const classes = classNames(
-    'delete',
-    {
-      [`is-${size}`]: size,
-      'is-disabled': disabled,
-    },
-    bulmaHelperClasses,
-    className
-  );
+  const bulmaClasses = usePrefixedClassNames('delete', {
+    [`is-${size}`]: size,
+    'is-disabled': disabled,
+  });
+
+  const classes = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <button

@@ -1,0 +1,65 @@
+.browserWindow {
+  border: 3px solid var(--ifm-color-emphasis-200);
+  border-radius: 0.5rem;
+  margin-bottom: var(--ifm-leading);
+  overflow: hidden;
+}
+
+.browserWindowHeader {
+  align-items: center;
+  background: var(--ifm-color-emphasis-300);
+  display: flex;
+  padding: 0.5rem 1rem;
+}
+
+.browserWindowAddressBar {
+  /* background-color: #fff; */
+  border-radius: 12.5px / 10px;
+  /* color: var(--ifm-color-emphasis-800); */
+  flex: 1 0;
+  font:
+    80% SFMono-Regular,
+    Consolas,
+    Liberation Mono,
+    Menlo,
+    Courier,
+    monospace;
+  margin: 0 1rem;
+  padding: 5px 10px;
+  position: relative;
+  white-space: nowrap;
+}
+
+pre.prism-code {
+  border-radius: 0;
+}
+
+.browserWindowBody {
+  background-color: var(--ifm-background-surface-color);
+}
+
+.buttons {
+  white-space: nowrap;
+}
+
+.dot {
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.8rem;
+  margin-right: 0.5rem;
+  width: 0.8rem;
+}
+
+.buttonGroup button {
+  display: flex;
+  align-items: center;
+  background: var(--prism-background-color);
+  color: var(--prism-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  padding: 0.4rem;
+  line-height: 0;
+  transition: opacity var(--ifm-transition-fast) ease-in-out;
+  opacity: 1;
+}

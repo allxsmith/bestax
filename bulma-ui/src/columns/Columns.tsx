@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -75,30 +75,6 @@ export interface ColumnsProps
 }
 
 /**
- * Builds Bulma gap classes for the Columns component.
- */
-function getGapClasses(props: ColumnsProps): string[] {
-  const gapClassMap = [
-    { prop: 'gapSize', prefix: 'is' },
-    { prop: 'gapSizeMobile', prefix: 'is', suffix: 'mobile' },
-    { prop: 'gapSizeTablet', prefix: 'is', suffix: 'tablet' },
-    { prop: 'gapSizeDesktop', prefix: 'is', suffix: 'desktop' },
-    { prop: 'gapSizeWidescreen', prefix: 'is', suffix: 'widescreen' },
-    { prop: 'gapSizeFullhd', prefix: 'is', suffix: 'fullhd' },
-  ];
-
-  return gapClassMap.flatMap(({ prop, prefix, suffix }) => {
-    const val = props[prop as keyof ColumnsProps] as BulmaGapSize | undefined;
-    if (val !== undefined && val !== null) {
-      let className = `${prefix}-${val}`;
-      if (suffix) className += `-${suffix}`;
-      return [className];
-    }
-    return [];
-  });
-}
-
-/**
  * Bulma Columns container for flexible, responsive layouts.
  *
  * @function
@@ -109,6 +85,7 @@ function getGapClasses(props: ColumnsProps): string[] {
 export const Columns: React.FC<ColumnsProps> = ({
   className,
   textColor,
+  color: _fieldColor,
   bgColor,
   isCentered,
   isGapless,
@@ -131,24 +108,32 @@ export const Columns: React.FC<ColumnsProps> = ({
     ...props,
   });
 
+  const mainClass = usePrefixedClassNames('columns');
+
+  // Build gap classes with prefixes
+  const gapClasses = usePrefixedClassNames('', {
+    [`is-${gapSize}`]: gapSize !== undefined && gapSize !== null,
+    [`is-${gapSizeMobile}-mobile`]:
+      gapSizeMobile !== undefined && gapSizeMobile !== null,
+    [`is-${gapSizeTablet}-tablet`]:
+      gapSizeTablet !== undefined && gapSizeTablet !== null,
+    [`is-${gapSizeDesktop}-desktop`]:
+      gapSizeDesktop !== undefined && gapSizeDesktop !== null,
+    [`is-${gapSizeWidescreen}-widescreen`]:
+      gapSizeWidescreen !== undefined && gapSizeWidescreen !== null,
+    [`is-${gapSizeFullhd}-fullhd`]:
+      gapSizeFullhd !== undefined && gapSizeFullhd !== null,
+    'is-centered': !!isCentered,
+    'is-gapless': !!isGapless,
+    'is-multiline': !!isMultiline,
+    'is-vcentered': !!isVCentered,
+    'is-mobile': !!isMobile,
+    'is-desktop': !!isDesktop,
+  });
+
   const columnsClasses = classNames(
-    'columns',
-    {
-      'is-centered': isCentered,
-      'is-gapless': isGapless,
-      'is-multiline': isMultiline,
-      'is-vcentered': isVCentered,
-      'is-mobile': isMobile,
-      'is-desktop': isDesktop,
-    },
-    ...getGapClasses({
-      gapSize,
-      gapSizeMobile,
-      gapSizeTablet,
-      gapSizeDesktop,
-      gapSizeWidescreen,
-      gapSizeFullhd,
-    } as ColumnsProps),
+    mainClass,
+    gapClasses,
     className,
     bulmaHelperClasses
   );

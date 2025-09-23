@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import File from '../File';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('File', () => {
   it('renders a file input with default label', () => {
@@ -34,6 +35,70 @@ describe('File', () => {
     expect(wrapper).toHaveClass('is-boxed');
     expect(wrapper).toHaveClass('is-fullwidth');
     expect(wrapper).toHaveClass('has-name');
+  });
+
+  it('applies classPrefix when provided', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <File />
+      </ConfigProvider>
+    );
+    const wrapper = container.querySelector('.bulma-file');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveClass('bulma-file');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <File data-testid="file" />
+        </ConfigProvider>
+      );
+      const fileWrapper = screen.getByTestId('file').closest('.bulma-file');
+      expect(fileWrapper).toBeInTheDocument();
+      expect(fileWrapper).toHaveClass('bulma-file');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<File data-testid="file" />);
+      const fileWrapper = screen.getByTestId('file').closest('.file');
+      expect(fileWrapper).toBeInTheDocument();
+      expect(fileWrapper).toHaveClass('file');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <File data-testid="file" />
+        </ConfigProvider>
+      );
+      const fileWrapper = screen.getByTestId('file').closest('.file');
+      expect(fileWrapper).toBeInTheDocument();
+      expect(fileWrapper).toHaveClass('file');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <File color="primary" isBoxed m="2" data-testid="file" />
+        </ConfigProvider>
+      );
+      const fileWrapper = screen.getByTestId('file').closest('.bulma-file');
+      expect(fileWrapper).toHaveClass('bulma-file');
+      expect(fileWrapper).toHaveClass('bulma-is-primary');
+      expect(fileWrapper).toHaveClass('bulma-is-boxed');
+      expect(fileWrapper).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(<File color="danger" isFullwidth p="3" data-testid="file" />);
+      const fileWrapper = screen.getByTestId('file').closest('.file');
+      expect(fileWrapper).toHaveClass('file');
+      expect(fileWrapper).toHaveClass('is-danger');
+      expect(fileWrapper).toHaveClass('is-fullwidth');
+      expect(fileWrapper).toHaveClass('p-3');
+    });
   });
 
   it('renders left and right icons', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -41,10 +41,12 @@ export const Tags: React.FC<TagsProps> = ({
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tagsClasses = classNames('tags', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('tags', {
     'has-addons': hasAddons,
     'are-multiline': isMultiline,
   });
+
+  const tagsClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={tagsClasses} {...rest}>

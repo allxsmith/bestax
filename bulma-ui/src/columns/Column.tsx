@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -88,57 +88,6 @@ export interface ColumnProps
 }
 
 /**
- * Builds Bulma column and offset class names for the Column component.
- */
-function getColumnClassNames(props: ColumnProps): string[] {
-  const classList: string[] = [];
-  // Sizes
-  const sizeProps = [
-    { prop: 'size', prefix: 'is', suffix: '' },
-    { prop: 'sizeMobile', prefix: 'is', suffix: 'mobile' },
-    { prop: 'sizeTablet', prefix: 'is', suffix: 'tablet' },
-    { prop: 'sizeDesktop', prefix: 'is', suffix: 'desktop' },
-    { prop: 'sizeWidescreen', prefix: 'is', suffix: 'widescreen' },
-    { prop: 'sizeFullhd', prefix: 'is', suffix: 'fullhd' },
-  ];
-  for (const { prop, prefix, suffix } of sizeProps) {
-    const val = props[prop as keyof ColumnProps] as BulmaColumnSize | undefined;
-    if (val !== undefined && val !== null) {
-      let className = `${prefix}-${val}`;
-      if (suffix) className += `-${suffix}`;
-      classList.push(className);
-    }
-  }
-  // Offsets
-  const offsetProps = [
-    { prop: 'offset', prefix: 'is-offset', suffix: '' },
-    { prop: 'offsetMobile', prefix: 'is-offset', suffix: 'mobile' },
-    { prop: 'offsetTablet', prefix: 'is-offset', suffix: 'tablet' },
-    { prop: 'offsetDesktop', prefix: 'is-offset', suffix: 'desktop' },
-    { prop: 'offsetWidescreen', prefix: 'is-offset', suffix: 'widescreen' },
-    { prop: 'offsetFullhd', prefix: 'is-offset', suffix: 'fullhd' },
-  ];
-  for (const { prop, prefix, suffix } of offsetProps) {
-    const val = props[prop as keyof ColumnProps] as BulmaColumnSize | undefined;
-    if (val !== undefined && val !== null) {
-      let className = `${prefix}-${val}`;
-      if (suffix) className += `-${suffix}`;
-      classList.push(className);
-    }
-  }
-  // isNarrow (responsive)
-  if (props.isNarrow) classList.push('is-narrow');
-  if (props.isNarrowMobile) classList.push('is-narrow-mobile');
-  if (props.isNarrowTablet) classList.push('is-narrow-tablet');
-  if (props.isNarrowTouch) classList.push('is-narrow-touch');
-  if (props.isNarrowDesktop) classList.push('is-narrow-desktop');
-  if (props.isNarrowWidescreen) classList.push('is-narrow-widescreen');
-  if (props.isNarrowFullhd) classList.push('is-narrow-fullhd');
-
-  return classList;
-}
-
-/**
  * Bulma Column component for responsive grid layouts.
  *
  * @function
@@ -149,6 +98,7 @@ function getColumnClassNames(props: ColumnProps): string[] {
 export const Column: React.FC<ColumnProps> = ({
   className,
   textColor,
+  color: _fieldColor,
   bgColor,
   size,
   sizeMobile,
@@ -178,29 +128,44 @@ export const Column: React.FC<ColumnProps> = ({
     ...props,
   });
 
+  const mainClass = usePrefixedClassNames('column');
+
+  // Build column-specific classes with prefixes
+  const columnSpecificClasses = usePrefixedClassNames('', {
+    [`is-${size}`]: size !== undefined && size !== null,
+    [`is-${sizeMobile}-mobile`]:
+      sizeMobile !== undefined && sizeMobile !== null,
+    [`is-${sizeTablet}-tablet`]:
+      sizeTablet !== undefined && sizeTablet !== null,
+    [`is-${sizeDesktop}-desktop`]:
+      sizeDesktop !== undefined && sizeDesktop !== null,
+    [`is-${sizeWidescreen}-widescreen`]:
+      sizeWidescreen !== undefined && sizeWidescreen !== null,
+    [`is-${sizeFullhd}-fullhd`]:
+      sizeFullhd !== undefined && sizeFullhd !== null,
+    [`is-offset-${offset}`]: offset !== undefined && offset !== null,
+    [`is-offset-${offsetMobile}-mobile`]:
+      offsetMobile !== undefined && offsetMobile !== null,
+    [`is-offset-${offsetTablet}-tablet`]:
+      offsetTablet !== undefined && offsetTablet !== null,
+    [`is-offset-${offsetDesktop}-desktop`]:
+      offsetDesktop !== undefined && offsetDesktop !== null,
+    [`is-offset-${offsetWidescreen}-widescreen`]:
+      offsetWidescreen !== undefined && offsetWidescreen !== null,
+    [`is-offset-${offsetFullhd}-fullhd`]:
+      offsetFullhd !== undefined && offsetFullhd !== null,
+    'is-narrow': !!isNarrow,
+    'is-narrow-mobile': !!isNarrowMobile,
+    'is-narrow-tablet': !!isNarrowTablet,
+    'is-narrow-touch': !!isNarrowTouch,
+    'is-narrow-desktop': !!isNarrowDesktop,
+    'is-narrow-widescreen': !!isNarrowWidescreen,
+    'is-narrow-fullhd': !!isNarrowFullhd,
+  });
+
   const columnClasses = classNames(
-    'column',
-    ...getColumnClassNames({
-      size,
-      sizeMobile,
-      sizeTablet,
-      sizeDesktop,
-      sizeWidescreen,
-      sizeFullhd,
-      offset,
-      offsetMobile,
-      offsetTablet,
-      offsetDesktop,
-      offsetWidescreen,
-      offsetFullhd,
-      isNarrow,
-      isNarrowMobile,
-      isNarrowTablet,
-      isNarrowTouch,
-      isNarrowDesktop,
-      isNarrowWidescreen,
-      isNarrowFullhd,
-    }),
+    mainClass,
+    columnSpecificClasses,
     className,
     bulmaHelperClasses
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -73,11 +73,14 @@ export const Navbar: React.FC<NavbarProps> & {
     ...props,
   });
 
-  const navbarClasses = classNames('navbar', bulmaHelperClasses, className, {
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('navbar', {
     [`is-${color}`]: color,
     'is-transparent': transparent,
     [`is-fixed-${fixed}`]: fixed,
   });
+
+  const navbarClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <nav

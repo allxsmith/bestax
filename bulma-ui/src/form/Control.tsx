@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -70,7 +70,7 @@ const allowedColors = [...validColors, 'inherit', 'current'] as const;
  * @returns {JSX.Element} The rendered control container.
  * @see {@link https://bulma.io/documentation/form/general/#control | Bulma Control documentation}
  */
-const Control = React.forwardRef<
+export const Control = React.forwardRef<
   HTMLDivElement | HTMLParagraphElement,
   ControlProps
 >(
@@ -142,18 +142,14 @@ const Control = React.forwardRef<
           }
         : undefined);
 
-    const controlClass = classNames(
-      'control',
-      bulmaHelperClasses,
-      {
-        'has-icons-left': hasIconsLeft || !!leftIconProps,
-        'has-icons-right': hasIconsRight || !!rightIconProps,
-        'is-loading': isLoading,
-        'is-expanded': isExpanded,
-        [`is-${size}`]: !!size,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('control', {
+      'has-icons-left': hasIconsLeft || !!leftIconProps,
+      'has-icons-right': hasIconsRight || !!rightIconProps,
+      'is-loading': isLoading,
+      'is-expanded': isExpanded,
+      [`is-${size}`]: !!size,
+    });
+    const controlClass = classNames(mainClass, bulmaHelperClasses, className);
 
     // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (

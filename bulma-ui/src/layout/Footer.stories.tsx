@@ -14,7 +14,7 @@ export const Default: StoryObj<typeof Footer> = {
       <Content textAlign="centered">
         <p>
           <strong>Bestax</strong> a Bulma component library by{' '}
-          <a href="https://bestax.cc">Alex Smith</a>.<br />
+          <a href="https://bestax.io">Alex Smith</a>.<br />
           <a href="https://opensource.org/license/mit">
             MIT Source Code License
           </a>

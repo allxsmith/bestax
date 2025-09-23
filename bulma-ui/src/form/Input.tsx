@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -49,7 +49,7 @@ export interface InputProps
  * @returns {JSX.Element} The rendered input element.
  * @see {@link https://bulma.io/documentation/form/input/ | Bulma Input documentation}
  */
-const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       color,
@@ -71,20 +71,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       ...props,
     });
 
-    const inputClass = classNames(
-      'input',
-      bulmaHelperClasses,
-      {
-        [`is-${color}`]: color,
-        [`is-${size}`]: size,
-        'is-rounded': isRounded,
-        'is-static': isStatic,
-        'is-hovered': isHovered,
-        'is-focused': isFocused,
-        'is-loading': isLoading,
-      },
-      className
-    );
+    const mainClass = usePrefixedClassNames('input', {
+      [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
+      'is-rounded': isRounded,
+      'is-static': isStatic,
+      'is-hovered': isHovered,
+      'is-focused': isFocused,
+      'is-loading': isLoading,
+    });
+    const inputClass = classNames(mainClass, bulmaHelperClasses, className);
 
     return (
       <input

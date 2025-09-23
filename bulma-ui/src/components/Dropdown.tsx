@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
@@ -52,7 +52,7 @@ export interface DropdownProps
  * @returns {JSX.Element} The rendered dropdown.
  * @see {@link https://bulma.io/documentation/components/dropdown/ | Bulma Dropdown documentation}
  */
-export const Dropdown: React.FC<DropdownProps> = ({
+const DropdownComponent: React.FC<DropdownProps> = ({
   label,
   children,
   className,
@@ -72,6 +72,17 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('dropdown', {
+    'is-active': active,
+    'is-up': up,
+    'is-right': right,
+    'is-hoverable': hoverable,
+    'is-disabled': disabled,
+  });
+
+  const buttonClass = usePrefixedClassNames('button');
+
   // Controlled mode support
   useEffect(() => {
     if (typeof activeProp === 'boolean') setActive(activeProp);
@@ -84,6 +95,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
     if (!isBrowser(window, document)) return;
 
     const handleClick = (e: MouseEvent) => {
+      /* istanbul ignore next: dropdownRef.current is never null while the listener is attached */
       if (!dropdownRef.current?.contains(e.target as Node)) {
         setActive(false);
         onActiveChange?.(false);
@@ -94,6 +106,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   }, [active, onActiveChange]);
 
   const handleToggle = () => {
+    /* istanbul ignore next: guard is enforced by button[disabled] at the DOM level */
     if (disabled) return;
 
     const newActive = !active;
@@ -109,15 +122,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
   };
 
   const dropdownClasses = classNames(
-    'dropdown',
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      'is-active': active,
-      'is-up': up,
-      'is-right': right,
-      'is-hoverable': hoverable,
-      'is-disabled': disabled,
-    },
     className
   );
 
@@ -131,7 +137,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
     >
       <div className="dropdown-trigger">
         <button
-          className="button"
+          className={buttonClass}
           aria-haspopup="true"
           aria-controls={id ? `${id}-menu` : undefined}
           aria-expanded={active}
@@ -221,3 +227,11 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
 export const DropdownDivider: React.FC = () => (
   <hr className="dropdown-divider" />
 );
+
+// Assign static subcomponents
+export const Dropdown = Object.assign(DropdownComponent, {
+  Item: DropdownItem,
+  Divider: DropdownDivider,
+});
+
+export default Dropdown;

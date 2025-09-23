@@ -15,12 +15,12 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Bestax',
-  tagline: 'Application Framework',
+  title: 'Bestax-Bulma',
+  tagline: 'A Bulma React Component Libary',
   favicon: 'img/logo.svg',
 
   // Set the production url of your site here
-  url: 'https://bestax.com',
+  url: 'https://bestax.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -73,12 +73,60 @@ const config = {
       }),
     ],
   ],
-  plugins: [],
+  // stylesheets: [
+  //   {
+  //     href: '/css/ionicons.min.css',
+  //     type: 'text/css',
+  //   },
+  // ],
+  plugins: [
+    [
+      '@docusaurus/plugin-google-gtag',
+      {
+        trackingID: 'G-KKBQGEHBY7',
+        anonymizeIP: true, // For GDPR compliance
+      },
+    ],
+  ],
+  themes: [
+    '@docusaurus/theme-live-codeblock',
+    // '@docusaurus/theme-mermaid',
+    // '@docusaurus/theme-search-algolia',
+  ],
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: false,
+        respectPrefersColorScheme: true,
+      },
+      announcementBar: {
+        id: 'support_v1',
+        content: 'Full support for Bulma v1 !!!',
+        backgroundColor: '#fafbfc',
+        textColor: '#091E42',
+        isCloseable: true,
+      },
       // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/bestax-social-card.jpg',
+      metadata: [
+        {
+          name: 'keywords',
+          content:
+            'bulma, bulma-react, bulma components, bulma ui, react, react components, react bulma, react-bulma-components, react ui, typescript, component library, ui library, ui kit, design system, frontend, web components, css framework, bootstrap alternative, material alternative, storybook',
+        },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        // { name: 'algolia-site-verification', content: '23EA554671D943E3' },
+      ],
+      algolia: {
+        appId: 'O2KH2Y2NMJ',
+        apiKey: '18510063a0a75567625bf05512573ad6',
+        indexName: 'docs_bestax.io',
+        contextualSearch: true, // Recommended for multi-language or multi-version sites
+        searchPagePath: 'search', // Enables a dedicated search page at /search
+      },
+
       navbar: {
         title: 'Bestax',
         logo: {
@@ -102,7 +150,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'apiSidebar',
             position: 'left',
-            label: 'APIs',
+            label: 'Components',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
@@ -152,10 +200,14 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/allxsmith/bestax',
               },
+              {
+                label: 'NPM',
+                href: 'https://www.npmjs.com/package/@allxsmith/bestax-bulma',
+              },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Bestax, Inc.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Bestax.  <br/>Source code licensed <a href="https://opensource.org/licenses/mit-license.php">MIT</a>. Website content licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>)`,
       },
       prism: {
         theme: prismThemes.github,

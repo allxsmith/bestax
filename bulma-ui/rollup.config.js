@@ -31,6 +31,7 @@ export default commandLineArgs => {
           declarationDir: 'dist/types',
           rootDir: 'src',
           noEmit: true,
+          removeComments: true,
           exclude: ['**/__tests__/**/*', '**/*.test.tsx'],
         }),
         isVisualizerEnabled &&

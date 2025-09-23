@@ -3,5 +3,8 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "eslint.workingDirectories": ["bulma-ui", "docs"],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  }
 }

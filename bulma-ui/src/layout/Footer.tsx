@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import classNames, { usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -36,19 +36,25 @@ export interface FooterProps
  * </Footer>
  * @see {@link https://bulma.io/documentation/layout/footer/ | Bulma Footer documentation}
  */
-const Footer: React.FC<FooterProps> = ({
+export const Footer: React.FC<FooterProps> = ({
   as = 'footer',
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
   const Tag = as;
+  const mainClass = usePrefixedClassNames('footer');
+  const footerClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <Tag
-      className={classNames('footer', bulmaHelperClasses, className)}
-      {...rest}
-    >
+    <Tag className={footerClasses} {...rest}>
       {children}
     </Tag>
   );

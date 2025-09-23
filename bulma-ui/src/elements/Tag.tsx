@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 const validTagColors = [
@@ -40,7 +40,7 @@ export type TagSize = (typeof validTagSizes)[number];
  */
 export interface TagProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
-    Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+    Omit<BulmaClassesProps, 'color'> {
   className?: string;
   color?: TagColor;
   size?: TagSize;
@@ -77,13 +77,15 @@ export const Tag: React.FC<TagProps> = ({
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
-  const tagClasses = classNames('tag', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('tag', {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
     'is-rounded': isRounded,
     'is-delete': isDelete,
     'is-hoverable': isHoverable,
   });
+
+  const tagClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   if (isDelete) {
     return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -69,8 +69,9 @@ export const IconText: React.FC<IconTextProps> = ({
     ...props,
   });
 
+  const bulmaClasses = usePrefixedClassNames('icon-text');
   const iconTextClasses = classNames(
-    'icon-text',
+    bulmaClasses,
     bulmaHelperClasses,
     className
   );

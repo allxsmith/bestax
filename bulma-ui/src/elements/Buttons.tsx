@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -51,6 +51,12 @@ export const Buttons: React.FC<ButtonsProps> = ({
   children,
   ...props
 }) => {
+  const buttonsClasses = usePrefixedClassNames('buttons', {
+    'is-centered': isCentered,
+    'is-right': isRight,
+    'has-addons': hasAddons,
+  });
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
@@ -60,14 +66,14 @@ export const Buttons: React.FC<ButtonsProps> = ({
     ...props,
   });
 
-  const buttonsClasses = classNames('buttons', className, bulmaHelperClasses, {
-    'is-centered': isCentered,
-    'is-right': isRight,
-    'has-addons': hasAddons,
-  });
+  const combinedClasses = classNames(
+    buttonsClasses,
+    className,
+    bulmaHelperClasses
+  );
 
   return (
-    <div className={buttonsClasses} {...rest}>
+    <div className={combinedClasses} {...rest}>
       {children}
     </div>
   );

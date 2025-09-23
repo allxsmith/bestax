@@ -7,7 +7,8 @@
     "target": "ES2019",
     "jsx": "react-jsx",
     "noEmit": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "inlineSources": true
   },
   "include": ["src/**/*"],
   "exclude": [

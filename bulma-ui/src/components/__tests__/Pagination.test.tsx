@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Pagination from '../Pagination';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Pagination', () => {
   it('renders nav with pagination class', () => {
@@ -9,6 +10,64 @@ describe('Pagination', () => {
       'aria-label',
       'pagination'
     );
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Pagination data-testid="pagination" />
+      </ConfigProvider>
+    );
+    const pagination = screen.getByTestId('pagination');
+    expect(pagination).toHaveClass('bulma-pagination');
+    expect(pagination).not.toHaveClass('pagination');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Pagination data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('bulma-pagination');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Pagination data-testid="pagination" />);
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Pagination data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Pagination color="primary" m="2" data-testid="pagination" />
+        </ConfigProvider>
+      );
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('bulma-pagination');
+      expect(pagination).toHaveClass('bulma-is-primary');
+      expect(pagination).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(<Pagination color="danger" data-testid="pagination" />);
+      const pagination = screen.getByTestId('pagination');
+      expect(pagination).toHaveClass('pagination');
+      expect(pagination).toHaveClass('is-danger');
+    });
   });
 
   it('applies color and size classes', () => {

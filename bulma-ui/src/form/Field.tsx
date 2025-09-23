@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -86,7 +86,7 @@ export interface FieldBodyProps
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
  */
-const FieldLabel: React.FC<FieldLabelProps> = ({
+export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
   textColor,
   bgColor,
@@ -100,12 +100,10 @@ const FieldLabel: React.FC<FieldLabelProps> = ({
     ...props,
   });
 
-  const fieldLabelClass = classNames(
-    'field-label',
-    bulmaHelperClasses,
-    { [`is-${size}`]: size },
-    className
-  );
+  const mainClass = usePrefixedClassNames('field-label', {
+    [`is-${size}`]: !!size,
+  });
+  const fieldLabelClass = classNames(mainClass, bulmaHelperClasses, className);
   // Spread ...props and ...rest so custom props like data-testid are included
   return (
     <div className={fieldLabelClass} {...props} {...rest}>
@@ -121,7 +119,7 @@ const FieldLabel: React.FC<FieldLabelProps> = ({
  * @param {FieldBodyProps} props - Props for the FieldBody component.
  * @returns {JSX.Element} The rendered field body.
  */
-const FieldBody: React.FC<FieldBodyProps> = ({
+export const FieldBody: React.FC<FieldBodyProps> = ({
   textColor,
   bgColor,
   className,
@@ -134,11 +132,8 @@ const FieldBody: React.FC<FieldBodyProps> = ({
     ...props,
   });
 
-  const fieldBodyClass = classNames(
-    'field-body',
-    bulmaHelperClasses,
-    className
-  );
+  const mainClass = usePrefixedClassNames('field-body');
+  const fieldBodyClass = classNames(mainClass, bulmaHelperClasses, className);
   // Spread ...props and ...rest so custom props like data-testid are included
   return (
     <div className={fieldBodyClass} {...props} {...rest}>
@@ -156,7 +151,7 @@ const FieldBody: React.FC<FieldBodyProps> = ({
  * @returns {JSX.Element} The rendered field container.
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
  */
-const Field: React.FC<FieldProps> & {
+export const Field: React.FC<FieldProps> & {
   Label: typeof FieldLabel;
   Body: typeof FieldBody;
 } = ({
@@ -167,6 +162,7 @@ const Field: React.FC<FieldProps> & {
   labelSize,
   labelProps,
   textColor,
+  color: _fieldColor,
   bgColor,
   className,
   children,
@@ -178,27 +174,25 @@ const Field: React.FC<FieldProps> & {
     ...props,
   });
 
-  const fieldClass = classNames(
-    'field',
-    bulmaHelperClasses,
-    {
-      'is-horizontal': horizontal,
-      'has-addons': !!hasAddons,
-      'is-grouped':
-        grouped === true ||
-        grouped === 'centered' ||
-        grouped === 'right' ||
-        grouped === 'multiline',
-      'is-grouped-centered': grouped === 'centered',
-      'is-grouped-right': grouped === 'right',
-      'is-grouped-multiline': grouped === 'multiline',
-    },
-    className
-  );
+  const mainClass = usePrefixedClassNames('field', {
+    'is-horizontal': horizontal,
+    'has-addons': !!hasAddons,
+    'is-grouped':
+      grouped === true ||
+      grouped === 'centered' ||
+      grouped === 'right' ||
+      grouped === 'multiline',
+    'is-grouped-centered': grouped === 'centered',
+    'is-grouped-right': grouped === 'right',
+    'is-grouped-multiline': grouped === 'multiline',
+  });
+  const fieldClass = classNames(mainClass, bulmaHelperClasses, className);
 
   // Map 'normal' to undefined for FieldLabel size prop
   const mappedLabelSize: FieldLabelProps['size'] =
     labelSize === 'normal' ? undefined : labelSize;
+
+  const labelClass = usePrefixedClassNames('label');
 
   let renderedLabel = null;
   if (label) {
@@ -207,7 +201,7 @@ const Field: React.FC<FieldProps> & {
         <FieldLabel size={mappedLabelSize}>
           <label
             {...labelProps}
-            className={classNames('label', labelProps?.className)}
+            className={classNames(labelClass, labelProps?.className)}
             style={labelProps?.style}
           >
             {label}
@@ -218,7 +212,7 @@ const Field: React.FC<FieldProps> & {
       renderedLabel = (
         <label
           {...labelProps}
-          className={classNames('label', labelProps?.className)}
+          className={classNames(labelClass, labelProps?.className)}
           style={{ display: 'block', ...(labelProps?.style || {}) }}
         >
           {label}

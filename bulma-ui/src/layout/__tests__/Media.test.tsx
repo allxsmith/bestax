@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import Media from '../Media';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Media', () => {
   it('renders as <article> by default', () => {
@@ -42,6 +43,103 @@ describe('Media', () => {
     const media = screen.getByTestId('media-attrs');
     expect(media).toHaveAttribute('id', 'my-media');
     expect(media).toHaveAttribute('aria-label', 'aria-test');
+  });
+
+  it('applies classPrefix when provided', () => {
+    render(
+      <ConfigProvider classPrefix="custom-">
+        <Media data-testid="media-test">Test Media</Media>
+      </ConfigProvider>
+    );
+    const media = screen.getByTestId('media-test');
+    expect(media).toHaveClass('custom-media');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Media data-testid="media">Media content</Media>
+        </ConfigProvider>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toBeInTheDocument();
+      expect(media).toHaveClass('bulma-media');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(<Media data-testid="media">Media content</Media>);
+      const media = screen.getByTestId('media');
+      expect(media).toBeInTheDocument();
+      expect(media).toHaveClass('media');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Media data-testid="media">Media content</Media>
+        </ConfigProvider>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toBeInTheDocument();
+      expect(media).toHaveClass('media');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Media data-testid="media" textColor="primary" bgColor="light" m="3">
+            Media content
+          </Media>
+        </ConfigProvider>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toBeInTheDocument();
+      expect(media).toHaveClass('bulma-media');
+      expect(media).toHaveClass('bulma-has-text-primary');
+      expect(media).toHaveClass('bulma-has-background-light');
+      expect(media).toHaveClass('bulma-m-3');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Media data-testid="media" as="div" color="info" p="2">
+          Media content
+        </Media>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toBeInTheDocument();
+      expect(media).toHaveClass('media');
+      expect(media).toHaveClass('has-text-info');
+      expect(media).toHaveClass('p-2');
+      expect(media.tagName.toLowerCase()).toBe('div');
+    });
+
+    it('applies prefix to Media subcomponents', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Media>
+            <Media.Left data-testid="left" textColor="primary">
+              Left Content
+            </Media.Left>
+            <Media.Content data-testid="content" bgColor="light">
+              Content
+            </Media.Content>
+            <Media.Right data-testid="right" color="danger">
+              Right Content
+            </Media.Right>
+          </Media>
+        </ConfigProvider>
+      );
+      expect(screen.getByTestId('left')).toHaveClass('bulma-media-left');
+      expect(screen.getByTestId('left')).toHaveClass('bulma-has-text-primary');
+      expect(screen.getByTestId('content')).toHaveClass('bulma-media-content');
+      expect(screen.getByTestId('content')).toHaveClass(
+        'bulma-has-background-light'
+      );
+      expect(screen.getByTestId('right')).toHaveClass('bulma-media-right');
+      expect(screen.getByTestId('right')).toHaveClass('bulma-has-text-danger');
+    });
   });
 
   describe('Media.Left', () => {
@@ -168,5 +266,103 @@ describe('Media', () => {
     expect(screen.getByTestId('outer-content')).toContainElement(
       screen.getByTestId('inner-content')
     );
+  });
+
+  describe('Color Props Fallback', () => {
+    it('uses textColor when both textColor and color are provided for Media', () => {
+      render(
+        <Media data-testid="media" textColor="primary" color="danger">
+          Media content
+        </Media>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toHaveClass('has-text-primary');
+      expect(media).not.toHaveClass('has-text-danger');
+    });
+
+    it('falls back to color when textColor is not provided for Media', () => {
+      render(
+        <Media data-testid="media" color="warning">
+          Media content
+        </Media>
+      );
+      const media = screen.getByTestId('media');
+      expect(media).toHaveClass('has-text-warning');
+    });
+
+    it('uses textColor when both textColor and color are provided for Media.Left', () => {
+      render(
+        <Media>
+          <Media.Left data-testid="left" textColor="success" color="info">
+            Left content
+          </Media.Left>
+        </Media>
+      );
+      const left = screen.getByTestId('left');
+      expect(left).toHaveClass('has-text-success');
+      expect(left).not.toHaveClass('has-text-info');
+    });
+
+    it('falls back to color when textColor is not provided for Media.Left', () => {
+      render(
+        <Media>
+          <Media.Left data-testid="left" color="link">
+            Left content
+          </Media.Left>
+        </Media>
+      );
+      const left = screen.getByTestId('left');
+      expect(left).toHaveClass('has-text-link');
+    });
+
+    it('uses textColor when both textColor and color are provided for Media.Content', () => {
+      render(
+        <Media>
+          <Media.Content data-testid="content" textColor="dark" color="light">
+            Content
+          </Media.Content>
+        </Media>
+      );
+      const content = screen.getByTestId('content');
+      expect(content).toHaveClass('has-text-dark');
+      expect(content).not.toHaveClass('has-text-light');
+    });
+
+    it('falls back to color when textColor is not provided for Media.Content', () => {
+      render(
+        <Media>
+          <Media.Content data-testid="content" color="black">
+            Content
+          </Media.Content>
+        </Media>
+      );
+      const content = screen.getByTestId('content');
+      expect(content).toHaveClass('has-text-black');
+    });
+
+    it('uses textColor when both textColor and color are provided for Media.Right', () => {
+      render(
+        <Media>
+          <Media.Right data-testid="right" textColor="white" color="grey">
+            Right content
+          </Media.Right>
+        </Media>
+      );
+      const right = screen.getByTestId('right');
+      expect(right).toHaveClass('has-text-white');
+      expect(right).not.toHaveClass('has-text-grey');
+    });
+
+    it('falls back to color when textColor is not provided for Media.Right', () => {
+      render(
+        <Media>
+          <Media.Right data-testid="right" color="grey-light">
+            Right content
+          </Media.Right>
+        </Media>
+      );
+      const right = screen.getByTestId('right');
+      expect(right).toHaveClass('has-text-grey-light');
+    });
   });
 });

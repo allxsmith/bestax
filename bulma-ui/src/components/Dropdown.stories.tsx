@@ -1,44 +1,44 @@
-import { Dropdown, DropdownItem, DropdownDivider } from './Dropdown';
+import { Dropdown } from './Dropdown';
 
 export default {
   title: 'Components/Dropdown',
   component: Dropdown,
-  subcomponents: { DropdownItem, DropdownDivider },
+  subcomponents: { Item: Dropdown.Item, Divider: Dropdown.Divider },
 };
 
 export const Default = () => (
   <Dropdown label="Dropdown Menu">
-    <DropdownItem>First Item</DropdownItem>
-    <DropdownItem>Second Item</DropdownItem>
-    <DropdownDivider />
-    <DropdownItem>Third Item</DropdownItem>
-    <DropdownItem>Fourth Item</DropdownItem>
-    <DropdownItem>Fifth Item</DropdownItem>
+    <Dropdown.Item>First Item</Dropdown.Item>
+    <Dropdown.Item>Second Item</Dropdown.Item>
+    <Dropdown.Divider />
+    <Dropdown.Item>Third Item</Dropdown.Item>
+    <Dropdown.Item>Fourth Item</Dropdown.Item>
+    <Dropdown.Item>Fifth Item</Dropdown.Item>
   </Dropdown>
 );
 
 export const CustomTags = () => (
   <Dropdown label="Custom Dropdown Content">
-    <DropdownItem as="a" href="https://example.com" target="_blank">
+    <Dropdown.Item as="a" href="https://example.com" target="_blank">
       Anchor Item
-    </DropdownItem>
-    <DropdownItem as="div">Div Item</DropdownItem>
+    </Dropdown.Item>
+    <Dropdown.Item as="div">Div Item</Dropdown.Item>
   </Dropdown>
 );
 
 export const HoverableAndActive = () => (
   <Dropdown label="Hoverable + Active" hoverable active>
-    <DropdownItem>Hover or Always Open</DropdownItem>
-    <DropdownItem>Second</DropdownItem>
-    <DropdownDivider />
-    <DropdownItem>Another</DropdownItem>
+    <Dropdown.Item>Hover or Always Open</Dropdown.Item>
+    <Dropdown.Item>Second</Dropdown.Item>
+    <Dropdown.Divider />
+    <Dropdown.Item>Another</Dropdown.Item>
   </Dropdown>
 );
 
 export const Right = () => (
   <Dropdown label="Dropdown Right" right ml="6">
-    <DropdownItem>Right 1</DropdownItem>
-    <DropdownItem>Right 2</DropdownItem>
+    <Dropdown.Item>Right 1</Dropdown.Item>
+    <Dropdown.Item>Right 2</Dropdown.Item>
   </Dropdown>
 );
 
@@ -52,8 +52,8 @@ export const Up = () => (
     <br />
     <br />
     <Dropdown label="Dropdown Up" up>
-      <DropdownItem>Up 1</DropdownItem>
-      <DropdownItem>Up 2</DropdownItem>
+      <Dropdown.Item>Up 1</Dropdown.Item>
+      <Dropdown.Item>Up 2</Dropdown.Item>
     </Dropdown>
   </>
 );

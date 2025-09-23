@@ -10,7 +10,7 @@ export * from './components/Modal';
 export * from './components/Navbar';
 export * from './components/Pagination';
 export * from './components/Panel';
-export * from './components/Tab';
+export * from './components/Tabs';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -23,6 +23,7 @@ export * from './elements/IconText';
 export * from './elements/Image';
 export * from './elements/Notification';
 export * from './elements/Progress';
+export * from './elements/Skeleton';
 export * from './elements/SubTitle';
 export * from './elements/Table';
 export * from './elements/Tag';
@@ -51,6 +52,8 @@ export * from './grid/Grid';
 
 export * from './helpers/classNames';
 export * from './helpers/useBulmaClasses';
+export * from './helpers/Theme';
+export * from './helpers/Config';
 
 export * from './layout/Container';
 export * from './layout/Footer';

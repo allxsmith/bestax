@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -53,21 +53,24 @@ export const Notification: React.FC<NotificationProps> = ({
     ...props,
   });
 
+  const bulmaClasses = usePrefixedClassNames('notification', {
+    [`is-${color}`]: color && validColors.includes(color),
+    'is-light': isLight,
+  });
+
+  const deleteClasses = usePrefixedClassNames('delete');
+
   const notificationClasses = classNames(
-    'notification',
-    className,
+    bulmaClasses,
     bulmaHelperClasses,
-    {
-      [`is-${color}`]: color && validColors.includes(color),
-      'is-light': isLight,
-    }
+    className
   );
 
   return (
     <div className={notificationClasses} {...rest}>
       {hasDelete && (
         <button
-          className="delete"
+          className={deleteClasses}
           onClick={onDelete}
           aria-label="Close notification"
         />

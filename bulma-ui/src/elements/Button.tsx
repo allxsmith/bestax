@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -99,35 +99,49 @@ export const Button: React.FC<ButtonProps> = ({
   rel,
   ...props
 }) => {
-  /**
-   * Generates Bulma helper classes and separates out remaining props.
-   */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
     ...props,
   });
 
-  const buttonClasses = classNames('button', className, bulmaHelperClasses, {
-    [`is-${color}`]: color,
-    [`is-${size}`]: size && size !== 'normal',
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('button', {
+    [`is-${color}`]: color && validColors.includes(color),
+    [`is-${size}`]: size,
+    'is-outlined': isOutlined,
     'is-light': isLight,
-    'is-rounded': isRounded,
     'is-loading': isLoading,
     'is-static': isStatic,
-    'is-fullwidth': isFullWidth,
-    'is-outlined': isOutlined,
-    'is-inverted': isInverted,
+    'is-disabled': isDisabled,
+    'is-rounded': isRounded,
+    'is-hovered': isHovered,
     'is-focused': isFocused,
     'is-active': isActive,
-    'is-hovered': isHovered,
-    'is-disabled': isDisabled,
+    'is-inverted': isInverted,
+    'is-fullwidth': isFullWidth,
   });
 
+  // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
+  const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
+
   if (as === 'a') {
-    // Remove button-specific props (like 'type') from rest
-    const { ...anchorRest } =
-      rest as React.AnchorHTMLAttributes<HTMLAnchorElement>;
+    // Create anchor-specific props by excluding button-specific ones
+    const {
+      type: _type,
+      disabled: _disabled,
+      form: _form,
+      formAction: _formAction,
+      formEncType: _formEncType,
+      formMethod: _formMethod,
+      formNoValidate: _formNoValidate,
+      formTarget: _formTarget,
+      name: _name,
+      value: _value,
+      autoFocus: _autoFocus,
+      ...anchorRest
+    } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
+
     return (
       <a
         className={buttonClasses}
@@ -138,12 +152,12 @@ export const Button: React.FC<ButtonProps> = ({
         tabIndex={isDisabled ? -1 : undefined}
         onClick={
           isDisabled
-            ? e => e.preventDefault()
+            ? (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()
             : (onClick as
                 | React.MouseEventHandler<HTMLAnchorElement>
                 | undefined)
         }
-        {...anchorRest}
+        {...(anchorRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
         {children}
       </a>

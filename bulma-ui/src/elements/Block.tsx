@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -52,7 +52,8 @@ export const Block: React.FC<BlockProps> = ({
     ...props,
   });
 
-  const blockClasses = classNames('block', className, bulmaHelperClasses);
+  const bulmaClasses = usePrefixedClassNames('block');
+  const blockClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={blockClasses} {...rest}>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 // Context to track MenuList nesting level
@@ -26,16 +26,19 @@ export interface MenuProps
  * @returns {JSX.Element} The rendered menu.
  * @see {@link https://bulma.io/documentation/components/menu/ | Bulma Menu documentation}
  */
-export const Menu: React.FC<MenuProps> = ({
+const MenuComponent: React.FC<MenuProps> = ({
   className,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
+  // Generate Bulma classes with prefix
+  const bulmaClasses = usePrefixedClassNames('menu');
+
   return (
     <aside
-      className={classNames('menu', className, bulmaHelperClasses)}
+      className={classNames(bulmaClasses, bulmaHelperClasses, className)}
       {...rest}
     >
       {children}
@@ -203,3 +206,12 @@ export const MenuItem: React.FC<MenuItemProps> = ({
     </li>
   );
 };
+
+// Attach static subcomponents
+export const Menu = Object.assign(MenuComponent, {
+  Label: MenuLabel,
+  List: MenuList,
+  Item: MenuItem,
+});
+
+export default Menu;

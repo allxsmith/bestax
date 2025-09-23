@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    name: Build Docusaurus
+    name: Build Docusaurus and Storybook
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,8 +24,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build monorepo
+      - name: Build Docusaurus
         run: npm run build -- --filter=@allxsmith/bestax-docs
+
+      - name: Build Storybook
+        run: npm run build-storybook -w bulma-ui
+
+      - name: Copy Storybook to Docusaurus build
+        run: |
+          mkdir -p docs/build/storybook
+          cp -r bulma-ui/storybook-static/* docs/build/storybook/
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
@@ -33,12 +41,12 @@ jobs:
           path: docs/build
 
   deploy:
-    name: Deploy Docusaurus to GitHub Pages
+    name: Deploy to GitHub Pages
     needs: build-and-deploy
     runs-on: ubuntu-latest
     permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify deployment source
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

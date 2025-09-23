@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Modal } from '../Modal';
+import { ConfigProvider } from '../../helpers/Config';
 
 const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
@@ -97,5 +98,77 @@ describe('Modal', () => {
     );
     expect(screen.getByTestId('modal-content')).toBeInTheDocument();
     expect(screen.queryByText('Should not show')).not.toBeInTheDocument();
+  });
+
+  it('applies classPrefix when provided via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Modal active>{latin}</Modal>
+      </ConfigProvider>
+    );
+    const modal = screen.getByTestId('modal');
+    expect(modal).toHaveClass('bulma-modal');
+    expect(modal).not.toHaveClass('modal');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies prefix to classes when provided', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Modal active data-testid="modal">
+            {latin}
+          </Modal>
+        </ConfigProvider>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveClass('bulma-modal');
+    });
+
+    it('uses default classes when no prefix is provided', () => {
+      render(
+        <Modal active data-testid="modal">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveClass('modal');
+    });
+
+    it('uses default classes when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Modal active data-testid="modal">
+            {latin}
+          </Modal>
+        </ConfigProvider>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveClass('modal');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Modal active textColor="primary" m="2" data-testid="modal">
+            {latin}
+          </Modal>
+        </ConfigProvider>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveClass('bulma-modal');
+      expect(modal).toHaveClass('bulma-has-text-primary');
+      expect(modal).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      render(
+        <Modal active textColor="danger" data-testid="modal">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).toHaveClass('modal');
+      expect(modal).toHaveClass('has-text-danger');
+    });
   });
 });

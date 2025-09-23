@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-docs",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -15,17 +15,27 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
+    "@allxsmith/bestax-bulma": "^2.0.0",
     "@docusaurus/core": "^3.8.1",
+    "@docusaurus/plugin-google-gtag": "^3.8.1",
     "@docusaurus/preset-classic": "^3.8.1",
+    "@docusaurus/theme-live-codeblock": "^3.8.1",
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@mdi/font": "^7.4.47",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
+    "ionicons": "^8.0.13",
+    "material-icons": "^1.13.14",
+    "material-symbols": "^0.34.1",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-shadow": "^20.6.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.8.1",
-    "@docusaurus/types": "^3.8.1"
+    "@docusaurus/types": "^3.8.1",
+    "raw-loader": "^4.0.2"
   },
   "browserslist": {
     "production": [

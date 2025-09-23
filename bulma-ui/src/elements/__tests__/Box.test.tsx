@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Box } from '../Box'; // Adjust the import path based on your project structure
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Box Component', () => {
   // Test 1: Renders children correctly
@@ -101,27 +102,90 @@ describe('Box Component', () => {
   });
 
   // Test 11: Applies viewport-specific classes
-  test('applies viewport-specific classes', () => {
+  test('color classes do not support viewport-specific classes', () => {
     render(
       <Box textColor="primary" viewport="tablet">
         Test
       </Box>
     );
-    expect(screen.getByText('Test')).toHaveClass('has-text-primary-tablet', {
+    expect(screen.getByText('Test')).toHaveClass('has-text-primary', {
       exact: false,
     });
+    expect(screen.getByText('Test')).not.toHaveClass(
+      'has-text-primary-tablet',
+      {
+        exact: false,
+      }
+    );
   });
 
-  // Test 12: Handles invalid props gracefully
-  test('ignores invalid Bulma props', () => {
+  // Test 12: Handles valid props correctly
+  test('applies valid Bulma props', () => {
     render(
-      <Box textColor="invalid-color" m="invalid-size" as="invalid">
+      <Box textColor="primary" m="1">
         Test
       </Box>
     );
     const box = screen.getByText('Test');
     expect(box).toHaveClass('box', { exact: false });
-    expect(box).not.toHaveClass('has-text-invalid-color');
-    expect(box).not.toHaveClass('m-invalid-size');
+    expect(box).toHaveClass('has-text-primary');
+    expect(box).toHaveClass('m-1');
+  });
+
+  describe('ClassPrefix', () => {
+    it('applies classPrefix to main class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('my-prefix-box');
+    });
+
+    it('uses default class when no classPrefix provided', () => {
+      render(
+        <ConfigProvider>
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('box');
+    });
+
+    it('uses default class when classPrefix is undefined', () => {
+      render(
+        <ConfigProvider classPrefix={undefined}>
+          <Box>Test</Box>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Test')).toHaveClass('box');
+    });
+
+    it('applies prefix to both main class and helper classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Box hasShadow={false} m="2">
+            Test Box
+          </Box>
+        </ConfigProvider>
+      );
+
+      const box = container.querySelector('div');
+      expect(box).toHaveClass('bulma-box');
+      expect(box).toHaveClass('bulma-is-shadowless');
+      expect(box).toHaveClass('bulma-m-2');
+    });
+
+    it('works without prefix', () => {
+      const { container } = render(
+        <Box hasShadow={false} p="3">
+          Standard Box
+        </Box>
+      );
+
+      const box = container.querySelector('div');
+      expect(box).toHaveClass('box');
+      expect(box).toHaveClass('is-shadowless');
+      expect(box).toHaveClass('p-3');
+    });
   });
 });

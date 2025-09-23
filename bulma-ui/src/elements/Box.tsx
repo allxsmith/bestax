@@ -1,5 +1,5 @@
 import React from 'react';
-import classNames from '../helpers/classNames';
+import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -55,9 +55,11 @@ export const Box: React.FC<BoxProps> = ({
     ...props,
   });
 
-  const boxClasses = classNames('box', className, bulmaHelperClasses, {
+  const bulmaClasses = usePrefixedClassNames('box', {
     'is-shadowless': !hasShadow,
   });
+
+  const boxClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
     <div className={boxClasses} {...rest}>
@@ -65,3 +67,5 @@ export const Box: React.FC<BoxProps> = ({
     </div>
   );
 };
+
+export default Box;

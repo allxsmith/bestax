@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
-import { Menu, MenuLabel, MenuList, MenuItem } from './Menu';
+import { Menu } from './Menu';
 
 const meta: Meta<typeof Menu> = {
   title: 'Components/Menu',
@@ -14,32 +14,32 @@ type Story = StoryObj<typeof Menu>;
 export const Basic: Story = {
   render: () => (
     <Menu style={{ maxWidth: 300 }}>
-      <MenuLabel>General</MenuLabel>
-      <MenuList>
-        <MenuItem>Dashboard</MenuItem>
-        <MenuItem>Customers</MenuItem>
-      </MenuList>
-      <MenuLabel>Administration</MenuLabel>
-      <MenuList>
-        <MenuItem>Team Settings</MenuItem>
-        <MenuItem active>
+      <Menu.Label>General</Menu.Label>
+      <Menu.List>
+        <Menu.Item>Dashboard</Menu.Item>
+        <Menu.Item>Customers</Menu.Item>
+      </Menu.List>
+      <Menu.Label>Administration</Menu.Label>
+      <Menu.List>
+        <Menu.Item>Team Settings</Menu.Item>
+        <Menu.Item active>
           Manage Your Team
-          <MenuList>
-            <MenuItem>Members</MenuItem>
-            <MenuItem>Plugins</MenuItem>
-            <MenuItem>Add a member</MenuItem>
-          </MenuList>
-        </MenuItem>
-        <MenuItem>Invitations</MenuItem>
-        <MenuItem>Cloud Storage Environment Settings</MenuItem>
-        <MenuItem>Authentication</MenuItem>
-      </MenuList>
-      <MenuLabel>Transactions</MenuLabel>
-      <MenuList>
-        <MenuItem>Payments</MenuItem>
-        <MenuItem>Transfers</MenuItem>
-        <MenuItem>Balance</MenuItem>
-      </MenuList>
+          <Menu.List>
+            <Menu.Item>Members</Menu.Item>
+            <Menu.Item>Plugins</Menu.Item>
+            <Menu.Item>Add a member</Menu.Item>
+          </Menu.List>
+        </Menu.Item>
+        <Menu.Item>Invitations</Menu.Item>
+        <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
+        <Menu.Item>Authentication</Menu.Item>
+      </Menu.List>
+      <Menu.Label>Transactions</Menu.Label>
+      <Menu.List>
+        <Menu.Item>Payments</Menu.Item>
+        <Menu.Item>Transfers</Menu.Item>
+        <Menu.Item>Balance</Menu.Item>
+      </Menu.List>
     </Menu>
   ),
 };
