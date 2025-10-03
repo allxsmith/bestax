@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.0.0...create-bestax@1.1.0) (2025-10-03)
+
+
+### Features
+
+* **create-bestax:** add README with templates location note ([8ddc73d](https://github.com/allxsmith/bestax/commit/8ddc73d9a548b948d7cac1fdbe3dc05da88afca5))
+
 # 1.0.0 (2025-10-03)
 
 
