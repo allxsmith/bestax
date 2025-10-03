@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useIconLibrary } from '../helpers/Config';
 
 // TypeScript declaration for Ionicons web component
 interface IonIconProps extends React.HTMLAttributes<HTMLElement> {
@@ -39,7 +40,7 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the icon.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  * @property {string} name - The icon name (without library prefix).
- * @property {IconLibrary} [library='fa'] - The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols).
+ * @property {IconLibrary} [library] - The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.
  * @property {string} [variant] - Icon style variant. For Font Awesome: 'solid', 'regular', 'brands', etc. For Material Icons: 'filled', 'outlined', 'round', 'sharp'. For Material Symbols: 'outlined', 'rounded', 'sharp'. For Ionicons: 'outline', 'sharp'.
  * @property {string | string[]} [features] - Additional library-specific modifiers. For Font Awesome: 'fa-lg', 'fa-spin', etc. For others: size classes like 'is-size-1', etc.
  * @property {string | string[]} [libraryFeatures] - DEPRECATED: Use 'variant' and 'features' instead. Additional library-specific classes.
@@ -55,7 +56,8 @@ export interface IconProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   name: string; // e.g., 'star', 'account', 'home-outline'
-  library?: IconLibrary; // default: 'fa'
+  icon?: string; // DEPRECATED: legacy prop that should not be used
+  library?: IconLibrary; // defaults to ConfigProvider iconLibrary or 'fa'
   variant?: string; // e.g., 'solid', 'outlined', 'rounded', 'sharp'
   features?: string | string[]; // e.g., 'fa-lg', 'fa-spin', 'is-size-1'
   libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
@@ -154,15 +156,38 @@ export const Icon: React.FC<IconProps> = ({
   textColor,
   bgColor,
   name,
-  library = 'fa', // Font Awesome is default
+  library,
   variant,
   features,
   libraryFeatures, // Deprecated but maintained for backward compatibility
   size,
   ariaLabel = 'icon',
   style,
+  icon, // Capture and exclude the deprecated 'icon' prop from DOM
+  color: _color, // Exclude 'color' prop if passed directly
   ...restProps
 }) => {
+  // Handle deprecated 'icon' prop - parse it to extract the actual name
+  let finalName = name;
+  if (!name && icon) {
+    // If icon prop is provided instead of name, try to parse it
+    // e.g., "mdi mdi-rocket-launch" -> "rocket-launch"
+    if (typeof icon === 'string') {
+      const parts = icon.split(' ');
+      const lastPart = parts[parts.length - 1];
+      if (lastPart.startsWith('mdi-')) {
+        finalName = lastPart.substring(4); // Remove "mdi-" prefix
+      } else if (lastPart.startsWith('fa-')) {
+        finalName = lastPart.substring(3); // Remove "fa-" prefix
+      } else {
+        finalName = lastPart;
+      }
+    }
+  }
+
+  // Get the default icon library from context, fallback to 'fa' if not set
+  const defaultLibrary = useIconLibrary();
+  const finalLibrary = library || defaultLibrary || 'fa';
   /**
    * Generates Bulma helper classes and separates out remaining props.
    * Note: variant, features, and libraryFeatures are excluded from props spread
@@ -193,7 +218,7 @@ export const Icon: React.FC<IconProps> = ({
       : [libraryFeatures];
 
     // For Font Awesome, extract style from features
-    if (library === 'fa') {
+    if (finalLibrary === 'fa') {
       const faStyle = legacyFeatures.find(f =>
         [
           'fas',
@@ -218,9 +243,12 @@ export const Icon: React.FC<IconProps> = ({
       }
     }
     // For Material Icons/Symbols, extract style variant
-    else if (library === 'material-icons' || library === 'material-symbols') {
+    else if (
+      finalLibrary === 'material-icons' ||
+      finalLibrary === 'material-symbols'
+    ) {
       const styleVariants =
-        library === 'material-icons'
+        finalLibrary === 'material-icons'
           ? ['filled', 'outlined', 'round', 'sharp']
           : ['outlined', 'rounded', 'sharp'];
 
@@ -239,13 +267,13 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   // Handle web components vs CSS-based icons
-  if (library === 'ion') {
+  if (finalLibrary === 'ion') {
     // For Ionicons, handle variant in the name
-    let ionName = name;
+    let ionName = finalName;
     if (finalVariant === 'outline') {
-      ionName = `${name}-outline`;
+      ionName = `${finalName}-outline`;
     } else if (finalVariant === 'sharp') {
-      ionName = `${name}-sharp`;
+      ionName = `${finalName}-sharp`;
     }
 
     return (
@@ -261,10 +289,18 @@ export const Icon: React.FC<IconProps> = ({
   }
 
   // Legacy CSS-based icons
-  const iClasses = getIconClasses(library, name, finalVariant, finalFeatures);
+  const iClasses = getIconClasses(
+    finalLibrary,
+    finalName,
+    finalVariant,
+    finalFeatures
+  );
 
   // Material Icons and Material Symbols use text content, not CSS classes for the icon name
-  if (library === 'material-icons' || library === 'material-symbols') {
+  if (
+    finalLibrary === 'material-icons' ||
+    finalLibrary === 'material-symbols'
+  ) {
     return (
       <span
         className={iconContainerClasses}
@@ -272,7 +308,7 @@ export const Icon: React.FC<IconProps> = ({
         style={style}
         {...rest}
       >
-        <i className={iClasses}>{name}</i>
+        <i className={iClasses}>{finalName}</i>
       </span>
     );
   }

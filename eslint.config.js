@@ -14,6 +14,11 @@ function cleanGlobals(obj) {
 }
 
 export default [
+  // Ignore patterns
+  {
+    ignores: ['**/dist/**', '**/build/**', '**/coverage/**', 'node_modules/**'],
+  },
+
   // Base JavaScript recommended rules
   js.configs.recommended,
 
@@ -110,6 +115,11 @@ export default [
     languageOptions: {
       globals: {
         node: true,
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        Buffer: 'readonly',
+        global: 'readonly',
       },
     },
   },

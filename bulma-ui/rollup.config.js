@@ -30,7 +30,6 @@ export default commandLineArgs => {
           declaration: true,
           declarationDir: 'dist/types',
           rootDir: 'src',
-          noEmit: true,
           removeComments: true,
           exclude: ['**/__tests__/**/*', '**/*.test.tsx'],
         }),
@@ -42,7 +41,7 @@ export default commandLineArgs => {
             gzipSize: true,
           }),
       ].filter(Boolean),
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
     },
   ];
 };

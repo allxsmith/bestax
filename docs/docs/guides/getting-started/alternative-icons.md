@@ -67,13 +67,11 @@ Ionicons v8 uses web components that are automatically loaded in your documentat
 
 **Setup for Your Application:**
 
-For your own application, you need to register the ionicons web components. Add this to your main application file (e.g., `index.js`, `App.js`, or `main.tsx`):
+For your own application, you need to import the ionicons ES module. Add this to your main application file (e.g., `index.js`, `App.js`, or `main.tsx`):
 
 ```js
-import { defineCustomElements } from 'ionicons/loader';
-
-// Register ionicons web components
-defineCustomElements();
+// Import ionicons as ES module - this will auto-register the web components
+import 'ionicons/dist/ionicons/ionicons.esm.js';
 ```
 
 **Alternative Setup (CDN):**

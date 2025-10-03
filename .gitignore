@@ -147,4 +147,11 @@ dist
 .github/workflows/*.cache
 *storybook.log
 
-storybook-static
+# Storybook build output
+storybook-static/
+
+# create-bestax build output
+create-bestax/dist
+
+# Rollup build stats
+bulma-ui/stats.html

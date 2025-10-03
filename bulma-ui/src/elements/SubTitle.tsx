@@ -1,6 +1,10 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import {
+  useBulmaClasses,
+  BulmaClassesProps,
+  validColors,
+} from '../helpers/useBulmaClasses';
 
 const validSubTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
 /**
@@ -30,6 +34,8 @@ export type SubTitleElement = (typeof validSubTitleElements)[number];
  * @property {SubTitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
  * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
  * @property {React.ReactNode} [children] - Subtitle content.
+ * @property {string} [textColor] - Text color class (maps to Bulma's color helper).
+ * @property {string} [bgColor] - Background color class (maps to Bulma's backgroundColor helper).
  */
 export interface SubTitleProps
   extends Omit<
@@ -42,6 +48,8 @@ export interface SubTitleProps
   as?: SubTitleElement;
   hasSkeleton?: boolean;
   children?: React.ReactNode;
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
 /**
@@ -59,13 +67,19 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   size,
   as = 'h1',
   hasSkeleton,
+  textColor,
+  bgColor,
   children,
   ...props
 }) => {
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
-  const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
+    backgroundColor: bgColor,
+    ...props,
+  });
 
   // Validate 'as' prop at runtime
   const element = validSubTitleElements.includes(as) ? as : 'h1';
