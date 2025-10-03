@@ -5,10 +5,12 @@ import {
   useConfig,
   useClassPrefix,
   usePrefixedClass,
+  useIconLibrary,
 } from '../Config';
 import { usePrefixedClassNames } from '../classNames';
 import { Button } from '../../elements/Button';
 import { Buttons } from '../../elements/Buttons';
+import { Icon } from '../../elements/Icon';
 
 // Test component that uses useConfig hook
 const TestConfigComponent = () => {
@@ -58,6 +60,12 @@ const MockBulmaComponent = ({ className = '' }: { className?: string }) => {
   );
 };
 
+// Test component that uses useIconLibrary hook
+const TestIconLibraryComponent = () => {
+  const iconLibrary = useIconLibrary();
+  return <div data-testid="icon-library">{iconLibrary || 'no-library'}</div>;
+};
+
 describe('ConfigProvider', () => {
   it('provides default empty config when no props are passed', () => {
     const { getByTestId } = render(
@@ -79,6 +87,29 @@ describe('ConfigProvider', () => {
 
     const configValue = getByTestId('config-value');
     expect(configValue.textContent).toContain('"classPrefix":"bulma-"');
+  });
+
+  it('provides iconLibrary via context', () => {
+    const { getByTestId } = render(
+      <ConfigProvider iconLibrary="mdi">
+        <TestConfigComponent />
+      </ConfigProvider>
+    );
+
+    const configValue = getByTestId('config-value');
+    expect(configValue.textContent).toContain('"iconLibrary":"mdi"');
+  });
+
+  it('provides both classPrefix and iconLibrary via context', () => {
+    const { getByTestId } = render(
+      <ConfigProvider classPrefix="bulma-" iconLibrary="material-icons">
+        <TestConfigComponent />
+      </ConfigProvider>
+    );
+
+    const configValue = getByTestId('config-value');
+    expect(configValue.textContent).toContain('"classPrefix":"bulma-"');
+    expect(configValue.textContent).toContain('"iconLibrary":"material-icons"');
   });
 
   it('provides empty string classPrefix when undefined', () => {
@@ -160,6 +191,55 @@ describe('useConfig', () => {
 
     const configValue = getByTestId('config-value');
     expect(configValue.textContent).toContain('"classPrefix":"test-"');
+  });
+});
+
+describe('useIconLibrary', () => {
+  it('returns undefined when used outside ConfigProvider', () => {
+    const { getByTestId } = render(<TestIconLibraryComponent />);
+
+    const element = getByTestId('icon-library');
+    expect(element.textContent).toBe('no-library');
+  });
+
+  it('returns undefined when iconLibrary is not provided', () => {
+    const { getByTestId } = render(
+      <ConfigProvider>
+        <TestIconLibraryComponent />
+      </ConfigProvider>
+    );
+
+    const element = getByTestId('icon-library');
+    expect(element.textContent).toBe('no-library');
+  });
+
+  it('returns iconLibrary when provided', () => {
+    const { getByTestId } = render(
+      <ConfigProvider iconLibrary="mdi">
+        <TestIconLibraryComponent />
+      </ConfigProvider>
+    );
+
+    const element = getByTestId('icon-library');
+    expect(element.textContent).toBe('mdi');
+  });
+
+  it('works with different icon library values', () => {
+    const { getByTestId, rerender } = render(
+      <ConfigProvider iconLibrary="material-icons">
+        <TestIconLibraryComponent />
+      </ConfigProvider>
+    );
+
+    expect(getByTestId('icon-library').textContent).toBe('material-icons');
+
+    rerender(
+      <ConfigProvider iconLibrary="ion">
+        <TestIconLibraryComponent />
+      </ConfigProvider>
+    );
+
+    expect(getByTestId('icon-library').textContent).toBe('ion');
   });
 });
 
@@ -495,5 +575,63 @@ describe('Complete prefix functionality', () => {
     expect(buttons[1]).toHaveClass('inner-button');
     expect(buttons[1]).toHaveClass('inner-is-info');
     expect(buttons[1]).toHaveClass('inner-p-2');
+  });
+
+  it('provides default icon library to Icon components', () => {
+    const { container } = render(
+      <ConfigProvider iconLibrary="mdi">
+        <Icon name="home" />
+      </ConfigProvider>
+    );
+
+    // The Icon should use mdi classes without specifying library prop
+    const iconElement = container.querySelector('i');
+    expect(iconElement).toHaveClass('mdi');
+    expect(iconElement).toHaveClass('mdi-home');
+  });
+
+  it('allows Icon components to override default library', () => {
+    const { container } = render(
+      <ConfigProvider iconLibrary="mdi">
+        <div>
+          <Icon name="home" />
+          <Icon name="star" library="fa" />
+        </div>
+      </ConfigProvider>
+    );
+
+    const icons = container.querySelectorAll('i');
+
+    // First icon uses default mdi
+    expect(icons[0]).toHaveClass('mdi');
+    expect(icons[0]).toHaveClass('mdi-home');
+
+    // Second icon overrides with fa
+    expect(icons[1]).toHaveClass('fas');
+    expect(icons[1]).toHaveClass('fa-star');
+  });
+
+  it('works with both classPrefix and iconLibrary', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-" iconLibrary="material-icons">
+        <div>
+          <Button color="primary">Test</Button>
+          <Icon name="home" />
+        </div>
+      </ConfigProvider>
+    );
+
+    // Button should use prefix
+    const button = container.querySelector('button');
+    expect(button).toHaveClass('bulma-button');
+    expect(button).toHaveClass('bulma-is-primary');
+
+    // Icon should use material-icons and prefixed icon class
+    const iconContainer = container.querySelector('.bulma-icon');
+    expect(iconContainer).toBeInTheDocument();
+
+    const iconElement = container.querySelector('i');
+    expect(iconElement).toHaveClass('material-icons');
+    expect(iconElement?.textContent).toBe('home');
   });
 });

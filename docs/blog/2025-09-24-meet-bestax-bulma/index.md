@@ -1,0 +1,209 @@
+---
+title: 'Meet bestax-bulma: Modern React Components for Bulma CSS v1'
+description: 'Discover bestax-bulma, a TypeScript-first React component library with 99% test coverage, built for Bulma CSS v1 with modern features like CSS Grid and HSL theming'
+tags: [react, bulma, typescript, components]
+authors: [asmith]
+# image: ./cover.png
+hide_table_of_contents: false
+# dev.to specific
+publish_to_devto: false # Set to true when ready to publish
+published: false # Always false for drafts
+series: 'Introducing bestax-bulma'
+canonical_url: https://bestax.io/blog/2025/09/24/meet-bestax-bulma
+# cover_image: ./cover.png
+---
+
+Hey React developers! 👋 Are you looking for a modern, actively maintained component library for Bulma CSS? Let me introduce you to **bestax-bulma** (pronounced "bee-stacks"), a TypeScript-first React component library that brings the full power of Bulma v1 to your React applications.
+
+<!-- truncate -->
+
+## Why Another Bulma React Library?
+
+Great question! While there are other Bulma React libraries out there, many haven't been updated for Bulma v1 or are no longer actively maintained. bestax-bulma fills this gap with:
+
+- 🎯 **Full Bulma v1 Support**: Built specifically for the latest Bulma version
+- 📊 **99% Test Coverage**: Every component thoroughly tested with React Testing Library
+- 🔷 **TypeScript-First**: Complete type safety with comprehensive TypeScript definitions
+- 🚀 **Modern Build**: Tree-shakeable ESM and CJS builds for optimal bundle sizes
+- 📚 **Rich Documentation**: Interactive Storybook and comprehensive API docs
+- ⚡ **Active Development**: Regular updates and responsive maintenance
+
+<!-- ![Component showcase](./components-demo.png) -->
+
+## Quick Start in 2 Minutes
+
+Getting started is as simple as:
+
+```bash
+npm install @allxsmith/bestax-bulma bulma
+```
+
+Then import and use components:
+
+```jsx live
+import { Button, Card, Hero } from '@allxsmith/bestax-bulma';
+import 'bulma/css/bulma.min.css';
+
+function App() {
+  return (
+    <Hero color="primary" size="fullheight">
+      <Hero.Body>
+        <Card>
+          <Card.Header>
+            <Card.Header.Title>Welcome to bestax-bulma!</Card.Header.Title>
+          </Card.Header>
+          <Card.Content>
+            <p>Modern React components for Bulma CSS v1</p>
+            <Button color="success">Get Started</Button>
+          </Card.Content>
+        </Card>
+      </Hero.Body>
+    </Hero>
+  );
+}
+```
+
+## Showcasing Bulma v1's New Features
+
+### 🦴 Skeleton Loading States
+
+Bulma v1 introduced the Skeleton component for beautiful loading states:
+
+<!-- ![Skeleton loading demo](./skeleton-demo.gif) -->
+
+```jsx live
+import { Skeleton, Card } from '@allxsmith/bestax-bulma';
+
+function LoadingCard({ isLoading }) {
+  return (
+    <Card>
+      <Card.Content>
+        {isLoading ? (
+          <>
+            <Skeleton lines={2} />
+            <Skeleton width="60%" />
+          </>
+        ) : (
+          <p>Your content here!</p>
+        )}
+      </Card.Content>
+    </Card>
+  );
+}
+```
+
+### 🎨 CSS Grid Support
+
+Take advantage of Bulma's new CSS Grid components for modern layouts:
+
+<!-- ![Grid layout example](./grid-demo.png) -->
+
+```jsx live
+import { Grid, Cell } from '@allxsmith/bestax-bulma';
+
+function Dashboard() {
+  return (
+    <Grid>
+      <Cell columnStart={1} columnEnd={4}>
+        <Card>Sidebar Content</Card>
+      </Cell>
+      <Cell columnStart={4} columnEnd={13}>
+        <Card>Main Content</Card>
+      </Cell>
+    </Grid>
+  );
+}
+```
+
+### 🌈 Dynamic HSL Theming
+
+Bulma v1's HSL color system enables dynamic theming:
+
+```jsx live
+import { Theme, Button } from '@allxsmith/bestax-bulma';
+
+function ThemedApp() {
+  return (
+    <Theme
+      primary={{ h: 271, s: 100, l: 71 }} // Custom purple
+      link={{ h: 217, s: 71, l: 53 }} // Custom blue
+    >
+      <Button color="primary">Themed Button</Button>
+    </Theme>
+  );
+}
+```
+
+## Why Developers Love bestax-bulma
+
+### 1. Compound Components Pattern
+
+We use the compound components pattern for intuitive, readable code:
+
+```jsx live
+<Modal isActive={showModal}>
+  <Modal.Background onClick={closeModal} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title>Intuitive API</Modal.Card.Title>
+      <Modal.Close onClick={closeModal} />
+    </Modal.Card.Head>
+    <Modal.Card.Body>Components that make sense!</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
+
+### 2. TypeScript Autocomplete Heaven
+
+Every prop is fully typed, giving you incredible IDE support:
+
+```typescript
+// Full autocomplete for colors, sizes, and more
+<Button
+  color="primary"  // 'primary' | 'link' | 'info' | 'success' | ...
+  size="large"     // 'small' | 'normal' | 'medium' | 'large'
+  isLoading
+  isOutlined
+/>
+```
+
+### 3. Zero Configuration
+
+Unlike many CSS-in-JS solutions, bestax-bulma works with standard Bulma CSS. No build configuration, no CSS extraction, just import and go!
+
+## Try It Live
+
+Want to see bestax-bulma in action? Check out our [interactive playground](https://bestax.io/playground) where you can experiment with components in real-time, or browse our [Storybook](https://bestax.io/storybook) to see every component and variation.
+
+## Comparison with Alternatives
+
+| Feature             | bestax-bulma | react-bulma-components | rbx     | bulma-react |
+| ------------------- | ------------ | ---------------------- | ------- | ----------- |
+| Bulma v1 Support    | ✅           | ❌                     | ❌      | ❌          |
+| TypeScript          | ✅ Built-in  | ⚠️ Separate            | ✅      | ❌          |
+| Test Coverage       | 99%          | ~70%                   | ~80%    | Unknown     |
+| Active Maintenance  | ✅ 2025      | ⚠️ 2023                | ❌ 2021 | ❌ 2020     |
+| Tree Shaking        | ✅           | ✅                     | ✅      | ❌          |
+| Compound Components | ✅           | ❌                     | ❌      | ❌          |
+
+## Get Started Today
+
+Ready to modernize your Bulma React experience?
+
+1. **Install**: `npm install @allxsmith/bestax-bulma bulma`
+2. **Explore**: Check our [documentation](https://bestax.io)
+3. **Build**: Start creating beautiful UIs with modern React patterns
+4. **Contribute**: Join us on [GitHub](https://github.com/allxsmith/bestax)
+
+## What's Next?
+
+This is just the beginning! In the next parts of this series, we'll dive deep into:
+
+- Part 2: Building Beautiful UIs with Core Components
+- Part 3: Forms, Data Display, and Advanced Patterns
+
+Follow me for updates and feel free to star the [repository](https://github.com/allxsmith/bestax) if you find it helpful!
+
+---
+
+**Have questions or feedback?** Drop a comment below or open an issue on GitHub. Let's build something amazing together! 🚀
