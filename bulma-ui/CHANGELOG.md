@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.3...@allxsmith/bestax-bulma@2.2.0) (2025-10-03)
+
+
+### Features
+
+* **create-bestax:** add CLI tool with Vite templates and automated publishing ([9748c3d](https://github.com/allxsmith/bestax/commit/9748c3d28ec9bd46fe571d7ba2cc7579ad9fc0ee))
+
 ## [2.1.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.2...@allxsmith/bestax-bulma@2.1.3) (2025-09-22)
 
 
