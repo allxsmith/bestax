@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.2.0...@allxsmith/bestax-bulma@2.3.0) (2025-10-03)
+
+
+### Features
+
+* **create-bestax:** add README with templates location note ([8ddc73d](https://github.com/allxsmith/bestax/commit/8ddc73d9a548b948d7cac1fdbe3dc05da88afca5))
+
 # [2.2.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.1.3...@allxsmith/bestax-bulma@2.2.0) (2025-10-03)
 
 
