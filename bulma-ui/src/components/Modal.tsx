@@ -9,15 +9,16 @@ import {
 /**
  * Props for the Modal component.
  *
- * @property {boolean} [active] - Whether the modal is open.
- * @property {() => void} [onClose] - Called when modal is closed.
+ * @property {boolean} [active] - Whether the modal is open/visible.
+ * @property {boolean} [isActive] - Alias for `active`. Whether the modal is open/visible.
+ * @property {() => void} [onClose] - Callback invoked when modal close is requested (background click or close button).
  * @property {string} [className] - Additional CSS classes for the modal.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for modal content.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for modal content.
  * @property {React.ReactNode} [modalCardTitle] - Title for modal card variant (legacy API).
  * @property {React.ReactNode} [modalCardFoot] - Footer for modal card variant (legacy API).
- * @property {'card'|'content'} [type] - Modal type ('card' for modal-card, 'content' for modal-content).
- * @property {React.ReactNode} [children] - Modal body/content.
+ * @property {'card'|'content'} [type] - Modal type ('card' for modal-card, 'content' for modal-content). Legacy API only.
+ * @property {React.ReactNode} [children] - Modal body/content or compound components.
  */
 export interface ModalProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'title'>,
@@ -36,6 +37,8 @@ export interface ModalProps
 
 /**
  * Props for Modal.Background component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalBackgroundProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -44,6 +47,8 @@ export interface ModalBackgroundProps
 
 /**
  * Props for Modal.Content component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -52,6 +57,8 @@ export interface ModalContentProps
 
 /**
  * Props for Modal.Card component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -59,6 +66,8 @@ export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Props for Modal.Card.Head component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
@@ -66,6 +75,8 @@ export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Props for Modal.Card.Title component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalCardTitleProps
   extends React.HTMLAttributes<HTMLParagraphElement> {
@@ -74,6 +85,8 @@ export interface ModalCardTitleProps
 
 /**
  * Props for Modal.Card.Body component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
@@ -81,6 +94,8 @@ export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Props for Modal.Card.Foot component.
+ *
+ * @property {string} [className] - Additional CSS classes.
  */
 export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
@@ -88,6 +103,10 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Props for Modal.Close component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {'small' | 'medium' | 'large'} [size] - Size of the close button (only applies to 'floating' variant).
+ * @property {'delete' | 'floating'} [variant] - Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.
  */
 export interface ModalCloseProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -97,7 +116,10 @@ export interface ModalCloseProps
 }
 
 /**
- * Modal.Background - Renders the modal background overlay
+ * Modal.Background - Renders the modal background overlay.
+ *
+ * @param {ModalBackgroundProps} props - Component props
+ * @returns {JSX.Element} Modal background element
  */
 const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
@@ -108,7 +130,10 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
 };
 
 /**
- * Modal.Content - Renders modal content wrapper
+ * Modal.Content - Renders modal content wrapper for custom content.
+ *
+ * @param {ModalContentProps} props - Component props
+ * @returns {JSX.Element} Modal content element
  */
 const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
   const classes = classNames('modal-content', className);
@@ -116,7 +141,10 @@ const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
 };
 
 /**
- * Modal.Card.Head - Renders modal card header
+ * Modal.Card.Head - Renders modal card header section.
+ *
+ * @param {ModalCardHeadProps} props - Component props
+ * @returns {JSX.Element} Modal card header element
  */
 const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
@@ -127,7 +155,10 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
 };
 
 /**
- * Modal.Card.Title - Renders modal card title
+ * Modal.Card.Title - Renders modal card title.
+ *
+ * @param {ModalCardTitleProps} props - Component props
+ * @returns {JSX.Element} Modal card title element
  */
 const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
@@ -138,7 +169,10 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
 };
 
 /**
- * Modal.Card.Body - Renders modal card body
+ * Modal.Card.Body - Renders modal card body section.
+ *
+ * @param {ModalCardBodyProps} props - Component props
+ * @returns {JSX.Element} Modal card body element
  */
 const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
@@ -149,7 +183,10 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 };
 
 /**
- * Modal.Card.Foot - Renders modal card footer
+ * Modal.Card.Foot - Renders modal card footer section.
+ *
+ * @param {ModalCardFootProps} props - Component props
+ * @returns {JSX.Element} Modal card footer element
  */
 const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
@@ -160,7 +197,11 @@ const ModalCardFoot: React.FC<ModalCardFootProps> = ({
 };
 
 /**
- * Modal.Card - Renders modal card wrapper with compound components
+ * Modal.Card - Renders modal card wrapper with compound components.
+ * Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.
+ *
+ * @param {ModalCardProps} props - Component props
+ * @returns {JSX.Element} Modal card element
  */
 const ModalCard: React.FC<ModalCardProps> & {
   Head: typeof ModalCardHead;
@@ -178,10 +219,17 @@ ModalCard.Body = ModalCardBody;
 ModalCard.Foot = ModalCardFoot;
 
 /**
- * Modal.Close - Renders modal close button
+ * Modal.Close - Renders modal close button with two variant styles.
+ *
+ * @param {ModalCloseProps} props - Component props
+ * @returns {JSX.Element} Close button element
+ *
+ * @remarks
  * Supports two variants:
- * - 'delete': For use in modal card headers (renders with 'delete' class)
- * - 'floating': For floating close button (renders with 'modal-close' class)
+ * - 'delete' (default): For use in modal card headers, renders with 'delete' class
+ * - 'floating': For floating overlay close button, renders with 'modal-close' class
+ *
+ * The size prop only applies to the 'floating' variant.
  */
 const ModalClose: React.FC<ModalCloseProps> = ({
   className,
@@ -203,9 +251,28 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  * Bulma Modal component, supporting both modal-card and modal-content variants.
  * Supports both legacy props-based API and compound component API.
  *
- * @function
  * @param {ModalProps} props - Props for the Modal component.
  * @returns {JSX.Element} The rendered modal.
+ *
+ * @example
+ * // Legacy API
+ * <Modal active={isOpen} onClose={handleClose} modalCardTitle="Title">
+ *   Content
+ * </Modal>
+ *
+ * @example
+ * // Compound Component API
+ * <Modal isActive={isOpen}>
+ *   <Modal.Background onClick={handleClose} />
+ *   <Modal.Card>
+ *     <Modal.Card.Head>
+ *       <Modal.Card.Title>Title</Modal.Card.Title>
+ *       <Modal.Close onClick={handleClose} />
+ *     </Modal.Card.Head>
+ *     <Modal.Card.Body>Content</Modal.Card.Body>
+ *   </Modal.Card>
+ * </Modal>
+ *
  * @see {@link https://bulma.io/documentation/components/modal/ | Bulma Modal documentation}
  */
 const ModalRoot: React.FC<ModalProps> & {
