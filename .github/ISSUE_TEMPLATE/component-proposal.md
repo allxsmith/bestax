@@ -17,6 +17,7 @@ What is the name of the new component you are proposing?
 Which package(s) should this component be added to?
 
 - [ ] bulma-ui (`@allxsmith/bestax-bulma`)
+- [ ] create-bestax (`create-bestax`)
 - [ ] docs (`@allxsmith/bestax-docs`)
 - [ ] Other (please specify):
 

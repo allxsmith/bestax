@@ -13,6 +13,7 @@ assignees: allxsmith
 Which package(s) in the monorepo would this feature affect?
 
 - [ ] bulma-ui (`@allxsmith/bestax-bulma`)
+- [ ] create-bestax (`create-bestax`)
 - [ ] docs (`@allxsmith/bestax-docs`)
 - [ ] Other (please specify):
 

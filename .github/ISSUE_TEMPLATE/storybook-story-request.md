@@ -11,6 +11,7 @@ assignees: allxsmith
 Which package(s) does this story request relate to?
 
 - [ ] bulma-ui (`@allxsmith/bestax-bulma`)
+- [ ] create-bestax (`create-bestax`)
 - [ ] Other (please specify):
 
 ---
