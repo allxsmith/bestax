@@ -93,7 +93,11 @@ Each template includes:
 npm run build    # Build the CLI
 npm run dev      # Watch mode
 npm test         # Run tests
+npm run lint     # Lint CLI source code
+npm run typecheck # Type check CLI source code
 ```
+
+**Note on Templates:** Template files in `templates/` are excluded from linting. They should be manually validated by scaffolding a test project and running lint/build there before releasing.
 
 ## Publishing
 
