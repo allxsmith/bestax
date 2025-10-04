@@ -97,3 +97,61 @@ export const ModalCardExplicit: StoryObj<ModalProps> = {
     <ControlledModal type="card">{declarationLatin}</ControlledModal>
   ),
 };
+
+// Compound Components API - Modal.Card
+const CompoundModalCardComponent = () => {
+  const [open, setOpen] = useState(true);
+  const closeModal = () => setOpen(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Modal isActive={open}>
+        <Modal.Background onClick={closeModal} />
+        <Modal.Card>
+          <Modal.Card.Head>
+            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
+            <Modal.Close onClick={closeModal} />
+          </Modal.Card.Head>
+          <Modal.Card.Body>{declarationLatin}</Modal.Card.Body>
+          <Modal.Card.Foot>
+            <button className="button is-success">Save</button>
+            <button className="button" onClick={closeModal}>
+              Cancel
+            </button>
+          </Modal.Card.Foot>
+        </Modal.Card>
+      </Modal>
+    </>
+  );
+};
+
+export const CompoundModalCard: StoryObj<ModalProps> = {
+  render: () => <CompoundModalCardComponent />,
+};
+
+// Compound Components API - Modal.Content
+const CompoundModalContentComponent = () => {
+  const [open, setOpen] = useState(true);
+  const closeModal = () => setOpen(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Modal isActive={open}>
+        <Modal.Background onClick={closeModal} />
+        <Modal.Content>
+          <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
+            <h3 className="title is-4">Compound Component Content Modal</h3>
+            <p>{declarationLatin}</p>
+          </div>
+        </Modal.Content>
+        <Modal.Close variant="floating" onClick={closeModal} />
+      </Modal>
+    </>
+  );
+};
+
+export const CompoundModalContent: StoryObj<ModalProps> = {
+  render: () => <CompoundModalContentComponent />,
+};

@@ -1,6 +1,7 @@
 ---
 title: 'Meet bestax-bulma: Modern React Components for Bulma CSS v1'
 description: 'Discover bestax-bulma, a TypeScript-first React component library with 99% test coverage, built for Bulma CSS v1 with modern features like CSS Grid and HSL theming'
+sidebar_label: 'Meet bestax-bulma'
 tags: [react, bulma, typescript, components]
 authors: [asmith]
 # image: ./cover.png
@@ -25,7 +26,7 @@ Great question! While there are other Bulma React libraries out there, many have
 - 📊 **99% Test Coverage**: Every component thoroughly tested with React Testing Library
 - 🔷 **TypeScript-First**: Complete type safety with comprehensive TypeScript definitions
 - 🚀 **Modern Build**: Tree-shakeable ESM and CJS builds for optimal bundle sizes
-- 📚 **Rich Documentation**: Interactive Storybook and comprehensive API docs
+- 📚 **Rich Documentation**: Comprehensive [API docs](https://bestax.io/docs/api) and [getting started guides](https://bestax.io/docs/guides/getting-started) available at bestax.io
 - ⚡ **Active Development**: Regular updates and responsive maintenance
 
 <!-- ![Component showcase](./components-demo.png) -->
@@ -46,7 +47,7 @@ import 'bulma/css/bulma.min.css';
 
 function App() {
   return (
-    <Hero color="primary" size="fullheight">
+    <Hero color="primary">
       <Hero.Body>
         <Card>
           <Card.Header>
@@ -72,20 +73,23 @@ Bulma v1 introduced the Skeleton component for beautiful loading states:
 <!-- ![Skeleton loading demo](./skeleton-demo.gif) -->
 
 ```jsx live
-import { Skeleton, Card } from '@allxsmith/bestax-bulma';
+import { Card } from '@allxsmith/bestax-bulma';
+import { useState, useEffect } from 'react';
 
-function LoadingCard({ isLoading }) {
+function LoadingCard() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIsLoading(prev => !prev);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <Card>
+    <Card skeleton={isLoading}>
       <Card.Content>
-        {isLoading ? (
-          <>
-            <Skeleton lines={2} />
-            <Skeleton width="60%" />
-          </>
-        ) : (
-          <p>Your content here!</p>
-        )}
+        <p>Your content here!</p>
       </Card.Content>
     </Card>
   );
@@ -99,16 +103,37 @@ Take advantage of Bulma's new CSS Grid components for modern layouts:
 <!-- ![Grid layout example](./grid-demo.png) -->
 
 ```jsx live
-import { Grid, Cell } from '@allxsmith/bestax-bulma';
+import { Grid, Cell, Card } from '@allxsmith/bestax-bulma';
 
 function Dashboard() {
   return (
     <Grid>
-      <Cell columnStart={1} columnEnd={4}>
-        <Card>Sidebar Content</Card>
+      <Cell>
+        <Card>Cell 1</Card>
       </Cell>
-      <Cell columnStart={4} columnEnd={13}>
-        <Card>Main Content</Card>
+      <Cell>
+        <Card>Cell 2</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 3</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 4</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 5</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 6</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 7</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 8</Card>
+      </Cell>
+      <Cell>
+        <Card>Cell 9</Card>
       </Cell>
     </Grid>
   );
@@ -124,10 +149,7 @@ import { Theme, Button } from '@allxsmith/bestax-bulma';
 
 function ThemedApp() {
   return (
-    <Theme
-      primary={{ h: 271, s: 100, l: 71 }} // Custom purple
-      link={{ h: 217, s: 71, l: 53 }} // Custom blue
-    >
+    <Theme primaryH="280" primaryS="100%" primaryL="45%">
       <Button color="primary">Themed Button</Button>
     </Theme>
   );
@@ -141,16 +163,36 @@ function ThemedApp() {
 We use the compound components pattern for intuitive, readable code:
 
 ```jsx live
-<Modal isActive={showModal}>
-  <Modal.Background onClick={closeModal} />
-  <Modal.Card>
-    <Modal.Card.Head>
-      <Modal.Card.Title>Intuitive API</Modal.Card.Title>
-      <Modal.Close onClick={closeModal} />
-    </Modal.Card.Head>
-    <Modal.Card.Body>Components that make sense!</Modal.Card.Body>
-  </Modal.Card>
-</Modal>
+import { Modal, Button } from '@allxsmith/bestax-bulma';
+import { useState } from 'react';
+
+function ModalExample() {
+  const [showModal, setShowModal] = useState(false);
+  const closeModal = () => setShowModal(false);
+
+  return (
+    <>
+      <Button color="primary" onClick={() => setShowModal(true)}>
+        Open Modal
+      </Button>
+      <Modal isActive={showModal}>
+        <Modal.Background onClick={closeModal} />
+        <Modal.Card>
+          <Modal.Card.Head>
+            <Modal.Card.Title>Intuitive API</Modal.Card.Title>
+            <Modal.Close onClick={closeModal} />
+          </Modal.Card.Head>
+          <Modal.Card.Body>Components that make sense!</Modal.Card.Body>
+          <Modal.Card.Foot>
+            <Button color="primary" onClick={closeModal}>
+              Close
+            </Button>
+          </Modal.Card.Foot>
+        </Modal.Card>
+      </Modal>
+    </>
+  );
+}
 ```
 
 ### 2. TypeScript Autocomplete Heaven
@@ -173,7 +215,7 @@ Unlike many CSS-in-JS solutions, bestax-bulma works with standard Bulma CSS. No 
 
 ## Try It Live
 
-Want to see bestax-bulma in action? Check out our [interactive playground](https://bestax.io/playground) where you can experiment with components in real-time, or browse our [Storybook](https://bestax.io/storybook) to see every component and variation.
+Want to see bestax-bulma in action? Check out [bestax.io](https://bestax.io) for comprehensive examples and interactive documentation. Storybook is also available for browsing individual component variations.
 
 ## Comparison with Alternatives
 
@@ -202,8 +244,14 @@ This is just the beginning! In the next parts of this series, we'll dive deep in
 - Part 2: Building Beautiful UIs with Core Components
 - Part 3: Forms, Data Display, and Advanced Patterns
 
-Follow me for updates and feel free to star the [repository](https://github.com/allxsmith/bestax) if you find it helpful!
+:::tip
+
+👤 Follow me [@allxsmith](https://github.com/allxsmith) for updates!
+
+⭐ Feel free to star the [repository](https://github.com/allxsmith/bestax) if you find it helpful!
+
+:::
 
 ---
 
-**Have questions or feedback?** Drop a comment below or open an issue on GitHub. Let's build something amazing together! 🚀
+**Have questions or feedback?** [Create an issue](https://github.com/allxsmith/bestax/issues) or [start a discussion](https://github.com/allxsmith/bestax/discussions) on GitHub for new ideas!

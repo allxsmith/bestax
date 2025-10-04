@@ -438,4 +438,26 @@ describe('Icon', () => {
       expect(span).toHaveClass('p-3');
     });
   });
+
+  describe('Deprecated icon prop', () => {
+    it('parses MDI icon class string to extract name', () => {
+      const { container } = render(
+        <Icon icon="mdi mdi-rocket-launch" library="mdi" />
+      );
+      const i = container.querySelector('i');
+      expect(i).toHaveClass('mdi', 'mdi-rocket-launch');
+    });
+
+    it('parses Font Awesome icon class string to extract name', () => {
+      const { container } = render(<Icon icon="fas fa-star" />);
+      const i = container.querySelector('i');
+      expect(i).toHaveClass('fas', 'fa-star');
+    });
+
+    it('parses generic icon class string without prefix', () => {
+      const { container } = render(<Icon icon="icon-class some-icon" />);
+      const i = container.querySelector('i');
+      expect(i).toHaveClass('fas', 'fa-some-icon');
+    });
+  });
 });

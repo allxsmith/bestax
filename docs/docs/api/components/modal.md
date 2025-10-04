@@ -7,7 +7,11 @@ sidebar_label: Modal
 
 ## Overview
 
-The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI. It supports both Bulma's modal-card and modal-content variants, with options for title, footer, custom content, color helpers, and close callbacks. Easily control visibility via the `active` prop and handle closing with `onClose`.
+The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI. It supports both Bulma's modal-card and modal-content variants, with options for title, footer, custom content, color helpers, and close callbacks. Easily control visibility via the `active` or `isActive` prop and handle closing with `onClose`.
+
+The Modal component supports two APIs:
+- **Legacy Props API**: Use `modalCardTitle` and `modalCardFoot` props for simple modals
+- **Compound Components API**: Use `Modal.Background`, `Modal.Card`, `Modal.Content`, and `Modal.Close` for full control and better readability
 
 :::info
 Use `Modal` for dialogs, confirmations, forms, or custom popover content. Supports card-style layouts (header/body/footer) or arbitrary content modals.
@@ -25,18 +29,34 @@ import { Modal } from '@allxsmith/bestax-bulma';
 
 ## Props
 
+### Main Modal Props
+
 | Prop             | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                                                   |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------- |
 | `active`         | `boolean`                                                                                                                                                                                                                                                                                | `false` | Whether the modal is open/visible.                                                            |
+| `isActive`       | `boolean`                                                                                                                                                                                                                                                                                | `false` | Alias for `active`. Whether the modal is open/visible.                                        |
 | `onClose`        | `() => void`                                                                                                                                                                                                                                                                             | —       | Callback invoked to request modal close (background or close button).                         |
-| `type`           | `'card'` \| `'content'`                                                                                                                                                                                                                                                                  | auto    | Modal style: `'card'` for modal-card, `'content'` for modal-content. Auto if title/foot used. |
-| `modalCardTitle` | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Title/header for modal-card variant.                                                          |
-| `modalCardFoot`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Footer for modal-card variant.                                                                |
+| `type`           | `'card'` \| `'content'`                                                                                                                                                                                                                                                                  | auto    | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)        |
+| `modalCardTitle` | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Title/header for modal-card variant. (Legacy API only)                                        |
+| `modalCardFoot`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Footer for modal-card variant. (Legacy API only)                                              |
 | `textColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                                 |
 | `bgColor`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                           |
 | `className`      | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes for the modal.                                                         |
 | `children`       | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Modal body/content.                                                                           |
 | ...              | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses))                                              |
+
+### Compound Components
+
+| Component            | Description                                                         |
+| -------------------- | ------------------------------------------------------------------- |
+| `Modal.Background`   | Modal background overlay (supports onClick)                         |
+| `Modal.Content`      | Modal content wrapper                                               |
+| `Modal.Card`         | Modal card wrapper                                                  |
+| `Modal.Card.Head`    | Modal card header                                                   |
+| `Modal.Card.Title`   | Modal card title                                                    |
+| `Modal.Card.Body`    | Modal card body                                                     |
+| `Modal.Card.Foot`    | Modal card footer                                                   |
+| `Modal.Close`        | Modal close button. Props: `variant` ('delete' [default] for card headers, 'floating' for overlay), `size` ('small', 'medium', 'large') for floating variant |
 
 ---
 
@@ -193,6 +213,74 @@ function example() {
       </Button>
       <Modal active={open} onClose={() => setOpen(false)} type="card">
         Modal card body (forced type="card")
+      </Modal>
+    </>
+  );
+}
+```
+
+---
+
+### Compound Components API
+
+#### Modal.Card with compound components
+
+The compound components API provides more flexibility and better readability for complex modals. Use `Modal.Background`, `Modal.Card`, and related sub-components for full control over the modal structure.
+
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+  const closeModal = () => setOpen(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal isActive={open}>
+        <Modal.Background onClick={closeModal} />
+        <Modal.Card>
+          <Modal.Card.Head>
+            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
+            <Modal.Close onClick={closeModal} />
+          </Modal.Card.Head>
+          <Modal.Card.Body>
+            This modal uses the compound components API for better control and readability.
+          </Modal.Card.Body>
+          <Modal.Card.Foot>
+            <Button color="success" onClick={closeModal}>Save</Button>
+            <Button onClick={closeModal}>Cancel</Button>
+          </Modal.Card.Foot>
+        </Modal.Card>
+      </Modal>
+    </>
+  );
+}
+```
+
+#### Modal.Content with compound components
+
+For custom content modals, use `Modal.Content` with `Modal.Close` (use `variant="floating"` for the overlay close button):
+
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+  const closeModal = () => setOpen(false);
+
+  return (
+    <>
+      <Button color="success" onClick={() => setOpen(true)}>
+        Show Modal
+      </Button>
+      <Modal isActive={open}>
+        <Modal.Background onClick={closeModal} />
+        <Modal.Content>
+          <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
+            <h3 className="title is-4">Custom Content</h3>
+            <p>Using compound components for full control!</p>
+          </div>
+        </Modal.Content>
+        <Modal.Close variant="floating" onClick={closeModal} />
       </Modal>
     </>
   );

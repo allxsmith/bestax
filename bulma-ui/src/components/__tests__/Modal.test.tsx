@@ -171,4 +171,123 @@ describe('Modal', () => {
       expect(modal).toHaveClass('has-text-danger');
     });
   });
+
+  describe('Compound Components API', () => {
+    it('renders Modal with compound Background component', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal isActive>
+          <Modal.Background
+            onClick={onClose}
+            data-testid="compound-background"
+          />
+          <Modal.Content>{latin}</Modal.Content>
+        </Modal>
+      );
+      expect(screen.getByTestId('compound-background')).toHaveClass(
+        'modal-background'
+      );
+      fireEvent.click(screen.getByTestId('compound-background'));
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('renders Modal.Card with compound components', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal isActive>
+          <Modal.Background onClick={onClose} />
+          <Modal.Card>
+            <Modal.Card.Head>
+              <Modal.Card.Title>Test Title</Modal.Card.Title>
+              <Modal.Close onClick={onClose} data-testid="compound-close" />
+            </Modal.Card.Head>
+            <Modal.Card.Body>{latin}</Modal.Card.Body>
+            <Modal.Card.Foot>Footer Content</Modal.Card.Foot>
+          </Modal.Card>
+        </Modal>
+      );
+      expect(screen.getByText('Test Title')).toBeInTheDocument();
+      expect(screen.getByText(latin)).toBeInTheDocument();
+      expect(screen.getByText('Footer Content')).toBeInTheDocument();
+      fireEvent.click(screen.getByTestId('compound-close'));
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('renders Modal.Content with compound components', () => {
+      render(
+        <Modal isActive>
+          <Modal.Background />
+          <Modal.Content data-testid="compound-content">
+            <div>{latin}</div>
+          </Modal.Content>
+          <Modal.Close />
+        </Modal>
+      );
+      expect(screen.getByTestId('compound-content')).toHaveClass(
+        'modal-content'
+      );
+      expect(screen.getByText(latin)).toBeInTheDocument();
+    });
+
+    it('supports isActive prop as alias for active', () => {
+      render(
+        <Modal isActive>
+          <Modal.Background />
+          <Modal.Content>{latin}</Modal.Content>
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).toHaveClass('is-active');
+    });
+
+    it('Modal.Close renders with delete variant by default', () => {
+      render(
+        <Modal isActive>
+          <Modal.Close data-testid="close-btn" />
+        </Modal>
+      );
+      expect(screen.getByTestId('close-btn')).toHaveClass('delete');
+      expect(screen.getByTestId('close-btn')).not.toHaveClass('modal-close');
+    });
+
+    it('Modal.Close renders with floating variant', () => {
+      render(
+        <Modal isActive>
+          <Modal.Close variant="floating" data-testid="close-btn" />
+        </Modal>
+      );
+      expect(screen.getByTestId('close-btn')).toHaveClass('modal-close');
+      expect(screen.getByTestId('close-btn')).toHaveClass('is-large');
+    });
+
+    it('Modal.Close renders with custom size for floating variant', () => {
+      render(
+        <Modal isActive>
+          <Modal.Close
+            variant="floating"
+            size="medium"
+            data-testid="close-btn"
+          />
+        </Modal>
+      );
+      expect(screen.getByTestId('close-btn')).toHaveClass('modal-close');
+      expect(screen.getByTestId('close-btn')).toHaveClass('is-medium');
+    });
+
+    it('allows mixing compound components with custom classes', () => {
+      render(
+        <Modal isActive className="custom-modal">
+          <Modal.Background className="custom-bg" data-testid="bg" />
+          <Modal.Card className="custom-card" data-testid="card">
+            <Modal.Card.Body className="custom-body" data-testid="body">
+              {latin}
+            </Modal.Card.Body>
+          </Modal.Card>
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).toHaveClass('custom-modal');
+      expect(screen.getByTestId('bg')).toHaveClass('custom-bg');
+      expect(screen.getByTestId('card')).toHaveClass('custom-card');
+      expect(screen.getByTestId('body')).toHaveClass('custom-body');
+    });
+  });
 });
