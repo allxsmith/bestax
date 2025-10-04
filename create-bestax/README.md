@@ -41,21 +41,28 @@ npm create bestax@latest [project-directory] [options]
 - `[project-directory]` - Optional project directory name
 
 **Options:**
-- `-t, --template <template>` - Template to use: `vite` or `vite-ts`
+- `-t, --template <template>` - Template to use: `vite` or `vite-ts`  
+  **Default:** `vite`
 - `-b, --bulma <flavor>` - Bulma CSS flavor:
   - `complete` - Full Bulma CSS with all components and helpers
   - `prefixed` - Prefixed version for compatibility
   - `no-helpers` - Without helper classes
   - `no-helpers-prefixed` - Prefixed without helpers
-  - `no-dark-mode` - Without dark mode support
+  - `no-dark-mode` - Without dark mode support  
+  **Default:** `complete`
 - `-i, --icon <library>` - Icon library:
   - `none` - No icon library
   - `fontawesome` - Font Awesome
   - `mdi` - Material Design Icons
   - `ionicons` - Ionicons
   - `material-icons` - Material Icons
-  - `material-symbols` - Material Symbols
-- `-y, --yes` - Skip prompts and use defaults or provided options
+  - `material-symbols` - Material Symbols  
+  **Default:** `none`
+- `-y, --yes` - Skip prompts and use defaults or provided options.  
+  When used, the following defaults are selected unless overridden by flags:  
+  - Template: `vite`  
+  - Bulma flavor: `complete`  
+  - Icon library: `none`
 
 **Example:**
 
