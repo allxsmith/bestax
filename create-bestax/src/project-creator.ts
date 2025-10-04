@@ -47,8 +47,7 @@ export class ProjectCreator {
   private templatesDir: string;
 
   constructor(templatesDir?: string) {
-    this.templatesDir =
-      templatesDir || path.resolve(__dirname, '../../templates');
+    this.templatesDir = templatesDir || path.resolve(__dirname, '../templates');
   }
 
   async getProjectName(projectDir?: string): Promise<string | null> {
