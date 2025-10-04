@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@1.1.0...create-bestax@1.1.1) (2025-10-04)
+
+
+### Bug Fixes
+
+* **create-bestax:** exclude templates directory from linting and typecheck ([18fec0b](https://github.com/allxsmith/bestax/commit/18fec0b50fe71b2ba0bf41beb4bbb1e5bd399e22))
+* **create-bestax:** move templates into package directory and update docs ([195bf01](https://github.com/allxsmith/bestax/commit/195bf01fae72ce268a75156140912e2bc40052c3)), closes [#78](https://github.com/allxsmith/bestax/issues/78)
+
 # [1.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.0.0...create-bestax@1.1.0) (2025-10-03)
 
 
