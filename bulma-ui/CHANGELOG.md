@@ -1,3 +1,10 @@
+## [2.3.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.2...@allxsmith/bestax-bulma@2.3.3) (2025-10-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** correct blog post examples and add Modal compound components ([#81](https://github.com/allxsmith/bestax/issues/81)) ([559c2e3](https://github.com/allxsmith/bestax/commit/559c2e30fa15580c02f014754fa3846fdd5ed2f6))
+
 ## [2.3.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.1...@allxsmith/bestax-bulma@2.3.2) (2025-10-04)
 
 
