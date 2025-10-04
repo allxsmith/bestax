@@ -5,6 +5,7 @@
 Please provide a summary of the changes and which package(s) are affected.
 
 - [ ] bulma-ui (`@allxsmith/bestax-bulma`)
+- [ ] create-bestax (`create-bestax`)
 - [ ] docs (`@allxsmith/bestax-docs`)
 - [ ] Other (please specify):
 

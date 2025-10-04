@@ -129,7 +129,7 @@ function App() {
 
                     {count > 10 && (
                       <Notification color="info" isLight mt="3">
-                        You've clicked the button {count} times!
+                        You&apos;ve clicked the button {count} times!
                       </Notification>
                     )}
                   </Column>

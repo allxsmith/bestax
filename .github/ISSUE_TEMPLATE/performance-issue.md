@@ -11,6 +11,7 @@ assignees: allxsmith
 Which package(s) does this performance issue relate to?
 
 - [ ] bulma-ui (`@allxsmith/bestax-bulma`)
+- [ ] create-bestax (`create-bestax`)
 - [ ] docs (`@allxsmith/bestax-docs`)
 - [ ] Other (please specify):
 

@@ -16,7 +16,13 @@ function cleanGlobals(obj) {
 export default [
   // Ignore patterns
   {
-    ignores: ['**/dist/**', '**/build/**', '**/coverage/**', 'node_modules/**'],
+    ignores: [
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      'node_modules/**',
+      '**/templates/**', // Exclude templates from linting (they're validated separately)
+    ],
   },
 
   // Base JavaScript recommended rules
