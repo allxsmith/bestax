@@ -1,3 +1,10 @@
+## [2.3.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.1...@allxsmith/bestax-bulma@2.3.2) (2025-10-04)
+
+
+### Bug Fixes
+
+* **create-bestax:** correct template path resolution from ../../ to ../ ([65b4493](https://github.com/allxsmith/bestax/commit/65b44931859e162c46bfc8cdd6e0849942778968)), closes [#78](https://github.com/allxsmith/bestax/issues/78)
+
 ## [2.3.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.0...@allxsmith/bestax-bulma@2.3.1) (2025-10-04)
 
 
