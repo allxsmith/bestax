@@ -100,7 +100,7 @@ function DemoApp() {
       </Button>
       {showAlert && (
         <Notification color="success" mt="4">
-          Great! You're ready to build with bestax-bulma.
+          Great! You&apos;re ready to build with bestax-bulma.
         </Notification>
       )}
     </Box>
