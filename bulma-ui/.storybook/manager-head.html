@@ -1,0 +1,25 @@
+<link rel="icon" type="image/svg+xml" href="/logo.svg" />
+<style>
+  /* Control logo size in sidebar */
+  .sidebar-header img {
+    max-width: 32px !important;
+    max-height: 32px !important;
+    width: auto !important;
+    height: auto !important;
+  }
+
+  /* Make brand link a flex container for horizontal layout */
+  .sidebar-header a {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Show brand title next to logo using CSS content */
+  .sidebar-header a::after {
+    content: 'Bestax Bulma';
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+  }
+</style>
