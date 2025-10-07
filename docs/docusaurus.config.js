@@ -79,15 +79,7 @@ const config = {
   //     type: 'text/css',
   //   },
   // ],
-  plugins: [
-    [
-      '@docusaurus/plugin-google-gtag',
-      {
-        trackingID: 'G-KKBQGEHBY7',
-        anonymizeIP: true, // For GDPR compliance
-      },
-    ],
-  ],
+  plugins: [],
   themes: [
     '@docusaurus/theme-live-codeblock',
     // '@docusaurus/theme-mermaid',
