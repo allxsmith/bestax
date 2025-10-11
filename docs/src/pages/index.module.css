@@ -4,32 +4,249 @@
  */
 
 .heroBanner {
-  padding: 4rem 0;
+  padding: 6rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
-  background-image: url('/img/hero-clouds.jpg');
-  background-size: cover;
+  background: linear-gradient(180deg, #063d7a 0%, #08519c 50%, #3182bd 100%);
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+}
+
+[data-theme='dark'] .heroBanner {
+  background: linear-gradient(180deg, #08519c 0%, #3182bd 50%, #6baed6 100%);
 }
 
 @media screen and (max-width: 996px) {
   .heroBanner {
-    padding: 2rem;
+    padding: 3rem 1rem;
+    min-height: 400px;
   }
+}
+
+/* Hero Content Box */
+.heroContentBox {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 3rem 2.5rem;
+  max-width: 700px;
+  margin: 0 auto;
+  box-shadow: 0 20px 60px rgba(8, 81, 156, 0.3);
+}
+
+[data-theme='dark'] .heroContentBox {
+  background: rgba(30, 41, 54, 0.95);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Logo and Title Container */
+.heroLogoTitleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.heroLogo {
+  width: 80px;
+  height: 80px;
+}
+
+.heroTitle {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, #08519c 0%, #3182bd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme='dark'] .heroTitle {
+  background: linear-gradient(135deg, #6baed6 0%, #bdd7e7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media screen and (max-width: 768px) {
+  .heroLogoTitleContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .heroLogo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+}
+
+.hero__subtitle {
+  color: var(--ifm-color-emphasis-800);
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .hero__subtitle {
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* NPM Install Box */
+.npmInstallBox {
+  background: var(--ifm-color-emphasis-200);
+  border: 2px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 2rem auto;
+  max-width: 500px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1rem;
+  color: var(--ifm-color-emphasis-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.npmInstallBox:hover {
+  background: var(--ifm-color-emphasis-300);
+  border-color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .npmInstallBox {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-800);
+}
+
+[data-theme='dark'] .npmInstallBox:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-primary);
+}
+
+.npmInstallBox code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  color: inherit;
 }
 
 .buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
 }
 
-.hero__subtitle {
+/* GitHub Buttons Container */
+.githubButtonsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 767px) {
+  .buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .buttons > * {
+    width: 100%;
+  }
+
+  .githubButtonsRow {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .githubButtonWrapper {
+    width: 100%;
+  }
+
+  .githubButton {
+    width: 100%;
+  }
+}
+
+/* GitHub Button Wrapper (button + count tag) */
+.githubButtonWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* GitHub Button */
+.githubButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--ifm-color-emphasis-0);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  color: var(--ifm-color-emphasis-900);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.githubButton:hover {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+  color: var(--ifm-color-emphasis-900);
+}
+
+[data-theme='dark'] .githubButton {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-emphasis-400);
+  color: var(--ifm-color-emphasis-900);
+}
+
+[data-theme='dark'] .githubButton:hover {
+  background: var(--ifm-color-emphasis-300);
+  border-color: var(--ifm-color-primary);
   color: var(--ifm-color-emphasis-1000);
 }
 
-[data-theme='dark'] .hero__subtitle {
-  color: var(--ifm-color-black);
+/* GitHub Icon */
+.githubIcon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* GitHub Count Tag */
+.githubCountTag {
+  background: var(--ifm-color-emphasis-0);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-900);
+}
+
+[data-theme='dark'] .githubCountTag {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-emphasis-400);
+  color: var(--ifm-color-emphasis-900);
 }
 
 /* Pronunciation Section */

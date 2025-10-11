@@ -1,3 +1,4 @@
+import React from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -362,22 +363,128 @@ function ComponentLibrarySections() {
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
+  const [githubStars, setGithubStars] = React.useState(null);
+  const [githubForks, setGithubForks] = React.useState(null);
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    // Fetch GitHub stats
+    fetch('https://api.github.com/repos/allxsmith/bestax')
+      .then(res => res.json())
+      .then(data => {
+        setGithubStars(data.stargazers_count);
+        setGithubForks(data.forks_count);
+      })
+      .catch(() => {
+        // Silently fail if API is unavailable
+      });
+  }, []);
+
+  const handleCopyNpm = () => {
+    navigator.clipboard.writeText('npm install @allxsmith/bestax-bulma');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // GitHub Icon SVG
+  const GitHubIcon = () => (
+    <svg className={styles.githubIcon} viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
+
+  // Copy Icon SVG
+  const CopyIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ marginLeft: '8px' }}
+    >
+      <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z" />
+      <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+    </svg>
+  );
+
+  // Check Icon SVG (for copied state)
+  const CheckIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      style={{ marginLeft: '8px' }}
+    >
+      <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
+    </svg>
+  );
+
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className={clsx('hero__subtitle', styles.hero__subtitle)}>
-          {siteConfig.tagline}
-        </p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/guides/intro"
+        <div className={styles.heroContentBox}>
+          <div className={styles.heroLogoTitleContainer}>
+            <img
+              src="/img/logo.svg"
+              alt="Bestax Logo"
+              className={styles.heroLogo}
+            />
+            <Heading as="h1" className={styles.heroTitle}>
+              Bestax
+            </Heading>
+          </div>
+          <p className={clsx('hero__subtitle', styles.hero__subtitle)}>
+            A Bulma React Component Library
+          </p>
+          <div
+            className={styles.npmInstallBox}
+            onClick={handleCopyNpm}
+            title={copied ? 'Copied!' : 'Click to copy'}
           >
-            Getting Started
-          </Link>
+            <code>npm install @allxsmith/bestax-bulma</code>
+            {copied ? <CheckIcon /> : <CopyIcon />}
+          </div>
+          <div className={styles.buttons}>
+            <Link
+              className="button button--primary button--lg"
+              to="/docs/guides/intro"
+            >
+              Get Started
+            </Link>
+            <Link
+              className="button button--secondary button--lg"
+              to="/docs/api/elements/block"
+            >
+              Components
+            </Link>
+          </div>
+          <div className={styles.githubButtonsRow}>
+            <a
+              href="https://github.com/allxsmith/bestax"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.githubButton}
+            >
+              <GitHubIcon />
+              <span>Star</span>
+            </a>
+            {/* {githubStars !== null && (
+              <span className={styles.githubCountTag}>{githubStars}</span>
+            )} */}
+            <a
+              href="https://github.com/allxsmith/bestax/fork"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.githubButton}
+            >
+              <GitHubIcon />
+              <span>Fork</span>
+            </a>
+            {/* {githubForks !== null && (
+              <span className={styles.githubCountTag}>{githubForks}</span>
+            )} */}
+          </div>
         </div>
       </div>
     </header>

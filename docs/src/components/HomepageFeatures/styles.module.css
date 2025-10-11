@@ -9,4 +9,5 @@
   height: 200px;
   width: 200px;
   padding: 2rem;
+  color: var(--ifm-color-primary);
 }
