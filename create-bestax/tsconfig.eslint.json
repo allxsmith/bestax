@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "include": ["src/**/*", "e2e/**/*"],
+  "exclude": ["node_modules", "dist", "coverage", "e2e/test-results", "e2e/playwright-report"]
 }

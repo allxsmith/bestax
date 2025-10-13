@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "bulma-ui/src/**/*",
+    "create-bestax/src/**/*",
+    "create-bestax/e2e/**/*",
+    "docs/**/*.ts",
+    "docs/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/templates/**",
+    "create-bestax/e2e/test-results/**",
+    "create-bestax/e2e/playwright-report/**"
+  ]
+}

@@ -1,0 +1,18 @@
+# Playwright test results and reports
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Screenshot test outputs (commit baseline screenshots, ignore temp files)
+test-results/**/*-actual.png
+test-results/**/*-diff.png
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

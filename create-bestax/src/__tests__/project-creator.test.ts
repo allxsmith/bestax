@@ -1292,4 +1292,90 @@ describe('ProjectCreator', () => {
       expect(writtenContent).toContain('iconLibrary="mdi"');
     });
   });
+
+  describe('create with --yes flag defaults', () => {
+    it('should use default values when --yes is provided without options', async () => {
+      // This test covers lines 446, 468, 490 - default values for --yes flag
+      const options = {
+        yes: true,
+        // No template, bulma, or icon options provided - will use defaults
+      };
+
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(false);
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(true);
+      (
+        fileSystem.copyDirectory as jest.MockedFunction<
+          typeof fileSystem.copyDirectory
+        >
+      ).mockResolvedValue(undefined);
+      (
+        fileSystem.updatePackageJson as jest.MockedFunction<
+          typeof fileSystem.updatePackageJson
+        >
+      ).mockResolvedValue(undefined);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.create('test-project', options);
+
+      // Should use defaults: vite template (line 446), complete bulma (line 468), none icon (line 490)
+      const copyCall = (
+        fileSystem.copyDirectory as jest.MockedFunction<
+          typeof fileSystem.copyDirectory
+        >
+      ).mock.calls[0];
+      expect(copyCall[0]).toContain('/vite'); // Should contain /vite path
+      expect(copyCall[0]).not.toContain('vite-ts'); // Ensure it's not vite-ts
+      expect(fileSystem.updatePackageJson).toHaveBeenCalled();
+    });
+  });
+
+  describe('setupIconLibrary edge cases', () => {
+    it('should handle package.json without dependencies object', async () => {
+      const targetPath = '/test/project';
+      const packageJsonPath = '/test/project/package.json';
+      const _mainFilePath = '/test/project/src/main.jsx';
+
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(
+        path =>
+          path === packageJsonPath ||
+          path === _mainFilePath ||
+          path === '/test/project/src/App.jsx'
+      );
+      // Return package.json WITHOUT dependencies object
+      (
+        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+      ).mockResolvedValue({
+        name: 'test-project',
+        version: '1.0.0',
+      });
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(`import 'bulma/css/bulma.min.css';` as unknown);
+
+      await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
+
+      // Should create dependencies object and add package
+      expect(fs.default.writeJson).toHaveBeenCalledWith(
+        packageJsonPath,
+        expect.objectContaining({
+          dependencies: expect.objectContaining({
+            '@fortawesome/fontawesome-free': 'latest',
+          }),
+        }),
+        { spaces: 2 }
+      );
+    });
+  });
 });
