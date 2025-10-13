@@ -152,6 +152,31 @@ The visual regression workflow (`.github/workflows/visual-regression.yml`) runs:
 - **On PRs** touching create-bestax files
 - **Manual trigger** with option to update baselines
 
+### Initializing Baseline Screenshots in CI
+
+**Important:** The first time the workflow runs, or when running on a new branch, you need to generate the baseline screenshots for the Linux environment (GitHub Actions uses Ubuntu).
+
+To initialize or update baselines in CI:
+
+```bash
+# Trigger the workflow manually with snapshot update flag
+gh workflow run visual-regression.yml --ref <branch-name> -f update_snapshots=true
+
+# Example for a feature branch:
+gh workflow run visual-regression.yml --ref feat/94-visual-regression-testing -f update_snapshots=true
+
+# Example for main branch:
+gh workflow run visual-regression.yml --ref main -f update_snapshots=true
+```
+
+The workflow will:
+1. Run all 17 test scenarios
+2. Generate baseline screenshots for Linux/Chromium
+3. Commit the screenshots back to the branch
+4. Push the updated baselines
+
+**Note:** Baseline screenshots are platform-specific. The `-chromium-linux.png` files generated in CI will differ from `-chromium-darwin.png` files generated on macOS.
+
 ### Matrix Strategy
 
 All 17 scenarios run in parallel:
