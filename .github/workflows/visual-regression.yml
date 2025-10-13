@@ -99,9 +99,9 @@ jobs:
             -i ${{ matrix.scenario.icon }} \
             -y
 
-      - name: Install app dependencies
+      - name: Install app dependencies (no cache)
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: npm ci
+        run: npm install --prefer-online --no-audit --no-fund
 
       - name: Build scaffolded app
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
