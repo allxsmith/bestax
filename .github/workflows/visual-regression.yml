@@ -99,14 +99,9 @@ jobs:
             -i ${{ matrix.scenario.icon }} \
             -y
 
-      - name: Install app dependencies (NO CACHE - fresh downloads)
+      - name: Install app dependencies
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: |
-          # Disable npm cache to ensure fresh package downloads
-          npm config set cache false
-          npm install
-        env:
-          npm_config_cache: false
+        run: npm ci
 
       - name: Build scaffolded app
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
