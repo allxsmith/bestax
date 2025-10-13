@@ -161,15 +161,49 @@ jobs:
             create-bestax/e2e/test-results/**/*-expected.png
           retention-days: 7
 
-      - name: Commit updated screenshots
+      - name: Upload updated screenshots
         if: inputs.update_snapshots && github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+          path: create-bestax/e2e/tests/**/*.png
+          retention-days: 1
+
+  commit-screenshots:
+    name: Commit Updated Screenshots
+    runs-on: ubuntu-latest
+    needs: visual-regression
+    if: inputs.update_snapshots && github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Download all screenshot artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: screenshots-*
+          path: downloaded-screenshots
+
+      - name: Copy screenshots to repository
+        run: |
+          # Find and copy all downloaded screenshots
+          find downloaded-screenshots -name "*.png" -exec cp {} create-bestax/e2e/tests/app.spec.ts-snapshots/ \;
+
+      - name: Commit and push screenshots
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add create-bestax/e2e/tests/**/*.png || true
-          git commit -m "chore(e2e): update baseline screenshots for ${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}" || true
-          git pull --rebase origin ${{ github.ref_name }}
-          git push || true
+          git add create-bestax/e2e/tests/**/*.png
+          if git diff --staged --quiet; then
+            echo "No screenshot changes to commit"
+          else
+            git commit -m "chore(e2e): update baseline screenshots [skip ci]"
+            git push
+          fi
 
   summary:
     name: Test Summary
