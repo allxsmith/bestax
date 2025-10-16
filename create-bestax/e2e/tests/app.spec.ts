@@ -64,7 +64,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Initially notification should not be visible (works for both prefixed and unprefixed)
     const notification = page.locator(
-      '[class$="notification"][class*="is-success"]'
+      '[class*="notification"][class*="is-success"]'
     );
     await expect(notification).toHaveCount(0);
 
@@ -97,7 +97,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
     await toggleButton.click();
 
     const notification = page.locator(
-      '[class$="notification"][class*="is-success"]'
+      '[class*="notification"][class*="is-success"]'
     );
     await expect(notification).toBeVisible();
 
@@ -191,7 +191,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Info notification should appear (works for both prefixed and unprefixed)
     const infoNotification = page.locator(
-      '[class$="notification"][class*="is-info"]'
+      '[class*="notification"][class*="is-info"]'
     );
     await expect(infoNotification).toBeVisible();
     await expect(infoNotification).toContainText(
