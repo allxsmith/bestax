@@ -28,9 +28,13 @@ runs:
           const pattern = '${{ inputs.file-pattern }}';
           let files = [];
 
+          // Extract base directory and file pattern
+          // Pattern like "create-bestax/e2e/tests/**/*.png"
+          const basePath = pattern.replace(/\/\*\*\/.*$/, '');  // "create-bestax/e2e/tests"
+
           try {
             const output = execSync(
-              `find ${pattern.replace('**/', '')} -type f -name "*.png"`,
+              `find ${basePath} -type f -name "*.png"`,
               { cwd: process.env.GITHUB_WORKSPACE, encoding: 'utf-8' }
             );
             files = output.trim().split('\n').filter(Boolean).map(f =>
