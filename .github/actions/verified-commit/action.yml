@@ -1,0 +1,107 @@
+name: 'Verified Commit'
+description: 'Create a verified commit using GitHub API'
+inputs:
+  file-pattern:
+    description: 'File pattern to commit (e.g., "**/*.png")'
+    required: true
+  message:
+    description: 'Commit message'
+    required: true
+  token:
+    description: 'GitHub token'
+    required: true
+    default: ${{ github.token }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Commit files via GitHub API
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.token }}
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+          const { globSync } = require('glob');
+
+          // Get all files matching the pattern
+          const files = globSync('${{ inputs.file-pattern }}', {
+            cwd: process.env.GITHUB_WORKSPACE,
+            absolute: true,
+            nodir: true
+          });
+
+          if (files.length === 0) {
+            console.log('No files found matching pattern: ${{ inputs.file-pattern }}');
+            return;
+          }
+
+          console.log(`Found ${files.length} files to commit`);
+
+          const branch = context.ref.replace('refs/heads/', '');
+          const commitMessage = '${{ inputs.message }}';
+
+          // Get the current commit SHA
+          const { data: refData } = await github.rest.git.getRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `heads/${branch}`,
+          });
+          const currentCommitSha = refData.object.sha;
+
+          // Get the current commit to retrieve the tree
+          const { data: currentCommit } = await github.rest.git.getCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: currentCommitSha,
+          });
+
+          // Create blobs for each file
+          const blobs = await Promise.all(
+            files.map(async (filePath) => {
+              const content = fs.readFileSync(filePath);
+              const { data: blob } = await github.rest.git.createBlob({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                content: content.toString('base64'),
+                encoding: 'base64',
+              });
+              // Convert absolute path to relative path from workspace
+              const relativePath = path.relative(process.env.GITHUB_WORKSPACE, filePath);
+              return { path: relativePath, sha: blob.sha };
+            })
+          );
+
+          // Create a new tree with the updated files
+          const { data: newTree } = await github.rest.git.createTree({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            base_tree: currentCommit.tree.sha,
+            tree: blobs.map(blob => ({
+              path: blob.path,
+              mode: '100644',
+              type: 'blob',
+              sha: blob.sha,
+            })),
+          });
+
+          // Create a new commit
+          const { data: newCommit } = await github.rest.git.createCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            message: commitMessage,
+            tree: newTree.sha,
+            parents: [currentCommitSha],
+          });
+
+          // Update the branch reference
+          await github.rest.git.updateRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: `heads/${branch}`,
+            sha: newCommit.sha,
+          });
+
+          console.log(`✅ Created verified commit: ${newCommit.sha}`);
+          console.log(`📝 Committed ${files.length} files`);

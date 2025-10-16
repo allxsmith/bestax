@@ -193,17 +193,12 @@ jobs:
           # Find and copy all downloaded screenshots
           find downloaded-screenshots -name "*.png" -exec cp {} create-bestax/e2e/tests/app.spec.ts-snapshots/ \;
 
-      - name: Commit and push screenshots
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add create-bestax/e2e/tests/**/*.png
-          if git diff --staged --quiet; then
-            echo "No screenshot changes to commit"
-          else
-            git commit -m "chore(e2e): update baseline screenshots [skip ci]"
-            git push
-          fi
+      - name: Commit screenshots via GitHub API (verified)
+        uses: ./.github/actions/verified-commit
+        with:
+          file-pattern: 'create-bestax/e2e/tests/**/*.png'
+          message: 'chore(e2e): update baseline screenshots [skip ci]'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   summary:
     name: Test Summary
