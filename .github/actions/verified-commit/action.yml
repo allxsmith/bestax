@@ -23,17 +23,26 @@ runs:
           const fs = require('fs');
           const path = require('path');
           const { execSync } = require('child_process');
-          const { globSync } = require('glob');
 
-          // Get all files matching the pattern
-          const files = globSync('${{ inputs.file-pattern }}', {
-            cwd: process.env.GITHUB_WORKSPACE,
-            absolute: true,
-            nodir: true
-          });
+          // Get all files matching the pattern using find command
+          const pattern = '${{ inputs.file-pattern }}';
+          let files = [];
+
+          try {
+            const output = execSync(
+              `find ${pattern.replace('**/', '')} -type f -name "*.png"`,
+              { cwd: process.env.GITHUB_WORKSPACE, encoding: 'utf-8' }
+            );
+            files = output.trim().split('\n').filter(Boolean).map(f =>
+              path.join(process.env.GITHUB_WORKSPACE, f)
+            );
+          } catch (error) {
+            console.log('No files found matching pattern: ' + pattern);
+            return;
+          }
 
           if (files.length === 0) {
-            console.log('No files found matching pattern: ${{ inputs.file-pattern }}');
+            console.log('No files found matching pattern: ' + pattern);
             return;
           }
 
