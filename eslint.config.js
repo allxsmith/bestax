@@ -22,6 +22,8 @@ export default [
       '**/coverage/**',
       'node_modules/**',
       '**/templates/**', // Exclude templates from linting (they're validated separately)
+      'test-apps/**', // Exclude test applications from linting
+      'create-bestax/test-results/**', // Exclude test results
     ],
   },
 

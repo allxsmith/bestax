@@ -892,7 +892,7 @@ describe('Card - Advanced Integration Tests', () => {
   });
 
   // Test 62: Class prefix integration with compound components
-  test('applies class prefix to main card but not compound components', () => {
+  test('applies class prefix to main card and all compound components', () => {
     render(
       <ConfigProvider classPrefix="bulma-">
         <Card data-testid="card">
@@ -912,14 +912,16 @@ describe('Card - Advanced Integration Tests', () => {
     // Main card should have prefix
     expect(screen.getByTestId('card')).toHaveClass('bulma-card');
 
-    // Compound components should use standard Bulma classes
-    expect(screen.getByTestId('header')).toHaveClass('card-header');
-    expect(screen.getByTestId('title')).toHaveClass('card-header-title');
-    expect(screen.getByTestId('icon')).toHaveClass('card-header-icon');
-    expect(screen.getByTestId('image')).toHaveClass('card-image');
-    expect(screen.getByTestId('content')).toHaveClass('card-content');
-    expect(screen.getByTestId('footer')).toHaveClass('card-footer');
-    expect(screen.getByTestId('footer-item')).toHaveClass('card-footer-item');
+    // Compound components should also use prefixed Bulma classes
+    expect(screen.getByTestId('header')).toHaveClass('bulma-card-header');
+    expect(screen.getByTestId('title')).toHaveClass('bulma-card-header-title');
+    expect(screen.getByTestId('icon')).toHaveClass('bulma-card-header-icon');
+    expect(screen.getByTestId('image')).toHaveClass('bulma-card-image');
+    expect(screen.getByTestId('content')).toHaveClass('bulma-card-content');
+    expect(screen.getByTestId('footer')).toHaveClass('bulma-card-footer');
+    expect(screen.getByTestId('footer-item')).toHaveClass(
+      'bulma-card-footer-item'
+    );
   });
 
   // Test 63: Event handling propagation

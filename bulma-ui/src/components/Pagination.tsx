@@ -71,9 +71,13 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
   ...props
 }) => (
   <a
-    className={classNames('pagination-previous', className, {
-      'is-disabled': disabled,
-    })}
+    className={classNames(
+      usePrefixedClassNames('pagination-previous'),
+      className,
+      {
+        'is-disabled': disabled,
+      }
+    )}
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
@@ -100,7 +104,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
   ...props
 }) => (
   <a
-    className={classNames('pagination-next', className, {
+    className={classNames(usePrefixedClassNames('pagination-next'), className, {
       'is-disabled': disabled,
     })}
     aria-disabled={disabled}
@@ -212,7 +216,11 @@ export const PaginationList: React.FC<PaginationListProps> = ({
   });
   return (
     <ul
-      className={classNames('pagination-list', bulmaHelperClasses, className)}
+      className={classNames(
+        usePrefixedClassNames('pagination-list'),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -277,7 +285,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
     <li>
       <a
         className={classNames(
-          'pagination-link',
+          usePrefixedClassNames('pagination-link'),
           bulmaHelperClasses,
           className,
           {
@@ -307,7 +315,7 @@ export const PaginationEllipsis: React.FC<
   React.LiHTMLAttributes<HTMLLIElement>
 > = props => (
   <li>
-    <span className="pagination-ellipsis" {...props}>
+    <span className={usePrefixedClassNames('pagination-ellipsis')} {...props}>
       &hellip;
     </span>
   </li>

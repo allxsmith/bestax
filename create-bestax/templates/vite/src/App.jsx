@@ -11,6 +11,7 @@ import {
   Section,
   Card,
   Hero,
+  Buttons,
 } from '@allxsmith/bestax-bulma';
 import './App.css';
 
@@ -44,7 +45,7 @@ function App() {
                   bestax-bulma
                 </SubTitle>
 
-                <Columns mt="5">
+                <Columns>
                   <Column>
                     <Card>
                       <Card.Header>
@@ -88,12 +89,12 @@ function App() {
                 </Columns>
               </Box>
 
-              <Box mt="5">
+              <Box>
                 <Title size="4">Interactive Example</Title>
 
-                <Columns isVCentered mt="4">
+                <Columns isVCentered>
                   <Column size="half">
-                    <div className="buttons">
+                    <Buttons>
                       <Button
                         color="primary"
                         onClick={() => setShowNotification(!showNotification)}
@@ -112,7 +113,7 @@ function App() {
                       >
                         Reset
                       </Button>
-                    </div>
+                    </Buttons>
                   </Column>
 
                   <Column size="half">
@@ -128,7 +129,7 @@ function App() {
                     )}
 
                     {count > 10 && (
-                      <Notification color="info" isLight mt="3">
+                      <Notification color="info" isLight>
                         You&apos;ve clicked the button {count} times!
                       </Notification>
                     )}

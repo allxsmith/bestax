@@ -159,7 +159,10 @@ export const PanelHeading: React.FC<PanelHeadingProps> = ({
   children,
   ...props
 }) => (
-  <p className={classNames('panel-heading', className)} {...props}>
+  <p
+    className={classNames(usePrefixedClassNames('panel-heading'), className)}
+    {...props}
+  >
     {children}
   </p>
 );
@@ -172,7 +175,10 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
   children,
   ...props
 }) => (
-  <p className={classNames('panel-tabs', className)} {...props}>
+  <p
+    className={classNames(usePrefixedClassNames('panel-tabs'), className)}
+    {...props}
+  >
     {children}
   </p>
 );
@@ -187,7 +193,10 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
   ...props
 }) => (
   <a
-    className={classNames('panel-block', className, { 'is-active': active })}
+    className={classNames(
+      usePrefixedClassNames('panel-block', { 'is-active': active }),
+      className
+    )}
     {...props}
   >
     {children}
@@ -202,7 +211,10 @@ export const PanelIcon: React.FC<PanelIconProps> = ({
   children,
   ...props
 }) => (
-  <span className={classNames('panel-icon', className)} {...props}>
+  <span
+    className={classNames(usePrefixedClassNames('panel-icon'), className)}
+    {...props}
+  >
     {children}
   </span>
 );
@@ -220,8 +232,8 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   const inputClass = usePrefixedClassNames('input');
 
   return (
-    <div className="panel-block" {...props}>
-      <p className="control has-icons-left">
+    <div className={usePrefixedClassNames('panel-block')} {...props}>
+      <p className={usePrefixedClassNames('control', 'has-icons-left')}>
         <input
           className={inputClass}
           type="text"
@@ -229,7 +241,7 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
           value={value}
           onChange={onChange}
         />
-        <span className="icon is-left">
+        <span className={usePrefixedClassNames('icon', 'is-left')}>
           <i className={iconClassName} aria-hidden="true"></i>
         </span>
       </p>
@@ -246,7 +258,7 @@ export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
   children,
   ...props
 }) => (
-  <label className="panel-block" {...props}>
+  <label className={usePrefixedClassNames('panel-block')} {...props}>
     <input type="checkbox" checked={checked} onChange={onChange} />
     {children}
   </label>
@@ -260,10 +272,15 @@ export const PanelButtonBlock: React.FC<PanelButtonBlockProps> = ({
   className,
   ...props
 }) => (
-  <div className="panel-block">
+  <div className={usePrefixedClassNames('panel-block')}>
     <button
       className={classNames(
-        'button is-link is-outlined is-fullwidth',
+        usePrefixedClassNames(
+          'button',
+          'is-link',
+          'is-outlined',
+          'is-fullwidth'
+        ),
         className
       )}
       {...props}

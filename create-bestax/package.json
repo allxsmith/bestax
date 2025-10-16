@@ -21,7 +21,7 @@
     "test:e2e:headed": "playwright test --config=e2e/playwright.config.ts --headed",
     "test:e2e:update": "playwright test --config=e2e/playwright.config.ts --update-snapshots",
     "test:e2e:report": "playwright show-report e2e/playwright-report",
-    "lint": "eslint .",
+    "lint": "eslint src e2e/tests e2e/utils --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",

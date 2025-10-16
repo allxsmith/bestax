@@ -78,7 +78,11 @@ export const MenuLabel: React.FC<MenuLabelProps> = ({
 
   return (
     <p
-      className={classNames('menu-label', className, bulmaHelperClasses)}
+      className={classNames(
+        usePrefixedClassNames('menu-label'),
+        className,
+        bulmaHelperClasses
+      )}
       {...rest}
     >
       {children}
@@ -115,7 +119,7 @@ export const MenuList: React.FC<MenuListProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
   const ulClass = classNames(className, bulmaHelperClasses, {
-    'menu-list': level === 0,
+    [usePrefixedClassNames('menu-list')]: level === 0,
   });
 
   // Increment level for nested MenuLists
@@ -165,7 +169,10 @@ export const MenuItem: React.FC<MenuItemProps> = ({
   ...rest
 }) => {
   const { bulmaHelperClasses, rest: bulmaRest } = useBulmaClasses(rest);
-  const itemClass = classNames({ 'is-active': active }, bulmaHelperClasses);
+  const itemClass = classNames(
+    { [usePrefixedClassNames('is-active')]: active },
+    bulmaHelperClasses
+  );
 
   // Standard <li> props
   const { style, id, title, role, tabIndex, ...linkProps } = bulmaRest;

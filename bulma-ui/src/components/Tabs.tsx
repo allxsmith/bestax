@@ -143,7 +143,10 @@ export const TabItem: React.FC<TabItemProps> = ({
   ...props
 }) => (
   <li
-    className={classNames({ 'is-active': active }, className)}
+    className={classNames(
+      { [usePrefixedClassNames('is-active')]: active },
+      className
+    )}
     onClick={onClick}
     {...props}
   >

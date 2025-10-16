@@ -135,7 +135,7 @@ const DropdownComponent: React.FC<DropdownProps> = ({
       data-testid="dropdown-root"
       {...rest}
     >
-      <div className="dropdown-trigger">
+      <div className={usePrefixedClassNames('dropdown-trigger')}>
         <button
           className={buttonClass}
           aria-haspopup="true"
@@ -146,19 +146,25 @@ const DropdownComponent: React.FC<DropdownProps> = ({
           type="button"
         >
           <span>{label}</span>
-          <span className="icon is-small" aria-hidden="true">
+          <span
+            className={usePrefixedClassNames('icon', 'is-small')}
+            aria-hidden="true"
+          >
             <i className="fas fa-angle-down" />
           </span>
         </button>
       </div>
       <div
-        className={classNames('dropdown-menu', menuClassName)}
+        className={classNames(
+          usePrefixedClassNames('dropdown-menu'),
+          menuClassName
+        )}
         id={id ? `${id}-menu` : undefined}
         role="menu"
         data-testid="dropdown-menu"
       >
         <div
-          className="dropdown-content"
+          className={usePrefixedClassNames('dropdown-content')}
           onClick={handleMenuClick}
           tabIndex={-1}
         >
@@ -204,9 +210,10 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   return (
     <Component
       className={classNames(
-        'dropdown-item',
+        usePrefixedClassNames('dropdown-item', {
+          'is-active': active,
+        }),
         bulmaHelperClasses,
-        { 'is-active': active },
         className
       )}
       tabIndex={0}
@@ -225,7 +232,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
  * @returns {JSX.Element} The divider element.
  */
 export const DropdownDivider: React.FC = () => (
-  <hr className="dropdown-divider" />
+  <hr className={usePrefixedClassNames('dropdown-divider')} />
 );
 
 // Assign static subcomponents

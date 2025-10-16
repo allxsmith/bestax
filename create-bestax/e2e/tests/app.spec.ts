@@ -34,24 +34,24 @@ test.describe('Scaffolded App - Info Cards', () => {
   test('three info cards display correctly', async ({ page }) => {
     await page.goto('/');
 
-    // Verify all three cards are present
-    const cards = page.locator('.card');
+    // Verify all three cards are present (works for both prefixed and unprefixed)
+    const cards = page.locator('[class$="card"]:not([class*="card-"])');
     await expect(cards).toHaveCount(3);
 
     // Verify card titles
-    await expect(page.locator('.card-header-title').nth(0)).toContainText(
-      'Quick Start'
-    );
-    await expect(page.locator('.card-header-title').nth(1)).toContainText(
-      'Documentation'
-    );
-    await expect(page.locator('.card-header-title').nth(2)).toContainText(
-      'Examples'
-    );
+    await expect(
+      page.locator('[class$="card-header-title"]').nth(0)
+    ).toContainText('Quick Start');
+    await expect(
+      page.locator('[class$="card-header-title"]').nth(1)
+    ).toContainText('Documentation');
+    await expect(
+      page.locator('[class$="card-header-title"]').nth(2)
+    ).toContainText('Examples');
 
     // Visual regression check for cards section
     const cardsSection = page
-      .locator('.columns')
+      .locator('[class$="columns"]')
       .filter({ hasText: 'Quick Start' })
       .first();
     await expect(cardsSection).toHaveScreenshot('02-info-cards.png');
@@ -62,8 +62,10 @@ test.describe('Scaffolded App - Notification Toggle', () => {
   test('toggle notification button shows notification', async ({ page }) => {
     await page.goto('/');
 
-    // Initially notification should not be visible
-    const notification = page.locator('.notification.is-success');
+    // Initially notification should not be visible (works for both prefixed and unprefixed)
+    const notification = page.locator(
+      '[class$="notification"][class*="is-success"]'
+    );
     await expect(notification).toHaveCount(0);
 
     // Click toggle button
@@ -78,7 +80,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification visible
     const interactiveSection = page
-      .locator('.box')
+      .locator('[class$="box"]')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '03-notification-visible.png'
@@ -94,7 +96,9 @@ test.describe('Scaffolded App - Notification Toggle', () => {
       .filter({ hasText: 'Toggle Notification' });
     await toggleButton.click();
 
-    const notification = page.locator('.notification.is-success');
+    const notification = page.locator(
+      '[class$="notification"][class*="is-success"]'
+    );
     await expect(notification).toBeVisible();
 
     // Click toggle button again to hide
@@ -105,7 +109,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification hidden
     const interactiveSection = page
-      .locator('.box')
+      .locator('[class$="box"]')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '04-notification-hidden.png'
@@ -132,9 +136,9 @@ test.describe('Scaffolded App - Counter', () => {
     await counterButton.click();
     await expect(counterButton).toContainText('Count: 3');
 
-    // Visual regression check
+    // Visual regression check (works for both prefixed and unprefixed)
     const interactiveSection = page
-      .locator('.box')
+      .locator('[class$="box"]')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '05-counter-incremented.png'
@@ -168,7 +172,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('.box')
+      .locator('[class$="box"]')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot('06-counter-reset.png');
   });
@@ -185,8 +189,10 @@ test.describe('Scaffolded App - Counter', () => {
 
     await expect(counterButton).toContainText('Count: 11');
 
-    // Info notification should appear
-    const infoNotification = page.locator('.notification.is-info');
+    // Info notification should appear (works for both prefixed and unprefixed)
+    const infoNotification = page.locator(
+      '[class$="notification"][class*="is-info"]'
+    );
     await expect(infoNotification).toBeVisible();
     await expect(infoNotification).toContainText(
       "You've clicked the button 11 times!"
@@ -194,7 +200,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('.box')
+      .locator('[class$="box"]')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '07-counter-milestone.png'
@@ -234,9 +240,11 @@ test.describe('Scaffolded App - Full Page', () => {
   test('complete page renders correctly', async ({ page }) => {
     await page.goto('/');
 
-    // Wait for all content to be loaded
+    // Wait for all content to be loaded (works for both prefixed and unprefixed)
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(page.locator('.card').first()).toBeVisible();
+    await expect(
+      page.locator('[class$="card"]:not([class*="card-"])').first()
+    ).toBeVisible();
 
     // Full page screenshot for comprehensive visual check
     await expect(page).toHaveScreenshot('10-full-page.png', {
