@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/allxsmith/bestax/compare/create-bestax@1.2.1...create-bestax@1.2.2) (2025-10-17)
+
+
+### Bug Fixes
+
+* upgrade Turbo, Storybook, and Docusaurus dependencies ([5b4ebdd](https://github.com/allxsmith/bestax/commit/5b4ebdd5e8847de6281491a7c3dc676ceed9db29)), closes [#98](https://github.com/allxsmith/bestax/issues/98)
+
 ## [1.2.1](https://github.com/allxsmith/bestax/compare/create-bestax@1.2.0...create-bestax@1.2.1) (2025-10-17)
 
 
