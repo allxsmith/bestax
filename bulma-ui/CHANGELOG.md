@@ -1,3 +1,11 @@
+## [2.4.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.4.0...@allxsmith/bestax-bulma@2.4.1) (2025-10-17)
+
+
+### Bug Fixes
+
+* **create-bestax:** synchronize version with bestax-bulma to 2.4.0 ([623ee79](https://github.com/allxsmith/bestax/commit/623ee79a5510261c7603dcb867db9baf3d7e6586)), closes [#96](https://github.com/allxsmith/bestax/issues/96)
+* **create-bestax:** update template dependency to ^2.4.0 ([200971d](https://github.com/allxsmith/bestax/commit/200971d4500283a8be1d64c5bf3ca8396b76cdb1))
+
 # [2.4.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.3...@allxsmith/bestax-bulma@2.4.0) (2025-10-17)
 
 
