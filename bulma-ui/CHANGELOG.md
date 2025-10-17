@@ -1,3 +1,28 @@
+# [2.4.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.3...@allxsmith/bestax-bulma@2.4.0) (2025-10-17)
+
+
+### Bug Fixes
+
+* **ci:** collect screenshots as artifacts and commit in single batch to avoid conflicts ([27b259d](https://github.com/allxsmith/bestax/commit/27b259d774d4088fa371bb7ad2688cc97d4258ab))
+* **ci:** ensure npm install uses fresh downloads with --prefer-online ([1f2e15d](https://github.com/allxsmith/bestax/commit/1f2e15ddf2c4b51094ed58d04b26decc317dfa2e))
+* **ci:** properly extract base path for recursive file search ([e0330ff](https://github.com/allxsmith/bestax/commit/e0330ff9ca0efe12ad96603cfe134307f3a09b83))
+* **ci:** use find command instead of glob module in verified-commit action ([0e2d159](https://github.com/allxsmith/bestax/commit/0e2d159177760c7285c4ddd5930f49e6ac7c5566))
+* **ci:** use npm ci for scaffolded app dependencies ([35652c8](https://github.com/allxsmith/bestax/commit/35652c8d84ecd2e1b8f5c2d0bc7b2f573d1e9717))
+* **docs:** escape apostrophe in QuickStart notification text ([25d6d72](https://github.com/allxsmith/bestax/commit/25d6d7229d691245c3e2ca8475caaac7e9369478))
+* **docs:** improve homepage hero layout and button spacing ([5f7a5a7](https://github.com/allxsmith/bestax/commit/5f7a5a78faa3e51766d8f4449e93bc4d6519fde9))
+* **docs:** move robots.txt to correct deployment location ([#90](https://github.com/allxsmith/bestax/issues/90)) ([1e2aeee](https://github.com/allxsmith/bestax/commit/1e2aeee38fa01097db832b9bc7c920114db194b0))
+* **docs:** rebrand and reorganize Storybook ([#83](https://github.com/allxsmith/bestax/issues/83)) ([dfb9937](https://github.com/allxsmith/bestax/commit/dfb99379b65135bc448f6f5e267fe2f473e8e106))
+* **docs:** remove Google Analytics and add robots.txt ([94776f7](https://github.com/allxsmith/bestax/commit/94776f7a020af5411a8d679b794e09be2de7bf9e))
+* **docs:** update Storybook logo path to /img/logo.svg for deployed site ([bf59758](https://github.com/allxsmith/bestax/commit/bf59758965e12b6144d57d0fe673f648c66454cf))
+* **e2e:** correct notification CSS selectors to use contains instead of ends-with ([182acc1](https://github.com/allxsmith/bestax/commit/182acc15b6bde6b6d8869040a055d4588afb2b05))
+* resolve React Hooks violations and ESLint configuration issues ([32d2931](https://github.com/allxsmith/bestax/commit/32d2931d982cfd6a56d6f5ecd9233f42dfd62b7c))
+
+
+### Features
+
+* **ci:** add verified-commit action for GPG-signed commits ([d078dfa](https://github.com/allxsmith/bestax/commit/d078dfac4ef8eb85bc2e02f50545868f0a4e0e0d))
+* **create-bestax:** add visual regression testing and synchronized versioning ([17e1e22](https://github.com/allxsmith/bestax/commit/17e1e22bd114fa80c84c03a67ca8764c85ab321b)), closes [#94](https://github.com/allxsmith/bestax/issues/94)
+
 ## [2.3.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.3.2...@allxsmith/bestax-bulma@2.3.3) (2025-10-04)
 
 
