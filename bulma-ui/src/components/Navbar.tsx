@@ -131,7 +131,11 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
 
   return (
     <div
-      className={classNames('navbar-brand', bulmaHelperClasses, className)}
+      className={classNames(
+        usePrefixedClassNames('navbar-brand'),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -184,9 +188,13 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
 
   return (
     <Component
-      className={classNames('navbar-item', bulmaHelperClasses, className, {
-        'is-active': active,
-      })}
+      className={classNames(
+        usePrefixedClassNames('navbar-item', {
+          'is-active': active,
+        }),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -239,9 +247,13 @@ export const NavbarBurger: React.FC<NavbarBurgerProps> = ({
   return (
     <button
       type="button"
-      className={classNames('navbar-burger', bulmaHelperClasses, className, {
-        'is-active': active,
-      })}
+      className={classNames(
+        usePrefixedClassNames('navbar-burger', {
+          'is-active': active,
+        }),
+        bulmaHelperClasses,
+        className
+      )}
       aria-label={props['aria-label'] || 'menu'}
       aria-expanded={props['aria-expanded'] ?? !!active}
       {...rest}
@@ -292,9 +304,13 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
 
   return (
     <div
-      className={classNames('navbar-menu', bulmaHelperClasses, className, {
-        'is-active': active,
-      })}
+      className={classNames(
+        usePrefixedClassNames('navbar-menu', {
+          'is-active': active,
+        }),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -336,7 +352,11 @@ export const NavbarStart: React.FC<NavbarStartEndProps> = ({
   });
   return (
     <div
-      className={classNames('navbar-start', bulmaHelperClasses, className)}
+      className={classNames(
+        usePrefixedClassNames('navbar-start'),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -361,7 +381,11 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
   });
   return (
     <div
-      className={classNames('navbar-end', bulmaHelperClasses, className)}
+      className={classNames(
+        usePrefixedClassNames('navbar-end'),
+        bulmaHelperClasses,
+        className
+      )}
       {...rest}
     >
       {children}
@@ -407,14 +431,12 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
 }) => (
   <div
     className={classNames(
-      'navbar-item',
-      'has-dropdown',
-      {
+      usePrefixedClassNames('navbar-item', 'has-dropdown', {
         'is-right': right,
         'is-up': up,
         'is-hoverable': hoverable,
         'is-active': active,
-      },
+      }),
       className
     )}
     {...props}
@@ -455,11 +477,10 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
 }) => (
   <div
     className={classNames(
-      'navbar-dropdown',
-      {
+      usePrefixedClassNames('navbar-dropdown', {
         'is-right': right,
         'is-up': up,
-      },
+      }),
       className
     )}
     {...props}
@@ -476,7 +497,9 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
  */
 export const NavbarDivider: React.FC<
   React.HTMLAttributes<HTMLHRElement>
-> = props => <hr className="navbar-divider" {...props} />;
+> = props => (
+  <hr className={usePrefixedClassNames('navbar-divider')} {...props} />
+);
 
 // Attach subcomponents
 Navbar.Brand = NavbarBrand;

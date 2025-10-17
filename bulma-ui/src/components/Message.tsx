@@ -1,10 +1,15 @@
 import React from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Message component.
@@ -49,6 +54,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -70,7 +76,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   return (
     <article className={messageClasses} {...rest} data-testid="message">
       {(title || onClose) && (
-        <div className="message-header">
+        <div className={prefixedClassNames(classPrefix, 'message-header')}>
           {title && <span>{title}</span>}
           {onClose && (
             <button
@@ -84,7 +90,10 @@ const MessageComponent: React.FC<MessageProps> = ({
         </div>
       )}
       {children && (
-        <div className="message-body" data-testid="message-body">
+        <div
+          className={prefixedClassNames(classPrefix, 'message-body')}
+          data-testid="message-body"
+        >
           {children}
         </div>
       )}
@@ -109,7 +118,10 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
   children,
   ...props
 }) => (
-  <div className={classNames('message-header', className)} {...props}>
+  <div
+    className={classNames(usePrefixedClassNames('message-header'), className)}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -119,7 +131,10 @@ const MessageBody: React.FC<MessageBodyProps> = ({
   children,
   ...props
 }) => (
-  <div className={classNames('message-body', className)} {...props}>
+  <div
+    className={classNames(usePrefixedClassNames('message-body'), className)}
+    {...props}
+  >
     {children}
   </div>
 );

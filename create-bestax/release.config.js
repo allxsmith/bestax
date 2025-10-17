@@ -7,15 +7,23 @@ export default {
       {
         preset: 'angular',
         releaseRules: [
-          // Only release for create-bestax scoped commits
+          // Release for BOTH create-bestax AND bulma-ui scoped commits (synchronized versioning)
           { type: 'feat', scope: 'create-bestax', release: 'minor' },
           { type: 'fix', scope: 'create-bestax', release: 'patch' },
           { type: 'perf', scope: 'create-bestax', release: 'patch' },
           { type: 'refactor', scope: 'create-bestax', release: 'patch' },
           { type: 'style', scope: 'create-bestax', release: 'patch' },
 
-          // Breaking changes for create-bestax
+          // Also release for bulma-ui changes (keeps versions in sync)
+          { type: 'feat', scope: 'bulma-ui', release: 'minor' },
+          { type: 'fix', scope: 'bulma-ui', release: 'patch' },
+          { type: 'perf', scope: 'bulma-ui', release: 'patch' },
+          { type: 'refactor', scope: 'bulma-ui', release: 'patch' },
+          { type: 'style', scope: 'bulma-ui', release: 'patch' },
+
+          // Breaking changes for either package
           { breaking: true, scope: 'create-bestax', release: 'major' },
+          { breaking: true, scope: 'bulma-ui', release: 'major' },
 
           // Explicitly ignore docs and other scopes
           { scope: 'docs', release: false },

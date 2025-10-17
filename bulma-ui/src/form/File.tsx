@@ -1,6 +1,11 @@
 import React, { forwardRef } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the File component.
@@ -79,6 +84,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     },
     ref
   ) => {
+    const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,
@@ -88,11 +94,11 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     let alignmentClass: string | undefined;
     if (isRight && isCentered) {
       // If both are set, prefer isRight and warn in dev
-      alignmentClass = 'is-right';
+      alignmentClass = prefixedClassNames(classPrefix, 'is-right');
     } else if (isRight) {
-      alignmentClass = 'is-right';
+      alignmentClass = prefixedClassNames(classPrefix, 'is-right');
     } else if (isCentered) {
-      alignmentClass = 'is-centered';
+      alignmentClass = prefixedClassNames(classPrefix, 'is-centered');
     }
 
     const mainClass = usePrefixedClassNames('file', {
@@ -111,19 +117,36 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
 
     return (
       <div className={fileClass}>
-        <label className="file-label">
+        <label className={usePrefixedClassNames('file-label')}>
           <input
             ref={ref}
-            className={classNames('file-input', inputClassName)}
+            className={classNames(
+              usePrefixedClassNames('file-input'),
+              inputClassName
+            )}
             type="file"
             {...rest}
           />
-          <span className="file-cta">
-            {iconLeft && <span className="file-icon">{iconLeft}</span>}
-            <span className="file-label">{label || 'Choose a file…'}</span>
-            {iconRight && <span className="file-icon">{iconRight}</span>}
+          <span className={usePrefixedClassNames('file-cta')}>
+            {iconLeft && (
+              <span className={prefixedClassNames(classPrefix, 'file-icon')}>
+                {iconLeft}
+              </span>
+            )}
+            <span className={usePrefixedClassNames('file-label')}>
+              {label || 'Choose a file…'}
+            </span>
+            {iconRight && (
+              <span className={prefixedClassNames(classPrefix, 'file-icon')}>
+                {iconRight}
+              </span>
+            )}
           </span>
-          {hasName && fileName && <span className="file-name">{fileName}</span>}
+          {hasName && fileName && (
+            <span className={prefixedClassNames(classPrefix, 'file-name')}>
+              {fileName}
+            </span>
+          )}
         </label>
       </div>
     );

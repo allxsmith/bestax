@@ -1,0 +1,226 @@
+name: Visual Regression Testing
+
+on:
+  # Daily schedule at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'
+
+  # Manual trigger with option to update baseline screenshots
+  workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: 'Update baseline screenshots'
+        required: false
+        type: boolean
+        default: false
+
+  # Optional: Run on PRs that modify create-bestax
+  pull_request:
+    paths:
+      - 'create-bestax/**'
+      - '.github/workflows/visual-regression.yml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  visual-regression:
+    name: Test ${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          # Core: vite × Bulma flavors (no icons)
+          - { template: vite, bulma: complete, icon: none }
+          - { template: vite, bulma: prefixed, icon: none }
+          - { template: vite, bulma: no-helpers, icon: none }
+          - { template: vite, bulma: no-helpers-prefixed, icon: none }
+          - { template: vite, bulma: no-dark-mode, icon: none }
+
+          # Core: vite-ts × Bulma flavors (no icons)
+          - { template: vite-ts, bulma: complete, icon: none }
+          - { template: vite-ts, bulma: prefixed, icon: none }
+          - { template: vite-ts, bulma: no-helpers, icon: none }
+          - { template: vite-ts, bulma: no-helpers-prefixed, icon: none }
+          - { template: vite-ts, bulma: no-dark-mode, icon: none }
+
+          # Icon libraries: vite + complete + icons
+          - { template: vite, bulma: complete, icon: fontawesome }
+          - { template: vite, bulma: complete, icon: mdi }
+          - { template: vite, bulma: complete, icon: ionicons }
+          - { template: vite, bulma: complete, icon: material-icons }
+          - { template: vite, bulma: complete, icon: material-symbols }
+
+          # TypeScript + Icon combinations
+          - { template: vite-ts, bulma: complete, icon: fontawesome }
+          - { template: vite-ts, bulma: prefixed, icon: fontawesome }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm' # Cache enabled for create-bestax CLI installation
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install create-bestax dependencies (with cache)
+        working-directory: create-bestax
+        run: npm ci
+
+      - name: Build create-bestax CLI
+        working-directory: create-bestax
+        run: npm run build
+
+      - name: Install Playwright browsers
+        working-directory: create-bestax
+        run: npx playwright install --with-deps chromium
+
+      - name: Create test directory
+        run: mkdir -p test-apps
+
+      - name: Scaffold test app
+        working-directory: test-apps
+        run: |
+          node ../create-bestax/dist/index.js \
+            test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }} \
+            -t ${{ matrix.scenario.template }} \
+            -b ${{ matrix.scenario.bulma }} \
+            -i ${{ matrix.scenario.icon }} \
+            -y
+
+      - name: Install app dependencies (no cache)
+        working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+        run: npm install --prefer-online --no-audit --no-fund
+
+      - name: Build scaffolded app
+        working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+        run: npm run build
+
+      - name: Start Vite preview server
+        working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+        run: |
+          npm run preview &
+          echo $! > server.pid
+          # Wait for server to be ready
+          npx wait-on http://localhost:4173 --timeout 60000
+
+      - name: Run Playwright tests
+        working-directory: create-bestax
+        run: |
+          if [ "${{ inputs.update_snapshots }}" = "true" ]; then
+            npm run test:e2e:update -- --project=chromium
+          else
+            npm run test:e2e -- --project=chromium
+          fi
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:4173
+
+      - name: Stop Vite server
+        if: always()
+        working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+          fi
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+          path: create-bestax/e2e/test-results/
+          retention-days: 7
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+          path: create-bestax/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload visual diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+          path: |
+            create-bestax/e2e/test-results/**/*-diff.png
+            create-bestax/e2e/test-results/**/*-actual.png
+            create-bestax/e2e/test-results/**/*-expected.png
+          retention-days: 7
+
+      - name: Upload updated screenshots
+        if: inputs.update_snapshots && github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
+          path: create-bestax/e2e/tests/**/*.png
+          retention-days: 1
+
+  commit-screenshots:
+    name: Commit Updated Screenshots
+    runs-on: ubuntu-latest
+    needs: visual-regression
+    if: inputs.update_snapshots && github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Download all screenshot artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: screenshots-*
+          path: downloaded-screenshots
+
+      - name: Copy screenshots to repository
+        run: |
+          # Find and copy all downloaded screenshots
+          find downloaded-screenshots -name "*.png" -exec cp {} create-bestax/e2e/tests/app.spec.ts-snapshots/ \;
+
+      - name: Commit screenshots via GitHub API (verified)
+        uses: ./.github/actions/verified-commit
+        with:
+          file-pattern: 'create-bestax/e2e/tests/**/*.png'
+          message: 'chore(e2e): update baseline screenshots [skip ci]'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: visual-regression
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.visual-regression.result }}" = "failure" ]; then
+            echo "❌ Some visual regression tests failed"
+            echo "Check the uploaded artifacts for details"
+            exit 1
+          else
+            echo "✅ All visual regression tests passed"
+          fi
+
+      - name: Report statistics
+        run: |
+          echo "## Visual Regression Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 Total test scenarios: 17" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Fresh npm downloads: ~17 packages per run" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Status: ${{ needs.visual-regression.result }}" >> $GITHUB_STEP_SUMMARY

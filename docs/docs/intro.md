@@ -185,11 +185,11 @@ function Demo() {
 
 ## Why bestax-bulma?
 
-✅ **Latest Bulma v1** - Full support for the newest Bulma features
-✅ **TypeScript Ready** - Complete type definitions included
-✅ **Tree Shakeable** - Only import what you need
-✅ **99% Test Coverage** - Reliable and stable
-✅ **Zero Dependencies** - Just React and Bulma CSS
+- ✅ **Latest Bulma v1** - Full support for the newest Bulma features
+- ✅ **TypeScript Ready** - Complete type definitions included
+- ✅ **Tree Shakeable** - Only import what you need
+- ✅ **99% Test Coverage** - Reliable and stable
+- ✅ **Zero Dependencies** - Just React and Bulma CSS
 
 ---
 

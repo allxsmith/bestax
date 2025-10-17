@@ -1,11 +1,16 @@
 import React from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
 import { Icon, IconProps } from '../elements/Icon';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Control component.
@@ -97,6 +102,7 @@ export const Control = React.forwardRef<
     ref
   ) => {
     const Component = (as === 'p' ? 'p' : 'div') as 'div' | 'p';
+    const { classPrefix } = useConfig();
 
     // Remove textColor/bgColor from props before spreading
     const {
@@ -161,10 +167,16 @@ export const Control = React.forwardRef<
       >
         {children}
         {leftIconProps && leftIconProps.name && (
-          <Icon {...leftIconProps} className="is-left" />
+          <Icon
+            {...leftIconProps}
+            className={prefixedClassNames(classPrefix, 'is-left')}
+          />
         )}
         {rightIconProps && rightIconProps.name && (
-          <Icon {...rightIconProps} className="is-right" />
+          <Icon
+            {...rightIconProps}
+            className={prefixedClassNames(classPrefix, 'is-right')}
+          />
         )}
       </Component>
     );

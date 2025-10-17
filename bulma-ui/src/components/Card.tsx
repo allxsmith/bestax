@@ -1,10 +1,15 @@
 import React from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Card component.
@@ -40,11 +45,17 @@ export interface CardProps
 }
 
 // Always wrap each footer item in .card-footer-item
-const renderFooter = (footer: CardProps['footer']) => {
+const renderFooter = (
+  footer: CardProps['footer'],
+  classPrefix: string | undefined
+) => {
   if (!footer) return null;
   const items = Array.isArray(footer) ? footer : [footer];
   return items.map((item, idx) => (
-    <span className="card-footer-item" key={idx}>
+    <span
+      className={prefixedClassNames(classPrefix, 'card-footer-item')}
+      key={idx}
+    >
       {item}
     </span>
   ));
@@ -89,6 +100,7 @@ const CardComponent: React.FC<CardProps> = ({
   imageAlt,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -107,14 +119,15 @@ const CardComponent: React.FC<CardProps> = ({
   const renderHeader = (
     header: React.ReactNode,
     headerIcon: React.ReactNode,
-    headerCentered?: boolean
+    headerCentered: boolean | undefined,
+    classPrefix: string | undefined
   ) => {
     if (!header && !headerIcon) return null;
     return (
-      <header className="card-header">
+      <header className={prefixedClassNames(classPrefix, 'card-header')}>
         {header && (
           <div
-            className={classNames('card-header-title', {
+            className={prefixedClassNames(classPrefix, 'card-header-title', {
               'is-centered': headerCentered,
             })}
           >
@@ -128,11 +141,11 @@ const CardComponent: React.FC<CardProps> = ({
 
   return (
     <div className={cardClasses} {...rest}>
-      {renderHeader(header, headerIcon, headerCentered)}
+      {renderHeader(header, headerIcon, headerCentered, classPrefix)}
       {image && (
-        <div className="card-image">
+        <div className={prefixedClassNames(classPrefix, 'card-image')}>
           {typeof image === 'string' ? (
-            <figure className="image">
+            <figure className={prefixedClassNames(classPrefix, 'image')}>
               <img src={image} alt={imageAlt ?? 'Card image'} />
             </figure>
           ) : (
@@ -145,7 +158,9 @@ const CardComponent: React.FC<CardProps> = ({
         children !== null &&
         children !== '' &&
         !hasCompoundComponents(children) && (
-          <div className="card-content">{children}</div>
+          <div className={prefixedClassNames(classPrefix, 'card-content')}>
+            {children}
+          </div>
         )}
       {/* Render children directly if they contain compound components */}
       {typeof children !== 'undefined' &&
@@ -154,7 +169,30 @@ const CardComponent: React.FC<CardProps> = ({
         hasCompoundComponents(children) &&
         children}
       {footer && (
-        <footer className="card-footer">{renderFooter(footer)}</footer>
+        <footer className={prefixedClassNames(classPrefix, 'card-footer')}>
+          {Array.isArray(footer)
+            ? footer.map((item, idx) => (
+                <span
+                  className={prefixedClassNames(
+                    classPrefix,
+                    'card-footer-item'
+                  )}
+                  key={idx}
+                >
+                  {item}
+                </span>
+              ))
+            : footer && (
+                <span
+                  className={prefixedClassNames(
+                    classPrefix,
+                    'card-footer-item'
+                  )}
+                >
+                  {footer}
+                </span>
+              )}
+        </footer>
       )}
     </div>
   );
@@ -207,6 +245,8 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   centered,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
+
   // Check if children contains a CardHeaderTitle component
   const hasHeaderTitle = React.Children.toArray(children).some(
     child =>
@@ -215,15 +255,20 @@ const CardHeader: React.FC<CardHeaderProps> = ({
       child.type === CardHeaderTitle
   );
 
+  const headerClasses = usePrefixedClassNames('card-header');
+
   return (
-    <header className={classNames('card-header', className)} {...props}>
+    <header className={classNames(headerClasses, className)} {...props}>
       {hasHeaderTitle ? (
         children
       ) : (
         <div
-          className={classNames('card-header-title', {
-            'is-centered': centered,
-          })}
+          className={classNames(
+            prefixedClassNames(classPrefix, 'card-header-title', {
+              'is-centered': centered,
+            }),
+            className
+          )}
         >
           {children}
         </div>
@@ -240,8 +285,9 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
 }) => (
   <div
     className={classNames(
-      'card-header-title',
-      { 'is-centered': centered },
+      usePrefixedClassNames('card-header-title', {
+        'is-centered': centered,
+      }),
       className
     )}
     {...props}
@@ -256,7 +302,7 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   ...props
 }) => (
   <button
-    className={classNames('card-header-icon', className)}
+    className={classNames(usePrefixedClassNames('card-header-icon'), className)}
     aria-label={props['aria-label'] || 'more options'}
     {...props}
   >
@@ -269,7 +315,10 @@ const CardImage: React.FC<CardImageProps> = ({
   children,
   ...props
 }) => (
-  <div className={classNames('card-image', className)} {...props}>
+  <div
+    className={classNames(usePrefixedClassNames('card-image'), className)}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -279,7 +328,10 @@ const CardContent: React.FC<CardContentProps> = ({
   children,
   ...props
 }) => (
-  <div className={classNames('card-content', className)} {...props}>
+  <div
+    className={classNames(usePrefixedClassNames('card-content'), className)}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -289,7 +341,10 @@ const CardFooter: React.FC<CardFooterProps> = ({
   children,
   ...props
 }) => (
-  <footer className={classNames('card-footer', className)} {...props}>
+  <footer
+    className={classNames(usePrefixedClassNames('card-footer'), className)}
+    {...props}
+  >
     {children}
   </footer>
 );
@@ -299,7 +354,10 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   children,
   ...props
 }) => (
-  <span className={classNames('card-footer-item', className)} {...props}>
+  <span
+    className={classNames(usePrefixedClassNames('card-footer-item'), className)}
+    {...props}
+  >
     {children}
   </span>
 );

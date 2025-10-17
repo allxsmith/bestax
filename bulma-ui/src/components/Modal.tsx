@@ -1,10 +1,15 @@
 import React from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Modal component.
@@ -125,7 +130,10 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
   ...props
 }) => {
-  const classes = classNames('modal-background', className);
+  const classes = classNames(
+    usePrefixedClassNames('modal-background'),
+    className
+  );
   return <div className={classes} {...props} />;
 };
 
@@ -136,7 +144,7 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
  * @returns {JSX.Element} Modal content element
  */
 const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
-  const classes = classNames('modal-content', className);
+  const classes = classNames(usePrefixedClassNames('modal-content'), className);
   return <div className={classes} {...props} />;
 };
 
@@ -150,7 +158,10 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
   ...props
 }) => {
-  const classes = classNames('modal-card-head', className);
+  const classes = classNames(
+    usePrefixedClassNames('modal-card-head'),
+    className
+  );
   return <header className={classes} {...props} />;
 };
 
@@ -164,7 +175,10 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
   ...props
 }) => {
-  const classes = classNames('modal-card-title', className);
+  const classes = classNames(
+    usePrefixedClassNames('modal-card-title'),
+    className
+  );
   return <p className={classes} {...props} />;
 };
 
@@ -178,7 +192,10 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
   ...props
 }) => {
-  const classes = classNames('modal-card-body', className);
+  const classes = classNames(
+    usePrefixedClassNames('modal-card-body'),
+    className
+  );
   return <section className={classes} {...props} />;
 };
 
@@ -192,7 +209,10 @@ const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
   ...props
 }) => {
-  const classes = classNames('modal-card-foot', className);
+  const classes = classNames(
+    usePrefixedClassNames('modal-card-foot'),
+    className
+  );
   return <footer className={classes} {...props} />;
 };
 
@@ -209,7 +229,7 @@ const ModalCard: React.FC<ModalCardProps> & {
   Body: typeof ModalCardBody;
   Foot: typeof ModalCardFoot;
 } = ({ className, ...props }) => {
-  const classes = classNames('modal-card', className);
+  const classes = classNames(usePrefixedClassNames('modal-card'), className);
   return <div className={classes} {...props} />;
 };
 
@@ -238,8 +258,10 @@ const ModalClose: React.FC<ModalCloseProps> = ({
   ...props
 }) => {
   const classes = classNames(
-    variant === 'delete' ? 'delete' : 'modal-close',
-    variant === 'floating' && size && `is-${size}`,
+    usePrefixedClassNames(
+      variant === 'delete' ? 'delete' : 'modal-close',
+      variant === 'floating' && size && { [`is-${size}`]: true }
+    ),
     className
   );
   return (
@@ -293,6 +315,7 @@ const ModalRoot: React.FC<ModalProps> & {
   children,
   ...props
 }) => {
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -338,15 +361,21 @@ const ModalRoot: React.FC<ModalProps> & {
   return (
     <div className={modalClasses} {...rest} data-testid="modal">
       <div
-        className="modal-background"
+        className={prefixedClassNames(classPrefix, 'modal-background')}
         onClick={onClose}
         data-testid="modal-background"
       />
       {isModalCard ? (
-        <div className="modal-card">
+        <div className={prefixedClassNames(classPrefix, 'modal-card')}>
           {modalCardTitle && (
-            <header className="modal-card-head">
-              <p className="modal-card-title">{modalCardTitle}</p>
+            <header
+              className={prefixedClassNames(classPrefix, 'modal-card-head')}
+            >
+              <p
+                className={prefixedClassNames(classPrefix, 'modal-card-title')}
+              >
+                {modalCardTitle}
+              </p>
               {onClose && (
                 <button
                   className={deleteClass}
@@ -358,22 +387,32 @@ const ModalRoot: React.FC<ModalProps> & {
               )}
             </header>
           )}
-          <section className="modal-card-body" data-testid="modal-body">
+          <section
+            className={prefixedClassNames(classPrefix, 'modal-card-body')}
+            data-testid="modal-body"
+          >
             {children}
           </section>
           {modalCardFoot && (
-            <footer className="modal-card-foot">{modalCardFoot}</footer>
+            <footer
+              className={prefixedClassNames(classPrefix, 'modal-card-foot')}
+            >
+              {modalCardFoot}
+            </footer>
           )}
         </div>
       ) : (
-        <div className="modal-content" data-testid="modal-content">
+        <div
+          className={prefixedClassNames(classPrefix, 'modal-content')}
+          data-testid="modal-content"
+        >
           {children}
         </div>
       )}
       {/* Show floating close button for modal-content, or for modal-card when no header */}
       {(!isModalCard || (!modalCardTitle && onClose)) && onClose && (
         <button
-          className="modal-close is-large"
+          className={prefixedClassNames(classPrefix, 'modal-close', 'is-large')}
           aria-label="close"
           onClick={onClose}
           type="button"

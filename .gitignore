@@ -155,3 +155,9 @@ create-bestax/dist
 
 # Rollup build stats
 bulma-ui/stats.html
+
+# E2E test temporary directories and apps
+test-apps/
+test-app-*/
+create-bestax/e2e/test-results/
+create-bestax/e2e/playwright-report/
