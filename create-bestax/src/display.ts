@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import figures from 'figures';
 import { MESSAGES } from './constants.js';
 
 export function displayHeader(): void {
@@ -23,7 +24,7 @@ export function displaySuccess(targetDir: string): void {
   console.log();
   console.log(
     chalk.yellow(
-      '⭐ If you enjoy using bestax-bulma, please star us on GitHub!'
+      `${figures.star} If you enjoy using bestax-bulma, please star us on GitHub!`
     )
   );
   console.log(chalk.dim('   https://github.com/allxsmith/bestax'));
@@ -31,7 +32,7 @@ export function displaySuccess(targetDir: string): void {
 }
 
 export function displayError(message: string): void {
-  console.error(chalk.red(`✖ ${message}`));
+  console.error(chalk.red(`${figures.cross} ${message}`));
 }
 
 export function displayInfo(message: string): void {

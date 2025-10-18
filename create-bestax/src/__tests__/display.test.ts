@@ -22,6 +22,17 @@ jest.unstable_mockModule('chalk', () => ({
   },
 }));
 
+// Mock figures
+jest.unstable_mockModule('figures', () => ({
+  default: {
+    star: '⭐',
+    cross: '✖',
+    tick: '✔',
+    bullet: '●',
+    pointer: '❯',
+  },
+}));
+
 const chalk = (await import('chalk')).default;
 const {
   displayHeader,
