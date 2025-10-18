@@ -22,6 +22,11 @@ export default defineConfig({
     },
   },
 
+  // IMPORTANT: Screenshot baselines should ONLY be updated via GitHub Actions workflow
+  // to ensure Linux-based screenshots match CI environment. Do not run test:e2e:update
+  // locally on macOS/Windows as this creates platform-specific baselines that will
+  // cause CI failures. Use: gh workflow run "Visual Regression Testing" -f update_snapshots=true
+
   // Test execution settings
   fullyParallel: true,
   forbidOnly: !!process.env.CI, // Fail if test.only is used in CI
