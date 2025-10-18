@@ -125,6 +125,7 @@ jobs:
           fi
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
+          TEST_SCENARIO: ${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
 
       - name: Stop Vite server
         if: always()
@@ -166,7 +167,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-          path: create-bestax/e2e/tests/**/*.png
+          path: create-bestax/e2e/tests/app.spec.ts-snapshots/${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}/
           retention-days: 1
 
   commit-screenshots:
@@ -190,8 +191,14 @@ jobs:
 
       - name: Copy screenshots to repository
         run: |
-          # Find and copy all downloaded screenshots
-          find downloaded-screenshots -name "*.png" -exec cp {} create-bestax/e2e/tests/app.spec.ts-snapshots/ \;
+          # Copy scenario-specific screenshots, preserving directory structure
+          for scenario_dir in downloaded-screenshots/screenshots-*; do
+            if [ -d "$scenario_dir" ]; then
+              scenario_name=$(basename "$scenario_dir" | sed 's/screenshots-//')
+              mkdir -p "create-bestax/e2e/tests/app.spec.ts-snapshots/$scenario_name"
+              cp -r "$scenario_dir"/*.png "create-bestax/e2e/tests/app.spec.ts-snapshots/$scenario_name/" 2>/dev/null || true
+            fi
+          done
 
       - name: Commit screenshots via GitHub API (verified)
         uses: ./.github/actions/verified-commit

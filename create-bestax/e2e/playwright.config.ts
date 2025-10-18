@@ -11,6 +11,14 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
+  // Scenario-specific snapshot directory
+  // Format: tests/{testFilePath}/{scenario}/{snapshotName}
+  // Example: tests/app.spec.ts-snapshots/vite-complete-none/01-hero-section-chromium-linux.png
+  snapshotPathTemplate:
+    '{testDir}/{testFilePath}-snapshots/' +
+    (process.env.TEST_SCENARIO || 'default') +
+    '/{arg}{-projectName}{-snapshotSuffix}{ext}',
+
   // Timeout settings
   timeout: 30000, // 30 seconds per test
   expect: {
