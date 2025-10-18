@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.2.2...create-bestax@1.3.0) (2025-10-18)
+
+
+### Features
+
+* **create-bestax:** improve favicon visibility and add distinct branding ([621590d](https://github.com/allxsmith/bestax/commit/621590d4984c964017c22daa278ef2c6b44c9183)), closes [#100](https://github.com/allxsmith/bestax/issues/100)
+
 ## [1.2.2](https://github.com/allxsmith/bestax/compare/create-bestax@1.2.1...create-bestax@1.2.2) (2025-10-17)
 
 
