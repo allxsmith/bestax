@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.4.2...@allxsmith/bestax-bulma@2.5.0) (2025-10-18)
+
+
+### Features
+
+* **create-bestax:** improve favicon visibility and add distinct branding ([621590d](https://github.com/allxsmith/bestax/commit/621590d4984c964017c22daa278ef2c6b44c9183)), closes [#100](https://github.com/allxsmith/bestax/issues/100)
+
 ## [2.4.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.4.1...@allxsmith/bestax-bulma@2.4.2) (2025-10-17)
 
 
