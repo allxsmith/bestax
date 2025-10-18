@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.5.0...@allxsmith/bestax-bulma@2.6.0) (2025-10-18)
+
+
+### Features
+
+* **create-bestax:** add cross-platform emoji support with figures ([#103](https://github.com/allxsmith/bestax/issues/103)) ([15567d9](https://github.com/allxsmith/bestax/commit/15567d92ab40e18d22c5757a576fcdb3c25a112b))
+
 # [2.5.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.4.2...@allxsmith/bestax-bulma@2.5.0) (2025-10-18)
 
 
