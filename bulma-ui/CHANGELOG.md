@@ -1,3 +1,12 @@
+## [2.6.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.0...@allxsmith/bestax-bulma@2.6.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* **create-bestax:** correct browser title to prioritize Bestax branding ([#106](https://github.com/allxsmith/bestax/issues/106)) ([23aa535](https://github.com/allxsmith/bestax/commit/23aa535a82639e2b5552294b03636894ed686a4d)), closes [#105](https://github.com/allxsmith/bestax/issues/105)
+* **create-bestax:** read version from package.json instead of hardcoded value ([#109](https://github.com/allxsmith/bestax/issues/109)) ([8605699](https://github.com/allxsmith/bestax/commit/8605699141c90cfde95fba229f21e601e7723586))
+* **create-bestax:** use scenario-specific screenshot directories to prevent overwrites ([#108](https://github.com/allxsmith/bestax/issues/108)) ([c675957](https://github.com/allxsmith/bestax/commit/c675957d406d0c86907da06e6bdf7d71ec975b81)), closes [#107](https://github.com/allxsmith/bestax/issues/107)
+
 # [2.6.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.5.0...@allxsmith/bestax-bulma@2.6.0) (2025-10-18)
 
 
