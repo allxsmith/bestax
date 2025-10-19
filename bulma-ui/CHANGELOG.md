@@ -1,3 +1,10 @@
+## [2.6.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.1...@allxsmith/bestax-bulma@2.6.2) (2025-10-19)
+
+
+### Bug Fixes
+
+* implement independent package versioning strategy ([#111](https://github.com/allxsmith/bestax/issues/111)) ([7819c73](https://github.com/allxsmith/bestax/commit/7819c73414a92c10aa0bc92af0b43b183a50be97)), closes [#110](https://github.com/allxsmith/bestax/issues/110)
+
 ## [2.6.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.0...@allxsmith/bestax-bulma@2.6.1) (2025-10-19)
 
 
