@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { ProjectCreator, type CLIOptions } from './project-creator.js';
 import { copyDirectory } from './file-system.js';
 
@@ -64,6 +67,18 @@ export async function createProject(
   return projectCreator.create(projectDir, options);
 }
 
+function getPackageVersion(): string {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packageJsonPath = join(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    return packageJson.version || '0.1.0';
+  } catch {
+    return '0.1.0';
+  }
+}
+
 export function createCLI(): Command {
   const program = new Command();
   const projectCreator = new ProjectCreator();
@@ -71,7 +86,7 @@ export function createCLI(): Command {
   program
     .name('create-bestax')
     .description('Create a new bestax-bulma project')
-    .version('0.1.0')
+    .version(getPackageVersion())
     .argument('[project-directory]', 'project directory to create')
     .option('-t, --template <template>', 'template to use (vite, vite-ts)')
     .option(
