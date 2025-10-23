@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
+import { useEffect, useRef, useState } from 'react';
 
 const FeatureList = [
   {
@@ -54,8 +55,40 @@ function Feature({ Svg, title, description }) {
 }
 
 export default function HomepageFeatures() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Only animate once
+        }
+      },
+      {
+        threshold: 0.1, // Trigger when 10% of the section is visible
+        rootMargin: '0px 0px -50px 0px', // Trigger slightly before it's fully in view
+      }
+    );
+
+    const currentRef = sectionRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
   return (
-    <section className={styles.features}>
+    <section
+      ref={sectionRef}
+      className={clsx(styles.features, { [styles.visible]: isVisible })}
+    >
       <div className="container">
         <div className="row">
           {FeatureList.map((props, idx) => (
