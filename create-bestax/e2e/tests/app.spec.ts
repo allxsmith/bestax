@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * E2E and Visual Regression Tests for create-bestax scaffolded applications.
  *
  * These tests verify:
- * - Hero section renders correctly
+ * - Logo section renders correctly with Bestax, Vite, and React logos
  * - Card components display properly
  * - Interactive elements (buttons, notifications) work as expected
  * - Counter functionality operates correctly
@@ -14,16 +14,25 @@ import { test, expect } from '@playwright/test';
  * for visual regression detection.
  */
 
-test.describe('Scaffolded App - Hero Section', () => {
-  test('hero section renders with correct branding', async ({ page }) => {
+test.describe('Scaffolded App - Logo Section', () => {
+  test('logo section renders with correct branding', async ({ page }) => {
     await page.goto('/');
 
-    // Verify hero content
-    const heroTitle = page.locator('h1').first();
-    await expect(heroTitle).toContainText('Welcome to Bestax');
+    // Verify logo section title
+    const logoTitle = page.locator('h1').first();
+    await expect(logoTitle).toContainText('Bestax + Vite + React');
+
+    // Verify all three logos are present
+    const bestaxLogo = page.locator('img[alt="Bestax"]');
+    const viteLogo = page.locator('img[alt="Vite"]');
+    const reactLogo = page.locator('img[alt="React"]');
+
+    await expect(bestaxLogo).toBeVisible();
+    await expect(viteLogo).toBeVisible();
+    await expect(reactLogo).toBeVisible();
 
     // Visual regression check
-    await expect(page).toHaveScreenshot('01-hero-section.png', {
+    await expect(page).toHaveScreenshot('01-logo-section.png', {
       fullPage: false,
       clip: { x: 0, y: 0, width: 1920, height: 400 },
     });
@@ -214,7 +223,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Welcome to Bestax');
+    await expect(page.locator('h1').first()).toContainText('Bestax + Vite + React');
 
     // Visual regression check
     await expect(page).toHaveScreenshot('08-tablet-view.png', {
@@ -227,7 +236,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Welcome to Bestax');
+    await expect(page.locator('h1').first()).toContainText('Bestax + Vite + React');
 
     // Visual regression check
     await expect(page).toHaveScreenshot('09-mobile-view.png', {
