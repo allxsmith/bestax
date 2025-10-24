@@ -223,7 +223,9 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Bestax + Vite + React');
+    await expect(page.locator('h1').first()).toContainText(
+      'Bestax + Vite + React'
+    );
 
     // Visual regression check
     await expect(page).toHaveScreenshot('08-tablet-view.png', {
@@ -236,7 +238,9 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Bestax + Vite + React');
+    await expect(page.locator('h1').first()).toContainText(
+      'Bestax + Vite + React'
+    );
 
     // Visual regression check
     await expect(page).toHaveScreenshot('09-mobile-view.png', {
