@@ -20,6 +20,9 @@ export function displaySuccess(targetDir: string): void {
   console.log(chalk.cyan('  npm install'));
   console.log(chalk.cyan('  npm run dev'));
   console.log();
+  console.log(chalk.gray('  Your app includes a beautiful logo-centric homepage'));
+  console.log(chalk.gray('  showcasing Bestax, Vite, and React branding.'));
+  console.log();
   console.log(chalk.dim(MESSAGES.HAPPY_CODING));
   console.log();
   console.log(
