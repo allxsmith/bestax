@@ -7,6 +7,10 @@ export default {
       {
         preset: 'angular',
         releaseRules: [
+          // Explicitly ignore create-bestax scoped commits (including breaking changes)
+          { scope: 'create-bestax', release: false },
+          { breaking: true, scope: 'create-bestax', release: false },
+
           // Release only for bulma-ui scoped commits (independent versioning)
           { type: 'feat', scope: 'bulma-ui', release: 'minor' },
           { type: 'fix', scope: 'bulma-ui', release: 'patch' },
