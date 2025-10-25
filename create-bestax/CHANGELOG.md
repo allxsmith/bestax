@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.4.2...create-bestax@2.0.0) (2025-10-25)
+
+
+* feat(create-bestax)!: require Node.js 18+ and align with bestax-bulma v2 ([#118](https://github.com/allxsmith/bestax/issues/118)) ([b22f183](https://github.com/allxsmith/bestax/commit/b22f183acfa2f0fa6e50b9cd399ca7cd9ac67f94))
+
+
+### Bug Fixes
+
+* add comprehensive rules to prevent bulma-ui versioning on non-bulma-ui commits ([#122](https://github.com/allxsmith/bestax/issues/122)) ([525ccfa](https://github.com/allxsmith/bestax/commit/525ccfa7beff0e46fdbc5c2e25603e562baabd67)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+* prevent bulma-ui from versioning on create-bestax commits ([#120](https://github.com/allxsmith/bestax/issues/120)) ([4dfaf9c](https://github.com/allxsmith/bestax/commit/4dfaf9ca2a9f440625827dfb4e11fc2a709561dd)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+
+
+### BREAKING CHANGES
+
+* This version requires Node.js 18.0.0 or higher. The CLI now enforces this requirement and will exit with an error message if running on older Node.js versions. This aligns create-bestax with the bestax-bulma v2.x ecosystem.
+
+* fix(create-bestax): correct Prettier formatting in index.ts
+
 ## [1.4.2](https://github.com/allxsmith/bestax/compare/create-bestax@1.4.1...create-bestax@1.4.2) (2025-10-19)
 
 
