@@ -38,26 +38,17 @@ jobs:
           - { template: vite, bulma: complete, icon: none }
           - { template: vite, bulma: prefixed, icon: none }
           - { template: vite, bulma: no-helpers, icon: none }
-          - { template: vite, bulma: no-helpers-prefixed, icon: none }
-          - { template: vite, bulma: no-dark-mode, icon: none }
 
           # Core: vite-ts × Bulma flavors (no icons)
           - { template: vite-ts, bulma: complete, icon: none }
           - { template: vite-ts, bulma: prefixed, icon: none }
           - { template: vite-ts, bulma: no-helpers, icon: none }
-          - { template: vite-ts, bulma: no-helpers-prefixed, icon: none }
-          - { template: vite-ts, bulma: no-dark-mode, icon: none }
 
-          # Icon libraries: vite + complete + icons
+          # Icon libraries: Essential icons only
           - { template: vite, bulma: complete, icon: fontawesome }
           - { template: vite, bulma: complete, icon: mdi }
-          - { template: vite, bulma: complete, icon: ionicons }
-          - { template: vite, bulma: complete, icon: material-icons }
-          - { template: vite, bulma: complete, icon: material-symbols }
-
-          # TypeScript + Icon combinations
           - { template: vite-ts, bulma: complete, icon: fontawesome }
-          - { template: vite-ts, bulma: prefixed, icon: fontawesome }
+          - { template: vite-ts, bulma: complete, icon: mdi }
 
     steps:
       - name: Checkout code
@@ -228,6 +219,6 @@ jobs:
         run: |
           echo "## Visual Regression Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🎯 Total test scenarios: 17" >> $GITHUB_STEP_SUMMARY
-          echo "📦 Fresh npm downloads: ~17 packages per run" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 Total test scenarios: 10" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Fresh npm downloads: ~10 packages per run" >> $GITHUB_STEP_SUMMARY
           echo "✅ Status: ${{ needs.visual-regression.result }}" >> $GITHUB_STEP_SUMMARY

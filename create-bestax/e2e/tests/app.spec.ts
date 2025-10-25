@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * E2E and Visual Regression Tests for create-bestax scaffolded applications.
  *
  * These tests verify:
- * - Hero section renders correctly
+ * - Logo section renders correctly with Bestax, Vite, and React logos
  * - Card components display properly
  * - Interactive elements (buttons, notifications) work as expected
  * - Counter functionality operates correctly
@@ -14,16 +14,25 @@ import { test, expect } from '@playwright/test';
  * for visual regression detection.
  */
 
-test.describe('Scaffolded App - Hero Section', () => {
-  test('hero section renders with correct branding', async ({ page }) => {
+test.describe('Scaffolded App - Logo Section', () => {
+  test('logo section renders with correct branding', async ({ page }) => {
     await page.goto('/');
 
-    // Verify hero content
-    const heroTitle = page.locator('h1').first();
-    await expect(heroTitle).toContainText('Welcome to Bestax');
+    // Verify logo section title
+    const logoTitle = page.locator('h1').first();
+    await expect(logoTitle).toContainText('Bestax + Vite + React');
+
+    // Verify all three logos are present
+    const bestaxLogo = page.locator('img[alt="Bestax"]');
+    const viteLogo = page.locator('img[alt="Vite"]');
+    const reactLogo = page.locator('img[alt="React"]');
+
+    await expect(bestaxLogo).toBeVisible();
+    await expect(viteLogo).toBeVisible();
+    await expect(reactLogo).toBeVisible();
 
     // Visual regression check
-    await expect(page).toHaveScreenshot('01-hero-section.png', {
+    await expect(page).toHaveScreenshot('01-logo-section.png', {
       fullPage: false,
       clip: { x: 0, y: 0, width: 1920, height: 400 },
     });
@@ -35,23 +44,26 @@ test.describe('Scaffolded App - Info Cards', () => {
     await page.goto('/');
 
     // Verify all three cards are present (works for both prefixed and unprefixed)
-    const cards = page.locator('[class$="card"]:not([class*="card-"])');
+    // Use a more specific selector that works with both 'card' and 'bulma-card' classes
+    const cards = page.locator('.card, .bulma-card').filter({
+      has: page.locator('.card-content, .bulma-card-content'),
+    });
     await expect(cards).toHaveCount(3);
 
     // Verify card titles
     await expect(
-      page.locator('[class$="card-header-title"]').nth(0)
+      page.locator('.card-header-title, .bulma-card-header-title').nth(0)
     ).toContainText('Quick Start');
     await expect(
-      page.locator('[class$="card-header-title"]').nth(1)
+      page.locator('.card-header-title, .bulma-card-header-title').nth(1)
     ).toContainText('Documentation');
     await expect(
-      page.locator('[class$="card-header-title"]').nth(2)
+      page.locator('.card-header-title, .bulma-card-header-title').nth(2)
     ).toContainText('Examples');
 
     // Visual regression check for cards section
     const cardsSection = page
-      .locator('[class$="columns"]')
+      .locator('.columns, .bulma-columns')
       .filter({ hasText: 'Quick Start' })
       .first();
     await expect(cardsSection).toHaveScreenshot('02-info-cards.png');
@@ -80,7 +92,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification visible
     const interactiveSection = page
-      .locator('[class$="box"]')
+      .locator('.box, .bulma-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '03-notification-visible.png'
@@ -109,7 +121,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification hidden
     const interactiveSection = page
-      .locator('[class$="box"]')
+      .locator('.box, .bulma-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '04-notification-hidden.png'
@@ -138,7 +150,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check (works for both prefixed and unprefixed)
     const interactiveSection = page
-      .locator('[class$="box"]')
+      .locator('.box, .bulma-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '05-counter-incremented.png'
@@ -172,7 +184,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('[class$="box"]')
+      .locator('.box, .bulma-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot('06-counter-reset.png');
   });
@@ -200,7 +212,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('[class$="box"]')
+      .locator('.box, .bulma-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '07-counter-milestone.png'
@@ -214,7 +226,9 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Welcome to Bestax');
+    await expect(page.locator('h1').first()).toContainText(
+      'Bestax + Vite + React'
+    );
 
     // Visual regression check
     await expect(page).toHaveScreenshot('08-tablet-view.png', {
@@ -227,7 +241,9 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText('Welcome to Bestax');
+    await expect(page.locator('h1').first()).toContainText(
+      'Bestax + Vite + React'
+    );
 
     // Visual regression check
     await expect(page).toHaveScreenshot('09-mobile-view.png', {
@@ -242,9 +258,7 @@ test.describe('Scaffolded App - Full Page', () => {
 
     // Wait for all content to be loaded (works for both prefixed and unprefixed)
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(
-      page.locator('[class$="card"]:not([class*="card-"])').first()
-    ).toBeVisible();
+    await expect(page.locator('.card, .bulma-card').first()).toBeVisible();
 
     // Full page screenshot for comprehensive visual check
     await expect(page).toHaveScreenshot('10-full-page.png', {
