@@ -46,7 +46,7 @@ test.describe('Scaffolded App - Info Cards', () => {
     // Verify all three cards are present (works for both prefixed and unprefixed)
     // Use a more specific selector that works with both 'card' and 'bulma-card' classes
     const cards = page.locator('.card, .bulma-card').filter({
-      has: page.locator('.card-content, .bulma-card-content')
+      has: page.locator('.card-content, .bulma-card-content'),
     });
     await expect(cards).toHaveCount(3);
 
@@ -258,9 +258,7 @@ test.describe('Scaffolded App - Full Page', () => {
 
     // Wait for all content to be loaded (works for both prefixed and unprefixed)
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(
-      page.locator('.card, .bulma-card').first()
-    ).toBeVisible();
+    await expect(page.locator('.card, .bulma-card').first()).toBeVisible();
 
     // Full page screenshot for comprehensive visual check
     await expect(page).toHaveScreenshot('10-full-page.png', {
