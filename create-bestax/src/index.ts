@@ -12,8 +12,8 @@ if (majorVersion < MINIMUM_NODE_VERSION) {
   console.error(
     chalk.red(
       `Error: create-bestax requires Node.js v${MINIMUM_NODE_VERSION}.0.0 or higher.\n` +
-      `You are currently running Node.js v${currentNodeVersion}.\n` +
-      `Please upgrade your Node.js version.`
+        `You are currently running Node.js v${currentNodeVersion}.\n` +
+        `Please upgrade your Node.js version.`
     )
   );
   process.exit(1);
