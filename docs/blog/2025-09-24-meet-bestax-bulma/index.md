@@ -16,6 +16,8 @@ canonical_url: https://bestax.io/blog/2025/09/24/meet-bestax-bulma
 
 Hey React developers! 👋 Are you looking for a modern, actively maintained component library for Bulma CSS? Let me introduce you to **bestax-bulma** (pronounced "bee-stacks"), a TypeScript-first React component library that brings the full power of Bulma v1 to your React applications.
 
+**Opensource! Free as in beer🍺**
+
 <!-- truncate -->
 
 ## Why Another Bulma React Library?
@@ -219,14 +221,19 @@ Want to see bestax-bulma in action? Check out [bestax.io](https://bestax.io) for
 
 ## Comparison with Alternatives
 
-| Feature             | bestax-bulma | react-bulma-components | rbx     | bulma-react |
-| ------------------- | ------------ | ---------------------- | ------- | ----------- |
-| Bulma v1 Support    | ✅           | ❌                     | ❌      | ❌          |
-| TypeScript          | ✅ Built-in  | ⚠️ Separate            | ✅      | ❌          |
-| Test Coverage       | 99%          | ~70%                   | ~80%    | Unknown     |
-| Active Maintenance  | ✅ 2025      | ⚠️ 2023                | ❌ 2021 | ❌ 2020     |
-| Tree Shaking        | ✅           | ✅                     | ✅      | ❌          |
-| Compound Components | ✅           | ❌                     | ❌      | ❌          |
+| Feature             | bestax-bulma | react-bulma-components | rbx          | bulma-react |
+| ------------------- | ------------ | ---------------------- | ------------ | ----------- |
+| Bulma v1 Support    | ✅           | ❌                     | ❌           | ❌          |
+| TypeScript          | ✅ Built-in  | ⚠️ Separate            | ✅           | ❌          |
+| Test Coverage       | 99%          | ~70%                   | ~100%        | Unknown     |
+| Active Maintenance  | ✅ 2025      | ⚠️ 2021                | ❌ 2019      | ❌ 2015     |
+| Tree Shaking        | ✅           | ✅                     | ✅           | ❌          |
+| Compound Components | ✅           | ❌                     | ✅           | ❌          |
+| Comprehensive Docs  | ✅           | ❌                     | ⚠️ Partial   | ❌          |
+| Real CSS Grids      | ✅           | ❌                     | ❌           | ❌          |
+| Configurable        | ✅           | ❌                     | ❌           | ❌          |
+| Theme Support       | ✅           | ❌                     | ❌           | ❌          |
+| Quick Start CLI     | ✅           | ❌                     | ❌           | ❌          |
 
 ## Get Started Today
 
