@@ -18,7 +18,8 @@ import {
  * @property {React.ReactNode} [children] - Navbar content.
  */
 export interface NavbarProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -103,7 +104,8 @@ export const Navbar: React.FC<NavbarProps> & {
  * @property {React.ReactNode} [children] - Brand content.
  */
 export interface NavbarBrandProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -154,7 +156,8 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
  * @property {React.ReactNode} [children] - Navbar item content.
  */
 export interface NavbarItemProps
-  extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
+  extends
+    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   as?: React.ElementType;
@@ -215,7 +218,8 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
  * @property {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Click handler.
  */
 export interface NavbarBurgerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -276,7 +280,8 @@ export const NavbarBurger: React.FC<NavbarBurgerProps> = ({
  * @property {React.ReactNode} [children] - Menu content.
  */
 export interface NavbarMenuProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -327,7 +332,8 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface NavbarStartEndProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -403,8 +409,7 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
  * @property {boolean} [active] - Dropdown is open.
  * @property {React.ReactNode} [children] - Dropdown content.
  */
-export interface NavbarDropdownProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   right?: boolean;
   up?: boolean;
@@ -453,8 +458,7 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
  * @property {boolean} [up] - Dropdown opens upwards.
  * @property {React.ReactNode} [children] - Dropdown menu content.
  */
-export interface NavbarDropdownMenuProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface NavbarDropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   right?: boolean;
   up?: boolean;

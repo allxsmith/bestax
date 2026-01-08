@@ -33,10 +33,8 @@ import {
  * @property {React.ReactNode} [children] - Content to be rendered inside the button.
  */
 export interface ButtonProps
-  extends Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      'color' | 'onClick'
-    >,
+  extends
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color' | 'onClick'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   size?: 'small' | 'normal' | 'medium' | 'large';

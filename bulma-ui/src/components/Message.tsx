@@ -23,7 +23,8 @@ import { useConfig } from '../helpers/Config';
  * @property {React.ReactNode} [children] - Message body content.
  */
 export interface MessageProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   title?: React.ReactNode;
@@ -102,8 +103,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 };
 
 // Compound components for flexible composition
-export interface MessageHeaderProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface MessageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }

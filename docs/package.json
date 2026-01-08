@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@allxsmith/bestax-bulma": "^2.0.0",
-    "@docusaurus/core": "^3.9.1",
-    "@docusaurus/preset-classic": "^3.9.1",
-    "@docusaurus/theme-live-codeblock": "^3.9.1",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/theme-live-codeblock": "^3.9.2",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@mdi/font": "^7.4.47",
     "@mdx-js/react": "^3.0.0",
@@ -27,13 +27,13 @@
     "material-icons": "^1.13.14",
     "material-symbols": "^0.34.1",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "react-shadow": "^20.6.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.9.1",
-    "@docusaurus/types": "^3.9.1",
+    "@docusaurus/module-type-aliases": "^3.9.2",
+    "@docusaurus/types": "^3.9.2",
     "raw-loader": "^4.0.2"
   },
   "browserslist": {

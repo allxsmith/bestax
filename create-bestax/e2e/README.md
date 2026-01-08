@@ -5,6 +5,7 @@ This directory contains end-to-end (E2E) and visual regression tests for create-
 ## Overview
 
 The test suite validates:
+
 - ✅ All template variations (vite, vite-ts)
 - ✅ All Bulma CSS flavors (complete, prefixed, no-helpers, etc.)
 - ✅ Icon library integrations (Font Awesome, MDI, etc.)
@@ -15,6 +16,7 @@ The test suite validates:
 ## Test Matrix
 
 **17 test scenarios** running in parallel:
+
 - 10 core tests: All template × Bulma flavor combinations (no icons)
 - 5 icon tests: vite + complete + all icon libraries
 - 2 TypeScript tests: vite-ts + fontawesome combinations
@@ -138,6 +140,7 @@ npm run test:e2e:report
 ```
 
 The report shows:
+
 - Expected vs Actual screenshots
 - Visual diff highlighting changes
 - Test traces for debugging
@@ -170,6 +173,7 @@ gh workflow run visual-regression.yml --ref main -f update_snapshots=true
 ```
 
 The workflow will:
+
 1. Run all 17 test scenarios
 2. Generate baseline screenshots for Linux/Chromium
 3. Commit the screenshots back to the branch
@@ -180,6 +184,7 @@ The workflow will:
 ### Matrix Strategy
 
 All 17 scenarios run in parallel:
+
 - Ubuntu-latest runners
 - Chromium browser only (for consistency)
 - ~5-7 minutes total workflow time
@@ -187,6 +192,7 @@ All 17 scenarios run in parallel:
 ### Download Metrics
 
 The CI workflow intentionally:
+
 - Uses `npm install` (not `npm ci`) for scaffolded apps
 - Disables npm cache for fresh downloads
 - Generates ~17 downloads per day of @allxsmith/bestax-bulma
@@ -195,6 +201,7 @@ The CI workflow intentionally:
 ### Artifacts
 
 On test failure, the workflow uploads:
+
 - Test results (traces, videos)
 - Playwright HTML report
 - Visual diffs (expected, actual, diff images)

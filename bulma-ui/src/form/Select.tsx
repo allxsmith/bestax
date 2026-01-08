@@ -17,7 +17,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {React.ReactNode} [children] - Option elements.
  */
 export interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
+  extends
+    Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
   color?:
     | 'primary'

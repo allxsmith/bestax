@@ -12,7 +12,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {React.ReactNode} [children] - Table header content (rows).
  */
 export interface TheadProps
-  extends Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'color'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
   className?: string;
   children?: React.ReactNode;

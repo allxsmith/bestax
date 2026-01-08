@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Content to be rendered inside the notification.
  */
 export interface NotificationProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number];

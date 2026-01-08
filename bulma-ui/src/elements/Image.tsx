@@ -22,7 +22,8 @@ import {
  * @property {'figure' | 'div' | 'p'} [as] - The tag to render. Defaults to 'figure', but can be 'p', 'div', etc.
  */
 export interface ImageProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

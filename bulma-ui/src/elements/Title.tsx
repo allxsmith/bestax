@@ -31,7 +31,8 @@ export type TitleElement = (typeof validTitleElements)[number];
  * @property {string} [bgColor] - Background color class (maps to Bulma's backgroundColor helper).
  */
 export interface TitleProps
-  extends Omit<
+  extends
+    Omit<
       React.HTMLAttributes<HTMLHeadingElement | HTMLParagraphElement>,
       'color'
     >,

@@ -25,7 +25,8 @@ import { useConfig } from '../helpers/Config';
  * @property {string} [fileName] - File name to display.
  */
 export interface FileProps
-  extends Omit<
+  extends
+    Omit<
       React.InputHTMLAttributes<HTMLInputElement>,
       'size' | 'color' | 'type'
     >,

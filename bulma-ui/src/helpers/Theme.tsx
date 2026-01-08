@@ -569,8 +569,10 @@ const bulmaVarPropMap = Object.fromEntries(
 ) as Record<string, string>;
 
 // Explicitly define the props interface to avoid index signature conflicts
-export interface ThemeProps
-  extends Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+export interface ThemeProps extends Omit<
+  BulmaClassesProps,
+  'color' | 'backgroundColor'
+> {
   children: ReactNode;
   className?: string;
   isRoot?: boolean;

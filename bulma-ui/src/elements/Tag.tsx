@@ -39,7 +39,8 @@ export type TagSize = (typeof validTagSizes)[number];
  * @property {React.ReactNode} [children] - Tag content.
  */
 export interface TagProps
-  extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
   className?: string;
   color?: TagColor;

@@ -221,19 +221,19 @@ Want to see bestax-bulma in action? Check out [bestax.io](https://bestax.io) for
 
 ## Comparison with Alternatives
 
-| Feature             | bestax-bulma | react-bulma-components | rbx          | bulma-react |
-| ------------------- | ------------ | ---------------------- | ------------ | ----------- |
-| Bulma v1 Support    | ✅           | ❌                     | ❌           | ❌          |
-| TypeScript          | ✅ Built-in  | ⚠️ Separate            | ✅           | ❌          |
-| Test Coverage       | 99%          | ~70%                   | ~100%        | Unknown     |
-| Active Maintenance  | ✅ 2025      | ⚠️ 2021                | ❌ 2019      | ❌ 2015     |
-| Tree Shaking        | ✅           | ✅                     | ✅           | ❌          |
-| Compound Components | ✅           | ❌                     | ✅           | ❌          |
-| Comprehensive Docs  | ✅           | ❌                     | ⚠️ Partial   | ❌          |
-| Real CSS Grids      | ✅           | ❌                     | ❌           | ❌          |
-| Configurable        | ✅           | ❌                     | ❌           | ❌          |
-| Theme Support       | ✅           | ❌                     | ❌           | ❌          |
-| Quick Start CLI     | ✅           | ❌                     | ❌           | ❌          |
+| Feature             | bestax-bulma | react-bulma-components | rbx        | bulma-react |
+| ------------------- | ------------ | ---------------------- | ---------- | ----------- |
+| Bulma v1 Support    | ✅           | ❌                     | ❌         | ❌          |
+| TypeScript          | ✅ Built-in  | ⚠️ Separate            | ✅         | ❌          |
+| Test Coverage       | 99%          | ~70%                   | ~100%      | Unknown     |
+| Active Maintenance  | ✅ 2025      | ⚠️ 2021                | ❌ 2019    | ❌ 2015     |
+| Tree Shaking        | ✅           | ✅                     | ✅         | ❌          |
+| Compound Components | ✅           | ❌                     | ✅         | ❌          |
+| Comprehensive Docs  | ✅           | ❌                     | ⚠️ Partial | ❌          |
+| Real CSS Grids      | ✅           | ❌                     | ❌         | ❌          |
+| Configurable        | ✅           | ❌                     | ❌         | ❌          |
+| Theme Support       | ✅           | ❌                     | ❌         | ❌          |
+| Quick Start CLI     | ✅           | ❌                     | ❌         | ❌          |
 
 ## Get Started Today
 

@@ -96,7 +96,7 @@ describe('Field', () => {
       />
     );
     const label = screen.getByTestId('styled-label');
-    expect(label).toHaveStyle({ color: 'red' });
+    expect(label).toHaveStyle({ color: 'rgb(255, 0, 0)' });
     expect(label).toHaveClass('extra-label');
   });
 
@@ -169,7 +169,7 @@ describe('Field', () => {
       />
     );
     const label = screen.getByTestId('horiz-label');
-    expect(label).toHaveStyle({ color: 'blue' });
+    expect(label).toHaveStyle({ color: 'rgb(0, 0, 255)' });
   });
 
   it('does not wrap children if type.displayName is "FieldBody"', () => {

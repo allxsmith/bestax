@@ -26,7 +26,8 @@ export type ContainerBreakpoint = 'tablet' | 'desktop' | 'widescreen';
  * @property {React.ReactNode} [children] - Content inside the container.
  */
 export interface ContainerProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

@@ -30,8 +30,7 @@ interface IconTextItem {
  * @property {IconTextItem[]} [items] - Array of icon/text pairs for multiple icons.
  */
 interface IconTextProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    BulmaClassesProps {
+  extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

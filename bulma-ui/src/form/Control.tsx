@@ -35,7 +35,8 @@ import { useConfig } from '../helpers/Config';
  * @property {React.Ref<HTMLDivElement|HTMLParagraphElement>} [ref] - Ref for the control element.
  */
 export interface ControlBaseProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   hasIconsLeft?: boolean;
   hasIconsRight?: boolean;

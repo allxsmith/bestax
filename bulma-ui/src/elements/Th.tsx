@@ -22,7 +22,8 @@ type TableAlignment = (typeof validAlignments)[number];
  * @property {React.ReactNode} [children] - Table header cell content.
  */
 export interface ThProps
-  extends Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'color'>,
+  extends
+    Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   className?: string;
   isAligned?: TableAlignment;

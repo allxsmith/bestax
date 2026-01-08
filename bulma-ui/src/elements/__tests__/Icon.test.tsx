@@ -76,7 +76,7 @@ describe('Icon', () => {
     );
     const span = container.querySelector('span');
     expect(span).toHaveAttribute('aria-label', 'star icon');
-    expect(span).toHaveStyle({ color: 'red' });
+    expect(span).toHaveStyle({ color: 'rgb(255, 0, 0)' });
   });
 
   it('applies Bulma size modifier', () => {

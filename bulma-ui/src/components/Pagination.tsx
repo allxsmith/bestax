@@ -22,7 +22,8 @@ import {
  * @property {React.ReactNode} [children] - Custom pagination content.
  */
 export interface PaginationProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?:
     | 'primary'
@@ -54,8 +55,7 @@ export interface PaginationProps
  * @property {boolean} [disabled] - Whether previous/next is disabled.
  * @property {React.ReactNode} [children] - Button content.
  */
-export interface PaginationPreviousNextProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   className?: string;
   disabled?: boolean;
   children?: React.ReactNode;
@@ -190,7 +190,8 @@ export const Pagination: React.FC<PaginationProps> & {
  * @property {React.ReactNode} [children] - List items.
  */
 export interface PaginationListProps
-  extends React.HTMLAttributes<HTMLUListElement>,
+  extends
+    React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -240,7 +241,8 @@ export const PaginationList: React.FC<PaginationListProps> = ({
  * @property {React.ReactNode} [children] - Link content.
  */
 export interface PaginationLinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends
+    React.AnchorHTMLAttributes<HTMLAnchorElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

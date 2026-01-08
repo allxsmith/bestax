@@ -22,7 +22,8 @@ type SectionSize = 'medium' | 'large';
  * @property {React.ReactNode} [children] - Section content.
  */
 export interface SectionProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';

@@ -55,7 +55,8 @@ export type BulmaColumnSize =
  * @property {React.ReactNode} [children] - Children to render inside the column.
  */
 export interface ColumnProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

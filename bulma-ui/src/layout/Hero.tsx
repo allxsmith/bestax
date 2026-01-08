@@ -27,7 +27,8 @@ export type HeroSize =
  * @property {React.ReactNode} [children] - Content inside the hero.
  */
 export interface HeroProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -88,7 +89,8 @@ export const Hero: React.FC<HeroProps> & {
  * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroHeadProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -132,7 +134,8 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroBodyProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -176,7 +179,8 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroFootProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number] | 'inherit' | 'current';

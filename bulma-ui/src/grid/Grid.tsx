@@ -89,7 +89,8 @@ export type BulmaFixedGridColsProp = BulmaFixedGridCols | 'auto';
  * @property {React.ReactNode} [children] - Children to render inside the grid.
  */
 export interface GridProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   isFixed?: boolean;
   gap?: BulmaGapValue;

@@ -10,7 +10,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {React.ReactNode} [children] - Panel content.
  */
 export interface PanelProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?:
     | 'primary'
@@ -33,8 +34,7 @@ export interface PanelProps
  * @property {string} [className] - Additional CSS classes.
  * @property {React.ReactNode} [children] - Heading content.
  */
-export interface PanelHeadingProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface PanelHeadingProps extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
   children?: React.ReactNode;
 }
@@ -57,8 +57,7 @@ export interface PanelTabsProps extends React.HTMLAttributes<HTMLDivElement> {
  * @property {boolean} [active] - Whether the block is active.
  * @property {React.ReactNode} [children] - Block content.
  */
-export interface PanelBlockProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   className?: string;
   active?: boolean;
   children?: React.ReactNode;
@@ -83,8 +82,7 @@ export interface PanelIconProps extends React.HTMLAttributes<HTMLSpanElement> {
  * @property {string} [placeholder] - Input placeholder.
  * @property {string} [iconClassName] - Icon class for left icon (default 'fas fa-search').
  */
-export interface PanelInputBlockProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface PanelInputBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   placeholder?: string;
@@ -98,8 +96,10 @@ export interface PanelInputBlockProps
  * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Checkbox change handler.
  * @property {React.ReactNode} [children] - Label/content.
  */
-export interface PanelCheckboxBlockProps
-  extends Omit<React.LabelHTMLAttributes<HTMLLabelElement>, 'onChange'> {
+export interface PanelCheckboxBlockProps extends Omit<
+  React.LabelHTMLAttributes<HTMLLabelElement>,
+  'onChange'
+> {
   checked?: boolean;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   children?: React.ReactNode;
@@ -110,8 +110,7 @@ export interface PanelCheckboxBlockProps
  *
  * @property {React.ReactNode} [children] - Button content.
  */
-export interface PanelButtonBlockProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface PanelButtonBlockProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children?: React.ReactNode;
 }
 
