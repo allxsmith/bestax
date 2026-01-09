@@ -19,8 +19,7 @@ import {
  * @property {React.ReactNode} children - The button elements to render inside the group.
  */
 interface ButtonsProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    BulmaClassesProps {
+  extends React.HTMLAttributes<HTMLDivElement>, BulmaClassesProps {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

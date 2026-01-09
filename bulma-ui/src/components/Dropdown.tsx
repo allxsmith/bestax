@@ -28,7 +28,8 @@ export const isBrowser = (win?: typeof window, doc?: typeof document) =>
  * @property {string} [id] - ID for the root element.
  */
 export interface DropdownProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
+  extends
+    Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   label: React.ReactNode;
   children: React.ReactNode;
@@ -184,7 +185,8 @@ const DropdownComponent: React.FC<DropdownProps> = ({
  * @property {React.ReactNode} [children] - Item content.
  */
 export interface DropdownItemProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
+  extends
+    Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   active?: boolean;
   className?: string;

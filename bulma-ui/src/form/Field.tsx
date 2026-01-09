@@ -22,7 +22,8 @@ import {
  * @property {React.ReactNode} [children] - Field content.
  */
 export interface FieldProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   horizontal?: boolean;
   grouped?: boolean | 'centered' | 'right' | 'multiline';
@@ -50,7 +51,8 @@ export interface FieldProps
  * @property {React.ReactNode} [children] - Field label content.
  */
 export interface FieldLabelProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   size?: 'small' | 'normal' | 'medium' | 'large';
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -70,7 +72,8 @@ export interface FieldLabelProps
  * @property {React.ReactNode} [children] - Field body content.
  */
 export interface FieldBodyProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

@@ -11,6 +11,7 @@ assignees: allxsmith
 Please check the dependencies that need to be upgraded:
 
 ### Docusaurus
+
 - [ ] @docusaurus/core@latest
 - [ ] @docusaurus/preset-classic@latest
 - [ ] @docusaurus/theme-live-codeblock@latest
@@ -18,27 +19,33 @@ Please check the dependencies that need to be upgraded:
 - [ ] @docusaurus/types@latest
 
 **Upgrade command:**
+
 ```bash
 npm i @docusaurus/core@latest @docusaurus/preset-classic@latest @docusaurus/theme-live-codeblock@latest @docusaurus/module-type-aliases@latest @docusaurus/types@latest --workspace=docs
 ```
 
 ### Storybook
+
 - [ ] Storybook (Current: 9.0.12, Available: 9.1.11)
 
 **Upgrade command:**
+
 ```bash
 npx storybook@latest upgrade
 ```
 
 ### Turbo
+
 - [ ] Turbo (Current: v2.5.4, Available: v2.5.8)
 
 **Upgrade command:**
+
 ```bash
 npx @turbo/codemod@latest update
 ```
 
 ### Other Dependencies
+
 - [ ] Other (please specify):
 
 ---
@@ -85,7 +92,6 @@ Are there any breaking changes in the new versions? Please document:
 
 **Breaking changes:**
 
-
 ---
 
 ## Testing Plan
@@ -107,7 +113,6 @@ Please describe how the upgrades will be tested:
 ## Migration Notes
 
 Document any migration steps or configuration changes needed:
-
 
 ---
 

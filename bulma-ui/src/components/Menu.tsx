@@ -12,7 +12,8 @@ const MenuListLevelContext = createContext(0);
  * @property {React.ReactNode} children - Menu content.
  */
 export interface MenuProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
+  extends
+    Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   className?: string;
   children: React.ReactNode;
@@ -53,10 +54,8 @@ const MenuComponent: React.FC<MenuProps> = ({
  * @property {React.ReactNode} children - Label content.
  */
 export interface MenuLabelProps
-  extends Omit<
-      React.HTMLAttributes<HTMLParagraphElement>,
-      keyof BulmaClassesProps
-    >,
+  extends
+    Omit<React.HTMLAttributes<HTMLParagraphElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   className?: string;
   children: React.ReactNode;
@@ -97,7 +96,8 @@ export const MenuLabel: React.FC<MenuLabelProps> = ({
  * @property {React.ReactNode} children - List items.
  */
 export interface MenuListProps
-  extends Omit<React.HTMLAttributes<HTMLUListElement>, keyof BulmaClassesProps>,
+  extends
+    Omit<React.HTMLAttributes<HTMLUListElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   className?: string;
   children: React.ReactNode;
@@ -142,7 +142,8 @@ export const MenuList: React.FC<MenuListProps> = ({
  * @property {React.ReactNode} children - Item content and optional nested MenuList.
  */
 export interface MenuItemProps
-  extends Omit<React.LiHTMLAttributes<HTMLLIElement>, keyof BulmaClassesProps>,
+  extends
+    Omit<React.LiHTMLAttributes<HTMLLIElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   className?: string;
   children: React.ReactNode;

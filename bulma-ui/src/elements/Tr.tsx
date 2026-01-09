@@ -15,7 +15,8 @@ import { TableColor, validTableColors } from './Td'; // Import TableColor from T
  * @property {React.ReactNode} [children] - Table row content (cells).
  */
 export interface TrProps
-  extends Omit<React.HTMLAttributes<HTMLTableRowElement>, 'color'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLTableRowElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   className?: string;
   isSelected?: boolean;

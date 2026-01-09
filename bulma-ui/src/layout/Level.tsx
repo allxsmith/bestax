@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Level content.
  */
 export interface LevelProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   isMobile?: boolean;
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -74,7 +75,8 @@ export const Level: React.FC<LevelProps> & {
  * @property {React.ReactNode} [children] - Content.
  */
 export interface LevelLeftProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -118,7 +120,8 @@ export const LevelLeft: React.FC<LevelLeftProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface LevelRightProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -171,7 +174,8 @@ export const LevelRight: React.FC<LevelRightProps> = ({
  * @property {string} [rel] - Rel for "a" tag
  */
 export interface LevelItemProps
-  extends React.HTMLAttributes<
+  extends
+    React.HTMLAttributes<
       HTMLDivElement | HTMLParagraphElement | HTMLAnchorElement
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {

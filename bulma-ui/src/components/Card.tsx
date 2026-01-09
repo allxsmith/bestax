@@ -28,7 +28,8 @@ import { useConfig } from '../helpers/Config';
  * @property {React.ReactNode} [children] - Card content.
  */
 export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -220,21 +221,18 @@ export interface CardFooterProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
 }
 
-export interface CardFooterItemProps
-  extends React.HTMLAttributes<HTMLSpanElement> {
+export interface CardFooterItemProps extends React.HTMLAttributes<HTMLSpanElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
-export interface CardHeaderTitleProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardHeaderTitleProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
   centered?: boolean;
 }
 
-export interface CardHeaderIconProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface CardHeaderIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   children?: React.ReactNode;
 }

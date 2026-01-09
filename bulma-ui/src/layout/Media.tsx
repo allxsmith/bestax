@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   as?: 'article' | 'div';
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -70,7 +71,8 @@ export const Media: React.FC<MediaProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaLeftProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   as?: 'figure' | 'div';
   color?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -117,7 +119,8 @@ export const MediaLeft: React.FC<MediaLeftProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaContentProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -165,7 +168,8 @@ export const MediaContent: React.FC<MediaContentProps> = ({
  * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaRightProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';

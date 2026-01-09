@@ -27,7 +27,8 @@ export type CellSpanValue = number;
  * @property {React.ReactNode} [children] - Children to render inside the cell.
  */
 export interface CellProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   colStart?: number;
   colFromEnd?: number;

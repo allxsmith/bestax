@@ -52,9 +52,8 @@ const {
 } = await import('../prompts.js');
 
 // Import helper functions from cli.js
-const { ProjectCreator: _ProjectCreator } = await import(
-  '../project-creator.js'
-);
+const { ProjectCreator: _ProjectCreator } =
+  await import('../project-creator.js');
 
 const { validateProjectName } = await import('../validators.js');
 const {

@@ -31,7 +31,8 @@ export type TableColor = (typeof validTableColors)[number];
  * @property {React.ReactNode} [children] - Table cell content.
  */
 export interface TdProps
-  extends Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'color'>,
+  extends
+    Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   className?: string;
   color?: TableColor;

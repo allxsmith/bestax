@@ -26,6 +26,7 @@ npm create bestax@latest
 ```
 
 You'll be asked to:
+
 1. Enter a project name
 2. Select a framework (Vite or Vite + TypeScript)
 3. Choose a Bulma CSS flavor (Complete or Minimal)
@@ -38,9 +39,11 @@ npm create bestax@latest [project-directory] [options]
 ```
 
 **Arguments:**
+
 - `[project-directory]` - Optional project directory name
 
 **Options:**
+
 - `-t, --template <template>` - Template to use: `vite` or `vite-ts`  
   **Default:** `vite`
 - `-b, --bulma <flavor>` - Bulma CSS flavor:
@@ -49,7 +52,7 @@ npm create bestax@latest [project-directory] [options]
   - `no-helpers` - Without helper classes
   - `no-helpers-prefixed` - Prefixed without helpers
   - `no-dark-mode` - Without dark mode support  
-  **Default:** `complete`
+    **Default:** `complete`
 - `-i, --icon <library>` - Icon library:
   - `none` - No icon library
   - `fontawesome` - Font Awesome
@@ -57,11 +60,11 @@ npm create bestax@latest [project-directory] [options]
   - `ionicons` - Ionicons
   - `material-icons` - Material Icons
   - `material-symbols` - Material Symbols  
-  **Default:** `none`
+    **Default:** `none`
 - `-y, --yes` - Skip prompts and use defaults or provided options.  
-  When used, the following defaults are selected unless overridden by flags:  
-  - Template: `vite`  
-  - Bulma flavor: `complete`  
+  When used, the following defaults are selected unless overridden by flags:
+  - Template: `vite`
+  - Bulma flavor: `complete`
   - Icon library: `none`
 
 **Example:**
@@ -77,10 +80,12 @@ npm create bestax@latest my-app -y
 ## Templates
 
 Available templates:
+
 - `vite` - Vite + JavaScript
 - `vite-ts` - Vite + TypeScript
 
 Each template includes:
+
 - Pre-configured bestax-bulma integration
 - Bulma CSS v1.0.4
 - Icon library support (Font Awesome, Material Design, etc.)

@@ -51,7 +51,8 @@ export type BulmaGapSize =
  * @property {React.ReactNode} [children] - Columns to render within the container.
  */
 export interface ColumnsProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

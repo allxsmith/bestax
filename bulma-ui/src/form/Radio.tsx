@@ -11,7 +11,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @see Bulma Radio documentation: https://bulma.io/documentation/form/radio/
  */
 export interface RadioProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'color'>,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'color'>,
     Omit<BulmaClassesProps, 'color'> {
   disabled?: boolean;
   className?: string;

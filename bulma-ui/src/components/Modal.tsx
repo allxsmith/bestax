@@ -26,7 +26,8 @@ import { useConfig } from '../helpers/Config';
  * @property {React.ReactNode} [children] - Modal body/content or compound components.
  */
 export interface ModalProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'title'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   active?: boolean;
   isActive?: boolean; // Alias for active
@@ -45,8 +46,7 @@ export interface ModalProps
  *
  * @property {string} [className] - Additional CSS classes.
  */
-export interface ModalBackgroundProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
@@ -55,8 +55,7 @@ export interface ModalBackgroundProps
  *
  * @property {string} [className] - Additional CSS classes.
  */
-export interface ModalContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
 }
 
@@ -83,8 +82,7 @@ export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
  *
  * @property {string} [className] - Additional CSS classes.
  */
-export interface ModalCardTitleProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface ModalCardTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   className?: string;
 }
 
@@ -113,8 +111,7 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
  * @property {'small' | 'medium' | 'large'} [size] - Size of the close button (only applies to 'floating' variant).
  * @property {'delete' | 'floating'} [variant] - Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.
  */
-export interface ModalCloseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   size?: 'small' | 'medium' | 'large';
   variant?: 'delete' | 'floating';

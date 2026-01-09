@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Optional custom content inside the progress element.
  */
 export interface ProgressProps
-  extends React.ProgressHTMLAttributes<HTMLProgressElement>,
+  extends
+    React.ProgressHTMLAttributes<HTMLProgressElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number];

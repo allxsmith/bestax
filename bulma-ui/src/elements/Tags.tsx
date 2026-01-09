@@ -11,7 +11,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {React.ReactNode} [children] - Tag elements to render inside the container.
  */
 export interface TagsProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   className?: string;
   hasAddons?: boolean;

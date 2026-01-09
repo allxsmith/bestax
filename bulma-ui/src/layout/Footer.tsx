@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Content inside the footer.
  */
 export interface FooterProps
-  extends React.HTMLAttributes<HTMLElement>,
+  extends
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   as?: 'footer' | 'div';
   color?: (typeof validColors)[number] | 'inherit' | 'current';

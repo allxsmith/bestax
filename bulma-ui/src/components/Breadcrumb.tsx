@@ -35,7 +35,8 @@ export type BreadcrumbSize = (typeof validBreadcrumbSizes)[number];
  * @property {React.ReactNode} [children] - Breadcrumb items (e.g., "a" or "span" html elements).
  */
 export interface BreadcrumbProps
-  extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
+  extends
+    Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   className?: string;
   alignment?: BreadcrumbAlignment;

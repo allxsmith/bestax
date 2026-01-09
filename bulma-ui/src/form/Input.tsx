@@ -17,7 +17,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {boolean} [readOnly] - Whether the input is read-only.
  */
 export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
   color?:
     | 'primary'

@@ -19,8 +19,7 @@ import {
  * @property {boolean} [disabled=false] - Whether the button is disabled (default: false).
  */
 interface DeleteProps
-  extends React.HTMLAttributes<HTMLButtonElement>,
-    BulmaClassesProps {
+  extends React.HTMLAttributes<HTMLButtonElement>, BulmaClassesProps {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

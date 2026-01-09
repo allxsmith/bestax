@@ -17,7 +17,8 @@ import {
  * @property {React.ReactNode} [children] - Content to be rendered inside the block.
  */
 interface ContentProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

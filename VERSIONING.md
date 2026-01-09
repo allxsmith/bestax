@@ -9,6 +9,7 @@ Both packages maintain **identical version numbers** and are released together w
 ### Release Rules
 
 Both packages analyze commits with the following scopes:
+
 - `feat(bulma-ui)` or `feat(create-bestax)` → **Minor version bump** (e.g., 1.0.0 → 1.1.0)
 - `fix(bulma-ui)` or `fix(create-bestax)` → **Patch version bump** (e.g., 1.0.0 → 1.0.1)
 - Breaking changes in either → **Major version bump** (e.g., 1.0.0 → 2.0.0)
@@ -16,6 +17,7 @@ Both packages analyze commits with the following scopes:
 ### Ignored Scopes
 
 The following scopes do NOT trigger releases:
+
 - `docs` - Documentation changes
 - `chore` - Maintenance tasks
 - `ci` - CI/CD configuration
@@ -25,37 +27,49 @@ The following scopes do NOT trigger releases:
 ## Example Scenarios
 
 ### Scenario 1: bulma-ui Feature
+
 ```bash
 git commit -m "feat(bulma-ui): add new Modal component"
 ```
+
 **Result:**
+
 - ✅ `@allxsmith/bestax-bulma`: 1.0.0 → 1.1.0
 - ✅ `create-bestax`: 1.0.0 → 1.1.0
 - Both packages published with version 1.1.0
 
 ### Scenario 2: create-bestax Fix
+
 ```bash
 git commit -m "fix(create-bestax): correct template scaffolding issue"
 ```
+
 **Result:**
+
 - ✅ `@allxsmith/bestax-bulma`: 1.1.0 → 1.1.1
 - ✅ `create-bestax`: 1.1.0 → 1.1.1
 - Both packages published with version 1.1.1
 
 ### Scenario 3: Documentation Update
+
 ```bash
 git commit -m "docs: update README"
 ```
+
 **Result:**
+
 - ❌ No version bump
 - ❌ No packages published
 
 ### Scenario 4: Mixed Changes
+
 ```bash
 git commit -m "feat(bulma-ui): add Button variants"
 git commit -m "fix(create-bestax): fix icon library setup"
 ```
+
 **Result:**
+
 - ✅ `@allxsmith/bestax-bulma`: 1.1.1 → 1.2.0 (minor wins over patch)
 - ✅ `create-bestax`: 1.1.1 → 1.2.0
 - Both packages published with version 1.2.0
@@ -69,12 +83,14 @@ git commit -m "fix(create-bestax): fix icon library setup"
 ## Version Determination
 
 When commits affect both packages, the **highest semantic level** determines the bump:
+
 - Major > Minor > Patch
 - Breaking change > feat > fix
 
 ## Release Process
 
 The CI workflow (`ci.yml`) handles releases automatically:
+
 1. Analyzes all commits since last release
 2. Determines version bump based on commit scopes
 3. Publishes `@allxsmith/bestax-bulma` first
@@ -102,6 +118,7 @@ chore(bulma-ui): refactor tests
 The packages were manually synchronized to version **2.3.3** to establish the baseline for synchronized versioning.
 
 Commit used:
+
 ```bash
 git commit -m "chore: synchronize package versions to 2.3.3 [skip ci]"
 ```

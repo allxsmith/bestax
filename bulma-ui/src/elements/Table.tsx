@@ -18,7 +18,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {React.ReactNode} [children] - Table content.
  */
 export interface TableProps
-  extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'color'>,
+  extends
+    Omit<React.TableHTMLAttributes<HTMLTableElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
   className?: string;
   isBordered?: boolean;

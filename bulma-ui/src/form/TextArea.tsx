@@ -20,7 +20,8 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {number} [rows] - Number of visible text lines.
  */
 export interface TextAreaProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
+  extends
+    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
   color?:
     | 'primary'
