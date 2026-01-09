@@ -1,3 +1,11 @@
+## [2.0.1](https://github.com/allxsmith/bestax/compare/create-bestax@2.0.0...create-bestax@2.0.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** resolve security vulnerabilities and update dependencies ([#128](https://github.com/allxsmith/bestax/issues/128)) ([112f6e4](https://github.com/allxsmith/bestax/commit/112f6e4841fa9ea9c4ba49200984e413c1bc5f22)), closes [#127](https://github.com/allxsmith/bestax/issues/127)
+* **bulma-ui:** use createRequire for ESM compatibility in Storybook 10 ([#130](https://github.com/allxsmith/bestax/issues/130)) ([b27e60e](https://github.com/allxsmith/bestax/commit/b27e60e074dda007e76ad38d867573539b8bcb41)), closes [#129](https://github.com/allxsmith/bestax/issues/129)
+
 # [2.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.4.2...create-bestax@2.0.0) (2025-10-25)
 
 - feat(create-bestax)!: require Node.js 18+ and align with bestax-bulma v2 ([#118](https://github.com/allxsmith/bestax/issues/118)) ([b22f183](https://github.com/allxsmith/bestax/commit/b22f183acfa2f0fa6e50b9cd399ca7cd9ac67f94))
