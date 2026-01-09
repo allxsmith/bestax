@@ -4,14 +4,14 @@ on:
   pull_request:
     branches:
       - main
-    # Review gh actions docs if you want to further define triggers, paths, etc
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   test-deploy:
-    name: Test Docusaurus deployment
+    name: Test and Preview Deployment
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,5 +24,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Test build website
+      - name: Build Docusaurus
         run: npm run build -- --filter=@allxsmith/bestax-docs
+
+      - name: Build Storybook
+        run: npm run build-storybook -w bulma-ui
+
+      - name: Copy Storybook to Docusaurus build
+        run: |
+          mkdir -p docs/build/storybook
+          cp -r bulma-ui/storybook-static/* docs/build/storybook/
+
+      - name: Deploy Preview to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy docs/build --project-name=bestax --branch=${{ github.head_ref }} --commit-dirty=true
+
+      - name: Comment Preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## Preview Deployment\n\nPreview URL: ${{ steps.deploy.outputs.deployment-url }}'
+            })
