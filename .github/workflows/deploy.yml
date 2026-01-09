@@ -1,15 +1,16 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches:
       - main
+
 permissions:
   contents: read
 
 jobs:
   build-and-deploy:
-    name: Build Docusaurus and Storybook
+    name: Build and Deploy to Cloudflare Pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -35,24 +36,9 @@ jobs:
           mkdir -p docs/build/storybook
           cp -r bulma-ui/storybook-static/* docs/build/storybook/
 
-      - name: Upload Build Artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: docs/build
-
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build-and-deploy
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    outputs:
-      page_url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy docs/build --project-name=bestax --commit-dirty=true
