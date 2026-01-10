@@ -33,9 +33,7 @@
 
 User-agent: *
 Allow: /
-search: yes
-ai-input: yes
-ai-train: yes
+Content-signal: search=yes, ai-input=yes, ai-train=yes
 
 # ============================================================================
 # SITEMAP
