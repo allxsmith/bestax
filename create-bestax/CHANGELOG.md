@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.0.1...create-bestax@2.1.0) (2026-01-12)
+
+
+### Bug Fixes
+
+* **docs:** correct Content Signals syntax in robots.txt ([#134](https://github.com/allxsmith/bestax/issues/134)) ([85dd9de](https://github.com/allxsmith/bestax/commit/85dd9de7c147b06f43b9e6a51c6c304a9530b121))
+
+
+### Features
+
+* **bulma-ui:** add HTML element wrapper components ([#135](https://github.com/allxsmith/bestax/issues/135)) ([#136](https://github.com/allxsmith/bestax/issues/136)) ([20fb16d](https://github.com/allxsmith/bestax/commit/20fb16dc69592e89ac7924d7b0e1e9cd1048fec8))
+* **docs:** migrate from GitHub Pages to Cloudflare Pages ([#132](https://github.com/allxsmith/bestax/issues/132)) ([2154672](https://github.com/allxsmith/bestax/commit/21546721dbc0eaa175820166f2b2b630a0516334)), closes [#131](https://github.com/allxsmith/bestax/issues/131)
+
 ## [2.0.1](https://github.com/allxsmith/bestax/compare/create-bestax@2.0.0...create-bestax@2.0.1) (2026-01-09)
 
 
