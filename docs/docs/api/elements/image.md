@@ -50,7 +50,7 @@ The simplest usage of the `Image` component, requiring only the `src` and `alt` 
 
 ```tsx live
 <Image
-  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
+  src="/img/bestax-solar-system-3d.png"
   alt="Sample image"
   size="128x128"
 />
@@ -61,7 +61,12 @@ The simplest usage of the `Image` component, requiring only the `src` and `alt` 
 The `isRounded` prop adds rounded corners to the image, useful for profile pictures or any image where a softer look is desired.
 
 ```tsx live
-<Image src="..." alt="Rounded image" size="128x128" isRounded />
+<Image
+  src="/img/bestax-solar-system-3d.png"
+  alt="Rounded image"
+  size="128x128"
+  isRounded
+/>
 ```
 
 ### Retina Image
@@ -69,7 +74,12 @@ The `isRounded` prop adds rounded corners to the image, useful for profile pictu
 The `isRetina` prop enables support for high-resolution (2x) images, ensuring crisp visuals on retina displays. Use this for logos or images that need to look sharp on all devices.
 
 ```tsx live
-<Image src="..." alt="Retina image" size="128x128" isRetina />
+<Image
+  src="/img/bestax-solar-system-3d.png"
+  alt="Retina image"
+  size="128x128"
+  isRetina
+/>
 ```
 
 ### Aspect Ratio 16:9
@@ -77,7 +87,11 @@ The `isRetina` prop enables support for high-resolution (2x) images, ensuring cr
 Set the `size` prop to `16by9` to create a responsive image container with a 16:9 aspect ratio. This is ideal for video thumbnails or wide images.
 
 ```tsx live
-<Image src="..." alt="16:9 aspect ratio image" size="16by9" />
+<Image
+  src="/img/bestax-solar-system-3d.png"
+  alt="16:9 aspect ratio image"
+  size="16by9"
+/>
 ```
 
 ### Aspect Ratio 4:3
@@ -85,7 +99,11 @@ Set the `size` prop to `16by9` to create a responsive image container with a 16:
 Set the `size` prop to `4by3` for a classic photo or video aspect ratio. This helps maintain consistent layouts for media content.
 
 ```tsx live
-<Image src="..." alt="4:3 aspect ratio image" size="4by3" />
+<Image
+  src="/img/bestax-solar-system-3d.png"
+  alt="4:3 aspect ratio image"
+  size="4by3"
+/>
 ```
 
 ### With Margin
@@ -93,7 +111,12 @@ Set the `size` prop to `4by3` for a classic photo or video aspect ratio. This he
 You can use Bulma spacing helpers like `m` to add margin around the image for better layout control.
 
 ```tsx live
-<Image src="..." alt="Image with margin" size="128x128" m="4" />
+<Image
+  src="/img/bestax-solar-system-3d.png"
+  alt="Image with margin"
+  size="128x128"
+  m="4"
+/>
 ```
 
 ### With Iframe
@@ -106,7 +129,7 @@ The `Image` component can wrap arbitrary children, such as iframes, to provide r
     className="has-ratio"
     width="640"
     height="360"
-    src="https://www.youtube.com/embed/XxVg_s8xAms"
+    src="https://www.youtube.com/embed/YE7VzlLtp-4"
     frameBorder="0"
     allowFullScreen
     title="Sample YouTube Video"
@@ -121,7 +144,7 @@ You can also wrap custom content inside the `Image` component, such as a styled 
 ```tsx live
 <Image size="4by3">
   <div
-    className="has-ratio has-background-grey-light has-text-centered"
+    className="has-ratio has-background-grey-light has-text-dark has-text-centered"
     style={{
       height: '100%',
       display: 'flex',
@@ -140,7 +163,7 @@ Combine the `textColor` and `bgColor` props to style the image container for bra
 
 ```tsx live
 <Image
-  src="..."
+  src="/img/bestax-solar-system-3d.png"
   alt="Image with text and background color"
   size="128x128"
   textColor="primary"

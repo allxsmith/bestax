@@ -127,7 +127,7 @@ export const Retina: Story = {
 
 export const AspectRatio16by9: Story = {
   args: {
-    src: sampleImage,
+    src: '/logo.png',
     alt: '16:9 aspect ratio image',
     size: '16by9',
   },
@@ -135,7 +135,7 @@ export const AspectRatio16by9: Story = {
 
 export const AspectRatio4by3: Story = {
   args: {
-    src: sampleImage,
+    src: '/logo.png',
     alt: '4:3 aspect ratio image',
     size: '4by3',
   },
@@ -158,7 +158,7 @@ export const WithIframe: Story = {
         className="has-ratio"
         width="640"
         height="360"
-        src="https://www.youtube.com/watch?v=XxVg_s8xAms"
+        src="https://www.youtube.com/embed/YE7VzlLtp-4"
         frameBorder="0"
         allowFullScreen
         title="Sample YouTube Video"
@@ -172,7 +172,7 @@ export const WithCustomChild: Story = {
     size: '4by3',
     children: (
       <div
-        className="has-ratio has-background-grey-light has-text-centered"
+        className="has-ratio has-background-grey-light has-text-dark has-text-centered"
         style={{
           height: '100%',
           display: 'flex',
