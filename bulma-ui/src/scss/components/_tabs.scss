@@ -1,0 +1,147 @@
+// Tabs Component Styles
+// Vertical layout and content panel visibility for Tabs
+// Bulma already handles horizontal tabs — this adds extras
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Tabs-specific SCSS variables
+$tabs-vertical-min-width: 200px !default;
+$tabs-vertical-border-color: cv.getVar("border") !default;
+$tabs-vertical-border-width: 1px !default;
+$tabs-content-padding: 1rem !default;
+
+// Register CSS variables
+.#{iv.$class-prefix}tabs-root {
+  @include cv.register-vars(
+    (
+      "tabs-vertical-min-width": #{$tabs-vertical-min-width},
+      "tabs-vertical-border-color": #{$tabs-vertical-border-color},
+      "tabs-vertical-border-width": #{$tabs-vertical-border-width},
+      "tabs-content-padding": #{$tabs-content-padding},
+    )
+  );
+}
+
+// Content item visibility (works for both horizontal and vertical)
+.#{iv.$class-prefix}tabs-content-item {
+  display: none;
+
+  &.#{iv.$class-prefix}is-active {
+    display: block;
+  }
+}
+
+// Content wrapper
+.#{iv.$class-prefix}tabs-content {
+  padding: cv.getVar("tabs-content-padding");
+}
+
+// Vertical layout — .tabs-root.is-vertical becomes a flex row
+.#{iv.$class-prefix}tabs-root.#{iv.$class-prefix}is-vertical {
+  display: flex;
+  flex-direction: row;
+
+  // The .tabs container becomes a vertical column
+  > .#{iv.$class-prefix}tabs {
+    flex-shrink: 0;
+    min-width: cv.getVar("tabs-vertical-min-width");
+
+    // Remove Bulma's default bottom border on the nav
+    border-bottom: none;
+
+    > ul {
+      flex-direction: column;
+      align-items: stretch;
+      border-bottom: none;
+
+      // Right border for left-side tabs
+      border-right: cv.getVar("tabs-vertical-border-width") solid cv.getVar("tabs-vertical-border-color");
+
+      > li {
+        width: 100%;
+
+        a {
+          justify-content: flex-start;
+          border-bottom: none;
+          border-right: 2px solid transparent;
+          padding: 0.5em 1em;
+        }
+
+        &.#{iv.$class-prefix}is-active a {
+          border-right-color: cv.getVar("link");
+          border-bottom-color: transparent;
+        }
+      }
+    }
+  }
+
+  // Content fills remaining space
+  > .#{iv.$class-prefix}tabs-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Right side variant — reverse the flex direction
+  &.#{iv.$class-prefix}is-right {
+    flex-direction: row-reverse;
+
+    > .#{iv.$class-prefix}tabs > ul {
+      border-right: none;
+      border-left: cv.getVar("tabs-vertical-border-width") solid cv.getVar("tabs-vertical-border-color");
+
+      > li {
+        a {
+          border-right: none;
+          border-left: 2px solid transparent;
+        }
+
+        &.#{iv.$class-prefix}is-active a {
+          border-left-color: cv.getVar("link");
+          border-right-color: transparent;
+        }
+      }
+    }
+  }
+
+  // Expanded — tabs list fills full height
+  &.#{iv.$class-prefix}is-expanded {
+    > .#{iv.$class-prefix}tabs > ul {
+      height: 100%;
+    }
+  }
+}
+
+// Mobile fallback — vertical tabs stack to horizontal
+@include extras-mobile {
+  .#{iv.$class-prefix}tabs-root.#{iv.$class-prefix}is-vertical {
+    flex-direction: column;
+
+    > .#{iv.$class-prefix}tabs {
+      min-width: auto;
+
+      > ul {
+        flex-direction: row;
+        border-right: none;
+        border-left: none;
+        border-bottom: 1px solid cv.getVar("tabs-vertical-border-color");
+
+        > li {
+          a {
+            border-right: none;
+            border-left: none;
+            border-bottom: 2px solid transparent;
+          }
+
+          &.#{iv.$class-prefix}is-active a {
+            border-bottom-color: cv.getVar("link");
+            border-right-color: transparent;
+            border-left-color: transparent;
+          }
+        }
+      }
+    }
+  }
+}

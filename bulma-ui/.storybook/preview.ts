@@ -7,6 +7,8 @@ import '@mdi/font/css/materialdesignicons.min.css';
 import 'ionicons/dist/css/ionicons.min.css';
 import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
+// Import extras SCSS for component styles
+import '../src/scss/extras.scss';
 
 // Determine theme based on system preference
 const prefersDark =

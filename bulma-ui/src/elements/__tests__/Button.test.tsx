@@ -60,6 +60,18 @@ describe('Button Component', () => {
     expect(button).toHaveClass('button');
   });
 
+  it('applies is-ghost class for color="ghost"', () => {
+    render(<Button color="ghost">Ghost</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('button', 'is-ghost');
+  });
+
+  it('applies is-text class for color="text"', () => {
+    render(<Button color="text">Text</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('button', 'is-text');
+  });
+
   describe('as="a" anchor rendering', () => {
     it('renders as <a> with correct classes and href', () => {
       render(

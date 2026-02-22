@@ -1,6 +1,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { Icon, IconProps } from '../elements/Icon';
 
 /**
  * Props for the Panel component.
@@ -65,14 +66,9 @@ export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
 
 /**
  * Props for the PanelIcon component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Icon content.
+ * Extends IconProps but uses 'panel-icon' as the container class.
  */
-export interface PanelIconProps extends React.HTMLAttributes<HTMLSpanElement> {
-  className?: string;
-  children?: React.ReactNode;
-}
+export interface PanelIconProps extends Omit<IconProps, 'containerClassName'> {}
 
 /**
  * Props for the PanelInputBlock component.
@@ -204,18 +200,13 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
 
 /**
  * Bulma Panel icon.
+ * Wraps the Icon component with 'panel-icon' container class.
  */
-export const PanelIcon: React.FC<PanelIconProps> = ({
-  className,
-  children,
-  ...props
-}) => (
-  <span
-    className={classNames(usePrefixedClassNames('panel-icon'), className)}
+export const PanelIcon: React.FC<PanelIconProps> = ({ className, ...props }) => (
+  <Icon
+    containerClassName={classNames(usePrefixedClassNames('panel-icon'), className)}
     {...props}
-  >
-    {children}
-  </span>
+  />
 );
 
 /**

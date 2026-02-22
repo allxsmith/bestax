@@ -45,7 +45,7 @@ const StatefulNavbarBurgerMenu = ({
     <Navbar color={color} transparent={transparent} fixed={fixed}>
       <Navbar.Brand>
         <Navbar.Item href="#">
-          <img src={logo} alt="Logo" width="112" height="28" />
+          <img src={logo} alt="Logo" width="28" height="28" />
         </Navbar.Item>
         <Navbar.Burger
           active={active}
@@ -81,7 +81,7 @@ export const BrandOnly: Story = {
     <Navbar>
       <Navbar.Brand>
         <Navbar.Item href="#">
-          <img src={logo} alt="Logo" width="112" height="28" />
+          <img src={logo} alt="Logo" width="28" height="28" />
         </Navbar.Item>
       </Navbar.Brand>
     </Navbar>
@@ -128,7 +128,7 @@ export const ItemsNavLinksAndDropdown: Story = {
     <Navbar>
       <Navbar.Brand>
         <Navbar.Item>
-          <img src={logo} alt="Logo" width="112" height="28" />
+          <img src={logo} alt="Logo" width="28" height="28" />
         </Navbar.Item>
       </Navbar.Brand>
       <Navbar.Menu active>

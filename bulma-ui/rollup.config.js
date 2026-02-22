@@ -2,10 +2,12 @@ import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import { visualizer } from 'rollup-plugin-visualizer';
+import scss from 'rollup-plugin-scss';
 
 export default commandLineArgs => {
   const isVisualizerEnabled = commandLineArgs.configPlugin === 'visualizer';
   return [
+    // Main JS bundle
     {
       input: 'src/index.ts',
       output: [
@@ -42,6 +44,27 @@ export default commandLineArgs => {
           }),
       ].filter(Boolean),
       external: ['react', 'react-dom', 'react/jsx-runtime'],
+    },
+    // SCSS extras bundle
+    {
+      input: 'src/scss/extras.scss',
+      output: {
+        file: 'dist/extras.js',
+        format: 'es',
+      },
+      plugins: [
+        scss({
+          fileName: 'extras.css',
+          outputStyle: 'compressed',
+          includePaths: ['src/scss', '../node_modules'],
+          sourceMap: true,
+        }),
+      ],
+      onwarn(warning, warn) {
+        // Suppress empty bundle warning for SCSS-only build
+        if (warning.code === 'EMPTY_BUNDLE') return;
+        warn(warning);
+      },
     },
   ];
 };

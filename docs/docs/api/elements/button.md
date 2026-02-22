@@ -27,7 +27,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 
 | Prop          | Type                                                                  | Description                                       |
 | ------------- | --------------------------------------------------------------------- | ------------------------------------------------- |
-| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Bulma color variant for the button.               |
+| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black' \| 'text' \| 'ghost'` | Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. |
 | `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                          | Size of the button.                               |
 | `isLight`     | `boolean`                                                             | Applies a lighter color variant.                  |
 | `isRounded`   | `boolean`                                                             | Makes the button rounded.                         |
@@ -65,7 +65,7 @@ This is the most fundamental use of the `Button` component, providing a simple y
 
 ### All Colors
 
-By setting the `color` prop, you can style your button with any of Bulma's semantic colors. The possible values for `color` are `primary`, `link`, `info`, `success`, `warning`, and `danger`. This allows you to visually communicate the purpose of different actions—for example, use `success` for confirming, `danger` for destructive actions, or `info` for neutral prompts.
+By setting the `color` prop, you can style your button with any of Bulma's button colors. The semantic colors are `primary`, `link`, `info`, `success`, `warning`, and `danger`. Neutral colors are `white`, `light`, `dark`, and `black`. Special colors are `text` (minimal text-only button) and `ghost` (link-like button). This allows you to visually communicate the purpose of different actions—for example, use `success` for confirming, `danger` for destructive actions, or `ghost` for a button that looks like a link.
 
 ```tsx live
 import { Buttons } from './Buttons';
@@ -189,6 +189,22 @@ By setting the `isHovered` prop, you can force the button to display its hover s
 <Button color="success" isHovered>
   Hovered Button
 </Button>
+```
+
+### Ghost
+
+Use `color="ghost"` to render a button that looks like a link but behaves as a `<button>`. This is useful when you need an action trigger (not navigation) that visually blends with surrounding text, without resorting to a `<div onClick>` pattern.
+
+```tsx live
+<Button color="ghost">Ghost Button</Button>
+```
+
+### Text
+
+Use `color="text"` to render a minimal text-only button with no background or border. This is ideal for subtle actions in toolbars or inline contexts where a standard button would be too prominent.
+
+```tsx live
+<Button color="text">Text Button</Button>
 ```
 
 ### Disabled

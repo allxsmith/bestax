@@ -1,0 +1,115 @@
+// Toast component styles
+// Toast wraps Snackbar — these styles override snackbar defaults for toast-specific appearance.
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Toast-specific SCSS variables
+// Container uses same padding as snackbar for consistent edge spacing.
+$toast-container-padding: 2rem !default;
+$toast-container-z-index: $extras-z-index-toast !default;
+$toast-container-gap: 0.75rem !default;
+$toast-animation-duration: 0.3s !default;
+
+// Register CSS variables on .toast
+.#{iv.$class-prefix}toast {
+  @include cv.register-vars(
+    (
+      "toast-container-padding": #{$toast-container-padding},
+      "toast-container-z-index": #{$toast-container-z-index},
+      "toast-container-gap": #{$toast-container-gap},
+      "toast-animation-duration": #{$toast-animation-duration},
+    )
+  );
+}
+
+// Toast container — positions toasts on screen
+// Uses SCSS variables directly since container is a parent of .toast
+// (CSS vars registered on .toast don't cascade up)
+.#{iv.$class-prefix}toast-container {
+  position: fixed;
+  z-index: #{$toast-container-z-index};
+  display: flex;
+  flex-direction: column;
+  gap: #{$toast-container-gap};
+  pointer-events: none;
+  max-width: 100%;
+  padding: #{$toast-container-padding};
+
+  // Position variants
+  &.#{iv.$class-prefix}is-top-right {
+    top: 0;
+    right: 0;
+    align-items: flex-end;
+  }
+
+  &.#{iv.$class-prefix}is-top-left {
+    top: 0;
+    left: 0;
+    align-items: flex-start;
+  }
+
+  &.#{iv.$class-prefix}is-top-center {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+  }
+
+  &.#{iv.$class-prefix}is-bottom-right {
+    bottom: 0;
+    right: 0;
+    align-items: flex-end;
+    flex-direction: column-reverse;
+  }
+
+  &.#{iv.$class-prefix}is-bottom-left {
+    bottom: 0;
+    left: 0;
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+
+  &.#{iv.$class-prefix}is-bottom-center {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    flex-direction: column-reverse;
+  }
+}
+
+// Toast element — click-to-dismiss cursor and type variants
+// Inherits size, padding, radius, shadow from snackbar base styles.
+.#{iv.$class-prefix}toast {
+  cursor: pointer;
+  animation: extras-toast-slide-in cv.getVar("toast-animation-duration") ease;
+
+  // Type variants — color the BACKGROUND (snackbar type colors the action button)
+  @each $name in "primary", "link", "info", "success", "warning", "danger" {
+    &.#{iv.$class-prefix}is-#{$name} {
+      background-color: cv.getVar($name);
+      color: hsl(cv.getVar($name, "", "-h"), cv.getVar($name, "", "-s"), cv.getVar($name, "", "-invert-l"));
+    }
+  }
+}
+
+// Toast animation
+@keyframes extras-toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}toast {
+    animation: none;
+  }
+}

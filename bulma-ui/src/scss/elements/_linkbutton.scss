@@ -1,0 +1,72 @@
+// Bestax Extras - LinkButton Styles
+// Overrides for .button.is-text and .button.is-ghost when used as LinkButton
+
+@use '../variables' as *;
+
+.button.link-button {
+  // Text variant: remove underline that Bulma adds
+  &.is-text {
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+
+  // Ghost variant: use default text color instead of link color, remove underline
+  &.is-ghost {
+    color: var(--bulma-text);
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      color: var(--bulma-text-strong);
+      text-decoration: none;
+    }
+  }
+
+  // Semantic color variants — override text color for both variants
+  @each $name, $color in (
+    'primary': $extras-primary,
+    'link': $extras-link,
+    'info': $extras-info,
+    'success': $extras-success,
+    'warning': $extras-warning,
+    'danger': $extras-danger,
+  ) {
+    &.link-button-#{$name} {
+      color: $color;
+
+      &:hover,
+      &:focus {
+        color: $color;
+      }
+    }
+  }
+
+  // Neutral colors via CSS custom properties
+  &.link-button-white {
+    color: var(--bulma-white);
+    &:hover,
+    &:focus { color: var(--bulma-white); }
+  }
+
+  &.link-button-light {
+    color: var(--bulma-light);
+    &:hover,
+    &:focus { color: var(--bulma-light); }
+  }
+
+  &.link-button-dark {
+    color: var(--bulma-dark);
+    &:hover,
+    &:focus { color: var(--bulma-dark); }
+  }
+
+  &.link-button-black {
+    color: var(--bulma-black);
+    &:hover,
+    &:focus { color: var(--bulma-black); }
+  }
+}

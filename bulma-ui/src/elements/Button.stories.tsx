@@ -18,7 +18,20 @@ const meta: Meta<typeof Button> = {
     // Bulma-specific props
     color: {
       control: 'select',
-      options: ['primary', 'link', 'info', 'success', 'warning', 'danger'],
+      options: [
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+        'white',
+        'light',
+        'dark',
+        'black',
+        'text',
+        'ghost',
+      ],
       description: 'Bulma color variant for the button.',
     },
     size: {
@@ -372,6 +385,22 @@ export const ButtonGroup: Story = {
     </Buttons>
   ),
   name: 'Button Group',
+};
+
+// Ghost — renders a button that looks like a link
+export const Ghost: Story = {
+  args: {
+    color: 'ghost',
+    children: 'Ghost Button',
+  },
+};
+
+// Text — renders a minimal text-only button
+export const Text: Story = {
+  args: {
+    color: 'text',
+    children: 'Text Button',
+  },
 };
 
 // HTML Attributes

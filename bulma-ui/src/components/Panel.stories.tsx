@@ -24,45 +24,31 @@ export const RevolutionaryWar: Story = {
         <a>Documents</a>
       </Panel.Tabs>
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         George Washington
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Alexander Hamilton
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Benedict Arnold
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         John Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Battle of Saratoga
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Treaty of Paris
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Bunker Hill
       </Panel.Block>
       <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
@@ -77,33 +63,23 @@ export const Primary: Story = {
       <Panel.Heading>Primary Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         George Washington
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Marquis de Lafayette
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Nathanael Greene
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Battle of Trenton
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Yorktown
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -117,33 +93,23 @@ export const Link: Story = {
       <Panel.Heading>Link Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Alexander Hamilton
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Thomas Jefferson
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         John Jay
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Federalist Papers
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Treaty of Paris
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -157,33 +123,23 @@ export const Info: Story = {
       <Panel.Heading>Info Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Benedict Arnold
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         John Paul Jones
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Baron von Steuben
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Bunker Hill
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Valley Forge
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -197,33 +153,23 @@ export const Success: Story = {
       <Panel.Heading>Success Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Marquis de Lafayette
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Deborah Sampson
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Abigail Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Yorktown
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Declaration of Independence
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -237,33 +183,23 @@ export const Warning: Story = {
       <Panel.Heading>Warning Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Thomas Paine
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Samuel Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Mercy Otis Warren
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Valley Forge
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Olive Branch Petition
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -277,33 +213,23 @@ export const Danger: Story = {
       <Panel.Heading>Danger Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         King George III
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Charles Cornwallis
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Benedict Arnold
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Boston Massacre
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Intolerable Acts
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -317,33 +243,23 @@ export const Black: Story = {
       <Panel.Heading>Black Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         John Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Crispus Attucks
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Sybil Ludington
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Lexington & Concord
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Boston Tea Party
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -357,33 +273,23 @@ export const Dark: Story = {
       <Panel.Heading>Dark Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Samuel Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Haym Salomon
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Roger Sherman
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Continental Congress
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Articles of Confederation
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -397,33 +303,23 @@ export const Light: Story = {
       <Panel.Heading>Light Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Abigail Adams
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Martha Washington
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Phillis Wheatley
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Declaration of Independence
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Bill of Rights
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
@@ -437,33 +333,23 @@ export const White: Story = {
       <Panel.Heading>White Panel</Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Paul Revere
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         John Hancock
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Patrick Henry
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Midnight Ride
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Give Me Liberty
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>

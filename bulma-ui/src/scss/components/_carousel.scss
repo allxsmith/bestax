@@ -1,0 +1,580 @@
+// Carousel component styles
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Carousel-specific SCSS sizing variables
+$carousel-arrow-size: 48px !default;
+$carousel-arrow-size-mobile: 36px !default;
+$carousel-arrow-icon-size: 24px !default;
+$carousel-arrow-icon-size-mobile: 18px !default;
+$carousel-arrow-offset: 1rem !default;
+$carousel-arrow-offset-mobile: 0.5rem !default;
+$carousel-arrow-disabled-opacity: 0.3 !default;
+
+$carousel-indicator-size: 10px !default;
+$carousel-indicator-size-mobile: 8px !default;
+$carousel-indicator-gap: 0.5rem !default;
+$carousel-indicator-gap-mobile: 0.375rem !default;
+$carousel-indicator-circle-size: 12px !default;
+$carousel-indicator-line-width: 30px !default;
+$carousel-indicator-line-width-mobile: 20px !default;
+$carousel-indicator-line-height: 4px !default;
+$carousel-indicator-line-height-mobile: 3px !default;
+$carousel-indicator-bar-width: 24px !default;
+$carousel-indicator-bar-width-mobile: 16px !default;
+$carousel-indicator-bar-height: 6px !default;
+$carousel-indicator-bar-height-mobile: 4px !default;
+
+$carousel-transition-duration: cv.getVar("duration") !default;
+$carousel-fade-duration: 0.5s !default;
+
+// Arrow colors - use Bulma's scheme variables so they adapt to light/dark automatically
+// scheme-main-l is 100% in light mode, ~20% in dark mode
+// scheme-invert-l is 4% in light mode, ~96% in dark mode
+$carousel-arrow-background: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-main-l")},
+  0.8
+) !default;
+$carousel-arrow-background-hover: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-main-l")},
+  0.95
+) !default;
+
+// Overlay variant colors (for image carousels - always dark overlay regardless of theme)
+$carousel-overlay-arrow-background: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-invert-l")},
+  0.3
+) !default;
+$carousel-overlay-arrow-background-hover: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-invert-l")},
+  0.5
+) !default;
+$carousel-overlay-indicator-background: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-main-l")},
+  0.5
+) !default;
+$carousel-overlay-indicator-background-hover: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-main-l")},
+  0.8
+) !default;
+
+// Gradient overlay for inside indicators
+$carousel-gradient-overlay: hsla(
+  #{cv.getVar("scheme-h")},
+  #{cv.getVar("scheme-s")},
+  #{cv.getVar("scheme-invert-l")},
+  0.3
+) !default;
+
+$carousel-arrow-color: cv.getVar("text") !default;
+$carousel-indicator-background: cv.getVar("border") !default;
+$carousel-indicator-background-hover: cv.getVar("border-hover") !default;
+$carousel-indicator-background-active: cv.getVar("primary") !default;
+$carousel-overlay-arrow-color: cv.getVar("scheme-main") !default;
+$carousel-overlay-indicator-background-active: cv.getVar("scheme-main") !default;
+$carousel-arrow-radius: cv.getVar("radius") !default;
+$carousel-indicator-line-radius: cv.getVar("radius-small") !default;
+
+.#{iv.$class-prefix}carousel {
+  @include cv.register-vars(
+    (
+      "carousel-arrow-size": #{$carousel-arrow-size},
+      "carousel-arrow-size-mobile": #{$carousel-arrow-size-mobile},
+      "carousel-arrow-background": #{$carousel-arrow-background},
+      "carousel-arrow-background-hover": #{$carousel-arrow-background-hover},
+      "carousel-arrow-color": #{$carousel-arrow-color},
+      "carousel-arrow-disabled-opacity": #{$carousel-arrow-disabled-opacity},
+      "carousel-arrow-offset": #{$carousel-arrow-offset},
+      "carousel-arrow-offset-mobile": #{$carousel-arrow-offset-mobile},
+      "carousel-arrow-icon-size": #{$carousel-arrow-icon-size},
+      "carousel-arrow-icon-size-mobile": #{$carousel-arrow-icon-size-mobile},
+      "carousel-arrow-radius": #{$carousel-arrow-radius},
+      "carousel-indicator-size": #{$carousel-indicator-size},
+      "carousel-indicator-size-mobile": #{$carousel-indicator-size-mobile},
+      "carousel-indicator-gap": #{$carousel-indicator-gap},
+      "carousel-indicator-gap-mobile": #{$carousel-indicator-gap-mobile},
+      "carousel-indicator-background": #{$carousel-indicator-background},
+      "carousel-indicator-background-hover": #{$carousel-indicator-background-hover},
+      "carousel-indicator-background-active": #{$carousel-indicator-background-active},
+      "carousel-indicator-circle-size": #{$carousel-indicator-circle-size},
+      "carousel-indicator-line-width": #{$carousel-indicator-line-width},
+      "carousel-indicator-line-width-mobile": #{$carousel-indicator-line-width-mobile},
+      "carousel-indicator-line-height": #{$carousel-indicator-line-height},
+      "carousel-indicator-line-height-mobile": #{$carousel-indicator-line-height-mobile},
+      "carousel-indicator-line-radius": #{$carousel-indicator-line-radius},
+      "carousel-indicator-bar-width": #{$carousel-indicator-bar-width},
+      "carousel-indicator-bar-width-mobile": #{$carousel-indicator-bar-width-mobile},
+      "carousel-indicator-bar-height": #{$carousel-indicator-bar-height},
+      "carousel-indicator-bar-height-mobile": #{$carousel-indicator-bar-height-mobile},
+      "carousel-overlay-arrow-background": #{$carousel-overlay-arrow-background},
+      "carousel-overlay-arrow-background-hover": #{$carousel-overlay-arrow-background-hover},
+      "carousel-overlay-arrow-color": #{$carousel-overlay-arrow-color},
+      "carousel-overlay-indicator-background": #{$carousel-overlay-indicator-background},
+      "carousel-overlay-indicator-background-hover": #{$carousel-overlay-indicator-background-hover},
+      "carousel-overlay-indicator-background-active": #{$carousel-overlay-indicator-background-active},
+      "carousel-transition-duration": #{$carousel-transition-duration},
+      "carousel-fade-duration": #{$carousel-fade-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+
+  // Container
+  .#{iv.$class-prefix}carousel-container {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    user-select: none;
+    touch-action: pan-y;
+  }
+
+  // Slides container
+  .#{iv.$class-prefix}carousel-slides {
+    display: flex;
+    width: 100%;
+    will-change: transform;
+  }
+
+  // Individual slide
+  .#{iv.$class-prefix}carousel-item {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+
+    // Allow images to fill the slide
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+  }
+
+  // Navigation arrows
+  .#{iv.$class-prefix}carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: cv.getVar("carousel-arrow-size");
+    height: cv.getVar("carousel-arrow-size");
+    padding: 0;
+    border: none;
+    border-radius: cv.getVar("carousel-arrow-radius");
+    background-color: cv.getVar("carousel-arrow-background");
+    color: cv.getVar("carousel-arrow-color");
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity cv.getVar("carousel-transition-duration"),
+                background-color cv.getVar("carousel-transition-duration"),
+                transform cv.getVar("carousel-transition-duration");
+
+    // Override Button component default styles
+    &.#{iv.$class-prefix}button {
+      border: none;
+      background-color: cv.getVar("carousel-arrow-background");
+      background-image: none;
+
+      &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+        background-color: cv.getVar("carousel-arrow-background-hover");
+        background-image: none;
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      &:disabled,
+      &.#{iv.$class-prefix}is-disabled {
+        opacity: cv.getVar("carousel-arrow-disabled-opacity");
+        cursor: not-allowed;
+        background-color: cv.getVar("carousel-arrow-background");
+        background-image: none;
+      }
+    }
+
+    &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+      background-color: cv.getVar("carousel-arrow-background-hover");
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      opacity: cv.getVar("carousel-arrow-disabled-opacity");
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: cv.getVar("carousel-arrow-icon-size");
+      height: cv.getVar("carousel-arrow-icon-size");
+    }
+
+    // Icon component styling
+    .#{iv.$class-prefix}icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      // Match SVG sizing for consistency
+      &.#{iv.$class-prefix}is-small {
+        font-size: 0.875rem;
+      }
+
+      &.#{iv.$class-prefix}is-medium {
+        font-size: 1.25rem;
+      }
+
+      &.#{iv.$class-prefix}is-large {
+        font-size: 1.75rem;
+      }
+    }
+
+    &.#{iv.$class-prefix}is-prev {
+      left: cv.getVar("carousel-arrow-offset");
+    }
+
+    &.#{iv.$class-prefix}is-next {
+      right: cv.getVar("carousel-arrow-offset");
+    }
+
+    // Transparent variant (no background)
+    &.#{iv.$class-prefix}is-transparent {
+      background-color: transparent;
+      box-shadow: none;
+      border: none;
+
+      &.#{iv.$class-prefix}button {
+        background-color: transparent;
+        box-shadow: none;
+        border: none;
+
+        &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+          background-color: transparent;
+          box-shadow: none;
+        }
+
+        &:focus {
+          box-shadow: none;
+        }
+
+        &:disabled,
+        &.#{iv.$class-prefix}is-disabled {
+          background-color: transparent;
+          box-shadow: none;
+        }
+      }
+
+      &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+        background-color: transparent;
+      }
+
+      &:focus {
+        box-shadow: none;
+        outline: none;
+      }
+    }
+  }
+
+  // Arrow color variants
+  &.#{iv.$class-prefix}is-arrow-light {
+    .#{iv.$class-prefix}carousel-arrow {
+      color: cv.getVar("scheme-main");
+    }
+  }
+
+  &.#{iv.$class-prefix}is-arrow-dark {
+    .#{iv.$class-prefix}carousel-arrow {
+      color: cv.getVar("text-strong");
+    }
+  }
+
+  // Arrow hover variant
+  &.#{iv.$class-prefix}has-arrow-hover {
+    .#{iv.$class-prefix}carousel-arrow {
+      opacity: 0;
+    }
+
+    &:hover {
+      .#{iv.$class-prefix}carousel-arrow {
+        opacity: 1;
+      }
+    }
+  }
+
+  // Indicators
+  .#{iv.$class-prefix}carousel-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: cv.getVar("carousel-indicator-gap");
+    padding: 1rem;
+    width: 100%;
+
+    &.#{iv.$class-prefix}is-inside {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, #{$carousel-gradient-overlay});
+      padding-bottom: 1.5rem;
+    }
+
+    &.#{iv.$class-prefix}is-top {
+      top: 0;
+      bottom: auto;
+      background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
+      padding-top: 1.5rem;
+    }
+  }
+
+  // Indicator items
+  .#{iv.$class-prefix}indicator-item {
+    width: cv.getVar("carousel-indicator-size");
+    height: cv.getVar("carousel-indicator-size");
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: cv.getVar("carousel-indicator-background");
+    cursor: pointer;
+    transition: background-color cv.getVar("carousel-transition-duration"),
+                transform cv.getVar("carousel-transition-duration");
+
+    // Override Button component styles
+    &.#{iv.$class-prefix}button {
+      min-width: auto;
+      min-height: auto;
+      border: none;
+      padding: 0;
+      background-image: none;
+    }
+
+    &:hover {
+      background-color: cv.getVar("carousel-indicator-background-hover");
+      transform: scale(1.2);
+    }
+
+    &.#{iv.$class-prefix}is-active {
+      background-color: cv.getVar("carousel-indicator-background-active");
+    }
+  }
+
+  // Indicator styles
+  &.#{iv.$class-prefix}is-indicator-circles {
+    .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-circle-size");
+      height: cv.getVar("carousel-indicator-circle-size");
+      border: 2px solid cv.getVar("border");
+      background-color: transparent;
+
+      &.#{iv.$class-prefix}is-active {
+        border-color: cv.getVar("carousel-indicator-background-active");
+        background-color: cv.getVar("carousel-indicator-background-active");
+      }
+    }
+  }
+
+  &.#{iv.$class-prefix}is-indicator-lines {
+    .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-line-width");
+      height: cv.getVar("carousel-indicator-line-height");
+      border-radius: cv.getVar("carousel-indicator-line-radius");
+    }
+  }
+
+  &.#{iv.$class-prefix}is-indicator-bars {
+    .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-bar-width");
+      height: cv.getVar("carousel-indicator-bar-height");
+      border-radius: cv.getVar("carousel-indicator-line-radius");
+    }
+  }
+
+  // Inside indicator light variant (overlay mode)
+  &.#{iv.$class-prefix}is-overlay {
+    .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+      .#{iv.$class-prefix}indicator-item {
+        background-color: cv.getVar("carousel-overlay-indicator-background");
+
+        &:hover {
+          background-color: cv.getVar("carousel-overlay-indicator-background-hover");
+        }
+
+        &.#{iv.$class-prefix}is-active {
+          background-color: cv.getVar("carousel-overlay-indicator-background-active");
+        }
+      }
+    }
+
+    .#{iv.$class-prefix}carousel-arrow {
+      background-color: cv.getVar("carousel-overlay-arrow-background");
+      color: cv.getVar("carousel-overlay-arrow-color");
+
+      &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+        background-color: cv.getVar("carousel-overlay-arrow-background-hover");
+      }
+
+      &.#{iv.$class-prefix}button {
+        background-color: cv.getVar("carousel-overlay-arrow-background");
+        background-image: none;
+
+        &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+          background-color: cv.getVar("carousel-overlay-arrow-background-hover");
+          background-image: none;
+        }
+
+        &:disabled,
+        &.#{iv.$class-prefix}is-disabled {
+          background-color: cv.getVar("carousel-overlay-arrow-background");
+          background-image: none;
+        }
+      }
+
+      // Transparent variant within overlay
+      &.#{iv.$class-prefix}is-transparent {
+        background-color: transparent;
+        box-shadow: none;
+        border: none;
+
+        &.#{iv.$class-prefix}button {
+          background-color: transparent;
+          box-shadow: none;
+          border: none;
+
+          &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+            background-color: transparent;
+            box-shadow: none;
+          }
+
+          &:focus {
+            box-shadow: none;
+          }
+
+          &:disabled,
+          &.#{iv.$class-prefix}is-disabled {
+            background-color: transparent;
+            box-shadow: none;
+          }
+        }
+
+        &:hover:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
+          background-color: transparent;
+        }
+
+        &:focus {
+          box-shadow: none;
+          outline: none;
+        }
+      }
+    }
+  }
+
+  // Fade transition (alternative to slide)
+  &.#{iv.$class-prefix}is-fade {
+    .#{iv.$class-prefix}carousel-slides {
+      position: relative;
+    }
+
+    .#{iv.$class-prefix}carousel-item {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      opacity: 0;
+      transition: opacity cv.getVar("carousel-fade-duration") ease-in-out;
+
+      &.#{iv.$class-prefix}is-active {
+        position: relative;
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Carousel list variant (multiple visible items)
+.#{iv.$class-prefix}carousel-list {
+  .#{iv.$class-prefix}carousel-container {
+    overflow: visible;
+  }
+
+  .#{iv.$class-prefix}carousel-slides {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .#{iv.$class-prefix}carousel-item {
+    flex: 0 0 auto;
+    width: auto;
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Responsive adjustments
+@media screen and (max-width: 768px) {
+  .#{iv.$class-prefix}carousel {
+    .#{iv.$class-prefix}carousel-arrow {
+      width: cv.getVar("carousel-arrow-size-mobile");
+      height: cv.getVar("carousel-arrow-size-mobile");
+
+      svg {
+        width: cv.getVar("carousel-arrow-icon-size-mobile");
+        height: cv.getVar("carousel-arrow-icon-size-mobile");
+      }
+
+      .#{iv.$class-prefix}icon {
+        font-size: 1rem;
+
+        &.#{iv.$class-prefix}is-small {
+          font-size: 0.75rem;
+        }
+
+        &.#{iv.$class-prefix}is-large {
+          font-size: 1.25rem;
+        }
+      }
+
+      &.#{iv.$class-prefix}is-prev {
+        left: cv.getVar("carousel-arrow-offset-mobile");
+      }
+
+      &.#{iv.$class-prefix}is-next {
+        right: cv.getVar("carousel-arrow-offset-mobile");
+      }
+    }
+
+    .#{iv.$class-prefix}carousel-indicator {
+      gap: cv.getVar("carousel-indicator-gap-mobile");
+    }
+
+    .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-size-mobile");
+      height: cv.getVar("carousel-indicator-size-mobile");
+    }
+
+    &.#{iv.$class-prefix}is-indicator-lines .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-line-width-mobile");
+      height: cv.getVar("carousel-indicator-line-height-mobile");
+    }
+
+    &.#{iv.$class-prefix}is-indicator-bars .#{iv.$class-prefix}indicator-item {
+      width: cv.getVar("carousel-indicator-bar-width-mobile");
+      height: cv.getVar("carousel-indicator-bar-height-mobile");
+    }
+  }
+}

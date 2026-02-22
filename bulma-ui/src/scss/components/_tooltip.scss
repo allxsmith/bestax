@@ -1,0 +1,225 @@
+// Tooltip Component Styles
+// A hover tooltip popover
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Tooltip-specific SCSS variables
+$tooltip-background: hsl(0, 0%, 21%) !default;
+$tooltip-color: white !default;
+$tooltip-max-width: 15rem !default;
+$tooltip-multiline-width: 15rem !default;
+$tooltip-radius: cv.getVar("radius") !default;
+$tooltip-arrow-size: 5px !default;
+$tooltip-padding: 0.35rem 0.75rem !default;
+$tooltip-z-index: $extras-z-index-tooltip !default;
+$tooltip-font-size: $extras-size-small !default;
+$tooltip-line-height: 1.25 !default;
+
+// Register CSS variables on .tooltip-content
+// (tooltip-content is the actual tooltip element that gets themed)
+.#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-background": #{$tooltip-background},
+      "tooltip-color": #{$tooltip-color},
+      "tooltip-radius": #{$tooltip-radius},
+      "tooltip-padding": #{$tooltip-padding},
+      "tooltip-max-width": #{$tooltip-max-width},
+      "tooltip-multiline-width": #{$tooltip-multiline-width},
+      "tooltip-arrow-size": #{$tooltip-arrow-size},
+      "tooltip-z-index": #{$tooltip-z-index},
+      "tooltip-font-size": #{$tooltip-font-size},
+      "tooltip-line-height": #{$tooltip-line-height},
+    )
+  );
+}
+
+// Tooltip wrapper
+.#{iv.$class-prefix}tooltip {
+  position: relative;
+  display: inline-flex;
+
+  // Dashed underline style
+  &.#{iv.$class-prefix}is-dashed {
+    border-bottom: 1px dashed hsl(0, 0%, 71%);
+    cursor: help;
+  }
+}
+
+// Tooltip content element
+.#{iv.$class-prefix}tooltip-content {
+  position: absolute;
+  z-index: cv.getVar("tooltip-z-index");
+  padding: cv.getVar("tooltip-padding");
+  font-size: cv.getVar("tooltip-font-size");
+  font-weight: $extras-weight-normal;
+  line-height: cv.getVar("tooltip-line-height");
+  white-space: nowrap;
+  max-width: cv.getVar("tooltip-max-width");
+  background-color: cv.getVar("tooltip-background");
+  color: cv.getVar("tooltip-color");
+  border-radius: cv.getVar("tooltip-radius");
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+
+  // Arrow
+  &::before {
+    content: '';
+    position: absolute;
+    border: cv.getVar("tooltip-arrow-size") solid transparent;
+  }
+
+  // Animation styles
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-animated & {
+    @include extras-transition(opacity, visibility);
+  }
+
+  // Show tooltip
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-active & {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  // Square corners
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-square & {
+    border-radius: 0;
+  }
+
+  // Multiline
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-multiline & {
+    white-space: normal;
+    width: cv.getVar("tooltip-multiline-width");
+    text-align: center;
+  }
+}
+
+// Position: Top (default)
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-top .#{iv.$class-prefix}tooltip-content,
+.#{iv.$class-prefix}tooltip:not(.#{iv.$class-prefix}is-bottom):not(.#{iv.$class-prefix}is-left):not(.#{iv.$class-prefix}is-right) .#{iv.$class-prefix}tooltip-content {
+  bottom: calc(100% + #{$tooltip-arrow-size} + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  &::before {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top-color: cv.getVar("tooltip-background");
+  }
+}
+
+// Position: Bottom
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-bottom .#{iv.$class-prefix}tooltip-content {
+  top: calc(100% + #{$tooltip-arrow-size} + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  &::before {
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom-color: cv.getVar("tooltip-background");
+  }
+}
+
+// Position: Left
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-left .#{iv.$class-prefix}tooltip-content {
+  right: calc(100% + #{$tooltip-arrow-size} + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+
+  &::before {
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left-color: cv.getVar("tooltip-background");
+  }
+}
+
+// Position: Right
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-right .#{iv.$class-prefix}tooltip-content {
+  left: calc(100% + #{$tooltip-arrow-size} + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+
+  &::before {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right-color: cv.getVar("tooltip-background");
+  }
+}
+
+// Color variants
+// Uses Bulma's -invert-l pattern for text contrast (same approach as buttons)
+@mixin tooltip-color($name) {
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-#{$name} .#{iv.$class-prefix}tooltip-content {
+    @include cv.register-vars(
+      (
+        "tooltip-background": #{cv.getVar($name)},
+        "tooltip-color": #{hsl(cv.getVar($name, "", "-h"), cv.getVar($name, "", "-s"), cv.getVar($name, "", "-invert-l"))},
+      )
+    );
+  }
+}
+
+@include tooltip-color('primary');
+@include tooltip-color('link');
+@include tooltip-color('info');
+@include tooltip-color('success');
+@include tooltip-color('warning');
+@include tooltip-color('danger');
+
+// Dark variant
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-dark .#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-background": #{cv.getVar("dark")},
+      "tooltip-color": #{cv.getVar("light")},
+    )
+  );
+}
+
+// Light variant
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-light .#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-background": #{cv.getVar("light")},
+      "tooltip-color": #{cv.getVar("dark")},
+    )
+  );
+}
+
+// Size variants
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-small .#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-font-size": #{$extras-size-small},
+      "tooltip-padding": 0.25rem 0.5rem,
+      "tooltip-arrow-size": 4px,
+    )
+  );
+}
+
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-medium .#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-font-size": #{$extras-size-normal},
+      "tooltip-padding": 0.5rem 1rem,
+      "tooltip-arrow-size": 6px,
+    )
+  );
+}
+
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-large .#{iv.$class-prefix}tooltip-content {
+  @include cv.register-vars(
+    (
+      "tooltip-font-size": #{$extras-size-medium},
+      "tooltip-padding": 0.75rem 1.25rem,
+      "tooltip-arrow-size": 7px,
+    )
+  );
+}

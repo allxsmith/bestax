@@ -1,0 +1,94 @@
+// Bestax Extras - SCSS Variables
+// These variables leverage Bulma v1 CSS custom properties for theming compatibility
+
+// Color scheme references (use Bulma's CSS variables)
+$extras-scheme-h: var(--bulma-scheme-h, 221);
+$extras-scheme-s: var(--bulma-scheme-s, 14%);
+
+// Primary color references
+$extras-primary-h: var(--bulma-primary-h, 171);
+$extras-primary-s: var(--bulma-primary-s, 100%);
+$extras-primary-l: var(--bulma-primary-l, 41%);
+$extras-primary: hsl($extras-primary-h, $extras-primary-s, $extras-primary-l);
+
+// Link color references
+$extras-link-h: var(--bulma-link-h, 229);
+$extras-link-s: var(--bulma-link-s, 53%);
+$extras-link-l: var(--bulma-link-l, 53%);
+$extras-link: hsl($extras-link-h, $extras-link-s, $extras-link-l);
+
+// Info color references
+$extras-info-h: var(--bulma-info-h, 207);
+$extras-info-s: var(--bulma-info-s, 61%);
+$extras-info-l: var(--bulma-info-l, 53%);
+$extras-info: hsl($extras-info-h, $extras-info-s, $extras-info-l);
+
+// Success color references
+$extras-success-h: var(--bulma-success-h, 153);
+$extras-success-s: var(--bulma-success-s, 53%);
+$extras-success-l: var(--bulma-success-l, 53%);
+$extras-success: hsl($extras-success-h, $extras-success-s, $extras-success-l);
+
+// Warning color references
+$extras-warning-h: var(--bulma-warning-h, 44);
+$extras-warning-s: var(--bulma-warning-s, 100%);
+$extras-warning-l: var(--bulma-warning-l, 77%);
+$extras-warning: hsl($extras-warning-h, $extras-warning-s, $extras-warning-l);
+
+// Danger color references
+$extras-danger-h: var(--bulma-danger-h, 348);
+$extras-danger-s: var(--bulma-danger-s, 86%);
+$extras-danger-l: var(--bulma-danger-l, 61%);
+$extras-danger: hsl($extras-danger-h, $extras-danger-s, $extras-danger-l);
+
+// Typography
+$extras-family-primary: var(--bulma-family-primary, BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif);
+$extras-family-code: var(--bulma-family-code, "Inconsolata", "Hack", "SF Mono", "Roboto Mono", "Source Code Pro", "Ubuntu Mono", monospace);
+
+// Font weights
+$extras-weight-light: var(--bulma-weight-light, 300);
+$extras-weight-normal: var(--bulma-weight-normal, 400);
+$extras-weight-medium: var(--bulma-weight-medium, 500);
+$extras-weight-semibold: var(--bulma-weight-semibold, 600);
+$extras-weight-bold: var(--bulma-weight-bold, 700);
+
+// Sizing
+$extras-size-small: var(--bulma-size-small, 0.75rem);
+$extras-size-normal: var(--bulma-size-normal, 1rem);
+$extras-size-medium: var(--bulma-size-medium, 1.25rem);
+$extras-size-large: var(--bulma-size-large, 1.5rem);
+
+// Spacing
+$extras-block-spacing: var(--bulma-block-spacing, 1.5rem);
+
+// Borders and radius
+$extras-radius-small: var(--bulma-radius-small, 2px);
+$extras-radius: var(--bulma-radius, 4px);
+$extras-radius-medium: var(--bulma-radius-medium, 6px);
+$extras-radius-large: var(--bulma-radius-large, 8px);
+$extras-radius-rounded: var(--bulma-radius-rounded, 9999px);
+
+// Transitions
+$extras-duration: var(--bulma-duration, 0.29s);
+$extras-easing: var(--bulma-easing, ease-out);
+
+// Control sizing
+$extras-control-radius: var(--bulma-control-radius, 4px);
+$extras-control-height: var(--bulma-control-height, 2.5em);
+$extras-control-padding-vertical: var(--bulma-control-padding-vertical, calc(0.5em - 1px));
+$extras-control-padding-horizontal: var(--bulma-control-padding-horizontal, calc(0.75em - 1px));
+
+// Z-index layers
+$extras-z-index-base: 1;
+$extras-z-index-dropdown: 20;
+$extras-z-index-sticky: 30;
+$extras-z-index-fixed: 40;
+$extras-z-index-modal-backdrop: 50;
+$extras-z-index-modal: 60;
+$extras-z-index-tooltip: 70;
+$extras-z-index-toast: 80;
+
+// Shadows
+$extras-shadow-small: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+$extras-shadow-medium: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+$extras-shadow-large: 0 1em 2em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);

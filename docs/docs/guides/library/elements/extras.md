@@ -187,6 +187,23 @@ A preformatted text (`<pre>`) wrapper for code blocks. [View full documentation.
 
 ---
 
+## Interactive Elements
+
+### LinkButton
+
+A `<button>` that visually looks like text or a link — an accessible replacement for `<div onClick>` anti-patterns. Supports `text` (no underline, background highlight on hover) and `ghost` (default text color, underline on hover) variants with optional color overrides. [View full documentation.](../../../api/elements/linkbutton.md)
+
+```tsx live
+<Buttons>
+  <LinkButton>Text Variant</LinkButton>
+  <LinkButton variant="ghost">Ghost Variant</LinkButton>
+  <LinkButton color="primary">Primary Text</LinkButton>
+  <LinkButton variant="ghost" color="danger">Danger Ghost</LinkButton>
+</Buttons>
+```
+
+---
+
 :::tip
 All Extra Elements support the full range of Bulma helper props including colors, spacing, typography, and more. See [Helper Props](../../../api/helpers/usebulmaclasses.md) for details.
 :::

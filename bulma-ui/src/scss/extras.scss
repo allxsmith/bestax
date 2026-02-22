@@ -1,0 +1,21 @@
+// Bestax Extras - Main SCSS Entry Point
+// This file imports all extra component styles
+//
+// Usage (pre-built CSS):
+//   import '@allxsmith/bestax-bulma/dist/extras.css';
+//
+// Usage (SCSS source for customization):
+//   @use '@allxsmith/bestax-bulma/src/scss/extras';
+
+// Foundation
+@use 'variables';
+@use 'mixins';
+
+// Component styles
+@use 'components/index' as components;
+
+// Form component styles
+@use 'form/index' as form;
+
+// Element styles
+@use 'elements/index' as elements;

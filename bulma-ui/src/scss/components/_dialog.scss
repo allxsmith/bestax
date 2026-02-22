@@ -1,0 +1,134 @@
+// Dialog component styles
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Dialog-specific SCSS variables
+$dialog-width: 420px !default;
+$dialog-max-width: 90% !default;
+$dialog-radius: cv.getVar("radius") !default;
+$dialog-background: cv.getVar("scheme-main") !default;
+$dialog-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.2) !default;
+$dialog-header-padding: 1rem 1.25rem !default;
+$dialog-body-padding: 1.25rem !default;
+$dialog-body-color: cv.getVar("text") !default;
+$dialog-body-line-height: 1.5 !default;
+$dialog-footer-padding: 1rem 1.25rem !default;
+$dialog-footer-gap: 0.75rem !default;
+$dialog-border-color: cv.getVar("border") !default;
+$dialog-title-size: cv.getVar("size-5") !default;
+$dialog-title-weight: cv.getVar("weight-semibold") !default;
+$dialog-title-color: cv.getVar("text-strong") !default;
+$dialog-icon-size: 1.5rem !default;
+$dialog-icon-margin: 0.75rem !default;
+$dialog-animation-duration: 0.2s !default;
+
+.#{iv.$class-prefix}dialog {
+  @include cv.register-vars(
+    (
+      "dialog-width": #{$dialog-width},
+      "dialog-max-width": #{$dialog-max-width},
+      "dialog-radius": #{$dialog-radius},
+      "dialog-background": #{$dialog-background},
+      "dialog-shadow": #{$dialog-shadow},
+      "dialog-header-padding": #{$dialog-header-padding},
+      "dialog-body-padding": #{$dialog-body-padding},
+      "dialog-body-color": #{$dialog-body-color},
+      "dialog-body-line-height": #{$dialog-body-line-height},
+      "dialog-footer-padding": #{$dialog-footer-padding},
+      "dialog-footer-gap": #{$dialog-footer-gap},
+      "dialog-border-color": #{$dialog-border-color},
+      "dialog-title-size": #{$dialog-title-size},
+      "dialog-title-weight": #{$dialog-title-weight},
+      "dialog-title-color": #{$dialog-title-color},
+      "dialog-icon-size": #{$dialog-icon-size},
+      "dialog-icon-margin": #{$dialog-icon-margin},
+      "dialog-animation-duration": #{$dialog-animation-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}dialog {
+  position: relative;
+  background-color: cv.getVar("dialog-background");
+  border-radius: cv.getVar("dialog-radius");
+  box-shadow: cv.getVar("dialog-shadow");
+  max-width: cv.getVar("dialog-max-width");
+  width: cv.getVar("dialog-width");
+  animation: dialog-scale-in cv.getVar("dialog-animation-duration") ease;
+  outline: none;
+}
+
+.#{iv.$class-prefix}dialog-header {
+  display: flex;
+  align-items: center;
+  padding: cv.getVar("dialog-header-padding");
+  border-bottom: 1px solid cv.getVar("dialog-border-color");
+}
+
+.#{iv.$class-prefix}dialog-title {
+  font-size: cv.getVar("dialog-title-size");
+  font-weight: cv.getVar("dialog-title-weight");
+  color: cv.getVar("dialog-title-color");
+  margin: 0;
+}
+
+.#{iv.$class-prefix}dialog-body {
+  padding: cv.getVar("dialog-body-padding");
+  color: cv.getVar("dialog-body-color");
+  line-height: cv.getVar("dialog-body-line-height");
+}
+
+.#{iv.$class-prefix}dialog-footer {
+  display: flex;
+  gap: cv.getVar("dialog-footer-gap");
+  justify-content: flex-end;
+  padding: cv.getVar("dialog-footer-padding");
+  border-top: 1px solid cv.getVar("dialog-border-color");
+}
+
+// Dialog type variants with icons
+.#{iv.$class-prefix}dialog.#{iv.$class-prefix}is-success .#{iv.$class-prefix}dialog-header {
+  color: cv.getVar("success");
+}
+
+.#{iv.$class-prefix}dialog.#{iv.$class-prefix}is-danger .#{iv.$class-prefix}dialog-header {
+  color: cv.getVar("danger");
+}
+
+.#{iv.$class-prefix}dialog.#{iv.$class-prefix}is-warning .#{iv.$class-prefix}dialog-header {
+  color: cv.getVar("warning");
+}
+
+.#{iv.$class-prefix}dialog.#{iv.$class-prefix}is-info .#{iv.$class-prefix}dialog-header {
+  color: cv.getVar("info");
+}
+
+// Dialog icon
+.#{iv.$class-prefix}dialog-icon {
+  display: flex;
+  align-items: center;
+  margin-right: cv.getVar("dialog-icon-margin");
+
+  svg {
+    width: cv.getVar("dialog-icon-size");
+    height: cv.getVar("dialog-icon-size");
+  }
+}
+
+@keyframes dialog-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}dialog {
+    animation: none;
+  }
+}

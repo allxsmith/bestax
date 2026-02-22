@@ -1,6 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { OrderedList } from './OrderedList';
 import { ListItem } from './ListItem';
+import { Content } from './Content';
 
 const meta: Meta<typeof OrderedList> = {
   title: 'Elements/OrderedList',
@@ -78,104 +79,122 @@ type Story = StoryObj<typeof OrderedList>;
 
 export const Default: Story = {
   render: () => (
-    <OrderedList>
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList>
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
 };
 
 export const AlphabeticLowercase: Story = {
   render: () => (
-    <OrderedList type="a">
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList type="a">
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Alphabetic Lowercase',
 };
 
 export const AlphabeticUppercase: Story = {
   render: () => (
-    <OrderedList type="A">
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList type="A">
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Alphabetic Uppercase',
 };
 
 export const RomanNumerals: Story = {
   render: () => (
-    <OrderedList type="I">
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList type="I">
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Roman Numerals',
 };
 
 export const StartingNumber: Story = {
   render: () => (
-    <OrderedList start={5}>
-      <ListItem>Fifth item</ListItem>
-      <ListItem>Sixth item</ListItem>
-      <ListItem>Seventh item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList start={5}>
+        <ListItem>Fifth item</ListItem>
+        <ListItem>Sixth item</ListItem>
+        <ListItem>Seventh item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Custom Starting Number',
 };
 
 export const Reversed: Story = {
   render: () => (
-    <OrderedList reversed>
-      <ListItem>Third item (shown as 3)</ListItem>
-      <ListItem>Second item (shown as 2)</ListItem>
-      <ListItem>First item (shown as 1)</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList reversed>
+        <ListItem>Third item (shown as 3)</ListItem>
+        <ListItem>Second item (shown as 2)</ListItem>
+        <ListItem>First item (shown as 1)</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Reversed Order',
 };
 
 export const PrimaryText: Story = {
   render: () => (
-    <OrderedList textColor="primary">
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList textColor="primary">
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Primary Text Color',
 };
 
 export const WithBackground: Story = {
   render: () => (
-    <OrderedList bgColor="light" textColor="dark" p="4">
-      <ListItem>First item</ListItem>
-      <ListItem>Second item</ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content bgColor="light" textColor="dark" p="4">
+      <OrderedList>
+        <ListItem>First item</ListItem>
+        <ListItem>Second item</ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'With Background',
 };
 
 export const NestedList: Story = {
   render: () => (
-    <OrderedList>
-      <ListItem>First item</ListItem>
-      <ListItem>
-        Second item with nested list
-        <OrderedList type="a">
-          <ListItem>Nested item a</ListItem>
-          <ListItem>Nested item b</ListItem>
-        </OrderedList>
-      </ListItem>
-      <ListItem>Third item</ListItem>
-    </OrderedList>
+    <Content>
+      <OrderedList>
+        <ListItem>First item</ListItem>
+        <ListItem>
+          Second item with nested list
+          <OrderedList type="a">
+            <ListItem>Nested item a</ListItem>
+            <ListItem>Nested item b</ListItem>
+          </OrderedList>
+        </ListItem>
+        <ListItem>Third item</ListItem>
+      </OrderedList>
+    </Content>
   ),
   name: 'Nested List',
 };

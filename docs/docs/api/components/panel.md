@@ -37,7 +37,7 @@ import { Panel } from '@allxsmith/bestax-bulma';
 - `Panel.Heading`: Main heading (renders as `<p class="panel-heading">`)
 - `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`)
 - `Panel.Block`: Individual panel block (renders as `<a class="panel-block">`)
-- `Panel.Icon`: Icon container (renders as `<span class="panel-icon">`)
+- `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon"><i/></span>`). Accepts all Icon props (`name`, `variant`, `features`, etc.)
 - `Panel.InputBlock`: Search input with icon (renders as `<div class="panel-block">`)
 - `Panel.CheckboxBlock`: Checkbox block (renders as `<label class="panel-block">`)
 - `Panel.ButtonBlock`: Call-to-action button (renders as `<div class="panel-block"><button /></div>`)
@@ -62,45 +62,31 @@ This example shows a complete panel layout using `Panel` and its subcomponents. 
     <a>Documents</a>
   </Panel.Tabs>
   <Panel.Block active>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="user" variant="solid" />
     George Washington
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="user" variant="solid" />
     Alexander Hamilton
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="user" variant="solid" />
     Benedict Arnold
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-user" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="user" variant="solid" />
     John Adams
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-flag" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="flag" variant="solid" />
     Battle of Saratoga
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-flag" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="flag" variant="solid" />
     Treaty of Paris
   </Panel.Block>
   <Panel.Block>
-    <Panel.Icon>
-      <i className="fas fa-flag" aria-hidden="true"></i>
-    </Panel.Icon>
+    <Panel.Icon name="flag" variant="solid" />
     Bunker Hill
   </Panel.Block>
   <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>

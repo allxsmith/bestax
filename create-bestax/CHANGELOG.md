@@ -1,23 +1,20 @@
 # [2.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.0.1...create-bestax@2.1.0) (2026-01-12)
 
-
 ### Bug Fixes
 
-* **docs:** correct Content Signals syntax in robots.txt ([#134](https://github.com/allxsmith/bestax/issues/134)) ([85dd9de](https://github.com/allxsmith/bestax/commit/85dd9de7c147b06f43b9e6a51c6c304a9530b121))
-
+- **docs:** correct Content Signals syntax in robots.txt ([#134](https://github.com/allxsmith/bestax/issues/134)) ([85dd9de](https://github.com/allxsmith/bestax/commit/85dd9de7c147b06f43b9e6a51c6c304a9530b121))
 
 ### Features
 
-* **bulma-ui:** add HTML element wrapper components ([#135](https://github.com/allxsmith/bestax/issues/135)) ([#136](https://github.com/allxsmith/bestax/issues/136)) ([20fb16d](https://github.com/allxsmith/bestax/commit/20fb16dc69592e89ac7924d7b0e1e9cd1048fec8))
-* **docs:** migrate from GitHub Pages to Cloudflare Pages ([#132](https://github.com/allxsmith/bestax/issues/132)) ([2154672](https://github.com/allxsmith/bestax/commit/21546721dbc0eaa175820166f2b2b630a0516334)), closes [#131](https://github.com/allxsmith/bestax/issues/131)
+- **bulma-ui:** add HTML element wrapper components ([#135](https://github.com/allxsmith/bestax/issues/135)) ([#136](https://github.com/allxsmith/bestax/issues/136)) ([20fb16d](https://github.com/allxsmith/bestax/commit/20fb16dc69592e89ac7924d7b0e1e9cd1048fec8))
+- **docs:** migrate from GitHub Pages to Cloudflare Pages ([#132](https://github.com/allxsmith/bestax/issues/132)) ([2154672](https://github.com/allxsmith/bestax/commit/21546721dbc0eaa175820166f2b2b630a0516334)), closes [#131](https://github.com/allxsmith/bestax/issues/131)
 
 ## [2.0.1](https://github.com/allxsmith/bestax/compare/create-bestax@2.0.0...create-bestax@2.0.1) (2026-01-09)
 
-
 ### Bug Fixes
 
-* **bulma-ui:** resolve security vulnerabilities and update dependencies ([#128](https://github.com/allxsmith/bestax/issues/128)) ([112f6e4](https://github.com/allxsmith/bestax/commit/112f6e4841fa9ea9c4ba49200984e413c1bc5f22)), closes [#127](https://github.com/allxsmith/bestax/issues/127)
-* **bulma-ui:** use createRequire for ESM compatibility in Storybook 10 ([#130](https://github.com/allxsmith/bestax/issues/130)) ([b27e60e](https://github.com/allxsmith/bestax/commit/b27e60e074dda007e76ad38d867573539b8bcb41)), closes [#129](https://github.com/allxsmith/bestax/issues/129)
+- **bulma-ui:** resolve security vulnerabilities and update dependencies ([#128](https://github.com/allxsmith/bestax/issues/128)) ([112f6e4](https://github.com/allxsmith/bestax/commit/112f6e4841fa9ea9c4ba49200984e413c1bc5f22)), closes [#127](https://github.com/allxsmith/bestax/issues/127)
+- **bulma-ui:** use createRequire for ESM compatibility in Storybook 10 ([#130](https://github.com/allxsmith/bestax/issues/130)) ([b27e60e](https://github.com/allxsmith/bestax/commit/b27e60e074dda007e76ad38d867573539b8bcb41)), closes [#129](https://github.com/allxsmith/bestax/issues/129)
 
 # [2.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@1.4.2...create-bestax@2.0.0) (2025-10-25)
 

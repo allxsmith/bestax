@@ -1,0 +1,204 @@
+// Rate Component Styles
+// A star/icon-based rating component
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--bulma-link);
+    outline-offset: 2px;
+    border-radius: $extras-radius;
+  }
+}
+
+.rate-items {
+  display: inline-flex;
+  align-items: center;
+}
+
+.rate-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: hsl(0, 0%, 71%);
+  transition: color 0.15s ease, transform 0.1s ease;
+
+  svg {
+    width: 1.5em;
+    height: 1.5em;
+  }
+
+  &:hover:not(.is-active) {
+    color: hsl(48, 100%, 67%);
+    transform: scale(1.1);
+  }
+
+  &.is-active {
+    color: hsl(48, 100%, 50%);
+  }
+
+  &.is-hovered {
+    color: hsl(48, 100%, 67%);
+    transform: scale(1.1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: hsl(0, 0%, 48%);
+
+    &:hover:not(.is-active) {
+      color: hsl(48, 100%, 60%);
+    }
+
+    &.is-active {
+      color: hsl(48, 100%, 55%);
+    }
+  }
+}
+
+// Score display
+.rate-score {
+  font-weight: 600;
+  color: hsl(0, 0%, 29%);
+  min-width: 2em;
+  text-align: center;
+
+  @media (prefers-color-scheme: dark) {
+    color: hsl(0, 0%, 86%);
+  }
+}
+
+// Text display
+.rate-text {
+  color: hsl(0, 0%, 48%);
+  font-size: 0.875em;
+
+  @media (prefers-color-scheme: dark) {
+    color: hsl(0, 0%, 71%);
+  }
+}
+
+// Disabled state
+.rate.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+
+  .rate-item {
+    cursor: not-allowed;
+  }
+}
+
+// Spaced variant
+.rate.is-spaced {
+  .rate-items {
+    gap: 0.25rem;
+  }
+}
+
+// RTL support
+.rate.is-rtl {
+  .rate-items {
+    flex-direction: row-reverse;
+  }
+}
+
+// Size variants
+.rate.is-small {
+  .rate-item svg {
+    width: 1em;
+    height: 1em;
+  }
+
+  .rate-score {
+    font-size: $extras-size-small;
+  }
+
+  .rate-text {
+    font-size: 0.75rem;
+  }
+}
+
+.rate.is-medium {
+  .rate-item svg {
+    width: 2em;
+    height: 2em;
+  }
+
+  .rate-score {
+    font-size: $extras-size-medium;
+  }
+
+  .rate-text {
+    font-size: 1rem;
+  }
+}
+
+.rate.is-large {
+  .rate-item svg {
+    width: 2.5em;
+    height: 2.5em;
+  }
+
+  .rate-score {
+    font-size: $extras-size-large;
+  }
+
+  .rate-text {
+    font-size: 1.125rem;
+  }
+}
+
+// Animation on selection
+.rate-item.is-active {
+  animation: rate-pop 0.2s ease;
+}
+
+@keyframes rate-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Heart icon variation colors (when using custom icons)
+.rate.rate-hearts {
+  .rate-item {
+    color: hsl(0, 0%, 71%);
+
+    &.is-active {
+      color: hsl(348, 100%, 61%);
+    }
+
+    &:hover:not(.is-active),
+    &.is-hovered {
+      color: hsl(348, 100%, 71%);
+    }
+  }
+}
+
+// Thumbs up variation
+.rate.rate-thumbs {
+  .rate-item {
+    color: hsl(0, 0%, 71%);
+
+    &.is-active {
+      color: hsl(141, 53%, 53%);
+    }
+
+    &:hover:not(.is-active),
+    &.is-hovered {
+      color: hsl(141, 53%, 63%);
+    }
+  }
+}

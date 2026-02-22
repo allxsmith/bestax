@@ -1,0 +1,216 @@
+// Numberinput Component Styles
+// A number input with increment/decrement buttons
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+.numberinput {
+  display: inline-flex;
+  align-items: stretch;
+
+  .control {
+    display: flex;
+  }
+
+  .control.is-expanded {
+    flex: 1;
+  }
+
+  // Input styling
+  .input {
+    text-align: center;
+    -moz-appearance: textfield; // Remove Firefox arrows
+
+    // Remove webkit arrows
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  // Button styling
+  .button {
+    border-radius: 0;
+
+    .icon {
+      font-size: 1.25em;
+    }
+  }
+
+  // First control
+  .control:first-child .button {
+    border-top-left-radius: $extras-radius;
+    border-bottom-left-radius: $extras-radius;
+    border-right: none;
+  }
+
+  // Last control
+  .control:last-child .button {
+    border-top-right-radius: $extras-radius;
+    border-bottom-right-radius: $extras-radius;
+    border-left: none;
+  }
+
+  // Middle input
+  .control.is-expanded .input {
+    border-radius: 0;
+  }
+
+  // Only controls on one side
+  &.controls-left {
+    .control:first-child .button {
+      border-top-left-radius: $extras-radius;
+      border-bottom-left-radius: $extras-radius;
+    }
+
+    .control.is-expanded .input {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: $extras-radius;
+      border-bottom-right-radius: $extras-radius;
+    }
+  }
+
+  &.controls-right {
+    .control.is-expanded .input {
+      border-top-left-radius: $extras-radius;
+      border-bottom-left-radius: $extras-radius;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .control:last-child .button {
+      border-top-right-radius: $extras-radius;
+      border-bottom-right-radius: $extras-radius;
+    }
+  }
+
+  // Both controls (default) - add second button for left side
+  &.controls-both {
+    // Left control should have - button with left radius
+    > .control:first-child .button {
+      border-top-left-radius: $extras-radius;
+      border-bottom-left-radius: $extras-radius;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    // Input in middle, no radius
+    > .control.is-expanded .input {
+      border-radius: 0;
+    }
+
+    // Right control should have + button with right radius
+    > .control:last-child .button {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-top-right-radius: $extras-radius;
+      border-bottom-right-radius: $extras-radius;
+    }
+  }
+
+  // Rounded buttons
+  .button.is-rounded {
+    border-radius: $extras-radius-rounded !important;
+  }
+
+  // Disabled state
+  &.is-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+// Size variants
+.numberinput.is-small {
+  .input,
+  .button {
+    font-size: $extras-size-small;
+  }
+}
+
+.numberinput.is-medium {
+  .input,
+  .button {
+    font-size: $extras-size-medium;
+  }
+}
+
+.numberinput.is-large {
+  .input,
+  .button {
+    font-size: $extras-size-large;
+  }
+}
+
+// Compact variant (buttons inside input)
+.numberinput.is-compact {
+  position: relative;
+
+  .control.is-expanded {
+    width: 100%;
+  }
+
+  .input {
+    padding-left: 2.5em;
+    padding-right: 2.5em;
+    border-radius: $extras-radius;
+  }
+
+  > .control:not(.is-expanded) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+
+    &:first-child {
+      left: 0;
+    }
+
+    &:last-child {
+      right: 0;
+    }
+
+    .button {
+      height: 100%;
+      border: none;
+      background: transparent;
+      color: hsl(0, 0%, 48%);
+
+      &:hover:not(:disabled) {
+        background: hsl(0, 0%, 96%);
+        color: hsl(0, 0%, 21%);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        color: hsl(0, 0%, 71%);
+
+        &:hover:not(:disabled) {
+          background: hsl(0, 0%, 21%);
+          color: hsl(0, 0%, 96%);
+        }
+      }
+    }
+  }
+}
+
+// Full width
+.numberinput.is-fullwidth {
+  width: 100%;
+}
+
+// Focus states
+.numberinput .input:focus {
+  z-index: 1;
+}
+
+// Hover effects on buttons
+.numberinput .button:hover:not(:disabled) {
+  z-index: 1;
+}
+
+// Button pressed state
+.numberinput .button:active:not(:disabled) {
+  transform: scale(0.98);
+}

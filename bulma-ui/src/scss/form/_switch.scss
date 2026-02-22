@@ -1,0 +1,178 @@
+// Switch Component Styles
+// A toggle switch control for on/off states
+
+@use '../variables' as *;
+@use '../mixins' as *;
+
+$switch-width: 2.75em;
+$switch-height: 1.5em;
+$switch-padding: 0.125em;
+$switch-check-size: calc(#{$switch-height} - #{$switch-padding} * 2);
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .check {
+      background-color: $extras-primary;
+      border-color: $extras-primary;
+
+      &::before {
+        transform: translateX(calc(#{$switch-width} - #{$switch-check-size} - #{$switch-padding} * 2));
+      }
+    }
+
+    &:focus + .check {
+      box-shadow: 0 0 0 0.125em rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled + .check {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:disabled ~ .control-label {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .check {
+    display: inline-block;
+    position: relative;
+    width: $switch-width;
+    height: $switch-height;
+    background-color: hsl(0, 0%, 71%);
+    border: 1px solid transparent;
+    border-radius: $extras-radius-rounded;
+    flex-shrink: 0;
+    @include extras-transition(background-color, border-color);
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: $switch-padding;
+      left: $switch-padding;
+      width: $switch-check-size;
+      height: $switch-check-size;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+      @include extras-transition(transform);
+    }
+  }
+
+  .control-label {
+    margin-left: 0.5em;
+    line-height: $switch-height;
+  }
+
+  // RTL support
+  &.is-rtl {
+    flex-direction: row-reverse;
+
+    .control-label {
+      margin-left: 0;
+      margin-right: 0.5em;
+    }
+  }
+
+  // Size variants
+  &.is-small {
+    font-size: $extras-size-small;
+  }
+
+  &.is-medium {
+    font-size: $extras-size-medium;
+  }
+
+  &.is-large {
+    font-size: $extras-size-large;
+  }
+
+  // Rounded variant
+  &.is-rounded {
+    .check {
+      border-radius: $extras-radius-rounded;
+
+      &::before {
+        border-radius: 50%;
+      }
+    }
+  }
+
+  // Thin variant
+  &.is-thin {
+    .check {
+      height: 0.75em;
+
+      &::before {
+        top: -0.25em;
+        width: 1.25em;
+        height: 1.25em;
+      }
+    }
+
+    input[type="checkbox"]:checked + .check::before {
+      transform: translateX(calc(#{$switch-width} - 1.25em - #{$switch-padding} * 2));
+    }
+  }
+
+  // Outlined variant
+  &.is-outlined {
+    .check {
+      background-color: transparent;
+      border-color: hsl(0, 0%, 71%);
+
+      &::before {
+        background-color: hsl(0, 0%, 71%);
+      }
+    }
+
+    input[type="checkbox"]:checked + .check {
+      background-color: transparent;
+      border-color: $extras-primary;
+
+      &::before {
+        background-color: $extras-primary;
+      }
+    }
+  }
+
+  // Color variants
+  @each $name, $color-h, $color-s, $color-l in
+    ('primary', var(--bulma-primary-h, 171), var(--bulma-primary-s, 100%), var(--bulma-primary-l, 41%)),
+    ('link', var(--bulma-link-h, 229), var(--bulma-link-s, 53%), var(--bulma-link-l, 53%)),
+    ('info', var(--bulma-info-h, 207), var(--bulma-info-s, 61%), var(--bulma-info-l, 53%)),
+    ('success', var(--bulma-success-h, 153), var(--bulma-success-s, 53%), var(--bulma-success-l, 53%)),
+    ('warning', var(--bulma-warning-h, 44), var(--bulma-warning-s, 100%), var(--bulma-warning-l, 77%)),
+    ('danger', var(--bulma-danger-h, 348), var(--bulma-danger-s, 86%), var(--bulma-danger-l, 61%)) {
+
+    &.is-#{$name} {
+      input[type="checkbox"]:checked + .check {
+        background-color: hsl($color-h, $color-s, $color-l);
+        border-color: hsl($color-h, $color-s, $color-l);
+      }
+
+      &.is-outlined {
+        input[type="checkbox"]:checked + .check {
+          background-color: transparent;
+          border-color: hsl($color-h, $color-s, $color-l);
+
+          &::before {
+            background-color: hsl($color-h, $color-s, $color-l);
+          }
+        }
+      }
+    }
+  }
+}

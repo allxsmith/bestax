@@ -1,0 +1,347 @@
+// Sidebar Component Styles
+// A slide-out navigation panel
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Sidebar-specific SCSS variables
+$sidebar-width: 260px !default;
+$sidebar-width-tablet: 300px !default;
+$sidebar-width-narrow: 200px !default;
+$sidebar-width-wide: 400px !default;
+$sidebar-width-mini: 60px !default;
+$sidebar-z-index: $extras-z-index-fixed !default;
+$sidebar-background: cv.getVar("scheme-main") !default;
+$sidebar-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.15) !default;
+$sidebar-transition-duration: 0.3s !default;
+
+// Overlay
+$sidebar-overlay-background: hsla(0, 0%, 4%, 0.86) !default;
+$sidebar-overlay-z-index: $extras-z-index-fixed - 1 !default;
+
+// Content
+$sidebar-content-padding: 1rem !default;
+$sidebar-scrollbar-width: 6px !default;
+$sidebar-scrollbar-color: cv.getVar("grey-light") !default;
+$sidebar-scrollbar-color-hover: cv.getVar("grey") !default;
+
+// Header
+$sidebar-header-padding: 0.75rem 1rem !default;
+$sidebar-header-border-color: cv.getVar("border") !default;
+$sidebar-header-margin-bottom: 1rem !default;
+
+// Title
+$sidebar-title-size: 1.25rem !default;
+$sidebar-title-weight: cv.getVar("weight-semibold") !default;
+$sidebar-title-color: cv.getVar("text-strong") !default;
+
+// Close button
+$sidebar-close-size: 1.75rem !default;
+$sidebar-close-color: cv.getVar("text") !default;
+$sidebar-close-line-width: 2px !default;
+$sidebar-close-hover-background: cv.getVar("scheme-main-ter") !default;
+$sidebar-close-radius: cv.getVar("radius") !default;
+
+// Footer
+$sidebar-footer-padding: 0.75rem 1rem !default;
+$sidebar-footer-border-color: cv.getVar("border") !default;
+$sidebar-footer-margin-top: 1rem !default;
+
+// Menu integration
+$sidebar-menu-item-padding: 0.5rem 0.75rem !default;
+$sidebar-menu-item-radius: cv.getVar("radius") !default;
+$sidebar-menu-item-hover-background: cv.getVar("scheme-main-bis") !default;
+$sidebar-menu-item-active-background: cv.getVar("link") !default;
+$sidebar-menu-item-active-color: cv.getVar("link-invert") !default;
+
+// Static variant
+$sidebar-static-border-color: cv.getVar("border") !default;
+
+// Register CSS variables
+.#{iv.$class-prefix}sidebar {
+  @include cv.register-vars(
+    (
+      "sidebar-width": #{$sidebar-width},
+      "sidebar-background": #{$sidebar-background},
+      "sidebar-shadow": #{$sidebar-shadow},
+      "sidebar-transition-duration": #{$sidebar-transition-duration},
+      "sidebar-content-padding": #{$sidebar-content-padding},
+      "sidebar-scrollbar-width": #{$sidebar-scrollbar-width},
+      "sidebar-scrollbar-color": #{$sidebar-scrollbar-color},
+      "sidebar-scrollbar-color-hover": #{$sidebar-scrollbar-color-hover},
+      "sidebar-header-padding": #{$sidebar-header-padding},
+      "sidebar-header-border-color": #{$sidebar-header-border-color},
+      "sidebar-header-margin-bottom": #{$sidebar-header-margin-bottom},
+      "sidebar-title-size": #{$sidebar-title-size},
+      "sidebar-title-weight": #{$sidebar-title-weight},
+      "sidebar-title-color": #{$sidebar-title-color},
+      "sidebar-close-size": #{$sidebar-close-size},
+      "sidebar-close-color": #{$sidebar-close-color},
+      "sidebar-close-line-width": #{$sidebar-close-line-width},
+      "sidebar-close-hover-background": #{$sidebar-close-hover-background},
+      "sidebar-close-radius": #{$sidebar-close-radius},
+      "sidebar-footer-padding": #{$sidebar-footer-padding},
+      "sidebar-footer-border-color": #{$sidebar-footer-border-color},
+      "sidebar-footer-margin-top": #{$sidebar-footer-margin-top},
+      "sidebar-menu-item-padding": #{$sidebar-menu-item-padding},
+      "sidebar-menu-item-radius": #{$sidebar-menu-item-radius},
+      "sidebar-menu-item-hover-background": #{$sidebar-menu-item-hover-background},
+      "sidebar-menu-item-active-background": #{$sidebar-menu-item-active-background},
+      "sidebar-menu-item-active-color": #{$sidebar-menu-item-active-color},
+      "sidebar-static-border-color": #{$sidebar-static-border-color},
+    )
+  );
+}
+
+// Sidebar background overlay
+.#{iv.$class-prefix}sidebar-background {
+  @include cv.register-vars(
+    (
+      "sidebar-overlay-background": #{$sidebar-overlay-background},
+      "sidebar-transition-duration": #{$sidebar-transition-duration},
+    )
+  );
+  @include extras-overlay;
+  background-color: cv.getVar("sidebar-overlay-background");
+  opacity: 0;
+  visibility: hidden;
+  z-index: $sidebar-overlay-z-index;
+  @include extras-transition(opacity, visibility);
+  transition-duration: cv.getVar("sidebar-transition-duration");
+
+  &.#{iv.$class-prefix}is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+// Sidebar panel
+.#{iv.$class-prefix}sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: $sidebar-z-index;
+  width: cv.getVar("sidebar-width");
+  max-width: 100%;
+  background-color: cv.getVar("sidebar-background");
+  box-shadow: cv.getVar("sidebar-shadow");
+  transform: translateX(-100%);
+  @include extras-transition(transform);
+  transition-duration: cv.getVar("sidebar-transition-duration");
+  overflow: hidden;
+  outline: none;
+
+  // Left position (default)
+  &.#{iv.$class-prefix}is-left {
+    left: 0;
+    transform: translateX(-100%);
+
+    &.#{iv.$class-prefix}is-active {
+      transform: translateX(0);
+    }
+  }
+
+  // Right position
+  &.#{iv.$class-prefix}is-right {
+    right: 0;
+    left: auto;
+    transform: translateX(100%);
+
+    &.#{iv.$class-prefix}is-active {
+      transform: translateX(0);
+    }
+  }
+
+  // Full width (mobile style)
+  &.#{iv.$class-prefix}is-fullwidth {
+    width: 100%;
+  }
+}
+
+// Sidebar content container (structural flex wrapper)
+.#{iv.$class-prefix}sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// Sidebar body (scrollable content area)
+.#{iv.$class-prefix}sidebar-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: cv.getVar("sidebar-content-padding");
+
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: cv.getVar("sidebar-scrollbar-width");
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: cv.getVar("sidebar-scrollbar-color");
+    border-radius: 3px;
+
+    &:hover {
+      background-color: cv.getVar("sidebar-scrollbar-color-hover");
+    }
+  }
+}
+
+// Header section (optional)
+.#{iv.$class-prefix}sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: cv.getVar("sidebar-header-padding");
+  border-bottom: 1px solid cv.getVar("sidebar-header-border-color");
+  margin-bottom: cv.getVar("sidebar-header-margin-bottom");
+}
+
+// Title
+.#{iv.$class-prefix}sidebar-title {
+  font-size: cv.getVar("sidebar-title-size");
+  font-weight: cv.getVar("sidebar-title-weight");
+  color: cv.getVar("sidebar-title-color");
+  margin: 0;
+}
+
+// Close button
+.#{iv.$class-prefix}sidebar-close {
+  @include extras-button-reset;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: cv.getVar("sidebar-close-size");
+  height: cv.getVar("sidebar-close-size");
+  font-size: 0;
+  border-radius: cv.getVar("sidebar-close-radius");
+  @include extras-transition(background-color);
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 50%;
+    height: cv.getVar("sidebar-close-line-width");
+    background-color: cv.getVar("sidebar-close-color");
+    top: 50%;
+    left: 50%;
+  }
+
+  &::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  &:hover {
+    background-color: cv.getVar("sidebar-close-hover-background");
+  }
+}
+
+// Footer section (optional)
+.#{iv.$class-prefix}sidebar-footer {
+  padding: cv.getVar("sidebar-footer-padding");
+  border-top: 1px solid cv.getVar("sidebar-footer-border-color");
+  margin-top: cv.getVar("sidebar-footer-margin-top");
+}
+
+// Menu integration
+.#{iv.$class-prefix}sidebar .#{iv.$class-prefix}menu {
+  padding: 0;
+
+  .#{iv.$class-prefix}menu-label {
+    padding: 0.5rem 0;
+  }
+
+  .#{iv.$class-prefix}menu-list {
+    a {
+      padding: cv.getVar("sidebar-menu-item-padding");
+      border-radius: cv.getVar("sidebar-menu-item-radius");
+
+      &:hover {
+        background-color: cv.getVar("sidebar-menu-item-hover-background");
+      }
+
+      &.#{iv.$class-prefix}is-active {
+        background-color: cv.getVar("sidebar-menu-item-active-background");
+        color: cv.getVar("sidebar-menu-item-active-color");
+      }
+    }
+  }
+}
+
+// Responsive breakpoints
+@include extras-tablet {
+  .#{iv.$class-prefix}sidebar {
+    @include cv.register-vars(("sidebar-width": #{$sidebar-width-tablet}));
+  }
+
+  .#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-narrow {
+    @include cv.register-vars(("sidebar-width": #{$sidebar-width-narrow}));
+  }
+
+  .#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-wide {
+    @include cv.register-vars(("sidebar-width": #{$sidebar-width-wide}));
+  }
+}
+
+// Reduce motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}sidebar,
+  .#{iv.$class-prefix}sidebar-background {
+    transition: none;
+  }
+}
+
+// Static variant (inline sidebar, not overlay)
+.#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-static {
+  position: relative;
+  transform: none;
+  box-shadow: none;
+  z-index: auto;
+  border-right: 1px solid cv.getVar("sidebar-static-border-color");
+
+  &.#{iv.$class-prefix}is-right {
+    border-right: none;
+    border-left: 1px solid cv.getVar("sidebar-static-border-color");
+  }
+}
+
+// Mini/collapsed state
+.#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-mini {
+  @include cv.register-vars(("sidebar-width": #{$sidebar-width-mini}));
+
+  .#{iv.$class-prefix}sidebar-content {
+    padding: 0.5rem;
+  }
+
+  .#{iv.$class-prefix}menu-label {
+    display: none;
+  }
+
+  .#{iv.$class-prefix}menu-list a {
+    justify-content: center;
+    padding: 0.75rem;
+
+    .#{iv.$class-prefix}icon {
+      margin: 0;
+    }
+
+    span:not(.#{iv.$class-prefix}icon) {
+      display: none;
+    }
+  }
+}

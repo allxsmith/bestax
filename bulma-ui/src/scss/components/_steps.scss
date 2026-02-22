@@ -1,0 +1,459 @@
+// Steps Component Styles
+// A multi-step progress indicator
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Steps-specific SCSS variables
+$steps-marker-size: 2rem !default;
+$steps-marker-size-small: 1.5rem !default;
+$steps-marker-size-medium: 2.5rem !default;
+$steps-marker-size-large: 3rem !default;
+$steps-divider-height: 0.2em !default;
+$steps-default-color: cv.getVar("grey-light") !default;
+$steps-marker-background: cv.getVar("scheme-main") !default;
+$steps-marker-font-size: cv.getVar("size-small") !default;
+$steps-marker-font-weight: cv.getVar("weight-bold") !default;
+$steps-title-size: cv.getVar("size-small") !default;
+$steps-title-weight: cv.getVar("weight-medium") !default;
+$steps-title-color: cv.getVar("text-weak") !default;
+$steps-title-active-color: cv.getVar("text-strong") !default;
+$steps-title-active-weight: cv.getVar("weight-semibold") !default;
+$steps-content-margin-top: 0.5rem !default;
+$steps-vertical-padding: 1.5rem !default;
+$steps-vertical-content-margin-left: 1rem !default;
+$steps-animation-duration: 0.3s !default;
+$steps-navigation-margin-top: 1rem !default;
+
+// Register CSS variables
+.#{iv.$class-prefix}steps {
+  @include cv.register-vars(
+    (
+      "steps-marker-size": #{$steps-marker-size},
+      "steps-marker-size-small": #{$steps-marker-size-small},
+      "steps-marker-size-medium": #{$steps-marker-size-medium},
+      "steps-marker-size-large": #{$steps-marker-size-large},
+      "steps-divider-height": #{$steps-divider-height},
+      "steps-default-color": #{$steps-default-color},
+      "steps-marker-background": #{$steps-marker-background},
+      "steps-marker-font-size": #{$steps-marker-font-size},
+      "steps-marker-font-weight": #{$steps-marker-font-weight},
+      "steps-title-size": #{$steps-title-size},
+      "steps-title-weight": #{$steps-title-weight},
+      "steps-title-color": #{$steps-title-color},
+      "steps-title-active-color": #{$steps-title-active-color},
+      "steps-title-active-weight": #{$steps-title-active-weight},
+      "steps-content-margin-top": #{$steps-content-margin-top},
+      "steps-vertical-padding": #{$steps-vertical-padding},
+      "steps-vertical-content-margin-left": #{$steps-vertical-content-margin-left},
+      "steps-animation-duration": #{$steps-animation-duration},
+      "steps-navigation-margin-top": #{$steps-navigation-margin-top},
+    )
+  );
+}
+
+// Size mixin
+@mixin steps-size($marker-size) {
+  .#{iv.$class-prefix}steps-marker {
+    width: $marker-size;
+    height: $marker-size;
+  }
+
+  .#{iv.$class-prefix}steps-list:not(.#{iv.$class-prefix}is-vertical) .#{iv.$class-prefix}steps-segment {
+    padding-top: calc(#{$marker-size} / 2);
+
+    &:not(:last-child)::before {
+      top: calc(#{$marker-size} - cv.getVar("steps-divider-height") / 2);
+      left: calc(50% + #{$marker-size} / 2);
+      right: calc(-50% + #{$marker-size} / 2);
+    }
+  }
+
+  &.#{iv.$class-prefix}is-vertical .#{iv.$class-prefix}steps-segment {
+    &:not(:last-child)::after {
+      top: $marker-size;
+      left: calc(#{$marker-size} / 2 - cv.getVar("steps-divider-height") / 2);
+    }
+  }
+}
+
+// Main steps container
+.#{iv.$class-prefix}steps {
+  // Block-level spacing like Panel, Card, etc.
+  &:not(:last-child) {
+    margin-bottom: cv.getVar("block-spacing");
+  }
+
+  .#{iv.$class-prefix}steps-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    &:not(.#{iv.$class-prefix}is-vertical) {
+      .#{iv.$class-prefix}steps-segment {
+        flex: 1;
+        position: relative;
+        padding-top: calc(cv.getVar("steps-marker-size") / 2);
+
+        // Horizontal divider line — centered through marker
+        &:not(:last-child)::before {
+          content: '';
+          position: absolute;
+          top: calc(cv.getVar("steps-marker-size") - cv.getVar("steps-divider-height") / 2);
+          left: calc(50% + cv.getVar("steps-marker-size") / 2);
+          right: calc(-50% + cv.getVar("steps-marker-size") / 2);
+          height: cv.getVar("steps-divider-height");
+          background-color: cv.getVar("steps-default-color");
+          @include extras-transition(background-color);
+        }
+
+        &.#{iv.$class-prefix}is-completed:not(:last-child)::before {
+          background-color: cv.getVar("steps-default-color");
+        }
+      }
+    }
+  }
+}
+
+// Step segment
+.#{iv.$class-prefix}steps-segment {
+  text-align: center;
+  cursor: default;
+
+  &[tabindex="0"] {
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible .#{iv.$class-prefix}steps-marker {
+      @include extras-focus-outline;
+    }
+  }
+}
+
+// Step link — wrapper around marker + content (like Buefy's .step-link)
+// Default: column layout (label below marker)
+.#{iv.$class-prefix}steps-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+// Step marker
+.#{iv.$class-prefix}steps-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: cv.getVar("steps-marker-size");
+  height: cv.getVar("steps-marker-size");
+  margin: 0 auto;
+  border: cv.getVar("steps-divider-height") solid cv.getVar("steps-default-color");
+  border-radius: cv.getVar("radius");
+  background-color: cv.getVar("steps-marker-background");
+  font-size: cv.getVar("steps-marker-font-size");
+  font-weight: cv.getVar("steps-marker-font-weight");
+  color: cv.getVar("steps-default-color");
+  position: relative;
+  z-index: 1;
+  @include extras-transition(border-color, background-color, color);
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active & {
+    border-color: cv.getVar("steps-default-color");
+    color: cv.getVar("steps-default-color");
+  }
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed & {
+    border-color: cv.getVar("steps-default-color");
+    background-color: cv.getVar("steps-default-color");
+    color: cv.getVar("steps-marker-background");
+  }
+}
+
+// Step content
+.#{iv.$class-prefix}steps-content {
+  margin-top: cv.getVar("steps-content-margin-top");
+  text-align: center;
+}
+
+// Step title
+.#{iv.$class-prefix}steps-title {
+  font-size: cv.getVar("steps-title-size");
+  font-weight: cv.getVar("steps-title-weight");
+  color: cv.getVar("steps-title-color");
+  margin: 0;
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active & {
+    color: cv.getVar("steps-title-active-color");
+    font-weight: cv.getVar("steps-title-active-weight");
+  }
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed & {
+    color: cv.getVar("steps-title-color");
+  }
+}
+
+// Sizes
+.#{iv.$class-prefix}steps {
+  &.#{iv.$class-prefix}is-small {
+    @include steps-size(cv.getVar("steps-marker-size-small"));
+
+    .#{iv.$class-prefix}steps-marker {
+      font-size: 0.625rem;
+    }
+  }
+
+  &.#{iv.$class-prefix}is-medium {
+    @include steps-size(cv.getVar("steps-marker-size-medium"));
+
+    .#{iv.$class-prefix}steps-marker {
+      font-size: 1rem;
+    }
+  }
+
+  &.#{iv.$class-prefix}is-large {
+    @include steps-size(cv.getVar("steps-marker-size-large"));
+
+    .#{iv.$class-prefix}steps-marker {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+// Color variants
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-#{$name} {
+    .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active
+      .#{iv.$class-prefix}steps-marker {
+      border-color: cv.getVar($name);
+      color: cv.getVar($name);
+    }
+
+    .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed
+      .#{iv.$class-prefix}steps-marker {
+      border-color: cv.getVar($name);
+      background-color: cv.getVar($name);
+      color: hsl(
+        cv.getVar($name, "", "-h"),
+        cv.getVar($name, "", "-s"),
+        cv.getVar($name, "", "-invert-l")
+      );
+    }
+
+    .#{iv.$class-prefix}steps-list:not(.#{iv.$class-prefix}is-vertical)
+      .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed:not(:last-child)::before {
+      background-color: cv.getVar($name);
+    }
+
+    .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical
+      .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed:not(:last-child)::after {
+      background-color: cv.getVar($name);
+    }
+  }
+}
+
+// Rounded markers (circular)
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}is-rounded .#{iv.$class-prefix}steps-marker {
+  border-radius: 50%;
+}
+
+// Animated
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}is-animated {
+  .#{iv.$class-prefix}steps-marker {
+    transition: border-color cv.getVar("steps-animation-duration") ease,
+      background-color cv.getVar("steps-animation-duration") ease,
+      color cv.getVar("steps-animation-duration") ease,
+      transform cv.getVar("steps-animation-duration") ease;
+  }
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
+    transform: scale(1.1);
+  }
+}
+
+// No marker (text only)
+.#{iv.$class-prefix}steps:not(.#{iv.$class-prefix}has-marker) {
+  .#{iv.$class-prefix}steps-marker {
+    display: none;
+  }
+
+  .#{iv.$class-prefix}steps-segment {
+    padding-top: 0;
+
+    &:not(:last-child)::before {
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+}
+
+// Vertical layout
+.#{iv.$class-prefix}steps .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical {
+  flex-direction: column;
+
+  .#{iv.$class-prefix}steps-segment {
+    text-align: left;
+    padding: 0 0 cv.getVar("steps-vertical-padding") 0;
+    position: relative;
+
+    // Vertical divider line
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: cv.getVar("steps-marker-size");
+      left: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+      width: cv.getVar("steps-divider-height");
+      bottom: 0;
+      background-color: cv.getVar("steps-default-color");
+      @include extras-transition(background-color);
+    }
+
+    &.#{iv.$class-prefix}is-completed:not(:last-child)::after {
+      background-color: cv.getVar("steps-default-color");
+    }
+  }
+
+  .#{iv.$class-prefix}steps-link {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .#{iv.$class-prefix}steps-marker {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .#{iv.$class-prefix}steps-content {
+    margin-top: 0;
+    margin-left: cv.getVar("steps-vertical-content-margin-left");
+    text-align: left;
+    padding-top: 0.25rem;
+  }
+}
+
+// Label on right / left (horizontal only)
+// The marker stays centered at 50%. The label is absolutely positioned right
+// next to the marker with a background-color + z-index to cover the connector line.
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical),
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
+  .#{iv.$class-prefix}steps-link {
+    position: relative;
+  }
+
+  .#{iv.$class-prefix}steps-content {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0;
+    background-color: cv.getVar("scheme-main");
+    z-index: 1;
+    padding: 0.2em;
+    white-space: nowrap;
+  }
+}
+
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical) {
+  .#{iv.$class-prefix}steps-content {
+    left: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: left;
+  }
+}
+
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
+  .#{iv.$class-prefix}steps-content {
+    right: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: right;
+  }
+}
+
+// Vertical + label-left: marker on right, label on left, divider on right
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left.#{iv.$class-prefix}is-vertical {
+  .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical {
+    .#{iv.$class-prefix}steps-link {
+      flex-direction: row-reverse;
+    }
+
+    .#{iv.$class-prefix}steps-content {
+      margin-left: 0;
+      margin-right: cv.getVar("steps-vertical-content-margin-left");
+      text-align: right;
+    }
+
+    .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
+      left: auto;
+      right: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+    }
+  }
+}
+
+// Vertical + label-bottom: marker on top, label below, centered
+.#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-bottom.#{iv.$class-prefix}is-vertical {
+  .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical {
+    align-items: center;
+
+    .#{iv.$class-prefix}steps-segment {
+      text-align: center;
+    }
+
+    .#{iv.$class-prefix}steps-link {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .#{iv.$class-prefix}steps-content {
+      margin-left: 0;
+      margin-top: cv.getVar("steps-content-margin-top");
+      text-align: center;
+      background-color: cv.getVar("scheme-main");
+      position: relative;
+      z-index: 1;
+      padding: 0.2em;
+    }
+
+    .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
+      left: calc(50% - cv.getVar("steps-divider-height") / 2);
+    }
+  }
+}
+
+// Navigation buttons
+.#{iv.$class-prefix}steps-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: cv.getVar("steps-navigation-margin-top");
+}
+
+// Mobile modes
+@include extras-mobile {
+  .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-minimal {
+    .#{iv.$class-prefix}steps-content {
+      display: none;
+    }
+  }
+
+  .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-compact {
+    .#{iv.$class-prefix}steps-title {
+      font-size: 0.625rem;
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-animated {
+    .#{iv.$class-prefix}steps-marker {
+      transition: none;
+    }
+
+    .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
+      transform: none;
+    }
+  }
+}

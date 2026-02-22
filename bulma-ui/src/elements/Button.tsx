@@ -9,7 +9,7 @@ import {
 /**
  * Props for the Button component.
  *
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the button.
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'} [color] - Bulma color modifier for the button.
  * @property {'small' | 'normal' | 'medium' | 'large'} [size] - Button size.
  * @property {boolean} [isLight] - Use the light version of the color.
  * @property {boolean} [isRounded] - Button is fully rounded.
@@ -36,7 +36,19 @@ export interface ButtonProps
   extends
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color' | 'onClick'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    | 'primary'
+    | 'link'
+    | 'info'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'white'
+    | 'light'
+    | 'dark'
+    | 'black'
+    | 'text'
+    | 'ghost';
   size?: 'small' | 'normal' | 'medium' | 'large';
   isLight?: boolean;
   isRounded?: boolean;
@@ -72,6 +84,8 @@ export interface ButtonProps
  * @returns {JSX.Element} The rendered button or anchor element.
  * @see {@link https://bulma.io/documentation/elements/button/ | Bulma Button documentation}
  */
+const validButtonColors = [...validColors, 'text', 'ghost'] as const;
+
 export const Button: React.FC<ButtonProps> = ({
   color,
   size,
@@ -105,7 +119,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('button', {
-    [`is-${color}`]: color && validColors.includes(color),
+    [`is-${color}`]: color && validButtonColors.includes(color as (typeof validButtonColors)[number]),
     [`is-${size}`]: size,
     'is-outlined': isOutlined,
     'is-light': isLight,

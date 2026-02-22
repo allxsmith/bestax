@@ -63,6 +63,7 @@ export interface IconProps
   size?: 'small' | 'medium' | 'large';
   ariaLabel?: string;
   style?: React.CSSProperties;
+  containerClassName?: string; // Override the default 'icon' container class (e.g., 'panel-icon')
 }
 
 /**
@@ -164,6 +165,7 @@ export const Icon: React.FC<IconProps> = ({
   style,
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
   color: _color, // Exclude 'color' prop if passed directly
+  containerClassName,
   ...restProps
 }) => {
   // Handle deprecated 'icon' prop - parse it to extract the actual name
@@ -197,12 +199,17 @@ export const Icon: React.FC<IconProps> = ({
     ...restProps,
   });
 
-  const bulmaClasses = usePrefixedClassNames('icon', {
-    [`is-${size}`]: size,
-  });
+  // Use containerClassName if provided, otherwise default to 'icon'
+  const bulmaClasses = containerClassName
+    ? containerClassName
+    : usePrefixedClassNames('icon', {
+        [`is-${size}`]: size,
+      });
 
   const iconContainerClasses = classNames(
     bulmaClasses,
+    // Only add size class if using default container and size is specified
+    containerClassName && size ? usePrefixedClassNames(`is-${size}`) : undefined,
     bulmaHelperClasses,
     className
   );
