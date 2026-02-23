@@ -1,0 +1,5 @@
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+.#{iv.$class-prefix}is-cursor-help {
+  cursor: help !important;
+}

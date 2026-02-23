@@ -386,6 +386,89 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('closeDelay', () => {
+    it('hides tooltip immediately when closeDelay is 0', () => {
+      const { container } = render(
+        <Tooltip label="Test" closeDelay={0}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      const tooltip = container.querySelector('.tooltip')!;
+      fireEvent.mouseEnter(tooltip);
+      act(() => {
+        jest.runAllTimers();
+      });
+      expect(tooltip).toHaveClass('is-active');
+
+      fireEvent.mouseLeave(tooltip);
+      act(() => {
+        jest.runAllTimers();
+      });
+      expect(tooltip).not.toHaveClass('is-active');
+    });
+
+    it('delays hiding tooltip when closeDelay is set', () => {
+      const { container } = render(
+        <Tooltip label="Test" closeDelay={500}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      const tooltip = container.querySelector('.tooltip')!;
+      fireEvent.mouseEnter(tooltip);
+      act(() => {
+        jest.runAllTimers();
+      });
+      expect(tooltip).toHaveClass('is-active');
+
+      fireEvent.mouseLeave(tooltip);
+
+      // Still visible immediately after leave
+      expect(tooltip).toHaveClass('is-active');
+
+      // Still visible before closeDelay elapses
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+      expect(tooltip).toHaveClass('is-active');
+
+      // Hidden after closeDelay elapses
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+      expect(tooltip).not.toHaveClass('is-active');
+    });
+
+    it('cancels close delay when mouse re-enters before timeout', () => {
+      const { container } = render(
+        <Tooltip label="Test" closeDelay={500}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      const tooltip = container.querySelector('.tooltip')!;
+      fireEvent.mouseEnter(tooltip);
+      act(() => {
+        jest.runAllTimers();
+      });
+      expect(tooltip).toHaveClass('is-active');
+
+      // Leave, then re-enter before closeDelay elapses
+      fireEvent.mouseLeave(tooltip);
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+      fireEvent.mouseEnter(tooltip);
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+
+      // Should still be visible
+      expect(tooltip).toHaveClass('is-active');
+    });
+  });
+
   describe('accessibility', () => {
     it('tooltip content has role="tooltip"', () => {
       const { container } = render(
@@ -508,6 +591,48 @@ describe('Tooltip', () => {
       const tooltip = container.querySelector('.tooltip');
       expect(tooltip).toHaveAttribute('data-testid', 'tooltip');
       expect(tooltip).toHaveAttribute('id', 'my-tooltip');
+    });
+  });
+
+  describe('custom content', () => {
+    it('renders ReactNode content when content prop is provided', () => {
+      const { container } = render(
+        <Tooltip content={<span data-testid="rich"><strong>Bold</strong> text</span>}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const tooltipContent = container.querySelector('.tooltip-content');
+      expect(tooltipContent).toContainHTML('<strong>Bold</strong>');
+      expect(tooltipContent).toHaveTextContent('Bold text');
+    });
+
+    it('content takes precedence over label when both provided', () => {
+      const { container } = render(
+        <Tooltip label="Label text" content={<em>Content text</em>}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const tooltipContent = container.querySelector('.tooltip-content');
+      expect(tooltipContent).toHaveTextContent('Content text');
+      expect(tooltipContent).not.toHaveTextContent('Label text');
+    });
+
+    it('omits data-tooltip attribute when only content is provided', () => {
+      const { container } = render(
+        <Tooltip content={<span>Rich content</span>}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(container.querySelector('.tooltip')).not.toHaveAttribute('data-tooltip');
+    });
+
+    it('sets data-tooltip attribute when label is provided alongside content', () => {
+      const { container } = render(
+        <Tooltip label="Label text" content={<span>Rich content</span>}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(container.querySelector('.tooltip')).toHaveAttribute('data-tooltip', 'Label text');
     });
   });
 });

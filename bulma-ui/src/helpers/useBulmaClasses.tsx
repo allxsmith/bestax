@@ -307,6 +307,8 @@ export interface BulmaClassesProps {
   overlay?: boolean;
   /** Interaction behavior (e.g., 'unselectable', 'clickable'). */
   interaction?: 'unselectable' | 'clickable';
+  /** Cursor style (e.g., 'pointer', 'help'). */
+  cursor?: 'pointer' | 'help';
   /** Border radius style (e.g., 'radiusless'). */
   radius?: 'radiusless';
   /** Shadow style (e.g., 'shadowless'). */
@@ -421,6 +423,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     overflow,
     overlay,
     interaction,
+    cursor,
     radius,
     shadow,
     responsive,
@@ -698,6 +701,13 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     if (interaction) {
       addClassNoViewport('is', interaction, ['unselectable', 'clickable']);
     }
+    if (cursor) {
+      if (cursor === 'pointer') {
+        addPrefixedClass('is-clickable');
+      } else if (cursor === 'help') {
+        addPrefixedClass('is-cursor-help');
+      }
+    }
     if (radius) {
       addClassNoViewport('is', radius, ['radiusless']);
     }
@@ -763,6 +773,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     overflow,
     overlay,
     interaction,
+    cursor,
     radius,
     shadow,
     responsive,

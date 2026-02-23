@@ -1253,6 +1253,42 @@ describe('useBulmaClasses', () => {
     });
   });
 
+  // Cursor helper tests
+  describe('Cursor helper', () => {
+    it('applies is-clickable class for cursor pointer', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'pointer',
+      });
+      expect(bulmaHelperClasses).toBe('is-clickable');
+    });
+
+    it('applies is-cursor-help class for cursor help', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'help',
+      });
+      expect(bulmaHelperClasses).toBe('is-cursor-help');
+    });
+
+    it('applies cursor with class prefix', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses(
+        { cursor: 'help' },
+        'bulma-'
+      );
+      expect(bulmaHelperClasses).toBe('bulma-is-cursor-help');
+    });
+
+    it('applies cursor with other helpers', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'pointer',
+        color: 'primary',
+        p: '3',
+      });
+      expect(bulmaHelperClasses.split(' ')).toEqual(
+        expect.arrayContaining(['has-text-primary', 'p-3', 'is-clickable'])
+      );
+    });
+  });
+
   // Flexbox item properties tests
   describe('Flexbox item properties', () => {
     it('applies alignSelf class without requiring display flex', () => {

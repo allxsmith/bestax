@@ -17,7 +17,8 @@ export type TooltipSize = 'small' | 'medium' | 'large';
 /**
  * Props for the Tooltip component.
  *
- * @property {string} label - The tooltip text content.
+ * @property {string} [label] - The tooltip text content.
+ * @property {React.ReactNode} [content] - Custom rich content for the tooltip (takes precedence over label).
  * @property {TooltipPosition} [position] - Position of the tooltip. Default: 'top'.
  * @property {TooltipColor} [color] - Color variant for the tooltip.
  * @property {TooltipSize} [size] - Size variant for the tooltip ('small', 'medium', 'large').
@@ -27,15 +28,17 @@ export type TooltipSize = 'small' | 'medium' | 'large';
  * @property {boolean} [square] - Use square corners instead of rounded.
  * @property {boolean} [dashed] - Show dashed underline on trigger.
  * @property {number} [delay] - Delay before showing tooltip (ms).
+ * @property {number} [closeDelay] - Delay before hiding tooltip after mouse leave (ms).
  * @property {React.ReactNode} [children] - The element that triggers the tooltip.
  * @property {string} [className] - Additional CSS classes.
  * @property {string} [tooltipClassName] - Additional classes for the tooltip element.
  */
 export interface TooltipProps
   extends
-    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
+    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  label: string;
+  label?: string;
+  content?: React.ReactNode;
   position?: TooltipPosition;
   color?: TooltipColor;
   size?: TooltipSize;
@@ -45,6 +48,7 @@ export interface TooltipProps
   square?: boolean;
   dashed?: boolean;
   delay?: number;
+  closeDelay?: number;
   tooltipClassName?: string;
 }
 
@@ -78,6 +82,7 @@ export interface TooltipProps
  */
 export const Tooltip: React.FC<TooltipProps> = ({
   label,
+  content,
   position = 'top',
   color,
   size,
@@ -87,6 +92,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   square = false,
   dashed = false,
   delay = 0,
+  closeDelay = 0,
   children,
   className,
   tooltipClassName,
@@ -99,15 +105,19 @@ export const Tooltip: React.FC<TooltipProps> = ({
     position === 'auto' ? 'top' : position
   );
   const [contentStyle, setContentStyle] = useState<React.CSSProperties>({});
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLSpanElement | null>(null);
 
-  // Clear timeout on unmount
+  // Clear timeouts on unmount
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (openTimeoutRef.current) {
+        clearTimeout(openTimeoutRef.current);
+      }
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
       }
     };
   }, []);
@@ -115,20 +125,31 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // Handle delayed visibility
   useEffect(() => {
     if (isHovering) {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
       if (delay > 0) {
-        timeoutRef.current = setTimeout(() => {
+        openTimeoutRef.current = setTimeout(() => {
           setIsVisible(true);
         }, delay);
       } else {
         setIsVisible(true);
       }
     } else {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      if (openTimeoutRef.current) {
+        clearTimeout(openTimeoutRef.current);
+        openTimeoutRef.current = null;
       }
-      setIsVisible(false);
+      if (closeDelay > 0) {
+        closeTimeoutRef.current = setTimeout(() => {
+          setIsVisible(false);
+        }, closeDelay);
+      } else {
+        setIsVisible(false);
+      }
     }
-  }, [isHovering, delay]);
+  }, [isHovering, delay, closeDelay]);
 
   // Auto-placement and overflow correction
   useLayoutEffect(() => {
@@ -190,10 +211,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
           // Overflows left — shift right
           const shift = edgePadding - contentRect.left;
           style.left = `calc(50% + ${shift}px)`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${-shift}px`;
         } else if (contentRect.right > window.innerWidth - edgePadding) {
           // Overflows right — shift left
           const shift = contentRect.right - (window.innerWidth - edgePadding);
           style.left = `calc(50% - ${shift}px)`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${shift}px`;
         }
       } else {
         // For left/right positions, tooltip is centered vertically via CSS
@@ -201,15 +224,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
         if (contentRect.top < edgePadding) {
           const shift = edgePadding - contentRect.top;
           style.top = `calc(50% + ${shift}px)`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${-shift}px`;
         } else if (contentRect.bottom > window.innerHeight - edgePadding) {
           const shift = contentRect.bottom - (window.innerHeight - edgePadding);
           style.top = `calc(50% - ${shift}px)`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${shift}px`;
         }
       }
 
       setContentStyle(style);
     });
-  }, [position, resolvedPosition, isVisible, alwaysActive, label]);
+  }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovering(true);
@@ -257,7 +282,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       onMouseLeave={handleMouseLeave}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      data-tooltip={label}
+      {...(label ? { 'data-tooltip': label } : {})}
       {...rest}
     >
       {children}
@@ -268,7 +293,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         aria-hidden={!isVisible && !alwaysActive}
         style={Object.keys(contentStyle).length > 0 ? contentStyle : undefined}
       >
-        {label}
+        {content || label}
       </span>
     </span>
   );

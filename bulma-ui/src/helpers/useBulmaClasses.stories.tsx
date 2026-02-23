@@ -577,6 +577,16 @@ export const Interaction: Story = {
   name: 'Interaction',
 };
 
+export const Cursor: Story = {
+  render: () => (
+    <>
+      <Box cursor="pointer">Cursor: pointer (uses is-clickable)</Box>
+      <Box cursor="help">Cursor: help</Box>
+    </>
+  ),
+  name: 'Cursor',
+};
+
 export const Radius: Story = {
   render: () => (
     <Buttons>

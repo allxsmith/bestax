@@ -74,6 +74,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `overflow`             | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
 | `overlay`              | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
 | `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                            |
+| `cursor`               | `'pointer'`, `'help'`                                                                                                                                                                                                                                | `is-clickable`, `is-cursor-help`                             |
 | `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                              |
 | `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                              |
 | `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                     |
@@ -250,6 +251,7 @@ export interface BulmaClassesProps {
   overflow?: 'clipped';
   overlay?: boolean;
   interaction?: 'unselectable' | 'clickable';
+  cursor?: 'pointer' | 'help';
   radius?: 'radiusless';
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
@@ -789,6 +791,17 @@ Show text in a Box with `unselectable`, and another Box with `clickable`:
 <>
   <Box interaction="unselectable">This text cannot be selected.</Box>
   <Box interaction="clickable">This box is clickable.</Box>
+</>
+```
+
+### Cursor
+
+Use the `cursor` prop to set the cursor style. `'pointer'` reuses Bulma's `is-clickable` class, while `'help'` uses the project-level `is-cursor-help` class:
+
+```tsx live
+<>
+  <Box cursor="pointer">Cursor: pointer (uses is-clickable)</Box>
+  <Box cursor="help">Cursor: help</Box>
 </>
 ```
 

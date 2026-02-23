@@ -12,10 +12,26 @@ $tooltip-max-width: 15rem !default;
 $tooltip-multiline-width: 15rem !default;
 $tooltip-radius: cv.getVar("radius") !default;
 $tooltip-arrow-size: 5px !default;
+$tooltip-arrow-margin: 4px !default;
 $tooltip-padding: 0.35rem 0.75rem !default;
 $tooltip-z-index: $extras-z-index-tooltip !default;
-$tooltip-font-size: $extras-size-small !default;
+$tooltip-font-size: calc(#{$extras-size-normal} * 0.85) !default;
+$tooltip-font-weight: $extras-weight-normal !default;
 $tooltip-line-height: 1.25 !default;
+$tooltip-dashed-color: hsl(0, 0%, 60%) !default;
+
+// Size variant SCSS variables
+$tooltip-small-font-size: $extras-size-small !default;
+$tooltip-small-padding: 0.25rem 0.5rem !default;
+$tooltip-small-arrow-size: 4px !default;
+
+$tooltip-medium-font-size: calc(#{$extras-size-medium} * 0.85) !default;
+$tooltip-medium-padding: 0.5rem 1rem !default;
+$tooltip-medium-arrow-size: 6px !default;
+
+$tooltip-large-font-size: calc(#{$extras-size-large} * 0.85) !default;
+$tooltip-large-padding: 0.75rem 1.25rem !default;
+$tooltip-large-arrow-size: 7px !default;
 
 // Register CSS variables on .tooltip-content
 // (tooltip-content is the actual tooltip element that gets themed)
@@ -29,21 +45,30 @@ $tooltip-line-height: 1.25 !default;
       "tooltip-max-width": #{$tooltip-max-width},
       "tooltip-multiline-width": #{$tooltip-multiline-width},
       "tooltip-arrow-size": #{$tooltip-arrow-size},
+      "tooltip-arrow-margin": #{$tooltip-arrow-margin},
       "tooltip-z-index": #{$tooltip-z-index},
       "tooltip-font-size": #{$tooltip-font-size},
+      "tooltip-font-weight": #{$tooltip-font-weight},
       "tooltip-line-height": #{$tooltip-line-height},
+      "tooltip-dashed-color": #{$tooltip-dashed-color},
     )
   );
 }
 
 // Tooltip wrapper
 .#{iv.$class-prefix}tooltip {
+  @include cv.register-vars(
+    (
+      "tooltip-dashed-color": #{$tooltip-dashed-color},
+    )
+  );
+
   position: relative;
   display: inline-flex;
 
   // Dashed underline style
   &.#{iv.$class-prefix}is-dashed {
-    border-bottom: 1px dashed hsl(0, 0%, 71%);
+    border-bottom: 1px dashed cv.getVar("tooltip-dashed-color");
     cursor: help;
   }
 }
@@ -54,7 +79,7 @@ $tooltip-line-height: 1.25 !default;
   z-index: cv.getVar("tooltip-z-index");
   padding: cv.getVar("tooltip-padding");
   font-size: cv.getVar("tooltip-font-size");
-  font-weight: $extras-weight-normal;
+  font-weight: cv.getVar("tooltip-font-weight");
   line-height: cv.getVar("tooltip-line-height");
   white-space: nowrap;
   max-width: cv.getVar("tooltip-max-width");
@@ -99,13 +124,13 @@ $tooltip-line-height: 1.25 !default;
 // Position: Top (default)
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-top .#{iv.$class-prefix}tooltip-content,
 .#{iv.$class-prefix}tooltip:not(.#{iv.$class-prefix}is-bottom):not(.#{iv.$class-prefix}is-left):not(.#{iv.$class-prefix}is-right) .#{iv.$class-prefix}tooltip-content {
-  bottom: calc(100% + #{$tooltip-arrow-size} + 4px);
+  bottom: calc(100% + #{cv.getVar("tooltip-arrow-size")} + #{cv.getVar("tooltip-arrow-margin")});
   left: 50%;
   transform: translateX(-50%);
 
   &::before {
     top: 100%;
-    left: 50%;
+    left: calc(50% + var(--tooltip-arrow-offset, 0px));
     transform: translateX(-50%);
     border-top-color: cv.getVar("tooltip-background");
   }
@@ -113,13 +138,13 @@ $tooltip-line-height: 1.25 !default;
 
 // Position: Bottom
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-bottom .#{iv.$class-prefix}tooltip-content {
-  top: calc(100% + #{$tooltip-arrow-size} + 4px);
+  top: calc(100% + #{cv.getVar("tooltip-arrow-size")} + #{cv.getVar("tooltip-arrow-margin")});
   left: 50%;
   transform: translateX(-50%);
 
   &::before {
     bottom: 100%;
-    left: 50%;
+    left: calc(50% + var(--tooltip-arrow-offset, 0px));
     transform: translateX(-50%);
     border-bottom-color: cv.getVar("tooltip-background");
   }
@@ -127,13 +152,13 @@ $tooltip-line-height: 1.25 !default;
 
 // Position: Left
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-left .#{iv.$class-prefix}tooltip-content {
-  right: calc(100% + #{$tooltip-arrow-size} + 4px);
+  right: calc(100% + #{cv.getVar("tooltip-arrow-size")} + #{cv.getVar("tooltip-arrow-margin")});
   top: 50%;
   transform: translateY(-50%);
 
   &::before {
     left: 100%;
-    top: 50%;
+    top: calc(50% + var(--tooltip-arrow-offset, 0px));
     transform: translateY(-50%);
     border-left-color: cv.getVar("tooltip-background");
   }
@@ -141,13 +166,13 @@ $tooltip-line-height: 1.25 !default;
 
 // Position: Right
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-right .#{iv.$class-prefix}tooltip-content {
-  left: calc(100% + #{$tooltip-arrow-size} + 4px);
+  left: calc(100% + #{cv.getVar("tooltip-arrow-size")} + #{cv.getVar("tooltip-arrow-margin")});
   top: 50%;
   transform: translateY(-50%);
 
   &::before {
     right: 100%;
-    top: 50%;
+    top: calc(50% + var(--tooltip-arrow-offset, 0px));
     transform: translateY(-50%);
     border-right-color: cv.getVar("tooltip-background");
   }
@@ -197,9 +222,9 @@ $tooltip-line-height: 1.25 !default;
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-small .#{iv.$class-prefix}tooltip-content {
   @include cv.register-vars(
     (
-      "tooltip-font-size": #{$extras-size-small},
-      "tooltip-padding": 0.25rem 0.5rem,
-      "tooltip-arrow-size": 4px,
+      "tooltip-font-size": #{$tooltip-small-font-size},
+      "tooltip-padding": #{$tooltip-small-padding},
+      "tooltip-arrow-size": #{$tooltip-small-arrow-size},
     )
   );
 }
@@ -207,9 +232,9 @@ $tooltip-line-height: 1.25 !default;
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-medium .#{iv.$class-prefix}tooltip-content {
   @include cv.register-vars(
     (
-      "tooltip-font-size": #{$extras-size-normal},
-      "tooltip-padding": 0.5rem 1rem,
-      "tooltip-arrow-size": 6px,
+      "tooltip-font-size": #{$tooltip-medium-font-size},
+      "tooltip-padding": #{$tooltip-medium-padding},
+      "tooltip-arrow-size": #{$tooltip-medium-arrow-size},
     )
   );
 }
@@ -217,9 +242,9 @@ $tooltip-line-height: 1.25 !default;
 .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-large .#{iv.$class-prefix}tooltip-content {
   @include cv.register-vars(
     (
-      "tooltip-font-size": #{$extras-size-medium},
-      "tooltip-padding": 0.75rem 1.25rem,
-      "tooltip-arrow-size": 7px,
+      "tooltip-font-size": #{$tooltip-large-font-size},
+      "tooltip-padding": #{$tooltip-large-padding},
+      "tooltip-arrow-size": #{$tooltip-large-arrow-size},
     )
   );
 }
