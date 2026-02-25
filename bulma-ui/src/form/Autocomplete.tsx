@@ -5,7 +5,12 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
+import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 export interface AutocompleteItem {
@@ -137,6 +142,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -340,15 +346,37 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       [`is-${size}`]: !!size,
     });
 
-    const inputClasses = classNames('input', {
+    const inputClasses = usePrefixedClassNames('input', {
       [`is-${color}`]: !!color,
       [`is-${size}`]: !!size,
       'is-loading': loading,
     });
 
-    const dropdownClasses = classNames('dropdown-menu', {
-      'is-active': isActive && (filteredData.length > 0 || empty),
+    const controlClasses = usePrefixedClassNames(
+      'control',
+      'is-expanded',
+      'has-icons-right'
+    );
+
+    const dropdownMenuClasses = usePrefixedClassNames('dropdown-menu', {
+      'is-active': isActive && (filteredData.length > 0 || !!empty),
     });
+
+    const dropdownContentClass = usePrefixedClassNames('dropdown-content');
+    const dropdownHeaderClass = usePrefixedClassNames('dropdown-header');
+    const dropdownFooterClass = usePrefixedClassNames('dropdown-footer');
+    const emptyItemClasses = usePrefixedClassNames(
+      'dropdown-item',
+      'has-text-grey'
+    );
+
+    const iconRightClickableClass = usePrefixedClassNames(
+      'icon',
+      'is-right',
+      'is-clickable'
+    );
+    const iconRightClass = usePrefixedClassNames('icon', 'is-right');
+    const loaderClass = usePrefixedClassNames('loader', 'is-loading');
 
     const combinedClasses = classNames(
       autocompleteClasses,
@@ -358,7 +386,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
 
     return (
       <div ref={containerRef} className={combinedClasses} {...rest}>
-        <div className="control is-expanded has-icons-right">
+        <div className={controlClasses}>
           <input
             ref={combinedRef}
             type="text"
@@ -377,7 +405,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           />
           {clearable && inputValue && !disabled && (
             <span
-              className="icon is-right is-clickable"
+              className={iconRightClickableClass}
               onClick={handleClear}
               role="button"
               aria-label="Clear"
@@ -397,36 +425,44 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             </span>
           )}
           {loading && (
-            <span className="icon is-right">
-              <span className="loader is-loading" />
+            <span className={iconRightClass}>
+              <span className={loaderClass} />
             </span>
           )}
         </div>
 
         {isActive && (filteredData.length > 0 || empty) && (
-          <div className={dropdownClasses}>
+          <div className={dropdownMenuClasses}>
             <div
               ref={dropdownRef}
-              className="dropdown-content"
+              className={dropdownContentClass}
               style={{ maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
               role="listbox"
               onScroll={handleDropdownScroll}
             >
-              {header && <div className="dropdown-header">{header}</div>}
+              {header && (
+                <div className={dropdownHeaderClass}>{header}</div>
+              )}
 
               {filteredData.length > 0 ? (
                 filteredData.map((item, index) => {
                   const isDisabled = typeof item !== 'string' && item.disabled;
                   const isHighlighted = index === highlightedIndex;
 
+                  const itemClasses = prefixedClassNames(
+                    classPrefix,
+                    'dropdown-item',
+                    {
+                      'is-active': isHighlighted,
+                      'is-disabled': isDisabled,
+                    }
+                  );
+
                   return (
                     <a
                       key={index}
                       data-index={index}
-                      className={classNames('dropdown-item', {
-                        'is-active': isHighlighted,
-                        'is-disabled': isDisabled,
-                      })}
+                      className={itemClasses}
                       onClick={() => !isDisabled && handleSelect(item)}
                       onMouseEnter={() =>
                         !isDisabled && setHighlightedIndex(index)
@@ -442,10 +478,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   );
                 })
               ) : (
-                <div className="dropdown-item has-text-grey">{empty}</div>
+                <div className={emptyItemClasses}>{empty}</div>
               )}
 
-              {footer && <div className="dropdown-footer">{footer}</div>}
+              {footer && (
+                <div className={dropdownFooterClass}>{footer}</div>
+              )}
             </div>
           </div>
         )}

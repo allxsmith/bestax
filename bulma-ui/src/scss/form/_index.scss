@@ -2,6 +2,8 @@
 // Import all form component partials here
 
 // Form Components
+@use 'checkbox';
+@use 'radio';
 @use 'switch';
 @use 'slider';
 @use 'numberinput';

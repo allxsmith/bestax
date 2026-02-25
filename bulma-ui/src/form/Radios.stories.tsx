@@ -1,100 +1,62 @@
-import { Meta, StoryObj } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react-vite';
 import Radio from './Radio';
 import Radios from './Radios';
-import Control from './Control';
 
-const meta: Meta<typeof Radio> = {
-  title: 'Form/Radio',
-  component: Radio,
+const meta: Meta<typeof Radios> = {
+  title: 'Form/Radios',
+  component: Radios,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'A wrapper component that groups multiple Radio buttons together with proper spacing.',
+      },
+    },
+  },
 };
 export default meta;
 
-type Story = StoryObj<typeof Radio>;
+type Story = StoryObj<typeof Radios>;
 
-export const MutuallyExclusive: Story = {
-  render: () => (
-    <Control>
-      <Radio name="mutuallyExclusive"> Yes </Radio>{' '}
-      <Radio name="mutuallyExclusive"> No </Radio>{' '}
-      <Radio name="mutuallyExclusive"> Maybe </Radio>
-    </Control>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Three radios in a group, only one can be selected at a time.',
-      },
-    },
-  },
-};
-
-export const DefaultSelected: Story = {
-  render: () => (
-    <Control>
-      <Radio name="pet"> Cat </Radio>{' '}
-      <Radio name="pet" defaultChecked>
-        {' '}
-        Dog{' '}
-      </Radio>
-    </Control>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Two radios with "Dog" selected by default.',
-      },
-    },
-  },
-};
-
-export const Disabled: Story = {
-  render: () => (
-    <Control>
-      <Radio name="response" disabled>
-        Attend{' '}
-      </Radio>{' '}
-      <Radio name="response" disabled>
-        {' '}
-        Decline{' '}
-      </Radio>{' '}
-      <Radio name="response" disabled>
-        {' '}
-        Tentative{' '}
-      </Radio>
-    </Control>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Three disabled radios in a group.',
-      },
-    },
-  },
-};
-
-export const ListOfRadios: Story = {
+export const Default: Story = {
   render: () => (
     <Radios>
-      <Radio name="event" disabled>
-        {' '}
-        Attend{' '}
+      <Radio name="event">Attend</Radio>
+      <Radio name="event">Decline</Radio>
+      <Radio name="event">Tentative</Radio>
+    </Radios>
+  ),
+};
+
+export const WithColors: Story = {
+  render: () => (
+    <Radios>
+      <Radio name="color-group" color="primary">
+        Primary
       </Radio>
-      <Radio name="event" disabled>
-        {' '}
-        Decline{' '}
+      <Radio name="color-group" color="info">
+        Info
       </Radio>
-      <Radio name="event" disabled>
-        {' '}
-        Tentative{' '}
+      <Radio name="color-group" color="success">
+        Success
       </Radio>
     </Radios>
   ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'A group of disabled radios using the Radios wrapper.',
-      },
-    },
-  },
+};
+
+export const DisabledGroup: Story = {
+  render: () => (
+    <Radios>
+      <Radio name="disabled-group" disabled>
+        Attend
+      </Radio>
+      <Radio name="disabled-group" disabled>
+        Decline
+      </Radio>
+      <Radio name="disabled-group" disabled>
+        Tentative
+      </Radio>
+    </Radios>
+  ),
 };

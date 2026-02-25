@@ -1,6 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Autocomplete } from './Autocomplete';
+import { Columns } from '../columns/Columns';
+import { Column } from '../columns/Column';
+import { Field } from './Field';
+import { Control } from './Control';
+import { Button } from '../elements/Button';
+import { Block } from '../elements/Block';
+import { Paragraph } from '../elements/Paragraph';
+import { Span } from '../elements/Span';
 
 const meta: Meta<typeof Autocomplete> = {
   title: 'Form/Autocomplete',
@@ -95,17 +103,30 @@ const fruits = [
 ];
 
 const countries = [
-  { value: 'us', label: 'United States', flag: '🇺🇸' },
-  { value: 'ca', label: 'Canada', flag: '🇨🇦' },
-  { value: 'uk', label: 'United Kingdom', flag: '🇬🇧' },
-  { value: 'au', label: 'Australia', flag: '🇦🇺' },
-  { value: 'de', label: 'Germany', flag: '🇩🇪' },
-  { value: 'fr', label: 'France', flag: '🇫🇷' },
-  { value: 'jp', label: 'Japan', flag: '🇯🇵' },
-  { value: 'br', label: 'Brazil', flag: '🇧🇷' },
-  { value: 'in', label: 'India', flag: '🇮🇳' },
-  { value: 'mx', label: 'Mexico', flag: '🇲🇽' },
+  { value: 'us', label: 'United States', flag: '\u{1F1FA}\u{1F1F8}' },
+  { value: 'ca', label: 'Canada', flag: '\u{1F1E8}\u{1F1E6}' },
+  { value: 'uk', label: 'United Kingdom', flag: '\u{1F1EC}\u{1F1E7}' },
+  { value: 'au', label: 'Australia', flag: '\u{1F1E6}\u{1F1FA}' },
+  { value: 'de', label: 'Germany', flag: '\u{1F1E9}\u{1F1EA}' },
+  { value: 'fr', label: 'France', flag: '\u{1F1EB}\u{1F1F7}' },
+  { value: 'jp', label: 'Japan', flag: '\u{1F1EF}\u{1F1F5}' },
+  { value: 'br', label: 'Brazil', flag: '\u{1F1E7}\u{1F1F7}' },
+  { value: 'in', label: 'India', flag: '\u{1F1EE}\u{1F1F3}' },
+  { value: 'mx', label: 'Mexico', flag: '\u{1F1F2}\u{1F1FD}' },
 ];
+
+const ResponsiveWrapper = ({ children }: { children: React.ReactNode }) => (
+  <Columns>
+    <Column
+      sizeMobile="full"
+      sizeTablet="half"
+      sizeDesktop="one-third"
+      sizeWidescreen="one-quarter"
+    >
+      {children}
+    </Column>
+  </Columns>
+);
 
 /**
  * Basic autocomplete with string array.
@@ -115,14 +136,14 @@ export const Default: Story = {
     const [selected, setSelected] = useState<string | null>(null);
 
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={fruits}
           placeholder="Search for a fruit..."
           onSelect={item => setSelected(item as string)}
         />
-        {selected && <p className="mt-4">Selected: {selected}</p>}
-      </div>
+        {selected && <Paragraph mt="4">Selected: {selected}</Paragraph>}
+      </ResponsiveWrapper>
     );
   },
 };
@@ -135,7 +156,7 @@ export const ObjectData: Story = {
     const [selected, setSelected] = useState<any>(null);
 
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={countries}
           field="label"
@@ -143,11 +164,11 @@ export const ObjectData: Story = {
           onSelect={item => setSelected(item)}
         />
         {selected && (
-          <p className="mt-4">
+          <Paragraph mt="4">
             Selected: {selected.flag} {selected.label}
-          </p>
+          </Paragraph>
         )}
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -158,13 +179,13 @@ export const ObjectData: Story = {
 export const Clearable: Story = {
   render: function ClearableExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={fruits}
           placeholder="Search and clear..."
           clearable
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -175,13 +196,13 @@ export const Clearable: Story = {
 export const OpenOnFocus: Story = {
   render: function OpenOnFocusExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={fruits.slice(0, 8)}
           placeholder="Click to see all options..."
           openOnFocus
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -192,16 +213,16 @@ export const OpenOnFocus: Story = {
 export const KeepFirst: Story = {
   render: function KeepFirstExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
-        <p className="mb-4 help">
+      <ResponsiveWrapper>
+        <Paragraph mb="4" className="help">
           Type to filter. First match is highlighted for Enter key selection.
-        </p>
+        </Paragraph>
         <Autocomplete
           data={fruits}
           placeholder="Type and press Enter..."
           keepFirst
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -212,21 +233,21 @@ export const KeepFirst: Story = {
 export const CustomTemplate: Story = {
   render: function CustomTemplateExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={countries}
           field="label"
           placeholder="Search for a country..."
           itemTemplate={item => (
-            <div className="is-flex is-align-items-center">
-              <span className="mr-2" style={{ fontSize: '1.5rem' }}>
+            <Block display="flex" alignItems="center">
+              <Span mr="2" textSize="5">
                 {(item as any).flag}
-              </span>
-              <span>{(item as any).label}</span>
-            </div>
+              </Span>
+              <Span>{(item as any).label}</Span>
+            </Block>
           )}
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -237,16 +258,23 @@ export const CustomTemplate: Story = {
 export const Colors: Story = {
   render: function ColorsExample() {
     return (
-      <div
-        className="is-flex is-flex-direction-column"
-        style={{ gap: '1rem', maxWidth: '400px' }}
-      >
-        <Autocomplete data={fruits} placeholder="Primary" color="primary" />
-        <Autocomplete data={fruits} placeholder="Success" color="success" />
-        <Autocomplete data={fruits} placeholder="Warning" color="warning" />
-        <Autocomplete data={fruits} placeholder="Danger" color="danger" />
-        <Autocomplete data={fruits} placeholder="Info" color="info" />
-      </div>
+      <ResponsiveWrapper>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Primary" color="primary" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Success" color="success" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Warning" color="warning" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Danger" color="danger" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Info" color="info" />
+        </Field>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -257,15 +285,20 @@ export const Colors: Story = {
 export const Sizes: Story = {
   render: function SizesExample() {
     return (
-      <div
-        className="is-flex is-flex-direction-column"
-        style={{ gap: '1rem', maxWidth: '400px' }}
-      >
-        <Autocomplete data={fruits} placeholder="Small" size="small" />
-        <Autocomplete data={fruits} placeholder="Normal" />
-        <Autocomplete data={fruits} placeholder="Medium" size="medium" />
-        <Autocomplete data={fruits} placeholder="Large" size="large" />
-      </div>
+      <ResponsiveWrapper>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Small" size="small" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Normal" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Medium" size="medium" />
+        </Field>
+        <Field>
+          <Autocomplete data={fruits} placeholder="Large" size="large" />
+        </Field>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -276,9 +309,9 @@ export const Sizes: Story = {
 export const Loading: Story = {
   render: function LoadingExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete data={[]} placeholder="Loading..." loading />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -289,9 +322,9 @@ export const Loading: Story = {
 export const Disabled: Story = {
   render: function DisabledExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete data={fruits} placeholder="Disabled" disabled />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -304,7 +337,7 @@ export const EmptyState: Story = {
     const [value, setValue] = useState('xyz');
 
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={fruits}
           value={value}
@@ -312,15 +345,15 @@ export const EmptyState: Story = {
           onInput={setValue}
           openOnFocus
           empty={
-            <div className="has-text-centered p-4">
-              <p className="has-text-grey">No fruits found</p>
-              <p className="has-text-grey-light is-size-7">
+            <Block textAlign="centered" p="4">
+              <Paragraph textColor="grey">No fruits found</Paragraph>
+              <Paragraph textColor="grey-light" textSize="7">
                 Try a different search term
-              </p>
-            </div>
+              </Paragraph>
+            </Block>
           }
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -331,15 +364,15 @@ export const EmptyState: Story = {
 export const HeaderFooter: Story = {
   render: function HeaderFooterExample() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={fruits.slice(0, 5)}
           placeholder="Search fruits..."
           openOnFocus
-          header={<span>Popular Fruits</span>}
+          header={<Span>Popular Fruits</Span>}
           footer={<a href="#">View all fruits</a>}
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -358,16 +391,13 @@ export const Controlled: Story = {
     };
 
     return (
-      <div style={{ maxWidth: '400px' }}>
-        <div
-          className="is-flex is-align-items-center mb-4"
-          style={{ gap: '0.5rem' }}
-        >
-          <span>Value: "{value}"</span>
-          <button className="button is-small" onClick={handleClear}>
+      <ResponsiveWrapper>
+        <Block display="flex" alignItems="center" mb="4" className="is-gap-2">
+          <Span>Value: &quot;{value}&quot;</Span>
+          <Button size="small" onClick={handleClear}>
             Clear
-          </button>
-        </div>
+          </Button>
+        </Block>
         <Autocomplete
           data={fruits}
           value={value}
@@ -375,8 +405,8 @@ export const Controlled: Story = {
           onInput={setValue}
           onSelect={item => setSelected(item as string)}
         />
-        {selected && <p className="mt-4">Selected: {selected}</p>}
-      </div>
+        {selected && <Paragraph mt="4">Selected: {selected}</Paragraph>}
+      </ResponsiveWrapper>
     );
   },
 };
@@ -407,8 +437,10 @@ export const AsyncData: Story = {
     };
 
     return (
-      <div style={{ maxWidth: '400px' }}>
-        <p className="mb-4 help">Type to simulate async search (500ms delay)</p>
+      <ResponsiveWrapper>
+        <Paragraph mb="4" className="help">
+          Type to simulate async search (500ms delay)
+        </Paragraph>
         <Autocomplete
           data={data}
           placeholder="Search fruits..."
@@ -416,7 +448,7 @@ export const AsyncData: Story = {
           onInput={handleInput}
           empty="No results found"
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -435,14 +467,14 @@ export const DisabledItems: Story = {
     ];
 
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <ResponsiveWrapper>
         <Autocomplete
           data={dataWithDisabled}
           field="label"
           placeholder="Some options are disabled..."
           openOnFocus
         />
-      </div>
+      </ResponsiveWrapper>
     );
   },
 };
@@ -456,31 +488,38 @@ export const FormIntegration: Story = {
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      alert(`Selected fruit: ${fruit}`);
     };
 
     return (
-      <form onSubmit={handleSubmit} style={{ maxWidth: '400px' }}>
-        <div className="field">
-          <label className="label">Favorite Fruit</label>
-          <div className="control">
-            <Autocomplete
-              data={fruits}
-              placeholder="Select a fruit..."
-              clearable
-              keepFirst
-              onInput={setFruit}
-            />
-          </div>
-        </div>
-        <div className="field">
-          <div className="control">
-            <button type="submit" className="button is-primary">
-              Submit
-            </button>
-          </div>
-        </div>
-      </form>
+      <Columns>
+        <Column
+          sizeMobile="full"
+          sizeTablet="half"
+          sizeDesktop="one-third"
+          sizeWidescreen="one-quarter"
+        >
+          <form onSubmit={handleSubmit}>
+            <Field label="Favorite Fruit">
+              <Control>
+                <Autocomplete
+                  data={fruits}
+                  placeholder="Select a fruit..."
+                  clearable
+                  keepFirst
+                  onInput={setFruit}
+                />
+              </Control>
+            </Field>
+            <Field>
+              <Control>
+                <Button color="primary" type="submit">
+                  Submit
+                </Button>
+              </Control>
+            </Field>
+          </form>
+        </Column>
+      </Columns>
     );
   },
 };

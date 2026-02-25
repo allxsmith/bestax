@@ -1,0 +1,206 @@
+// Themed Checkbox styles
+// Custom-styled checkbox with colors, sizes, and visual states
+// Follows Bulma v1 CSS variable convention (see _dialog.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Checkbox-specific SCSS variables
+$checkbox-size: 1.25em !default;
+$checkbox-border-width: 2px !default;
+$checkbox-radius: cv.getVar("radius-small") !default;
+$checkbox-border-color: cv.getVar("border") !default;
+$checkbox-background: transparent !default;
+$checkbox-check-color: cv.getVar("scheme-main") !default;
+$checkbox-active-color: cv.getVar("primary") !default;
+$checkbox-label-gap: 0.5em !default;
+$checkbox-focus-shadow-size: 0 0 0 0.125em !default;
+$checkbox-transition-duration: cv.getVar("duration") !default;
+$checkbox-indeterminate-color: cv.getVar("primary") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}checkbox {
+  @include cv.register-vars(
+    (
+      "checkbox-size": #{$checkbox-size},
+      "checkbox-border-width": #{$checkbox-border-width},
+      "checkbox-radius": #{$checkbox-radius},
+      "checkbox-border-color": #{$checkbox-border-color},
+      "checkbox-background": #{$checkbox-background},
+      "checkbox-check-color": #{$checkbox-check-color},
+      "checkbox-active-color": #{$checkbox-active-color},
+      "checkbox-label-gap": #{$checkbox-label-gap},
+      "checkbox-focus-shadow-size": #{$checkbox-focus-shadow-size},
+      "checkbox-transition-duration": #{$checkbox-transition-duration},
+      "checkbox-indeterminate-color": #{$checkbox-indeterminate-color},
+    )
+  );
+}
+
+// Main checkbox label
+.#{iv.$class-prefix}checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  line-height: 1.5;
+
+  // Hidden native input
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    // Checked state
+    &:checked + .check {
+      background-color: cv.getVar("checkbox-active-color");
+      border-color: cv.getVar("checkbox-active-color");
+
+      // SVG checkmark
+      &::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    // Indeterminate state
+    &:indeterminate + .check {
+      background-color: cv.getVar("checkbox-indeterminate-color");
+      border-color: cv.getVar("checkbox-indeterminate-color");
+
+      &::after {
+        opacity: 0;
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60%;
+        height: cv.getVar("checkbox-border-width");
+        background-color: cv.getVar("checkbox-check-color");
+        border-radius: 1px;
+      }
+    }
+
+    // Focus-visible state (keyboard only)
+    &:focus-visible + .check {
+      outline: 2px solid cv.getVar("checkbox-active-color");
+      outline-offset: 2px;
+    }
+
+    // Disabled state
+    &:disabled + .check {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:disabled ~ .control-label {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // Custom check indicator
+  .check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    width: cv.getVar("checkbox-size");
+    height: cv.getVar("checkbox-size");
+    min-width: 24px;
+    min-height: 24px;
+    background-color: cv.getVar("checkbox-background");
+    border: cv.getVar("checkbox-border-width") solid cv.getVar("checkbox-border-color");
+    border-radius: cv.getVar("checkbox-radius");
+    transition-property: background-color, border-color;
+    transition-duration: cv.getVar("checkbox-transition-duration");
+    transition-timing-function: ease;
+
+    // Checkmark via SVG background-image
+    &::after {
+      content: "";
+      position: absolute;
+      width: 65%;
+      height: 65%;
+      opacity: 0;
+      transform: scale(0.5);
+      transition-property: opacity, transform;
+      transition-duration: cv.getVar("checkbox-transition-duration");
+      transition-timing-function: ease;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  }
+
+  // Label text
+  .control-label {
+    margin-left: cv.getVar("checkbox-label-gap");
+    line-height: 1.5;
+  }
+}
+
+// Color variants
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}checkbox.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "checkbox-active-color": #{cv.getVar($name)},
+        "checkbox-indeterminate-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// Size variants
+.#{iv.$class-prefix}checkbox.#{iv.$class-prefix}is-small {
+  font-size: cv.getVar("size-small");
+}
+
+.#{iv.$class-prefix}checkbox.#{iv.$class-prefix}is-medium {
+  font-size: cv.getVar("size-medium");
+}
+
+.#{iv.$class-prefix}checkbox.#{iv.$class-prefix}is-large {
+  font-size: cv.getVar("size-large");
+}
+
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}checkbox {
+    .check {
+      border-color: ButtonText;
+    }
+
+    input[type="checkbox"]:checked + .check {
+      background-color: Highlight;
+      border-color: Highlight;
+    }
+
+    input[type="checkbox"]:focus-visible + .check {
+      outline-color: Highlight;
+    }
+
+    input[type="checkbox"]:disabled + .check {
+      border-color: GrayText;
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}checkbox {
+    .check,
+    .check::after {
+      transition: none;
+    }
+  }
+}
