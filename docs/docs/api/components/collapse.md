@@ -10,7 +10,7 @@ sidebar_label: Collapse
 The `Collapse` component provides an expandable/collapsible content panel. It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support.
 
 :::info
-The Collapse component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Collapse component requires importing the extras CSS. See the [Extras Setup 
 
 ```tsx
 import { Collapse } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/extras.css';
 ```
 
 ---
@@ -35,12 +32,14 @@ import '@allxsmith/bestax-bulma/extras.css';
 | `onOpen`           | `() => void`                             | —       | Callback when collapse opens.                    |
 | `onClose`          | `() => void`                             | —       | Callback when collapse closes.                   |
 | `trigger`          | `React.ReactNode`                        | —       | The clickable trigger element (header/button).   |
-| `animation`        | `boolean`                                | `true`  | Enable height animation.                         |
+| `animation`        | `'fade'` \| `'slide'` \| `false`         | `'fade'` | Animation style, or `false` to disable.         |
 | `ariaId`           | `string`                                 | auto    | Custom aria id for accessibility.                |
 | `children`         | `React.ReactNode`                        | —       | The collapsible content.                         |
 | `className`        | `string`                                 | —       | Additional CSS classes.                          |
 | `triggerClassName` | `string`                                 | —       | Additional classes for the trigger wrapper.      |
 | `contentClassName` | `string`                                 | —       | Additional classes for the content wrapper.      |
+| `position`         | `'top'` \| `'bottom'`                    | `'top'` | Position of the trigger relative to content.     |
+| `bordered`         | `boolean`                                | —       | Adds a border around the collapse.               |
 | ...                | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
@@ -56,24 +55,17 @@ function example() {
   return (
     <Collapse
       trigger={
-        <div
-          style={{
-            padding: '0.75rem',
-            background: '#f5f5f5',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          <strong>Click to expand</strong>
-        </div>
+        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+          <Strong>Click to expand</Strong>
+        </Block>
       }
     >
-      <div style={{ padding: '0.75rem' }}>
-        <p>
+      <Block p="3">
+        <Paragraph>
           This is the collapsible content. It can contain any React elements.
-        </p>
-        <p>Click the header again to collapse.</p>
-      </div>
+        </Paragraph>
+        <Paragraph>Click the header again to collapse.</Paragraph>
+      </Block>
     </Collapse>
   );
 }
@@ -91,21 +83,14 @@ function example() {
     <Collapse
       defaultOpen
       trigger={
-        <div
-          style={{
-            padding: '0.75rem',
-            background: '#f5f5f5',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          <strong>This starts open</strong>
-        </div>
+        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+          <Strong>This starts open</Strong>
+        </Block>
       }
     >
-      <div style={{ padding: '0.75rem' }}>
-        <p>This content is visible by default.</p>
-      </div>
+      <Block p="3">
+        <Paragraph>This content is visible by default.</Paragraph>
+      </Block>
     </Collapse>
   );
 }
@@ -123,21 +108,14 @@ function example() {
     <Collapse
       animation={false}
       trigger={
-        <div
-          style={{
-            padding: '0.75rem',
-            background: '#f5f5f5',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          <strong>No animation</strong>
-        </div>
+        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+          <Strong>No animation</Strong>
+        </Block>
       }
     >
-      <div style={{ padding: '0.75rem' }}>
-        <p>This collapse has animation disabled.</p>
-      </div>
+      <Block p="3">
+        <Paragraph>This collapse has animation disabled.</Paragraph>
+      </Block>
     </Collapse>
   );
 }
@@ -154,34 +132,28 @@ function example() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
+    <Block>
+      <Block mb="4">
         <Button color="primary" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? 'Close' : 'Open'} Collapse
         </Button>
-        <span style={{ marginLeft: '1rem' }}>
+        <Span ml="4">
           State: {isOpen ? 'Open' : 'Closed'}
-        </span>
-      </div>
+        </Span>
+      </Block>
       <Collapse
         open={isOpen}
         trigger={
-          <div
-            style={{
-              padding: '0.75rem',
-              background: '#f5f5f5',
-              borderRadius: '4px',
-            }}
-          >
+          <Block p="3" bgColor="white-ter" style={{ borderRadius: '4px' }}>
             Controlled collapse (use button above)
-          </div>
+          </Block>
         }
       >
-        <div style={{ padding: '0.75rem' }}>
-          <p>This collapse is controlled by external state.</p>
-        </div>
+        <Block p="3">
+          <Paragraph>This collapse is controlled by external state.</Paragraph>
+        </Block>
       </Collapse>
-    </div>
+    </Block>
   );
 }
 ```
@@ -203,30 +175,29 @@ function example() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <Block display="flex" flexDirection="column" gap="2">
       {items.map((item, index) => (
         <Collapse
           key={index}
           className="collapse is-bordered"
           open={openIndex === index}
           trigger={
-            <div
+            <Block
+              p="4"
               onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
             >
-              <strong>{item.title}</strong>
-              <span>{openIndex === index ? '−' : '+'}</span>
-            </div>
+              <Strong>{item.title}</Strong>
+              <Span>{openIndex === index ? '−' : '+'}</Span>
+            </Block>
           }
         >
-          <p>{item.content}</p>
+          <Paragraph p="4">{item.content}</Paragraph>
         </Collapse>
       ))}
-    </div>
+    </Block>
   );
 }
 ```
@@ -244,14 +215,14 @@ function example() {
       className="collapse is-card"
       defaultOpen
       trigger={
-        <div className="collapse-trigger-header">
-          <span>Card Collapse</span>
-          <Icon icon="fas fa-chevron-down" />
-        </div>
+        <Block className="collapse-trigger-header">
+          <Span>Card Collapse</Span>
+          <Icon name="fas fa-chevron-down" />
+        </Block>
       }
     >
-      <p>This collapse is styled like a card with shadow and padding.</p>
-      <p>Perfect for FAQ sections or settings panels.</p>
+      <Paragraph>This collapse is styled like a card with shadow and padding.</Paragraph>
+      <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>
     </Collapse>
   );
 }
@@ -283,29 +254,31 @@ function example() {
   };
 
   return (
-    <div>
-      <h4 className="title is-5 mb-4">FAQ</h4>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <Block>
+      <Title size="5" mb="4">FAQ</Title>
+      <Block display="flex" flexDirection="column" gap="2">
         {faqs.map((faq, index) => (
           <Collapse
             key={index}
             className="collapse is-bordered"
             trigger={
-              <div
+              <Block
+                p="4"
                 onClick={() => toggle(index)}
-                style={{ display: 'flex', justifyContent: 'space-between' }}
+                display="flex"
+                justifyContent="space-between"
               >
-                <span style={{ fontWeight: 500 }}>{faq.q}</span>
-                <span>{openStates[index] ? '▲' : '▼'}</span>
-              </div>
+                <Strong>{faq.q}</Strong>
+                <Span>{openStates[index] ? '▲' : '▼'}</Span>
+              </Block>
             }
             open={openStates[index]}
           >
-            <p style={{ color: '#666' }}>{faq.a}</p>
+            <Paragraph p="4" textColor="grey-dark">{faq.a}</Paragraph>
           </Collapse>
         ))}
-      </div>
-    </div>
+      </Block>
+    </Block>
   );
 }
 ```

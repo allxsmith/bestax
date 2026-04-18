@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
 
 /**
@@ -33,6 +34,8 @@ export interface SidebarProps
   escapeClose?: boolean;
   canCancel?: boolean;
   children?: React.ReactNode;
+  /** Render without portal. Default false. */
+  inline?: boolean;
 }
 
 /**
@@ -77,6 +80,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       escapeClose = true,
       canCancel = true,
       children,
+      inline = false,
       className,
       style,
       ...props
@@ -205,6 +209,10 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       </>
     );
 
+    if (inline) {
+      return sidebarContent;
+    }
+
     // Render to portal for proper stacking
     if (typeof document !== 'undefined') {
       return createPortal(sidebarContent, document.body);
@@ -218,10 +226,22 @@ SidebarComponent.displayName = 'Sidebar';
 
 // Sub-components
 
+/**
+ * Props for the SidebarHeader component.
+ *
+ * @property {React.ReactNode} [children] - Header content.
+ */
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
+/**
+ * Sidebar header section.
+ *
+ * @function
+ * @param {SidebarHeaderProps} props - Props for the SidebarHeader component.
+ * @returns {JSX.Element} The rendered sidebar header.
+ */
 const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   className,
   children,
@@ -235,10 +255,22 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
   );
 };
 
+/**
+ * Props for the SidebarTitle component.
+ *
+ * @property {React.ReactNode} [children] - Title content.
+ */
 interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   children?: React.ReactNode;
 }
 
+/**
+ * Sidebar title text.
+ *
+ * @function
+ * @param {SidebarTitleProps} props - Props for the SidebarTitle component.
+ * @returns {JSX.Element} The rendered sidebar title.
+ */
 const SidebarTitle: React.FC<SidebarTitleProps> = ({
   className,
   children,
@@ -252,9 +284,20 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
   );
 };
 
+/**
+ * Props for the SidebarClose component.
+ * Extends standard button attributes.
+ */
 interface SidebarCloseProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
 
+/**
+ * Sidebar close button.
+ *
+ * @function
+ * @param {SidebarCloseProps} props - Props for the SidebarClose component.
+ * @returns {JSX.Element} The rendered close button.
+ */
 const SidebarClose: React.FC<SidebarCloseProps> = ({
   className,
   children,
@@ -273,10 +316,22 @@ const SidebarClose: React.FC<SidebarCloseProps> = ({
   );
 };
 
+/**
+ * Props for the SidebarBody component.
+ *
+ * @property {React.ReactNode} [children] - Body content.
+ */
 interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
+/**
+ * Sidebar body/main content area.
+ *
+ * @function
+ * @param {SidebarBodyProps} props - Props for the SidebarBody component.
+ * @returns {JSX.Element} The rendered sidebar body.
+ */
 const SidebarBody: React.FC<SidebarBodyProps> = ({
   className,
   children,
@@ -290,10 +345,22 @@ const SidebarBody: React.FC<SidebarBodyProps> = ({
   );
 };
 
+/**
+ * Props for the SidebarFooter component.
+ *
+ * @property {React.ReactNode} [children] - Footer content.
+ */
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
+/**
+ * Sidebar footer section.
+ *
+ * @function
+ * @param {SidebarFooterProps} props - Props for the SidebarFooter component.
+ * @returns {JSX.Element} The rendered sidebar footer.
+ */
 const SidebarFooter: React.FC<SidebarFooterProps> = ({
   className,
   children,

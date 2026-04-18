@@ -17,7 +17,7 @@ $radio-focus-shadow-size: 0 0 0 0.125em !default;
 $radio-transition-duration: cv.getVar("duration") !default;
 
 // Register CSS custom properties
-.#{iv.$class-prefix}radio {
+.#{iv.$class-prefix}styled-radio {
   @include cv.register-vars(
     (
       "radio-size": #{$radio-size},
@@ -34,7 +34,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
 }
 
 // Main radio label
-.#{iv.$class-prefix}radio {
+.#{iv.$class-prefix}styled-radio {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -123,7 +123,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
 
 // Color variants
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
-  .#{iv.$class-prefix}radio.#{iv.$class-prefix}is-#{$name} {
+  .#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
         "radio-active-color": #{cv.getVar($name)},
@@ -133,21 +133,21 @@ $radio-transition-duration: cv.getVar("duration") !default;
 }
 
 // Size variants
-.#{iv.$class-prefix}radio.#{iv.$class-prefix}is-small {
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-small {
   font-size: cv.getVar("size-small");
 }
 
-.#{iv.$class-prefix}radio.#{iv.$class-prefix}is-medium {
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-medium {
   font-size: cv.getVar("size-medium");
 }
 
-.#{iv.$class-prefix}radio.#{iv.$class-prefix}is-large {
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-large {
   font-size: cv.getVar("size-large");
 }
 
 // High Contrast Mode support
 @media (forced-colors: active) {
-  .#{iv.$class-prefix}radio {
+  .#{iv.$class-prefix}styled-radio {
     .check {
       border-color: ButtonText;
     }
@@ -172,7 +172,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
 
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
-  .#{iv.$class-prefix}radio {
+  .#{iv.$class-prefix}styled-radio {
     .check,
     .check::before {
       transition: none;

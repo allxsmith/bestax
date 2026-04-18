@@ -45,7 +45,7 @@ import { IconText } from '@allxsmith/bestax-bulma';
 A basic usage of the `IconText` component with a single icon and text. The `iconProps` object receives the icon's name and an `ariaLabel` for accessibility.
 
 ```tsx live
-<IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }}>
+<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}>
   Star
 </IconText>
 ```
@@ -56,7 +56,7 @@ You can customize the text color using Bulma's color helpers. This example shows
 
 ```tsx live
 <IconText
-  iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }}
+  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}
   textColor="primary"
 >
   Star
@@ -68,24 +68,8 @@ You can customize the text color using Bulma's color helpers. This example shows
 You can use Bulma spacing helpers like `m` to add margin around the `IconText` component for better layout control.
 
 ```tsx live
-<IconText iconProps={{ name: 'fas fa-star', ariaLabel: 'Star icon' }} m="2">
+<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }} m="2">
   Star
-</IconText>
-```
-
-### Large Icon
-
-The `iconProps` object can include Font Awesome size classes (like `fa-lg`) and color props for larger, more prominent icons. This example shows a large, colored star icon with text.
-
-```tsx live
-<IconText
-  iconProps={{
-    name: 'fas fa-star fa-lg',
-    ariaLabel: 'Star icon',
-    textColor: 'danger',
-  }}
->
-  Large Star
 </IconText>
 ```
 
@@ -94,17 +78,17 @@ The `iconProps` object can include Font Awesome size classes (like `fa-lg`) and 
 Use `IconText` inside a button to combine an icon and label, ensuring proper alignment and spacing.
 
 ```tsx live
-<button className="button is-primary">
+<Button color="primary">
   <IconText
     iconProps={{
-      name: 'fas fa-check',
+      library: 'fa',
+      name: 'check',
       ariaLabel: 'Check icon',
-      textColor: 'white',
     }}
   >
     Click Me
   </IconText>
-</button>
+</Button>
 ```
 
 ### In a Notification
@@ -112,10 +96,11 @@ Use `IconText` inside a button to combine an icon and label, ensuring proper ali
 Place `IconText` inside a notification to visually pair an icon with a message, using color and margin helpers for emphasis.
 
 ```tsx live
-<div className="notification is-info">
+<Notification color="info">
   <IconText
     iconProps={{
-      name: 'fas fa-info-circle',
+      library: 'fa',
+      name: 'info-circle',
       ariaLabel: 'Info icon',
       textColor: 'dark',
     }}
@@ -123,7 +108,7 @@ Place `IconText` inside a notification to visually pair an icon with a message, 
   >
     Info Notification
   </IconText>
-</div>
+</Notification>
 ```
 
 ### In a Tag
@@ -131,17 +116,17 @@ Place `IconText` inside a notification to visually pair an icon with a message, 
 Use `IconText` inside a tag for labeled icons, such as status indicators or badges.
 
 ```tsx live
-<span className="tag is-success is-medium">
+<Tag color="success" size="medium">
   <IconText
     iconProps={{
-      name: 'fas fa-check',
+      library: 'fa',
+      name: 'check',
       ariaLabel: 'Check icon',
-      textColor: 'white',
     }}
   >
     Success
   </IconText>
-</span>
+</Tag>
 ```
 
 ### Multiple Icons and Text
@@ -152,22 +137,22 @@ The `items` prop allows you to render a sequence of icons and optional text, per
 <IconText
   items={[
     {
-      iconProps: { name: 'fas fa-train', ariaLabel: 'Train icon' },
+      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train icon' },
       text: 'Paris',
     },
     {
-      iconProps: { name: 'fas fa-arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
       text: 'Budapest',
     },
     {
-      iconProps: { name: 'fas fa-arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
       text: 'Bucharest',
     },
     {
-      iconProps: { name: 'fas fa-arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
       text: 'Istanbul',
     },
-    { iconProps: { name: 'fas fa-flag-checkered', ariaLabel: 'Finish icon' } },
+    { iconProps: { library: 'fa', name: 'flag-checkered', ariaLabel: 'Finish icon' } },
   ]}
   mx="1"
 />
@@ -177,32 +162,44 @@ The `items` prop allows you to render a sequence of icons and optional text, per
 
 This example uses the `items` prop to display a star rating with icons and text, demonstrating how to build composite icon+text UIs.
 
+:::tip Use the Rate Component for Star Ratings
+This example demonstrates IconText with multiple icon items. For actual star rating functionality (hover, click, keyboard, precision, etc.), use the dedicated [`Rate`](/docs/api/form/rate) component:
+
+```tsx live
+<Rate defaultValue={3.5} color="warning" precision={0.5} showScore />
+```
+
+:::
+
 ```tsx live
 <IconText
   items={[
     {
       iconProps: {
-        name: 'fas fa-star',
+        library: 'fa',
+        name: 'star',
         ariaLabel: 'Star icon',
       },
     },
     {
       iconProps: {
-        name: 'fas fa-star',
+        library: 'fa',
+        name: 'star',
         ariaLabel: 'Star icon',
       },
     },
     {
       iconProps: {
-        name: 'fas fa-star',
+        library: 'fa',
+        name: 'star',
         ariaLabel: 'Star icon',
       },
     },
     {
-      iconProps: { name: 'fas fa-star-half-alt', ariaLabel: 'Half star icon' },
+      iconProps: { library: 'fa', name: 'star-half-alt', ariaLabel: 'Half star icon' },
     },
     {
-      iconProps: { name: 'fa-regular fa-star', ariaLabel: 'Empty star icon' },
+      iconProps: { library: 'fa', name: 'star', variant: 'regular', ariaLabel: 'Empty star icon' },
       text: '3.5/5',
     },
   ]}
@@ -218,7 +215,8 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
 ```tsx live
 <IconText
   iconProps={{
-    name: 'fas fa-info-circle',
+    library: 'fa',
+    name: 'info-circle',
     ariaLabel: 'Info icon',
     textColor: 'info',
   }}

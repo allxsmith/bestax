@@ -11,6 +11,7 @@ import {
 } from '../helpers/useBulmaClasses';
 import { Icon, IconProps } from '../elements/Icon';
 import { useConfig } from '../helpers/Config';
+import { ControlProvider } from './FormContext';
 
 /**
  * Props for the Control component.
@@ -56,6 +57,7 @@ export interface ControlBaseProps
   children?: React.ReactNode;
 }
 
+/** Props for the Control component, supporting either `div` or `p` as the root element. */
 type ControlProps =
   | ({ as?: 'div' } & ControlBaseProps & { ref?: React.Ref<HTMLDivElement> })
   | ({ as: 'p' } & Omit<
@@ -75,6 +77,12 @@ const allowedColors = [...validColors, 'inherit', 'current'] as const;
  * @param {ControlProps} props - Props for the Control component.
  * @returns {JSX.Element} The rendered control container.
  * @see {@link https://bulma.io/documentation/form/general/#control | Bulma Control documentation}
+ *
+ * @example
+ * // Control with left icon
+ * <Control iconLeftName="envelope" iconLeftSize="small">
+ *   <input className="input" type="email" placeholder="Email" />
+ * </Control>
  */
 export const Control = React.forwardRef<
   HTMLDivElement | HTMLParagraphElement,
@@ -160,26 +168,28 @@ export const Control = React.forwardRef<
 
     // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (
-      <Component
-        className={controlClass}
-        ref={ref as typeof ref}
-        {...restProps}
-        {...rest}
-      >
-        {children}
-        {leftIconProps && leftIconProps.name && (
-          <Icon
-            {...leftIconProps}
-            className={prefixedClassNames(classPrefix, 'is-left')}
-          />
-        )}
-        {rightIconProps && rightIconProps.name && (
-          <Icon
-            {...rightIconProps}
-            className={prefixedClassNames(classPrefix, 'is-right')}
-          />
-        )}
-      </Component>
+      <ControlProvider value={true}>
+        <Component
+          className={controlClass}
+          ref={ref as typeof ref}
+          {...restProps}
+          {...rest}
+        >
+          {children}
+          {leftIconProps && leftIconProps.name && (
+            <Icon
+              {...leftIconProps}
+              className={prefixedClassNames(classPrefix, 'is-left')}
+            />
+          )}
+          {rightIconProps && rightIconProps.name && (
+            <Icon
+              {...rightIconProps}
+              className={prefixedClassNames(classPrefix, 'is-right')}
+            />
+          )}
+        </Component>
+      </ControlProvider>
     );
   }
 );

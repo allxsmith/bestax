@@ -363,6 +363,8 @@ export interface BulmaClassesProps {
   clearfix?: boolean;
   /** Applies position: relative if true. */
   relative?: boolean;
+  /** Applies height: 100% if true. */
+  fullHeight?: boolean;
 }
 
 /**
@@ -451,6 +453,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     skeleton,
     clearfix,
     relative,
+    fullHeight,
     ...rest
   } = props;
 
@@ -733,6 +736,11 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
       addPrefixedClass('is-relative');
     }
 
+    // Full Height Helper
+    if (fullHeight) {
+      addPrefixedClass('is-full-height');
+    }
+
     return classNames(classes);
   }, [
     classPrefix,
@@ -786,6 +794,7 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     skeleton,
     clearfix,
     relative,
+    fullHeight,
     // Viewport-specific properties
     textSizeMobile,
     textSizeTablet,

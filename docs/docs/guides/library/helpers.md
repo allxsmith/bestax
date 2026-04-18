@@ -106,7 +106,14 @@ Additional Bulma helpers are supported via these props:
 More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
 :::
 
-Not directly mapped; use Bulma's class directly if needed.
+Use the `clearfix` prop.
+
+```tsx live
+<Box clearfix>
+  <Button float="left">Left</Button>
+  <Button float="right">Right</Button>
+</Box>
+```
 
 #### is-pulled-left / is-pulled-right
 
@@ -219,7 +226,49 @@ Use the `interaction` prop.
 More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
 :::
 
-Not currently mapped; use Bulma's class directly if needed.
+Use the `relative` prop.
+
+```tsx live
+<Box relative p="4" style={{ height: '100px', border: '1px dashed #ccc' }}>
+  <Tag style={{ position: 'absolute', top: '8px', right: '8px' }}>Badge</Tag>
+  Relative container
+</Box>
+```
+
+#### is-cursor-help
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `cursor` prop.
+
+```tsx live
+<Box cursor="help">Hover for help cursor</Box>
+```
+
+#### is-full-height
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+Use the `fullHeight` prop.
+
+```tsx live
+<Columns>
+  <Column>
+    <Notification color="primary" fullHeight>
+      Short content
+    </Notification>
+  </Column>
+  <Column>
+    <Notification color="info" fullHeight>
+      Taller content that takes more space to demonstrate equal height
+    </Notification>
+  </Column>
+</Columns>
+```
 
 [View full documentation.](../../api/helpers/usebulmaclasses)
 
@@ -238,6 +287,22 @@ classNames('column', 'is-half', {
 ```
 
 [View full documentation.](../../api/helpers/classnames)
+
+---
+
+## Theme
+
+A component that injects Bulma CSS variables for local or global theming. Wrap any subtree in `<Theme>` to override design tokens like colors, typography, and spacing without writing custom CSS.
+
+[View full documentation.](../../api/helpers/theme)
+
+---
+
+## ConfigProvider
+
+A context provider for global settings like class prefix and icon library. Wrap your app in `<ConfigProvider>` to configure all bestax-bulma components at once.
+
+[View full documentation.](../../api/helpers/config)
 
 ---
 

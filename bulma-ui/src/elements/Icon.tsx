@@ -47,6 +47,8 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
  * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the icon.
  * @property {string} [ariaLabel='icon'] - ARIA label for accessibility (default: 'icon').
  * @property {object} [style] - Inline style object.
+ * @property {string} [icon] - DEPRECATED: Legacy prop, use `name` instead.
+ * @property {string} [containerClassName] - Override the default 'icon' container class (e.g., 'panel-icon').
  */
 export interface IconProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {

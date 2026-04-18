@@ -19,9 +19,6 @@ The Switch requires importing the extras CSS. See the [Extras Setup Guide](../..
 
 ```tsx
 import { Switch } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/extras.css';
 ```
 
 ---
@@ -31,7 +28,7 @@ import '@allxsmith/bestax-bulma/extras.css';
 | Prop             | Type                                                                            | Default    | Description                                      |
 | ---------------- | ------------------------------------------------------------------------------- | ---------- | ------------------------------------------------ |
 | `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Color variant for the switch.                    |
-| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | `'normal'` | Size of the switch.                              |
+| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —          | Size of the switch.                              |
 | `isRounded`      | `boolean`                                                                       | `false`    | Use rounded switch style.                        |
 | `isThin`         | `boolean`                                                                       | `false`    | Use thin switch style.                           |
 | `isOutlined`     | `boolean`                                                                       | `false`    | Use outlined switch style.                       |
@@ -40,6 +37,8 @@ import '@allxsmith/bestax-bulma/extras.css';
 | `checked`        | `boolean`                                                                       | —          | Controlled checked state.                        |
 | `defaultChecked` | `boolean`                                                                       | `false`    | Default checked state for uncontrolled usage.    |
 | `onChange`       | `(e: ChangeEvent<HTMLInputElement>) => void`                                    | —          | Callback when switch state changes.              |
+| `passiveType`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Color when the switch is in the off/passive state. |
+| `textColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | — | Text color helper. |
 | `children`       | `React.ReactNode`                                                               | —          | Label content for the switch.                    |
 | `className`      | `string`                                                                        | —          | Additional CSS classes.                          |
 | `ref`            | `React.Ref<HTMLInputElement>`                                                   | —          | Ref forwarded to the input element.              |
@@ -68,7 +67,7 @@ Switch with different color variants.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Block display="flex" flexDirection="column" gap="4">
       <Switch color="primary" defaultChecked>
         Primary
       </Switch>
@@ -87,7 +86,7 @@ function example() {
       <Switch color="danger" defaultChecked>
         Danger
       </Switch>
-    </div>
+    </Block>
   );
 }
 ```
@@ -101,7 +100,7 @@ Switch with different size variants.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Block display="flex" flexDirection="column" gap="4">
       <Switch size="small" defaultChecked>
         Small
       </Switch>
@@ -114,7 +113,7 @@ function example() {
       <Switch size="large" defaultChecked>
         Large
       </Switch>
-    </div>
+    </Block>
   );
 }
 ```
@@ -160,14 +159,14 @@ Switch with outlined style.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Block display="flex" flexDirection="column" gap="4">
       <Switch isOutlined color="primary" defaultChecked>
         Primary outlined
       </Switch>
       <Switch isOutlined color="success" defaultChecked>
         Success outlined
       </Switch>
-    </div>
+    </Block>
   );
 }
 ```
@@ -197,12 +196,12 @@ Disabled switches.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Block display="flex" flexDirection="column" gap="4">
       <Switch disabled>Disabled unchecked</Switch>
       <Switch disabled defaultChecked color="success">
         Disabled checked
       </Switch>
-    </div>
+    </Block>
   );
 }
 ```
@@ -218,7 +217,7 @@ function example() {
   const [isEnabled, setIsEnabled] = useState(false);
 
   return (
-    <div>
+    <Block>
       <Switch
         color="primary"
         checked={isEnabled}
@@ -226,10 +225,10 @@ function example() {
       >
         Feature is {isEnabled ? 'enabled' : 'disabled'}
       </Switch>
-      <p className="mt-2">
-        State: <strong>{isEnabled ? 'ON' : 'OFF'}</strong>
-      </p>
-    </div>
+      <Paragraph mt="2">
+        State: <Strong>{isEnabled ? 'ON' : 'OFF'}</Strong>
+      </Paragraph>
+    </Block>
   );
 }
 ```
@@ -253,9 +252,9 @@ function example() {
   };
 
   return (
-    <div style={{ maxWidth: '300px' }}>
-      <h4 className="title is-5">Settings</h4>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Block style={{ maxWidth: '300px' }}>
+      <Title size="5">Settings</Title>
+      <Block display="flex" flexDirection="column" gap="4">
         <Switch
           color="primary"
           checked={settings.notifications}
@@ -277,8 +276,8 @@ function example() {
         >
           Auto-save
         </Switch>
-      </div>
-    </div>
+      </Block>
+    </Block>
   );
 }
 ```

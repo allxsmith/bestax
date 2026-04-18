@@ -1,6 +1,8 @@
 import { Meta, StoryObj } from '@storybook/react';
 import File from './File';
 import { Icon } from '../elements/Icon';
+import { Field } from './Field';
+import { Control } from './Control';
 
 const meta: Meta<typeof File> = {
   title: 'Form/File',
@@ -13,7 +15,7 @@ type Story = StoryObj<typeof File>;
 
 export const Default: Story = {
   render: () => (
-    <File label="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
   ),
 };
 
@@ -22,7 +24,7 @@ export const ModifiersHasNameWithFileName: Story = {
     <File
       hasName
       fileName="resume.pdf"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -34,7 +36,7 @@ export const ModifiersHasRight: Story = {
       hasName
       isRight
       fileName="contract.pdf"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -46,7 +48,7 @@ export const ModifiersFullWidth: Story = {
       hasName
       isFullwidth
       fileName="picture.png"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -54,7 +56,7 @@ export const ModifiersFullWidth: Story = {
 
 export const ModifiersBoxedBlock: Story = {
   render: () => (
-    <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File isBoxed buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
   ),
 };
 
@@ -64,7 +66,7 @@ export const ModifiersHasNameAndBoxedBlock: Story = {
       isBoxed
       hasName
       fileName="holiday.jpg"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -75,7 +77,7 @@ export const ColorsPrimary: Story = {
   render: () => (
     <File
       color="primary"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -85,7 +87,7 @@ export const ColorsInfo: Story = {
   render: () => (
     <File
       color="info"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -95,7 +97,7 @@ export const ColorsWarning: Story = {
   render: () => (
     <File
       color="warning"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -105,7 +107,7 @@ export const ColorsDanger: Story = {
   render: () => (
     <File
       color="danger"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -116,7 +118,7 @@ export const SizesSmall: Story = {
   render: () => (
     <File
       size="small"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -124,7 +126,7 @@ export const SizesSmall: Story = {
 
 export const SizesNormal: Story = {
   render: () => (
-    <File label="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
   ),
   parameters: {
     docs: {
@@ -139,7 +141,7 @@ export const SizesMedium: Story = {
   render: () => (
     <File
       size="medium"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -149,7 +151,7 @@ export const SizesLarge: Story = {
   render: () => (
     <File
       size="large"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -162,7 +164,7 @@ export const SizesSmallWithName: Story = {
       size="small"
       hasName
       fileName="sample.txt"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -173,7 +175,7 @@ export const SizesNormalWithName: Story = {
     <File
       hasName
       fileName="sample.txt"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -192,7 +194,7 @@ export const SizesMediumWithName: Story = {
       size="medium"
       hasName
       fileName="sample.txt"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -204,7 +206,7 @@ export const SizesLargeWithName: Story = {
       size="large"
       hasName
       fileName="sample.txt"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -216,7 +218,7 @@ export const SizesSmallWithBoxed: Story = {
     <File
       size="small"
       isBoxed
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -224,7 +226,7 @@ export const SizesSmallWithBoxed: Story = {
 
 export const SizesNormalWithBoxed: Story = {
   render: () => (
-    <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File isBoxed buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
   ),
   parameters: {
     docs: {
@@ -240,7 +242,7 @@ export const SizesMediumWithBoxed: Story = {
     <File
       size="medium"
       isBoxed
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -251,7 +253,7 @@ export const SizesLargeWithBoxed: Story = {
     <File
       size="large"
       isBoxed
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -265,7 +267,7 @@ export const SizesSmallWithNameAndBoxed: Story = {
       isBoxed
       hasName
       fileName="summary.docx"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -277,7 +279,7 @@ export const SizesNormalWithNameAndBoxed: Story = {
       isBoxed
       hasName
       fileName="summary.docx"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -297,7 +299,7 @@ export const SizesMediumWithNameAndBoxed: Story = {
       isBoxed
       hasName
       fileName="summary.docx"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -310,7 +312,7 @@ export const SizesLargeWithNameAndBoxed: Story = {
       isBoxed
       hasName
       fileName="summary.docx"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -325,7 +327,7 @@ export const AlignmentCenter: Story = {
       isBoxed
       hasName
       fileName="centered.pdf"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
   ),
@@ -338,8 +340,53 @@ export const AlignmentRight: Story = {
       isRight
       hasName
       fileName="right.pdf"
-      label="Choose a file..."
+      buttonLabel="Choose a file..."
       iconLeft={<Icon name="upload" />}
     />
+  ),
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — File renders its own Field+Control wrapper automatically.
+ * Note: `label` is the Field label; `buttonLabel` is for the button text.
+ */
+export const WithLabel: Story = {
+  render: () => <File label="Attachment" />,
+};
+
+/**
+ * Inside Field — the outer Field turns off File's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Attachment">
+      <Field.Body>
+        <File />
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally.
+ * File manages its own control internally, so the outer Control
+ * simply provides context signaling.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Attachment">
+      <Field.Body>
+        <Field>
+          <Control>
+            <File />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
   ),
 };

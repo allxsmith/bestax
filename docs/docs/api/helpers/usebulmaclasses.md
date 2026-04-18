@@ -60,7 +60,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                  |
 | `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                       |
 | `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                        |
-| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`                                                                                                                                                                                   | `is-flex`, `is-inline-block`                                 |
+| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'none'`                                                                                                                                                                         | `is-flex`, `is-inline-block`, `is-hidden`                    |
 | `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                    |
 | `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                      |
 | `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                        |
@@ -82,6 +82,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                |
 | `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                |
 | `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                |
+| `fullHeight`           | `true`                                                                                                                                                                                                                                               | `is-full-height`                                             |
 
 ### Viewport-Specific Properties
 
@@ -207,8 +208,8 @@ export interface BulmaClassesProps {
   textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
-  display?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex';
-  visibility?: 'hidden' | 'sr-only';
+  display?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  visibility?: 'hidden' | 'sr-only' | 'invisible';
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   justifyContent?:
@@ -256,8 +257,30 @@ export interface BulmaClassesProps {
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
   viewport?: 'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
+  skeleton?: boolean;
   clearfix?: boolean;
   relative?: boolean;
+  fullHeight?: boolean;
+  displayMobile?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  displayTablet?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  displayDesktop?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  displayWidescreen?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  displayFullhd?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  textSizeMobile?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeTablet?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeDesktop?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeWidescreen?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeFullhd?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textAlignMobile?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignTablet?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignDesktop?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignWidescreen?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignFullhd?: 'centered' | 'justified' | 'left' | 'right';
+  visibilityMobile?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityTablet?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityDesktop?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityWidescreen?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityFullhd?: 'hidden' | 'sr-only' | 'invisible';
   className?: string;
 }
 ```
@@ -930,7 +953,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples f
 ```tsx live
 <Image
   skeleton
-  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
+  src="/img/react-logo.png"
   alt="Skeleton image"
   size="128x128"
 />

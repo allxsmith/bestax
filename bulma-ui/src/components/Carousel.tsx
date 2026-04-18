@@ -15,6 +15,8 @@ import { Button } from '../elements/Button';
 
 /**
  * Props for the CarouselItem component.
+ *
+ * @property {boolean} [active] - Whether this item is the active/visible slide.
  */
 export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Whether this item is active */
@@ -23,6 +25,11 @@ export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> 
 
 /**
  * Individual carousel item/slide.
+ *
+ * @function
+ * @param {CarouselItemProps} props - Props for the CarouselItem component.
+ * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the carousel item element.
+ * @returns {JSX.Element} The rendered carousel item.
  */
 export const CarouselItem = forwardRef<HTMLDivElement, CarouselItemProps>(
   ({ active, className, children, ...props }, ref) => {
@@ -43,7 +50,10 @@ CarouselItem.displayName = 'CarouselItem';
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
- * Default SVG icon for previous arrow.
+ * Default SVG icon for the previous arrow button.
+ *
+ * @function
+ * @returns {JSX.Element} The rendered SVG chevron-left icon.
  */
 const DefaultPrevIcon = () => (
   <svg
@@ -58,7 +68,10 @@ const DefaultPrevIcon = () => (
 );
 
 /**
- * Default SVG icon for next arrow.
+ * Default SVG icon for the next arrow button.
+ *
+ * @function
+ * @returns {JSX.Element} The rendered SVG chevron-right icon.
  */
 const DefaultNextIcon = () => (
   <svg
@@ -96,6 +109,7 @@ const DefaultNextIcon = () => (
  * @property {boolean} [arrowBackground] - Show semi-transparent background on arrow buttons. Default: true.
  * @property {'light'|'dark'} [arrowColor] - Arrow icon color variant. Useful for transparent arrows on dark/light backgrounds.
  * @property {(value: number) => void} [onChange] - Callback when slide changes.
+ * @property {React.ReactNode} [children] - Carousel slide items (CarouselItem elements).
  */
 export interface CarouselProps
   extends
@@ -520,52 +534,51 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           >
             {renderSlides()}
           </div>
+          {arrow && itemCount > 1 && (
+            <>
+              <Button
+                className={classNames('carousel-arrow is-prev', {
+                  'is-transparent': !arrowBackground,
+                })}
+                onClick={goToPrev}
+                isDisabled={!canGoPrev}
+                aria-label="Previous slide"
+              >
+                {iconPrev ? (
+                  <Icon
+                    name={iconPrev}
+                    library={iconLibrary}
+                    variant={iconVariant}
+                    size={iconSize}
+                    features={iconFeatures}
+                  />
+                ) : (
+                  <DefaultPrevIcon />
+                )}
+              </Button>
+              <Button
+                className={classNames('carousel-arrow is-next', {
+                  'is-transparent': !arrowBackground,
+                })}
+                onClick={goToNext}
+                isDisabled={!canGoNext}
+                aria-label="Next slide"
+              >
+                {iconNext ? (
+                  <Icon
+                    name={iconNext}
+                    library={iconLibrary}
+                    variant={iconVariant}
+                    size={iconSize}
+                    features={iconFeatures}
+                  />
+                ) : (
+                  <DefaultNextIcon />
+                )}
+              </Button>
+            </>
+          )}
         </div>
-
-        {arrow && itemCount > 1 && (
-          <>
-            <Button
-              className={classNames('carousel-arrow is-prev', {
-                'is-transparent': !arrowBackground,
-              })}
-              onClick={goToPrev}
-              isDisabled={!canGoPrev}
-              aria-label="Previous slide"
-            >
-              {iconPrev ? (
-                <Icon
-                  name={iconPrev}
-                  library={iconLibrary}
-                  variant={iconVariant}
-                  size={iconSize}
-                  features={iconFeatures}
-                />
-              ) : (
-                <DefaultPrevIcon />
-              )}
-            </Button>
-            <Button
-              className={classNames('carousel-arrow is-next', {
-                'is-transparent': !arrowBackground,
-              })}
-              onClick={goToNext}
-              isDisabled={!canGoNext}
-              aria-label="Next slide"
-            >
-              {iconNext ? (
-                <Icon
-                  name={iconNext}
-                  library={iconLibrary}
-                  variant={iconVariant}
-                  size={iconSize}
-                  features={iconFeatures}
-                />
-              ) : (
-                <DefaultNextIcon />
-              )}
-            </Button>
-          </>
-        )}
 
         {indicator && itemCount > 1 && (
           <div

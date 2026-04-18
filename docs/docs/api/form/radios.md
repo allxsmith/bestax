@@ -54,6 +54,74 @@ This example demonstrates the `Radios` component wrapping multiple `Radio` child
 
 ---
 
+### Context-Aware Rendering
+
+The `Radios` component is context-aware: it detects whether it is already inside a `Field` or `Control` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in Field+Control), inside a `Field` (it skips its own Field), or inside both `Field` and `Control` (it renders only the raw radio group).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field and Control wrappers.
+
+```tsx live
+<Radios label="RSVP">
+  <Radio name="rsvp"> Attend </Radio>
+  <Radio name="rsvp"> Decline </Radio>
+  <Radio name="rsvp"> Tentative </Radio>
+</Radios>
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="RSVP">
+      <Field.Body>
+        <Field>
+          <Radios>
+            <Radio name="rsvp2"> Attend </Radio>
+            <Radio name="rsvp2"> Decline </Radio>
+            <Radio name="rsvp2"> Tentative </Radio>
+          </Radios>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual control, wrap in both Field and Control. The component detects both and renders only the raw radio group.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="RSVP">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Radios>
+              <Radio name="rsvp3"> Attend </Radio>
+              <Radio name="rsvp3"> Decline </Radio>
+              <Radio name="rsvp3"> Tentative </Radio>
+            </Radios>
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - The group is rendered as a `<div class="radios">` containing labeled radio buttons.

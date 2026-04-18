@@ -22,12 +22,12 @@ cd my-bestax-app
 ## 2. Install Dependencies
 
 ```bash
-npm install @allxsmith/bestax-bulma bulma
+npm install @allxsmith/bestax-bulma
 ```
 
 ---
 
-## 3. Add Bulma CSS
+## 3. Add Bestax CSS
 
 In your `src/main.jsx`:
 
@@ -35,7 +35,7 @@ In your `src/main.jsx`:
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import 'bulma/css/bulma.min.css'; // Add this line
+import '@allxsmith/bestax-bulma/bestax.css'; // Bulma + extras in one file
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -189,10 +189,5 @@ function Demo() {
 - ✅ **TypeScript Ready** - Complete type definitions included
 - ✅ **Tree Shakeable** - Only import what you need
 - ✅ **99% Test Coverage** - Reliable and stable
-- ✅ **Zero Dependencies** - Just React and Bulma CSS
+- ✅ **Just One Dependency** - Bulma. Every Bulma library depends on it — we bundle it for you
 
----
-
-:::info Bulma CSS Required
-Remember that bestax-bulma components require Bulma CSS to be loaded. The components provide the React integration, while Bulma CSS provides the styling.
-:::

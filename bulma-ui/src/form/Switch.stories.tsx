@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Switch } from './Switch';
 import { Field } from './Field';
+import { Input } from './Input';
+import { Select } from './Select';
 
 const meta: Meta<typeof Switch> = {
   title: 'Form/Switch',
@@ -42,6 +44,11 @@ const meta: Meta<typeof Switch> = {
     isRtl: {
       control: 'boolean',
       description: 'Right-to-left layout (label on left)',
+    },
+    passiveType: {
+      control: 'select',
+      options: ['primary', 'link', 'info', 'success', 'warning', 'danger'],
+      description: 'Color for the unchecked (inactive) state',
     },
     disabled: {
       control: 'boolean',
@@ -289,6 +296,188 @@ export const SettingsExample: Story = {
 };
 
 /**
+ * Switch with passive type (unchecked state color).
+ * The passive type sets the color when the switch is OFF, while the active
+ * color (set via `color`) shows when the switch is ON.
+ */
+export const PassiveType: Story = {
+  render: () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Switch color="success" passiveType="danger">
+        Success active / Danger passive
+      </Switch>
+      <Switch color="primary" passiveType="warning">
+        Primary active / Warning passive
+      </Switch>
+      <Switch color="info" passiveType="danger" isOutlined>
+        Outlined info / danger passive
+      </Switch>
+      <Switch color="success" passiveType="danger" isRounded>
+        Rounded success / danger passive
+      </Switch>
+    </div>
+  ),
+};
+
+/**
+ * Form with mixed inputs: Input, Select, and Switch together.
+ */
+export const FormExample: Story = {
+  render: function UserProfileForm() {
+    const [profile, setProfile] = useState({
+      name: '',
+      email: '',
+      role: '',
+      notifications: true,
+      twoFactor: false,
+      publicProfile: true,
+    });
+
+    const toggle =
+      (key: 'notifications' | 'twoFactor' | 'publicProfile') =>
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setProfile(prev => ({ ...prev, [key]: e.target.checked }));
+      };
+
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <h4 className="title is-5">User Profile</h4>
+        <Input
+          label="Full Name"
+          placeholder="Jane Doe"
+          value={profile.name}
+          onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
+        />
+        <Input
+          label="Email"
+          type="email"
+          placeholder="jane@example.com"
+          value={profile.email}
+          onChange={e =>
+            setProfile(prev => ({ ...prev, email: e.target.value }))
+          }
+        />
+        <Select
+          label="Role"
+          value={profile.role}
+          onChange={e =>
+            setProfile(prev => ({ ...prev, role: e.target.value }))
+          }
+        >
+          <option value="">Select a role...</option>
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </Select>
+        <Field label="Preferences">
+          <Field>
+            <Switch
+              color="success"
+              passiveType="danger"
+              checked={profile.notifications}
+              onChange={toggle('notifications')}
+            >
+              Email notifications
+            </Switch>
+          </Field>
+          <Field>
+            <Switch
+              color="info"
+              checked={profile.twoFactor}
+              onChange={toggle('twoFactor')}
+            >
+              Two-factor authentication
+            </Switch>
+          </Field>
+          <Field>
+            <Switch
+              color="primary"
+              isRounded
+              checked={profile.publicProfile}
+              onChange={toggle('publicProfile')}
+            >
+              Public profile
+            </Switch>
+          </Field>
+        </Field>
+      </div>
+    );
+  },
+};
+
+/**
+ * Horizontal form layout mixing Input, Select, and Switch.
+ */
+export const HorizontalForm: Story = {
+  render: function HorizontalSettingsForm() {
+    const [form, setForm] = useState({
+      username: '',
+      timezone: '',
+      darkMode: false,
+      autoSave: true,
+    });
+
+    return (
+      <div style={{ maxWidth: '700px' }}>
+        <h4 className="title is-5">Account Settings</h4>
+        <Input
+          horizontal
+          label="Username"
+          placeholder="Enter username"
+          value={form.username}
+          onChange={e =>
+            setForm(prev => ({ ...prev, username: e.target.value }))
+          }
+        />
+        <Select
+          horizontal
+          label="Timezone"
+          value={form.timezone}
+          onChange={e =>
+            setForm(prev => ({ ...prev, timezone: e.target.value }))
+          }
+        >
+          <option value="">Select timezone...</option>
+          <option value="utc">UTC</option>
+          <option value="est">Eastern (EST)</option>
+          <option value="cst">Central (CST)</option>
+          <option value="pst">Pacific (PST)</option>
+        </Select>
+        <Field horizontal label="Dark mode">
+          <Field>
+            <Switch
+              color="info"
+              isThin
+              checked={form.darkMode}
+              onChange={e =>
+                setForm(prev => ({ ...prev, darkMode: e.target.checked }))
+              }
+            >
+              {form.darkMode ? 'On' : 'Off'}
+            </Switch>
+          </Field>
+        </Field>
+        <Field horizontal label="Auto-save">
+          <Field>
+            <Switch
+              color="success"
+              passiveType="danger"
+              isRounded
+              checked={form.autoSave}
+              onChange={e =>
+                setForm(prev => ({ ...prev, autoSave: e.target.checked }))
+              }
+            >
+              {form.autoSave ? 'Enabled' : 'Disabled'}
+            </Switch>
+          </Field>
+        </Field>
+      </div>
+    );
+  },
+};
+
+/**
  * All style combinations.
  */
 export const StyleCombinations: Story = {
@@ -305,6 +494,9 @@ export const StyleCombinations: Story = {
       </Switch>
       <Switch color="danger" isThin isOutlined defaultChecked>
         Thin outlined danger
+      </Switch>
+      <Switch color="success" passiveType="danger" isRounded>
+        Rounded with passive type
       </Switch>
     </div>
   ),

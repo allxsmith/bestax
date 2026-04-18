@@ -12,6 +12,7 @@ import {
  *
  * @property {string} [className] - Additional CSS classes to apply.
  * @property {(typeof validColors)[number]} [color] - Bulma color modifier for the notification.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
  * @property {boolean} [isLight] - Use the light color variant.
  * @property {boolean} [hasDelete] - Show a delete (close) button.
  * @property {() => void} [onDelete] - Callback fired when the delete button is clicked.
@@ -23,6 +24,7 @@ export interface NotificationProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   className?: string;
   color?: (typeof validColors)[number];
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   isLight?: boolean;
   hasDelete?: boolean;
   onDelete?: () => void;
@@ -42,6 +44,7 @@ export interface NotificationProps
 export const Notification: React.FC<NotificationProps> = ({
   className,
   color,
+  textColor,
   isLight,
   hasDelete,
   onDelete,
@@ -52,6 +55,7 @@ export const Notification: React.FC<NotificationProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
     ...props,
   });
 
@@ -84,6 +88,7 @@ export const Notification: React.FC<NotificationProps> = ({
 
 // Programmatic Notification API
 
+/** Screen positions where programmatic notifications can be displayed. */
 export type NotificationPosition =
   | 'top-left'
   | 'top'
@@ -92,6 +97,19 @@ export type NotificationPosition =
   | 'bottom'
   | 'bottom-right';
 
+/**
+ * Options for showing a programmatic notification.
+ *
+ * @property {string|React.ReactNode} message - The message to display.
+ * @property {(typeof validColors)[number]} [color] - Bulma color modifier.
+ * @property {boolean} [isLight] - Use the light color variant.
+ * @property {number} [duration] - Duration in ms before auto-close. Default: 3000.
+ * @property {NotificationPosition} [position] - Position on the screen. Default: 'top-right'.
+ * @property {boolean} [queue] - Display notifications one at a time in FIFO order.
+ * @property {boolean} [hasDelete] - Show a delete (close) button. Default: true.
+ * @property {boolean} [indefinite] - Stay open until dismissed.
+ * @property {boolean} [pauseOnHover] - Pause auto-close timer on hover. Default: true.
+ */
 export interface NotificationOptions {
   message: string | React.ReactNode;
   color?: (typeof validColors)[number];
@@ -110,6 +128,12 @@ export interface NotificationOptions {
   pauseOnHover?: boolean;
 }
 
+/**
+ * Internal representation of a notification instance.
+ *
+ * @property {string} id - Unique identifier for this notification.
+ * @property {NotificationOptions} options - Configuration options for the notification.
+ */
 interface NotificationInstance {
   id: string;
   options: NotificationOptions;
@@ -138,7 +162,19 @@ const processQueuedNotification = () => {
   notifyNotificationListeners();
 };
 
+/**
+ * Programmatic notification API for showing, closing, and managing notifications.
+ *
+ * @example
+ * notification.success('File saved successfully');
+ * notification.danger('Something went wrong', { duration: 5000 });
+ */
 export const notification = {
+  /**
+   * Show a notification with the given options.
+   * @param {NotificationOptions} options - Notification configuration.
+   * @returns {string} The unique ID of the created notification.
+   */
   show: (options: NotificationOptions): string => {
     const id = `notification-${++notificationId}`;
     const instance = { id, options };
@@ -154,6 +190,12 @@ export const notification = {
     return id;
   },
 
+  /**
+   * Show a success notification.
+   * @param {string|React.ReactNode} message - The message to display.
+   * @param {Partial<NotificationOptions>} [options] - Additional options.
+   * @returns {string} The notification ID.
+   */
   success: (
     message: string | React.ReactNode,
     options?: Partial<NotificationOptions>
@@ -161,6 +203,12 @@ export const notification = {
     return notification.show({ message, color: 'success', ...options });
   },
 
+  /**
+   * Show a danger notification.
+   * @param {string|React.ReactNode} message - The message to display.
+   * @param {Partial<NotificationOptions>} [options] - Additional options.
+   * @returns {string} The notification ID.
+   */
   danger: (
     message: string | React.ReactNode,
     options?: Partial<NotificationOptions>
@@ -168,6 +216,12 @@ export const notification = {
     return notification.show({ message, color: 'danger', ...options });
   },
 
+  /**
+   * Show a warning notification.
+   * @param {string|React.ReactNode} message - The message to display.
+   * @param {Partial<NotificationOptions>} [options] - Additional options.
+   * @returns {string} The notification ID.
+   */
   warning: (
     message: string | React.ReactNode,
     options?: Partial<NotificationOptions>
@@ -175,6 +229,12 @@ export const notification = {
     return notification.show({ message, color: 'warning', ...options });
   },
 
+  /**
+   * Show an info notification.
+   * @param {string|React.ReactNode} message - The message to display.
+   * @param {Partial<NotificationOptions>} [options] - Additional options.
+   * @returns {string} The notification ID.
+   */
   info: (
     message: string | React.ReactNode,
     options?: Partial<NotificationOptions>
@@ -182,6 +242,10 @@ export const notification = {
     return notification.show({ message, color: 'info', ...options });
   },
 
+  /**
+   * Close a specific notification by ID.
+   * @param {string} id - The notification ID to close.
+   */
   close: (id: string): void => {
     if (currentQueuedNotification && currentQueuedNotification.id === id) {
       currentQueuedNotification = null;
@@ -193,6 +257,7 @@ export const notification = {
     notifyNotificationListeners();
   },
 
+  /** Close all notifications and clear the queue. */
   closeAll: (): void => {
     notifications = [];
     queuedNotifications = [];
@@ -200,6 +265,11 @@ export const notification = {
     notifyNotificationListeners();
   },
 
+  /**
+   * Subscribe to notification state changes.
+   * @param {(items: NotificationInstance[]) => void} listener - Callback invoked on changes.
+   * @returns {() => void} Unsubscribe function.
+   */
   subscribe: (
     listener: (items: NotificationInstance[]) => void
   ): (() => void) => {
@@ -210,6 +280,10 @@ export const notification = {
 
 /**
  * Single auto-dismissing notification item used by NotificationContainer.
+ *
+ * @function
+ * @param {{ instance: NotificationInstance; onClose: (id: string) => void }} props - Component props.
+ * @returns {JSX.Element} The rendered notification item.
  */
 const NotificationItem: React.FC<{
   instance: NotificationInstance;
@@ -262,6 +336,14 @@ const NotificationItem: React.FC<{
   );
 };
 
+/**
+ * Container component for rendering programmatic notifications.
+ * Place once at your app root to enable the notification API.
+ *
+ * @function
+ * @param {{ position?: NotificationPosition }} props - Container props.
+ * @returns {JSX.Element | null} The rendered notification container, or null if empty.
+ */
 export const NotificationContainer: React.FC<{
   position?: NotificationPosition;
 }> = ({ position = 'top-right' }) => {

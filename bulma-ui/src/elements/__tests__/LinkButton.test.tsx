@@ -117,6 +117,48 @@ describe('LinkButton Component', () => {
     expect(link).toHaveClass('link-button');
   });
 
+  describe('underline variant', () => {
+    it('applies link-button-underline and is-text classes', () => {
+      render(<LinkButton variant="underline">Underline</LinkButton>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass(
+        'button',
+        'is-text',
+        'link-button',
+        'link-button-underline'
+      );
+      expect(button).not.toHaveClass('is-ghost');
+    });
+
+    it('combines underline with color classes', () => {
+      render(
+        <LinkButton variant="underline" color="danger">
+          Danger Underline
+        </LinkButton>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass(
+        'link-button',
+        'link-button-underline',
+        'link-button-danger'
+      );
+    });
+
+    it('respects classPrefix for underline class', () => {
+      render(
+        <ConfigProvider classPrefix="my-prefix-">
+          <LinkButton variant="underline" color="primary">
+            Test
+          </LinkButton>
+        </ConfigProvider>
+      );
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('my-prefix-link-button');
+      expect(button).toHaveClass('my-prefix-link-button-underline');
+      expect(button).toHaveClass('my-prefix-link-button-primary');
+    });
+  });
+
   describe('ConfigProvider prefix support', () => {
     it('applies classPrefix to Button classes', () => {
       render(
@@ -129,15 +171,15 @@ describe('LinkButton Component', () => {
       expect(button).toHaveClass('my-prefix-is-text');
     });
 
-    it('does not prefix link-button classes (they are user classes)', () => {
+    it('prefixes link-button classes', () => {
       render(
         <ConfigProvider classPrefix="my-prefix-">
           <LinkButton color="primary">Test</LinkButton>
         </ConfigProvider>
       );
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('link-button');
-      expect(button).toHaveClass('link-button-primary');
+      expect(button).toHaveClass('my-prefix-link-button');
+      expect(button).toHaveClass('my-prefix-link-button-primary');
     });
   });
 });

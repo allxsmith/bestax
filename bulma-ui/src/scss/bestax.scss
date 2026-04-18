@@ -1,0 +1,18 @@
+// Bestax - Combined Bulma + Extras
+//
+// Usage (pre-built CSS):
+//   import '@allxsmith/bestax-bulma/bestax.css';
+//
+// Usage (SCSS source):
+//   @use '@allxsmith/bestax-bulma/scss/bestax';
+
+// Include all of Bulma
+@use 'bulma/sass';
+
+// Include bestax extras
+@use 'variables';
+@use 'mixins';
+@use 'components/index' as components;
+@use 'form/index' as form;
+@use 'elements/index' as elements;
+@use 'helpers/index' as helpers;

@@ -87,6 +87,10 @@ export interface LevelLeftProps
 
 /**
  * Bulma Level left section.
+ *
+ * @function
+ * @param {LevelLeftProps} props - Props for the LevelLeft component.
+ * @returns {JSX.Element} The rendered level left section.
  */
 export const LevelLeft: React.FC<LevelLeftProps> = ({
   className,
@@ -132,6 +136,10 @@ export interface LevelRightProps
 
 /**
  * Bulma Level right section.
+ *
+ * @function
+ * @param {LevelRightProps} props - Props for the LevelRight component.
+ * @returns {JSX.Element} The rendered level right section.
  */
 export const LevelRight: React.FC<LevelRightProps> = ({
   className,
@@ -193,6 +201,10 @@ export interface LevelItemProps
 
 /**
  * Bulma Level item section.
+ *
+ * @function
+ * @param {LevelItemProps} props - Props for the LevelItem component.
+ * @returns {JSX.Element} The rendered level item.
  */
 export const LevelItem: React.FC<LevelItemProps> = ({
   as = 'div',

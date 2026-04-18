@@ -10,7 +10,7 @@ sidebar_label: Sidebar
 The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen. It's ideal for mobile navigation, settings panels, or any content that should overlay the main interface.
 
 :::info
-The Sidebar component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Sidebar component requires importing the extras CSS. See the [Extras Setup G
 
 ```tsx
 import { Sidebar } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -39,44 +36,76 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `overlayClose` | `boolean`                                | `true`    | Close sidebar when overlay is clicked.           |
 | `escapeClose`  | `boolean`                                | `true`    | Close sidebar on Escape key.                     |
 | `canCancel`    | `boolean`                                | `true`    | Allow closing the sidebar.                       |
+| `inline`       | `boolean`                                | `false`   | Renders inline instead of using a portal.        |
 | `children`     | `React.ReactNode`                        | —         | Content to display in the sidebar.               |
 | `className`    | `string`                                 | —         | Additional CSS classes.                          |
 | `ref`          | `React.Ref<HTMLElement>`                 | —         | Ref forwarded to the sidebar element.            |
 | ...            | All standard HTML and Bulma helper props |           | (See [Helper Props](../helpers/usebulmaclasses)) |
 
+### Sidebar.Header
+
+Container for the sidebar header. Accepts all standard `<div>` HTML attributes.
+
+### Sidebar.Title
+
+Title text inside the header. Accepts all standard `<p>` HTML attributes.
+
+### Sidebar.Close
+
+Close button for the sidebar. Accepts all standard `<button>` HTML attributes.
+
+### Sidebar.Body
+
+Main content area of the sidebar. Accepts all standard `<div>` HTML attributes.
+
+### Sidebar.Footer
+
+Footer area of the sidebar. Accepts all standard `<div>` HTML attributes.
+
 ---
 
 ## Usage
 
+:::info
+The examples below use the `inline` prop so the sidebar renders inside the live preview. In real apps, omit `inline` so the sidebar uses a portal (rendered at document.body) for proper stacking above all page content.
+:::
+
 ### Basic Sidebar
 
-A simple sidebar with navigation menu.
+A simple sidebar with navigation menu. Compose the sidebar with `Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, and `Sidebar.Body` subcomponents.
 
 ```tsx live
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
+    <>
       <Button color="primary" onClick={() => setIsOpen(true)}>
         Open Sidebar
       </Button>
-      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <div className="p-4">
-          <Title size="5">Navigation</Title>
+      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar.Header>
+          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
           <Menu>
-            <Menu.List title="General">
-              <Menu.Item>Dashboard</Menu.Item>
-              <Menu.Item isActive>Settings</Menu.Item>
-              <Menu.Item>Profile</Menu.Item>
+            <Menu.Label>General</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#">Dashboard</Menu.Item>
+              <Menu.Item active href="#">
+                Settings
+              </Menu.Item>
+              <Menu.Item href="#">Profile</Menu.Item>
             </Menu.List>
-            <Menu.List title="Administration">
-              <Menu.Item>Users</Menu.Item>
-              <Menu.Item>Permissions</Menu.Item>
+            <Menu.Label>Administration</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#">Users</Menu.Item>
+              <Menu.Item href="#">Permissions</Menu.Item>
             </Menu.List>
           </Menu>
-        </div>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
   );
 }
 ```
@@ -91,19 +120,25 @@ Sidebar that slides in from the right.
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <Button onClick={() => setIsOpen(true)}>Open Right Sidebar</Button>
+    <>
+      <Button color="info" onClick={() => setIsOpen(true)}>
+        Open Right Sidebar
+      </Button>
       <Sidebar
+        inline
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         position="right"
       >
-        <div className="p-4">
-          <Title size="5">Settings</Title>
-          <p>Panel content here...</p>
-        </div>
+        <Sidebar.Header>
+          <Sidebar.Title>Settings</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Paragraph>Configure your preferences here.</Paragraph>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
   );
 }
 ```
@@ -118,15 +153,25 @@ Sidebar with custom width.
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <Button onClick={() => setIsOpen(true)}>Open Wide Sidebar</Button>
-      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} width="400px">
-        <div className="p-4">
-          <Title size="5">Wide Panel</Title>
-          <p>This sidebar is 400px wide.</p>
-        </div>
+    <>
+      <Button color="success" onClick={() => setIsOpen(true)}>
+        Open Wide Sidebar
+      </Button>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        width="400px"
+      >
+        <Sidebar.Header>
+          <Sidebar.Title>Wide Panel</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Paragraph>This sidebar has a custom width of 400px.</Paragraph>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
   );
 }
 ```
@@ -141,27 +186,32 @@ Full-width sidebar for mobile navigation.
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <Button onClick={() => setIsOpen(true)}>Open Full Width</Button>
-      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} fullWidth>
-        <div className="p-4">
-          <div className="is-flex is-justify-content-space-between is-align-items-center mb-4">
-            <Title size="4" mb="0">
-              Menu
-            </Title>
-            <Delete onClick={() => setIsOpen(false)} />
-          </div>
+    <>
+      <Button color="warning" onClick={() => setIsOpen(true)}>
+        Open Full Width
+      </Button>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        fullWidth
+      >
+        <Sidebar.Header>
+          <Sidebar.Title>Full Width Panel</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
           <Menu>
             <Menu.List>
-              <Menu.Item>Home</Menu.Item>
-              <Menu.Item>Products</Menu.Item>
-              <Menu.Item>About</Menu.Item>
-              <Menu.Item>Contact</Menu.Item>
+              <Menu.Item href="#">Home</Menu.Item>
+              <Menu.Item href="#">Products</Menu.Item>
+              <Menu.Item href="#">About</Menu.Item>
+              <Menu.Item href="#">Contact</Menu.Item>
             </Menu.List>
           </Menu>
-        </div>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
   );
 }
 ```
@@ -172,22 +222,45 @@ function example() {
 
 Sidebar without the background overlay.
 
+:::caution
+When `overlay={false}`, there's no backdrop to click for dismissal. Always provide an explicit Close action inside the sidebar (or rely on the Escape key) so users can close it.
+:::
+
 ```tsx live
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <Button onClick={() => setIsOpen(true)}>Open Without Overlay</Button>
-      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} overlay={false}>
-        <div className="p-4">
-          <Title size="5">No Overlay</Title>
-          <p>The background is not dimmed.</p>
-          <Button onClick={() => setIsOpen(false)} className="mt-4">
-            Close
+    <>
+      <Button color="link" onClick={() => setIsOpen(true)}>
+        Open Without Overlay
+      </Button>
+      <Paragraph mt="4">
+        You can still interact with the page content when the sidebar is open.
+      </Paragraph>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        overlay={false}
+      >
+        <Sidebar.Header>
+          <Sidebar.Title>No Overlay</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#">Home</Menu.Item>
+              <Menu.Item href="#">About</Menu.Item>
+              <Menu.Item href="#">Contact</Menu.Item>
+            </Menu.List>
+          </Menu>
+          <Button color="primary" mt="4" onClick={() => setIsOpen(false)}>
+            Close Sidebar
           </Button>
-        </div>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
   );
 }
 ```
@@ -202,24 +275,73 @@ Sidebar that cannot be dismissed by overlay click or escape key.
 function example() {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div>
-      <Button color="warning" onClick={() => setIsOpen(true)}>
+    <>
+      <Button color="danger" onClick={() => setIsOpen(true)}>
         Open Important Panel
       </Button>
-      <Sidebar isOpen={isOpen} canCancel={false}>
-        <div className="p-4">
-          <Title size="5">Important Action</Title>
-          <p>You must complete this action before closing.</p>
-          <Button
-            color="primary"
-            onClick={() => setIsOpen(false)}
-            className="mt-4"
-          >
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        overlayClose={false}
+        escapeClose={false}
+        canCancel={false}
+      >
+        <Sidebar.Header>
+          <Sidebar.Title>Important Action</Sidebar.Title>
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Paragraph>You must complete this action before closing.</Paragraph>
+          <Button color="primary" onClick={() => setIsOpen(false)} mt="4">
             Complete & Close
           </Button>
-        </div>
+        </Sidebar.Body>
       </Sidebar>
-    </div>
+    </>
+  );
+}
+```
+
+---
+
+### Sidebar with Footer
+
+Use `Sidebar.Footer` for actions or metadata pinned to the bottom of the sidebar.
+
+```tsx live
+function example() {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <Button color="primary" onClick={() => setIsOpen(true)}>
+        Open With Footer
+      </Button>
+      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar.Header>
+          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Menu>
+            <Menu.Label>Pages</Menu.Label>
+            <Menu.List>
+              <Menu.Item active href="#">
+                Home
+              </Menu.Item>
+              <Menu.Item href="#">Products</Menu.Item>
+              <Menu.Item href="#">Services</Menu.Item>
+              <Menu.Item href="#">Blog</Menu.Item>
+              <Menu.Item href="#">Contact</Menu.Item>
+            </Menu.List>
+          </Menu>
+        </Sidebar.Body>
+        <Sidebar.Footer>
+          <Paragraph textSize="7" textColor="grey">
+            © 2026 Company Name
+          </Paragraph>
+        </Sidebar.Footer>
+      </Sidebar>
+    </>
   );
 }
 ```

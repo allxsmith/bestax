@@ -127,10 +127,10 @@ describe('Field', () => {
     expect(fieldLabel).toHaveClass('is-medium');
   });
 
-  it('does not add a Bulma size class for labelSize "normal"', () => {
+  it('adds is-normal class for labelSize "normal" in horizontal layout', () => {
     render(<Field label="NormalSize" labelSize="normal" horizontal />);
     const fieldLabel = screen.getByText('NormalSize').closest('.field-label');
-    expect(fieldLabel?.className).not.toMatch(/is-normal/);
+    expect(fieldLabel?.className).toMatch(/is-normal/);
   });
 
   it('does not wrap children in FieldBody if already a FieldBody', () => {

@@ -37,7 +37,7 @@ import { Image } from '@allxsmith/bestax-bulma';
 | `src`       | `string`                                                                                                                                                                                                                                                                                 | —          | Image source URL.                                                         |
 | `alt`       | `string`                                                                                                                                                                                                                                                                                 | —          | Alternate text for the image.                                             |
 | `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —          | Arbitrary content (e.g., iframe, custom HTML) inside the image container. |
-| `as`        | `'figure' \| 'div' \| 'p'`                                                                                                                                                                                                                                                               | `'figure'` | The tag to render as.                                                     |
+| `as`        | `'figure' \| 'div' \| 'p'`                                                                                                                                                                                                                                                               | —          | Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. |
 | ...         | All standard `<figure>`/`<div>` and Bulma helper props                                                                                                                                                                                                                                   |            | (See [Helper Props](../helpers/usebulmaclasses))                          |
 
 ---
@@ -143,17 +143,18 @@ You can also wrap custom content inside the `Image` component, such as a styled 
 
 ```tsx live
 <Image size="4by3">
-  <div
-    className="has-ratio has-background-grey-light has-text-dark has-text-centered"
-    style={{
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
+  <Block
+    display="flex"
+    alignItems="center"
+    justifyContent="center"
+    bgColor="grey-light"
+    textColor="dark"
+    textAlign="centered"
+    className="has-ratio"
+    style={{ height: '100%' }}
   >
-    <p>Custom Content</p>
-  </div>
+    <Paragraph>Custom Content</Paragraph>
+  </Block>
 </Image>
 ```
 

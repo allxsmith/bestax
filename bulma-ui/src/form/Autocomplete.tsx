@@ -12,7 +12,17 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useInsideField } from './FormContext';
+import { Field } from './Field';
+import { FormFieldProps } from './fieldProps';
 
+/**
+ * An item in the Autocomplete dropdown list.
+ *
+ * @property {string} value - The value used for filtering and selection.
+ * @property {string} [label] - Display label (falls back to value if omitted).
+ * @property {boolean} [disabled] - Whether the item is disabled and unselectable.
+ */
 export interface AutocompleteItem {
   value: string;
   label?: string;
@@ -47,11 +57,14 @@ export interface AutocompleteItem {
  * @property {React.ReactNode} [header] - Custom header in dropdown.
  * @property {React.ReactNode} [footer] - Custom footer in dropdown.
  * @property {React.ReactNode} [empty] - Content to show when no results.
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the input.
+ * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the input.
  */
 export interface AutocompleteProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
-    Omit<BulmaClassesProps, 'color'> {
+    Omit<BulmaClassesProps, 'color'>,
+    FormFieldProps {
   data: AutocompleteItem[] | string[];
   value?: string;
   selected?: AutocompleteItem | string | null;
@@ -136,11 +149,20 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       header,
       footer,
       empty,
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      message,
+      messageColor,
+      fieldClassName,
       className,
       ...props
     },
     ref
   ) => {
+    const insideField = useInsideField();
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -224,10 +246,13 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       if (!isActive) return undefined;
 
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
+        if (!containerRef.current) return;
+
+        // Use composedPath() to correctly detect clicks inside Shadow DOM
+        const path = e.composedPath();
+        const isInside = path.includes(containerRef.current);
+
+        if (!isInside) {
           if (selectOnClickOutside && highlightedIndex >= 0) {
             handleSelect(filteredData[highlightedIndex]);
           }
@@ -384,7 +409,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       className
     );
 
-    return (
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
+    });
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    const autocompleteElement = (
       <div ref={containerRef} className={combinedClasses} {...rest}>
         <div className={controlClasses}>
           <input
@@ -488,6 +518,28 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           </div>
         )}
       </div>
+    );
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {autocompleteElement}
+          {messageEl}
+        </Field>
+      );
+    }
+
+    return (
+      <>
+        {autocompleteElement}
+        {messageEl}
+      </>
     );
   }
 );

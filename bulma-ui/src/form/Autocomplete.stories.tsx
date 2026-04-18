@@ -523,3 +523,49 @@ export const FormIntegration: Story = {
     );
   },
 };
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Autocomplete renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => (
+    <Autocomplete label="Fruit" data={fruits} placeholder="Search..." />
+  ),
+};
+
+/**
+ * Inside Field — the outer Field turns off Autocomplete's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Fruit">
+      <Field.Body>
+        <Autocomplete data={fruits} placeholder="Search..." />
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally.
+ * Autocomplete manages its own control internally, so the outer Control
+ * simply provides context signaling.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Fruit">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Autocomplete data={fruits} placeholder="Search..." />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  ),
+};

@@ -12,7 +12,7 @@ describe('File', () => {
   });
 
   it('renders custom label', () => {
-    render(<File label="Upload Avatar" />);
+    render(<File buttonLabel="Upload Avatar" />);
     expect(screen.getByLabelText(/upload avatar/i)).toBeInTheDocument();
   });
 

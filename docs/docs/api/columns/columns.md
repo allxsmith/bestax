@@ -288,16 +288,16 @@ This example demonstrates the `isNarrow` prop, which can be applied to columns t
 <Columns>
   <Column isNarrow>
     <Notification color="primary" style={{ width: 200 }}>
-      <span style={{ fontWeight: 'bold' }}>Narrow column</span>
+      <Strong>Narrow column</Strong>
       <br />
-      <span>This column is only 200px wide.</span>
+      <Span>This column is only 200px wide.</Span>
     </Notification>
   </Column>
   <Column>
     <Notification color="primary">
-      <span style={{ fontWeight: 'bold' }}>Flexible column</span>
+      <Strong>Flexible column</Strong>
       <br />
-      <span>This column will take up the remaining space available.</span>
+      <Span>This column will take up the remaining space available.</Span>
     </Notification>
   </Column>
 </Columns>
@@ -374,29 +374,29 @@ This example demonstrates how to use the `gapSize` prop to create columns with v
 <>
   <Columns gapSize={2}>
     <Column size={3}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Side
       </Notification>
     </Column>
     <Column size={9}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Main
       </Notification>
     </Column>
   </Columns>
   <Columns gapSize={2}>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
@@ -404,7 +404,7 @@ This example demonstrates how to use the `gapSize` prop to create columns with v
   <Columns gapSize={2}>
     {Array.from({ length: 12 }).map((_, i) => (
       <Column key={i + 1}>
-        <Notification color="primary" className="has-text-centered">
+        <Notification color="primary" textAlign="centered">
           {i + 1}
         </Notification>
       </Column>

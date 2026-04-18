@@ -53,12 +53,8 @@ To create a flexible content block, use the `Card` component with optional `head
   image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
   imageAlt="Beautiful forest"
   footer={[
-    <span key="save" className="card-footer-item">
-      Save
-    </span>,
-    <span key="cancel" className="card-footer-item">
-      Cancel
-    </span>,
+    <Card.FooterItem key="save">Save</Card.FooterItem>,
+    <Card.FooterItem key="cancel">Cancel</Card.FooterItem>,
   ]}
 >
   Card content goes here.
@@ -86,12 +82,8 @@ Provide the `footer` prop to render a card with only a footer section. Each foot
 ```tsx live
 <Card
   footer={[
-    <span key="save" className="card-footer-item">
-      Save
-    </span>,
-    <span key="cancel" className="card-footer-item">
-      Cancel
-    </span>,
+    <Card.FooterItem key="save">Save</Card.FooterItem>,
+    <Card.FooterItem key="cancel">Cancel</Card.FooterItem>,
   ]}
 >
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
@@ -170,23 +162,23 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 ```tsx live
 <Card
-  header="Interactive Card"
-  textColor="success"
-  bgColor="dark"
+  header="Upgrade to Pro"
+  headerIcon={
+    <button className="card-header-icon">
+      <Icon library="fa" name="bolt" textColor="warning" ariaLabel="Pro" />
+    </button>
+  }
+  image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80"
+  imageAlt="Dashboard analytics"
   m="3"
-  p="3"
   textAlign="centered"
   hasShadow
   footer={[
-    <span key="action1" className="card-footer-item">
-      Action 1
-    </span>,
-    <span key="action2" className="card-footer-item">
-      Action 2
-    </span>,
+    <Button key="upgrade" color="success">Upgrade Now</Button>,
+    <Button key="learn" color="info" isOutlined>Learn More</Button>,
   ]}
 >
-  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
+  Unlock advanced analytics, priority support, and unlimited exports for your team.
 </Card>
 ```
 
@@ -284,16 +276,16 @@ import { Icon, Image } from '@allxsmith/bestax-bulma';
     />
   </Card.Image>
   <Card.Content>
-    <div className="content">
+    <Content>
       This card is built using compound components for maximum flexibility.
-    </div>
+    </Content>
   </Card.Content>
   <Card.Footer>
     <Card.FooterItem>
-      <button className="button is-primary">Save</button>
+      <Button color="primary">Save</Button>
     </Card.FooterItem>
     <Card.FooterItem>
-      <button className="button">Cancel</button>
+      <Button>Cancel</Button>
     </Card.FooterItem>
   </Card.Footer>
 </Card>;
@@ -307,7 +299,7 @@ import { Icon, Image } from '@allxsmith/bestax-bulma';
     <Card.Header.Title>Simple Header</Card.Header.Title>
   </Card.Header>
   <Card.Content>
-    <p>Just some minimal content using compound components.</p>
+    <Paragraph>Just some minimal content using compound components.</Paragraph>
   </Card.Content>
 </Card>
 ```
@@ -315,21 +307,33 @@ import { Icon, Image } from '@allxsmith/bestax-bulma';
 #### Card Header with Icon
 
 ```tsx live
-import { Icon } from '@allxsmith/bestax-bulma';
+function ExpandableCard() {
+  const [isOpen, setIsOpen] = React.useState(true);
 
-<Card>
-  <Card.Header>
-    <Card.Header.Title>Expandable Card</Card.Header.Title>
-    <Card.Header.Icon aria-label="expand">
-      <Icon name="angle-down" variant="solid" ariaLabel="expand" />
-    </Card.Header.Icon>
-  </Card.Header>
-  <Card.Content>
-    This card demonstrates the Card.Header.Icon component, which renders a
-    proper Bulma card-header-icon button for actions like expand/collapse or
-    accessing more options.
-  </Card.Content>
-</Card>;
+  return (
+    <Card>
+      <Card.Header>
+        <Card.Header.Title>Expandable Card</Card.Header.Title>
+        <Card.Header.Icon
+          aria-label={isOpen ? 'collapse' : 'expand'}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Icon
+            library="fa"
+            name={isOpen ? 'angle-up' : 'angle-down'}
+            ariaLabel={isOpen ? 'collapse' : 'expand'}
+          />
+        </Card.Header.Icon>
+      </Card.Header>
+      {isOpen && (
+        <Card.Content>
+          This card uses React state to toggle content visibility. Click the
+          icon in the header to expand or collapse this section.
+        </Card.Content>
+      )}
+    </Card>
+  );
+}
 ```
 
 #### Mixed Approach
@@ -338,8 +342,8 @@ You can combine the traditional prop-based API with compound components:
 
 ```tsx live
 <Card header="Prop-based header" textColor="primary" m="3">
-  <Card.Content className="has-background-light">
-    <p>You can mix prop-based and compound component approaches!</p>
+  <Card.Content bgColor="light">
+    <Paragraph>You can mix prop-based and compound component approaches!</Paragraph>
   </Card.Content>
   <Card.Footer>
     <Card.FooterItem>Mixed approach example</Card.FooterItem>

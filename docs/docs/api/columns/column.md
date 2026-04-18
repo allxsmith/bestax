@@ -316,16 +316,16 @@ Narrow columns only take up as much width as their content, which can be useful 
 <Columns>
   <Column isNarrow>
     <Notification color="primary" style={{ width: 180 }}>
-      <span style={{ fontWeight: 'bold' }}>Narrow column</span>
+      <Strong>Narrow column</Strong>
       <br />
-      <span>This column is only as wide as it needs to be, 180px wide.</span>
+      <Span>This column is only as wide as it needs to be, 180px wide.</Span>
     </Notification>
   </Column>
   <Column>
     <Notification color="primary">
-      <span style={{ fontWeight: 'bold' }}>Flexible column</span>
+      <Strong>Flexible column</Strong>
       <br />
-      <span>This column will take up the remaining space available.</span>
+      <Span>This column will take up the remaining space available.</Span>
     </Notification>
   </Column>
 </Columns>

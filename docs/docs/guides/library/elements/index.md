@@ -1,6 +1,6 @@
 ---
 title: Elements
-sidebar_label: Overview
+sidebar_label: Elements
 sidebar_position: 1
 ---
 
@@ -14,11 +14,7 @@ Elements are the core primitives of the Bestax Bulma library. They are intended 
 
 ---
 
-## Element Components
-
-Below is a summary of each element component, including a brief description, a usage example, and a link to the full documentation for more details.
-
----
+## Layout
 
 ### Block
 
@@ -39,6 +35,144 @@ A bordered, padded container with optional shadow, ideal for grouping or highlig
 ```
 
 ---
+
+### Divider
+
+A horizontal rule (`<hr>`) for visually separating content sections. [View full documentation.](../../../api/elements/divider.md)
+
+```tsx live
+<div>
+  <Block>Content above</Block>
+  <Divider my="4" />
+  <Block>Content below</Block>
+</div>
+```
+
+---
+
+## Typography
+
+### Title
+
+A Bulma-styled title (heading), supporting sizes, spacing, and rendering as any heading or paragraph element. [View full documentation.](../../../api/elements/title.md)
+
+```tsx live
+<Title>Default Title</Title>
+```
+
+---
+
+### SubTitle
+
+A Bulma-styled subtitle (secondary heading), supporting sizes and rendering as any heading or paragraph element. [View full documentation.](../../../api/elements/subtitle.md)
+
+```tsx live
+<SubTitle>Default SubTitle</SubTitle>
+```
+
+---
+
+### Content
+
+Applies Bulma's typographic styles to children, perfect for rendering rich or markdown-like HTML content. [View full documentation.](../../../api/elements/content.md)
+
+```tsx live
+<Content>
+  <p>This is a paragraph inside Content.</p>
+</Content>
+```
+
+---
+
+## Text
+
+### Paragraph
+
+A paragraph (`<p>`) wrapper with typography and spacing helpers. [View full documentation.](../../../api/elements/paragraph.md)
+
+```tsx live
+<Paragraph textColor="info" textAlign="centered">
+  A centered, info-colored paragraph.
+</Paragraph>
+```
+
+---
+
+### Span
+
+An inline (`<span>`) wrapper for styling text without semantic meaning. [View full documentation.](../../../api/elements/span.md)
+
+```tsx live
+<Paragraph>
+  This text has a <Span textColor="primary">colored span</Span> inside it.
+</Paragraph>
+```
+
+---
+
+### Strong
+
+A strong (`<strong>`) wrapper for semantically important bold text. [View full documentation.](../../../api/elements/strong.md)
+
+```tsx live
+<Paragraph>
+  This text has <Strong>important information</Strong> highlighted.
+</Paragraph>
+```
+
+---
+
+### Emphasis
+
+An emphasis (`<em>`) wrapper for semantically emphasized italic text. [View full documentation.](../../../api/elements/emphasis.md)
+
+```tsx live
+<Paragraph>
+  You should <Emphasis>really</Emphasis> pay attention to this.
+</Paragraph>
+```
+
+---
+
+### Code
+
+An inline code (`<code>`) wrapper for short code snippets. [View full documentation.](../../../api/elements/code.md)
+
+```tsx live
+<Paragraph>
+  Run <Code>npm install</Code> to install dependencies.
+</Paragraph>
+```
+
+---
+
+### Pre
+
+A preformatted text (`<pre>`) wrapper for code blocks. [View full documentation.](../../../api/elements/pre.md)
+
+```tsx live
+<Pre bgColor="dark" textColor="white" p="4">
+  {`function hello() {
+  console.log("Hello!");
+}`}
+</Pre>
+```
+
+---
+
+### Link
+
+A styled anchor (`<a>`) wrapper for navigation links with Bulma helper support. [View full documentation.](../../../api/elements/link.md)
+
+```tsx live
+<Link href="#" textColor="primary">
+  Primary Link
+</Link>
+```
+
+---
+
+## Buttons
 
 ### Button
 
@@ -64,27 +198,31 @@ A group container for multiple `Button` elements, supporting spacing, alignment,
 
 ---
 
-### Content
+### LinkButton
 
-Applies Bulma's typographic styles to children, perfect for rendering rich or markdown-like HTML content. [View full documentation.](../../../api/elements/content.md)
+A `<button>` that visually looks like text or a link. Supports `text` and `ghost` variants with optional color overrides. [View full documentation.](../../../api/elements/linkbutton.md)
+
+:::warning Accessibility
+Using `<div onClick>` or `<a onClick>` without an `href` are common anti-patterns flagged by [`eslint-plugin-jsx-a11y`](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y):
+
+- **`no-static-element-interactions`** — catches clickable `<div>`s and other non-interactive elements
+- **`anchor-is-valid`** — catches `<a>` tags with `onClick` but no valid `href`
+
+These elements are invisible or misleading to screen readers because they lack semantic role, keyboard focus, and key-event handling. `LinkButton` solves this by rendering a native `<button>` with full keyboard and screen-reader support — while still looking like plain text or a link.
+:::
 
 ```tsx live
-<Content>
-  <p>This is a paragraph inside Content.</p>
-</Content>
+<Buttons>
+  <LinkButton>Text Variant</LinkButton>
+  <LinkButton variant="ghost">Ghost Variant</LinkButton>
+  <LinkButton color="primary">Primary Text</LinkButton>
+  <LinkButton variant="ghost" color="danger">Danger Ghost</LinkButton>
+</Buttons>
 ```
 
 ---
 
-### Delete
-
-A Bulma-styled close/delete button for dismissing modals, notifications, tags, and more. [View full documentation.](../../../api/elements/delete.md)
-
-```tsx live
-<Delete />
-```
-
----
+## Media
 
 ### Icon
 
@@ -114,7 +252,7 @@ A Bulma-styled container for images, iframes, or custom content, supporting size
 
 ```tsx live
 <Image
-  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
+  src="/img/react-logo.png"
   alt="Sample image"
   size="128x128"
 />
@@ -122,35 +260,70 @@ A Bulma-styled container for images, iframes, or custom content, supporting size
 
 ---
 
-### Notification
+### Figure
 
-A Bulma-styled alert/message area for feedback, warnings, or information, with color and close button support. [View full documentation.](../../../api/elements/notification.md)
+A figure (`<figure>`) wrapper for grouping content with an optional caption. [View full documentation.](../../../api/elements/figure.md)
 
 ```tsx live
-<Notification>This is a default notification.</Notification>
+<Figure bgColor="light" textColor="dark" p="4">
+  <Image src="/img/logo.png" alt="Example" size="128x128" />
+  <Figure.Caption mt="2">Figure caption</Figure.Caption>
+</Figure>
 ```
 
 ---
 
-### Progress
+## Lists
 
-A Bulma-styled progress bar for visualizing task completion, loading states, or feedback. [View full documentation.](../../../api/elements/progress.md)
+### UnorderedList
+
+An unordered list (`<ul>`) wrapper with Bulma helper support. [View full documentation.](../../../api/elements/unorderedlist.md)
 
 ```tsx live
-<Progress value={50} max={100} />
+<Content>
+  <UnorderedList>
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ---
 
-### Skeleton
+### OrderedList
 
-A skeleton loader for indicating loading content, with block or lines variants. [View full documentation.](../../../api/elements/skeleton.md)
+An ordered list (`<ol>`) wrapper supporting numbering types and Bulma helpers. [View full documentation.](../../../api/elements/orderedlist.md)
 
 ```tsx live
-<Skeleton />
+<Content>
+  <OrderedList type="A">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ---
+
+### ListItem
+
+A list item (`<li>`) wrapper for use inside UnorderedList or OrderedList. [View full documentation.](../../../api/elements/listitem.md)
+
+```tsx live
+<Content>
+  <UnorderedList>
+    <ListItem textColor="primary">Primary item</ListItem>
+    <ListItem textColor="success">Success item</ListItem>
+    <ListItem textColor="danger">Danger item</ListItem>
+  </UnorderedList>
+</Content>
+```
+
+---
+
+## Data
 
 ### Table
 
@@ -199,22 +372,46 @@ A container for grouping multiple `Tag` components, supporting add-ons and multi
 
 ---
 
-### Title
+## Feedback
 
-A Bulma-styled title (heading), supporting sizes, spacing, and rendering as any heading or paragraph element. [View full documentation.](../../../api/elements/title.md)
+### Notification
+
+A Bulma-styled alert/message area for feedback, warnings, or information, with color and close button support. [View full documentation.](../../../api/elements/notification.md)
 
 ```tsx live
-<Title>Default Title</Title>
+<Notification>This is a default notification.</Notification>
 ```
 
 ---
 
-### SubTitle
+### Progress
 
-A Bulma-styled subtitle (secondary heading), supporting sizes and rendering as any heading or paragraph element. [View full documentation.](../../../api/elements/subtitle.md)
+A Bulma-styled progress bar for visualizing task completion, loading states, or feedback. [View full documentation.](../../../api/elements/progress.md)
 
 ```tsx live
-<SubTitle>Default SubTitle</SubTitle>
+<Progress value={50} max={100} />
+```
+
+---
+
+### Skeleton
+
+A skeleton loader for indicating loading content, with block or lines variants. [View full documentation.](../../../api/elements/skeleton.md)
+
+```tsx live
+<Skeleton />
+```
+
+---
+
+## Utility
+
+### Delete
+
+A Bulma-styled close/delete button for dismissing modals, notifications, tags, and more. [View full documentation.](../../../api/elements/delete.md)
+
+```tsx live
+<Delete />
 ```
 
 ---
@@ -226,11 +423,3 @@ For advanced customization, all elements support Bulma helper props for color, s
 :::caution
 Elements are low-level building blocks. For more complex UI patterns, consider using the higher-level components and layout primitives provided elsewhere in the library.
 :::
-
----
-
-## Additional Elements
-
-Looking for more HTML element wrappers? The library also includes **Extra Elements** for common semantic HTML elements like links, paragraphs, lists, figures, and code blocks. These lightweight wrappers provide consistent Bulma helper class support.
-
-[View Extra Elements →](./extras.md)

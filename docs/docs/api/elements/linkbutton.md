@@ -34,7 +34,7 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `variant` | `'text' \| 'ghost'` | `'text'` | Display mode. `text` has no underline; `ghost` uses default text color. |
+| `variant` | `'text' \| 'ghost' \| 'underline'` | `'text'` | Display mode. `text` has no underline; `ghost` uses default text color. |
 | `color` | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black'` | — | Text color override for the button. |
 | `size` | `'small' \| 'normal' \| 'medium' \| 'large'` | — | Size of the button. |
 | `isRounded` | `boolean` | — | Makes the button rounded. |

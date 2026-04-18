@@ -1,70 +1,134 @@
-// Taginput component styles
-@use '../variables' as *;
+// Taginput Component Styles
+// A tag input control for managing multiple tags with autocomplete
+// Follows Bulma v1 CSS variable convention (see _switch.scss)
 
-.taginput {
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Taginput-specific SCSS variables
+$taginput-height: auto !default;
+$taginput-min-height: 2.5em !default;
+$taginput-padding: 0.375rem 0.5rem !default;
+$taginput-border-color: cv.getVar("border") !default;
+$taginput-border-radius: cv.getVar("radius") !default;
+$taginput-background: cv.getVar("scheme-main") !default;
+$taginput-tag-gap: 0.25rem !default;
+$taginput-dropdown-max-height: 200px !default;
+$taginput-transition-duration: cv.getVar("duration") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}taginput {
+  @include cv.register-vars(
+    (
+      "taginput-height": #{$taginput-height},
+      "taginput-min-height": #{$taginput-min-height},
+      "taginput-padding": #{$taginput-padding},
+      "taginput-border-color": #{$taginput-border-color},
+      "taginput-border-radius": #{$taginput-border-radius},
+      "taginput-background": #{$taginput-background},
+      "taginput-tag-gap": #{$taginput-tag-gap},
+      "taginput-dropdown-max-height": #{$taginput-dropdown-max-height},
+      "taginput-transition-duration": #{$taginput-transition-duration},
+    )
+  );
+}
+
+// Main taginput wrapper
+.#{iv.$class-prefix}taginput {
   position: relative;
   width: 100%;
 
   // Container for tags and input
-  .taginput-container {
+  .#{iv.$class-prefix}taginput-container {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    min-height: 2.5em;
-    padding: 0.375rem 0.5rem;
-    border: 1px solid var(--bulma-border);
-    border-radius: var(--bulma-radius);
-    background-color: var(--bulma-scheme-main);
+    height: cv.getVar("taginput-height");
+    min-height: cv.getVar("taginput-min-height");
+    padding: cv.getVar("taginput-padding");
+    border: 1px solid cv.getVar("taginput-border-color");
+    border-radius: cv.getVar("taginput-border-radius");
+    background-color: cv.getVar("taginput-background");
     cursor: text;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition-property: border-color, box-shadow;
+    transition-duration: cv.getVar("taginput-transition-duration");
+    transition-timing-function: ease;
 
     &:hover {
-      border-color: var(--bulma-border-hover);
+      border-color: cv.getVar("border-hover");
     }
 
     &:focus-within {
-      border-color: var(--bulma-primary);
-      box-shadow: 0 0 0 0.125em rgba(var(--bulma-primary-rgb), 0.25);
+      border-color: hsl(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"));
+      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"), cv.getVar("input-focus-shadow-alpha"));
     }
 
-    &.is-attached {
-      .tags {
+    &.#{iv.$class-prefix}is-attached {
+      .#{iv.$class-prefix}tags {
         gap: 0;
 
-        .tag {
+        .#{iv.$class-prefix}tag {
           margin-right: 0;
           border-radius: 0;
 
           &:first-child {
-            border-top-left-radius: var(--bulma-radius);
-            border-bottom-left-radius: var(--bulma-radius);
+            border-top-left-radius: cv.getVar("taginput-border-radius");
+            border-bottom-left-radius: cv.getVar("taginput-border-radius");
           }
 
           &:last-of-type {
-            border-top-right-radius: var(--bulma-radius);
-            border-bottom-right-radius: var(--bulma-radius);
+            border-top-right-radius: cv.getVar("taginput-border-radius");
+            border-bottom-right-radius: cv.getVar("taginput-border-radius");
           }
         }
+      }
+    }
+
+    // Loading spinner icon
+    > .#{iv.$class-prefix}icon.#{iv.$class-prefix}is-right {
+      position: absolute;
+      right: 0.625em;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    // Left icon support
+    &.#{iv.$class-prefix}has-icons-left {
+      > .#{iv.$class-prefix}tags {
+        padding-left: 2em;
+      }
+
+      > .#{iv.$class-prefix}icon.#{iv.$class-prefix}is-left {
+        position: absolute;
+        left: 0.625em;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        z-index: 4;
+        color: cv.getVar("text-weak");
       }
     }
   }
 
   // Tags wrapper
-  .tags {
+  .#{iv.$class-prefix}tags {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem;
+    gap: cv.getVar("taginput-tag-gap");
     margin: 0;
     flex-grow: 1;
 
-    .tag {
+    .#{iv.$class-prefix}tag {
       margin-bottom: 0;
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: cv.getVar("taginput-tag-gap");
 
-      .delete {
+      .#{iv.$class-prefix}delete {
         margin-left: 0.25rem;
         margin-right: -0.25rem;
       }
@@ -72,7 +136,7 @@
   }
 
   // Input field
-  .input {
+  .#{iv.$class-prefix}input {
     flex: 1 1 auto;
     min-width: 80px;
     width: auto;
@@ -88,12 +152,12 @@
     }
 
     &::placeholder {
-      color: var(--bulma-text-weak);
+      color: cv.getVar("text-weak");
     }
   }
 
   // Dropdown menu
-  .dropdown-menu {
+  .#{iv.$class-prefix}dropdown-menu {
     position: absolute;
     top: 100%;
     left: 0;
@@ -102,160 +166,191 @@
     display: none;
     padding-top: 4px;
 
-    &.is-active {
+    &.#{iv.$class-prefix}is-active {
       display: block;
     }
   }
 
   // Dropdown content
-  .dropdown-content {
-    background-color: var(--bulma-scheme-main);
-    border-radius: var(--bulma-radius);
-    box-shadow: var(--bulma-shadow);
+  .#{iv.$class-prefix}dropdown-content {
+    background-color: cv.getVar("taginput-background");
+    border-radius: cv.getVar("taginput-border-radius");
+    box-shadow: cv.getVar("shadow");
     padding-bottom: 0.5rem;
     padding-top: 0.5rem;
-    max-height: 200px;
+    max-height: cv.getVar("taginput-dropdown-max-height");
     overflow-y: auto;
   }
 
   // Dropdown items
-  .dropdown-item {
+  .#{iv.$class-prefix}dropdown-item {
     display: block;
     padding: 0.375rem 1rem;
-    color: var(--bulma-text);
+    color: cv.getVar("text");
     cursor: pointer;
     text-decoration: none;
 
-    &:hover,
-    &.is-active {
-      background-color: var(--bulma-scheme-main-bis);
-      color: var(--bulma-text-strong);
+    &:hover {
+      background-color: cv.getVar("scheme-main-bis");
+      color: cv.getVar("text-strong");
     }
 
-    &.is-active {
-      background-color: var(--bulma-primary);
-      color: var(--bulma-primary-invert);
-    }
-  }
-
-  // Size modifiers
-  &.is-small {
-    .taginput-container {
-      min-height: 2em;
-      padding: 0.25rem 0.375rem;
-    }
-
-    .input {
-      font-size: var(--bulma-size-small);
-    }
-
-    .tag {
-      font-size: var(--bulma-size-small);
-    }
-
-    .dropdown-item {
-      font-size: var(--bulma-size-small);
-      padding: 0.25rem 0.75rem;
+    &.#{iv.$class-prefix}is-active {
+      background-color: cv.getVar("scheme-main-bis");
+      color: cv.getVar("text-strong");
     }
   }
 
-  &.is-medium {
-    .taginput-container {
-      min-height: 3em;
-      padding: 0.5rem 0.625rem;
-    }
+  // Counter display
+  .#{iv.$class-prefix}help.#{iv.$class-prefix}counter {
+    float: right;
+    margin-left: auto;
+  }
 
-    .input {
-      font-size: var(--bulma-size-medium);
-    }
-
-    .tag {
-      font-size: var(--bulma-size-medium);
-    }
-
-    .dropdown-item {
-      font-size: var(--bulma-size-medium);
-      padding: 0.5rem 1.25rem;
+  // Rounded modifier — makes tags rounded
+  &.#{iv.$class-prefix}is-rounded {
+    .#{iv.$class-prefix}tag {
+      border-radius: cv.getVar("radius-rounded");
     }
   }
 
-  &.is-large {
-    .taginput-container {
-      min-height: 3.5em;
-      padding: 0.625rem 0.75rem;
-    }
+  // Ellipsis modifier — truncate long tag text
+  &.#{iv.$class-prefix}is-ellipsis {
+    .#{iv.$class-prefix}tag {
+      max-width: 10em;
 
-    .input {
-      font-size: var(--bulma-size-large);
-    }
-
-    .tag {
-      font-size: var(--bulma-size-large);
-    }
-
-    .dropdown-item {
-      font-size: var(--bulma-size-large);
-      padding: 0.625rem 1.5rem;
-    }
-  }
-
-  // Disabled state
-  &.is-disabled {
-    .taginput-container {
-      background-color: var(--bulma-scheme-main-bis);
-      cursor: not-allowed;
-
-      &:hover {
-        border-color: var(--bulma-border);
+      > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
-
-    .tag {
-      opacity: 0.7;
-    }
-
-    .input {
-      cursor: not-allowed;
-    }
-  }
-
-  // Color variants (for input focus state)
-  &.is-primary .taginput-container:focus-within {
-    border-color: var(--bulma-primary);
-    box-shadow: 0 0 0 0.125em rgba(var(--bulma-primary-rgb), 0.25);
-  }
-
-  &.is-success .taginput-container:focus-within {
-    border-color: var(--bulma-success);
-    box-shadow: 0 0 0 0.125em rgba(var(--bulma-success-rgb), 0.25);
-  }
-
-  &.is-warning .taginput-container:focus-within {
-    border-color: var(--bulma-warning);
-    box-shadow: 0 0 0 0.125em rgba(var(--bulma-warning-rgb), 0.25);
-  }
-
-  &.is-danger .taginput-container:focus-within {
-    border-color: var(--bulma-danger);
-    box-shadow: 0 0 0 0.125em rgba(var(--bulma-danger-rgb), 0.25);
-  }
-
-  &.is-info .taginput-container:focus-within {
-    border-color: var(--bulma-info);
-    box-shadow: 0 0 0 0.125em rgba(var(--bulma-info-rgb), 0.25);
   }
 }
 
-// Dark theme support
-@media (prefers-color-scheme: dark) {
-  .taginput {
-    .taginput-container {
-      background-color: var(--bulma-scheme-main);
-      border-color: var(--bulma-border);
+// Size variants
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-small {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 2em;
+    padding: 0.25rem 0.375rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-small");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-small");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-small");
+    padding: 0.25rem 0.75rem;
+  }
+}
+
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-medium {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 3em;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-medium");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-medium");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-medium");
+    padding: 0.5rem 1.25rem;
+  }
+}
+
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-large {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 3.5em;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-large");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-large");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-large");
+    padding: 0.625rem 1.5rem;
+  }
+}
+
+// Disabled state
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-disabled {
+  .#{iv.$class-prefix}taginput-container {
+    background-color: cv.getVar("scheme-main-bis");
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: cv.getVar("taginput-border-color");
+    }
+  }
+
+  .#{iv.$class-prefix}tag {
+    opacity: 0.7;
+  }
+
+  .#{iv.$class-prefix}input {
+    cursor: not-allowed;
+  }
+}
+
+// Color variants (for input focus state)
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-#{$name} {
+    .#{iv.$class-prefix}taginput-container:focus-within {
+      border-color: cv.getVar($name);
+      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("#{$name}-h"), cv.getVar("#{$name}-s"), cv.getVar("#{$name}-l"), cv.getVar("input-focus-shadow-alpha"));
+    }
+  }
+}
+
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}taginput {
+    .#{iv.$class-prefix}taginput-container {
+      border-color: ButtonText;
+
+      &:focus-within {
+        border-color: Highlight;
+      }
     }
 
-    .dropdown-content {
-      background-color: var(--bulma-scheme-main);
+    .#{iv.$class-prefix}tag {
+      border: 1px solid ButtonText;
+    }
+
+    &.#{iv.$class-prefix}is-disabled {
+      .#{iv.$class-prefix}taginput-container {
+        border-color: GrayText;
+      }
+
+      .#{iv.$class-prefix}tag {
+        border-color: GrayText;
+      }
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}taginput {
+    .#{iv.$class-prefix}taginput-container {
+      transition: none;
     }
   }
 }

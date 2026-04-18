@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
+/** Color variants for the tooltip. */
 export type TooltipColor =
   | 'primary'
   | 'link'
@@ -12,6 +14,7 @@ export type TooltipColor =
   | 'danger'
   | 'dark'
   | 'light';
+/** Size variants for the tooltip. */
 export type TooltipSize = 'small' | 'medium' | 'large';
 
 /**

@@ -1,405 +1,324 @@
-import { Meta, StoryObj } from '@storybook/react';
-import Input from './Input';
-import Field from './Field';
-import Control from './Control';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
+import { Columns } from '../columns/Columns';
+import { Column } from '../columns/Column';
+import { Input } from './Input';
+import { Field } from './Field';
+import { Control } from './Control';
 
-// Storybook metadata
 const meta: Meta<typeof Input> = {
   title: 'Form/Input',
   component: Input,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component:
+          'A convenience component that composes Field, Control, and Input. Use for typical form fields without needing to nest three components.',
+      },
+    },
+  },
   tags: ['autodocs'],
+  argTypes: {
+    label: {
+      control: 'text',
+      description: 'Field label text',
+    },
+    color: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
+      description: 'Bulma color for the input',
+    },
+    size: {
+      control: 'select',
+      options: [undefined, 'small', 'medium', 'large'],
+      description: 'Size of the input',
+    },
+    messageColor: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
+      description: 'Color for the help message',
+    },
+    disabled: {
+      control: 'boolean',
+      description: 'Whether the input is disabled',
+    },
+    readOnly: {
+      control: 'boolean',
+      description: 'Whether the input is read-only',
+    },
+    isLoading: {
+      control: 'boolean',
+      description: 'Show loading indicator',
+    },
+    horizontal: {
+      control: 'boolean',
+      description: 'Horizontal field layout',
+    },
+  },
 };
-export default meta;
 
+export default meta;
 type Story = StoryObj<typeof Input>;
 
-// Default Input
+/**
+ * Basic input field with a label.
+ */
 export const Default: Story = {
-  render: () => (
-    <Field label="Default">
-      <Control>
-        <Input placeholder="Default input" />
-      </Control>
-    </Field>
-  ),
+  args: {
+    label: 'Username',
+    placeholder: 'Enter your username',
+  },
 };
 
-// Color Inputs
-export const ColorPrimary: Story = {
-  render: () => (
-    <Field label="Primary">
-      <Control>
-        <Input color="primary" placeholder="Primary input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const ColorLink: Story = {
-  render: () => (
-    <Field label="Link">
-      <Control>
-        <Input color="link" placeholder="Link input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const ColorInfo: Story = {
-  render: () => (
-    <Field label="Info">
-      <Control>
-        <Input color="info" placeholder="Info input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const ColorSuccess: Story = {
-  render: () => (
-    <Field label="Success">
-      <Control>
-        <Input color="success" placeholder="Success input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const ColorWarning: Story = {
-  render: () => (
-    <Field label="Warning">
-      <Control>
-        <Input color="warning" placeholder="Warning input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const ColorDanger: Story = {
-  render: () => (
-    <Field label="Danger">
-      <Control>
-        <Input color="danger" placeholder="Danger input" />
-      </Control>
-    </Field>
-  ),
-};
-
-// Sizes
-export const SizeSmall: Story = {
-  render: () => (
-    <Field label="Small">
-      <Control>
-        <Input size="small" placeholder="Small input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeNormal: Story = {
-  render: () => (
-    <Field label="Normal">
-      <Control>
-        <Input placeholder="Normal input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeMedium: Story = {
-  render: () => (
-    <Field label="Medium">
-      <Control>
-        <Input size="medium" placeholder="Medium input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeLarge: Story = {
-  render: () => (
-    <Field label="Large">
-      <Control>
-        <Input size="large" placeholder="Large input" />
-      </Control>
-    </Field>
-  ),
-};
-
-// Style: Rounded
-export const StylesRounded: Story = {
-  render: () => (
-    <Field label="Rounded">
-      <Control>
-        <Input isRounded placeholder="Rounded input" />
-      </Control>
-    </Field>
-  ),
-};
-
-// States
-export const StatesNormal: Story = {
-  render: () => (
-    <Field label="Normal">
-      <Control>
-        <Input placeholder="Normal state" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const StatesHover: Story = {
-  render: () => (
-    <Field label="Hover">
-      <Control>
-        <Input isHovered placeholder="Hovered state" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const StatesFocus: Story = {
-  render: () => (
-    <Field label="Focus">
-      <Control>
-        <Input isFocused placeholder="Focused state" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const StatesLoading: Story = {
-  render: () => (
-    <Field label="Loading">
-      <Control isLoading>
-        <Input placeholder="Loading state" />
-      </Control>
-    </Field>
-  ),
-};
-
-// Loading by size
-export const LoadingSmall: Story = {
-  render: () => (
-    <Field label="Loading Small">
-      <Control isLoading size="small">
-        <Input size="small" placeholder="Loading small" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const LoadingNormal: Story = {
-  render: () => (
-    <Field label="Loading Normal">
-      <Control isLoading>
-        <Input placeholder="Loading normal" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const LoadingMedium: Story = {
-  render: () => (
-    <Field label="Loading Medium">
-      <Control isLoading size="medium">
-        <Input size="medium" placeholder="Loading medium" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const LoadingLarge: Story = {
-  render: () => (
-    <Field label="Loading Large">
-      <Control isLoading size="large">
-        <Input size="large" placeholder="Loading large" />
-      </Control>
-    </Field>
-  ),
-};
-
-// Disabled & Read Only
-export const StatesDisabled: Story = {
-  render: () => (
-    <Field label="Disabled">
-      <Control>
-        <Input disabled placeholder="Disabled input" />
-      </Control>
-    </Field>
-  ),
-};
-
-export const StatesReadOnly: Story = {
-  render: () => (
-    <Field label="Read Only">
-      <Control>
-        <Input readOnly value="Read only value" />
-      </Control>
-    </Field>
-  ),
-};
-
-// Static state (with comparison)
-export const StatesStatic: Story = {
-  render: () => (
-    <>
-      <Field horizontal label="Username">
-        <Control>
-          <Input isStatic value="Static value" />
-        </Control>
-      </Field>
-      <Field horizontal label="Password">
-        <Control>
-          <Input placeholder="Editable value" />
-        </Control>
-      </Field>
-    </>
-  ),
-};
-
-// With Icons (left and right)
+/**
+ * Input field with icons.
+ */
 export const WithIcons: Story = {
+  args: {
+    label: 'Email',
+    type: 'email',
+    placeholder: 'Enter your email',
+    iconLeftName: 'envelope',
+    iconRightName: 'check',
+  },
+};
+
+/**
+ * Input field with validation message.
+ */
+export const WithMessage: Story = {
+  args: {
+    label: 'Password',
+    type: 'password',
+    placeholder: 'Enter password',
+    message: 'Password must be at least 8 characters',
+    messageColor: 'info',
+    iconLeftName: 'lock',
+  },
+};
+
+/**
+ * Input field showing an error state.
+ */
+export const ErrorState: Story = {
+  args: {
+    label: 'Email',
+    type: 'email',
+    placeholder: 'Enter email',
+    value: 'invalid-email',
+    color: 'danger',
+    message: 'Please enter a valid email address',
+    messageColor: 'danger',
+    iconLeftName: 'envelope',
+    iconRightName: 'exclamation-triangle',
+    onChange: () => {},
+  },
+};
+
+/**
+ * Input field showing a success state.
+ */
+export const SuccessState: Story = {
+  args: {
+    label: 'Username',
+    value: 'available_user',
+    color: 'success',
+    message: 'This username is available',
+    messageColor: 'success',
+    iconLeftName: 'user',
+    iconRightName: 'check',
+    onChange: () => {},
+  },
+};
+
+/**
+ * Different input sizes.
+ */
+export const Sizes: Story = {
   render: () => (
     <>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          iconLeft={{ name: 'user' }}
-          iconRight={{ name: 'check' }}
-        >
-          <Input placeholder="With icons" />
-        </Control>
-      </Field>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          iconLeft={{ name: 'envelope' }}
-          iconRight={{ name: 'exclamation-triangle' }}
-        >
-          <Input placeholder="Another input" />
-        </Control>
-      </Field>
+      <Input label="Small" size="small" placeholder="Small input" />
+      <Input label="Normal" placeholder="Normal input" />
+      <Input label="Medium" size="medium" placeholder="Medium input" />
+      <Input label="Large" size="large" placeholder="Large input" />
     </>
   ),
 };
 
-// With Icons and Size Small
-export const WithIconsAndSizeSmall: Story = {
+/**
+ * Input field with loading state.
+ */
+export const Loading: Story = {
+  args: {
+    label: 'Search',
+    placeholder: 'Searching...',
+    isLoading: true,
+    iconLeftName: 'search',
+  },
+};
+
+/**
+ * Disabled and read-only states.
+ */
+export const DisabledAndReadOnly: Story = {
   render: () => (
     <>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="small"
-          iconLeft={{ name: 'user', size: 'small' }}
-          iconRight={{ name: 'check', size: 'small' }}
-        >
-          <Input size="small" placeholder="Icons left/right small" />
-        </Control>
-      </Field>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="small"
-          iconLeft={{ name: 'envelope', size: 'small' }}
-          iconRight={{ name: 'exclamation-triangle', size: 'small' }}
-        >
-          <Input size="small" placeholder="Another input small" />
-        </Control>
-      </Field>
+      <Input
+        label="Disabled"
+        value="Cannot edit"
+        disabled
+        onChange={() => {}}
+      />
+      <Input
+        label="Read Only"
+        value="Read only value"
+        readOnly
+        onChange={() => {}}
+      />
     </>
   ),
 };
 
-// With Icons and Size Normal
-export const WithIconsAndSizeNormal: Story = {
+/**
+ * Horizontal field layout.
+ */
+export const Horizontal: Story = {
   render: () => (
-    <>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          iconLeft={{ name: 'user' }}
-          iconRight={{ name: 'check' }}
-        >
-          <Input placeholder="Icons left/right normal" />
-        </Control>
-      </Field>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          iconLeft={{ name: 'envelope' }}
-          iconRight={{ name: 'exclamation-triangle' }}
-        >
-          <Input placeholder="Another input normal" />
-        </Control>
-      </Field>
-    </>
+    <div>
+      <Input horizontal label="Name" placeholder="Your full name" />
+      <Input
+        horizontal
+        label="Email"
+        type="email"
+        placeholder="Your email"
+      />
+    </div>
   ),
 };
 
-// With Icons and Size Medium
-export const WithIconsAndSizeMedium: Story = {
+/**
+ * Horizontal fields at each size, with matching labelSize and input size.
+ */
+export const HorizontalSizes: Story = {
   render: () => (
-    <>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="medium"
-          iconLeft={{ name: 'user', size: 'medium' }}
-          iconRight={{ name: 'check', size: 'medium' }}
-        >
-          <Input size="medium" placeholder="Icons left/right medium" />
-        </Control>
-      </Field>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="medium"
-          iconLeft={{ name: 'envelope', size: 'medium' }}
-          iconRight={{ name: 'exclamation-triangle', size: 'medium' }}
-        >
-          <Input size="medium" placeholder="Another input medium" />
-        </Control>
-      </Field>
-    </>
+    <div>
+      <Input horizontal label="Small" placeholder="Small input" size="small" labelSize="small" />
+      <Input horizontal label="Normal" placeholder="Normal input" />
+      <Input horizontal label="Medium" placeholder="Medium input" size="medium" labelSize="medium" />
+      <Input horizontal label="Large" placeholder="Large input" size="large" labelSize="large" />
+    </div>
   ),
 };
 
-// With Icons and Size Large
-export const WithIconsAndSizeLarge: Story = {
+/**
+ * Full form example using Input.
+ */
+export const FormExample: Story = {
+  render: function FormDemo() {
+    const [form, setForm] = useState({
+      name: '',
+      email: '',
+      phone: '',
+    });
+
+    const update =
+      (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm(prev => ({ ...prev, [field]: e.target.value }));
+
+    return (
+      <Columns>
+        <Column
+          sizeMobile="full"
+          sizeTablet="full"
+          sizeDesktop="half"
+          sizeWidescreen="one-third"
+          sizeFullhd="one-quarter"
+        >
+          <Input
+            label="Full Name"
+            placeholder="John Doe"
+            iconLeftName="user"
+            value={form.name}
+            onChange={update('name')}
+          />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="john@example.com"
+            iconLeftName="envelope"
+            value={form.email}
+            onChange={update('email')}
+          />
+          <Input
+            label="Phone"
+            type="tel"
+            placeholder="+1 (555) 000-0000"
+            iconLeftName="phone"
+            value={form.phone}
+            onChange={update('phone')}
+          />
+        </Column>
+      </Columns>
+    );
+  },
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Input renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => <Input label="Username" placeholder="Enter username" />,
+};
+
+/**
+ * Inside Field — the outer Field turns off Input's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
   render: () => (
-    <>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="large"
-          iconLeft={{ name: 'user', size: 'large' }}
-          iconRight={{ name: 'check', size: 'large' }}
-        >
-          <Input size="large" placeholder="Icons left/right large" />
-        </Control>
-      </Field>
-      <Field>
-        <Control
-          hasIconsLeft
-          hasIconsRight
-          size="large"
-          iconLeft={{ name: 'envelope', size: 'large' }}
-          iconRight={{ name: 'exclamation-triangle', size: 'large' }}
-        >
-          <Input size="large" placeholder="Another input large" />
-        </Control>
-      </Field>
-    </>
+    <Field horizontal label="Username">
+      <Field.Body>
+        <Input placeholder="Enter username" />
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally,
+ * Input renders just its raw element.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Username">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-user">
+            <Input placeholder="Enter username" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
   ),
 };

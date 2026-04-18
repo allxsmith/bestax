@@ -1,6 +1,8 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Radio from './Radio';
 import Radios from './Radios';
+import { Field } from './Field';
+import { Control } from './Control';
 
 const meta: Meta<typeof Radios> = {
   title: 'Form/Radios',
@@ -58,5 +60,59 @@ export const DisabledGroup: Story = {
         Tentative
       </Radio>
     </Radios>
+  ),
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Radios renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => (
+    <Radios label="Color">
+      <Radio name="color" value="red">Red</Radio>
+      <Radio name="color" value="blue">Blue</Radio>
+    </Radios>
+  ),
+};
+
+/**
+ * Inside Field — the outer Field turns off Radios' auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Color">
+      <Field.Body>
+        <Radios>
+          <Radio name="color" value="red">Red</Radio>
+          <Radio name="color" value="blue">Blue</Radio>
+        </Radios>
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally,
+ * Radios renders just its raw element.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Color">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Radios>
+              <Radio name="color" value="red">Red</Radio>
+              <Radio name="color" value="blue">Blue</Radio>
+            </Radios>
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
   ),
 };

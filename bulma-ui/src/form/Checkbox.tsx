@@ -87,7 +87,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       ...props,
     });
 
-    const mainClass = usePrefixedClassNames('checkbox', {
+    const mainClass = usePrefixedClassNames('styled-checkbox', 'checkbox', {
       [`is-${color}`]: color && checkboxColors.includes(color),
       [`is-${size}`]: size && checkboxSizes.includes(size),
     });

@@ -31,12 +31,15 @@ describe('Numberinput', () => {
       const { container } = render(
         <Numberinput defaultValue={5} className="custom-class" />
       );
-      expect(container.firstChild).toHaveClass('custom-class');
+      expect(container.querySelector('.numberinput')).toHaveClass('custom-class');
     });
 
-    it('applies numberinput class', () => {
+    it('applies numberinput and field classes', () => {
       const { container } = render(<Numberinput defaultValue={5} />);
-      expect(container.firstChild).toHaveClass('numberinput');
+      const numberinput = container.querySelector('.numberinput');
+      expect(numberinput).toHaveClass('numberinput');
+      expect(numberinput).toHaveClass('field');
+      expect(numberinput).toHaveClass('is-grouped');
     });
   });
 
@@ -154,21 +157,21 @@ describe('Numberinput', () => {
       const { container } = render(
         <Numberinput defaultValue={5} size="small" />
       );
-      expect(container.firstChild).toHaveClass('is-small');
+      expect(container.querySelector('.numberinput')).toHaveClass('is-small');
     });
 
     it('applies medium size class', () => {
       const { container } = render(
         <Numberinput defaultValue={5} size="medium" />
       );
-      expect(container.firstChild).toHaveClass('is-medium');
+      expect(container.querySelector('.numberinput')).toHaveClass('is-medium');
     });
 
     it('applies large size class', () => {
       const { container } = render(
         <Numberinput defaultValue={5} size="large" />
       );
-      expect(container.firstChild).toHaveClass('is-large');
+      expect(container.querySelector('.numberinput')).toHaveClass('is-large');
     });
 
     it('applies size class to buttons', () => {
@@ -231,38 +234,167 @@ describe('Numberinput', () => {
   });
 
   describe('Controls Position', () => {
+    it('uses is-grouped by default (both sides)', () => {
+      const { container } = render(<Numberinput defaultValue={5} />);
+      const numberinput = container.querySelector('.numberinput');
+      expect(numberinput).toHaveClass('is-grouped');
+      expect(numberinput).not.toHaveClass('controls-left');
+      expect(numberinput).not.toHaveClass('controls-right');
+    });
+
     it('applies controls-left class', () => {
       const { container } = render(
         <Numberinput defaultValue={5} controlsPosition="left" />
       );
-      expect(container.firstChild).toHaveClass('controls-left');
+      expect(container.querySelector('.numberinput')).toHaveClass('controls-left');
     });
 
     it('applies controls-right class', () => {
       const { container } = render(
         <Numberinput defaultValue={5} controlsPosition="right" />
       );
-      expect(container.firstChild).toHaveClass('controls-right');
+      expect(container.querySelector('.numberinput')).toHaveClass('controls-right');
     });
 
-    it('applies controls-both class by default', () => {
+    it('renders both buttons on left when controlsPosition is left', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} controlsPosition="left" />
+      );
+      const controls = container.querySelectorAll('.control');
+      // [dec control] [inc control] [input control]
+      expect(controls).toHaveLength(3);
+      expect(controls[0].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      expect(controls[1].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+      expect(controls[2].querySelector('input')).toBeInTheDocument();
+    });
+
+    it('renders both buttons on right when controlsPosition is right', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} controlsPosition="right" />
+      );
+      const controls = container.querySelectorAll('.control');
+      // [input control] [dec control] [inc control]
+      expect(controls).toHaveLength(3);
+      expect(controls[0].querySelector('input')).toBeInTheDocument();
+      expect(controls[1].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      expect(controls[2].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+    });
+
+    it('renders default order: dec, input, inc', () => {
       const { container } = render(<Numberinput defaultValue={5} />);
-      expect(container.firstChild).toHaveClass('controls-both');
+      const controls = container.querySelectorAll('.control');
+      expect(controls).toHaveLength(3);
+      expect(controls[0].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      expect(controls[1].querySelector('input')).toBeInTheDocument();
+      expect(controls[2].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+    });
+  });
+
+  describe('Compact Mode', () => {
+    it('applies has-addons and is-compact classes', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} compact />
+      );
+      const numberinput = container.querySelector('.numberinput');
+      expect(numberinput).toHaveClass('has-addons');
+      expect(numberinput).toHaveClass('is-compact');
+      expect(numberinput).not.toHaveClass('is-grouped');
+    });
+  });
+
+  describe('Stepper Variant', () => {
+    it('applies is-stepper and is-compact classes', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} variant="stepper" />
+      );
+      const numberinput = container.querySelector('.numberinput');
+      expect(numberinput).toHaveClass('is-stepper');
+      expect(numberinput).toHaveClass('is-compact');
+      expect(numberinput).toHaveClass('has-addons');
     });
 
-    it('renders only decrement on left when controlsPosition is left', () => {
-      render(<Numberinput defaultValue={5} controlsPosition="left" />);
-      // Both buttons should still be rendered for left position
+    it('renders stepper buttons with chevron SVGs', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} variant="stepper" />
+      );
+      const stepperButtons = container.querySelectorAll(
+        '.numberinput-stepper-button'
+      );
+      expect(stepperButtons).toHaveLength(2);
+      expect(stepperButtons[0]).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+      expect(stepperButtons[1]).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      // Each button should contain an SVG
+      stepperButtons.forEach(btn => {
+        expect(btn.querySelector('svg')).toBeInTheDocument();
+      });
+    });
+
+    it('increments via stepper up button', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput value={5} variant="stepper" onChange={handleChange} />
+      );
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+
+      expect(handleChange).toHaveBeenCalledWith(6);
+    });
+
+    it('decrements via stepper down button', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput value={5} variant="stepper" onChange={handleChange} />
+      );
+
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+
+      expect(handleChange).toHaveBeenCalledWith(4);
+    });
+
+    it('renders stepper container', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} variant="stepper" />
+      );
       expect(
-        screen.getByRole('button', { name: /decrease/i })
+        container.querySelector('.numberinput-stepper')
       ).toBeInTheDocument();
     });
 
-    it('renders only increment on right when controlsPosition is right', () => {
-      render(<Numberinput defaultValue={5} controlsPosition="right" />);
-      // Both buttons should still be rendered for right position (but positioned differently)
+    it('renders input before stepper (always right-aligned)', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} variant="stepper" />
+      );
+      const controls = container.querySelectorAll('.control');
+      expect(controls).toHaveLength(2);
+      expect(controls[0].querySelector('input')).toBeInTheDocument();
       expect(
-        screen.getByRole('button', { name: /increase/i })
+        controls[1].querySelector('.numberinput-stepper')
       ).toBeInTheDocument();
     });
   });
@@ -302,7 +434,15 @@ describe('Numberinput', () => {
 
     it('applies is-disabled class to container', () => {
       const { container } = render(<Numberinput defaultValue={5} disabled />);
-      expect(container.firstChild).toHaveClass('is-disabled');
+      expect(container.querySelector('.numberinput')).toHaveClass('is-disabled');
+    });
+
+    it('disables stepper buttons when disabled', () => {
+      render(<Numberinput defaultValue={5} variant="stepper" disabled />);
+      const buttons = screen.getAllByRole('button');
+      buttons.forEach(button => {
+        expect(button).toBeDisabled();
+      });
     });
   });
 
@@ -350,6 +490,18 @@ describe('Numberinput', () => {
 
       expect(handleChange).toHaveBeenCalledWith(15);
     });
+
+    it('supports keyboard in stepper variant', () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput value={5} variant="stepper" onChange={handleChange} />
+      );
+
+      const input = screen.getByRole('spinbutton');
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+      expect(handleChange).toHaveBeenCalledWith(6);
+    });
   });
 
   describe('Accessibility', () => {
@@ -383,6 +535,14 @@ describe('Numberinput', () => {
 
     it('buttons have tabIndex -1 to keep focus on input', () => {
       render(<Numberinput defaultValue={5} />);
+      const buttons = screen.getAllByRole('button');
+      buttons.forEach(button => {
+        expect(button).toHaveAttribute('tabindex', '-1');
+      });
+    });
+
+    it('stepper buttons have tabIndex -1', () => {
+      render(<Numberinput defaultValue={5} variant="stepper" />);
       const buttons = screen.getAllByRole('button');
       buttons.forEach(button => {
         expect(button).toHaveAttribute('tabindex', '-1');
@@ -424,6 +584,156 @@ describe('Numberinput', () => {
       fireEvent.change(input, { target: { value: '2.5' } });
 
       expect(handleChange).toHaveBeenCalledWith(2.5);
+    });
+  });
+
+  describe('Loading State', () => {
+    it('applies is-loading class to control div when isLoading is true', () => {
+      const { container } = render(<Numberinput defaultValue={5} isLoading />);
+      const expandedControl = container.querySelector('.control.is-expanded');
+      expect(expandedControl).toHaveClass('is-loading');
+    });
+
+    it('does not apply is-loading class by default', () => {
+      const { container } = render(<Numberinput defaultValue={5} />);
+      const expandedControl = container.querySelector('.control.is-expanded');
+      expect(expandedControl).not.toHaveClass('is-loading');
+    });
+  });
+
+  describe('Input Color', () => {
+    it('applies is-danger class to input when inputColor is danger', () => {
+      render(<Numberinput defaultValue={5} inputColor="danger" />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveClass('is-danger');
+    });
+
+    it('applies is-success class to input when inputColor is success', () => {
+      render(<Numberinput defaultValue={5} inputColor="success" />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toHaveClass('is-success');
+    });
+
+    it('does not apply input color class by default', () => {
+      render(<Numberinput defaultValue={5} />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).not.toHaveClass('is-danger');
+      expect(input).not.toHaveClass('is-success');
+    });
+  });
+
+  describe('Exponential Step', () => {
+    it('uses normal step when exponential is false', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput value={10} step={1} onChange={handleChange} />
+      );
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+
+      expect(handleChange).toHaveBeenCalledWith(11);
+    });
+
+    it('scales step with value magnitude when exponential is true', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput
+          value={10}
+          step={1}
+          exponential
+          onChange={handleChange}
+        />
+      );
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+
+      // effectiveStep = 1 * max(1, floor(abs(10))) = 10
+      expect(handleChange).toHaveBeenCalledWith(20);
+    });
+
+    it('uses minimum step of 1 at value 0 when exponential', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput
+          value={0}
+          step={1}
+          exponential
+          onChange={handleChange}
+        />
+      );
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+
+      // effectiveStep = 1 * max(1, floor(abs(0))) = 1 * max(1, 0) = 1
+      expect(handleChange).toHaveBeenCalledWith(1);
+    });
+
+    it('scales step with negative value magnitude when exponential', async () => {
+      const handleChange = jest.fn();
+      render(
+        <Numberinput
+          value={-5}
+          step={1}
+          exponential
+          onChange={handleChange}
+        />
+      );
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+
+      // effectiveStep = 1 * max(1, floor(abs(-5))) = 1 * 5 = 5
+      expect(handleChange).toHaveBeenCalledWith(0);
+    });
+  });
+
+  describe('Light and Dark Colors', () => {
+    it('applies is-light class to buttons', () => {
+      render(<Numberinput defaultValue={5} color="light" />);
+      const buttons = screen.getAllByRole('button');
+      buttons.forEach(button => {
+        expect(button).toHaveClass('is-light');
+      });
+    });
+
+    it('applies is-dark class to buttons', () => {
+      render(<Numberinput defaultValue={5} color="dark" />);
+      const buttons = screen.getAllByRole('button');
+      buttons.forEach(button => {
+        expect(button).toHaveClass('is-dark');
+      });
+    });
+  });
+
+  describe('Bare Mode', () => {
+    it('renders without field wrapper in bare mode', () => {
+      const { container } = render(<Numberinput defaultValue={5} bare />);
+      expect(container.firstChild).not.toHaveClass('field');
+      expect(container.firstChild).toHaveClass('numberinput');
+      expect(container.firstChild).toHaveStyle({ display: 'contents' });
+    });
+
+    it('renders controls as layout children', () => {
+      const { container } = render(<Numberinput defaultValue={5} bare />);
+      const controls = container.querySelectorAll('.control');
+      expect(controls).toHaveLength(3);
+    });
+
+    it('still functions in bare mode (increment/decrement)', async () => {
+      const handleChange = jest.fn();
+      render(<Numberinput value={5} bare onChange={handleChange} />);
+
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(6);
+
+      handleChange.mockClear();
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(4);
     });
   });
 

@@ -10,7 +10,7 @@ sidebar_label: Carousel
 The `Carousel` component provides an image/content slider with navigation arrows and indicators. It supports auto-play, drag navigation, and customizable styles.
 
 :::info
-The Carousel component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Carousel component requires importing the extras CSS. See the [Extras Setup 
 
 ```tsx
 import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -55,6 +52,7 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `children`          | `React.ReactNode`                                                          | —          | CarouselItem children.                           |
 | `className`         | `string`                                                                   | —          | Additional CSS classes.                          |
 | `ref`               | `React.Ref<HTMLElement>`                                                   | —          | Ref forwarded to the carousel element.           |
+| `arrowColor`        | `'light'` \| `'dark'`                                                      | —          | Color theme for navigation arrows.               |
 | ...                 | All standard HTML and Bulma helper props                                   |            | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ### CarouselItem
@@ -70,54 +68,30 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 
 ### Basic Carousel
 
-A simple carousel with content slides.
+A simple carousel with colored slides using the Hero component.
 
 ```tsx live
 <Carousel indicatorStyle="dots">
   <CarouselItem>
-    <div
-      style={{
-        background: '#485fc7',
-        color: '#fff',
-        padding: '3rem',
-        textAlign: 'center',
-      }}
-    >
-      <Title subtitle textColor="white">
-        Slide 1
-      </Title>
-      <p className="has-text-white">First slide content</p>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{
-        background: '#48c78e',
-        color: '#fff',
-        padding: '3rem',
-        textAlign: 'center',
-      }}
-    >
-      <Title subtitle textColor="white">
-        Slide 2
-      </Title>
-      <p className="has-text-white">Second slide content</p>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{
-        background: '#f14668',
-        color: '#fff',
-        padding: '3rem',
-        textAlign: 'center',
-      }}
-    >
-      <Title subtitle textColor="white">
-        Slide 3
-      </Title>
-      <p className="has-text-white">Third slide content</p>
-    </div>
+    <Hero color="danger" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 3</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -131,29 +105,25 @@ Carousel that automatically advances slides.
 ```tsx live
 <Carousel autoplay interval={3000}>
   <CarouselItem>
-    <div
-      style={{ background: '#3e8ed0', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Auto Slide 1
-      </Title>
-    </div>
+    <Hero color="info" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Info</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#ffe08a', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle>Auto Slide 2</Title>
-    </div>
+    <Hero color="warning" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Warning</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Auto Slide 3
-      </Title>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Success</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -165,72 +135,40 @@ Carousel that automatically advances slides.
 Different indicator style options.
 
 ```tsx live
-function example() {
+function IndicatorExample() {
   const [style, setStyle] = useState('dots');
   return (
-    <div>
-      <div className="buttons mb-4">
-        <Button
-          onClick={() => setStyle('dots')}
-          color={style === 'dots' ? 'primary' : undefined}
-        >
-          Dots
-        </Button>
-        <Button
-          onClick={() => setStyle('circles')}
-          color={style === 'circles' ? 'primary' : undefined}
-        >
-          Circles
-        </Button>
-        <Button
-          onClick={() => setStyle('lines')}
-          color={style === 'lines' ? 'primary' : undefined}
-        >
-          Lines
-        </Button>
-        <Button
-          onClick={() => setStyle('bars')}
-          color={style === 'bars' ? 'primary' : undefined}
-        >
-          Bars
-        </Button>
-      </div>
+    <Block>
+      <Buttons mb="4">
+        <Button onClick={() => setStyle('dots')} color={style === 'dots' ? 'primary' : undefined}>Dots</Button>
+        <Button onClick={() => setStyle('circles')} color={style === 'circles' ? 'primary' : undefined}>Circles</Button>
+        <Button onClick={() => setStyle('lines')} color={style === 'lines' ? 'primary' : undefined}>Lines</Button>
+        <Button onClick={() => setStyle('bars')} color={style === 'bars' ? 'primary' : undefined}>Bars</Button>
+      </Buttons>
       <Carousel indicatorStyle={style}>
         <CarouselItem>
-          <div
-            style={{
-              background: '#485fc7',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 1</p>
-          </div>
+          <Hero color="primary" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 1</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
         <CarouselItem>
-          <div
-            style={{
-              background: '#48c78e',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 2</p>
-          </div>
+          <Hero color="success" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 2</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
         <CarouselItem>
-          <div
-            style={{
-              background: '#f14668',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 3</p>
-          </div>
+          <Hero color="danger" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 3</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
       </Carousel>
-    </div>
+    </Block>
   );
 }
 ```
@@ -244,22 +182,18 @@ Carousel with indicators only.
 ```tsx live
 <Carousel arrow={false}>
   <CarouselItem>
-    <div
-      style={{ background: '#00d1b2', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Swipe or Click Dots
-      </Title>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Swipe or Click Dots</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#485fc7', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Navigation Only
-      </Title>
-    </div>
+    <Hero color="link" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Navigation Only</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -273,25 +207,25 @@ Show arrows only when hovering over the carousel.
 ```tsx live
 <Carousel arrowHover>
   <CarouselItem>
-    <div
-      style={{ background: '#363636', padding: '3rem', textAlign: 'center' }}
-    >
-      <p className="has-text-white">Hover to see arrows</p>
-    </div>
+    <Hero color="dark" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph textColor="white">Hover to see arrows</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#485fc7', padding: '3rem', textAlign: 'center' }}
-    >
-      <p className="has-text-white">Slide 2</p>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph textColor="white">Slide 2</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <p className="has-text-white">Slide 3</p>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph textColor="white">Slide 3</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -305,31 +239,25 @@ Remove the arrow button backgrounds to show just the icons.
 ```tsx live
 <Carousel arrowBackground={false}>
   <CarouselItem>
-    <div
-      style={{ background: '#485fc7', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 1
-      </Title>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 2
-      </Title>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#f14668', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 3
-      </Title>
-    </div>
+    <Hero color="danger" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 3</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -348,31 +276,25 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
   iconVariant="solid"
 >
   <CarouselItem>
-    <div
-      style={{ background: '#485fc7', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 1
-      </Title>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 2
-      </Title>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#f14668', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 3
-      </Title>
-    </div>
+    <Hero color="danger" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 3</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -382,22 +304,18 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 ```tsx live
 <Carousel iconPrev="arrow-left" iconNext="arrow-right" iconLibrary="mdi">
   <CarouselItem>
-    <div
-      style={{ background: '#485fc7', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 1
-      </Title>
-    </div>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <Title subtitle textColor="white">
-        Slide 2
-      </Title>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```
@@ -413,71 +331,40 @@ The icon props follow the same naming as the [Icon component](../elements/icon.m
 Externally controlled carousel with custom navigation.
 
 ```tsx live
-function example() {
+function ControlledExample() {
   const [currentSlide, setCurrentSlide] = useState(0);
   return (
-    <div>
-      <div className="buttons mb-4">
-        <Button
-          onClick={() => setCurrentSlide(0)}
-          color={currentSlide === 0 ? 'primary' : undefined}
-        >
-          1
-        </Button>
-        <Button
-          onClick={() => setCurrentSlide(1)}
-          color={currentSlide === 1 ? 'primary' : undefined}
-        >
-          2
-        </Button>
-        <Button
-          onClick={() => setCurrentSlide(2)}
-          color={currentSlide === 2 ? 'primary' : undefined}
-        >
-          3
-        </Button>
-      </div>
-      <Carousel
-        value={currentSlide}
-        onChange={setCurrentSlide}
-        indicator={false}
-      >
+    <Block>
+      <Buttons mb="4">
+        <Button onClick={() => setCurrentSlide(0)} color={currentSlide === 0 ? 'primary' : undefined}>1</Button>
+        <Button onClick={() => setCurrentSlide(1)} color={currentSlide === 1 ? 'primary' : undefined}>2</Button>
+        <Button onClick={() => setCurrentSlide(2)} color={currentSlide === 2 ? 'primary' : undefined}>3</Button>
+      </Buttons>
+      <Carousel value={currentSlide} onChange={setCurrentSlide} indicator={false}>
         <CarouselItem>
-          <div
-            style={{
-              background: '#485fc7',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 1</p>
-          </div>
+          <Hero color="primary" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 1</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
         <CarouselItem>
-          <div
-            style={{
-              background: '#48c78e',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 2</p>
-          </div>
+          <Hero color="success" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 2</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
         <CarouselItem>
-          <div
-            style={{
-              background: '#f14668',
-              padding: '2rem',
-              textAlign: 'center',
-            }}
-          >
-            <p className="has-text-white">Slide 3</p>
-          </div>
+          <Hero color="danger" size="medium">
+            <Hero.Body textAlign="centered">
+              <Paragraph textColor="white">Slide 3</Paragraph>
+            </Hero.Body>
+          </Hero>
         </CarouselItem>
       </Carousel>
-      <p className="mt-2">Current slide: {currentSlide + 1}</p>
-    </div>
+      <Paragraph mt="2">Current slide: {currentSlide + 1}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -491,25 +378,25 @@ Carousel that stops at the first and last slides.
 ```tsx live
 <Carousel repeat={false}>
   <CarouselItem>
-    <div
-      style={{ background: '#f14668', padding: '3rem', textAlign: 'center' }}
-    >
-      <p className="has-text-white">First (no previous)</p>
-    </div>
+    <Hero color="danger" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph textColor="white">First (no previous)</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#ffe08a', padding: '3rem', textAlign: 'center' }}
-    >
-      <p>Middle slide</p>
-    </div>
+    <Hero color="warning" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph>Middle slide</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
   <CarouselItem>
-    <div
-      style={{ background: '#48c78e', padding: '3rem', textAlign: 'center' }}
-    >
-      <p className="has-text-white">Last (no next)</p>
-    </div>
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Paragraph textColor="white">Last (no next)</Paragraph>
+      </Hero.Body>
+    </Hero>
   </CarouselItem>
 </Carousel>
 ```

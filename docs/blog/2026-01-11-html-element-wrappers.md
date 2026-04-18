@@ -89,4 +89,4 @@ Every component supports the full range of Bulma helper props: `textColor`, `bgC
 import { Link, Paragraph, Code, Figure } from '@allxsmith/bestax-bulma';
 ```
 
-Check out the [Extra Elements guide](/docs/guides/library/elements/extras) for full documentation.
+Check out the [Elements guide](/docs/guides/library/elements) for full documentation.

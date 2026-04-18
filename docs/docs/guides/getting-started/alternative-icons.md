@@ -26,6 +26,8 @@ npm install @mdi/font
 
 **Import:**
 
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
+
 ```js
 import '@mdi/font/css/materialdesignicons.min.css';
 ```
@@ -172,6 +174,8 @@ npm install material-icons
 
 **Import:**
 
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
+
 ```js
 // Default import (includes all styles)
 import 'material-icons';
@@ -279,6 +283,8 @@ npm install material-symbols
 ```
 
 **Import:**
+
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
 
 ```js
 // Default import (includes all styles)
@@ -471,4 +477,4 @@ For a complete list of available symbols and detailed usage instructions, visit 
 
 - **Learn about Icon component props**: [Icon API](/docs/api/elements/icon)
 - **Explore IconText component**: [IconText API](/docs/api/elements/icontext)
-- **Browse Bulma variations**: [Bulma Variations](/docs/guides/getting-started/bulma-variations)
+- **Browse Bestax variations**: [Bestax Variations](/docs/guides/getting-started/variations)

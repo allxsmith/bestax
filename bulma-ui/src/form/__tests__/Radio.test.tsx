@@ -14,6 +14,7 @@ describe('Radio', () => {
       <Radio className="custom-class">Label Radio</Radio>
     );
     const label = container.querySelector('label');
+    expect(label).toHaveClass('styled-radio');
     expect(label).toHaveClass('radio');
     expect(label).toHaveClass('custom-class');
   });
@@ -25,6 +26,7 @@ describe('Radio', () => {
       </ConfigProvider>
     );
     const label = container.querySelector('label');
+    expect(label).toHaveClass('custom-styled-radio');
     expect(label).toHaveClass('custom-radio');
   });
 
@@ -36,12 +38,14 @@ describe('Radio', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-styled-radio');
       expect(label).toHaveClass('bulma-radio');
     });
 
     it('uses default classes when no prefix is provided', () => {
       const { container } = render(<Radio data-testid="radio">Test</Radio>);
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
     });
 
@@ -52,6 +56,7 @@ describe('Radio', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
     });
 
@@ -64,6 +69,7 @@ describe('Radio', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-styled-radio');
       expect(label).toHaveClass('bulma-radio');
       expect(label).toHaveClass('bulma-m-2');
     });
@@ -75,6 +81,7 @@ describe('Radio', () => {
         </Radio>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
       expect(label).toHaveClass('p-3');
     });

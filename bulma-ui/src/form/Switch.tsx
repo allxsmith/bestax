@@ -32,6 +32,7 @@ export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
  * @property {boolean} [isThin] - Use thin switch style.
  * @property {boolean} [isOutlined] - Use outlined switch style.
  * @property {boolean} [isRtl] - Right-to-left layout (label on left).
+ * @property {(typeof switchColors)[number]} [passiveType] - Color for the unchecked (inactive) state.
  * @property {boolean} [checked] - Whether the switch is checked.
  * @property {boolean} [defaultChecked] - Default checked state for uncontrolled usage.
  * @property {boolean} [disabled] - Whether the switch is disabled.
@@ -53,6 +54,7 @@ export interface SwitchProps
   isThin?: boolean;
   isOutlined?: boolean;
   isRtl?: boolean;
+  passiveType?: (typeof switchColors)[number];
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   children?: React.ReactNode;
 }
@@ -95,6 +97,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       isThin,
       isOutlined,
       isRtl,
+      passiveType,
       className,
       children,
       textColor,
@@ -116,6 +119,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       'is-thin': isThin,
       'is-outlined': isOutlined,
       'is-rtl': isRtl,
+      [`is-${passiveType}-passive`]:
+        passiveType && switchColors.includes(passiveType),
     });
 
     // Combine prefixed Bulma classes with unprefixed user className and helper classes

@@ -19,9 +19,6 @@ The Autocomplete component requires importing the extras CSS. See the [Extras Se
 
 ```tsx
 import { Autocomplete } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -50,6 +47,8 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `onSelect`             | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                  |
 | `onActiveChange`       | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.     |
 | `onInfiniteScroll`     | `() => void`                                                                    | —         | Callback when scrolled to bottom.                |
+| `checkInfiniteScroll`  | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown. |
+| `infiniteScrollDistance` | `number`                                                                      | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`. |
 | `itemTemplate`         | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                         |
 | `header`               | `React.ReactNode`                                                               | —         | Custom header in dropdown.                       |
 | `footer`               | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                       |
@@ -88,14 +87,14 @@ function example() {
   ];
 
   return (
-    <div>
+    <Block>
       <Autocomplete
         data={fruits}
         placeholder="Search fruit..."
         onSelect={setSelected}
       />
-      {selected && <p className="mt-2">Selected: {selected}</p>}
-    </div>
+      {selected && <Paragraph mt="2">Selected: {selected}</Paragraph>}
+    </Block>
   );
 }
 ```
@@ -158,7 +157,7 @@ function example() {
 Autocomplete with different colors and sizes.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Autocomplete
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Primary small"
@@ -182,7 +181,7 @@ Autocomplete with different colors and sizes.
     color="danger"
     size="large"
   />
-</div>
+</Block>
 ```
 
 ---
@@ -201,7 +200,7 @@ function example() {
   ];
 
   return (
-    <div>
+    <Block>
       <Autocomplete
         data={users}
         field="label"
@@ -210,11 +209,11 @@ function example() {
         onSelect={setSelected}
       />
       {selected && (
-        <p className="mt-2">
+        <Paragraph mt="2">
           Selected: {selected.label} ({selected.email})
-        </p>
+        </Paragraph>
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -242,10 +241,10 @@ function example() {
       openOnFocus
       onSelect={setSelected}
       itemTemplate={item => (
-        <div className="is-flex is-justify-content-space-between">
-          <span>{item.label}</span>
-          <span className="tag is-info is-light">{item.role}</span>
-        </div>
+        <Block display="flex" justifyContent="space-between">
+          <Span>{item.label}</Span>
+          <Tag color="info" light>{item.role}</Tag>
+        </Block>
       )}
     />
   );
@@ -267,10 +266,10 @@ function example() {
       data={options}
       placeholder="Try searching 'xyz'..."
       empty={
-        <p className="has-text-grey">
-          <i className="fas fa-search mr-2" />
+        <Paragraph textColor="grey">
+          <Icon name="search" variant="solid" mr="2" />
           No results found
-        </p>
+        </Paragraph>
       }
     />
   );
@@ -306,6 +305,66 @@ function example() {
 
   return (
     <Autocomplete data={fruits} placeholder="Type to filter..." keepFirst />
+  );
+}
+```
+
+---
+
+### Context-Aware Rendering
+
+The `Autocomplete` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+:::note
+Autocomplete does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+:::
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper.
+
+```tsx live
+<Autocomplete label="Fruit" data={['Apple', 'Banana', 'Cherry']} placeholder="Search fruit..." />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Fruit">
+      <Field.Body>
+        <Field>
+          <Autocomplete data={['Apple', 'Banana', 'Cherry']} placeholder="Search fruit..." />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition with icons, wrap in both Field and Control. Autocomplete does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Fruit">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-search">
+            <Autocomplete data={['Apple', 'Banana', 'Cherry']} placeholder="Search fruit..." />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
   );
 }
 ```

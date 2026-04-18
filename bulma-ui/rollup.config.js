@@ -4,6 +4,23 @@ import resolve from '@rollup/plugin-node-resolve';
 import { visualizer } from 'rollup-plugin-visualizer';
 import scss from 'rollup-plugin-scss';
 
+const variationBuild = (name) => ({
+  input: `src/scss/versions/${name}.scss`,
+  output: { file: `dist/versions/${name}.js`, format: 'es' },
+  plugins: [
+    scss({
+      fileName: `${name}.css`,
+      outputStyle: 'compressed',
+      includePaths: ['src/scss', '../node_modules'],
+      sourceMap: true,
+    }),
+  ],
+  onwarn(warning, warn) {
+    if (warning.code === 'EMPTY_BUNDLE') return;
+    warn(warning);
+  },
+});
+
 export default commandLineArgs => {
   const isVisualizerEnabled = commandLineArgs.configPlugin === 'visualizer';
   return [
@@ -66,5 +83,31 @@ export default commandLineArgs => {
         warn(warning);
       },
     },
+    // Combined Bulma + extras bundle
+    {
+      input: 'src/scss/bestax.scss',
+      output: {
+        file: 'dist/bestax.js',
+        format: 'es',
+      },
+      plugins: [
+        scss({
+          fileName: 'bestax.css',
+          outputStyle: 'compressed',
+          includePaths: ['src/scss', '../node_modules'],
+          sourceMap: true,
+        }),
+      ],
+      onwarn(warning, warn) {
+        if (warning.code === 'EMPTY_BUNDLE') return;
+        warn(warning);
+      },
+    },
+    // CSS variation builds
+    variationBuild('bestax-prefixed'),
+    variationBuild('bestax-bulma-prefixed'),
+    variationBuild('bestax-no-helpers'),
+    variationBuild('bestax-no-helpers-prefixed'),
+    variationBuild('bestax-no-dark-mode'),
   ];
 };

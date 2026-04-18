@@ -1,103 +1,141 @@
 import React, { forwardRef } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { usePrefixedClassNames } from '../helpers/classNames';
+import { Field, FieldProps } from './Field';
+import { Control, ControlBaseProps } from './Control';
+import { SelectBase, SelectBaseProps } from './SelectBase';
+import { useInsideField, useInsideControl } from './FormContext';
 
 /**
  * Props for the Select component.
  *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the select.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the select.
- * @property {boolean} [isRounded] - Renders the select with rounded corners.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the select is disabled.
- * @property {boolean} [multiple] - Whether the select allows multiple values.
- * @property {number} [multipleSize] - For multiple select: number of visible options.
- * @property {React.ReactNode} [children] - Option elements.
+ * Composes Field, Control, and SelectBase into a single convenience component.
+ * Supports all SelectBase props, plus Field-level (label, horizontal) and
+ * Control-level (icons, loading) props.
+ *
+ * @property {React.ReactNode} [label] - Field label.
+ * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
+ * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
+ * @property {boolean} [horizontal] - Horizontal field layout.
+ * @property {ControlBaseProps['iconLeft']} [iconLeft] - Icon props for left icon.
+ * @property {string} [iconLeftName] - Shortcut for left icon name.
+ * @property {ControlBaseProps['iconLeftSize']} [iconLeftSize] - Shortcut for left icon size.
+ * @property {boolean} [hasIconsLeft] - Force left icon container.
+ * @property {boolean} [isLoading] - Show loading indicator on the control.
+ * @property {boolean} [isExpanded] - Expand the control.
+ * @property {'small'|'medium'|'large'} [controlSize] - Control size.
+ * @property {React.ReactNode} [message] - Help/validation message below the select.
+ * @property {string} [messageColor] - Bulma color for the message.
+ * @property {string} [fieldClassName] - Additional CSS classes for the Field.
+ * @property {string} [controlClassName] - Additional CSS classes for the Control.
  */
-export interface SelectProps
-  extends
-    Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
-    Omit<BulmaClassesProps, 'color'> {
-  color?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger'
-    | 'black'
-    | 'dark'
-    | 'light'
-    | 'white';
-  size?: 'small' | 'medium' | 'large';
-  isRounded?: boolean;
+export interface SelectProps extends SelectBaseProps {
+  label?: React.ReactNode;
+  labelSize?: FieldProps['labelSize'];
+  labelProps?: FieldProps['labelProps'];
+  horizontal?: boolean;
+  iconLeft?: ControlBaseProps['iconLeft'];
+  iconLeftName?: string;
+  iconLeftSize?: ControlBaseProps['iconLeftSize'];
+  hasIconsLeft?: boolean;
   isLoading?: boolean;
-  isActive?: boolean;
-  className?: string;
-  disabled?: boolean;
-  multiple?: boolean;
-  multipleSize?: number;
-  children?: React.ReactNode;
+  isExpanded?: boolean;
+  controlSize?: ControlBaseProps['size'];
+  message?: React.ReactNode;
+  messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  fieldClassName?: string;
+  controlClassName?: string;
 }
 
 /**
- * Bulma Select component with full Bulma helper class support.
+ * Select is a convenience component that composes Field, Control, and SelectBase.
+ *
+ * Use this for typical form fields. For complex layouts (grouped fields,
+ * addons, etc.), compose Field, Control, and SelectBase directly.
  *
  * @function
- * @param {SelectProps} props - Props for the Select component.
- * @returns {JSX.Element} The rendered select element.
- * @see {@link https://bulma.io/documentation/form/select/ | Bulma Select documentation}
+ * @param {SelectProps} props - Props for Select.
+ * @returns {JSX.Element} The composed field element.
+ *
+ * @example
+ * <Select label="Country" iconLeftName="globe">
+ *   <option>United States</option>
+ *   <option>Canada</option>
+ * </Select>
  */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
     {
-      color,
-      size,
-      isRounded,
-      isLoading,
-      isActive,
-      className,
-      disabled,
-      children,
-      multiple,
-      multipleSize,
-      ...props
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      // Control props
+      iconLeft,
+      iconLeftName,
+      iconLeftSize,
+      hasIconsLeft,
+      isLoading: controlIsLoading,
+      isExpanded,
+      controlSize,
+      // Message props
+      message,
+      messageColor,
+      // Container class overrides
+      fieldClassName,
+      controlClassName,
+      // Everything else goes to Select
+      ...selectProps
     },
     ref
   ) => {
-    const { bulmaHelperClasses, rest } = useBulmaClasses({
-      color,
-      ...props,
+    const insideField = useInsideField();
+    const insideControl = useInsideControl();
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
     });
 
-    const mainClass = usePrefixedClassNames('select', {
-      [`is-${color}`]: !!color,
-      [`is-${size}`]: !!size,
-      'is-rounded': isRounded,
-      'is-loading': isLoading,
-      'is-active': isActive,
-    });
-    const selectClass = classNames(mainClass, bulmaHelperClasses, className);
+    let content = <SelectBase ref={ref} {...selectProps} />;
 
-    // Only set size attribute when multiple is true and multipleSize is specified
-    const selectProps: React.SelectHTMLAttributes<HTMLSelectElement> = {
-      disabled,
-      multiple,
-      ...rest,
-    };
+    if (!insideControl) {
+      content = (
+        <Control
+          iconLeft={iconLeft}
+          iconLeftName={iconLeftName}
+          iconLeftSize={iconLeftSize}
+          hasIconsLeft={hasIconsLeft}
+          isLoading={controlIsLoading}
+          isExpanded={isExpanded}
+          size={controlSize}
+          className={controlClassName}
+        >
+          {content}
+        </Control>
+      );
+    }
 
-    if (multiple && typeof multipleSize === 'number') {
-      selectProps.size = multipleSize;
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {content}
+          {messageEl}
+        </Field>
+      );
     }
 
     return (
-      <div className={selectClass}>
-        <select ref={ref} {...selectProps}>
-          {children}
-        </select>
-      </div>
+      <>
+        {content}
+        {messageEl}
+      </>
     );
   }
 );

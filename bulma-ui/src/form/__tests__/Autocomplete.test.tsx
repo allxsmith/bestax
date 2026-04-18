@@ -24,7 +24,7 @@ describe('Autocomplete', () => {
 
     it('renders with autocomplete class', () => {
       const { container } = render(<Autocomplete data={fruits} />);
-      expect(container.firstChild).toHaveClass('autocomplete');
+      expect(container.querySelector('.autocomplete')).toHaveClass('autocomplete');
     });
 
     it('does not show dropdown initially', () => {
@@ -336,7 +336,7 @@ describe('Autocomplete', () => {
   describe('Sizes', () => {
     it('applies small size class', () => {
       const { container } = render(<Autocomplete data={fruits} size="small" />);
-      expect(container.firstChild).toHaveClass('is-small');
+      expect(container.querySelector('.autocomplete')).toHaveClass('is-small');
       expect(screen.getByRole('combobox')).toHaveClass('is-small');
     });
 
@@ -344,12 +344,12 @@ describe('Autocomplete', () => {
       const { container } = render(
         <Autocomplete data={fruits} size="medium" />
       );
-      expect(container.firstChild).toHaveClass('is-medium');
+      expect(container.querySelector('.autocomplete')).toHaveClass('is-medium');
     });
 
     it('applies large size class', () => {
       const { container } = render(<Autocomplete data={fruits} size="large" />);
-      expect(container.firstChild).toHaveClass('is-large');
+      expect(container.querySelector('.autocomplete')).toHaveClass('is-large');
     });
   });
 

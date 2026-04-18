@@ -14,6 +14,7 @@ describe('Checkbox', () => {
       <Checkbox className="custom-class">Label</Checkbox>
     );
     const label = container.querySelector('label');
+    expect(label).toHaveClass('styled-checkbox');
     expect(label).toHaveClass('checkbox');
     expect(label).toHaveClass('custom-class');
   });
@@ -25,6 +26,7 @@ describe('Checkbox', () => {
       </ConfigProvider>
     );
     const label = container.querySelector('label');
+    expect(label).toHaveClass('bulma-styled-checkbox');
     expect(label).toHaveClass('bulma-checkbox');
   });
 
@@ -36,6 +38,7 @@ describe('Checkbox', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-styled-checkbox');
       expect(label).toHaveClass('bulma-checkbox');
     });
 
@@ -44,6 +47,7 @@ describe('Checkbox', () => {
         <Checkbox data-testid="checkbox">Test</Checkbox>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-checkbox');
       expect(label).toHaveClass('checkbox');
     });
 
@@ -54,6 +58,7 @@ describe('Checkbox', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-checkbox');
       expect(label).toHaveClass('checkbox');
     });
 
@@ -66,6 +71,7 @@ describe('Checkbox', () => {
         </ConfigProvider>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('bulma-styled-checkbox');
       expect(label).toHaveClass('bulma-checkbox');
       expect(label).toHaveClass('bulma-m-2');
     });
@@ -77,6 +83,7 @@ describe('Checkbox', () => {
         </Checkbox>
       );
       const label = container.querySelector('label');
+      expect(label).toHaveClass('styled-checkbox');
       expect(label).toHaveClass('checkbox');
       expect(label).toHaveClass('p-3');
     });

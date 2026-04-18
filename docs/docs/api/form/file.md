@@ -331,6 +331,66 @@ For a right-aligned file input, use the `isRight` prop. This can be useful in la
 
 ---
 
+### Context-Aware Rendering
+
+The `File` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+:::note
+For the File component, `label` is the Field label text, while `buttonLabel` is the text on the file upload button. File does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+:::
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper. Here `label` serves as the field label.
+
+```tsx live
+<File label="Document" buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Document">
+      <Field.Body>
+        <Field>
+          <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both Field and Control. File does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Document">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-paperclip">
+            <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - The root is a `<div class="file">` with a nested `<label>` and `<input type="file">`.

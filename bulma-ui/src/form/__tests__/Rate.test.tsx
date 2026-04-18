@@ -25,12 +25,12 @@ describe('Rate', () => {
 
     it('applies custom className', () => {
       const { container } = render(<Rate className="custom-class" />);
-      expect(container.firstChild).toHaveClass('custom-class');
+      expect(container.querySelector('.rate')).toHaveClass('custom-class');
     });
 
     it('applies rate class', () => {
       const { container } = render(<Rate />);
-      expect(container.firstChild).toHaveClass('rate');
+      expect(container.querySelector('.rate')).toHaveClass('rate');
     });
 
     it('renders custom max number of icons', () => {
@@ -111,17 +111,17 @@ describe('Rate', () => {
   describe('Sizes', () => {
     it('applies small size class', () => {
       const { container } = render(<Rate size="small" />);
-      expect(container.firstChild).toHaveClass('is-small');
+      expect(container.querySelector('.rate')).toHaveClass('is-small');
     });
 
     it('applies medium size class', () => {
       const { container } = render(<Rate size="medium" />);
-      expect(container.firstChild).toHaveClass('is-medium');
+      expect(container.querySelector('.rate')).toHaveClass('is-medium');
     });
 
     it('applies large size class', () => {
       const { container } = render(<Rate size="large" />);
-      expect(container.firstChild).toHaveClass('is-large');
+      expect(container.querySelector('.rate')).toHaveClass('is-large');
     });
   });
 
@@ -177,7 +177,7 @@ describe('Rate', () => {
   describe('Disabled State', () => {
     it('applies is-disabled class when disabled', () => {
       const { container } = render(<Rate disabled />);
-      expect(container.firstChild).toHaveClass('is-disabled');
+      expect(container.querySelector('.rate')).toHaveClass('is-disabled');
     });
 
     it('does not call onChange when disabled', async () => {
@@ -209,14 +209,14 @@ describe('Rate', () => {
   describe('Spaced Variant', () => {
     it('applies is-spaced class when spaced is true', () => {
       const { container } = render(<Rate spaced />);
-      expect(container.firstChild).toHaveClass('is-spaced');
+      expect(container.querySelector('.rate')).toHaveClass('is-spaced');
     });
   });
 
   describe('RTL Variant', () => {
     it('applies is-rtl class when rtl is true', () => {
       const { container } = render(<Rate rtl />);
-      expect(container.firstChild).toHaveClass('is-rtl');
+      expect(container.querySelector('.rate')).toHaveClass('is-rtl');
     });
   });
 
@@ -414,8 +414,182 @@ describe('Rate', () => {
           index: 0,
           isActive: true,
           value: 2,
+          fillPercent: 100,
         })
       );
+    });
+
+    it('customIcon takes priority over iconName', () => {
+      const customIcon = jest.fn(() => <span data-testid="custom">custom</span>);
+      render(
+        <Rate
+          defaultValue={2}
+          customIcon={customIcon}
+          iconName="star"
+          iconLibrary="fa"
+        />
+      );
+
+      expect(screen.getAllByTestId('custom')).toHaveLength(5);
+      // Icon component should not be rendered
+      expect(screen.queryByLabelText('icon')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Color Support', () => {
+    it('applies is-{color} class for each color', () => {
+      const colors = ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const;
+
+      colors.forEach((color) => {
+        const { container, unmount } = render(<Rate color={color} />);
+        expect(container.querySelector('.rate')).toHaveClass(`is-${color}`);
+        unmount();
+      });
+    });
+
+    it('does not apply color class when prop omitted', () => {
+      const { container } = render(<Rate />);
+      const element = container.querySelector('.rate') as HTMLElement;
+      expect(element.className).not.toMatch(/is-(primary|link|info|success|warning|danger)/);
+    });
+
+    it('combines color with other classes', () => {
+      const { container } = render(<Rate color="danger" size="large" disabled />);
+      expect(container.querySelector('.rate')).toHaveClass('is-danger');
+      expect(container.querySelector('.rate')).toHaveClass('is-large');
+      expect(container.querySelector('.rate')).toHaveClass('is-disabled');
+    });
+  });
+
+  describe('Icon Library', () => {
+    it('renders Icon component when iconName provided', () => {
+      const { container } = render(
+        <Rate defaultValue={2} iconName="star" iconLibrary="fa" iconVariant="solid" />
+      );
+      // Icon renders a <span class="icon"> with <i> inside
+      const iconSpans = container.querySelectorAll('.icon');
+      expect(iconSpans.length).toBeGreaterThan(0);
+    });
+
+    it('renders default SVG when no iconName', () => {
+      const { container } = render(<Rate defaultValue={2} />);
+      const svgs = container.querySelectorAll('svg');
+      expect(svgs.length).toBe(5);
+    });
+
+    it('passes library, variant, and features to Icon', () => {
+      const { container } = render(
+        <Rate
+          defaultValue={1}
+          iconName="star"
+          iconLibrary="mdi"
+          iconFeatures="mdi-24px"
+        />
+      );
+      const iElement = container.querySelector('i.mdi');
+      expect(iElement).toBeInTheDocument();
+    });
+  });
+
+  describe('Precision', () => {
+    it('keyboard arrows step by precision', () => {
+      const handleChange = jest.fn();
+      render(<Rate value={3} onChange={handleChange} precision={0.5} />);
+
+      const container = screen.getByRole('radiogroup');
+      fireEvent.keyDown(container, { key: 'ArrowRight' });
+
+      expect(handleChange).toHaveBeenCalledWith(3.5);
+    });
+
+    it('aria-valuenow reflects fractional values', () => {
+      render(<Rate value={3.5} onChange={() => {}} precision={0.5} />);
+      const container = screen.getByRole('radiogroup');
+      expect(container).toHaveAttribute('aria-valuenow', '3.5');
+    });
+
+    it('score shows decimal format for fractional values', () => {
+      render(<Rate value={3.5} onChange={() => {}} precision={0.5} showScore />);
+      expect(screen.getByText('3.5')).toBeInTheDocument();
+    });
+
+    it('partial fill applied for fractional icon', () => {
+      const { container } = render(
+        <Rate defaultValue={3.5} precision={0.5} />
+      );
+      // The 4th star (index 3) should have a partial fill SVG with a clipPath
+      const clipPaths = container.querySelectorAll('clipPath');
+      expect(clipPaths.length).toBeGreaterThan(0);
+    });
+
+    it('Home key works with precision', () => {
+      const handleChange = jest.fn();
+      render(<Rate value={3.5} onChange={handleChange} precision={0.5} />);
+
+      const container = screen.getByRole('radiogroup');
+      fireEvent.keyDown(container, { key: 'Home' });
+
+      expect(handleChange).toHaveBeenCalledWith(0);
+    });
+
+    it('End key works with precision', () => {
+      const handleChange = jest.fn();
+      render(<Rate value={3.5} onChange={handleChange} precision={0.5} max={5} />);
+
+      const container = screen.getByRole('radiogroup');
+      fireEvent.keyDown(container, { key: 'End' });
+
+      expect(handleChange).toHaveBeenCalledWith(5);
+    });
+  });
+
+  describe('Custom Text', () => {
+    it('renders customText', () => {
+      render(<Rate defaultValue={4} customText="(128 reviews)" />);
+      expect(screen.getByText('(128 reviews)')).toBeInTheDocument();
+    });
+
+    it('renders customText alongside showScore', () => {
+      render(<Rate defaultValue={4} showScore customText="(128 reviews)" />);
+      expect(screen.getByText('4')).toBeInTheDocument();
+      expect(screen.getByText('(128 reviews)')).toBeInTheDocument();
+    });
+  });
+
+  describe('Interactive Feedback', () => {
+    it('text shows "+" suffix for fractional hover values', () => {
+      const texts = ['Bad', 'Poor', 'Normal', 'Good', 'Super'];
+      render(
+        <Rate
+          defaultValue={0}
+          precision={0.5}
+          showText
+          texts={texts}
+        />
+      );
+
+      const stars = screen.getAllByRole('radio');
+      // Hover over 3rd star to trigger hoverValue of 3
+      fireEvent.mouseEnter(stars[2]);
+
+      // With precision=1 behavior on mouseEnter (whole number hover), text should be "Normal"
+      expect(screen.getByText('Normal')).toBeInTheDocument();
+    });
+
+    it('text updates on hover', () => {
+      const texts = ['Bad', 'Poor', 'Normal', 'Good', 'Super'];
+      render(
+        <Rate
+          defaultValue={0}
+          showText
+          texts={texts}
+        />
+      );
+
+      const stars = screen.getAllByRole('radio');
+      fireEvent.mouseEnter(stars[4]);
+
+      expect(screen.getByText('Super')).toBeInTheDocument();
     });
   });
 

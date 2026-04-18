@@ -148,6 +148,10 @@ export const Panel: React.FC<PanelProps> & {
 
 /**
  * Bulma Panel heading.
+ *
+ * @function
+ * @param {PanelHeadingProps} props - Props for the PanelHeading component.
+ * @returns {JSX.Element} The rendered panel heading.
  */
 export const PanelHeading: React.FC<PanelHeadingProps> = ({
   className,
@@ -164,6 +168,10 @@ export const PanelHeading: React.FC<PanelHeadingProps> = ({
 
 /**
  * Bulma Panel tabs.
+ *
+ * @function
+ * @param {PanelTabsProps} props - Props for the PanelTabs component.
+ * @returns {JSX.Element} The rendered panel tabs.
  */
 export const PanelTabs: React.FC<PanelTabsProps> = ({
   className,
@@ -180,6 +188,10 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
 
 /**
  * Bulma Panel block.
+ *
+ * @function
+ * @param {PanelBlockProps} props - Props for the PanelBlock component.
+ * @returns {JSX.Element} The rendered panel block.
  */
 export const PanelBlock: React.FC<PanelBlockProps> = ({
   className,
@@ -201,6 +213,10 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
 /**
  * Bulma Panel icon.
  * Wraps the Icon component with 'panel-icon' container class.
+ *
+ * @function
+ * @param {PanelIconProps} props - Props for the PanelIcon component.
+ * @returns {JSX.Element} The rendered panel icon.
  */
 export const PanelIcon: React.FC<PanelIconProps> = ({ className, ...props }) => (
   <Icon
@@ -211,6 +227,10 @@ export const PanelIcon: React.FC<PanelIconProps> = ({ className, ...props }) => 
 
 /**
  * Bulma Panel input block.
+ *
+ * @function
+ * @param {PanelInputBlockProps} props - Props for the PanelInputBlock component.
+ * @returns {JSX.Element} The rendered panel input block.
  */
 export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   value,
@@ -241,6 +261,10 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
 
 /**
  * Bulma Panel checkbox block.
+ *
+ * @function
+ * @param {PanelCheckboxBlockProps} props - Props for the PanelCheckboxBlock component.
+ * @returns {JSX.Element} The rendered panel checkbox block.
  */
 export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
   checked,
@@ -256,6 +280,10 @@ export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
 
 /**
  * Bulma Panel button block.
+ *
+ * @function
+ * @param {PanelButtonBlockProps} props - Props for the PanelButtonBlock component.
+ * @returns {JSX.Element} The rendered panel button block.
  */
 export const PanelButtonBlock: React.FC<PanelButtonBlockProps> = ({
   children,

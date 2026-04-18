@@ -88,29 +88,45 @@ npm view @allxsmith/bestax-bulma versions
 
 ## Bulma CSS Setup
 
-bestax-bulma requires Bulma CSS for styling. Choose one of these methods:
+Bulma CSS is included automatically when you install bestax-bulma. For most users, Method 1 is all you need:
 
-### Method 1: NPM Package (Recommended)
+### Method 1: Combined Bundle (Recommended)
 
-**Pros**: Version control, offline access, build optimizations, tree shaking
-**Cons**: Slightly larger initial setup
+The simplest approach — a single import that includes both Bulma and all bestax extras:
 
-```bash
-npm install bulma
+```js
+import '@allxsmith/bestax-bulma/bestax.css';
 ```
 
-Then import in your main file:
+This is all you need. No separate Bulma CSS import required.
+
+### Method 2: Separate Imports
+
+If you prefer to import Bulma CSS separately (e.g., for a specific Bulma variant), you'll need both Bulma and the bestax extras:
 
 ```js
 import 'bulma/css/bulma.min.css';
+import '@allxsmith/bestax-bulma/extras.css';
 ```
 
-### Method 2: CDN
+Bulma is already installed as a dependency of bestax-bulma — no extra install needed.
+
+### Method 3: CDN
 
 **Pros**: Quick setup, no build step required, always latest version
 **Cons**: Requires internet connection, no tree shaking
 
 Add to your HTML `<head>`:
+
+```html
+<!-- Bestax combined bundle (Bulma + extras) -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@allxsmith/bestax-bulma@2/dist/bestax.css"
+/>
+```
+
+Or if you only need Bulma itself:
 
 ```html
 <link
@@ -119,38 +135,34 @@ Add to your HTML `<head>`:
 />
 ```
 
-### Method 3: Custom Bulma Build
+### Method 4: Custom SCSS Build
 
 **Pros**: Smallest bundle size, full customization
 **Cons**: More complex setup
 
-1. Install Bulma and Sass:
+1. Install Sass as a dev dependency (Bulma is already installed):
 
 ```bash
-npm install bulma sass
+npm install -D sass
 ```
 
 2. Create a custom SCSS file:
 
 ```scss
-// custom-bulma.scss
-@import 'bulma/sass/utilities/initial-variables';
+// custom-bestax.scss
+@use 'bulma/sass' with (
+  $primary: #00d1b2,
+  $link: #3273dc
+);
 
-// Customize variables
-$primary: #00d1b2;
-$link: #3273dc;
-
-// Import only what you need
-@import 'bulma/sass/base/_all';
-@import 'bulma/sass/elements/button';
-@import 'bulma/sass/elements/box';
-// ... add other components as needed
+// Include bestax extras
+@use '@allxsmith/bestax-bulma/scss/extras';
 ```
 
 3. Import your custom build:
 
 ```js
-import './custom-bulma.scss';
+import './custom-bestax.scss';
 ```
 
 ---
@@ -195,7 +207,7 @@ npm install material-icons
 import 'material-icons/iconfont/material-icons.css';
 ```
 
-Usage: `<Icon name="person" library="material" />`
+Usage: `<Icon name="person" library="material-icons" />`
 
 ### Ionicons
 
@@ -209,22 +221,6 @@ import 'ionicons/dist/css/ionicons.min.css';
 
 Usage: `<Icon name="person" library="ion" />`
 
-### Using Multiple Icon Libraries
-
-You can use multiple libraries simultaneously:
-
-```js
-// Import all icon libraries
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import '@mdi/font/css/materialdesignicons.min.css';
-import 'material-icons/iconfont/material-icons.css';
-
-// Use different libraries
-<Icon name="user" />                    // Font Awesome (default)
-<Icon name="account" library="mdi" />   // Material Design Icons
-<Icon name="person" library="material" />  // Material Icons
-```
-
 ---
 
 ## CSS Import Order
@@ -232,14 +228,30 @@ import 'material-icons/iconfont/material-icons.css';
 The order of CSS imports matters for proper styling precedence:
 
 ```js
-// 1. First: Bulma CSS
-import 'bulma/css/bulma.min.css';
+// 1. First: Bestax CSS (Bulma + extras combined)
+import '@allxsmith/bestax-bulma/bestax.css';
 
 // 2. Second: Icon libraries (if using)
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // 3. Third: Any theme or override CSS
 import './theme.css';
+
+// 4. Last: Your custom styles
+import './App.css';
+```
+
+If using separate imports instead:
+
+```js
+// 1. First: Bulma CSS
+import 'bulma/css/bulma.min.css';
+
+// 2. Second: Extras CSS
+import '@allxsmith/bestax-bulma/extras.css';
+
+// 3. Third: Icon libraries (if using)
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // 4. Last: Your custom styles
 import './App.css';
@@ -319,7 +331,7 @@ npx webpack-bundle-analyzer stats.json
 
 ### Expected Sizes
 
-- **bestax-bulma**: ~21KB (gzipped)
+- **bestax-bulma**: ~40KB (gzipped)
 - **Bulma CSS**: ~30KB (gzipped)
 - **With PurgeCSS**: Can reduce Bulma CSS further
 
@@ -327,25 +339,15 @@ npx webpack-bundle-analyzer stats.json
 
 ## Environment-Specific Setup
 
-### Development
+### Development & Production
 
-For development, use unminified versions for better debugging:
+`bestax.css` is already compressed, so the same import works for both environments:
 
 ```js
-if (process.env.NODE_ENV === 'development') {
-  import('bulma/css/bulma.css'); // Unminified
-} else {
-  import('bulma/css/bulma.min.css'); // Minified
-}
+import '@allxsmith/bestax-bulma/bestax.css';
 ```
 
-### Production
-
-For production builds:
-
-1. Use minified CSS
-2. Enable CSS purging (remove unused styles)
-3. Consider CDN for better caching
+For production builds, consider enabling CSS purging (remove unused styles) or using a CDN for better caching.
 
 ### Testing
 
@@ -356,7 +358,7 @@ For testing environments:
 import '@testing-library/jest-dom';
 
 // Mock CSS imports
-jest.mock('bulma/css/bulma.min.css', () => ({}));
+jest.mock('@allxsmith/bestax-bulma/bestax.css', () => ({}));
 ```
 
 ---
@@ -383,7 +385,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 
 Components should have Bulma styling applied. If components appear unstyled:
 
-- Verify Bulma CSS is imported
+- Verify bestax CSS is imported
 - Check browser console for 404 errors
 - Ensure CSS import order is correct
 
@@ -402,7 +404,7 @@ Icons should render correctly. If you see placeholder text instead of icons:
 
 **Components are unstyled**
 
-- Solution: Ensure Bulma CSS is imported in your main file
+- Solution: Ensure bestax CSS is imported in your main file
 
 **Icons not showing**
 

@@ -5,16 +5,34 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  usePrefixedClassNames,
+  prefixedClassNames,
+} from '../helpers/classNames';
+import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useInsideField } from './FormContext';
+import { Field } from './Field';
+import { FormFieldProps } from './fieldProps';
+import { Icon } from '../elements/Icon';
 
+/**
+ * Represents a tag item object with a value and optional label.
+ *
+ * @property {string} value - The tag value.
+ * @property {string} [label] - Display label for the tag.
+ */
 export interface TaginputItem {
   value: string;
   label?: string;
   [key: string]: any;
 }
 
+/** A tag can be either a TaginputItem object or a plain string. */
 export type TaginputTag = TaginputItem | string;
+
+type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Props for the Taginput component.
@@ -35,16 +53,34 @@ export type TaginputTag = TaginputItem | string;
  * @property {number} [maxlength] - Maximum length of input.
  * @property {boolean} [disabled] - Whether the input is disabled.
  * @property {boolean} [readonly] - Whether the input is read-only.
+ * @property {boolean} [rounded] - Makes tags rounded.
+ * @property {boolean} [ellipsis] - Truncate long tag text with ellipsis and show title tooltip.
+ * @property {boolean} [hasCounter] - Show counter for maxTags/maxlength. Default: true.
+ * @property {string[]} [onPasteSeparators] - Characters to split on paste. Default: [','].
+ * @property {(tag: string) => boolean} [beforeAdding] - Validate before adding a tag.
+ * @property {(input: string) => TaginputTag} [createTag] - Transform input string to tag.
+ * @property {boolean} [keepFirst] - Auto-highlight first autocomplete result.
+ * @property {boolean} [keepOpen] - Keep dropdown open after selecting. Default: true.
+ * @property {boolean} [loading] - Show loading spinner in input.
+ * @property {string} [ariaCloseLabel] - Accessibility label for close buttons.
  * @property {(tags: TaginputTag[]) => void} [onChange] - Callback when tags change.
  * @property {(tag: TaginputTag) => void} [onAdd] - Callback when tag is added.
  * @property {(tag: TaginputTag, index: number) => void} [onRemove] - Callback when tag is removed.
  * @property {(value: string) => void} [onTyping] - Callback when typing in input.
  * @property {(tag: TaginputTag) => React.ReactNode} [tagTemplate] - Custom render for tags.
+ * @property {string} [icon] - Icon name for the input field.
+ * @property {IconLibrary} [iconLibrary] - Icon library to use.
+ * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined').
+ * @property {string | string[]} [iconFeatures] - Additional icon modifiers.
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the input.
+ * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'dark' | 'light'} [tagColor] - Color modifier for tags.
+ * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the component.
  */
 export interface TaginputProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
-    Omit<BulmaClassesProps, 'color'> {
+    Omit<BulmaClassesProps, 'color'>,
+    FormFieldProps {
   value?: TaginputTag[];
   defaultValue?: TaginputTag[];
   data?: string[];
@@ -61,6 +97,20 @@ export interface TaginputProps
   maxlength?: number;
   disabled?: boolean;
   readonly?: boolean;
+  rounded?: boolean;
+  ellipsis?: boolean;
+  hasCounter?: boolean;
+  onPasteSeparators?: string[];
+  beforeAdding?: (tag: string) => boolean;
+  createTag?: (input: string) => TaginputTag;
+  keepFirst?: boolean;
+  keepOpen?: boolean;
+  loading?: boolean;
+  ariaCloseLabel?: string;
+  icon?: string;
+  iconLibrary?: IconLibrary;
+  iconVariant?: string;
+  iconFeatures?: string | string[];
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   tagColor?:
     | 'primary'
@@ -108,6 +158,14 @@ export interface TaginputProps
 export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
   (
     {
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      message,
+      messageColor,
+      fieldClassName,
       value: controlledValue,
       defaultValue = [],
       data = [],
@@ -124,6 +182,20 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       maxlength,
       disabled = false,
       readonly = false,
+      rounded = false,
+      ellipsis = false,
+      hasCounter = true,
+      onPasteSeparators = [','],
+      beforeAdding,
+      createTag,
+      keepFirst = false,
+      keepOpen = true,
+      loading = false,
+      ariaCloseLabel,
+      icon,
+      iconLibrary: iconLibraryProp,
+      iconVariant,
+      iconFeatures,
       color,
       tagColor,
       size,
@@ -137,7 +209,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     },
     ref
   ) => {
+    const insideField = useInsideField();
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const { classPrefix } = useConfig();
+    const defaultIconLibrary = useIconLibrary();
+    const resolvedLibrary = iconLibraryProp || defaultIconLibrary || 'fa';
+    const pcn = (...args: (string | number | undefined | null | false | Record<string, unknown> | unknown[])[]) =>
+      prefixedClassNames(classPrefix, ...args);
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -164,8 +242,16 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       const notAlreadyAdded =
         allowDuplicates ||
         !tags.some(tag => getDisplayValue(tag).toLowerCase() === displayValue);
-      return matchesInput && notAlreadyAdded && inputValue;
+      const hasInput = inputValue || (openOnFocus && isActive);
+      return matchesInput && notAlreadyAdded && hasInput;
     });
+
+    // keepFirst: auto-highlight first item when dropdown opens
+    useEffect(() => {
+      if (keepFirst && isActive && filteredData.length > 0) {
+        setHighlightedIndex(0);
+      }
+    }, [keepFirst, isActive, filteredData.length]);
 
     // Update tags
     const updateTags = useCallback(
@@ -204,11 +290,19 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         // Check if allowed (must be in data if allowNew is false)
         if (!allowNew && !data.includes(displayValue)) return;
 
-        const newTags = [...tags, tagValue];
+        // beforeAdding validation
+        if (beforeAdding && !beforeAdding(displayValue)) return;
+
+        // createTag transformation
+        const finalTag = createTag ? createTag(displayValue) : tagValue;
+
+        const newTags = [...tags, finalTag];
         updateTags(newTags);
-        onAdd?.(tagValue);
+        onAdd?.(finalTag);
         setInputValue('');
-        setIsActive(false);
+        if (!keepOpen) {
+          setIsActive(false);
+        }
         setHighlightedIndex(-1);
       },
       [
@@ -222,6 +316,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         field,
         updateTags,
         onAdd,
+        beforeAdding,
+        createTag,
+        keepOpen,
       ]
     );
 
@@ -261,6 +358,39 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         }
       },
       [confirmKeys, addTag, onTyping, data.length]
+    );
+
+    // Handle paste
+    const handlePaste = useCallback(
+      (e: React.ClipboardEvent<HTMLInputElement>) => {
+        if (onPasteSeparators.length === 0) return;
+
+        const pastedText = e.clipboardData.getData('text');
+        // Check if any separator exists in the pasted text
+        const hasSeparator = onPasteSeparators.some(sep =>
+          pastedText.includes(sep)
+        );
+
+        if (!hasSeparator) return;
+
+        e.preventDefault();
+
+        // Build a regex from all separators
+        const escapedSeparators = onPasteSeparators.map(s =>
+          s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        );
+        const regex = new RegExp(`[${escapedSeparators.join('')}]`);
+
+        const parts = pastedText
+          .split(regex)
+          .map(s => s.trim())
+          .filter(Boolean);
+
+        for (const part of parts) {
+          addTag(part);
+        }
+      },
+      [onPasteSeparators, addTag]
     );
 
     // Handle focus
@@ -369,18 +499,25 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     }, []);
 
     // Generate classes
-    const taginputClasses = usePrefixedClassNames('taginput', {
+    const taginputClasses = pcn('taginput', {
       'is-active': isActive,
       [`is-${size}`]: !!size,
+      [`is-${color}`]: !!color,
       'is-disabled': disabled,
+      'is-rounded': rounded,
+      'is-ellipsis': ellipsis,
     });
 
-    const inputClasses = classNames('input', {
-      [`is-${color}`]: !!color,
+    const containerClasses = pcn('taginput-container', {
+      'is-attached': attached,
+      'has-icons-left': !!icon,
+    });
+
+    const inputClasses = pcn('input', {
       [`is-${size}`]: !!size,
     });
 
-    const tagClasses = classNames('tag', {
+    const tagClasses = pcn('tag', {
       [`is-${tagColor}`]: !!tagColor,
       [`is-${size}`]: !!size,
     });
@@ -393,35 +530,70 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
 
-    return (
+    // Counter text
+    const showCounter =
+      hasCounter && (maxTags !== undefined || maxlength !== undefined);
+    const counterText = maxTags !== undefined
+      ? `${tags.length} / ${maxTags}`
+      : maxlength !== undefined
+        ? `${inputValue.length} / ${maxlength}`
+        : '';
+
+    const counterClasses = pcn('help', 'counter');
+    const tagsClasses = pcn('tags');
+    const dropdownMenuClasses = pcn('dropdown-menu', 'is-active');
+    const dropdownContentClasses = pcn('dropdown-content');
+    const iconRightClass = pcn('icon', 'is-right');
+    const loaderClass = pcn('loader', 'is-loading');
+
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
+    });
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    const taginputElement = (
       <div
         ref={containerRef}
         className={combinedClasses}
         onClick={handleContainerClick}
         {...rest}
       >
-        <div
-          className={classNames('taginput-container', {
-            'is-attached': attached,
-          })}
-        >
-          <div className="tags">
-            {tags.map((tag, index) => (
-              <span key={index} className={tagClasses}>
-                {tagTemplate ? tagTemplate(tag) : getDisplayValue(tag)}
-                {closable && !disabled && !readonly && (
-                  <button
-                    type="button"
-                    className="delete is-small"
-                    onClick={e => {
-                      e.stopPropagation();
-                      removeTag(index);
-                    }}
-                    aria-label={`Remove ${getDisplayValue(tag)}`}
-                  />
-                )}
-              </span>
-            ))}
+        <div className={containerClasses}>
+          {icon && (
+            <Icon
+              name={icon}
+              library={resolvedLibrary}
+              variant={iconVariant}
+              features={iconFeatures}
+              containerClassName={pcn('icon', 'is-left')}
+            />
+          )}
+          <div className={tagsClasses}>
+            {tags.map((tag, index) => {
+              const displayVal = getDisplayValue(tag);
+              return (
+                <span key={index} className={tagClasses}>
+                  {tagTemplate ? (
+                    tagTemplate(tag)
+                  ) : ellipsis ? (
+                    <span title={displayVal}>{displayVal}</span>
+                  ) : (
+                    displayVal
+                  )}
+                  {closable && !disabled && !readonly && (
+                    <button
+                      type="button"
+                      className="delete is-small"
+                      onClick={e => {
+                        e.stopPropagation();
+                        removeTag(index);
+                      }}
+                      aria-label={ariaCloseLabel || `Remove ${displayVal}`}
+                    />
+                  )}
+                </span>
+              );
+            })}
             {!isMaxReached && (
               <input
                 ref={combinedRef}
@@ -435,19 +607,25 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 onChange={handleInputChange}
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 aria-label="Add tag"
               />
             )}
           </div>
+          {loading && (
+            <span className={iconRightClass}>
+              <span className={loaderClass} />
+            </span>
+          )}
         </div>
 
         {isActive && filteredData.length > 0 && (
-          <div className="dropdown-menu is-active">
-            <div ref={dropdownRef} className="dropdown-content" role="listbox">
+          <div className={dropdownMenuClasses}>
+            <div ref={dropdownRef} className={dropdownContentClasses} role="listbox">
               {filteredData.map((item, index) => (
                 <a
                   key={index}
-                  className={classNames('dropdown-item', {
+                  className={pcn('dropdown-item', {
                     'is-active': index === highlightedIndex,
                   })}
                   onClick={() => addTag(item)}
@@ -461,7 +639,33 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             </div>
           </div>
         )}
+
+        {showCounter && (
+          <small className={counterClasses}>{counterText}</small>
+        )}
       </div>
+    );
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {taginputElement}
+          {messageEl}
+        </Field>
+      );
+    }
+
+    return (
+      <>
+        {taginputElement}
+        {messageEl}
+      </>
     );
   }
 );

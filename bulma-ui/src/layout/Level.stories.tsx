@@ -4,7 +4,7 @@ import { Title } from '../elements/Title';
 import { Button } from '../elements/Button';
 import Field from '../form/Field';
 import Control from '../form/Control';
-import Input from '../form/Input';
+import { Input } from '../form/Input';
 
 const meta: Meta<typeof Level> = {
   title: 'Layout/Level',

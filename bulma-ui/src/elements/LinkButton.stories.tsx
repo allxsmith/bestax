@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { LinkButton, LinkButtonProps } from './LinkButton';
 import { Buttons } from './Buttons';
+import { Button } from './Button';
+import { Field } from '../form/Field';
+import { Input } from '../form/Input';
 
 const meta: Meta<typeof LinkButton> = {
   title: 'Elements/LinkButton',
@@ -9,15 +13,16 @@ const meta: Meta<typeof LinkButton> = {
     docs: {
       description: {
         component:
-          'A button that visually looks like text or a link, for a11y-friendly replacements of `<div onClick>` anti-patterns. Supports text (no underline) and ghost (no link color) variants with optional color overrides.',
+          'A button that visually looks like text or a link, for a11y-friendly replacements of `<div onClick>` anti-patterns. Supports text (no underline), ghost (no link color), and underline (hover underline) variants with optional color overrides.',
       },
     },
   },
   argTypes: {
     variant: {
       control: 'select',
-      options: ['text', 'ghost'],
-      description: "Display mode: 'text' for minimal, 'ghost' for link-like.",
+      options: ['text', 'ghost', 'underline'],
+      description:
+        "Display mode: 'text' for minimal, 'ghost' for link-like, 'underline' for hover underline.",
     },
     color: {
       control: 'select',
@@ -107,6 +112,37 @@ export const GhostWithColor: Story = {
   name: 'Ghost with Color',
 };
 
+// Underline variant
+export const Underline: Story = {
+  args: {
+    variant: 'underline',
+    children: 'Hover to underline',
+  },
+};
+
+// Underline variant with all semantic colors
+export const UnderlineWithColors: Story = {
+  render: () => (
+    <Buttons>
+      {(
+        [
+          'primary',
+          'link',
+          'info',
+          'success',
+          'warning',
+          'danger',
+        ] as const
+      ).map(color => (
+        <LinkButton key={color} variant="underline" color={color}>
+          {color.charAt(0).toUpperCase() + color.slice(1)}
+        </LinkButton>
+      ))}
+    </Buttons>
+  ),
+  name: 'Underline with Colors',
+};
+
 // All semantic colors in text variant
 export const AllColors: Story = {
   render: () => (
@@ -174,4 +210,88 @@ export const AllSizes: Story = {
     </Buttons>
   ),
   name: 'All Sizes',
+};
+
+// Click counter showing all variants fire onClick
+export const ClickCounter: Story = {
+  render: () => {
+    const [count, setCount] = useState(0);
+
+    return (
+      <div>
+        <p style={{ marginBottom: '1rem' }}>
+          Click count: <strong>{count}</strong>
+        </p>
+        <Buttons>
+          <LinkButton variant="text" onClick={() => setCount(c => c + 1)}>
+            Text +1
+          </LinkButton>
+          <LinkButton variant="ghost" onClick={() => setCount(c => c + 1)}>
+            Ghost +1
+          </LinkButton>
+          <LinkButton variant="underline" onClick={() => setCount(c => c + 1)}>
+            Underline +1
+          </LinkButton>
+          <Button color="light" onClick={() => setCount(0)}>
+            Reset
+          </Button>
+        </Buttons>
+      </div>
+    );
+  },
+  name: 'Click Counter',
+};
+
+// In-form context
+export const InFormContext: Story = {
+  render: () => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+
+    return (
+      <form onSubmit={e => e.preventDefault()}>
+        <Input
+          label="Name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Enter your name"
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="Enter your email"
+        />
+        <Field>
+          <div className="control">
+            <Button color="primary" size="medium" type="submit" isFullWidth>
+              Create account
+            </Button>
+          </div>
+        </Field>
+        <Buttons size="small" className="is-centered">
+          <LinkButton
+            variant="underline"
+            color="link"
+            size="small"
+            onClick={() => {
+              setName('');
+              setEmail('');
+            }}
+          >
+            Clear form
+          </LinkButton>
+          <LinkButton
+            variant="underline"
+            size="small"
+            onClick={() => alert(`Preview: ${name} <${email}>`)}
+          >
+            Preview
+          </LinkButton>
+        </Buttons>
+      </form>
+    );
+  },
+  name: 'In Form Context',
 };

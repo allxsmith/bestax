@@ -10,7 +10,7 @@ sidebar_label: Steps
 The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. It supports horizontal and vertical layouts, customizable markers, and clickable navigation.
 
 :::info
-The Steps component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Steps component requires importing the extras CSS. See the [Extras Setup Gui
 
 ```tsx
 import { Steps } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -36,11 +33,17 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Color variant.                                   |
 | `hasMarker`     | `boolean`                                                                       | `true`     | Show step markers.                               |
 | `animated`      | `boolean`                                                                       | `true`     | Enable animations.                               |
-| `rounded`       | `boolean`                                                                       | `false`    | Use rounded markers.                             |
+| `rounded`       | `boolean`                                                                       | `true`     | Use rounded markers.                             |
 | `vertical`      | `boolean`                                                                       | `false`    | Vertical layout.                                 |
-| `labelPosition` | `'bottom'` \| `'right'`                                                         | `'bottom'` | Position of labels.                              |
+| `labelPosition` | `'bottom'` \| `'right'` \| `'left'`                                             | `'bottom'` | Position of labels.                              |
 | `mobileMode`    | `'minimal'` \| `'compact'` \| `'right'`                                         | —          | Mobile display mode.                             |
 | `onStepClick`   | `(step: number) => void`                                                        | —          | Callback when a step is clicked.                 |
+| `showStepNumbers` | `boolean`                                                                     | `true`     | Displays step numbers in the markers.            |
+| `hasNavigation` | `boolean`                                                                       | `false`    | Shows previous/next navigation buttons.          |
+| `prevLabel`     | `string`                                                                        | —          | Label for the previous button.                   |
+| `nextLabel`     | `string`                                                                        | —          | Label for the next button.                       |
+| `onPrev`        | `() => void`                                                                    | —          | Callback when previous button is clicked.        |
+| `onNext`        | `() => void`                                                                    | —          | Callback when next button is clicked.            |
 | `children`      | `React.ReactNode`                                                               | —          | Step children (alternative to items).            |
 | `className`     | `string`                                                                        | —          | Additional CSS classes.                          |
 | ...             | All standard HTML and Bulma helper props                                        |            | (See [Helper Props](../helpers/usebulmaclasses)) |
@@ -51,8 +54,9 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | ----------- | ----------------- | ------- | ------------------------------- |
 | `label`     | `React.ReactNode` | —       | Step label/title.               |
 | `icon`      | `React.ReactNode` | —       | Icon for the step marker.       |
-| `clickable` | `boolean`         | `false` | Whether this step is clickable. |
-| `className` | `string`          | —       | Additional class for this step. |
+| `clickable`     | `boolean`         | `false` | Whether this step is clickable.   |
+| `completedIcon` | `React.ReactNode` | `'✓'`  | Icon shown when the step is completed. |
+| `className`     | `string`          | —       | Additional class for this step.   |
 
 ---
 
@@ -79,7 +83,7 @@ Steps that allow navigation by clicking.
 function example() {
   const [step, setStep] = useState(1);
   return (
-    <div>
+    <Block>
       <Steps
         value={step}
         items={[
@@ -91,8 +95,8 @@ function example() {
         onStepClick={setStep}
         color="primary"
       />
-      <p className="mt-4">Current step: {step + 1}</p>
-    </div>
+      <Paragraph mt="4">Current step: {step + 1}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -104,7 +108,7 @@ function example() {
 Steps with different color variants.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+<Block display="flex" flexDirection="column" gap="5">
   <Steps
     value={1}
     color="primary"
@@ -130,7 +134,7 @@ Steps with different color variants.
     color="danger"
     items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}
   />
-</div>
+</Block>
 ```
 
 ---
@@ -140,7 +144,7 @@ Steps with different color variants.
 Steps with different size variants.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+<Block display="flex" flexDirection="column" gap="5">
   <Steps
     value={1}
     size="small"
@@ -160,7 +164,7 @@ Steps with different size variants.
     size="large"
     items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}
   />
-</div>
+</Block>
 ```
 
 ---
@@ -174,10 +178,10 @@ Steps with custom icons in markers.
   value={1}
   color="info"
   items={[
-    { label: 'Cart', icon: <i className="fas fa-shopping-cart" /> },
-    { label: 'Shipping', icon: <i className="fas fa-truck" /> },
-    { label: 'Payment', icon: <i className="fas fa-credit-card" /> },
-    { label: 'Done', icon: <i className="fas fa-check" /> },
+    { label: 'Cart', icon: <Icon name="shopping-cart" variant="solid" /> },
+    { label: 'Shipping', icon: <Icon name="truck" variant="solid" /> },
+    { label: 'Payment', icon: <Icon name="credit-card" variant="solid" /> },
+    { label: 'Done', icon: <Icon name="check" variant="solid" /> },
   ]}
 />
 ```
@@ -234,7 +238,7 @@ function example() {
   const steps = ['Cart', 'Shipping', 'Payment', 'Confirm'];
 
   return (
-    <div>
+    <Block>
       <Steps
         value={step}
         items={steps.map((label, i) => ({ label, clickable: i <= step }))}
@@ -243,9 +247,9 @@ function example() {
       />
       <Box mt="4" p="4">
         <Title size="5">{steps[step]}</Title>
-        <p>Content for the {steps[step]} step goes here.</p>
+        <Paragraph>Content for the {steps[step]} step goes here.</Paragraph>
       </Box>
-      <div className="buttons mt-4">
+      <Buttons mt="4">
         <Button
           onClick={() => setStep(Math.max(0, step - 1))}
           disabled={step === 0}
@@ -259,8 +263,8 @@ function example() {
         >
           {step === 2 ? 'Place Order' : 'Next'}
         </Button>
-      </div>
-    </div>
+      </Buttons>
+    </Block>
   );
 }
 ```

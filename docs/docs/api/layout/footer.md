@@ -49,8 +49,8 @@ import { Content } from '@allxsmith/bestax-bulma';
 
 <Footer>
   <Content textAlign="centered">
-    <p>
-      <strong>Bestax</strong> a Bulma component library by{' '}
+    <Paragraph>
+      <Strong>Bestax</Strong> a Bulma component library by{' '}
       <a href="https://bestax.io">Alex Smith</a>.<br />
       <a href="https://opensource.org/license/mit">MIT Source Code License</a>
       {', '}
@@ -59,7 +59,7 @@ import { Content } from '@allxsmith/bestax-bulma';
         CC BY NC SA 4.0
       </a>
       .
-    </p>
+    </Paragraph>
   </Content>
 </Footer>;
 ```

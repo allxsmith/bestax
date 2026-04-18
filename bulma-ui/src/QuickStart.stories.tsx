@@ -22,10 +22,10 @@ const meta: Meta = {
 Get started with bestax-bulma in just a few steps:
 
 1. **Install the package**
-   - \`npm install @allxsmith/bestax-bulma bulma\`
+   - \`npm install @allxsmith/bestax-bulma\`
 
-2. **Import Bulma CSS**
-   - Add \`import 'bulma/css/bulma.min.css'\` to your app
+2. **Import Bestax CSS**
+   - Add \`import '@allxsmith/bestax-bulma/bestax.css'\` to your app
 
 3. **Start using components**
    - Import and use components like \`Button\`, \`Box\`, \`Modal\`, etc.
@@ -63,7 +63,7 @@ Visit **[bestax.io](https://bestax.io)** for:
 - ✅ **TypeScript Ready** - Complete type definitions
 - ✅ **Tree Shakeable** - Import only what you need
 - ✅ **99% Test Coverage** - Reliable and stable
-- ✅ **Zero Dependencies** - Just React and Bulma CSS
+- ✅ **Just One Dependency** - Bulma. Every Bulma library depends on it — we bundle it for you
 - ✅ **Accessible** - Built with a11y best practices
 
 ---

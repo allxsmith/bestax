@@ -345,6 +345,77 @@ Set the `multiple` prop to enable multi-selection in the `Select` component. The
 
 ---
 
+### Context-Aware Rendering
+
+The `Select` component is context-aware: it detects whether it is already inside a `Field` or `Control` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in Field+Control), inside a `Field` (it skips its own Field), or inside both `Field` and `Control` (it renders only the raw select).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field and Control wrappers.
+
+```tsx live
+<Select label="Country">
+  <option value="">Please select</option>
+  <option value="us">United States</option>
+  <option value="uk">United Kingdom</option>
+  <option value="ca">Canada</option>
+</Select>
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Country">
+      <Field.Body>
+        <Field>
+          <Select>
+            <option value="">Please select</option>
+            <option value="us">United States</option>
+            <option value="uk">United Kingdom</option>
+            <option value="ca">Canada</option>
+          </Select>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual control (e.g., adding icons via Control), wrap in both Field and Control. The component detects both and renders only its raw select element.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Country">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-globe">
+            <Select>
+              <option value="">Please select</option>
+              <option value="us">United States</option>
+              <option value="uk">United Kingdom</option>
+              <option value="ca">Canada</option>
+            </Select>
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - Always provide a `<label>` (use with `Field`) for accessible select usage.

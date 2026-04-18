@@ -19,9 +19,6 @@ The Slider component requires importing the extras CSS. See the [Extras Setup Gu
 
 ```tsx
 import { Slider } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -43,6 +40,15 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `showOutput`   | `boolean`                                                                       | `false` | Show current value tooltip.                      |
 | `onChange`     | `(value: number) => void`                                                       | —       | Callback when value changes.                     |
 | `formatOutput` | `(value: number) => string`                                                     | —       | Format function for output display.              |
+| `tooltip`      | `'auto'` \| `'always'` \| `'hidden'`                                            | —       | Controls tooltip visibility on the thumb.        |
+| `ticks`        | `boolean`                                                                       | —       | Shows tick marks along the track.                |
+| `marks`        | `SliderMark[]`                                                                  | —       | Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. |
+| `orientation`  | `'horizontal'` \| `'vertical'`                                                  | `'horizontal'` | Orientation of the slider.                |
+| `scale`        | `(value: number) => number`                                                     | —       | Function to scale the displayed value.           |
+| `getAriaValueText` | `(value: number) => string`                                                 | —       | Function to generate the `aria-valuetext` attribute. |
+| `range`        | `boolean`                                                                       | `false` | Enables range mode with two thumbs.              |
+| `minDistance`   | `number`                                                                       | `0`     | Minimum distance between thumbs in range mode.   |
+| `ariaLabel`    | `string` \| `[string, string]`                                                  | —       | ARIA label(s) for the slider thumb(s).           |
 | `className`    | `string`                                                                        | —       | Additional CSS classes.                          |
 | `ref`          | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the input element.              |
 | ...            | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses)) |
@@ -59,10 +65,10 @@ A simple range slider.
 function example() {
   const [value, setValue] = useState(50);
   return (
-    <div>
+    <Block>
       <Slider value={value} onChange={setValue} />
-      <p className="mt-2">Value: {value}</p>
-    </div>
+      <Paragraph mt="2">Value: {value}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -77,10 +83,10 @@ Slider showing the current value tooltip.
 function example() {
   const [value, setValue] = useState(50);
   return (
-    <div>
+    <Block>
       <Slider value={value} onChange={setValue} showOutput color="primary" />
-      <p className="mt-4">Value: {value}</p>
-    </div>
+      <Paragraph mt="4">Value: {value}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -92,13 +98,13 @@ function example() {
 Sliders with different color options.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+<Block display="flex" flexDirection="column" gap="5">
   <Slider defaultValue={50} color="primary" showOutput />
   <Slider defaultValue={50} color="success" showOutput />
   <Slider defaultValue={50} color="info" showOutput />
   <Slider defaultValue={50} color="warning" showOutput />
   <Slider defaultValue={50} color="danger" showOutput />
-</div>
+</Block>
 ```
 
 ---
@@ -108,24 +114,24 @@ Sliders with different color options.
 Sliders in different sizes.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-  <div>
-    <p className="mb-1">Small</p>
+<Block display="flex" flexDirection="column" gap="5">
+  <Block>
+    <Paragraph mb="1">Small</Paragraph>
     <Slider defaultValue={50} size="small" color="primary" />
-  </div>
-  <div>
-    <p className="mb-1">Normal</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Normal</Paragraph>
     <Slider defaultValue={50} color="primary" />
-  </div>
-  <div>
-    <p className="mb-1">Medium</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Medium</Paragraph>
     <Slider defaultValue={50} size="medium" color="primary" />
-  </div>
-  <div>
-    <p className="mb-1">Large</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Large</Paragraph>
     <Slider defaultValue={50} size="large" color="primary" />
-  </div>
-</div>
+  </Block>
+</Block>
 ```
 
 ---
@@ -135,20 +141,20 @@ Sliders in different sizes.
 Slider with rounded track and circular thumb.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-  <div>
-    <p className="mb-1">Rounded</p>
+<Block display="flex" flexDirection="column" gap="5">
+  <Block>
+    <Paragraph mb="1">Rounded</Paragraph>
     <Slider defaultValue={50} isRounded color="info" showOutput />
-  </div>
-  <div>
-    <p className="mb-1">Circle Thumb</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Circle Thumb</Paragraph>
     <Slider defaultValue={50} isCircle color="success" showOutput />
-  </div>
-  <div>
-    <p className="mb-1">Both</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Both</Paragraph>
     <Slider defaultValue={50} isRounded isCircle color="warning" showOutput />
-  </div>
-</div>
+  </Block>
+</Block>
 ```
 
 ---
@@ -161,7 +167,7 @@ Slider with custom min, max, and step values.
 function example() {
   const [value, setValue] = useState(500);
   return (
-    <div>
+    <Block>
       <Slider
         value={value}
         onChange={setValue}
@@ -171,8 +177,8 @@ function example() {
         showOutput
         color="primary"
       />
-      <p className="mt-4">Value: ${value}</p>
-    </div>
+      <Paragraph mt="4">Value: ${value}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -187,7 +193,7 @@ Slider with formatted output display.
 function example() {
   const [value, setValue] = useState(50);
   return (
-    <div>
+    <Block>
       <Slider
         value={value}
         onChange={setValue}
@@ -195,8 +201,8 @@ function example() {
         color="success"
         formatOutput={v => `${v}%`}
       />
-      <p className="mt-4">Progress: {value}%</p>
-    </div>
+      <Paragraph mt="4">Progress: {value}%</Paragraph>
+    </Block>
   );
 }
 ```
@@ -209,6 +215,62 @@ A disabled slider that cannot be interacted with.
 
 ```tsx live
 <Slider defaultValue={30} disabled color="primary" />
+```
+
+---
+
+### Context-Aware Rendering
+
+The `Slider` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper.
+
+```tsx live
+<Slider label="Volume" defaultValue={50} color="primary" />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Volume">
+      <Field.Body>
+        <Field>
+          <Slider defaultValue={50} color="primary" />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both Field and Control. The component detects the Field context and renders only the slider element.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Volume">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-volume-up">
+            <Slider defaultValue={50} color="primary" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
 ```
 
 ---

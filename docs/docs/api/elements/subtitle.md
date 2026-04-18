@@ -33,6 +33,8 @@ import { SubTitle } from '@allxsmith/bestax-bulma';
 | `hasSkeleton` | `boolean`                                             | —       | Applies the `has-skeleton` class to part of the content. |
 | `skeleton`    | `boolean`                                             | —       | Applies the `is-skeleton` class to the entire component. |
 | `children`    | `React.ReactNode`                                     | —       | Subtitle content.                                        |
+| `textColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | — | Text color helper. |
+| `bgColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | — | Background color helper. |
 | ...           | All standard heading/paragraph and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))         |
 
 ---

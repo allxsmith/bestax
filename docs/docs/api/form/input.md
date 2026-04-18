@@ -347,6 +347,62 @@ This example demonstrates using icons with different size variations of the inpu
 
 ---
 
+### Context-Aware Rendering
+
+The `Input` component is context-aware: it detects whether it is already inside a `Field` or `Control` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in Field+Control), inside a `Field` (it skips its own Field), or inside both `Field` and `Control` (it renders only the raw input).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field and Control wrappers.
+
+```tsx live
+<Input label="Username" placeholder="Enter username" />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Username">
+      <Field.Body>
+        <Field>
+          <Input placeholder="Enter username" />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual control (e.g., adding icons via Control), wrap in both Field and Control. The component detects both and renders only its raw element.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Username">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-user">
+            <Input placeholder="Enter username" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - Always provide a `<label>` (use with `Field`) for accessible input usage.

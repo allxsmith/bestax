@@ -28,26 +28,37 @@ npm install @allxsmith/bestax-bulma
 
 Extra components require additional CSS for styling. Choose one of these import methods:
 
-### Method 1: Pre-built CSS (Recommended)
+### Method 1: Combined Bundle (Recommended)
 
-Import the compiled CSS file in your application entry point:
+A single import that includes both Bulma and all extras:
 
 ```jsx title="src/main.jsx or src/index.tsx"
-// Core Bulma CSS
-import 'bulma/css/bulma.min.css';
-
-// Extra components CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
+import '@allxsmith/bestax-bulma/bestax.css';
 
 // Your app
 import App from './App';
 ```
 
 :::tip
-This is the simplest approach and works with any build tool without additional configuration.
+This is the simplest approach — one import for everything. No separate Bulma CSS import needed.
 :::
 
-### Method 2: SCSS Source (For Customization)
+### Method 2: Separate Imports
+
+If you already manage Bulma CSS independently or need separate control:
+
+```jsx title="src/main.jsx or src/index.tsx"
+// Core Bulma CSS
+import 'bulma/css/bulma.min.css';
+
+// Extra components CSS
+import '@allxsmith/bestax-bulma/extras.css';
+
+// Your app
+import App from './App';
+```
+
+### Method 3: SCSS Source (For Customization)
 
 If you want to customize the extra components or integrate them into your SCSS build:
 
@@ -75,6 +86,19 @@ import './styles/main.scss';
 For proper styling, import CSS files in this order:
 
 ```jsx
+// 1. Bestax CSS (includes Bulma + extras)
+import '@allxsmith/bestax-bulma/bestax.css';
+
+// 2. Icon library (optional)
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// 3. Your custom styles (optional)
+import './App.css';
+```
+
+Or, if using separate imports:
+
+```jsx
 // 1. Bulma CSS (required)
 import 'bulma/css/bulma.min.css';
 
@@ -82,7 +106,7 @@ import 'bulma/css/bulma.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // 3. Extras CSS (required for extra components)
-import '@allxsmith/bestax-bulma/dist/extras.css';
+import '@allxsmith/bestax-bulma/extras.css';
 
 // 4. Your custom styles (optional)
 import './App.css';
@@ -300,7 +324,7 @@ The Sidebar uses a portal to render at the document body. Ensure no parent eleme
 
 ## Next Steps
 
-- Explore [Extra UI Components](/docs/guides/library/components/extras)
-- Explore [Extra Form Components](/docs/guides/library/form/extras)
+- Explore [UI Components](/docs/guides/library/components)
+- Explore [Form Components](/docs/guides/library/form)
 - Learn about [Theming](/docs/api/helpers/theme)
 - See the [Component Documentation](/docs/category/elements)

@@ -38,7 +38,7 @@ Great question! While there are other Bulma React libraries out there, many have
 Getting started is as simple as:
 
 ```bash
-npm install @allxsmith/bestax-bulma bulma
+npm install @allxsmith/bestax-bulma
 ```
 
 Then import and use components:
@@ -239,7 +239,7 @@ Want to see bestax-bulma in action? Check out [bestax.io](https://bestax.io) for
 
 Ready to modernize your Bulma React experience?
 
-1. **Install**: `npm install @allxsmith/bestax-bulma bulma`
+1. **Install**: `npm install @allxsmith/bestax-bulma`
 2. **Explore**: Check our [documentation](https://bestax.io)
 3. **Build**: Start creating beautiful UIs with modern React patterns
 4. **Contribute**: Join us on [GitHub](https://github.com/allxsmith/bestax)

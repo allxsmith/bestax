@@ -176,7 +176,7 @@ $loading-animation-duration: 0.75s !default;
   font-size: cv.getVar("loading-text-size");
   color: cv.getVar("loading-text-color");
   text-align: center;
-  max-width: 80%;
+  white-space: nowrap;
 }
 
 // Cancel button

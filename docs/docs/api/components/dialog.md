@@ -10,7 +10,7 @@ sidebar_label: Dialog
 The `Dialog` component provides confirmation and alert dialogs with customizable actions. Dialogs are modal and require user interaction before they can be dismissed.
 
 :::info
-The Dialog component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Dialog component requires importing the extras CSS. See the [Extras Setup Gu
 
 ```tsx
 import { Dialog, DialogContainer, dialog } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -58,7 +55,7 @@ A simple alert dialog with only a confirm button.
 function example() {
   const [showDialog, setShowDialog] = useState(false);
   return (
-    <div>
+    <Block>
       <Button color="info" onClick={() => setShowDialog(true)}>
         Show Alert
       </Button>
@@ -70,7 +67,7 @@ function example() {
         showCancel={false}
         onConfirm={() => setShowDialog(false)}
       />
-    </div>
+    </Block>
   );
 }
 ```
@@ -87,11 +84,11 @@ function example() {
   const [result, setResult] = useState('');
 
   return (
-    <div>
+    <Block>
       <Button color="danger" onClick={() => setShowDialog(true)}>
         Delete Item
       </Button>
-      <p className="mt-2">Result: {result}</p>
+      <Paragraph mt="2">Result: {result}</Paragraph>
       <Dialog
         isOpen={showDialog}
         title="Delete Item?"
@@ -107,7 +104,7 @@ function example() {
           setShowDialog(false);
         }}
       />
-    </div>
+    </Block>
   );
 }
 ```
@@ -122,8 +119,8 @@ Different dialog types with matching icons.
 function example() {
   const [dialogType, setDialogType] = useState(null);
   return (
-    <div>
-      <div className="buttons">
+    <Block>
+      <Buttons>
         <Button color="success" onClick={() => setDialogType('success')}>
           Success
         </Button>
@@ -136,7 +133,7 @@ function example() {
         <Button color="info" onClick={() => setDialogType('info')}>
           Info
         </Button>
-      </div>
+      </Buttons>
       {dialogType && (
         <Dialog
           isOpen
@@ -147,7 +144,7 @@ function example() {
           onCancel={() => setDialogType(null)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -162,27 +159,27 @@ Dialog with custom React content.
 function example() {
   const [showDialog, setShowDialog] = useState(false);
   return (
-    <div>
+    <Block>
       <Button onClick={() => setShowDialog(true)}>Show Terms</Button>
       <Dialog
         isOpen={showDialog}
         title="Terms of Service"
         message={
-          <div>
-            <p className="mb-2">By clicking "Accept", you agree to:</p>
+          <Block>
+            <Paragraph mb="2">By clicking "Accept", you agree to:</Paragraph>
             <ul>
               <li>Our terms of service</li>
               <li>Our privacy policy</li>
               <li>Receive email notifications</li>
             </ul>
-          </div>
+          </Block>
         }
         confirmText="Accept"
         cancelText="Decline"
         onConfirm={() => setShowDialog(false)}
         onCancel={() => setShowDialog(false)}
       />
-    </div>
+    </Block>
   );
 }
 ```
@@ -197,7 +194,7 @@ A dialog that must be confirmed (cannot be dismissed by clicking outside or pres
 function example() {
   const [showDialog, setShowDialog] = useState(false);
   return (
-    <div>
+    <Block>
       <Button color="warning" onClick={() => setShowDialog(true)}>
         Show Required Action
       </Button>
@@ -211,7 +208,7 @@ function example() {
         confirmText="I Understand"
         onConfirm={() => setShowDialog(false)}
       />
-    </div>
+    </Block>
   );
 }
 ```
@@ -239,53 +236,96 @@ function App() {
 }
 ```
 
-### API Methods
+### Programmatic Alert
 
-```tsx
-import { dialog } from '@allxsmith/bestax-bulma';
-
-// Show alert (returns Promise<void>)
-await dialog.alert('Something happened!');
-await dialog.alert({
-  title: 'Success',
-  message: 'Operation completed!',
-  type: 'success',
-});
-
-// Show confirm (returns Promise<boolean>)
-const confirmed = await dialog.confirm('Are you sure?');
-const confirmed = await dialog.confirm({
-  title: 'Delete Item?',
-  message: 'This action cannot be undone.',
-  type: 'danger',
-  confirmText: 'Delete',
-});
-
-if (confirmed) {
-  // User clicked confirm
-  deleteItem();
+```tsx live
+function example() {
+  return (
+    <Block>
+      <DialogContainer />
+      <Buttons>
+        <Button
+          color="info"
+          onClick={() => dialog.alert('Something happened!')}
+        >
+          Simple Alert
+        </Button>
+        <Button
+          color="success"
+          onClick={() =>
+            dialog.alert({
+              title: 'Success',
+              message: 'Operation completed!',
+              type: 'success',
+            })
+          }
+        >
+          Success Alert
+        </Button>
+      </Buttons>
+    </Block>
+  );
 }
 ```
 
-### Async/Await Usage
+### Programmatic Confirm
 
-```tsx
-async function handleDelete() {
-  const confirmed = await dialog.confirm({
-    title: 'Delete Item?',
-    message: 'This action cannot be undone.',
-    type: 'danger',
-    confirmText: 'Delete',
-  });
+```tsx live
+function example() {
+  const [result, setResult] = useState('');
 
-  if (confirmed) {
-    await deleteItem();
-    await dialog.alert({
-      title: 'Deleted',
-      message: 'Item was deleted successfully.',
-      type: 'success',
-    });
-  }
+  return (
+    <Block>
+      <DialogContainer />
+      <Button
+        color="danger"
+        onClick={async () => {
+          const confirmed = await dialog.confirm({
+            title: 'Delete Item?',
+            message: 'This action cannot be undone.',
+            type: 'danger',
+            confirmText: 'Delete',
+          });
+          setResult(confirmed ? 'Item deleted!' : 'Cancelled.');
+        }}
+      >
+        Delete Item
+      </Button>
+      {result && <Paragraph mt="3">{result}</Paragraph>}
+    </Block>
+  );
+}
+```
+
+### Chained Dialogs
+
+```tsx live
+function example() {
+  return (
+    <Block>
+      <DialogContainer />
+      <Button
+        color="warning"
+        onClick={async () => {
+          const confirmed = await dialog.confirm({
+            title: 'Delete Item?',
+            message: 'This action cannot be undone.',
+            type: 'danger',
+            confirmText: 'Delete',
+          });
+          if (confirmed) {
+            await dialog.alert({
+              title: 'Deleted',
+              message: 'Item was deleted successfully.',
+              type: 'success',
+            });
+          }
+        }}
+      >
+        Delete with Confirmation
+      </Button>
+    </Block>
+  );
 }
 ```
 

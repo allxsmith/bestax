@@ -87,7 +87,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       ...props,
     });
 
-    const mainClass = usePrefixedClassNames('radio', {
+    const mainClass = usePrefixedClassNames('styled-radio', 'radio', {
       [`is-${color}`]: color && radioColors.includes(color),
       [`is-${size}`]: size && radioSizes.includes(size),
     });

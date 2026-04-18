@@ -82,9 +82,9 @@ function example() {
         modalCardTitle="Modal Card Title"
         modalCardFoot={
           <Buttons>
-            <Button color="primary" className="button is-success">Save</Button>
-            <Button color="warning" className="button">Cancel</Button>
-          </>
+            <Button color="success">Save</Button>
+            <Button>Cancel</Button>
+          </Buttons>
         }
       >
         Modal card body content goes here...
@@ -139,7 +139,7 @@ function example() {
       <Modal
         active={open}
         onClose={() => setOpen(false)}
-        modalCardFoot={<button className="button is-success">Save</button>}
+        modalCardFoot={<Button color="success">Save</Button>}
       >
         Modal body content...
       </Modal>
@@ -164,10 +164,10 @@ function example() {
         Show Modal
       </Button>
       <Modal active={open} onClose={() => setOpen(false)}>
-        <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-          <h3 className="title is-4">Custom Content</h3>
-          <p>Put any content here!</p>
-        </div>
+        <Box>
+          <Title size="4">Custom Content</Title>
+          <Paragraph>Put any content here!</Paragraph>
+        </Box>
       </Modal>
     </>
   );
@@ -250,10 +250,12 @@ function example() {
             readability.
           </Modal.Card.Body>
           <Modal.Card.Foot>
-            <Button color="success" onClick={closeModal}>
-              Save
-            </Button>
-            <Button onClick={closeModal}>Cancel</Button>
+            <Buttons>
+              <Button color="success" onClick={closeModal}>
+                Save
+              </Button>
+              <Button onClick={closeModal}>Cancel</Button>
+            </Buttons>
           </Modal.Card.Foot>
         </Modal.Card>
       </Modal>
@@ -279,10 +281,10 @@ function example() {
       <Modal isActive={open}>
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
-          <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-            <h3 className="title is-4">Custom Content</h3>
-            <p>Using compound components for full control!</p>
-          </div>
+          <Box>
+            <Title size="4">Custom Content</Title>
+            <Paragraph>Using compound components for full control!</Paragraph>
+          </Box>
         </Modal.Content>
         <Modal.Close variant="floating" onClick={closeModal} />
       </Modal>

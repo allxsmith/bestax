@@ -53,9 +53,9 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
 <Level>
   <Level.Left>
     <Level.Item>
-      <Title as="p" size="5" className="subtitle">
-        <strong>Favorite Posts</strong> posts
-      </Title>
+      <SubTitle as="p" size="5">
+        <Strong>Favorite Posts</Strong> posts
+      </SubTitle>
     </Level.Item>
     <Level.Item>
       <Field hasAddons>
@@ -70,16 +70,16 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
   </Level.Left>
   <Level.Right>
     <Level.Item as="p">
-      <strong>All</strong>
+      <Strong>All</Strong>
     </Level.Item>
     <Level.Item as="p">
-      <a>From Followers</a>
+      <Link>From Followers</Link>
     </Level.Item>
     <Level.Item as="p">
-      <a>From Verified Followers</a>
+      <Link>From Verified Followers</Link>
     </Level.Item>
     <Level.Item as="p">
-      <a>Replies</a>
+      <Link>Replies</Link>
     </Level.Item>
     <Level.Item as="p">
       <Button color="success" as="a">
@@ -99,28 +99,28 @@ This example demonstrates using the `Level` component to create a centered stati
 ```tsx live
 <Level>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Posts</p>
+    <Block>
+      <Paragraph className="heading">Posts</Paragraph>
       <Title as="p">1,234</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Following</p>
+    <Block>
+      <Paragraph className="heading">Following</Paragraph>
       <Title as="p">6789</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Followers</p>
+    <Block>
+      <Paragraph className="heading">Followers</Paragraph>
       <Title as="p">123K</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Likes</p>
+    <Block>
+      <Paragraph className="heading">Likes</Paragraph>
       <Title as="p">9876</Title>
-    </div>
+    </Block>
   </Level.Item>
 </Level>
 ```
@@ -134,10 +134,10 @@ This example shows how to create a centered navigation menu using the `Level` co
 ```tsx live
 <Level>
   <Level.Item as="p" hasTextCentered>
-    <a className="link is-info">Getting Started</a>
+    <Link textColor="info">Getting Started</Link>
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
-    <a className="link is-info">APIs</a>
+    <Link textColor="info">APIs</Link>
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
     <img
@@ -147,10 +147,10 @@ This example shows how to create a centered navigation menu using the `Level` co
     />
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
-    <a className="link is-info">Versions</a>
+    <Link textColor="info">Versions</Link>
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
-    <a className="link is-info">FAQ</a>
+    <Link textColor="info">FAQ</Link>
   </Level.Item>
 </Level>
 ```
@@ -164,28 +164,28 @@ This example demonstrates the `Level` component's mobile layout. When the `isMob
 ```tsx live
 <Level isMobile>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Posts</p>
+    <Block>
+      <Paragraph className="heading">Posts</Paragraph>
       <Title as="p">1,234</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Following</p>
+    <Block>
+      <Paragraph className="heading">Following</Paragraph>
       <Title as="p">4567</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Followers</p>
+    <Block>
+      <Paragraph className="heading">Followers</Paragraph>
       <Title as="p">123K</Title>
-    </div>
+    </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
-    <div>
-      <p className="heading">Likes</p>
+    <Block>
+      <Paragraph className="heading">Likes</Paragraph>
       <Title as="p">9876</Title>
-    </div>
+    </Block>
   </Level.Item>
 </Level>
 ```

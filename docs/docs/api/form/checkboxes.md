@@ -52,6 +52,74 @@ This example demonstrates the `Checkboxes` component wrapping multiple `Checkbox
 
 ---
 
+### Context-Aware Rendering
+
+The `Checkboxes` component is context-aware: it detects whether it is already inside a `Field` or `Control` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in Field+Control), inside a `Field` (it skips its own Field), or inside both `Field` and `Control` (it renders only the raw checkbox group).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field and Control wrappers.
+
+```tsx live
+<Checkboxes label="Chores">
+  <Checkbox> Make the bed </Checkbox>
+  <Checkbox> Brush teeth </Checkbox>
+  <Checkbox> Do homework </Checkbox>
+</Checkboxes>
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Chores">
+      <Field.Body>
+        <Field>
+          <Checkboxes>
+            <Checkbox> Make the bed </Checkbox>
+            <Checkbox> Brush teeth </Checkbox>
+            <Checkbox> Do homework </Checkbox>
+          </Checkboxes>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual control, wrap in both Field and Control. The component detects both and renders only the raw checkbox group.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Chores">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Checkboxes>
+              <Checkbox> Make the bed </Checkbox>
+              <Checkbox> Brush teeth </Checkbox>
+              <Checkbox> Do homework </Checkbox>
+            </Checkboxes>
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
 ## Accessibility
 
 - The group is rendered as a `<div class="checkboxes">` containing labeled checkboxes.

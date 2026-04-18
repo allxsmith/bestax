@@ -114,13 +114,23 @@ export class ProjectCreator {
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
 
-      // Replace the default Bulma import with the selected flavor
-      const bulmaImportRegex =
-        /import\s+['"]bulma\/css\/bulma\.min\.css['"]\s*;?/;
-      if (bulmaImportRegex.test(content)) {
-        content = content.replace(bulmaImportRegex, flavor.importStatement);
+      // Replace the default bestax CSS import with the selected flavor
+      const bestaxImportRegex =
+        /\/\/.*\n\s*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
+      const bestaxImportSimpleRegex =
+        /import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
+      if (bestaxImportRegex.test(content)) {
+        content = content.replace(
+          bestaxImportRegex,
+          '// Import CSS\n' + flavor.importStatement
+        );
+      } else if (bestaxImportSimpleRegex.test(content)) {
+        content = content.replace(
+          bestaxImportSimpleRegex,
+          flavor.importStatement
+        );
       } else {
-        // If no Bulma import found, add it after React import
+        // If no bestax import found, add it after React import
         const reactImportMatch = content.match(
           /import\s+.*\s+from\s+['"]react['"]/
         );
@@ -233,16 +243,17 @@ export class ProjectCreator {
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
-            // Add the icon library import before the Bulma CSS import
-            const bulmaImportMatch = content.match(
-              /import\s+['"]bulma\/css\/.*?['"]/
+            // Add the icon library import after the CSS imports
+            const cssImportMatch = content.match(
+              /import\s+['"](?:@allxsmith\/bestax-bulma\/(?:bestax|extras)\.css|bulma\/css\/.*?)['"]\s*;?/
             );
-            if (bulmaImportMatch) {
-              const insertPosition = bulmaImportMatch.index!;
+            if (cssImportMatch) {
+              const insertPosition =
+                cssImportMatch.index! + cssImportMatch[0].length;
               content =
                 content.slice(0, insertPosition) +
-                library.importStatement +
                 '\n' +
+                library.importStatement +
                 content.slice(insertPosition);
               await fs.writeFile(mainFilePath, content);
             }

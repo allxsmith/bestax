@@ -1,111 +1,129 @@
 import React, { forwardRef } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { usePrefixedClassNames } from '../helpers/classNames';
+import { Field, FieldProps } from './Field';
+import { Control, ControlBaseProps } from './Control';
+import { TextAreaBase, TextAreaBaseProps } from './TextAreaBase';
+import { useInsideField, useInsideControl } from './FormContext';
 
 /**
  * Props for the TextArea component.
  *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the textarea.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the textarea.
- * @property {boolean} [isRounded] - Renders the textarea with rounded corners.
- * @property {boolean} [isStatic] - Renders the textarea as static text.
- * @property {boolean} [isHovered] - Applies the hovered state.
- * @property {boolean} [isFocused] - Applies the focused state.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
- * @property {boolean} [hasFixedSize] - Applies Bulma's has-fixed-size modifier.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the textarea is disabled.
- * @property {boolean} [readOnly] - Whether the textarea is read-only.
- * @property {number} [rows] - Number of visible text lines.
+ * Composes Field, Control, and TextAreaBase into a single convenience component.
+ * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
+ * Control-level (loading) props.
+ *
+ * @property {React.ReactNode} [label] - Field label.
+ * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
+ * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
+ * @property {boolean} [horizontal] - Horizontal field layout.
+ * @property {boolean} [isLoading] - Show loading indicator on the control.
+ * @property {'small'|'medium'|'large'} [controlSize] - Control size.
+ * @property {React.ReactNode} [message] - Help/validation message below the textarea.
+ * @property {string} [messageColor] - Bulma color for the message.
+ * @property {string} [fieldClassName] - Additional CSS classes for the Field.
+ * @property {string} [controlClassName] - Additional CSS classes for the Control.
  */
-export interface TextAreaProps
-  extends
-    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
-    Omit<BulmaClassesProps, 'color'> {
-  color?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger'
-    | 'black'
-    | 'dark'
-    | 'light'
-    | 'white';
-  size?: 'small' | 'medium' | 'large';
-  isRounded?: boolean;
-  isStatic?: boolean;
-  isHovered?: boolean;
-  isFocused?: boolean;
+export interface TextAreaProps extends TextAreaBaseProps {
+  label?: React.ReactNode;
+  labelSize?: FieldProps['labelSize'];
+  labelProps?: FieldProps['labelProps'];
+  horizontal?: boolean;
   isLoading?: boolean;
-  isActive?: boolean;
-  hasFixedSize?: boolean;
-  className?: string;
-  disabled?: boolean;
-  readOnly?: boolean;
-  rows?: number;
+  controlSize?: ControlBaseProps['size'];
+  message?: React.ReactNode;
+  messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  fieldClassName?: string;
+  controlClassName?: string;
 }
 
 /**
- * Bulma TextArea component with full Bulma helper class support.
+ * TextArea is a convenience component that composes Field, Control, and TextAreaBase.
+ *
+ * Use this for typical form fields. For complex layouts (grouped fields,
+ * addons, etc.), compose Field, Control, and TextAreaBase directly.
  *
  * @function
- * @param {TextAreaProps} props - Props for the TextArea component.
- * @returns {JSX.Element} The rendered textarea element.
- * @see {@link https://bulma.io/documentation/form/textarea/ | Bulma Textarea documentation}
+ * @param {TextAreaProps} props - Props for TextArea.
+ * @returns {JSX.Element} The composed field element.
+ *
+ * @example
+ * <TextArea label="Bio" placeholder="Tell us about yourself" rows={4} />
+ *
+ * @example
+ * <TextArea
+ *   label="Comments"
+ *   message="Max 500 characters"
+ *   messageColor="info"
+ * />
  */
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   (
     {
-      color,
-      size,
-      isRounded,
-      isStatic,
-      isHovered,
-      isFocused,
-      isLoading,
-      isActive,
-      hasFixedSize,
-      className,
-      disabled,
-      readOnly,
-      rows,
-      ...props
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      // Control props
+      isLoading: controlIsLoading,
+      controlSize,
+      // Message props
+      message,
+      messageColor,
+      // Container class overrides
+      fieldClassName,
+      controlClassName,
+      // Everything else goes to TextAreaBase
+      ...textAreaProps
     },
     ref
   ) => {
-    const { bulmaHelperClasses, rest } = useBulmaClasses({
-      color,
-      ...props,
+    const insideField = useInsideField();
+    const insideControl = useInsideControl();
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
     });
 
-    const mainClass = usePrefixedClassNames('textarea', {
-      [`is-${color}`]: !!color,
-      [`is-${size}`]: !!size,
-      'is-rounded': isRounded,
-      'is-static': isStatic,
-      'is-hovered': isHovered,
-      'is-focused': isFocused,
-      'is-loading': isLoading,
-      'is-active': isActive,
-      'has-fixed-size': hasFixedSize,
-    });
-    const textareaClass = classNames(mainClass, bulmaHelperClasses, className);
+    let content = <TextAreaBase ref={ref} {...textAreaProps} />;
+
+    if (!insideControl) {
+      content = (
+        <Control
+          isLoading={controlIsLoading}
+          size={controlSize}
+          className={controlClassName}
+        >
+          {content}
+        </Control>
+      );
+    }
+
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {content}
+          {messageEl}
+        </Field>
+      );
+    }
 
     return (
-      <textarea
-        ref={ref}
-        className={textareaClass}
-        disabled={disabled}
-        readOnly={readOnly}
-        rows={rows}
-        {...rest}
-      />
+      <>
+        {content}
+        {messageEl}
+      </>
     );
   }
 );
+
 TextArea.displayName = 'TextArea';
 
 export default TextArea;

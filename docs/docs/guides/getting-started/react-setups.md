@@ -46,7 +46,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your main.jsx file:**
@@ -56,8 +56,8 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    import { createRoot } from 'react-dom/client';
    import App from './App.jsx';
 
-   // Import Bulma CSS
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
    import './index.css';
@@ -164,7 +164,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    npm install -D @types/react @types/react-dom
    ```
 
@@ -175,8 +175,8 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    import { createRoot } from 'react-dom/client';
    import App from './App.tsx';
 
-   // Import Bulma CSS
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
    import './index.css';
@@ -292,7 +292,7 @@ Next.js is a popular React framework that provides server-side rendering, static
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your root layout:**
@@ -417,7 +417,7 @@ Next.js is a popular React framework that provides server-side rendering, static
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your root layout:**
@@ -539,7 +539,7 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your index.js:**
@@ -653,7 +653,7 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your index.tsx:**
@@ -771,7 +771,7 @@ cd my-bulma-cra-ts-app
 2. **Install bestax-bulma and dependencies:**
 
    ```bash
-   npm install @allxsmith/bestax-bulma bulma @fortawesome/fontawesome-free
+   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
 
 3. **Update your index.tsx:**

@@ -20,6 +20,7 @@ import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css
 // Note: ionicons now uses web components, no raw CSS needed
 import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/material-icons.css';
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
+import rawExtrasStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/extras.css';
 import BrowserWindow from './BrowserWindow';
 
 // Enhanced preprocessing function for better CSS variable handling
@@ -86,6 +87,8 @@ const materialSymbolsStyles = rawMaterialSymbolsStyles.replace(
   /:root/g,
   ':host'
 );
+
+const extrasStyles = rawExtrasStyles.replace(/:root/g, ':host');
 
 // Add specific CSS for ionicons web components
 const ioniconStyles = `
@@ -383,6 +386,7 @@ export default function CodeBlockEnhancer(props) {
           <style>{mdiStyles}</style>
           <style>{ioniconStyles}</style>
           <style>{materialSymbolsStyles}</style>
+          <style>{extrasStyles}</style>
           <style>{colorModeStyles}</style>
           <style id="theme-vars"></style>
           <div data-theme={colorMode}>

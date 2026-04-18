@@ -3,6 +3,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Modal } from './Modal';
 
+// Ref-counted body scroll lock for chained/overlapping dialogs
+let _scrollLockCount = 0;
+let _originalOverflow = '';
+
+/** Valid dialog type/color values. */
 export type DialogType = 'default' | 'success' | 'danger' | 'warning' | 'info';
 
 /**
@@ -140,13 +145,19 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     }, [isOpen, focusCancel, showCancel]);
 
-    // Prevent body scroll
+    // Prevent body scroll (ref-counted so chained dialogs work correctly)
     useEffect(() => {
       if (isOpen) {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
+        _scrollLockCount++;
+        if (_scrollLockCount === 1) {
+          _originalOverflow = document.body.style.overflow;
+          document.body.style.overflow = 'hidden';
+        }
         return () => {
-          document.body.style.overflow = originalOverflow;
+          _scrollLockCount--;
+          if (_scrollLockCount === 0) {
+            document.body.style.overflow = _originalOverflow;
+          }
         };
       }
       return undefined;
@@ -306,6 +317,16 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
 Dialog.displayName = 'Dialog';
 
 // Dialog Manager for programmatic dialogs
+
+/**
+ * Options for showing a programmatic alert dialog.
+ *
+ * @property {string} [title] - Dialog title.
+ * @property {string | React.ReactNode} message - Dialog message/content.
+ * @property {DialogType} [type] - Dialog type/color.
+ * @property {string} [confirmText] - Text for the confirm button.
+ * @property {React.ReactNode} [icon] - Custom icon to display.
+ */
 export interface AlertOptions {
   title?: string;
   message: string | React.ReactNode;
@@ -314,11 +335,23 @@ export interface AlertOptions {
   icon?: React.ReactNode;
 }
 
+/**
+ * Options for showing a programmatic confirm dialog.
+ *
+ * @property {string} [cancelText] - Text for the cancel button.
+ * @property {boolean} [focusCancel] - Focus cancel button instead of confirm.
+ */
 export interface ConfirmOptions extends AlertOptions {
   cancelText?: string;
   focusCancel?: boolean;
 }
 
+/**
+ * Options for showing a programmatic prompt dialog.
+ *
+ * @property {string} [placeholder] - Input placeholder text.
+ * @property {string} [defaultValue] - Default input value.
+ */
 export interface PromptOptions extends ConfirmOptions {
   placeholder?: string;
   defaultValue?: string;
@@ -400,6 +433,9 @@ export const dialog = {
 /**
  * DialogContainer component to render programmatic dialogs.
  * Place this once at the root of your app.
+ *
+ * @function
+ * @returns {JSX.Element | null} The rendered dialog, or null if none is active.
  */
 export const DialogContainer: React.FC = () => {
   const [current, setCurrent] = React.useState<{

@@ -19,9 +19,6 @@ The Taginput component requires importing the extras CSS. See the [Extras Setup 
 
 ```tsx
 import { Taginput } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -54,6 +51,20 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `onRemove`        | `(tag: TaginputTag, index: number) => void`                                                              | —                | Callback when tag is removed.                    |
 | `onTyping`        | `(value: string) => void`                                                                                | —                | Callback when typing in input.                   |
 | `tagTemplate`     | `(tag: TaginputTag) => React.ReactNode`                                                                  | —                | Custom render for tags.                          |
+| `rounded`         | `boolean`                                                                                                | `false`          | Applies rounded corners to the tags.             |
+| `ellipsis`        | `boolean`                                                                                                | `false`          | Truncates long tag text with ellipsis.           |
+| `hasCounter`      | `boolean`                                                                                                | `true`           | Shows a counter of the number of tags.           |
+| `onPasteSeparators` | `string[]`                                                                                             | `[',']`          | Characters that split pasted text into tags.     |
+| `beforeAdding`    | `(tag: string) => boolean`                                                                               | —                | Validation function called before adding a tag.  |
+| `createTag`       | `(input: string) => TaginputTag`                                                                         | —                | Custom function for creating tag objects from input. |
+| `keepFirst`       | `boolean`                                                                                                | `false`          | Keeps the first autocomplete suggestion highlighted. |
+| `keepOpen`        | `boolean`                                                                                                | `true`           | Keeps the autocomplete dropdown open after selection. |
+| `loading`         | `boolean`                                                                                                | `false`          | Shows a loading indicator.                       |
+| `ariaCloseLabel`  | `string`                                                                                                 | —                | ARIA label for tag close buttons.                |
+| `icon`            | `string`                                                                                                 | —                | Icon name for the input.                         |
+| `iconLibrary`     | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`                               | —                | Icon library to use.                             |
+| `iconVariant`     | `string`                                                                                                 | —                | Icon style variant.                              |
+| `iconFeatures`    | `string` \| `string[]`                                                                                   | —                | Additional icon modifiers.                       |
 | `className`       | `string`                                                                                                 | —                | Additional CSS classes.                          |
 | `ref`             | `React.Ref<HTMLElement>`                                                                                 | —                | Ref forwarded to the input element.              |
 | ...               | All standard HTML and Bulma helper props                                                                 |                  | (See [Helper Props](../helpers/usebulmaclasses)) |
@@ -80,10 +91,10 @@ function example() {
   const [tags, setTags] = useState(['React', 'TypeScript']);
 
   return (
-    <div>
+    <Block>
       <Taginput value={tags} onChange={setTags} placeholder="Add a tag..." />
-      <p className="mt-2 has-text-grey">Tags: {tags.join(', ')}</p>
-    </div>
+      <Paragraph mt="2" textColor="grey">Tags: {tags.join(', ')}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -138,7 +149,7 @@ function example() {
   ];
 
   return (
-    <div>
+    <Block>
       <Taginput
         value={tags}
         onChange={setTags}
@@ -147,10 +158,10 @@ function example() {
         placeholder="Select categories..."
         openOnFocus
       />
-      <p className="mt-2 has-text-grey is-size-7">
+      <Paragraph mt="2" textColor="grey" textSize="7">
         Only predefined categories can be selected
-      </p>
-    </div>
+      </Paragraph>
+    </Block>
   );
 }
 ```
@@ -162,7 +173,7 @@ function example() {
 Tags with different color variants.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Taginput
     defaultValue={['Primary']}
     tagColor="primary"
@@ -193,7 +204,7 @@ Tags with different color variants.
     tagColor="dark"
     placeholder="Dark tags..."
   />
-</div>
+</Block>
 ```
 
 ---
@@ -203,7 +214,7 @@ Tags with different color variants.
 Tag inputs in different sizes.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Taginput
     defaultValue={['Small']}
     size="small"
@@ -227,7 +238,7 @@ Tag inputs in different sizes.
     tagColor="primary"
     placeholder="Large..."
   />
-</div>
+</Block>
 ```
 
 ---
@@ -241,7 +252,7 @@ function example() {
   const [tags, setTags] = useState(['One', 'Two']);
 
   return (
-    <div>
+    <Block>
       <Taginput
         value={tags}
         onChange={setTags}
@@ -249,10 +260,10 @@ function example() {
         tagColor="info"
         placeholder="Max 3 tags..."
       />
-      <p className="mt-2 has-text-grey is-size-7">
+      <Paragraph mt="2" textColor="grey" textSize="7">
         {3 - tags.length} tags remaining
-      </p>
-    </div>
+      </Paragraph>
+    </Block>
   );
 }
 ```
@@ -290,7 +301,7 @@ function example() {
   const [tags, setTags] = useState([]);
 
   return (
-    <div>
+    <Block>
       <Taginput
         value={tags}
         onChange={setTags}
@@ -298,10 +309,10 @@ function example() {
         tagColor="success"
         placeholder="Press Enter, Tab, or Space..."
       />
-      <p className="mt-2 has-text-grey is-size-7">
+      <Paragraph mt="2" textColor="grey" textSize="7">
         Space also creates a new tag
-      </p>
-    </div>
+      </Paragraph>
+    </Block>
   );
 }
 ```
@@ -313,16 +324,16 @@ function example() {
 Display modes for tags.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-  <div>
-    <p className="mb-1">Read-only:</p>
+<Block display="flex" flexDirection="column" gap="4">
+  <Block>
+    <Paragraph mb="1">Read-only:</Paragraph>
     <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor="info" />
-  </div>
-  <div>
-    <p className="mb-1">Disabled:</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Disabled:</Paragraph>
     <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor="info" />
-  </div>
-</div>
+  </Block>
+</Block>
 ```
 
 ---
@@ -338,6 +349,66 @@ Tags without the delete button.
   tagColor="primary"
   placeholder="Cannot remove tags..."
 />
+```
+
+---
+
+### Context-Aware Rendering
+
+The `Taginput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+:::note
+Taginput does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+:::
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper.
+
+```tsx live
+<Taginput label="Tags" defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Tags">
+      <Field.Body>
+        <Field>
+          <Taginput defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both Field and Control. Taginput does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Tags">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-tags">
+            <Taginput defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
 ```
 
 ---

@@ -1,329 +1,283 @@
-import { Meta, StoryObj } from '@storybook/react';
-import Select from './Select';
-import Field from './Field';
-import Control from './Control';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
+import { Select } from './Select';
+import { Field } from './Field';
+import { Control } from './Control';
 
 const meta: Meta<typeof Select> = {
   title: 'Form/Select',
   component: Select,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component:
+          'A convenience component that composes Field, Control, and Select. Use for typical form fields without needing to nest three components.',
+      },
+    },
+  },
   tags: ['autodocs'],
+  argTypes: {
+    label: {
+      control: 'text',
+      description: 'Field label text',
+    },
+    color: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
+      description: 'Bulma color for the select',
+    },
+    size: {
+      control: 'select',
+      options: [undefined, 'small', 'medium', 'large'],
+      description: 'Size of the select',
+    },
+    messageColor: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
+      description: 'Color for the help message',
+    },
+    disabled: {
+      control: 'boolean',
+      description: 'Whether the select is disabled',
+    },
+    isLoading: {
+      control: 'boolean',
+      description: 'Show loading indicator',
+    },
+    horizontal: {
+      control: 'boolean',
+      description: 'Horizontal field layout',
+    },
+  },
 };
-export default meta;
 
+export default meta;
 type Story = StoryObj<typeof Select>;
 
-const defaultOptions = [
-  <option key="default" value="">
-    Please select
-  </option>,
-  <option key="1" value="option1">
-    Option 1
-  </option>,
-  <option key="2" value="option2">
-    Option 2
-  </option>,
-];
-
-const markTwainCharacters = [
-  <option key="huck" value="huck">
-    Huckleberry Finn
-  </option>,
-  <option key="tom" value="tom">
-    Tom Sawyer
-  </option>,
-  <option key="becky" value="becky">
-    Becky Thatcher
-  </option>,
-  <option key="jim" value="jim">
-    Jim
-  </option>,
-  <option key="pap" value="pap">
-    Pap Finn
-  </option>,
-  <option key="duke" value="duke">
-    The Duke
-  </option>,
-  <option key="king" value="king">
-    The King
-  </option>,
-  <option key="widow" value="widow">
-    Widow Douglas
-  </option>,
-  <option key="judge" value="judge">
-    Judge Thatcher
-  </option>,
-  <option key="sid" value="sid">
-    Sid Sawyer
-  </option>,
-];
-
-// Default
+/**
+ * Basic select field with a label.
+ */
 export const Default: Story = {
-  render: () => (
-    <Field label="Default">
-      <Control>
-        <Select>{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
+  args: {
+    label: 'Country',
+    children: (
+      <>
+        <option value="">Select a country</option>
+        <option value="us">United States</option>
+        <option value="ca">Canada</option>
+        <option value="uk">United Kingdom</option>
+        <option value="de">Germany</option>
+        <option value="fr">France</option>
+      </>
+    ),
+  },
 };
 
-// Multi Select
-export const MultiSelect: Story = {
+/**
+ * Select field with icon.
+ */
+export const WithIcon: Story = {
+  args: {
+    label: 'Country',
+    iconLeftName: 'globe',
+    children: (
+      <>
+        <option value="">Select a country</option>
+        <option value="us">United States</option>
+        <option value="ca">Canada</option>
+        <option value="uk">United Kingdom</option>
+      </>
+    ),
+  },
+};
+
+/**
+ * Select field with validation message.
+ */
+export const WithMessage: Story = {
+  args: {
+    label: 'Role',
+    message: 'Please select your role',
+    messageColor: 'info',
+    children: (
+      <>
+        <option value="">Choose a role</option>
+        <option value="admin">Admin</option>
+        <option value="editor">Editor</option>
+        <option value="viewer">Viewer</option>
+      </>
+    ),
+  },
+};
+
+/**
+ * Select field showing an error state.
+ */
+export const ErrorState: Story = {
+  args: {
+    label: 'Category',
+    color: 'danger',
+    message: 'A category is required',
+    messageColor: 'danger',
+    children: (
+      <>
+        <option value="">Select a category</option>
+        <option value="tech">Technology</option>
+        <option value="science">Science</option>
+      </>
+    ),
+  },
+};
+
+/**
+ * Different select sizes.
+ */
+export const Sizes: Story = {
   render: () => (
-    <Field label="Multi Select">
-      <Control>
-        <Select multiple multipleSize={10}>
-          {markTwainCharacters}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {(['small', undefined, 'medium', 'large'] as const).map(size => (
+        <Select
+          key={size ?? 'normal'}
+          label={size ? size.charAt(0).toUpperCase() + size.slice(1) : 'Normal'}
+          size={size}
+        >
+          <option>Option A</option>
+          <option>Option B</option>
         </Select>
-      </Control>
-    </Field>
+      ))}
+    </div>
   ),
 };
 
-// Color primary
-export const ColorPrimary: Story = {
+/**
+ * Loading and disabled states.
+ */
+export const StatesExample: Story = {
   render: () => (
-    <Field label="Primary">
-      <Control>
-        <Select color="primary">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Select label="Loading" isLoading>
+        <option>Loading options...</option>
+      </Select>
+      <Select label="Disabled" disabled>
+        <option>Cannot change</option>
+      </Select>
+    </div>
+  ),
+};
+
+/**
+ * Horizontal field layout.
+ */
+export const Horizontal: Story = {
+  render: () => (
+    <div>
+      <Select horizontal label="Country" labelSize="normal">
+        <option>United States</option>
+        <option>Canada</option>
+      </Select>
+      <Select horizontal label="Language" labelSize="normal">
+        <option>English</option>
+        <option>French</option>
+      </Select>
+    </div>
+  ),
+};
+
+/**
+ * Controlled select field.
+ */
+export const Controlled: Story = {
+  render: function ControlledSelect() {
+    const [value, setValue] = useState('');
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <Select
+          label="Fruit"
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          iconLeftName="leaf"
+        >
+          <option value="">Pick a fruit</option>
+          <option value="apple">Apple</option>
+          <option value="banana">Banana</option>
+          <option value="cherry">Cherry</option>
         </Select>
-      </Control>
-    </Field>
+        <p>
+          Selected: <strong>{value || '(none)'}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Select renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => (
+    <Select label="Country">
+      <option>US</option>
+      <option>Canada</option>
+    </Select>
   ),
 };
 
-// Color link
-export const ColorLink: Story = {
+/**
+ * Inside Field — the outer Field turns off Select's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
   render: () => (
-    <Field label="Link">
-      <Control>
-        <Select color="link">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
+    <Field horizontal label="Country">
+      <Field.Body>
+        <Select>
+          <option>US</option>
+          <option>Canada</option>
         </Select>
-      </Control>
+      </Field.Body>
     </Field>
   ),
 };
 
-// Color info
-export const ColorInfo: Story = {
+/**
+ * Full manual composition — Field+Control provided externally,
+ * Select renders just its raw element.
+ */
+export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field label="Info">
-      <Control>
-        <Select color="info">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
-        </Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// Color success
-export const ColorSuccess: Story = {
-  render: () => (
-    <Field label="Success">
-      <Control>
-        <Select color="success">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
-        </Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// Color warning
-export const ColorWarning: Story = {
-  render: () => (
-    <Field label="Warning">
-      <Control>
-        <Select color="warning">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
-        </Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// Color danger
-export const ColorDanger: Story = {
-  render: () => (
-    <Field label="Danger">
-      <Control>
-        <Select color="danger">
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
-        </Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// Styles Rounded
-export const StylesRounded: Story = {
-  render: () => (
-    <Field label="Rounded">
-      <Control>
-        <Select isRounded>{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// Sizes
-export const SizeSmall: Story = {
-  render: () => (
-    <Field label="Small">
-      <Control>
-        <Select size="small">{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeNormal: Story = {
-  render: () => (
-    <Field label="Normal">
-      <Control>
-        <Select>{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeMedium: Story = {
-  render: () => (
-    <Field label="Medium">
-      <Control>
-        <Select size="medium">{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-export const SizeLarge: Story = {
-  render: () => (
-    <Field label="Large">
-      <Control>
-        <Select size="large">{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// State Normal
-export const StateNormal: Story = {
-  render: () => (
-    <Field label="Normal">
-      <Control>
-        <Select>{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// State Hover
-export const StateHover: Story = {
-  render: () => (
-    <Field label="Hover">
-      <Control>
-        <Select className="is-hovered">{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// State Focus
-export const StateFocus: Story = {
-  render: () => (
-    <Field label="Focus">
-      <Control>
-        <Select className="is-focused">{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// State Loading
-export const StateLoading: Story = {
-  render: () => (
-    <Field label="Loading">
-      <Control isLoading>
-        <Select isLoading>{defaultOptions}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// With Icons
-export const WithIcons: Story = {
-  render: () => (
-    <Field label="With Icons">
-      <Control hasIconsLeft iconLeft={{ name: 'person' }}>
-        <Select>{markTwainCharacters}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// With Icons Size Small
-export const WithIconsSizeSmall: Story = {
-  render: () => (
-    <Field label="With Icons Small">
-      <Control
-        hasIconsLeft
-        iconLeft={{ name: 'person', size: 'small' }}
-        size="small"
-      >
-        <Select size="small">{markTwainCharacters}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// With Icons Size Normal
-export const WithIconsSizeNormal: Story = {
-  render: () => (
-    <Field label="With Icons Normal">
-      <Control hasIconsLeft iconLeft={{ name: 'person' }}>
-        <Select>{markTwainCharacters}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// With Icons Size Medium
-export const WithIconsSizeMedium: Story = {
-  render: () => (
-    <Field label="With Icons Medium">
-      <Control
-        hasIconsLeft
-        iconLeft={{ name: 'person', size: 'medium' }}
-        size="medium"
-      >
-        <Select size="medium">{markTwainCharacters}</Select>
-      </Control>
-    </Field>
-  ),
-};
-
-// With Icons Size Large
-export const WithIconsSizeLarge: Story = {
-  render: () => (
-    <Field label="With Icons Large">
-      <Control
-        hasIconsLeft
-        iconLeft={{ name: 'person', size: 'large' }}
-        size="large"
-      >
-        <Select size="large">{markTwainCharacters}</Select>
-      </Control>
+    <Field horizontal label="Country">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Select>
+              <option>US</option>
+              <option>Canada</option>
+            </Select>
+          </Control>
+        </Field>
+      </Field.Body>
     </Field>
   ),
 };

@@ -135,7 +135,7 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   overflow: hidden;
   width: 100%;
 
-  // Container
+  // Container — also serves as positioning context for arrows
   .#{iv.$class-prefix}carousel-container {
     position: relative;
     overflow: hidden;

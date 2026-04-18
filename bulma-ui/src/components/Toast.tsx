@@ -4,6 +4,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Snackbar } from './Snackbar';
 
+/** Color/style type presets for toast messages. */
 export type ToastType =
   | 'default'
   | 'success'
@@ -13,6 +14,7 @@ export type ToastType =
   | 'primary'
   | 'link';
 
+/** Screen positions where toasts can be displayed. */
 export type ToastPosition =
   | 'top-right'
   | 'top-left'
@@ -58,6 +60,8 @@ export interface ToastProps
   cancelable?: boolean;
   /** Custom mount target (CSS selector string or HTMLElement). */
   container?: string | HTMLElement;
+  /** Render without portal/container wrapper. Default false. */
+  inline?: boolean;
 }
 
 /**
@@ -93,6 +97,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       pauseOnHover = false,
       cancelable = true,
       container,
+      inline = false,
       className,
       ...props
     },
@@ -183,6 +188,10 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       </div>
     );
 
+    if (inline) {
+      return toastContent;
+    }
+
     if (typeof document !== 'undefined') {
       return createPortal(toastContent, resolveContainer());
     }
@@ -194,12 +203,25 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 Toast.displayName = 'Toast';
 
 // Toast Manager for programmatic toasts
+
+/**
+ * Options for showing a programmatic toast. Extends ToastProps with a required message.
+ *
+ * @property {string} message - The message to display.
+ * @property {boolean} [queue] - When true, toasts enter a FIFO queue and display one at a time. Default: false.
+ */
 export interface ToastOptions extends Omit<ToastProps, 'message'> {
   message: string;
   /** When true, toasts enter a FIFO queue and display one at a time. Default false. */
   queue?: boolean;
 }
 
+/**
+ * Internal representation of a toast instance.
+ *
+ * @property {string} id - Unique identifier for this toast.
+ * @property {ToastOptions} props - Configuration options for the toast.
+ */
 export interface ToastInstance {
   id: string;
   props: ToastOptions;
@@ -227,7 +249,19 @@ const processQueuedToast = () => {
   notifyListeners();
 };
 
+/**
+ * Programmatic toast API for showing, closing, and managing toasts.
+ *
+ * @example
+ * toast.success('Saved!');
+ * toast.show({ message: 'Hello', type: 'info', duration: 3000 });
+ */
 export const toast = {
+  /**
+   * Show a toast with the given options.
+   * @param {ToastOptions} options - Toast configuration.
+   * @returns {string} The unique ID of the created toast.
+   */
   show: (options: ToastOptions): string => {
     const id = `toast-${++toastId}`;
     const instance = { id, props: options };
@@ -243,22 +277,50 @@ export const toast = {
     return id;
   },
 
+  /**
+   * Show a success toast.
+   * @param {string} message - The message to display.
+   * @param {Partial<ToastOptions>} [options] - Additional options.
+   * @returns {string} The toast ID.
+   */
   success: (message: string, options?: Partial<ToastOptions>): string => {
     return toast.show({ message, type: 'success', ...options });
   },
 
+  /**
+   * Show a danger toast.
+   * @param {string} message - The message to display.
+   * @param {Partial<ToastOptions>} [options] - Additional options.
+   * @returns {string} The toast ID.
+   */
   danger: (message: string, options?: Partial<ToastOptions>): string => {
     return toast.show({ message, type: 'danger', ...options });
   },
 
+  /**
+   * Show a warning toast.
+   * @param {string} message - The message to display.
+   * @param {Partial<ToastOptions>} [options] - Additional options.
+   * @returns {string} The toast ID.
+   */
   warning: (message: string, options?: Partial<ToastOptions>): string => {
     return toast.show({ message, type: 'warning', ...options });
   },
 
+  /**
+   * Show an info toast.
+   * @param {string} message - The message to display.
+   * @param {Partial<ToastOptions>} [options] - Additional options.
+   * @returns {string} The toast ID.
+   */
   info: (message: string, options?: Partial<ToastOptions>): string => {
     return toast.show({ message, type: 'info', ...options });
   },
 
+  /**
+   * Close a specific toast by ID.
+   * @param {string} id - The toast ID to close.
+   */
   close: (id: string): void => {
     // Check if it's the current queued toast
     if (currentQueuedToast && currentQueuedToast.id === id) {
@@ -273,6 +335,7 @@ export const toast = {
     notifyListeners();
   },
 
+  /** Close all toasts and clear the queue. */
   closeAll: (): void => {
     toasts = [];
     queuedToasts = [];
@@ -280,12 +343,25 @@ export const toast = {
     notifyListeners();
   },
 
+  /**
+   * Subscribe to toast state changes.
+   * @param {(toasts: ToastInstance[]) => void} listener - Callback invoked on changes.
+   * @returns {() => void} Unsubscribe function.
+   */
   subscribe: (listener: (toasts: ToastInstance[]) => void): (() => void) => {
     toastListeners.add(listener);
     return () => toastListeners.delete(listener);
   },
 };
 
+/**
+ * Container component for rendering programmatic toasts.
+ * Place once at your app root to enable the toast API.
+ *
+ * @function
+ * @param {{ position?: ToastPosition }} props - Container props.
+ * @returns {JSX.Element | null} The rendered toast container, or null if empty.
+ */
 export const ToastContainer: React.FC<{ position?: ToastPosition }> = ({
   position = 'top-right',
 }) => {

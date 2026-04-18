@@ -89,14 +89,18 @@ For external links, set `target="_blank"` and use `rel="noopener noreferrer"` fo
 </Link>
 ```
 
-### Link with Background
+### Link That Looks Like a Button
 
-Add a background color and padding to create a button-like appearance.
+:::tip Use Button with `as="a"` for Button-Styled Links
+If you need a link that looks like a button, use the [`Button`](./button.md) component with `as="a"` and a valid `href`. This ensures proper semantics — the element is still a navigational link, but styled as a button.
+:::
+
+:::warning Don't Use Button-Styled Links for Actions
+A `<Button as="a">` should still navigate to a URL. If the element triggers an action (no `href`), use a regular [`Button`](./button.md) or [`LinkButton`](./linkbutton.md) instead. Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y), anchor elements must have a valid destination — not just an `onClick` handler.
+:::
 
 ```tsx live
-<Link href="#" bgColor="light" p="2">
-  Link with Background
-</Link>
+<Button as="a" href="#" color="primary">Button Link</Button>
 ```
 
 ### Large Text Link
@@ -124,7 +128,7 @@ Apply bold text weight using the `textWeight` prop.
 Display links in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Link href="#" textColor="primary">
     Primary Link
   </Link>
@@ -143,7 +147,7 @@ Display links in all Bulma theme colors.
   <Link href="#" textColor="danger">
     Danger Link
   </Link>
-</div>
+</Block>
 ```
 
 ### Inline Link
@@ -168,6 +172,10 @@ Links work seamlessly inline within text content.
 
 :::info
 For navigation menus, consider using the `isActive` prop to indicate the current page.
+:::
+
+:::warning Links Are for Navigation, Buttons Are for Actions
+Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y) best practices, links (`<a>`) should navigate to a URL — not trigger an action via `onClick` alone. If your element performs an action (opening a modal, submitting data, toggling state, etc.) without navigating, use a [`Button`](./button.md) or [`LinkButton`](./linkbutton.md) instead. A `<Link href="#" onClick={handleClick}>` is an anti-pattern that confuses screen readers and fails accessibility audits.
 :::
 
 ---

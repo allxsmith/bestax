@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Slider } from './Slider';
 import { Field } from './Field';
+import { Control } from './Control';
 
 const meta: Meta<typeof Slider> = {
   title: 'Form/Slider',
@@ -11,7 +12,7 @@ const meta: Meta<typeof Slider> = {
     docs: {
       description: {
         component:
-          'A range slider input for selecting a value from a range. Supports different sizes, colors, and optional value display.',
+          'A range slider input for selecting a value or range. Supports sizes, colors, tooltips, ticks/marks, range mode (dual thumb), vertical orientation, and non-linear scale.',
       },
     },
   },
@@ -61,7 +62,25 @@ const meta: Meta<typeof Slider> = {
     },
     showOutput: {
       control: 'boolean',
-      description: 'Show current value tooltip',
+      description: 'Show current value tooltip (maps to tooltip="auto")',
+    },
+    tooltip: {
+      control: 'select',
+      options: ['auto', 'always', 'hidden'],
+      description: 'Tooltip visibility mode',
+    },
+    orientation: {
+      control: 'select',
+      options: ['horizontal', 'vertical'],
+      description: 'Slider orientation',
+    },
+    ticks: {
+      control: 'boolean',
+      description: 'Show tick marks at each step',
+    },
+    range: {
+      control: 'boolean',
+      description: 'Enable range (dual thumb) mode',
     },
   },
 };
@@ -338,4 +357,453 @@ export const Controlled: Story = {
       </div>
     );
   },
+};
+
+// ============================================================
+// New stories for enhanced features
+// ============================================================
+
+/**
+ * Tooltip always visible, even without hover/focus.
+ */
+export const TooltipAlways: Story = {
+  render: function TooltipAlwaysSlider() {
+    const [value, setValue] = useState(50);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          tooltip="always"
+          showOutput
+          color="primary"
+        />
+        <p className="mt-4">
+          Value: <strong>{value}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Tooltip hidden — no tooltip even with showOutput.
+ */
+export const TooltipHidden: Story = {
+  render: function TooltipHiddenSlider() {
+    const [value, setValue] = useState(50);
+
+    return (
+      <div>
+        <Slider
+          value={value}
+          onChange={setValue}
+          tooltip="hidden"
+          color="info"
+        />
+        <p className="mt-4">
+          Value: <strong>{value}</strong> (tooltip hidden)
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Custom tooltip label using formatOutput with always-on tooltip.
+ */
+export const CustomTooltipLabel: Story = {
+  render: function CustomTooltipSlider() {
+    const [value, setValue] = useState(72);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          tooltip="always"
+          showOutput
+          formatOutput={v => `${v}°F`}
+          color="danger"
+        />
+        <p className="mt-4">
+          Temperature: <strong>{value}°F</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Rounded thumb (isCircle) with output tooltip.
+ */
+export const RoundedThumb: Story = {
+  render: function RoundedThumbSlider() {
+    const [value, setValue] = useState(40);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          isCircle
+          showOutput
+          color="success"
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Tick marks at every step.
+ */
+export const Ticks: Story = {
+  render: function TicksSlider() {
+    const [value, setValue] = useState(50);
+
+    return (
+      <div style={{ paddingTop: '2rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          min={0}
+          max={100}
+          step={10}
+          ticks
+          showOutput
+          color="primary"
+        />
+        <p className="mt-4">
+          Value: <strong>{value}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Custom tick marks with labels.
+ */
+export const TicksCustomLabels: Story = {
+  render: function TicksCustomLabelsSlider() {
+    const [value, setValue] = useState(50);
+
+    const marks = [
+      { value: 0, label: '0°C' },
+      { value: 25, label: '25°C' },
+      { value: 50, label: '50°C' },
+      { value: 75, label: '75°C' },
+      { value: 100, label: '100°C' },
+    ];
+
+    return (
+      <div style={{ paddingBottom: '1rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          marks={marks}
+          showOutput
+          formatOutput={v => `${v}°C`}
+          color="danger"
+        />
+        <p className="mt-5">
+          Temperature: <strong>{value}°C</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Discrete labeled selection with ticks (fan speed example).
+ */
+export const TicksFan: Story = {
+  render: function TicksFanSlider() {
+    const [value, setValue] = useState(2);
+
+    const marks = [
+      { value: 0, label: 'Off' },
+      { value: 1, label: 'Low' },
+      { value: 2, label: 'Med' },
+      { value: 3, label: 'High' },
+      { value: 4, label: 'Max' },
+    ];
+
+    return (
+      <div style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>
+        <label className="label">Fan Speed</label>
+        <Slider
+          value={value}
+          onChange={setValue}
+          min={0}
+          max={4}
+          step={1}
+          marks={marks}
+          tooltip="always"
+          showOutput
+          formatOutput={v => marks.find(m => m.value === v)?.label as string ?? `${v}`}
+          color="info"
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Range slider with dual thumbs.
+ */
+export const RangeDefault: Story = {
+  render: function RangeDefaultSlider() {
+    const [value, setValue] = useState<[number, number]>([20, 80]);
+
+    return (
+      <div>
+        <Slider
+          range
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
+        <p className="mt-4">
+          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Range slider with tooltip output.
+ */
+export const RangeWithOutput: Story = {
+  render: function RangeWithOutputSlider() {
+    const [value, setValue] = useState<[number, number]>([30, 70]);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <Slider
+          range
+          value={value}
+          onChange={setValue}
+          showOutput
+          color="success"
+        />
+        <p className="mt-4">
+          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Range slider with minimum distance between thumbs.
+ */
+export const RangeMinDistance: Story = {
+  render: function RangeMinDistanceSlider() {
+    const [value, setValue] = useState<[number, number]>([20, 60]);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <Slider
+          range
+          value={value}
+          onChange={setValue}
+          minDistance={10}
+          showOutput
+          color="warning"
+        />
+        <p className="mt-4">
+          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong> (min distance: 10)
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Practical price filter with range slider.
+ */
+export const RangePriceFilter: Story = {
+  render: function RangePriceFilterSlider() {
+    const [value, setValue] = useState<[number, number]>([100, 400]);
+
+    return (
+      <div style={{ maxWidth: '400px', paddingTop: '2.5rem' }}>
+        <label className="label">Price Filter</label>
+        <Slider
+          range
+          value={value}
+          onChange={setValue}
+          min={0}
+          max={500}
+          step={10}
+          showOutput
+          tooltip="always"
+          formatOutput={v => `$${v}`}
+          color="success"
+        />
+        <div className="is-flex is-justify-content-space-between mt-2">
+          <span>$0</span>
+          <span>$500</span>
+        </div>
+      </div>
+    );
+  },
+};
+
+/**
+ * Vertical slider.
+ */
+export const Vertical: Story = {
+  render: function VerticalSlider() {
+    const [value, setValue] = useState(50);
+
+    return (
+      <div style={{ height: '250px', display: 'flex', gap: '2rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          orientation="vertical"
+          color="primary"
+        />
+        <p>
+          Value: <strong>{value}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Vertical slider with always-visible output.
+ */
+export const VerticalWithOutput: Story = {
+  render: function VerticalWithOutputSlider() {
+    const [value, setValue] = useState(60);
+
+    return (
+      <div style={{ height: '250px', display: 'flex', gap: '3rem', paddingLeft: '1rem' }}>
+        <Slider
+          value={value}
+          onChange={setValue}
+          orientation="vertical"
+          tooltip="always"
+          showOutput
+          color="info"
+        />
+        <p>
+          Value: <strong>{value}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Non-linear (logarithmic) scale for display.
+ */
+export const NonLinearScale: Story = {
+  render: function NonLinearScaleSlider() {
+    const [value, setValue] = useState(5);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <label className="label">Exponential Scale</label>
+        <Slider
+          value={value}
+          onChange={setValue}
+          min={0}
+          max={10}
+          step={1}
+          scale={x => Math.round(2 ** x)}
+          tooltip="always"
+          showOutput
+          ticks
+          color="warning"
+        />
+        <p className="mt-4">
+          Raw value: <strong>{value}</strong>, Displayed: <strong>{Math.round(2 ** value)}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Accessibility demo with aria labels and getAriaValueText.
+ */
+export const Accessibility: Story = {
+  render: function AccessibilitySlider() {
+    const [value, setValue] = useState(50);
+
+    return (
+      <div style={{ paddingTop: '2.5rem' }}>
+        <label className="label" id="temp-label">
+          Room Temperature
+        </label>
+        <Slider
+          value={value}
+          onChange={setValue}
+          min={60}
+          max={85}
+          step={1}
+          tooltip="always"
+          showOutput
+          formatOutput={v => `${v}°F`}
+          getAriaValueText={v => `${v} degrees Fahrenheit`}
+          aria-labelledby="temp-label"
+          color="danger"
+        />
+        <p className="mt-4">
+          Temperature: <strong>{value}°F</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Slider renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => <Slider label="Volume" />,
+};
+
+/**
+ * Inside Field — the outer Field turns off Slider's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Volume">
+      <Field.Body>
+        <Slider />
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally,
+ * Slider renders just its raw element.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Volume">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Slider />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  ),
 };

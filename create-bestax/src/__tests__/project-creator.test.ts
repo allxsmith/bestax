@@ -224,14 +224,14 @@ describe('ProjectCreator', () => {
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
-        `import React from 'react';\nimport 'bulma/css/bulma.min.css';` as unknown
+        `import React from 'react';\n// Import Bestax CSS (Bulma + extras)\nimport '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
 
       await projectCreator.setupBulmaFlavor(targetPath, 'complete', 'vite');
 
       expect(fs.default.writeFile).toHaveBeenCalledWith(
         _mainFilePath,
-        expect.stringContaining("import 'bulma/css/bulma.min.css'")
+        expect.stringContaining("import '@allxsmith/bestax-bulma/bestax.css'")
       );
     });
 
@@ -245,7 +245,7 @@ describe('ProjectCreator', () => {
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
       ).mockResolvedValue(
-        `import React from 'react';\nimport 'bulma/css/bulma.min.css';` as unknown
+        `import React from 'react';\n// Import Bestax CSS (Bulma + extras)\nimport '@allxsmith/bestax-bulma/bestax.css';` as unknown
       );
 
       await projectCreator.setupBulmaFlavor(targetPath, 'prefixed', 'vite-ts');
@@ -442,7 +442,7 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import 'bulma/css/bulma.min.css';` as unknown);
+      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
 
       await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
 
@@ -477,7 +477,7 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import 'bulma/css/bulma.min.css';` as unknown);
+      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
 
       await projectCreator.setupIconLibrary(targetPath, 'mdi', 'vite-ts');
 
@@ -1192,7 +1192,7 @@ describe('ProjectCreator', () => {
   });
 
   describe('setupBulmaFlavor edge cases', () => {
-    it('should add Bulma import after React import when no Bulma import exists', async () => {
+    it('should add CSS import after React import when no bestax import exists', async () => {
       const targetPath = '/test/project';
       const _mainFilePath = '/test/project/src/main.jsx';
 
@@ -1209,7 +1209,7 @@ describe('ProjectCreator', () => {
 
       expect(fs.default.writeFile).toHaveBeenCalledWith(
         _mainFilePath,
-        expect.stringContaining("import 'bulma/css/bulma.min.css'")
+        expect.stringContaining("import '@allxsmith/bestax-bulma/bestax.css'")
       );
     });
 
@@ -1362,7 +1362,7 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import 'bulma/css/bulma.min.css';` as unknown);
+      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
 
       await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
 

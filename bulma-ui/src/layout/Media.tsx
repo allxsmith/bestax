@@ -84,6 +84,10 @@ export interface MediaLeftProps
 
 /**
  * Bulma Media left section.
+ *
+ * @function
+ * @param {MediaLeftProps} props - Props for the MediaLeft component.
+ * @returns {JSX.Element} The rendered media left section.
  */
 export const MediaLeft: React.FC<MediaLeftProps> = ({
   as = 'figure',
@@ -131,6 +135,10 @@ export interface MediaContentProps
 
 /**
  * Bulma Media content section.
+ *
+ * @function
+ * @param {MediaContentProps} props - Props for the MediaContent component.
+ * @returns {JSX.Element} The rendered media content section.
  */
 export const MediaContent: React.FC<MediaContentProps> = ({
   className,
@@ -180,6 +188,10 @@ export interface MediaRightProps
 
 /**
  * Bulma Media right section.
+ *
+ * @function
+ * @param {MediaRightProps} props - Props for the MediaRight component.
+ * @returns {JSX.Element} The rendered media right section.
  */
 export const MediaRight: React.FC<MediaRightProps> = ({
   className,
@@ -207,6 +219,7 @@ export const MediaRight: React.FC<MediaRightProps> = ({
   );
 };
 
+/** Media component type with Left, Content, and Right sub-components. */
 interface MediaComponent extends React.FC<MediaProps> {
   Left: React.FC<MediaLeftProps>;
   Content: React.FC<MediaContentProps>;

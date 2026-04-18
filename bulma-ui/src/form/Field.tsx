@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { FieldProvider } from './FormContext';
 
 /**
  * Props for the Field component.
@@ -88,6 +89,9 @@ export interface FieldBodyProps
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
+ *
+ * @example
+ * <FieldLabel size="normal">Name</FieldLabel>
  */
 export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
@@ -121,6 +125,9 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
  * @function
  * @param {FieldBodyProps} props - Props for the FieldBody component.
  * @returns {JSX.Element} The rendered field body.
+ *
+ * @example
+ * <FieldBody><input className="input" /></FieldBody>
  */
 export const FieldBody: React.FC<FieldBodyProps> = ({
   textColor,
@@ -153,6 +160,18 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
  * @param {FieldProps} props - Props for the Field component.
  * @returns {JSX.Element} The rendered field container.
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
+ *
+ * @example
+ * // Labelled field
+ * <Field label="Email">
+ *   <input className="input" type="email" />
+ * </Field>
+ *
+ * @example
+ * // Horizontal field
+ * <Field horizontal label="Name">
+ *   <input className="input" />
+ * </Field>
  */
 export const Field: React.FC<FieldProps> & {
   Label: typeof FieldLabel;
@@ -191,9 +210,8 @@ export const Field: React.FC<FieldProps> & {
   });
   const fieldClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  // Map 'normal' to undefined for FieldLabel size prop
-  const mappedLabelSize: FieldLabelProps['size'] =
-    labelSize === 'normal' ? undefined : labelSize;
+  // Default labelSize to 'normal' when horizontal for proper baseline alignment
+  const effectiveLabelSize = labelSize ?? (horizontal ? 'normal' : undefined);
 
   const labelClass = usePrefixedClassNames('label');
 
@@ -201,7 +219,7 @@ export const Field: React.FC<FieldProps> & {
   if (label) {
     if (horizontal) {
       renderedLabel = (
-        <FieldLabel size={mappedLabelSize}>
+        <FieldLabel size={effectiveLabelSize}>
           <label
             {...labelProps}
             className={classNames(labelClass, labelProps?.className)}
@@ -241,10 +259,12 @@ export const Field: React.FC<FieldProps> & {
   }
 
   return (
-    <div className={fieldClass} {...rest}>
-      {renderedLabel}
-      {content}
-    </div>
+    <FieldProvider value={true}>
+      <div className={fieldClass} {...rest}>
+        {renderedLabel}
+        {content}
+      </div>
+    </FieldProvider>
   );
 };
 

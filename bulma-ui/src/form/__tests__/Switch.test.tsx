@@ -202,6 +202,41 @@ describe('Switch', () => {
     });
   });
 
+  describe('passiveType', () => {
+    it.each([
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ] as const)('applies is-%s-passive class when passiveType="%s"', passiveType => {
+      const { container } = render(<Switch passiveType={passiveType} />);
+      expect(container.querySelector('label')).toHaveClass(`is-${passiveType}-passive`);
+    });
+
+    it('does not apply passive class when passiveType is not set', () => {
+      const { container } = render(<Switch />);
+      const label = container.querySelector('label');
+      expect(label?.className).not.toMatch(/passive/);
+    });
+
+    it('applies both color and passiveType classes', () => {
+      const { container } = render(<Switch color="success" passiveType="danger" />);
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('is-success');
+      expect(label).toHaveClass('is-danger-passive');
+    });
+
+    it('combines passiveType with other variant classes', () => {
+      const { container } = render(
+        <Switch color="primary" passiveType="warning" isRounded isOutlined />
+      );
+      const label = container.querySelector('label');
+      expect(label).toHaveClass('switch', 'is-primary', 'is-warning-passive', 'is-rounded', 'is-outlined');
+    });
+  });
+
   describe('Bulma helper classes', () => {
     it('applies Bulma helper classes from props', () => {
       const { container } = render(<Switch m="2" p="3" />);

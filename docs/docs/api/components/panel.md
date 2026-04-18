@@ -120,33 +120,23 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
       </Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
       <Panel.Block active>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         George Washington
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Marquis de Lafayette
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-user" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" />
         Nathanael Greene
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Battle of Trenton
       </Panel.Block>
       <Panel.Block>
-        <Panel.Icon>
-          <i className="fas fa-flag" aria-hidden="true"></i>
-        </Panel.Icon>
+        <Panel.Icon name="flag" variant="solid" />
         Yorktown
       </Panel.Block>
       <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>

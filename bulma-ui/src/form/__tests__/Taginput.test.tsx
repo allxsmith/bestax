@@ -18,7 +18,7 @@ describe('Taginput', () => {
 
     it('renders with taginput class', () => {
       const { container } = render(<Taginput />);
-      expect(container.firstChild).toHaveClass('taginput');
+      expect(container.querySelector('.taginput')).toBeInTheDocument();
     });
 
     it('renders default tags', () => {
@@ -288,8 +288,9 @@ describe('Taginput', () => {
 
       fireEvent.focus(input);
 
-      // No dropdown without typing (filter is empty)
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // All items should be visible
+      expect(screen.getAllByRole('option')).toHaveLength(frameworks.length);
     });
   });
 
@@ -351,7 +352,7 @@ describe('Taginput', () => {
 
     it('applies disabled class', () => {
       const { container } = render(<Taginput disabled />);
-      expect(container.firstChild).toHaveClass('is-disabled');
+      expect(container.querySelector('.taginput')).toHaveClass('is-disabled');
     });
 
     it('does not show delete buttons when disabled', () => {
@@ -385,8 +386,8 @@ describe('Taginput', () => {
 
   describe('Colors', () => {
     it('applies input color class', () => {
-      render(<Taginput color="primary" />);
-      expect(screen.getByRole('textbox')).toHaveClass('is-primary');
+      const { container } = render(<Taginput color="primary" />);
+      expect(container.querySelector('.taginput')).toHaveClass('is-primary');
     });
 
     it('applies tag color class', () => {
@@ -399,17 +400,17 @@ describe('Taginput', () => {
   describe('Sizes', () => {
     it('applies small size class', () => {
       const { container } = render(<Taginput size="small" />);
-      expect(container.firstChild).toHaveClass('is-small');
+      expect(container.querySelector('.taginput')).toHaveClass('is-small');
     });
 
     it('applies medium size class', () => {
       const { container } = render(<Taginput size="medium" />);
-      expect(container.firstChild).toHaveClass('is-medium');
+      expect(container.querySelector('.taginput')).toHaveClass('is-medium');
     });
 
     it('applies large size class', () => {
       const { container } = render(<Taginput size="large" />);
-      expect(container.firstChild).toHaveClass('is-large');
+      expect(container.querySelector('.taginput')).toHaveClass('is-large');
     });
 
     it('applies size class to tags', () => {
@@ -554,9 +555,228 @@ describe('Taginput', () => {
       const { container } = render(<Taginput />);
       const input = screen.getByRole('textbox');
 
-      fireEvent.click(container.firstChild!);
+      fireEvent.click(container.querySelector('.taginput')!);
 
       expect(document.activeElement).toBe(input);
+    });
+  });
+
+  describe('Rounded', () => {
+    it('applies is-rounded class when rounded prop is true', () => {
+      const { container } = render(
+        <Taginput defaultValue={['Tag1']} rounded />
+      );
+      expect(container.querySelector('.taginput')).toHaveClass('is-rounded');
+    });
+
+    it('does not apply is-rounded class when rounded is false', () => {
+      const { container } = render(<Taginput defaultValue={['Tag1']} />);
+      expect(container.querySelector('.taginput')).not.toHaveClass('is-rounded');
+    });
+  });
+
+  describe('Ellipsis', () => {
+    it('applies is-ellipsis class when ellipsis prop is true', () => {
+      const { container } = render(
+        <Taginput defaultValue={['Tag1']} ellipsis />
+      );
+      expect(container.querySelector('.taginput')).toHaveClass('is-ellipsis');
+    });
+
+    it('renders tag text in a span with title attribute when ellipsis is true', () => {
+      render(<Taginput defaultValue={['Long Tag Text']} ellipsis />);
+      const tagSpan = screen.getByText('Long Tag Text');
+      expect(tagSpan.tagName).toBe('SPAN');
+      expect(tagSpan).toHaveAttribute('title', 'Long Tag Text');
+    });
+
+    it('does not wrap tag text in a span when ellipsis is false', () => {
+      render(<Taginput defaultValue={['Tag1']} />);
+      const tagText = screen.getByText('Tag1');
+      // Without ellipsis, the text node is directly inside the .tag span
+      expect(tagText.closest('.tag')).toBe(tagText);
+    });
+  });
+
+  describe('HasCounter', () => {
+    it('shows counter when hasCounter is true and maxTags is set', () => {
+      const { container } = render(
+        <Taginput defaultValue={['Tag1']} maxTags={5} hasCounter />
+      );
+      const counter = container.querySelector('.counter');
+      expect(counter).toBeInTheDocument();
+      expect(counter).toHaveTextContent('1 / 5');
+    });
+
+    it('shows counter for maxlength', () => {
+      const { container } = render(
+        <Taginput maxlength={20} hasCounter />
+      );
+      const counter = container.querySelector('.counter');
+      expect(counter).toBeInTheDocument();
+      expect(counter).toHaveTextContent('0 / 20');
+    });
+
+    it('does not show counter when hasCounter is false', () => {
+      const { container } = render(
+        <Taginput maxTags={5} hasCounter={false} />
+      );
+      const counter = container.querySelector('.counter');
+      expect(counter).not.toBeInTheDocument();
+    });
+
+    it('does not show counter when neither maxTags nor maxlength is set', () => {
+      const { container } = render(<Taginput hasCounter />);
+      const counter = container.querySelector('.counter');
+      expect(counter).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Paste Separators', () => {
+    it('splits pasted text by comma separator', () => {
+      const onChange = jest.fn();
+      render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'React, Vue, Angular' },
+      });
+
+      // addTag is called for each part
+      expect(onChange).toHaveBeenCalled();
+      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
+      expect(lastCall[0]).toContain('Angular');
+    });
+
+    it('splits pasted text by multiple separators', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput onPasteSeparators={[',', ';']} onChange={onChange} />
+      );
+      const input = screen.getByRole('textbox');
+
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'React, Vue; Angular' },
+      });
+
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('does not split pasted text without matching separator', () => {
+      const onChange = jest.fn();
+      render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'React' },
+      });
+
+      // No separator found, so paste is not intercepted
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Before Adding', () => {
+    it('prevents invalid tags from being added', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput
+          beforeAdding={(tag) => tag.length >= 3}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'ab' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('allows valid tags when beforeAdding returns true', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput
+          beforeAdding={(tag) => tag.length >= 3}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'abc' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(onChange).toHaveBeenCalledWith(['abc']);
+    });
+  });
+
+  describe('Keep First', () => {
+    it('auto-highlights first dropdown item when keepFirst is true', () => {
+      render(<Taginput data={frameworks} keepFirst />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const options = screen.getAllByRole('option');
+      expect(options[0]).toHaveClass('is-active');
+    });
+
+    it('does not auto-highlight when keepFirst is false', () => {
+      render(<Taginput data={frameworks} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const options = screen.getAllByRole('option');
+      expect(options[0]).not.toHaveClass('is-active');
+    });
+  });
+
+  describe('Loading', () => {
+    it('renders loading spinner when loading is true', () => {
+      const { container } = render(<Taginput loading />);
+      expect(container.querySelector('.loader.is-loading')).toBeInTheDocument();
+    });
+
+    it('does not render loading spinner when loading is false', () => {
+      const { container } = render(<Taginput />);
+      expect(container.querySelector('.loader.is-loading')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Icon', () => {
+    it('renders icon element when icon prop is set', () => {
+      const { container } = render(<Taginput icon="tag" />);
+      expect(container.querySelector('.icon.is-left')).toBeInTheDocument();
+    });
+
+    it('adds has-icons-left to container when icon is set', () => {
+      const { container } = render(<Taginput icon="tag" />);
+      expect(container.querySelector('.taginput-container')).toHaveClass(
+        'has-icons-left'
+      );
+    });
+
+    it('does not render icon when prop is absent', () => {
+      const { container } = render(<Taginput />);
+      expect(container.querySelector('.icon.is-left')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Aria Close Label', () => {
+    it('uses ariaCloseLabel for close button aria-label', () => {
+      render(
+        <Taginput
+          defaultValue={['Tag1']}
+          ariaCloseLabel="Delete tag"
+        />
+      );
+      expect(screen.getByLabelText('Delete tag')).toBeInTheDocument();
+    });
+
+    it('uses default aria-label when ariaCloseLabel is not set', () => {
+      render(<Taginput defaultValue={['Tag1']} />);
+      expect(screen.getByLabelText('Remove Tag1')).toBeInTheDocument();
     });
   });
 });

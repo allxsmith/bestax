@@ -10,7 +10,7 @@ sidebar_label: Loading
 The `Loading` component provides a loading overlay with a spinner animation. It can be used as a full-page overlay or a container overlay to indicate loading states. Supports different sizes, color variants, optional cancel functionality, and custom loading messages.
 
 :::info
-The Loading component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Loading component requires importing the extras CSS. See the [Extras Setup G
 
 ```tsx
 import { Loading } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/extras.css';
 ```
 
 ---
@@ -40,6 +37,8 @@ import '@allxsmith/bestax-bulma/extras.css';
 | `className`        | `string`                                                                  | —       | Additional CSS classes.                          |
 | `overlayClassName` | `string`                                                                  | —       | Additional classes for the overlay.              |
 | `iconClassName`    | `string`                                                                  | —       | Additional classes for the spinner icon.         |
+| `indicator`        | `React.ReactNode`                                                         | —       | Custom loading indicator element.                |
+| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                       | —       | Style of the loading overlay.                    |
 | ...                | All standard HTML and Bulma helper props                                  |         | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
@@ -53,19 +52,10 @@ A simple loading overlay within a container.
 ```tsx live
 function example() {
   return (
-    <div
-      style={{
-        position: 'relative',
-        height: '200px',
-        border: '1px solid #dbdbdb',
-        borderRadius: '4px',
-      }}
-    >
+    <Box relative style={{ minHeight: '300px' }}>
       <Loading active>Loading...</Loading>
-      <div style={{ padding: '1rem' }}>
-        <p>This content is behind the loading overlay.</p>
-      </div>
-    </div>
+      <Paragraph>This content is behind the loading overlay.</Paragraph>
+    </Box>
   );
 }
 ```
@@ -83,16 +73,9 @@ Loading overlay without a text message.
 ```tsx live
 function example() {
   return (
-    <div
-      style={{
-        position: 'relative',
-        height: '150px',
-        border: '1px solid #dbdbdb',
-        borderRadius: '4px',
-      }}
-    >
+    <Box relative style={{ height: '200px' }}>
       <Loading active />
-    </div>
+    </Box>
   );
 }
 ```
@@ -106,58 +89,28 @@ Loading with different spinner sizes.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', gap: '1rem' }}>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active size="small">
-          Small
-        </Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active>Default</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active size="medium">
-          Medium
-        </Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active size="large">
-          Large
-        </Loading>
-      </div>
-    </div>
+    <Columns>
+      <Column>
+        <Box relative style={{ height: '200px' }}>
+          <Loading active size="small">Small</Loading>
+        </Box>
+      </Column>
+      <Column>
+        <Box relative style={{ height: '200px' }}>
+          <Loading active>Default</Loading>
+        </Box>
+      </Column>
+      <Column>
+        <Box relative style={{ height: '200px' }}>
+          <Loading active size="medium">Medium</Loading>
+        </Box>
+      </Column>
+      <Column>
+        <Box relative style={{ height: '200px' }}>
+          <Loading active size="large">Large</Loading>
+        </Box>
+      </Column>
+    </Columns>
   );
 }
 ```
@@ -171,74 +124,38 @@ The spinner supports Bulma color variants. When no color is specified, the spinn
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active>Default</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active color="primary">Primary</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active color="info">Info</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active color="success">Success</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active color="warning">Warning</Loading>
-      </div>
-      <div
-        style={{
-          position: 'relative',
-          width: '120px',
-          height: '120px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
-        <Loading active color="danger">Danger</Loading>
-      </div>
-    </div>
+    <Columns isMultiline>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active>Default</Loading>
+        </Box>
+      </Column>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active color="primary">Primary</Loading>
+        </Box>
+      </Column>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active color="info">Info</Loading>
+        </Box>
+      </Column>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active color="success">Success</Loading>
+        </Box>
+      </Column>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active color="warning">Warning</Loading>
+        </Box>
+      </Column>
+      <Column size="4">
+        <Box relative style={{ height: '150px' }}>
+          <Loading active color="danger">Danger</Loading>
+        </Box>
+      </Column>
+    </Columns>
   );
 }
 ```
@@ -254,15 +171,8 @@ function example() {
   const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <div>
-      <div
-        style={{
-          position: 'relative',
-          height: '200px',
-          border: '1px solid #dbdbdb',
-          borderRadius: '4px',
-        }}
-      >
+    <>
+      <Box relative style={{ height: '200px' }}>
         <Loading
           active={isLoading}
           canCancel
@@ -270,20 +180,18 @@ function example() {
         >
           Click cancel or press Escape
         </Loading>
-        <div style={{ padding: '1rem' }}>
-          <p>Content behind the overlay.</p>
-        </div>
-      </div>
+        <Paragraph p="4">Content behind the overlay.</Paragraph>
+      </Box>
       {!isLoading && (
         <Button
           color="primary"
-          className="mt-4"
+          mt="4"
           onClick={() => setIsLoading(true)}
         >
           Show Loading
         </Button>
       )}
-    </div>
+    </>
   );
 }
 ```
@@ -299,7 +207,7 @@ function example() {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div>
+    <>
       <Button color="primary" onClick={() => setIsLoading(true)}>
         Show Full Page Loading
       </Button>
@@ -311,7 +219,7 @@ function example() {
       >
         Full page loading... Click cancel or press Escape
       </Loading>
-    </div>
+    </>
   );
 }
 ```
@@ -337,26 +245,18 @@ function example() {
   };
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        height: '150px',
-        border: '1px solid #dbdbdb',
-        borderRadius: '4px',
-        padding: '1rem',
-      }}
-    >
+    <Box relative p="5" style={{ height: '150px' }}>
       <Loading active={isLoading}>Loading data...</Loading>
-      <p>Click the button to see the loading overlay.</p>
+      <Paragraph>Click the button to see the loading overlay.</Paragraph>
       <Button
         color="primary"
         onClick={handleClick}
         disabled={isLoading}
-        className="mt-3"
+        mt="3"
       >
         Load Data
       </Button>
-    </div>
+    </Box>
   );
 }
 ```

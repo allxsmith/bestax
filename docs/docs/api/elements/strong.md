@@ -87,14 +87,14 @@ Strong text works naturally inline within paragraphs.
 Display strong text in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Strong textColor="primary">Primary strong</Strong>
   <Strong textColor="link">Link strong</Strong>
   <Strong textColor="info">Info strong</Strong>
   <Strong textColor="success">Success strong</Strong>
   <Strong textColor="warning">Warning strong</Strong>
   <Strong textColor="danger">Danger strong</Strong>
-</div>
+</Block>
 ```
 
 ### Callout Pattern

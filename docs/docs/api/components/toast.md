@@ -10,7 +10,7 @@ sidebar_label: Toast
 The `Toast` component provides brief notification messages that appear and disappear automatically. Toasts are non-blocking and ideal for success messages, warnings, or general feedback.
 
 :::info
-The Toast component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Toast component requires importing the extras CSS. See the [Extras Setup Gui
 
 ```tsx
 import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -33,14 +30,17 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `message`      | `string`                                                                                                    | —             | The message to display (required).                   |
 | `type`         | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` \| `'primary'` \| `'link'`              | `'default'`   | Color variant of the toast.                          |
 | `position`     | `'top-right'` \| `'top-left'` \| `'top-center'` \| `'bottom-right'` \| `'bottom-left'` \| `'bottom-center'` | `'top-right'` | Position on the screen.                              |
-| `duration`     | `number`                                                                                                    | `3000`        | Duration in ms before auto-close. 0 = no auto-close. |
+| `duration`     | `number`                                                                                                    | `2000`        | Duration in ms before auto-close. 0 = no auto-close. |
 | `dismissible`  | `boolean`                                                                                                   | `true`        | Whether the toast can be dismissed.                  |
 | `onClose`      | `() => void`                                                                                                | —             | Callback when toast closes.                          |
-| `pauseOnHover` | `boolean`                                                                                                   | `true`        | Pause auto-close timer on hover.                     |
-| `icon`         | `React.ReactNode`                                                                                           | —             | Custom icon to display.                              |
-| `action`       | `React.ReactNode`                                                                                           | —             | Action button/element to display.                    |
+| `pauseOnHover` | `boolean`                                                                                                   | `false`       | Pause auto-close timer on hover.                     |
 | `className`    | `string`                                                                                                    | —             | Additional CSS classes.                              |
 | `ref`          | `React.Ref<HTMLElement>`                                                                                    | —             | Ref forwarded to the toast element.                  |
+| `indefinite`   | `boolean`                                                                                                   | `false`       | Keeps the toast visible indefinitely.                |
+| `cancelable`   | `boolean`                                                                                                   | `true`        | Allows dismissing by clicking outside.               |
+| `container`    | `string \| HTMLElement`                                                                                     | —             | CSS selector or DOM node to mount the toast into.    |
+| `inline`       | `boolean`                                                                                                   | `false`       | Renders inline instead of using a portal.            |
+| `rounded`      | `boolean`                                                                                                   | `false`       | Applies rounded corners.                             |
 | ...            | All standard HTML and Bulma helper props                                                                    |               | (See [Helper Props](../helpers/usebulmaclasses))     |
 
 ---
@@ -55,7 +55,7 @@ A simple toast notification.
 function example() {
   const [showToast, setShowToast] = useState(false);
   return (
-    <div>
+    <Block>
       <Button color="primary" onClick={() => setShowToast(true)}>
         Show Toast
       </Button>
@@ -65,7 +65,7 @@ function example() {
           onClose={() => setShowToast(false)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -80,8 +80,8 @@ Different toast types for various contexts.
 function example() {
   const [toastType, setToastType] = useState(null);
   return (
-    <div>
-      <div className="buttons">
+    <Block>
+      <Buttons>
         <Button color="success" onClick={() => setToastType('success')}>
           Success
         </Button>
@@ -94,7 +94,7 @@ function example() {
         <Button color="info" onClick={() => setToastType('info')}>
           Info
         </Button>
-      </div>
+      </Buttons>
       {toastType && (
         <Toast
           message={`This is a ${toastType} message!`}
@@ -102,7 +102,7 @@ function example() {
           onClose={() => setToastType(null)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -117,13 +117,13 @@ Toast can appear in different positions on the screen.
 function example() {
   const [position, setPosition] = useState(null);
   return (
-    <div>
-      <div className="buttons">
+    <Block>
+      <Buttons>
         <Button onClick={() => setPosition('top-left')}>Top Left</Button>
         <Button onClick={() => setPosition('top-center')}>Top Center</Button>
         <Button onClick={() => setPosition('top-right')}>Top Right</Button>
-      </div>
-      <div className="buttons">
+      </Buttons>
+      <Buttons>
         <Button onClick={() => setPosition('bottom-left')}>Bottom Left</Button>
         <Button onClick={() => setPosition('bottom-center')}>
           Bottom Center
@@ -131,7 +131,7 @@ function example() {
         <Button onClick={() => setPosition('bottom-right')}>
           Bottom Right
         </Button>
-      </div>
+      </Buttons>
       {position && (
         <Toast
           message={`Position: ${position}`}
@@ -140,7 +140,7 @@ function example() {
           onClose={() => setPosition(null)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -155,7 +155,7 @@ Toast with extended display time.
 function example() {
   const [showToast, setShowToast] = useState(false);
   return (
-    <div>
+    <Block>
       <Button onClick={() => setShowToast(true)}>
         Show Long Toast (10 seconds)
       </Button>
@@ -167,39 +167,32 @@ function example() {
           onClose={() => setShowToast(false)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
 
 ---
 
-### With Action Button
+### Dismissible Toast
 
-Toast with an action element.
+Toast that can be dismissed by clicking on it.
 
 ```tsx live
 function example() {
   const [showToast, setShowToast] = useState(false);
   return (
-    <div>
-      <Button onClick={() => setShowToast(true)}>Show Toast with Action</Button>
+    <Block>
+      <Button onClick={() => setShowToast(true)}>Show Dismissible Toast</Button>
       {showToast && (
         <Toast
-          message="Item deleted"
+          message="Click to dismiss"
           type="warning"
-          action={
-            <button
-              className="button is-small is-warning is-light"
-              onClick={() => alert('Undo clicked!')}
-            >
-              Undo
-            </button>
-          }
+          dismissible
           onClose={() => setShowToast(false)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```

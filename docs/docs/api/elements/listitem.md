@@ -38,15 +38,21 @@ import { ListItem, UnorderedList, OrderedList } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+:::info Wrap Lists in Content for Traditional Styling
+Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets, numbers). Wrap your lists in `<Content>` to get the expected typographic list appearance.
+:::
+
 ### Default List Item
 
 The default usage of the `ListItem` component inside a list.
 
 ```tsx live
-<UnorderedList>
-  <ListItem>Default List Item</ListItem>
-  <ListItem>Another item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem>Default List Item</ListItem>
+    <ListItem>Another item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Colored List Item
@@ -54,25 +60,14 @@ The default usage of the `ListItem` component inside a list.
 Apply text color to individual list items.
 
 ```tsx live
-<UnorderedList>
-  <ListItem textColor="primary">Primary item</ListItem>
-  <ListItem textColor="success">Success item</ListItem>
-  <ListItem textColor="warning">Warning item</ListItem>
-  <ListItem textColor="danger">Danger item</ListItem>
-</UnorderedList>
-```
-
-### List Item with Background
-
-Add background color and padding for visual emphasis.
-
-```tsx live
-<UnorderedList>
-  <ListItem bgColor="light" p="2">
-    Item with background
-  </ListItem>
-  <ListItem>Normal item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem textColor="primary">Primary item</ListItem>
+    <ListItem textColor="success">Success item</ListItem>
+    <ListItem textColor="warning">Warning item</ListItem>
+    <ListItem textColor="danger">Danger item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Custom Value in Ordered List
@@ -80,11 +75,13 @@ Add background color and padding for visual emphasis.
 Use the `value` prop to set a custom number in an ordered list.
 
 ```tsx live
-<OrderedList>
-  <ListItem>First item</ListItem>
-  <ListItem value={10}>Tenth item (custom value)</ListItem>
-  <ListItem>Eleventh item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList>
+    <ListItem>First item</ListItem>
+    <ListItem value={10}>Tenth item (custom value)</ListItem>
+    <ListItem>Eleventh item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### All Colors
@@ -92,32 +89,30 @@ Use the `value` prop to set a custom number in an ordered list.
 Display list items in all Bulma theme colors.
 
 ```tsx live
-<UnorderedList>
-  <ListItem textColor="primary">Primary</ListItem>
-  <ListItem textColor="link">Link</ListItem>
-  <ListItem textColor="info">Info</ListItem>
-  <ListItem textColor="success">Success</ListItem>
-  <ListItem textColor="warning">Warning</ListItem>
-  <ListItem textColor="danger">Danger</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem textColor="primary">Primary</ListItem>
+    <ListItem textColor="link">Link</ListItem>
+    <ListItem textColor="info">Info</ListItem>
+    <ListItem textColor="success">Success</ListItem>
+    <ListItem textColor="warning">Warning</ListItem>
+    <ListItem textColor="danger">Danger</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Spaced List Items
 
-Use margin and padding helpers for custom spacing.
+Use margin helpers for custom spacing between items.
 
 ```tsx live
-<UnorderedList>
-  <ListItem mb="3" p="2" bgColor="light">
-    Item with margin and padding
-  </ListItem>
-  <ListItem mb="3" p="2" bgColor="light">
-    Another spaced item
-  </ListItem>
-  <ListItem p="2" bgColor="light">
-    Last item
-  </ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem mb="3">Item with extra bottom margin</ListItem>
+    <ListItem mb="3">Another spaced item</ListItem>
+    <ListItem>Last item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### In Ordered List
@@ -125,11 +120,13 @@ Use margin and padding helpers for custom spacing.
 ListItem works the same way in ordered lists.
 
 ```tsx live
-<OrderedList>
-  <ListItem>First item</ListItem>
-  <ListItem textColor="success">Second item (success)</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList>
+    <ListItem>First item</ListItem>
+    <ListItem textColor="success">Second item (success)</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ---

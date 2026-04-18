@@ -1,161 +1,259 @@
 // Rate Component Styles
 // A star/icon-based rating component
+// Follows Bulma v1 CSS variable convention (see _dialog.scss, _checkbox.scss)
 
-@use '../variables' as *;
-@use '../mixins' as *;
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
 
-.rate {
+// Rate-specific SCSS variables
+$rate-color-inactive: cv.getVar("grey-light") !default;
+$rate-color-active: hsl(48, 100%, 50%) !default;
+$rate-color-hover: hsl(48, 100%, 67%) !default;
+$rate-icon-size: 1.5em !default;
+$rate-icon-size-small: 1em !default;
+$rate-icon-size-medium: 2em !default;
+$rate-icon-size-large: 2.5em !default;
+$rate-font-icon-size: 1.35em !default;
+$rate-font-icon-size-small: 0.9em !default;
+$rate-font-icon-size-medium: 1.8em !default;
+$rate-font-icon-size-large: 2.25em !default;
+$rate-gap: 0.5rem !default;
+$rate-spaced-gap: 0.25rem !default;
+$rate-score-weight: 600 !default;
+$rate-score-color: cv.getVar("text-strong") !default;
+$rate-text-color: cv.getVar("text") !default;
+$rate-text-size: 0.875em !default;
+$rate-transition-duration: cv.getVar("duration") !default;
+$rate-disabled-opacity: 0.5 !default;
+$rate-pop-scale: 1.2 !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}rate {
+  @include cv.register-vars(
+    (
+      "rate-color-inactive": #{$rate-color-inactive},
+      "rate-color-active": #{$rate-color-active},
+      "rate-color-hover": #{$rate-color-hover},
+      "rate-icon-size": #{$rate-icon-size},
+      "rate-icon-size-small": #{$rate-icon-size-small},
+      "rate-icon-size-medium": #{$rate-icon-size-medium},
+      "rate-icon-size-large": #{$rate-icon-size-large},
+      "rate-font-icon-size": #{$rate-font-icon-size},
+      "rate-font-icon-size-small": #{$rate-font-icon-size-small},
+      "rate-font-icon-size-medium": #{$rate-font-icon-size-medium},
+      "rate-font-icon-size-large": #{$rate-font-icon-size-large},
+      "rate-gap": #{$rate-gap},
+      "rate-spaced-gap": #{$rate-spaced-gap},
+      "rate-score-weight": #{$rate-score-weight},
+      "rate-score-color": #{$rate-score-color},
+      "rate-text-color": #{$rate-text-color},
+      "rate-text-size": #{$rate-text-size},
+      "rate-transition-duration": #{$rate-transition-duration},
+      "rate-disabled-opacity": #{$rate-disabled-opacity},
+      "rate-pop-scale": #{$rate-pop-scale},
+    )
+  );
+}
+
+// Main container
+.#{iv.$class-prefix}rate {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: cv.getVar("rate-gap");
+  min-height: cv.getVar("control-height");
   outline: none;
 
   &:focus-visible {
-    outline: 2px solid var(--bulma-link);
+    outline: 2px solid cv.getVar("link");
     outline-offset: 2px;
-    border-radius: $extras-radius;
+    border-radius: cv.getVar("radius");
   }
 }
 
-.rate-items {
+// Icons container
+.#{iv.$class-prefix}rate-items {
   display: inline-flex;
   align-items: center;
+  gap: 0.125rem;
 }
 
-.rate-item {
+// Individual icon
+.#{iv.$class-prefix}rate-item {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: hsl(0, 0%, 71%);
-  transition: color 0.15s ease, transform 0.1s ease;
+  color: cv.getVar("rate-color-inactive");
+  transition: color cv.getVar("rate-transition-duration") ease,
+    transform 0.1s ease;
 
   svg {
-    width: 1.5em;
-    height: 1.5em;
+    width: cv.getVar("rate-icon-size");
+    height: cv.getVar("rate-icon-size");
   }
 
-  &:hover:not(.is-active) {
-    color: hsl(48, 100%, 67%);
+  // Font icon sizing — tuned for MDI/Material which are designed for 24px grid.
+  // FA has a wider star glyph (~12.5% beyond em-box) so it gets scaled down.
+  .#{iv.$class-prefix}icon {
+    font-size: cv.getVar("rate-font-icon-size");
+    overflow: hidden;
+
+    .fas, .far, .fab, .fal, .fad, .fat,
+    .fa-solid, .fa-regular, .fa-brands, .fa-light, .fa-duotone, .fa-thin {
+      font-size: 0.88em;
+    }
+  }
+
+
+  &:hover:not(.#{iv.$class-prefix}is-active) {
+    color: cv.getVar("rate-color-hover");
     transform: scale(1.1);
   }
 
-  &.is-active {
-    color: hsl(48, 100%, 50%);
+  &.#{iv.$class-prefix}is-active {
+    color: cv.getVar("rate-color-active");
   }
 
-  &.is-hovered {
-    color: hsl(48, 100%, 67%);
+  &.#{iv.$class-prefix}is-hovered {
+    color: cv.getVar("rate-color-hover");
     transform: scale(1.1);
   }
+}
 
-  @media (prefers-color-scheme: dark) {
-    color: hsl(0, 0%, 48%);
+// Partial fill (precision < 1)
+.#{iv.$class-prefix}rate-icon-partial {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    &:hover:not(.is-active) {
-      color: hsl(48, 100%, 60%);
-    }
+.#{iv.$class-prefix}rate-icon-bg {
+  color: cv.getVar("rate-color-inactive");
+}
 
-    &.is-active {
-      color: hsl(48, 100%, 55%);
-    }
-  }
+.#{iv.$class-prefix}rate-icon-fg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  width: var(--rate-fill-percent, 100%);
+  color: cv.getVar("rate-color-active");
 }
 
 // Score display
-.rate-score {
-  font-weight: 600;
-  color: hsl(0, 0%, 29%);
+.#{iv.$class-prefix}rate-score {
+  font-weight: cv.getVar("rate-score-weight");
+  color: cv.getVar("rate-score-color");
   min-width: 2em;
   text-align: center;
-
-  @media (prefers-color-scheme: dark) {
-    color: hsl(0, 0%, 86%);
-  }
 }
 
 // Text display
-.rate-text {
-  color: hsl(0, 0%, 48%);
-  font-size: 0.875em;
+.#{iv.$class-prefix}rate-text {
+  color: cv.getVar("rate-text-color");
+  font-size: cv.getVar("rate-text-size");
+}
 
-  @media (prefers-color-scheme: dark) {
-    color: hsl(0, 0%, 71%);
-  }
+// Custom text display
+.#{iv.$class-prefix}rate-custom-text {
+  color: cv.getVar("rate-text-color");
+  font-size: cv.getVar("rate-text-size");
 }
 
 // Disabled state
-.rate.is-disabled {
-  opacity: 0.5;
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-disabled {
+  opacity: cv.getVar("rate-disabled-opacity");
   pointer-events: none;
 
-  .rate-item {
+  .#{iv.$class-prefix}rate-item {
     cursor: not-allowed;
   }
 }
 
 // Spaced variant
-.rate.is-spaced {
-  .rate-items {
-    gap: 0.25rem;
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-spaced {
+  .#{iv.$class-prefix}rate-items {
+    gap: cv.getVar("rate-spaced-gap");
   }
 }
 
 // RTL support
-.rate.is-rtl {
-  .rate-items {
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-rtl {
+  .#{iv.$class-prefix}rate-items {
     flex-direction: row-reverse;
   }
 }
 
 // Size variants
-.rate.is-small {
-  .rate-item svg {
-    width: 1em;
-    height: 1em;
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-small {
+  .#{iv.$class-prefix}rate-item {
+    svg {
+      width: cv.getVar("rate-icon-size-small");
+      height: cv.getVar("rate-icon-size-small");
+    }
+
+    .#{iv.$class-prefix}icon {
+      font-size: cv.getVar("rate-font-icon-size-small");
+    }
   }
 
-  .rate-score {
-    font-size: $extras-size-small;
+  .#{iv.$class-prefix}rate-score {
+    font-size: cv.getVar("size-small");
   }
 
-  .rate-text {
+  .#{iv.$class-prefix}rate-text,
+  .#{iv.$class-prefix}rate-custom-text {
     font-size: 0.75rem;
   }
 }
 
-.rate.is-medium {
-  .rate-item svg {
-    width: 2em;
-    height: 2em;
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-medium {
+  .#{iv.$class-prefix}rate-item {
+    svg {
+      width: cv.getVar("rate-icon-size-medium");
+      height: cv.getVar("rate-icon-size-medium");
+    }
+
+    .#{iv.$class-prefix}icon {
+      font-size: cv.getVar("rate-font-icon-size-medium");
+    }
   }
 
-  .rate-score {
-    font-size: $extras-size-medium;
+  .#{iv.$class-prefix}rate-score {
+    font-size: cv.getVar("size-medium");
   }
 
-  .rate-text {
+  .#{iv.$class-prefix}rate-text,
+  .#{iv.$class-prefix}rate-custom-text {
     font-size: 1rem;
   }
 }
 
-.rate.is-large {
-  .rate-item svg {
-    width: 2.5em;
-    height: 2.5em;
+.#{iv.$class-prefix}rate.#{iv.$class-prefix}is-large {
+  .#{iv.$class-prefix}rate-item {
+    svg {
+      width: cv.getVar("rate-icon-size-large");
+      height: cv.getVar("rate-icon-size-large");
+    }
+
+    .#{iv.$class-prefix}icon {
+      font-size: cv.getVar("rate-font-icon-size-large");
+    }
   }
 
-  .rate-score {
-    font-size: $extras-size-large;
+  .#{iv.$class-prefix}rate-score {
+    font-size: cv.getVar("size-large");
   }
 
-  .rate-text {
+  .#{iv.$class-prefix}rate-text,
+  .#{iv.$class-prefix}rate-custom-text {
     font-size: 1.125rem;
   }
 }
 
 // Animation on selection
-.rate-item.is-active {
+.#{iv.$class-prefix}rate-item.#{iv.$class-prefix}is-active {
   animation: rate-pop 0.2s ease;
 }
 
@@ -164,41 +262,46 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.2);
+    transform: scale(cv.getVar("rate-pop-scale"));
   }
   100% {
     transform: scale(1);
   }
 }
 
-// Heart icon variation colors (when using custom icons)
-.rate.rate-hearts {
-  .rate-item {
-    color: hsl(0, 0%, 71%);
+// Color variants
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}rate.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "rate-color-active": #{cv.getVar($name)},
+        "rate-color-hover": #{cv.getVar("#{$name}-light")},
+      )
+    );
+  }
+}
 
-    &.is-active {
-      color: hsl(348, 100%, 61%);
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}rate {
+    .#{iv.$class-prefix}rate-item {
+      color: ButtonText;
+
+      &.#{iv.$class-prefix}is-active {
+        color: Highlight;
+      }
     }
 
-    &:hover:not(.is-active),
-    &.is-hovered {
-      color: hsl(348, 100%, 71%);
+    &:focus-visible {
+      outline-color: Highlight;
     }
   }
 }
 
-// Thumbs up variation
-.rate.rate-thumbs {
-  .rate-item {
-    color: hsl(0, 0%, 71%);
-
-    &.is-active {
-      color: hsl(141, 53%, 53%);
-    }
-
-    &:hover:not(.is-active),
-    &.is-hovered {
-      color: hsl(141, 53%, 63%);
-    }
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}rate-item {
+    transition: none;
+    animation: none;
   }
 }

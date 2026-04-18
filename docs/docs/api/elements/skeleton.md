@@ -31,7 +31,7 @@ import { Skeleton } from '@allxsmith/bestax-bulma';
 | `variant`   | `'block' \| 'lines'`                     | `'block'` | Skeleton variant: block (single block) or lines.   |
 | `lines`     | `number`                                 | `3`       | Number of lines (only for `lines` variant).        |
 | `children`  | `React.ReactNode`                        | —         | Content inside the block (only for block variant). |
-| ...         | All standard HTML and Bulma helper props |           | (See [Helper Props](../helpers/usebulmaclasses))   |
+| ...         | All standard `<div>` HTML attributes     |           | Passed through to the root element.                |
 
 ---
 
@@ -81,7 +81,7 @@ These show how the `skeleton` Bulma helper can be applied to various components 
 Demonstrates a button with a skeleton loader, useful for indicating an action is in progress.
 
 ```tsx live
-<Button skeleton style={{ width: 120 }}>
+<Button skeleton color="dark">
   Skeleton Button
 </Button>
 ```
@@ -92,15 +92,9 @@ A group of buttons with skeleton loaders, ideal for simulating multiple actions 
 
 ```tsx live
 <Buttons>
-  <Button skeleton style={{ width: 120 }}>
-    Skeleton
-  </Button>
-  <Button skeleton style={{ width: 120 }}>
-    Skeleton
-  </Button>
-  <Button skeleton style={{ width: 120 }}>
-    Skeleton
-  </Button>
+  <Button skeleton color="dark">Skeleton</Button>
+  <Button skeleton color="dark">Skeleton</Button>
+  <Button skeleton color="dark">Skeleton</Button>
 </Buttons>
 ```
 
@@ -113,7 +107,7 @@ An icon with a skeleton loader, perfect for indicating an icon's action is loadi
   name="star"
   skeleton
   ariaLabel="Star icon skeleton"
-  style={{ fontSize: 32 }}
+  size="medium"
 />
 ```
 
@@ -124,10 +118,9 @@ An image with a skeleton loader, great for simulating image loading.
 ```tsx live
 <Image
   skeleton
-  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
+  src="/img/react-logo.png"
   alt="Skeleton image"
   size="128x128"
-  style={{ width: 128, height: 128 }}
 />
 ```
 
@@ -148,11 +141,11 @@ Media object with a skeleton loader, useful for indicating media content is load
   </Media.Left>
   <Media.Content>
     <Content>
-      <p>
-        <strong>Skeleton Name</strong> <small>@skelly</small> <small>1m</small>
+      <Paragraph>
+        <Strong>Skeleton Name</Strong> <small>@skelly</small> <small>1m</small>
         <br />
         This is a skeleton media example.
-      </p>
+      </Paragraph>
     </Content>
   </Media.Content>
 </Media>
@@ -163,7 +156,7 @@ Media object with a skeleton loader, useful for indicating media content is load
 A notification with a skeleton loader, ideal for indicating a message or alert is loading.
 
 ```tsx live
-<Notification skeleton style={{ width: 300 }}>
+<Notification skeleton>
   Skeleton notification message.
 </Notification>
 ```
@@ -173,7 +166,7 @@ A notification with a skeleton loader, ideal for indicating a message or alert i
 A tag with a skeleton loader, great for simulating tag or category loading.
 
 ```tsx live
-<Tag skeleton style={{ width: 100, display: 'inline-block' }}>
+<Tag skeleton size="medium">
   Skeleton Tag
 </Tag>
 ```
@@ -183,7 +176,7 @@ A tag with a skeleton loader, great for simulating tag or category loading.
 A title with a skeleton loader, useful for indicating a section or heading is loading.
 
 ```tsx live
-<Title skeleton size="2" style={{ width: 180 }}>
+<Title skeleton size="2">
   Skeleton Title
 </Title>
 ```
@@ -193,7 +186,7 @@ A title with a skeleton loader, useful for indicating a section or heading is lo
 A subtitle with a skeleton loader, perfect for simulating secondary heading loading.
 
 ```tsx live
-<SubTitle skeleton size="4" style={{ width: 140 }}>
+<SubTitle skeleton size="4">
   Skeleton SubTitle
 </SubTitle>
 ```
@@ -203,7 +196,7 @@ A subtitle with a skeleton loader, perfect for simulating secondary heading load
 An input field with a skeleton loader, ideal for indicating form input is loading.
 
 ```tsx live
-<Input skeleton placeholder="Skeleton Input" style={{ width: 160 }} />
+<Input skeleton placeholder="Skeleton Input" />
 ```
 
 #### Skeleton TextArea
@@ -215,7 +208,6 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
   skeleton
   placeholder="Skeleton TextArea"
   rows={3}
-  style={{ width: 220 }}
 />
 ```
 

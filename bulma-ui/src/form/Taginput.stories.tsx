@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Taginput, TaginputTag } from './Taginput';
+import { Field } from './Field';
+import { Control } from './Control';
 
 const meta: Meta<typeof Taginput> = {
   title: 'Form/Taginput',
@@ -46,6 +48,30 @@ const meta: Meta<typeof Taginput> = {
       control: 'boolean',
       description: 'Disable the input',
     },
+    rounded: {
+      control: 'boolean',
+      description: 'Rounded tags',
+    },
+    ellipsis: {
+      control: 'boolean',
+      description: 'Truncate long tag text with ellipsis',
+    },
+    hasCounter: {
+      control: 'boolean',
+      description: 'Show counter for maxTags/maxlength',
+    },
+    keepFirst: {
+      control: 'boolean',
+      description: 'Auto-highlight first autocomplete result',
+    },
+    keepOpen: {
+      control: 'boolean',
+      description: 'Keep dropdown open after selecting',
+    },
+    loading: {
+      control: 'boolean',
+      description: 'Show loading spinner',
+    },
     color: {
       control: 'select',
       options: ['primary', 'link', 'info', 'success', 'warning', 'danger'],
@@ -69,6 +95,15 @@ const meta: Meta<typeof Taginput> = {
       control: 'select',
       options: ['small', 'medium', 'large'],
       description: 'Input size',
+    },
+    icon: {
+      control: 'text',
+      description: 'Left icon name',
+    },
+    iconLibrary: {
+      control: 'select',
+      options: ['fa', 'mdi', 'ion', 'material-icons', 'material-symbols'],
+      description: 'Icon library',
     },
   },
 };
@@ -104,6 +139,24 @@ export const Default: Story = {
             Tags: {tags.join(', ')}
           </p>
         )}
+      </div>
+    );
+  },
+};
+
+/**
+ * Taginput with a left icon.
+ */
+export const WithIcon: Story = {
+  render: function WithIconExample() {
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <Taginput
+          icon="tag"
+          iconLibrary="mdi"
+          defaultValue={['React', 'Vue']}
+          placeholder="Add tags..."
+        />
       </div>
     );
   },
@@ -169,14 +222,31 @@ export const DefaultTags: Story = {
 };
 
 /**
- * Limit maximum number of tags.
+ * Limit maximum number of tags with counter display.
  */
-export const MaxTags: Story = {
-  render: function MaxTagsExample() {
+export const Limits: Story = {
+  render: function LimitsExample() {
     return (
-      <div style={{ maxWidth: '500px' }}>
-        <p className="mb-4 help">Maximum 3 tags allowed</p>
-        <Taginput maxTags={3} placeholder="Add up to 3 tags..." />
+      <div
+        className="is-flex is-flex-direction-column"
+        style={{ gap: '1.5rem', maxWidth: '500px' }}
+      >
+        <div>
+          <p className="mb-2 has-text-weight-semibold">Max 3 tags with counter</p>
+          <Taginput
+            maxTags={3}
+            hasCounter
+            placeholder="Add up to 3 tags..."
+          />
+        </div>
+        <div>
+          <p className="mb-2 has-text-weight-semibold">Max 20 character input</p>
+          <Taginput
+            maxlength={20}
+            hasCounter
+            placeholder="Type (max 20 chars)..."
+          />
+        </div>
       </div>
     );
   },
@@ -191,6 +261,47 @@ export const AllowDuplicates: Story = {
       <div style={{ maxWidth: '500px' }}>
         <p className="mb-4 help">Same tag can be added multiple times</p>
         <Taginput allowDuplicates placeholder="Type the same tag twice..." />
+      </div>
+    );
+  },
+};
+
+/**
+ * Rounded tags style.
+ */
+export const Rounded: Story = {
+  render: function RoundedExample() {
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <Taginput
+          defaultValue={['React', 'Vue', 'Angular']}
+          rounded
+          tagColor="primary"
+          placeholder="Add rounded tags..."
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Ellipsis on long tags with title tooltip.
+ */
+export const Ellipsis: Story = {
+  render: function EllipsisExample() {
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <p className="mb-4 help">Long tag text is truncated with ellipsis. Hover to see the full text.</p>
+        <Taginput
+          defaultValue={[
+            'A very long tag name that should be truncated',
+            'Another extremely long tag text for testing',
+            'Short',
+          ]}
+          ellipsis
+          tagColor="info"
+          placeholder="Add tags..."
+        />
       </div>
     );
   },
@@ -377,6 +488,128 @@ export const OpenOnFocus: Story = {
 };
 
 /**
+ * Paste text with separators to create multiple tags at once.
+ */
+export const PasteSeparators: Story = {
+  render: function PasteSeparatorsExample() {
+    const [tags, setTags] = useState<TaginputTag[]>([]);
+
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <p className="mb-4 help">
+          Paste comma or semicolon-separated text (e.g. &ldquo;React, Vue, Angular&rdquo;)
+        </p>
+        <Taginput
+          onPasteSeparators={[',', ';']}
+          onChange={setTags}
+          placeholder="Paste comma-separated values..."
+        />
+        {tags.length > 0 && (
+          <p className="mt-4 is-size-7 has-text-grey">
+            Tags: {tags.map(t => String(t)).join(', ')}
+          </p>
+        )}
+      </div>
+    );
+  },
+};
+
+/**
+ * Validate tags before adding with beforeAdding callback.
+ */
+export const BeforeAdding: Story = {
+  render: function BeforeAddingExample() {
+    const [error, setError] = useState('');
+
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <p className="mb-4 help">
+          Only tags with 3+ characters and no numbers are accepted
+        </p>
+        <Taginput
+          beforeAdding={(tag) => {
+            if (tag.length < 3) {
+              setError('Tag must be at least 3 characters');
+              return false;
+            }
+            if (/\d/.test(tag)) {
+              setError('Tag must not contain numbers');
+              return false;
+            }
+            setError('');
+            return true;
+          }}
+          placeholder="Add valid tags..."
+        />
+        {error && <p className="help is-danger mt-2">{error}</p>}
+      </div>
+    );
+  },
+};
+
+/**
+ * Auto-highlight first autocomplete result with keepFirst.
+ */
+export const KeepFirst: Story = {
+  render: function KeepFirstExample() {
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <p className="mb-4 help">
+          First suggestion is auto-highlighted. Press Enter to select it.
+        </p>
+        <Taginput
+          data={frameworks}
+          keepFirst
+          placeholder="Type to search..."
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Loading state while fetching async data. Type to trigger a simulated API call.
+ */
+export const Loading: Story = {
+  render: function LoadingExample() {
+    const [data, setData] = useState<string[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleTyping = useCallback((value: string) => {
+      if (!value) {
+        setData([]);
+        return;
+      }
+      setIsLoading(true);
+      setData([]);
+      // Simulate an API call with a delay
+      const timer = setTimeout(() => {
+        const results = frameworks.filter(f =>
+          f.toLowerCase().includes(value.toLowerCase())
+        );
+        setData(results);
+        setIsLoading(false);
+      }, 800);
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <div style={{ maxWidth: '500px' }}>
+        <p className="mb-4 help">
+          Type to search &mdash; results load after a short delay
+        </p>
+        <Taginput
+          data={data}
+          loading={isLoading}
+          placeholder="Type to search frameworks..."
+          onTyping={handleTyping}
+        />
+      </div>
+    );
+  },
+};
+
+/**
  * Custom tag template.
  */
 export const CustomTemplate: Story = {
@@ -514,4 +747,48 @@ export const WithCallbacks: Story = {
       </div>
     );
   },
+};
+
+// ============================================================
+// Context-aware Field/Control stories
+// ============================================================
+
+/**
+ * Standalone with label — Taginput renders its own Field+Control wrapper automatically.
+ */
+export const WithLabel: Story = {
+  render: () => <Taginput label="Tags" />,
+};
+
+/**
+ * Inside Field — the outer Field turns off Taginput's auto Field rendering via context.
+ * Demonstrates horizontal layout composition.
+ */
+export const WithFieldWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Tags">
+      <Field.Body>
+        <Taginput />
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Full manual composition — Field+Control provided externally.
+ * Taginput manages its own control internally, so the outer Control
+ * simply provides context signaling.
+ */
+export const WithFieldControlWrapper: Story = {
+  render: () => (
+    <Field horizontal label="Tags">
+      <Field.Body>
+        <Field>
+          <Control>
+            <Taginput />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  ),
 };

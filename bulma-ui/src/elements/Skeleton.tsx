@@ -1,6 +1,15 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 
+/**
+ * Props for the Skeleton component.
+ *
+ * @property {string} [className] - Additional CSS classes to apply.
+ * @property {'block' | 'lines'} [variant] - Variant of skeleton: 'block' (default) or 'lines'.
+ * @property {number} [lines] - Number of lines (only used if variant="lines").
+ * @property {React.ReactNode} [children] - Render content inside the skeleton (block variant only).
+ * @see {@link https://bulma.io/documentation/features/skeletons/ | Bulma Skeletons documentation}
+ */
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes to apply */
   className?: string;
@@ -15,7 +24,20 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Skeleton component for rendering a styled Bulma skeleton element.
  *
- * @see https://bulma.io/documentation/features/skeletons/
+ * Renders an animated placeholder that indicates content is loading.
+ * Supports block and multi-line variants.
+ *
+ * @function
+ * @param {SkeletonProps} props - Props for the Skeleton component.
+ * @returns {JSX.Element} The rendered skeleton element.
+ *
+ * @example
+ * // Block skeleton
+ * <Skeleton />
+ *
+ * @example
+ * // Multi-line skeleton
+ * <Skeleton variant="lines" lines={5} />
  */
 export const Skeleton: React.FC<SkeletonProps> = ({
   className,

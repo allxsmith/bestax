@@ -4,7 +4,7 @@ import { Image } from '../elements/Image';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 import Field from '../form/Field';
-import TextArea from '../form/TextArea';
+import { TextArea } from '../form/TextArea';
 import Checkbox from '../form/Checkbox';
 import Level from '../layout/Level';
 import { Content } from '../elements/Content';

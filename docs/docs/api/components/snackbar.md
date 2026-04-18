@@ -10,7 +10,7 @@ sidebar_label: Snackbar
 The `Snackbar` component provides bottom-aligned notification messages with an optional action button. Snackbars are ideal for user feedback after actions and typically include an undo option.
 
 :::info
-The Snackbar component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
+See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
 :::
 
 ---
@@ -19,9 +19,6 @@ The Snackbar component requires importing the extras CSS. See the [Extras Setup 
 
 ```tsx
 import { Snackbar, SnackbarContainer, snackbar } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -31,8 +28,8 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | Prop         | Type                                                                | Default     | Description                                          |
 | ------------ | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------- |
 | `message`    | `string`                                                            | —           | The message to display (required).                   |
-| `type`       | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | Color variant of the snackbar.                       |
-| `position`   | `'left'` \| `'center'` \| `'right'`                                 | `'center'`  | Horizontal position.                                 |
+| `type`       | `'default'` \| `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | `'default'` | Color type for the action button.                    |
+| `position`   | `'top-left'` \| `'top'` \| `'top-right'` \| `'bottom-left'` \| `'bottom'` \| `'bottom-right'` | `'bottom-right'` | Position on the screen.                          |
 | `duration`   | `number`                                                            | `4000`      | Duration in ms before auto-close. 0 = no auto-close. |
 | `onClose`    | `() => void`                                                        | —           | Callback when snackbar closes.                       |
 | `actionText` | `string`                                                            | —           | Text for the action button.                          |
@@ -40,6 +37,14 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `cancelable` | `boolean`                                                           | `true`      | Whether the snackbar can be dismissed.               |
 | `className`  | `string`                                                            | —           | Additional CSS classes.                              |
 | `ref`        | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the snackbar element.               |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` | — | Background color of the snackbar. |
+| `indefinite` | `boolean`                                                           | `false`     | Keeps the snackbar visible indefinitely (ignores `duration`). |
+| `pauseOnHover` | `boolean`                                                         | `true`      | Pauses the auto-dismiss timer while hovering.        |
+| `cancelText` | `string`                                                            | —           | Text for the cancel/close button.                    |
+| `container`  | `string \| HTMLElement`                                             | —           | CSS selector or DOM node to mount the snackbar into. |
+| `dismissible` | `boolean`                                                          | `false`     | Allows dismissing with a click anywhere on the snackbar. |
+| `rounded`    | `boolean`                                                           | `false`     | Applies rounded corners.                             |
+| `inline`     | `boolean`                                                           | `false`     | Renders inline instead of using a portal.            |
 | ...          | All standard HTML and Bulma helper props                            |             | (See [Helper Props](../helpers/usebulmaclasses))     |
 
 ---
@@ -54,7 +59,7 @@ A simple snackbar notification.
 function example() {
   const [showSnackbar, setShowSnackbar] = useState(false);
   return (
-    <div>
+    <Block>
       <Button onClick={() => setShowSnackbar(true)}>Show Snackbar</Button>
       {showSnackbar && (
         <Snackbar
@@ -62,7 +67,7 @@ function example() {
           onClose={() => setShowSnackbar(false)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -89,7 +94,7 @@ function example() {
   };
 
   return (
-    <div>
+    <Block>
       <Button color="danger" onClick={handleDelete}>
         Delete Item
       </Button>
@@ -101,7 +106,7 @@ function example() {
           onClose={() => setShowSnackbar(false)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -116,8 +121,8 @@ Different snackbar types for various contexts.
 function example() {
   const [snackbarType, setSnackbarType] = useState(null);
   return (
-    <div>
-      <div className="buttons">
+    <Block>
+      <Buttons>
         <Button color="success" onClick={() => setSnackbarType('success')}>
           Success
         </Button>
@@ -130,7 +135,7 @@ function example() {
         <Button color="info" onClick={() => setSnackbarType('info')}>
           Info
         </Button>
-      </div>
+      </Buttons>
       {snackbarType && (
         <Snackbar
           message={`This is a ${snackbarType} message!`}
@@ -138,7 +143,7 @@ function example() {
           onClose={() => setSnackbarType(null)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```
@@ -147,18 +152,23 @@ function example() {
 
 ### Position Variants
 
-Snackbar can be positioned left, center, or right.
+Snackbar can be positioned in six locations on the screen.
 
 ```tsx live
 function example() {
   const [position, setPosition] = useState(null);
   return (
-    <div>
-      <div className="buttons">
-        <Button onClick={() => setPosition('left')}>Left</Button>
-        <Button onClick={() => setPosition('center')}>Center</Button>
-        <Button onClick={() => setPosition('right')}>Right</Button>
-      </div>
+    <Block>
+      <Buttons>
+        <Button onClick={() => setPosition('top-left')}>Top Left</Button>
+        <Button onClick={() => setPosition('top')}>Top</Button>
+        <Button onClick={() => setPosition('top-right')}>Top Right</Button>
+      </Buttons>
+      <Buttons>
+        <Button onClick={() => setPosition('bottom-left')}>Bottom Left</Button>
+        <Button onClick={() => setPosition('bottom')}>Bottom</Button>
+        <Button onClick={() => setPosition('bottom-right')}>Bottom Right</Button>
+      </Buttons>
       {position && (
         <Snackbar
           message={`Position: ${position}`}
@@ -167,7 +177,7 @@ function example() {
           onClose={() => setPosition(null)}
         />
       )}
-    </div>
+    </Block>
   );
 }
 ```

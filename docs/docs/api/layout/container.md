@@ -50,7 +50,7 @@ This example shows the `Container` component, which centers and constrains conte
 ```tsx live
 <Container>
   <Notification color="primary">
-    By default the container is <strong>centered</strong> on desktop viewports
+    By default the container is <Strong>centered</Strong> on desktop viewports
     and up.
   </Notification>
 </Container>
@@ -66,7 +66,7 @@ Set the `widescreen` prop to make the container full-width until the `widescreen
 <Container widescreen>
   <Notification color="primary">
     If <code>breakpoint="widescreen"</code> the container is{' '}
-    <strong>fullwidth</strong> <em>until</em> the <code>widescreen</code>{' '}
+    <Strong>fullwidth</Strong> <em>until</em> the <code>widescreen</code>{' '}
     breakpoint.
   </Notification>
 </Container>
@@ -82,7 +82,7 @@ Set the `fullhd` prop to make the container full-width until the `fullhd` breakp
 <Container fullhd>
   <Notification color="primary">
     If <code>breakpoint="fullhd"</code> the container is{' '}
-    <strong>fullwidth</strong> <em>until</em> the <code>fullhd</code>{' '}
+    <Strong>fullwidth</Strong> <em>until</em> the <code>fullhd</code>{' '}
     breakpoint.
   </Notification>
 </Container>

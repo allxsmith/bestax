@@ -19,9 +19,6 @@ The Rate component requires importing the extras CSS. See the [Extras Setup Guid
 
 ```tsx
 import { Rate } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -40,6 +37,13 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | `texts`        | `string[]`                                  | —       | Array of text labels for each rating value.      |
 | `onChange`     | `(value: number) => void`                   | —       | Callback when rating changes.                    |
 | `customIcon`   | `(props: RateIconProps) => React.ReactNode` | —       | Custom icon renderer.                            |
+| `iconName`     | `string`                                    | —       | Custom icon name for the rating stars.           |
+| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | — | Icon library to use.                |
+| `iconVariant`  | `string`                                    | —       | Icon style variant.                              |
+| `iconFeatures` | `string` \| `string[]`                      | —       | Additional icon modifiers.                       |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | — | Color of the active rating icons.   |
+| `precision`    | `number`                                    | `1`     | Rating precision (e.g., `0.5` for half stars).   |
+| `customText`   | `string`                                    | —       | Custom text displayed next to the rating.        |
 | `spaced`       | `boolean`                                   | `false` | Add spacing between icons.                       |
 | `rtl`          | `boolean`                                   | `false` | Right-to-left direction.                         |
 | `className`    | `string`                                    | —       | Additional CSS classes.                          |
@@ -67,10 +71,10 @@ A simple 5-star rating.
 function example() {
   const [rating, setRating] = useState(3);
   return (
-    <div>
+    <Block>
       <Rate value={rating} onChange={setRating} />
-      <p className="mt-2">Rating: {rating} stars</p>
-    </div>
+      <Paragraph mt="2">Rating: {rating} stars</Paragraph>
+    </Block>
   );
 }
 ```
@@ -136,12 +140,12 @@ function example() {
 Ratings in different sizes.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Rate defaultValue={3} size="small" />
   <Rate defaultValue={3} />
   <Rate defaultValue={3} size="medium" />
   <Rate defaultValue={3} size="large" />
-</div>
+</Block>
 ```
 
 ---
@@ -154,10 +158,10 @@ Rating with more than 5 stars.
 function example() {
   const [rating, setRating] = useState(7);
   return (
-    <div>
+    <Block>
       <Rate value={rating} onChange={setRating} max={10} showScore />
-      <p className="mt-2">Rating: {rating} out of 10</p>
-    </div>
+      <Paragraph mt="2">Rating: {rating} out of 10</Paragraph>
+    </Block>
   );
 }
 ```
@@ -212,6 +216,62 @@ function example() {
       customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}
       showScore
     />
+  );
+}
+```
+
+---
+
+### Context-Aware Rendering
+
+The `Rate` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper.
+
+```tsx live
+<Rate label="Rating" defaultValue={3} />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Rating">
+      <Field.Body>
+        <Field>
+          <Rate defaultValue={3} />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both Field and Control. The component detects the Field context and renders only the rating element.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Rating">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-star">
+            <Rate defaultValue={3} />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
   );
 }
 ```

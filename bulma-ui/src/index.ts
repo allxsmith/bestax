@@ -63,20 +63,34 @@ export * from './form/Checkboxes';
 export * from './form/Control';
 export * from './form/Field';
 export * from './form/File';
-export * from './form/Input';
 export * from './form/Radio';
 export * from './form/Radios';
-export * from './form/Select';
-export * from './form/TextArea';
 export * from './form/Switch';
-export * from './form/InputField';
-export * from './form/SelectField';
-export * from './form/TextAreaField';
 export * from './form/Slider';
 export * from './form/Numberinput';
 export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Taginput';
+
+// Raw form components — exported with "Base" suffix as escape hatch
+export { InputBase } from './form/InputBase';
+export type { InputBaseProps } from './form/InputBase';
+export { SelectBase } from './form/SelectBase';
+export type { SelectBaseProps } from './form/SelectBase';
+export { TextAreaBase } from './form/TextAreaBase';
+export type { TextAreaBaseProps } from './form/TextAreaBase';
+
+// Convenience wrappers become primary exports
+export { Input } from './form/Input';
+export type { InputProps } from './form/Input';
+export { Select } from './form/Select';
+export type { SelectProps } from './form/Select';
+export { TextArea } from './form/TextArea';
+export type { TextAreaProps } from './form/TextArea';
+
+// Form contexts and shared types
+export { useInsideField, useInsideControl } from './form/FormContext';
+export type { FormFieldProps } from './form/fieldProps';
 
 export * from './grid/Cell';
 export * from './grid/Grid';

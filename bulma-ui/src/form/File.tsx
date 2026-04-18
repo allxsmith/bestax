@@ -6,6 +6,9 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { useInsideField } from './FormContext';
+import { Field } from './Field';
+import { FormFieldProps } from './fieldProps';
 
 /**
  * Props for the File component.
@@ -17,7 +20,7 @@ import { useConfig } from '../helpers/Config';
  * @property {boolean} [isRight] - Align file input to the right.
  * @property {boolean} [isCentered] - Center the file input.
  * @property {boolean} [hasName] - Show a file name indicator.
- * @property {React.ReactNode} [label] - Custom label text or node.
+ * @property {React.ReactNode} [buttonLabel] - Custom button label text or node.
  * @property {React.ReactNode} [iconLeft] - Left icon element.
  * @property {React.ReactNode} [iconRight] - Right icon element.
  * @property {string} [className] - Additional CSS classes to apply.
@@ -30,7 +33,8 @@ export interface FileProps
       React.InputHTMLAttributes<HTMLInputElement>,
       'size' | 'color' | 'type'
     >,
-    Omit<BulmaClassesProps, 'color'> {
+    Omit<BulmaClassesProps, 'color'>,
+    FormFieldProps {
   color?:
     | 'primary'
     | 'link'
@@ -48,7 +52,7 @@ export interface FileProps
   isRight?: boolean;
   isCentered?: boolean;
   hasName?: boolean;
-  label?: React.ReactNode;
+  buttonLabel?: React.ReactNode;
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
   className?: string;
@@ -68,6 +72,14 @@ export interface FileProps
 export const File = forwardRef<HTMLInputElement, FileProps>(
   (
     {
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      message,
+      messageColor,
+      fieldClassName,
       color,
       size,
       isBoxed,
@@ -75,7 +87,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       isRight,
       isCentered,
       hasName,
-      label,
+      buttonLabel,
       iconLeft,
       iconRight,
       className,
@@ -85,6 +97,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     },
     ref
   ) => {
+    const insideField = useInsideField();
     const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
@@ -116,7 +129,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       className
     );
 
-    return (
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
+    });
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    const fileElement = (
       <div className={fileClass}>
         <label className={usePrefixedClassNames('file-label')}>
           <input
@@ -135,7 +153,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
               </span>
             )}
             <span className={usePrefixedClassNames('file-label')}>
-              {label || 'Choose a file…'}
+              {buttonLabel || 'Choose a file\u2026'}
             </span>
             {iconRight && (
               <span className={prefixedClassNames(classPrefix, 'file-icon')}>
@@ -150,6 +168,28 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
           )}
         </label>
       </div>
+    );
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {fileElement}
+          {messageEl}
+        </Field>
+      );
+    }
+
+    return (
+      <>
+        {fileElement}
+        {messageEl}
+      </>
     );
   }
 );

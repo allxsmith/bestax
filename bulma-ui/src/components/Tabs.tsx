@@ -75,7 +75,23 @@ export interface TabsProps
 /**
  * Bulma Tabs component with stateful tab management, content panels, and vertical layout.
  *
+ * @function
+ * @param {TabsProps} props - Props for the Tabs component.
+ * @returns {JSX.Element} The rendered tabs component.
  * @see {@link https://bulma.io/documentation/components/tabs/ | Bulma Tabs documentation}
+ *
+ * @example
+ * // Basic tabs
+ * <Tabs>
+ *   <Tabs.List>
+ *     <Tabs.Tab index={0}>Pictures</Tabs.Tab>
+ *     <Tabs.Tab index={1}>Music</Tabs.Tab>
+ *   </Tabs.List>
+ *   <Tabs.Content>
+ *     <Tabs.Content.Item index={0}>Pictures content</Tabs.Content.Item>
+ *     <Tabs.Content.Item index={1}>Music content</Tabs.Content.Item>
+ *   </Tabs.Content>
+ * </Tabs>
  */
 export const Tabs: React.FC<TabsProps> & {
   List: typeof TabList;
@@ -218,6 +234,9 @@ export const Tabs: React.FC<TabsProps> & {
 
 /**
  * Props for the TabList component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Tab elements.
  */
 export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
   className?: string;
@@ -226,6 +245,10 @@ export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
 
 /**
  * Tab list container. Renders a `<ul>` with `role="tablist"`.
+ *
+ * @function
+ * @param {TabListProps} props - Props for the TabList component.
+ * @returns {JSX.Element} The rendered tab list.
  */
 export const TabList: React.FC<TabListProps> = ({
   className,
@@ -271,6 +294,10 @@ export interface TabProps extends Omit<React.LiHTMLAttributes<HTMLLIElement>, 'o
 /**
  * Individual tab button. Consumes Tabs context for active state management.
  * Renders `<a>` internally — consumers provide only the label text/children.
+ *
+ * @function
+ * @param {TabProps} props - Props for the Tab component.
+ * @returns {JSX.Element} The rendered tab.
  */
 export const Tab: React.FC<TabProps> = ({
   index,
@@ -344,6 +371,10 @@ export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
 
 /**
  * Legacy tab item. Does not consume context — active state is controlled via prop.
+ *
+ * @function
+ * @param {TabItemProps} props - Props for the TabItem component.
+ * @returns {JSX.Element} The rendered tab item.
  * @deprecated Use `Tabs.Tab` with an `index` prop instead.
  */
 export const TabItem: React.FC<TabItemProps> = ({
@@ -371,6 +402,9 @@ export const TabItem: React.FC<TabItemProps> = ({
 
 /**
  * Props for the TabsContent component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - TabContentItem elements.
  */
 export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -379,6 +413,10 @@ export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Wrapper for tab content panels. Apply `.tabs-content` class.
+ *
+ * @function
+ * @param {TabsContentProps} props - Props for the TabsContent component.
+ * @returns {JSX.Element} The rendered tabs content wrapper.
  */
 export const TabsContent: React.FC<TabsContentProps> & {
   Item: typeof TabContentItem;
@@ -410,6 +448,10 @@ export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement
 
 /**
  * Individual content panel. Shows/hides based on active tab from context.
+ *
+ * @function
+ * @param {TabContentItemProps} props - Props for the TabContentItem component.
+ * @returns {JSX.Element} The rendered tab content panel.
  */
 export const TabContentItem: React.FC<TabContentItemProps> = ({
   index,

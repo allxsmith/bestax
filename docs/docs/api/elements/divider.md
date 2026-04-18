@@ -40,11 +40,11 @@ import { Divider } from '@allxsmith/bestax-bulma';
 The default usage of the `Divider` component renders a standard horizontal rule.
 
 ```tsx live
-<div>
+<>
   <Block>Content above the divider</Block>
   <Divider />
   <Block>Content below the divider</Block>
-</div>
+</>
 ```
 
 ### With Vertical Margin
@@ -52,11 +52,11 @@ The default usage of the `Divider` component renders a standard horizontal rule.
 Use margin helpers to add spacing around the divider.
 
 ```tsx live
-<div>
+<>
   <Block>Content above</Block>
   <Divider my="6" />
   <Block>Content below</Block>
-</div>
+</>
 ```
 
 ### Colored Divider
@@ -64,11 +64,11 @@ Use margin helpers to add spacing around the divider.
 Apply a background color to create a colored divider line.
 
 ```tsx live
-<div>
+<>
   <Block>Content above</Block>
   <Divider bgColor="primary" />
   <Block>Content below</Block>
-</div>
+</>
 ```
 
 ### All Colors
@@ -76,7 +76,7 @@ Apply a background color to create a colored divider line.
 Display dividers in various Bulma theme colors.
 
 ```tsx live
-<div>
+<>
   <Block>Default</Block>
   <Divider />
   <Block>Primary</Block>
@@ -90,7 +90,7 @@ Display dividers in various Bulma theme colors.
   <Block>Danger</Block>
   <Divider bgColor="danger" />
   <Block>End</Block>
-</div>
+</>
 ```
 
 ### Separating Content Sections
@@ -98,7 +98,7 @@ Display dividers in various Bulma theme colors.
 Use dividers to create visual separation between major content sections.
 
 ```tsx live
-<div>
+<>
   <Title size="4">Section One</Title>
   <Paragraph>This is the first section of content.</Paragraph>
   <Divider my="5" />
@@ -107,7 +107,7 @@ Use dividers to create visual separation between major content sections.
   <Divider my="5" />
   <Title size="4">Section Three</Title>
   <Paragraph>This is the third section of content.</Paragraph>
-</div>
+</>
 ```
 
 ---

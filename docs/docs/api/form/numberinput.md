@@ -19,9 +19,6 @@ The Numberinput component requires importing the extras CSS. See the [Extras Set
 
 ```tsx
 import { Numberinput } from '@allxsmith/bestax-bulma';
-
-// Also import the extras CSS
-import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
 ---
@@ -31,17 +28,23 @@ import '@allxsmith/bestax-bulma/dist/extras.css';
 | Prop               | Type                                                                            | Default  | Description                                      |
 | ------------------ | ------------------------------------------------------------------------------- | -------- | ------------------------------------------------ |
 | `value`            | `number`                                                                        | —        | Controlled value.                                |
-| `defaultValue`     | `number`                                                                        | `0`      | Default value for uncontrolled usage.            |
+| `defaultValue`     | `number`                                                                        | —        | Default value for uncontrolled usage.            |
 | `min`              | `number`                                                                        | —        | Minimum allowed value.                           |
 | `max`              | `number`                                                                        | —        | Maximum allowed value.                           |
 | `step`             | `number`                                                                        | `1`      | Step increment.                                  |
 | `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —        | Size variant.                                    |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —        | Color variant for buttons.                       |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'light'` \| `'dark'` | —        | Color variant for buttons.                       |
 | `controlsPosition` | `'left'` \| `'right'` \| `'both'`                                               | `'both'` | Position of +/- buttons.                         |
 | `controlsRounded`  | `boolean`                                                                       | `false`  | Use rounded buttons.                             |
 | `disabled`         | `boolean`                                                                       | `false`  | Whether the input is disabled.                   |
 | `editable`         | `boolean`                                                                       | `true`   | Whether the input can be typed in.               |
 | `onChange`         | `(value: number) => void`                                                       | —        | Callback when value changes.                     |
+| `inputColor`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —        | Color of the input field itself.                 |
+| `compact`          | `boolean`                                                                       | `false`  | Uses compact button spacing.                     |
+| `bare`             | `boolean`                                                                       | `false`  | Removes button borders and background.           |
+| `variant`          | `'plusminus'` \| `'stepper'`                                                    | `'plusminus'` | Style variant for the control buttons.      |
+| `isLoading`        | `boolean`                                                                       | `false`  | Shows a loading state.                           |
+| `exponential`      | `boolean`                                                                       | `false`  | Enables exponential step increments when holding buttons. |
 | `className`        | `string`                                                                        | —        | Additional CSS classes.                          |
 | `ref`              | `React.Ref<HTMLElement>`                                                        | —        | Ref forwarded to the input element.              |
 | ...                | All standard HTML and Bulma helper props                                        |          | (See [Helper Props](../helpers/usebulmaclasses)) |
@@ -58,10 +61,10 @@ A simple number input with +/- buttons.
 function example() {
   const [value, setValue] = useState(5);
   return (
-    <div>
+    <Block>
       <Numberinput value={value} onChange={setValue} />
-      <p className="mt-2">Value: {value}</p>
-    </div>
+      <Paragraph mt="2">Value: {value}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -76,8 +79,8 @@ Number input with value constraints.
 function example() {
   const [quantity, setQuantity] = useState(1);
   return (
-    <div>
-      <p className="mb-2">Quantity (1-10):</p>
+    <Block>
+      <Paragraph mb="2">Quantity (1-10):</Paragraph>
       <Numberinput
         value={quantity}
         onChange={setQuantity}
@@ -85,7 +88,7 @@ function example() {
         max={10}
         color="primary"
       />
-    </div>
+    </Block>
   );
 }
 ```
@@ -97,13 +100,13 @@ function example() {
 Number inputs with different button colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Numberinput defaultValue={5} color="primary" />
   <Numberinput defaultValue={5} color="success" />
   <Numberinput defaultValue={5} color="info" />
   <Numberinput defaultValue={5} color="warning" />
   <Numberinput defaultValue={5} color="danger" />
-</div>
+</Block>
 ```
 
 ---
@@ -113,12 +116,12 @@ Number inputs with different button colors.
 Number inputs in different sizes.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Numberinput defaultValue={5} size="small" color="primary" />
   <Numberinput defaultValue={5} color="primary" />
   <Numberinput defaultValue={5} size="medium" color="primary" />
   <Numberinput defaultValue={5} size="large" color="primary" />
-</div>
+</Block>
 ```
 
 ---
@@ -128,20 +131,20 @@ Number inputs in different sizes.
 Different positions for the +/- buttons.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-  <div>
-    <p className="mb-1">Both sides (default)</p>
+<Block display="flex" flexDirection="column" gap="4">
+  <Block>
+    <Paragraph mb="1">Both sides (default)</Paragraph>
     <Numberinput defaultValue={5} controlsPosition="both" color="primary" />
-  </div>
-  <div>
-    <p className="mb-1">Left only</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Left only</Paragraph>
     <Numberinput defaultValue={5} controlsPosition="left" color="info" />
-  </div>
-  <div>
-    <p className="mb-1">Right only</p>
+  </Block>
+  <Block>
+    <Paragraph mb="1">Right only</Paragraph>
     <Numberinput defaultValue={5} controlsPosition="right" color="success" />
-  </div>
-</div>
+  </Block>
+</Block>
 ```
 
 ---
@@ -164,8 +167,8 @@ Number input with custom step increment.
 function example() {
   const [value, setValue] = useState(0);
   return (
-    <div>
-      <p className="mb-2">Step by 10:</p>
+    <Block>
+      <Paragraph mb="2">Step by 10:</Paragraph>
       <Numberinput
         value={value}
         onChange={setValue}
@@ -174,8 +177,8 @@ function example() {
         max={100}
         color="info"
       />
-      <p className="mt-2">Value: {value}</p>
-    </div>
+      <Paragraph mt="2">Value: {value}</Paragraph>
+    </Block>
   );
 }
 ```
@@ -198,6 +201,66 @@ A disabled number input.
 
 ```tsx live
 <Numberinput defaultValue={5} disabled />
+```
+
+---
+
+### Context-Aware Rendering
+
+The `Numberinput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
+
+:::note
+Numberinput does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+:::
+
+#### Default (with label)
+
+The simplest usage — the component automatically renders its own Field wrapper.
+
+```tsx live
+<Numberinput label="Quantity" defaultValue={1} min={1} max={10} color="primary" />
+```
+
+---
+
+#### With Field Wrapper
+
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Quantity">
+      <Field.Body>
+        <Field>
+          <Numberinput defaultValue={1} min={1} max={10} color="primary" />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both Field and Control. Numberinput does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Quantity">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="fas fa-hashtag">
+            <Numberinput defaultValue={1} min={1} max={10} color="primary" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
 ```
 
 ---

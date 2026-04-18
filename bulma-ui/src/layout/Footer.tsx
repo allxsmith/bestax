@@ -31,11 +31,15 @@ export interface FooterProps
 /**
  * Bulma Footer component.
  *
+ * @function
+ * @param {FooterProps} props - Props for the Footer component.
+ * @returns {JSX.Element} The rendered footer element.
+ * @see {@link https://bulma.io/documentation/layout/footer/ | Bulma Footer documentation}
+ *
  * @example
  * <Footer>
  *   <div className="content has-text-centered">...</div>
  * </Footer>
- * @see {@link https://bulma.io/documentation/layout/footer/ | Bulma Footer documentation}
  */
 export const Footer: React.FC<FooterProps> = ({
   as = 'footer',

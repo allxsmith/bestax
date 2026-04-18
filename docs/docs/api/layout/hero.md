@@ -180,11 +180,11 @@ This example demonstrates using the `fullheightWithNavbar` prop to create a hero
         </Navbar.Start>
         <Navbar.End>
           <Navbar.Item as="span">
-            <div className="buttons">
+            <Buttons>
               <Button color="primary" isInverted as="a">
                 Github
               </Button>
-            </div>
+            </Buttons>
           </Navbar.Item>
         </Navbar.End>
       </Navbar.Menu>
@@ -218,12 +218,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
               alt="Logo"
             />
           </Navbar.Item>
-          <span className="navbar-burger" data-target="navbarMenuHeroA">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
+          <Navbar.Burger />
         </Navbar.Brand>
         <Navbar.Menu id="navbarMenuHeroA">
           <Navbar.End>
@@ -240,7 +235,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
                   variant="brands"
                   ariaLabel="github"
                 />
-                <span>Github</span>
+                <Span>Github</Span>
               </Button>
             </Navbar.Item>
           </Navbar.End>
@@ -250,7 +245,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
   </Hero.Head>
 
   <Hero.Body>
-    <Container className="has-text-centered">
+    <Container textAlign="centered">
       <Title>Bestax</Title>
       <SubTitle>A Bulma Component Library</SubTitle>
     </Container>
