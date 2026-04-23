@@ -59,6 +59,9 @@ export interface AutocompleteItem {
  * @property {React.ReactNode} [empty] - Content to show when no results.
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the input.
  * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the input.
+ * @property {string} [name] - Form field name; forwarded to the inner input so the typed/selected value submits with the surrounding form.
+ * @property {string} [form] - The id of the form the input belongs to.
+ * @property {boolean} [required] - Whether the input is required.
  */
 export interface AutocompleteProps
   extends
@@ -83,6 +86,9 @@ export interface AutocompleteProps
   infiniteScrollDistance?: number;
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   size?: 'small' | 'medium' | 'large';
+  name?: string;
+  form?: string;
+  required?: boolean;
   onInput?: (value: string) => void;
   onSelect?: (item: AutocompleteItem | string | null) => void;
   onActiveChange?: (active: boolean) => void;
@@ -149,6 +155,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       header,
       footer,
       empty,
+      name,
+      form,
+      required,
       // Field props
       label,
       labelSize,
@@ -424,6 +433,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             value={inputValue}
             placeholder={placeholder}
             disabled={disabled}
+            name={name}
+            form={form}
+            required={required}
             onChange={handleInputChange}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}

@@ -57,12 +57,16 @@ export interface RateIconProps {
  * @property {BulmaColor} [color] - Bulma color for active icons.
  * @property {number} [precision] - Granularity: 1 for whole stars, 0.5 for half, 0.25 for quarter. Default: 1.
  * @property {string} [customText] - Text displayed after score (e.g., "(128 reviews)").
+ * @property {string} [name] - Form field name. When provided, a hidden input is rendered so the rating value is submitted with the surrounding form.
+ * @property {string} [form] - The id of the form this hidden input belongs to (for use outside the form element).
  */
 export interface RateProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
+  name?: string;
+  form?: string;
   value?: number;
   defaultValue?: number;
   max?: number;
@@ -176,6 +180,8 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       color,
       precision = 1,
       customText,
+      name,
+      form,
       className,
       ...props
     },
@@ -485,6 +491,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         {showScore && <span className="rate-score">{getScoreDisplay()}</span>}
         {text && <span className="rate-text">{text}</span>}
         {customText && <span className="rate-custom-text">{customText}</span>}
+        {name && (
+          <input type="hidden" name={name} value={currentValue} form={form} />
+        )}
       </div>
     );
 

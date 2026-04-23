@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { Rate } from './Rate';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -71,4 +72,34 @@ export const WithFieldControlWrapper: Story = {
       </Field.Body>
     </Field>
   ),
+};
+
+/**
+ * Form submission — Rate is HTML-form-compatible. Pass a `name` prop and the
+ * current value is submitted as a hidden input alongside any other form fields.
+ * Submit the form below to see the resulting FormData entries.
+ */
+export const WithName: Story = {
+  render: function RateForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Rate name="rating" defaultValue={3} showScore />
+        <div style={{ marginTop: '1rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
 };

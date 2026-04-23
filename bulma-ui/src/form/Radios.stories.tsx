@@ -1,4 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import Radio from './Radio';
 import Radios from './Radios';
 import { Field } from './Field';
@@ -87,10 +88,12 @@ export const WithFieldWrapper: Story = {
   render: () => (
     <Field horizontal label="Color">
       <Field.Body>
-        <Radios>
-          <Radio name="color" value="red">Red</Radio>
-          <Radio name="color" value="blue">Blue</Radio>
-        </Radios>
+        <Field>
+          <Radios>
+            <Radio name="color" value="red">Red</Radio>
+            <Radio name="color" value="blue">Blue</Radio>
+          </Radios>
+        </Field>
       </Field.Body>
     </Field>
   ),
@@ -115,4 +118,127 @@ export const WithFieldControlWrapper: Story = {
       </Field.Body>
     </Field>
   ),
+};
+
+/**
+ * Form submission — Radios is HTML-form-compatible. Pass a `name` prop on the
+ * group and every child Radio inherits it via React context (works at any
+ * nesting depth, including custom wrapper components). The selected value
+ * submits as `name=value` in FormData.
+ */
+export const WithName: Story = {
+  render: function RadiosForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Radios name="color">
+          <Radio value="red" defaultChecked>Red</Radio>
+          <Radio value="green">Green</Radio>
+          <Radio value="blue">Blue</Radio>
+        </Radios>
+        <div style={{ marginTop: '1rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
+};
+
+/**
+ * Same `name` propagation works through any wrapper component — the inherited
+ * name reaches Radios wrapped in custom layout components, fragments, and
+ * conditionals. This is the advantage of using context over child cloning.
+ */
+export const WithNameThroughWrappers: Story = {
+  render: function RadiosWrappedForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    const RadioCard = ({ value, label }: { value: string; label: string }) => (
+      <div style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, marginBottom: '0.5rem' }}>
+        <Radio value={value}>{label}</Radio>
+      </div>
+    );
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Radios name="plan">
+          <RadioCard value="basic" label="Basic — $9/mo" />
+          <RadioCard value="pro" label="Pro — $29/mo" />
+          <RadioCard value="enterprise" label="Enterprise — Contact us" />
+        </Radios>
+        <div style={{ marginTop: '1rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
+};
+
+/**
+ * Controlled group — parent owns the selected value via state. The group's
+ * `value` prop sets which Radio is checked, and `onChange` fires when the
+ * user picks a different one. This is the same pattern as MUI's RadioGroup,
+ * Radix's RadioGroup, and React Aria's RadioGroup.
+ */
+export const ControlledGroup: Story = {
+  render: function ControlledRadiosDemo() {
+    const [color, setColor] = useState('red');
+    return (
+      <div>
+        <Radios name="color" value={color} onChange={setColor}>
+          <Radio value="red">Red</Radio>
+          <Radio value="green">Green</Radio>
+          <Radio value="blue">Blue</Radio>
+        </Radios>
+        <p style={{ marginTop: '1rem' }}>
+          Selected: <strong>{color}</strong>
+        </p>
+      </div>
+    );
+  },
+};
+
+/**
+ * Uncontrolled group — the group manages selection state internally. Pass
+ * `defaultValue` for the initial selection and `onChange` to be notified of
+ * changes. The component's internal state is the source of truth.
+ */
+export const UncontrolledGroup: Story = {
+  render: function UncontrolledRadiosDemo() {
+    const [lastChange, setLastChange] = useState<string>('');
+    return (
+      <div>
+        <Radios name="size" defaultValue="md" onChange={setLastChange}>
+          <Radio value="sm">Small</Radio>
+          <Radio value="md">Medium</Radio>
+          <Radio value="lg">Large</Radio>
+        </Radios>
+        {lastChange && (
+          <p style={{ marginTop: '1rem' }}>
+            Last selected: <strong>{lastChange}</strong>
+          </p>
+        )}
+      </div>
+    );
+  },
 };

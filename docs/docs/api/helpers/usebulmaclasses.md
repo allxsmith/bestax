@@ -114,7 +114,6 @@ The following properties allow you to set different values for each viewport bre
 | `clearfix`             | `true`                                                          | `is-clearfix`                                                              |
 | `relative`             | `true`                                                          | `is-relative`                                                              |
 | `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`                                    |
-| `className`            | `string`                                                        | Any additional classes                                                     |
 
 ---
 

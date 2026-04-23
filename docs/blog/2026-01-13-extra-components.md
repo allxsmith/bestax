@@ -188,7 +188,7 @@ function StepsDemo() {
 
 For complete documentation and more examples:
 
-- [Using Extras Guide](/docs/guides/getting-started/using-extras) - Setup instructions
+- [Installation](/docs/guides/getting-started/installation) - Setup instructions (extras are bundled into `bestax.css`)
 - [UI Components](/docs/guides/library/components) - Toast, Dialog, Steps, etc.
 - [Form Components](/docs/guides/library/form) - Switch, Slider, Rate, etc.
 

@@ -9,10 +9,6 @@ sidebar_label: Snackbar
 
 The `Snackbar` component provides bottom-aligned notification messages with an optional action button. Snackbars are ideal for user feedback after actions and typically include an undo option.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

@@ -8,6 +8,12 @@ sidebar_position: 3
 
 Bulma provides a comprehensive spacing system using margin and padding helpers. These utilities allow you to add consistent spacing throughout your application without writing custom CSS.
 
+:::info Reference
+
+This page documents the bestax-bulma prop API for Bulma's spacing helpers. For the underlying CSS utilities, see the [official Bulma spacing helpers](https://bulma.io/documentation/helpers/spacing-helpers/).
+
+:::
+
 :::tip
 
 All components in bestax-bulma have access to these spacing properties through the `useBulmaClasses` hook. You can apply margin and padding to any component in the library for consistent spacing.
@@ -448,6 +454,6 @@ For detailed API information about spacing properties, see the [useBulmaClasses 
 ## See Also
 
 - [useBulmaClasses](/docs/api/helpers/usebulmaclasses) - Complete spacing property reference
-- [Responsive Design](/docs/guides/getting-started/responsiveness) - Responsive spacing techniques
+- [Responsive Design](/docs/guides/features/responsiveness) - Responsive spacing techniques
 - [Layout Components](/docs/guides/library/layout) - Layout components with built-in spacing
 - [Bulma Spacing Documentation](https://bulma.io/documentation/helpers/spacing-helpers/) - Official Bulma spacing helpers

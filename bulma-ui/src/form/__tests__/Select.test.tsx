@@ -114,11 +114,14 @@ describe('Select', () => {
       expect(container.querySelector('.control')).toHaveClass('has-icons-left');
     });
 
-    it('applies isLoading to control', () => {
+    it('applies isLoading to the select wrapper (matches Bulma docs)', () => {
       const { container } = render(
         <Select isLoading>{renderOptions()}</Select>
       );
-      expect(container.querySelector('.control')).toHaveClass('is-loading');
+      // Per Bulma: <div class="select is-loading"> replaces the chevron with a
+      // spinner. The .control wrapper does NOT receive is-loading.
+      expect(container.querySelector('.select')).toHaveClass('is-loading');
+      expect(container.querySelector('.control')).not.toHaveClass('is-loading');
     });
 
     it('applies isExpanded to control', () => {

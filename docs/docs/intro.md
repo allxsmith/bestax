@@ -8,48 +8,26 @@ For detailed installation options, framework-specific guides, or troubleshooting
 
 ---
 
-## 1. Create a React App
-
-Using Vite (recommended for quick setup):
+## 1. Run the Installer
 
 ```bash
-npm create vite@latest my-bestax-app -- --template react
+npm create bestax@latest my-bestax-app
 cd my-bestax-app
 ```
 
----
+The installer walks you through a few prompts and sets up everything for you:
 
-## 2. Install Dependencies
+- **Framework** — Vite (JavaScript) or Vite + TypeScript
+- **Bulma flavor** — Complete, Prefixed, No Helpers, No Helpers + Prefixed, or No Dark Mode
+- **Icon library** — Font Awesome, Material Design Icons, Material Icons, Material Symbols, Ionicons, or none
 
-```bash
-npm install @allxsmith/bestax-bulma
-```
-
----
-
-## 3. Add Bestax CSS
-
-In your `src/main.jsx`:
-
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import '@allxsmith/bestax-bulma/bestax.css'; // Bulma + extras in one file
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-```
+It installs `@allxsmith/bestax-bulma`, the icon font package you pick, adds the CSS imports to `src/main.{jsx,tsx}`, and scaffolds a working app. No manual `npm install` or CSS import step needed.
 
 ---
 
-## 4. Use Your First Component
+## 2. Edit Your First Component
 
-Replace `src/App.jsx`:
+Open `src/App.jsx` (or `App.tsx`) and replace it with:
 
 ```jsx
 import { Button, Box, Title, Notification } from '@allxsmith/bestax-bulma';
@@ -80,7 +58,7 @@ export default App;
 
 ---
 
-## 5. Run Your App
+## 3. Run Your App
 
 ```bash
 npm run dev

@@ -9,10 +9,6 @@ sidebar_label: Numberinput
 
 The `Numberinput` component provides a number input with increment/decrement buttons. It's ideal for quantity selectors, step inputs, and any numeric value that benefits from easy +/- adjustment.
 
-:::info
-The Numberinput component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import
@@ -253,7 +249,7 @@ function example() {
     <Field horizontal label="Quantity">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-hashtag">
+          <Control iconLeftName="hashtag">
             <Numberinput defaultValue={1} min={1} max={10} color="primary" />
           </Control>
         </Field>

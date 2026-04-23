@@ -68,6 +68,8 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
  * @property {(tag: TaginputTag, index: number) => void} [onRemove] - Callback when tag is removed.
  * @property {(value: string) => void} [onTyping] - Callback when typing in input.
  * @property {(tag: TaginputTag) => React.ReactNode} [tagTemplate] - Custom render for tags.
+ * @property {string} [name] - Form field name. When provided, one hidden input per tag is rendered so tags submit as a standard form-encoded array (e.g., `tags=react&tags=vue`).
+ * @property {string} [form] - The id of the form the hidden inputs belong to.
  * @property {string} [icon] - Icon name for the input field.
  * @property {IconLibrary} [iconLibrary] - Icon library to use.
  * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined').
@@ -122,6 +124,8 @@ export interface TaginputProps
     | 'dark'
     | 'light';
   size?: 'small' | 'medium' | 'large';
+  name?: string;
+  form?: string;
   onChange?: (tags: TaginputTag[]) => void;
   onAdd?: (tag: TaginputTag) => void;
   onRemove?: (tag: TaginputTag, index: number) => void;
@@ -204,6 +208,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       onRemove,
       onTyping,
       tagTemplate,
+      name,
+      form,
       className,
       ...props
     },
@@ -643,6 +649,17 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         {showCounter && (
           <small className={counterClasses}>{counterText}</small>
         )}
+
+        {name &&
+          tags.map((tag, i) => (
+            <input
+              key={`tag-input-${i}`}
+              type="hidden"
+              name={name}
+              value={getDisplayValue(tag)}
+              form={form}
+            />
+          ))}
       </div>
     );
 

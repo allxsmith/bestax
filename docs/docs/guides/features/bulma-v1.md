@@ -4,25 +4,26 @@ sidebar_label: Bulma V1
 sidebar_position: 4
 ---
 
-# Bulma V1
+# Bulma V1 (and Beyond)
 
-**Bestax-bulma** is built specifically for Bulma v1, the latest version of Bulma released in 2024. Unlike most other React Bulma libraries that target older versions, this library provides complete, up-to-date implementations of all Bulma v1 features.
+bestax-bulma is built for **Bulma v1** — the version released in 2024 that introduced CSS custom properties, true CSS Grid, and skeleton loading — and it layers on a curated set of components Bulma doesn't ship. It's not a neutral wrapper around Bulma's markup; it's a React library that **extends** Bulma with the pieces real apps need (Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Sidebar, and more) while keeping the Bulma classes you already know.
 
 ## Why Bulma V1 Matters
 
-Most React Bulma packages available today target Bulma v0.9.4 or earlier versions, missing out on the significant improvements and new features introduced in v1. This library ensures you get access to the latest Bulma capabilities with full React integration.
+Most React Bulma packages on npm still target Bulma v0.9.4. That means no CSS variables, no runtime theming, no true CSS Grid, no skeletons, and no class prefixing. Adopting any of them today means inheriting a design system frozen in 2023.
 
 ### Library Comparison
 
-| Feature              | Other Libraries          | bestax-bulma                     |
-| -------------------- | ------------------------ | -------------------------------- |
-| **Bulma Version**    | v0.9.4 or older          | v1.0+ (latest)                   |
-| **CSS Variables**    | ❌ Not supported         | ✅ Full support (500+ variables) |
-| **Runtime Theming**  | ❌ Limited               | ✅ Complete Theme component      |
-| **CSS Grid**         | ❌ Missing               | ✅ True CSS Grid support         |
-| **Skeleton Loading** | ❌ Not available         | ✅ Built-in skeleton states      |
-| **Class Prefixing**  | ❌ No support            | ✅ ConfigProvider support        |
-| **Dark Mode**        | ❌ Manual implementation | ✅ Built-in theme support        |
+| Feature                       | Other Libraries          | bestax-bulma                                                                                |
+| ----------------------------- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| **Bulma Version**             | v0.9.4 or older          | v1.0+ (latest)                                                                              |
+| **CSS Variables**             | ❌ Not supported         | ✅ Full support (500+ variables)                                                            |
+| **Runtime Theming**           | ❌ Limited               | ✅ Complete `Theme` component                                                               |
+| **CSS Grid**                  | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                                        |
+| **Skeleton Loading**          | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                          |
+| **Class Prefixing**           | ❌ No support            | ✅ `ConfigProvider` support                                                                 |
+| **Dark Mode**                 | ❌ Manual implementation | ✅ Built-in theme support                                                                   |
+| **Components beyond Bulma**   | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, Switch |
 
 ## New Features in Bulma V1
 
@@ -168,20 +169,33 @@ function FixedGrid() {
 
 ### Skeleton Loading States
 
-Built-in skeleton loading animations for all components:
+bestax exposes Bulma v1's skeletons through three complementary APIs:
+
+1. **`skeleton` helper prop** — available on every component that uses `useBulmaClasses` (so: Button, Box, Icon, Image, Notification, Tag, Input, TextArea, and most others). Renders Bulma's `is-skeleton` class for an in-place loading state.
+2. **`<Skeleton />` element** — a standalone placeholder for custom shapes and multi-line blocks (`<Skeleton variant="lines" lines={5} />`).
+3. **`hasSkeleton` prop on `Title` / `SubTitle`** — emits `has-skeleton` so heading placeholders preserve the heading's sizing.
 
 ```tsx
+import {
+  Box,
+  Button,
+  Title,
+  Icon,
+  Image,
+  Skeleton,
+} from '@allxsmith/bestax-bulma';
+
 function SkeletonExamples() {
   const [loading, setLoading] = useState(true);
 
   return (
     <Box p="4">
-      <Title skeleton={loading}>
+      <Title hasSkeleton={loading}>
         {loading ? 'Loading...' : 'Content Loaded!'}
       </Title>
 
       <Button skeleton={loading} color="primary">
-        {loading ? 'Loading...' : 'Click me'}
+        Click me
       </Button>
 
       <Icon name="star" skeleton={loading} ariaLabel="Rating" />
@@ -193,17 +207,13 @@ function SkeletonExamples() {
         size="128x128"
       />
 
+      {loading && <Skeleton variant="lines" lines={3} />}
+
       <button onClick={() => setLoading(!loading)}>Toggle Loading State</button>
     </Box>
   );
 }
 ```
-
-**Available on components:**
-
-- Button, Icon, Image, Notification
-- Tag, Title, SubTitle, Input, TextArea
-- And more...
 
 ## Comprehensive Feature Matrix
 
@@ -212,13 +222,14 @@ function SkeletonExamples() {
 | Component        | Bulma v1 Features              | bestax-bulma Support |
 | ---------------- | ------------------------------ | -------------------- |
 | **Button**       | Skeleton states, CSS variables | ✅ Complete          |
-| **Box**          | Enhanced theming               | ✅ Complete          |
-| **Icon**         | Skeleton loading               | ✅ Complete          |
-| **Image**        | Skeleton states                | ✅ Complete          |
+| **Box**          | CSS variable theming           | ✅ Complete          |
+| **Icon**         | Skeleton helper                | ✅ Complete          |
+| **Image**        | Skeleton helper                | ✅ Complete          |
 | **Notification** | CSS variable colors            | ✅ Complete          |
 | **Progress**     | Enhanced animations            | ✅ Complete          |
-| **Tag**          | Skeleton loading               | ✅ Complete          |
-| **Title**        | Skeleton states                | ✅ Complete          |
+| **Skeleton**     | Standalone placeholder element | ✅ Complete          |
+| **Tag**          | Skeleton helper                | ✅ Complete          |
+| **Title**        | `hasSkeleton` support          | ✅ Complete          |
 
 ### Components
 
@@ -253,6 +264,39 @@ function SkeletonExamples() {
 | **Dark Mode**        | Built-in dark theme support | Theme component     |
 | **Skeleton Loading** | Loading state animations    | Component prop      |
 | **Color Palettes**   | Extended color variations   | CSS variable shades |
+
+## Beyond Bulma v1: bestax Extras
+
+Bulma is a CSS framework — it doesn't ship carousels, dialogs, autocompletes, or rating inputs. bestax-bulma adds a curated set of React components that fit the same look and feel, use the same CSS variables, and respect the same `ConfigProvider` settings.
+
+### Interactive components
+
+| Component    | What it adds                                                  |
+| ------------ | ------------------------------------------------------------- |
+| **Carousel** | Slide-based content viewer with auto-advance and indicators   |
+| **Dialog**   | Modal dialog with confirm/cancel callbacks                    |
+| **Collapse** | Expandable content region with animation                      |
+| **Sidebar**  | Slide-in navigation panel                                     |
+| **Toast**    | Transient notification stack                                  |
+| **Snackbar** | Bottom-anchored single-line notification                      |
+| **Loading**  | Full-page or in-box loading overlay                           |
+| **Tooltip**  | Hover-triggered label with configurable delay                 |
+
+### Form components beyond Bulma
+
+| Component        | What it adds                                                     |
+| ---------------- | ---------------------------------------------------------------- |
+| **Autocomplete** | Searchable select with keyboard navigation                       |
+| **Rate**         | Star-rating input                                                |
+| **Slider**       | Themed range input                                               |
+| **Taginput**     | Free-text tag entry                                              |
+| **Switch**       | Toggle switch styled to match Bulma controls                     |
+| **NumberInput**  | Numeric input with increment/decrement controls                  |
+| **Checkboxes**   | Grouped checkbox list with shared label / layout                 |
+| **Radios**       | Grouped radio list with shared label / layout                    |
+| **Field**        | Convenience wrapper that bundles `Field` / `Control` / `Label`   |
+
+Each of these is a full React component with TypeScript types, Storybook examples, and its own API page under the **Components** and **Form** sections.
 
 ## Migration Benefits
 
@@ -336,11 +380,12 @@ function ModernBulmaApp() {
 }
 ```
 
-This example showcases multiple v1 features:
+This example uses class prefixing (`ConfigProvider`), runtime theming (`Theme`), and true CSS Grid (`Grid` / `Cell`) — all Bulma v1 features exposed as first-class React APIs.
 
-- Class prefixing with ConfigProvider
-- Runtime theming with Theme
-- True CSS Grid with Grid/Cell
-- Modern component APIs
+### Why bestax-bulma
 
-By choosing bestax-bulma, you're getting the most complete and up-to-date React implementation of Bulma available, with full support for all the modern features that make Bulma v1 a powerful choice for 2024, 2025 and beyond.
+- **Latest Bulma v1** — not a v0.9.4 port.
+- **TypeScript-first** — complete, accurate prop types for every component.
+- **Tree-shakeable** — import only the components you use.
+- **One dependency** — Bulma. bestax bundles it for you.
+- **Extends, doesn't wrap** — Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, and more are included alongside the full Bulma component set.

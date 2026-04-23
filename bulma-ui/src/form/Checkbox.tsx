@@ -1,10 +1,11 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useCheckboxesGroup } from './FormContext';
 
 /**
  * Valid colors for the Checkbox component.
@@ -53,7 +54,13 @@ export interface CheckboxProps
  * Bulma Checkbox component with themed styling support.
  *
  * Renders a custom-styled checkbox with a visual check indicator,
- * supporting colors, sizes, and various states.
+ * supporting colors, sizes, and various states. Inside a `<Checkboxes>`
+ * group, Checkbox inherits `name` and (when the group is in controlled or
+ * uncontrolled mode) derives its `checked` state from membership in the
+ * group's `value` array. On click, dispatches the new array via the group's
+ * `onChange`.
+ *
+ * Local props always win over group context.
  *
  * @function
  * @param {CheckboxProps} props - Props for the Checkbox component.
@@ -64,10 +71,11 @@ export interface CheckboxProps
  * <Checkbox>Accept terms</Checkbox>
  *
  * @example
- * // Colored checkbox
- * <Checkbox color="primary" defaultChecked>
- *   Enable feature
- * </Checkbox>
+ * // Inside a group
+ * <Checkboxes name="tags" defaultValue={['react']}>
+ *   <Checkbox value="react">React</Checkbox>
+ *   <Checkbox value="vue">Vue</Checkbox>
+ * </Checkboxes>
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   (
@@ -78,6 +86,11 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       children,
       textColor,
       disabled,
+      name,
+      value,
+      checked,
+      defaultChecked,
+      onChange,
       ...props
     },
     ref
@@ -87,6 +100,48 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       ...props,
     });
 
+    // Inherit name + selection state from a surrounding <Checkboxes> group.
+    // Local props always win over the group (explicit > implicit).
+    const group = useCheckboxesGroup();
+    const effectiveName = name ?? group?.name;
+
+    // Group-managed checked state — only when the group is in
+    // controlled/uncontrolled mode (group.value is defined) AND this Checkbox
+    // has a value to compare against. Local `checked` always wins.
+    const groupManaged =
+      group?.value !== undefined && value !== undefined;
+    const groupHas =
+      groupManaged && group!.value!.includes(String(value));
+    const effectiveChecked =
+      checked !== undefined
+        ? checked
+        : groupManaged
+          ? groupHas
+          : undefined;
+    // When the group manages checked, suppress local defaultChecked to avoid
+    // the controlled/uncontrolled React warning.
+    const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;
+
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Local onChange always fires.
+        onChange?.(e);
+        // Dispatch to the group additionally — toggle this value's
+        // membership in the group's array.
+        if (group?.onChange && value !== undefined) {
+          const valStr = String(value);
+          const currentArr = group.value ?? [];
+          const next = e.target.checked
+            ? currentArr.includes(valStr)
+              ? currentArr
+              : [...currentArr, valStr]
+            : currentArr.filter(v => v !== valStr);
+          group.onChange(next);
+        }
+      },
+      [onChange, group, value]
+    );
+
     const mainClass = usePrefixedClassNames('styled-checkbox', 'checkbox', {
       [`is-${color}`]: color && checkboxColors.includes(color),
       [`is-${size}`]: size && checkboxSizes.includes(size),
@@ -95,7 +150,17 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     return (
       <label className={checkboxClass}>
-        <input ref={ref} type="checkbox" disabled={disabled} {...rest} />
+        <input
+          ref={ref}
+          type="checkbox"
+          disabled={disabled}
+          name={effectiveName}
+          value={value}
+          checked={effectiveChecked}
+          defaultChecked={effectiveDefaultChecked}
+          onChange={handleChange}
+          {...rest}
+        />
         <span className="check" />
         {children && <span className="control-label">{children}</span>}
       </label>

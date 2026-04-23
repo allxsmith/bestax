@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Checkbox } from './Checkbox';
-import { Checkboxes } from './Checkboxes';
 
 const meta: Meta<typeof Checkbox> = {
   title: 'Form/Checkbox',
@@ -208,16 +207,4 @@ export const NoLabel: Story = {
   },
 };
 
-/**
- * A group of checkboxes using the Checkboxes wrapper.
- */
-export const ListOfCheckboxes: Story = {
-  render: () => (
-    <Checkboxes>
-      <Checkbox color="primary">Make the bed</Checkbox>
-      <Checkbox color="primary">Brush teeth</Checkbox>
-      <Checkbox color="primary">Do homework</Checkbox>
-      <Checkbox color="primary">Feed the pet</Checkbox>
-    </Checkboxes>
-  ),
-};
+// Group/Checkboxes-wrapper stories live in `Checkboxes.stories.tsx`.

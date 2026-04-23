@@ -8,6 +8,12 @@ sidebar_position: 1
 
 Bulma provides a comprehensive set of color helpers for text and background colors. These helpers allow you to quickly apply consistent coloring throughout your application without writing custom CSS.
 
+:::info Reference
+
+This page documents the bestax-bulma prop API for Bulma's color helpers. For the underlying CSS utilities, see the [official Bulma color helpers](https://bulma.io/documentation/helpers/color-helpers/).
+
+:::
+
 :::tip
 
 All components in bestax-bulma have access to these standard color properties through the `useBulmaClasses` hook. This means you can apply color properties to any component in the library.
@@ -119,6 +125,13 @@ Use the `backgroundColor` prop to apply background colors to any component. The 
 | ------------------------- | ---------------------- | ---------------------- |
 | `backgroundColor="light"` | `has-background-light` | Light theme background |
 | `backgroundColor="dark"`  | `has-background-dark`  | Dark theme background  |
+
+### Special Backgrounds
+
+| Property                    | Bulma Class              | Background Value         |
+| --------------------------- | ------------------------ | ------------------------ |
+| `backgroundColor="inherit"` | `has-background-inherit` | Inherit from parent      |
+| `backgroundColor="current"` | `has-background-current` | Current color value      |
 
 ### Example Usage
 

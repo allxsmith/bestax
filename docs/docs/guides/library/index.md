@@ -56,7 +56,7 @@ Bulma organises its styles into a clear hierarchy, and bestax-bulma mirrors it e
   <Cell>
     <Notification color="success" textColor="black" fullHeight>
       <Title size="5" textColor="black">Form</Title>
-      <Tag color="dark" isRounded>19</Tag>
+      <Tag color="dark" isRounded>16</Tag>
       <Paragraph mt="2" textColor="black">Input controls — text fields, selects, checkboxes</Paragraph>
       <a href="/docs/guides/library/form" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
     </Notification>
@@ -152,11 +152,13 @@ Higher-level composed UI patterns: navigation, overlays, feedback, and interacti
 
 ---
 
-## Form (19)
+## Form (16)
 
 Input controls for building accessible, flexible forms.
 
-[Autocomplete](/docs/api/form/autocomplete), [Checkbox](/docs/api/form/checkbox), [Checkboxes](/docs/api/form/checkboxes), [Control](/docs/api/form/control), [Field](/docs/api/form/field), [File](/docs/api/form/file), [Input](/docs/api/form/input), [InputField](/docs/api/form/field), [Numberinput](/docs/api/form/numberinput), [Radio](/docs/api/form/radio), [Radios](/docs/api/form/radios), [Rate](/docs/api/form/rate), [Select](/docs/api/form/select), [SelectField](/docs/api/form/field), [Slider](/docs/api/form/slider), [Switch](/docs/api/form/switch), [Taginput](/docs/api/form/taginput), [TextArea](/docs/api/form/textarea), [TextAreaField](/docs/api/form/field)
+[Autocomplete](/docs/api/form/autocomplete), [Checkbox](/docs/api/form/checkbox), [Checkboxes](/docs/api/form/checkboxes), [Control](/docs/api/form/control), [Field](/docs/api/form/field), [File](/docs/api/form/file), [Input](/docs/api/form/input), [Numberinput](/docs/api/form/numberinput), [Radio](/docs/api/form/radio), [Radios](/docs/api/form/radios), [Rate](/docs/api/form/rate), [Select](/docs/api/form/select), [Slider](/docs/api/form/slider), [Switch](/docs/api/form/switch), [Taginput](/docs/api/form/taginput), [TextArea](/docs/api/form/textarea)
+
+`Input`, `Select`, and `TextArea` accept `label`, icon, and `message` props to auto-wrap with `Field` + `Control`. For complex layouts, use the raw `InputBase`, `SelectBase`, and `TextAreaBase` primitives.
 
 ```tsx live
 function FormShowcase() {
@@ -292,8 +294,4 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 | **Form** | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput |
 | **Elements** | LinkButton |
 
-These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components.
-
-:::info Extras CSS Required
-Extra components require one additional import. See the [Using Extras guide](/docs/guides/getting-started/using-extras) for setup instructions.
-:::
+These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

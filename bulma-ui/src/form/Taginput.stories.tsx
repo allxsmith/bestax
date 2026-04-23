@@ -792,3 +792,37 @@ export const WithFieldControlWrapper: Story = {
     </Field>
   ),
 };
+
+/**
+ * Form submission — Taginput is HTML-form-compatible. Pass a `name` prop and
+ * one hidden `<input>` per tag is rendered, producing standard form-encoded
+ * array submission (e.g., `tags=react&tags=vue&tags=angular`).
+ */
+export const WithName: Story = {
+  render: function TaginputForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Taginput
+          name="tags"
+          defaultValue={['react', 'vue', 'angular']}
+          placeholder="Add a tag…"
+        />
+        <div style={{ marginTop: '1rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
+};

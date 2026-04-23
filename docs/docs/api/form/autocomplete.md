@@ -9,10 +9,6 @@ sidebar_label: Autocomplete
 
 The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input. It supports both string arrays and object data, keyboard navigation, and custom templates.
 
-:::info
-The Autocomplete component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import
@@ -359,7 +355,7 @@ function example() {
     <Field horizontal label="Fruit">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-search">
+          <Control iconLeftName="search">
             <Autocomplete data={['Apple', 'Banana', 'Cherry']} placeholder="Search fruit..." />
           </Control>
         </Field>
@@ -380,6 +376,43 @@ function example() {
 | `Enter`  | Select highlighted item           |
 | `Tab`    | Select highlighted and move focus |
 | `Escape` | Close dropdown                    |
+
+---
+
+## Form Submission
+
+`Autocomplete` is an HTML form element. Pass a `name` prop and the typed/selected text is forwarded to the inner `<input>` so the value submits with the surrounding form, exactly like a native text input.
+
+| Prop | Description |
+| --- | --- |
+| `name` | Form field name. Forwarded to the inner `<input>`. |
+| `form` | Optional id of the form the input belongs to. |
+| `required` | Marks the field as required for native HTML form validation. |
+
+```tsx live
+function AutocompleteFormDemo() {
+  const [submitted, setSubmitted] = React.useState('');
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+      }}
+    >
+      <Autocomplete
+        name="city"
+        data={['New York', 'London', 'Paris', 'Tokyo', 'Sydney']}
+        placeholder="Search a city…"
+      />
+      <div style={{ marginTop: '1rem' }}>
+        <button type="submit" className="button is-primary">Submit</button>
+      </div>
+      {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
+    </form>
+  );
+}
+```
 
 ---
 

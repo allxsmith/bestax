@@ -9,10 +9,6 @@ sidebar_label: Toast
 
 The `Toast` component provides brief notification messages that appear and disappear automatically. Toasts are non-blocking and ideal for success messages, warnings, or general feedback.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

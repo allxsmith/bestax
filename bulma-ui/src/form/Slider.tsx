@@ -107,6 +107,8 @@ export interface SliderSingleProps extends SliderBaseProps {
  * @property {(value: [number, number]) => void} [onChange] - Callback when the range changes.
  * @property {number} [minDistance] - Minimum distance between the two thumbs.
  * @property {[string, string]} [ariaLabel] - Accessible labels for the low and high thumb inputs.
+ * @property {string} [nameLow] - Form field name for the low thumb. Use this in range mode so each thumb submits with its own name.
+ * @property {string} [nameHigh] - Form field name for the high thumb.
  */
 export interface SliderRangeProps extends SliderBaseProps {
   range: true;
@@ -115,6 +117,8 @@ export interface SliderRangeProps extends SliderBaseProps {
   onChange?: (value: [number, number]) => void;
   minDistance?: number;
   ariaLabel?: [string, string];
+  nameLow?: string;
+  nameHigh?: string;
 }
 
 /** Props for the Slider component — a discriminated union of single and range modes. */
@@ -203,6 +207,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       range,
       minDistance = 0,
       ariaLabel,
+      nameLow,
+      nameHigh,
       className,
       ...restProps
     } = props as SliderRangeProps & SliderSingleProps;
@@ -582,7 +588,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                 } as React.CSSProperties)
           }
         />
-        {/* Low thumb */}
+        {/* Low thumb. nameLow overrides any `name` from rest so each thumb has its own form field. */}
         <input
           ref={combinedRef}
           type="range"
@@ -605,6 +611,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-label={(ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'}
           {...getAriaProps(currentRange[0])}
           {...rest}
+          {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
         {/* High thumb */}
         <input
@@ -627,6 +634,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           aria-label={(ariaLabel as [string, string] | undefined)?.[1] ?? 'Maximum value'}
           {...getAriaProps(currentRange[1])}
+          name={nameHigh}
         />
         {/* Low tooltip */}
         {tooltipMode !== 'hidden' && (

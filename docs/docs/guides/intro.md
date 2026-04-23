@@ -101,6 +101,6 @@ Visit http://localhost:5173 to see your app running.
 ## Next Steps
 
 - [Installation Options](/docs/guides/getting-started/installation) -- Icon libraries, CDN, custom Bulma builds, and more
-- [Extra Components](/docs/guides/getting-started/using-extras) -- Toast, Dialog, Slider, Switch, and other extras
+- [Extra Components](/docs/guides/library/components) -- Toast, Dialog, Slider, Switch, and other extras
 - [Toolchains](/docs/guides/getting-started/react-setups) -- Next.js, TypeScript, and Create React App guides
 - [Browse Components](/docs/category/elements) -- Full API docs and live examples

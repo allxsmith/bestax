@@ -9,10 +9,6 @@ sidebar_label: Slider
 
 The `Slider` component provides a range slider input for selecting values within a range. It supports different sizes, colors, and optional value display.
 
-:::info
-The Slider component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import
@@ -263,7 +259,7 @@ function example() {
     <Field horizontal label="Volume">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-volume-up">
+          <Control iconLeftName="volume-up">
             <Slider defaultValue={50} color="primary" />
           </Control>
         </Field>
@@ -292,6 +288,44 @@ Use `defaultValue` for internal state management:
 
 ```tsx
 <Slider defaultValue={50} />
+```
+
+---
+
+## Form Submission
+
+`Slider` uses a native `<input type="range">` and is HTML-form-compatible. In single-value mode pass a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb submits as its own field.
+
+| Mode | Prop(s) |
+| --- | --- |
+| Single | `name` (forwarded to the single `<input type="range">`) |
+| Range | `nameLow` (low thumb), `nameHigh` (high thumb) — both render as separate `<input type="range">` elements |
+
+```tsx live
+function SliderRangeFormDemo() {
+  const [submitted, setSubmitted] = React.useState('');
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+      }}
+    >
+      <Slider
+        range
+        nameLow="priceMin"
+        nameHigh="priceMax"
+        defaultValue={[20, 80]}
+        showOutput
+      />
+      <div style={{ marginTop: '1.5rem' }}>
+        <button type="submit" className="button is-primary">Submit</button>
+      </div>
+      {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
+    </form>
+  );
+}
 ```
 
 ---

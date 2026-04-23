@@ -9,10 +9,6 @@ sidebar_label: Steps
 
 The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. It supports horizontal and vertical layouts, customizable markers, and clickable navigation.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

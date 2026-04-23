@@ -9,10 +9,6 @@ sidebar_label: Sidebar
 
 The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen. It's ideal for mobile navigation, settings panels, or any content that should overlay the main interface.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

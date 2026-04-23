@@ -10,6 +10,9 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
  * @property {boolean} [isRounded] - Renders the select with rounded corners.
  * @property {boolean} [isLoading] - Shows loading indicator.
  * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
+ * @property {boolean} [isHovered] - Forces the hovered state on the inner select element.
+ * @property {boolean} [isFocused] - Forces the focused state on the inner select element.
+ * @property {boolean} [isFullwidth] - Makes the select span the full width of its parent.
  * @property {string} [className] - Additional CSS classes to apply.
  * @property {boolean} [disabled] - Whether the select is disabled.
  * @property {boolean} [multiple] - Whether the select allows multiple values.
@@ -35,6 +38,9 @@ export interface SelectBaseProps
   isRounded?: boolean;
   isLoading?: boolean;
   isActive?: boolean;
+  isHovered?: boolean;
+  isFocused?: boolean;
+  isFullwidth?: boolean;
   className?: string;
   disabled?: boolean;
   multiple?: boolean;
@@ -58,6 +64,9 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       isRounded,
       isLoading,
       isActive,
+      isHovered,
+      isFocused,
+      isFullwidth,
       className,
       disabled,
       children,
@@ -78,8 +87,16 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       'is-rounded': isRounded,
       'is-loading': isLoading,
       'is-active': isActive,
+      'is-multiple': !!multiple,
+      'is-fullwidth': isFullwidth,
     });
     const selectClass = classNames(mainClass, bulmaHelperClasses, className);
+
+    // is-hovered / is-focused belong on the inner <select> element, not the wrapper.
+    const innerSelectClass = usePrefixedClassNames('', {
+      'is-hovered': isHovered,
+      'is-focused': isFocused,
+    });
 
     // Only set size attribute when multiple is true and multipleSize is specified
     const selectProps: React.SelectHTMLAttributes<HTMLSelectElement> = {
@@ -94,7 +111,11 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
 
     return (
       <div className={selectClass}>
-        <select ref={ref} {...selectProps}>
+        <select
+          ref={ref}
+          className={innerSelectClass || undefined}
+          {...selectProps}
+        >
           {children}
         </select>
       </div>

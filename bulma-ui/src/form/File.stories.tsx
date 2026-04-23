@@ -13,313 +13,266 @@ export default meta;
 
 type Story = StoryObj<typeof File>;
 
+/**
+ * A basic file input. `buttonLabel` sets the CTA text; `iconLeft` adds an icon.
+ */
 export const Default: Story = {
   render: () => (
-    <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File buttonLabel="Choose a file\u2026" iconLeft={<Icon name="upload" />} />
   ),
 };
 
-export const ModifiersHasNameWithFileName: Story = {
+/**
+ * `hasName` displays the selected file name. `fileName` shows a custom or
+ * pre-selected name.
+ */
+export const WithFilename: Story = {
   render: () => (
     <File
       hasName
       fileName="resume.pdf"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
-export const ModifiersHasRight: Story = {
+/**
+ * `isRight` + `hasName` puts the CTA on the right and the filename on the left.
+ */
+export const CtaOnRight: Story = {
   render: () => (
     <File
       hasName
       isRight
       fileName="contract.pdf"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
-export const ModifiersFullWidth: Story = {
+/**
+ * `isFullwidth` makes the widget take the full width of its container.
+ */
+export const FullWidth: Story = {
   render: () => (
     <File
       hasName
       isFullwidth
       fileName="picture.png"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
-export const ModifiersBoxedBlock: Story = {
+/**
+ * `isBoxed` stacks the icon over the text into a square box.
+ */
+export const Boxed: Story = {
   render: () => (
-    <File isBoxed buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
+    <File
+      isBoxed
+      buttonLabel="Choose a file\u2026"
+      iconLeft={<Icon name="upload" />}
+    />
   ),
 };
 
-export const ModifiersHasNameAndBoxedBlock: Story = {
+/**
+ * `isBoxed` + `hasName` for a boxed widget that also shows the filename.
+ */
+export const BoxedWithName: Story = {
   render: () => (
     <File
       isBoxed
       hasName
       fileName="holiday.jpg"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
-// Colors
-export const ColorsPrimary: Story = {
+/**
+ * The four color combos Bulma's docs show.
+ */
+export const Colors: Story = {
   render: () => (
-    <File
-      color="primary"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
+    <>
+      <File
+        color="primary"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        color="info"
+        hasName
+        fileName="resume.pdf"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        color="warning"
+        isBoxed
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="cloud-upload-alt" />}
+      />
+      <File
+        color="danger"
+        isBoxed
+        hasName
+        fileName="resume.pdf"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="cloud-upload-alt" />}
+      />
+    </>
   ),
 };
 
-export const ColorsInfo: Story = {
+/**
+ * The `size` prop controls the file input's size.
+ */
+export const Sizes: Story = {
   render: () => (
-    <File
-      color="info"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
+    <>
+      <File
+        size="small"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File buttonLabel="Choose a file\u2026" iconLeft={<Icon name="upload" />} />
+      <File
+        size="medium"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="large"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+    </>
   ),
 };
 
-export const ColorsWarning: Story = {
+/**
+ * `size` + `hasName` scales the filename display alongside the button.
+ */
+export const SizesWithName: Story = {
   render: () => (
-    <File
-      color="warning"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
+    <>
+      <File
+        size="small"
+        hasName
+        fileName="sample.txt"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        hasName
+        fileName="sample.txt"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="medium"
+        hasName
+        fileName="sample.txt"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="large"
+        hasName
+        fileName="sample.txt"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+    </>
   ),
 };
 
-export const ColorsDanger: Story = {
+/**
+ * `size` + `isBoxed` for boxed file inputs at every size.
+ */
+export const SizesWithBoxed: Story = {
   render: () => (
-    <File
-      color="danger"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
+    <>
+      <File
+        size="small"
+        isBoxed
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        isBoxed
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="medium"
+        isBoxed
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="large"
+        isBoxed
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+    </>
   ),
 };
 
-// Sizes
-export const SizesSmall: Story = {
+/**
+ * `isBoxed` + `hasName` + `size` for a boxed file input that also shows the
+ * filename, at every size.
+ */
+export const SizesWithBoxedAndName: Story = {
   render: () => (
-    <File
-      size="small"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
+    <>
+      <File
+        size="small"
+        isBoxed
+        hasName
+        fileName="summary.docx"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        isBoxed
+        hasName
+        fileName="summary.docx"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="medium"
+        isBoxed
+        hasName
+        fileName="summary.docx"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+      <File
+        size="large"
+        isBoxed
+        hasName
+        fileName="summary.docx"
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
+    </>
   ),
 };
 
-export const SizesNormal: Story = {
-  render: () => (
-    <File buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'This is the default size.',
-      },
-    },
-  },
-};
-
-export const SizesMedium: Story = {
-  render: () => (
-    <File
-      size="medium"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesLarge: Story = {
-  render: () => (
-    <File
-      size="large"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-// Sizes with Name
-export const SizesSmallWithName: Story = {
-  render: () => (
-    <File
-      size="small"
-      hasName
-      fileName="sample.txt"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesNormalWithName: Story = {
-  render: () => (
-    <File
-      hasName
-      fileName="sample.txt"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'This is the default size with name.',
-      },
-    },
-  },
-};
-
-export const SizesMediumWithName: Story = {
-  render: () => (
-    <File
-      size="medium"
-      hasName
-      fileName="sample.txt"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesLargeWithName: Story = {
-  render: () => (
-    <File
-      size="large"
-      hasName
-      fileName="sample.txt"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-// Sizes with Boxed
-export const SizesSmallWithBoxed: Story = {
-  render: () => (
-    <File
-      size="small"
-      isBoxed
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesNormalWithBoxed: Story = {
-  render: () => (
-    <File isBoxed buttonLabel="Choose a file..." iconLeft={<Icon name="upload" />} />
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'This is the default size with boxed.',
-      },
-    },
-  },
-};
-
-export const SizesMediumWithBoxed: Story = {
-  render: () => (
-    <File
-      size="medium"
-      isBoxed
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesLargeWithBoxed: Story = {
-  render: () => (
-    <File
-      size="large"
-      isBoxed
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-// Sizes with Name and Boxed
-export const SizesSmallWithNameAndBoxed: Story = {
-  render: () => (
-    <File
-      size="small"
-      isBoxed
-      hasName
-      fileName="summary.docx"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesNormalWithNameAndBoxed: Story = {
-  render: () => (
-    <File
-      isBoxed
-      hasName
-      fileName="summary.docx"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'This is the default size with name and boxed.',
-      },
-    },
-  },
-};
-
-export const SizesMediumWithNameAndBoxed: Story = {
-  render: () => (
-    <File
-      size="medium"
-      isBoxed
-      hasName
-      fileName="summary.docx"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-export const SizesLargeWithNameAndBoxed: Story = {
-  render: () => (
-    <File
-      size="large"
-      isBoxed
-      hasName
-      fileName="summary.docx"
-      buttonLabel="Choose a file..."
-      iconLeft={<Icon name="upload" />}
-    />
-  ),
-};
-
-// Alignments
-export const AlignmentCenter: Story = {
+/**
+ * `isCentered` centers the widget within its parent container.
+ */
+export const AlignmentCentered: Story = {
   render: () => (
     <File
       color="info"
@@ -327,12 +280,15 @@ export const AlignmentCenter: Story = {
       isBoxed
       hasName
       fileName="centered.pdf"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
+/**
+ * `isRight` aligns the widget to the right of its parent.
+ */
 export const AlignmentRight: Story = {
   render: () => (
     <File
@@ -340,50 +296,61 @@ export const AlignmentRight: Story = {
       isRight
       hasName
       fileName="right.pdf"
-      buttonLabel="Choose a file..."
+      buttonLabel="Choose a file\u2026"
       iconLeft={<Icon name="upload" />}
     />
   ),
 };
 
 // ============================================================
-// Context-aware Field/Control stories
+// Context-Aware Rendering — File adjusts to its surrounding wrappers
 // ============================================================
 
 /**
- * Standalone with label — File renders its own Field+Control wrapper automatically.
- * Note: `label` is the Field label; `buttonLabel` is for the button text.
+ * Default (with label) — `label` adds a Field label above the widget.
  */
 export const WithLabel: Story = {
-  render: () => <File label="Attachment" />,
+  render: () => (
+    <File
+      label="Document"
+      buttonLabel="Choose a file\u2026"
+      iconLeft={<Icon name="upload" />}
+    />
+  ),
 };
 
 /**
  * Inside Field — the outer Field turns off File's auto Field rendering via context.
- * Demonstrates horizontal layout composition.
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Attachment">
+    <Field horizontal label="Document">
       <Field.Body>
-        <File />
+        <Field>
+          <File
+            buttonLabel="Choose a file\u2026"
+            iconLeft={<Icon name="upload" />}
+          />
+        </Field>
       </Field.Body>
     </Field>
   ),
 };
 
 /**
- * Full manual composition — Field+Control provided externally.
- * File manages its own control internally, so the outer Control
- * simply provides context signaling.
+ * Inside Field and Control — File doesn't consume Control's context, but the
+ * outer Field is still detected.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Attachment">
+    <Field horizontal label="Document">
       <Field.Body>
         <Field>
-          <Control>
-            <File />
+          <Control iconLeftName="paperclip">
+            <File
+              buttonLabel="Choose a file\u2026"
+              iconLeft={<Icon name="upload" />}
+            />
           </Control>
         </Field>
       </Field.Body>

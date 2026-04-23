@@ -39,61 +39,30 @@ import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+`Input` is a convenience component that internally composes `Field` and `Control`. For most form fields, use `<Input>` directly with its props (`label`, `color`, `size`, `iconLeftName`, `message`, `horizontal`, etc.). Reach for explicit `<Field>` + `<Control>` composition only when you need a layout the convenience props can't express — most commonly **form addons**, **grouped controls**, or **horizontal layouts that mix multiple sub-fields**.
+
 ### Default Input
 
-This example shows a standard text input using the `Input` component, wrapped in a `Field` and `Control` for proper Bulma form structure. The `placeholder` prop provides hint text for the user.
+A standard text input. The `placeholder` prop provides hint text for the user.
 
 ```tsx live
-<Field label="Default">
-  <Control>
-    <Input placeholder="Default input" />
-  </Control>
-</Field>
+<Input label="Default" placeholder="Default input" />
 ```
 
 ---
 
 ### Color Inputs
 
-This example demonstrates the `color` prop, which applies Bulma color modifiers to the input. Use `color="primary"`, `color="link"`, `color="info"`, or `color="success"` to visually distinguish input fields based on context or validation state.
+The `color` prop applies Bulma color modifiers to the input. Use it to visually distinguish input fields based on context or validation state.
 
 ```tsx live
 <>
-  <Field label="Primary">
-    <Control>
-      <Input color="primary" placeholder="Primary input" />
-    </Control>
-  </Field>
-
-  <Field label="Link">
-    <Control>
-      <Input color="link" placeholder="Link input" />
-    </Control>
-  </Field>
-
-  <Field label="Info">
-    <Control>
-      <Input color="info" placeholder="Info input" />
-    </Control>
-  </Field>
-
-  <Field label="Success">
-    <Control>
-      <Input color="success" placeholder="Success input" />
-    </Control>
-  </Field>
-
-  <Field label="Warning">
-    <Control>
-      <Input color="warning" placeholder="Warning input" />
-    </Control>
-  </Field>
-
-  <Field label="Danger">
-    <Control>
-      <Input color="danger" placeholder="Danger input" />
-    </Control>
-  </Field>
+  <Input label="Primary" color="primary" placeholder="Primary input" />
+  <Input label="Link" color="link" placeholder="Link input" />
+  <Input label="Info" color="info" placeholder="Info input" />
+  <Input label="Success" color="success" placeholder="Success input" />
+  <Input label="Warning" color="warning" placeholder="Warning input" />
+  <Input label="Danger" color="danger" placeholder="Danger input" />
 </>
 ```
 
@@ -101,33 +70,14 @@ This example demonstrates the `color` prop, which applies Bulma color modifiers 
 
 ### Sizes
 
-This section demonstrates the `size` prop, allowing you to control the input's size. Options include `size="small"`, `size="medium"`, and `size="large"`.
+The `size` prop controls the input's size. Options: `"small"`, `"medium"`, `"large"` (default is normal).
 
 ```tsx live
 <>
-  <Field label="Small">
-    <Control>
-      <Input size="small" placeholder="Small input" />
-    </Control>
-  </Field>
-
-  <Field label="Normal">
-    <Control>
-      <Input placeholder="Normal input" />
-    </Control>
-  </Field>
-
-  <Field label="Medium">
-    <Control>
-      <Input size="medium" placeholder="Medium input" />
-    </Control>
-  </Field>
-
-  <Field label="Large">
-    <Control>
-      <Input size="large" placeholder="Large input" />
-    </Control>
-  </Field>
+  <Input label="Small" size="small" placeholder="Small input" />
+  <Input label="Normal" placeholder="Normal input" />
+  <Input label="Medium" size="medium" placeholder="Medium input" />
+  <Input label="Large" size="large" placeholder="Large input" />
 </>
 ```
 
@@ -135,47 +85,24 @@ This section demonstrates the `size` prop, allowing you to control the input's s
 
 ### Style: Rounded
 
-This example shows the `isRounded` prop, which gives the input rounded corners for a softer appearance.
+The `isRounded` prop gives the input rounded corners for a softer appearance.
 
 ```tsx live
-<Field label="Rounded">
-  <Control>
-    <Input isRounded placeholder="Rounded input" />
-  </Control>
-</Field>
+<Input label="Rounded" isRounded placeholder="Rounded input" />
 ```
 
 ---
 
 ### States
 
-This section demonstrates the various states an input can have. The `isHovered`, `isFocused`, and `isLoading` props control these states.
+`isHovered`, `isFocused`, and `isLoading` force the corresponding state on the input.
 
 ```tsx live
 <>
-  <Field label="Normal">
-    <Control>
-      <Input placeholder="Normal state" />
-    </Control>
-  </Field>
-
-  <Field label="Hover">
-    <Control>
-      <Input isHovered placeholder="Hovered state" />
-    </Control>
-  </Field>
-
-  <Field label="Focus">
-    <Control>
-      <Input isFocused placeholder="Focused state" />
-    </Control>
-  </Field>
-
-  <Field label="Loading">
-    <Control isLoading>
-      <Input placeholder="Loading state" />
-    </Control>
-  </Field>
+  <Input label="Normal" placeholder="Normal state" />
+  <Input label="Hover" isHovered placeholder="Hovered state" />
+  <Input label="Focus" isFocused placeholder="Focused state" />
+  <Input label="Loading" isLoading placeholder="Loading state" />
 </>
 ```
 
@@ -183,33 +110,32 @@ This section demonstrates the various states an input can have. The `isHovered`,
 
 ### Loading States by Size
 
-This example shows how the loading indicator looks with different input sizes. The `isLoading` prop is used in conjunction with the `size` prop.
+The loading indicator at every input size. Use `controlSize` on `<Input>` to scale the spinner to match.
 
 ```tsx live
 <>
-  <Field label="Loading Small">
-    <Control isLoading size="small">
-      <Input size="small" placeholder="Loading small" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Normal">
-    <Control isLoading>
-      <Input placeholder="Loading normal" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Medium">
-    <Control isLoading size="medium">
-      <Input size="medium" placeholder="Loading medium" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Large">
-    <Control isLoading size="large">
-      <Input size="large" placeholder="Loading large" />
-    </Control>
-  </Field>
+  <Input
+    label="Loading Small"
+    size="small"
+    controlSize="small"
+    isLoading
+    placeholder="Loading small"
+  />
+  <Input label="Loading Normal" isLoading placeholder="Loading normal" />
+  <Input
+    label="Loading Medium"
+    size="medium"
+    controlSize="medium"
+    isLoading
+    placeholder="Loading medium"
+  />
+  <Input
+    label="Loading Large"
+    size="large"
+    controlSize="large"
+    isLoading
+    placeholder="Loading large"
+  />
 </>
 ```
 
@@ -217,21 +143,12 @@ This example shows how the loading indicator looks with different input sizes. T
 
 ### Disabled & Read Only
 
-This example demonstrates the `disabled` and `readOnly` props. Disabled inputs cannot be interacted with, while read-only inputs can be focused but not edited.
+Disabled inputs cannot be interacted with; read-only inputs can be focused but not edited.
 
 ```tsx live
 <>
-  <Field label="Disabled">
-    <Control>
-      <Input disabled placeholder="Disabled input" />
-    </Control>
-  </Field>
-
-  <Field label="Read Only">
-    <Control>
-      <Input readOnly value="Read only value" />
-    </Control>
-  </Field>
+  <Input label="Disabled" disabled placeholder="Disabled input" />
+  <Input label="Read Only" readOnly value="Read only value" />
 </>
 ```
 
@@ -239,20 +156,12 @@ This example demonstrates the `disabled` and `readOnly` props. Disabled inputs c
 
 ### Static State
 
-The static state is useful for displaying non-editable information alongside editable fields. The `isStatic` prop makes the input non-interactive.
+The `isStatic` prop renders the input as non-interactive text — useful for displaying read-only values alongside editable fields.
 
 ```tsx live
 <>
-  <Field horizontal label="Username">
-    <Control>
-      <Input isStatic value="Static value" />
-    </Control>
-  </Field>
-  <Field horizontal label="Password">
-    <Control>
-      <Input placeholder="Editable value" />
-    </Control>
-  </Field>
+  <Input horizontal label="Username" isStatic value="Static value" />
+  <Input horizontal label="Password" placeholder="Editable value" />
 </>
 ```
 
@@ -260,31 +169,16 @@ The static state is useful for displaying non-editable information alongside edi
 
 ### With Icons (Left and Right)
 
-This example shows how to add icons to the left and right of the input using the `hasIconsLeft` and `hasIconsRight` props. The `iconLeft` and `iconRight` props define the icons to be used.
+Add icons via the `iconLeftName` / `iconRightName` shortcuts on `<Input>`.
 
 ```tsx live
 <>
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      iconLeft={{ name: 'user' }}
-      iconRight={{ name: 'check' }}
-    >
-      <Input placeholder="With icons" />
-    </Control>
-  </Field>
-
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      iconLeft={{ name: 'envelope' }}
-      iconRight={{ name: 'exclamation-triangle' }}
-    >
-      <Input placeholder="Another input" />
-    </Control>
-  </Field>
+  <Input iconLeftName="user" iconRightName="check" placeholder="With icons" />
+  <Input
+    iconLeftName="envelope"
+    iconRightName="exclamation-triangle"
+    placeholder="Another input"
+  />
 </>
 ```
 
@@ -292,57 +186,336 @@ This example shows how to add icons to the left and right of the input using the
 
 ### With Icons and Size Variations
 
-This example demonstrates using icons with different size variations of the input. The `size` prop is used to control the input size, while the icon sizes are controlled via the `iconLeft` and `iconRight` props.
+Match the input size to the icon size via the `size` + `iconLeftSize` / `iconRightSize` props.
 
 ```tsx live
 <>
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      size="small"
-      iconLeft={{ name: 'user', size: 'small' }}
-      iconRight={{ name: 'check', size: 'small' }}
-    >
-      <Input size="small" placeholder="Icons left/right small" />
-    </Control>
-  </Field>
+  <Input
+    size="small"
+    iconLeftName="user"
+    iconLeftSize="small"
+    iconRightName="check"
+    iconRightSize="small"
+    placeholder="Icons left/right small"
+  />
+  <Input
+    iconLeftName="user"
+    iconRightName="check"
+    placeholder="Icons left/right normal"
+  />
+  <Input
+    size="medium"
+    iconLeftName="user"
+    iconLeftSize="medium"
+    iconRightName="check"
+    iconRightSize="medium"
+    placeholder="Icons left/right medium"
+  />
+  <Input
+    size="large"
+    iconLeftName="user"
+    iconLeftSize="large"
+    iconRightName="check"
+    iconRightSize="large"
+    placeholder="Icons left/right large"
+  />
+</>
+```
 
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      iconLeft={{ name: 'user' }}
-      iconRight={{ name: 'check' }}
-    >
-      <Input placeholder="Icons left/right normal" />
-    </Control>
-  </Field>
+---
 
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      size="medium"
-      iconLeft={{ name: 'user', size: 'medium' }}
-      iconRight={{ name: 'check', size: 'medium' }}
-    >
-      <Input size="medium" placeholder="Icons left/right medium" />
-    </Control>
-  </Field>
+### Help Text Colors
 
-  <Field>
-    <Control
-      hasIconsLeft
-      hasIconsRight
-      size="large"
-      iconLeft={{ name: 'user', size: 'large' }}
-      iconRight={{ name: 'check', size: 'large' }}
-    >
-      <Input size="large" placeholder="Icons left/right large" />
+Pair `color` and `messageColor` to produce success and danger validation states with matching help text.
+
+```tsx live
+<>
+  <Input
+    label="Username"
+    color="success"
+    value="bulma"
+    message="This username is available"
+    messageColor="success"
+    iconLeftName="user"
+    iconRightName="check"
+    onChange={() => {}}
+  />
+  <Input
+    label="Email"
+    type="email"
+    color="danger"
+    value="hello@"
+    message="This email is invalid"
+    messageColor="danger"
+    iconLeftName="envelope"
+    iconRightName="exclamation-triangle"
+    onChange={() => {}}
+  />
+</>
+```
+
+---
+
+### Form Addons
+
+For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.
+
+#### Input + Button
+
+```tsx live
+<Field hasAddons>
+  <Control isExpanded>
+    <Input placeholder="Find a repository" />
+  </Control>
+  <Control>
+    <Button color="info">Search</Button>
+  </Control>
+</Field>
+```
+
+#### Input + Static Suffix
+
+A static button is non-interactive — useful for fixed prefixes/suffixes such as an email domain.
+
+```tsx live
+<Field hasAddons>
+  <Control isExpanded>
+    <Input placeholder="Your email" />
+  </Control>
+  <Control>
+    <Button isStatic>@gmail.com</Button>
+  </Control>
+</Field>
+```
+
+#### Select + Input + Button
+
+```tsx live
+<Field hasAddons>
+  <Control>
+    <Select aria-label="Country code">
+      <option>+1</option>
+      <option>+44</option>
+      <option>+33</option>
+    </Select>
+  </Control>
+  <Control isExpanded>
+    <Input type="tel" placeholder="Your phone number" />
+  </Control>
+  <Control>
+    <Button color="primary">Call</Button>
+  </Control>
+</Field>
+```
+
+#### Centered Addons
+
+Pass `hasAddons="centered"` to center the addon group on the row.
+
+```tsx live
+<Field hasAddons="centered">
+  <Control>
+    <Button>Yes</Button>
+  </Control>
+  <Control>
+    <Button>Maybe</Button>
+  </Control>
+  <Control>
+    <Button>No</Button>
+  </Control>
+</Field>
+```
+
+#### Right-Aligned Addons
+
+Pass `hasAddons="right"` to right-align the group.
+
+```tsx live
+<Field hasAddons="right">
+  <Control>
+    <Button>Yes</Button>
+  </Control>
+  <Control>
+    <Button>Maybe</Button>
+  </Control>
+  <Control>
+    <Button>No</Button>
+  </Control>
+</Field>
+```
+
+---
+
+### Form Group
+
+Use `<Field grouped>` to lay multiple controls out on a single row with consistent spacing — common for form action buttons and search-style rows.
+
+#### Grouped Buttons
+
+```tsx live
+<Field grouped>
+  <Control>
+    <Button color="link">Submit</Button>
+  </Control>
+  <Control>
+    <Button>Cancel</Button>
+  </Control>
+</Field>
+```
+
+#### Centered Group
+
+```tsx live
+<Field grouped="centered">
+  <Control>
+    <Button color="link">Submit</Button>
+  </Control>
+  <Control>
+    <Button>Cancel</Button>
+  </Control>
+</Field>
+```
+
+#### Right-Aligned Group
+
+```tsx live
+<Field grouped="right">
+  <Control>
+    <Button color="link">Submit</Button>
+  </Control>
+  <Control>
+    <Button>Cancel</Button>
+  </Control>
+</Field>
+```
+
+#### Expanded Input + Button
+
+```tsx live
+<Field grouped>
+  <Control isExpanded>
+    <Input placeholder="Find a repository" />
+  </Control>
+  <Control>
+    <Button color="info">Search</Button>
+  </Control>
+</Field>
+```
+
+#### Multiline Group
+
+`grouped="multiline"` allows the row to wrap onto multiple lines.
+
+```tsx live
+<Field grouped="multiline">
+  {[
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+    'Ten',
+    'Eleven',
+    'Twelve',
+    'Thirteen',
+  ].map(label => (
+    <Control key={label}>
+      <Button>{label}</Button>
     </Control>
+  ))}
+</Field>
+```
+
+---
+
+### Horizontal — Validation Error
+
+Place a `color="danger"` Input and a danger help message inside the horizontal field body.
+
+```tsx live
+<Field horizontal label="Email">
+  <Field.Body>
+    <Field>
+      <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
+        <Input
+          type="email"
+          color="danger"
+          value="hello@"
+          onChange={() => {}}
+        />
+      </Control>
+      <p className="help is-danger">This email is invalid</p>
+    </Field>
+  </Field.Body>
+</Field>
+```
+
+---
+
+### Horizontal — Addons (Phone with Country Code)
+
+Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mix layouts.
+
+```tsx live
+<Field horizontal label="Phone">
+  <Field.Body>
+    <Field hasAddons>
+      <Control>
+        <Button isStatic>+44</Button>
+      </Control>
+      <Control isExpanded>
+        <Input type="tel" placeholder="Your phone number" />
+      </Control>
+    </Field>
+  </Field.Body>
+</Field>
+```
+
+---
+
+### Horizontal — Submit Row
+
+Use an empty `Field.Label` to align the submit button under the inputs above it.
+
+```tsx live
+<>
+  <Field horizontal label="Name">
+    <Field.Body>
+      <Field>
+        <Control>
+          <Input placeholder="Your name" />
+        </Control>
+      </Field>
+    </Field.Body>
+  </Field>
+  <Field horizontal>
+    <Field.Label />
+    <Field.Body>
+      <Field>
+        <Control>
+          <Button color="primary">Submit</Button>
+        </Control>
+      </Field>
+    </Field.Body>
   </Field>
 </>
+```
+
+---
+
+### Disabled Fieldset
+
+Wrap multiple Inputs in a native `<fieldset disabled>` to disable every field at once.
+
+```tsx live
+<fieldset disabled>
+  <Input label="Name" placeholder="Your name" />
+  <Input label="Email" type="email" placeholder="Your email" />
+</fieldset>
 ```
 
 ---
@@ -391,7 +564,7 @@ function example() {
     <Field horizontal label="Username">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-user">
+          <Control iconLeftName="user">
             <Input placeholder="Enter username" />
           </Control>
         </Field>

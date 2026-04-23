@@ -7,6 +7,7 @@ import SubTitle from '../elements/SubTitle';
 import Container from '../layout/Container';
 import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
+import Image from '../elements/Image';
 
 const meta: Meta<typeof Hero> = {
   title: 'Layout/Hero',
@@ -186,11 +187,9 @@ export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
             </Navbar.Start>
             <Navbar.End>
               <Navbar.Item as="span">
-                <div className="buttons">
-                  <Button color="primary" isInverted as="a">
-                    Github
-                  </Button>
-                </div>
+                <Button color="primary" isInverted as="a" mx="2">
+                  Github
+                </Button>
               </Navbar.Item>
             </Navbar.End>
           </Navbar.Menu>
@@ -217,10 +216,7 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
           <Container>
             <Navbar.Brand>
               <Navbar.Item as="a">
-                <img
-                  src="https://bulma.io/assets/images/bulma-type-white.png"
-                  alt="Logo"
-                />
+                <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
               </Navbar.Item>
               <span className="navbar-burger" data-target="navbarMenuHeroA">
                 <span></span>
@@ -237,7 +233,7 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
                 <Navbar.Item as="a">APIs</Navbar.Item>
                 <Navbar.Item as="a">Blog</Navbar.Item>
                 <Navbar.Item as="span">
-                  <Button color="primary" isInverted as="a">
+                  <Button color="primary" isInverted as="a" mx="2">
                     <Icon
                       library="fa"
                       name="github"

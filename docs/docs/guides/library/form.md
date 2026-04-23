@@ -8,32 +8,44 @@ sidebar_position: 4
 
 This page provides a summary of all Bulma-styled form components in Bestax, with a brief description, usage example, and links to full documentation for each. Use these components to build accessible, flexible, and visually consistent forms.
 
-:::info Extras CSS Required
-The following components require additional CSS: **Autocomplete**, **Switch**, **Numberinput**, **Slider**, **Rate**, **Taginput**. Import `@allxsmith/bestax-bulma/dist/extras.css` in your application. See the [Using Extras guide](/docs/guides/getting-started/using-extras) for setup instructions.
-:::
-
 ---
 
 ## Text Inputs
 
 ### Input
 
-A Bulma-styled text input supporting color, size, rounded, static/read-only, and loading states. Suitable for all standard text input types.
+A Bulma-styled text input supporting color, size, rounded, static/read-only, and loading states. Pass `label`, `iconLeftName`/`iconRightName`, and `message`/`messageColor` to auto-wrap with a `Field` and `Control` — no extra boilerplate.
 
 ```tsx live
-<Input placeholder="Your name" />
+<Input
+  label="Email"
+  placeholder="you@example.com"
+  iconLeftName="envelope"
+  message="We'll never share your email"
+  messageColor="info"
+/>
 ```
 
 [View full documentation.](../../api/form/input)
+
+:::tip Escape hatch
+For complex layouts (grouped fields, addons, horizontal forms), use `InputBase` with an explicit `Field` + `Control` wrapper.
+:::
 
 ---
 
 ### TextArea
 
-A Bulma-styled multi-line text input. Supports color, size, rounded, static/read-only, and fixed size.
+A Bulma-styled multi-line text input. Supports color, size, rounded, static/read-only, and fixed size. Also accepts `label`, `message`, and `messageColor` for one-stop field usage.
 
 ```tsx live
-<TextArea placeholder="Your message" rows={4} />
+<TextArea
+  label="Comments"
+  placeholder="Tell us your thoughts..."
+  rows={3}
+  message="Max 500 characters"
+  messageColor="info"
+/>
 ```
 
 [View full documentation.](../../api/form/textarea)
@@ -133,12 +145,13 @@ Groups multiple `Radio` components vertically for single-choice lists (e.g., RSV
 
 ### Select
 
-A Bulma-styled dropdown for single or multiple selections. Supports color, size, rounded, loading, and multiselect.
+A Bulma-styled dropdown for single or multiple selections. Supports color, size, rounded, loading, and multiselect. Accepts `label`, `iconLeftName`, and `message`/`messageColor` to auto-wrap with `Field` and `Control`.
 
 ```tsx live
-<Select>
-  <option value="">Please select</option>
-  <option value="option1">Option 1</option>
+<Select label="Country" iconLeftName="globe">
+  <option>United States</option>
+  <option>Canada</option>
+  <option>United Kingdom</option>
 </Select>
 ```
 
@@ -341,62 +354,6 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 :::tip
 Wrap inputs, selects, or textareas in `Control` for proper Bulma styling and icon support.
 :::
-
----
-
-## Convenience
-
-These components combine `Field`, `Control`, and an input into a single component, reducing boilerplate for common form patterns. They don't require extras CSS.
-
-### InputField
-
-Combines Field + Control + Input into one component. Supports label, left/right icons, validation messages, and horizontal layout.
-
-```tsx live
-<InputField
-  label="Email"
-  placeholder="you@example.com"
-  iconLeftName="envelope"
-  message="We'll never share your email"
-  messageColor="info"
-/>
-```
-
-[View Field documentation.](../../api/form/field)
-
----
-
-### SelectField
-
-Combines Field + Control + Select into one component. Supports label, left icon, and validation messages.
-
-```tsx live
-<SelectField label="Country" iconLeftName="globe">
-  <option>United States</option>
-  <option>Canada</option>
-  <option>United Kingdom</option>
-</SelectField>
-```
-
-[View Field documentation.](../../api/form/field)
-
----
-
-### TextAreaField
-
-Combines Field + Control + TextArea into one component. Supports label and validation messages.
-
-```tsx live
-<TextAreaField
-  label="Comments"
-  placeholder="Tell us your thoughts..."
-  rows={3}
-  message="Max 500 characters"
-  messageColor="info"
-/>
-```
-
-[View Field documentation.](../../api/form/field)
 
 ---
 

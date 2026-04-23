@@ -9,10 +9,6 @@ sidebar_label: Carousel
 
 The `Carousel` component provides an image/content slider with navigation arrows and indicators. It supports auto-play, drag navigation, and customizable styles.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

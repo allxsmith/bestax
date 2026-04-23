@@ -65,7 +65,8 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       isStatic,
       isHovered,
       isFocused,
-      isLoading,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      isLoading: _isLoading,
       isActive,
       hasFixedSize,
       className,
@@ -81,6 +82,10 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       ...props,
     });
 
+    // Note: `is-loading` is intentionally NOT applied to the <textarea> itself —
+    // Bulma documents `<div class="control is-loading">` as the loading pattern
+    // for textareas, not `<textarea class="textarea is-loading">`. The convenience
+    // <TextArea> component routes its `isLoading` prop to the wrapping Control.
     const mainClass = usePrefixedClassNames('textarea', {
       [`is-${color}`]: !!color,
       [`is-${size}`]: !!size,
@@ -88,7 +93,6 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       'is-static': isStatic,
       'is-hovered': isHovered,
       'is-focused': isFocused,
-      'is-loading': isLoading,
       'is-active': isActive,
       'has-fixed-size': hasFixedSize,
     });

@@ -9,10 +9,6 @@ sidebar_label: Collapse
 
 The `Collapse` component provides an expandable/collapsible content panel. It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

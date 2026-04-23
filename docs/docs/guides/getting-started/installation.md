@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Need to get started quickly? Check out our [Quick Start guide](/docs/guides/intro) for a 2-minute setup, or jump to [Toolchains](/docs/guides/getting-started/react-setups) for specific toolchain instructions.
+Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript). See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?
@@ -52,6 +52,10 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 
 ## Package Installation
 
+:::info Prefer the installer
+`npm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
+:::
+
 ### Using npm (recommended)
 
 ```bash
@@ -72,17 +76,13 @@ pnpm add @allxsmith/bestax-bulma
 
 ### Version Management
 
-To install a specific version:
-
-```bash
-npm install @allxsmith/bestax-bulma@2.0.1
-```
-
 To see available versions:
 
 ```bash
 npm view @allxsmith/bestax-bulma versions
 ```
+
+To install a specific version, append `@<version>` to the package name (e.g. `npm install @allxsmith/bestax-bulma@<version>`).
 
 ---
 
@@ -122,7 +122,7 @@ Add to your HTML `<head>`:
 <!-- Bestax combined bundle (Bulma + extras) -->
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@allxsmith/bestax-bulma@2/dist/bestax.css"
+  href="https://cdn.jsdelivr.net/npm/@allxsmith/bestax-bulma/dist/bestax.css"
 />
 ```
 
@@ -170,6 +170,10 @@ import './custom-bestax.scss';
 ## Icon Libraries
 
 bestax-bulma components support multiple icon libraries. Icons are optional but enhance the user experience.
+
+:::tip
+`create-bestax` installs and wires up any of these for you when you pick one at the prompt. The steps below are for setting up an icon library by hand.
+:::
 
 ### Font Awesome (Most Popular)
 
@@ -301,6 +305,8 @@ Recommended `tsconfig.json` settings:
 
 ## Bundle Size Optimization
 
+Optional tuning once you have bestax-bulma installed and rendering.
+
 ### Tree Shaking
 
 bestax-bulma supports tree shaking. Always use named imports:
@@ -338,6 +344,8 @@ npx webpack-bundle-analyzer stats.json
 ---
 
 ## Environment-Specific Setup
+
+Notes for specific environments, only relevant after the core install above is working.
 
 ### Development & Production
 

@@ -54,7 +54,7 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
   <Level.Left>
     <Level.Item>
       <SubTitle as="p" size="5">
-        <Strong>Favorite Posts</Strong> posts
+        <Strong>Favorite Posts</Strong>
       </SubTitle>
     </Level.Item>
     <Level.Item>
@@ -73,13 +73,13 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
       <Strong>All</Strong>
     </Level.Item>
     <Level.Item as="p">
-      <Link>From Followers</Link>
+      <Link>Published</Link>
     </Level.Item>
     <Level.Item as="p">
-      <Link>From Verified Followers</Link>
+      <Link>Drafts</Link>
     </Level.Item>
     <Level.Item as="p">
-      <Link>Replies</Link>
+      <Link>Deleted</Link>
     </Level.Item>
     <Level.Item as="p">
       <Button color="success" as="a">
@@ -140,11 +140,7 @@ This example shows how to create a centered navigation menu using the `Level` co
     <Link textColor="info">APIs</Link>
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
-    <img
-      src="https://bulma.io/assets/images/bulma-type.png"
-      alt=""
-      style={{ height: 30 }}
-    />
+    <img src="/img/bestax-type.svg" alt="Bestax" style={{ height: 30 }} />
   </Level.Item>
   <Level.Item as="p" hasTextCentered>
     <Link textColor="info">Versions</Link>

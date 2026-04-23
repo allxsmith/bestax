@@ -9,10 +9,6 @@ sidebar_label: Dialog
 
 The `Dialog` component provides confirmation and alert dialogs with customizable actions. Dialogs are modal and require user interaction before they can be dismissed.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

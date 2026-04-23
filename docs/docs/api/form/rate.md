@@ -9,10 +9,6 @@ sidebar_label: Rate
 
 The `Rate` component provides a star/icon-based rating system. It supports custom icons, sizes, and display options for building rating interfaces.
 
-:::info
-The Rate component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import
@@ -266,7 +262,7 @@ function example() {
     <Field horizontal label="Rating">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-star">
+          <Control iconLeftName="star">
             <Rate defaultValue={3} />
           </Control>
         </Field>
@@ -302,6 +298,40 @@ Use `defaultValue` for internal state management:
 ## Click Behavior
 
 Clicking the same star twice will deselect it (set value to 0). This allows users to clear their rating if needed.
+
+---
+
+## Form Submission
+
+`Rate` is an HTML form element. Pass a `name` prop and the current rating value is rendered as a hidden `<input type="hidden">` inside the component, so it's included in `FormData` on submit and posts to the server like any native input.
+
+| Prop | Description |
+| --- | --- |
+| `name` | Form field name. When set, a hidden input is rendered. |
+| `form` | Optional id of the form this hidden input belongs to (use when the input lives outside the form element). |
+
+Submit the form below and inspect the resulting `FormData` entries:
+
+```tsx live
+function RateFormDemo() {
+  const [submitted, setSubmitted] = React.useState('');
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+      }}
+    >
+      <Rate name="rating" defaultValue={3} showScore />
+      <div style={{ marginTop: '1rem' }}>
+        <button type="submit" className="button is-primary">Submit</button>
+      </div>
+      {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
+    </form>
+  );
+}
+```
 
 ---
 

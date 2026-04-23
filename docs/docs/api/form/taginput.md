@@ -9,10 +9,6 @@ sidebar_label: Taginput
 
 The `Taginput` component provides a tag/chip input field for managing multiple tags. It supports autocomplete suggestions, custom tag styling, and various input behaviors.
 
-:::info
-The Taginput component requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import
@@ -395,14 +391,21 @@ function example() {
 
 For full manual composition, wrap in both Field and Control. Taginput does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
 
+For an icon, use Taginput's own `icon` prop rather than `<Control iconLeftName>` — Bulma's `has-icons-left` only adjusts padding on `.input`/`.select`, not on `.taginput`, so wrapping with Control's icon causes the icon to overlap the tags.
+
 ```tsx live
 function example() {
   return (
     <Field horizontal label="Tags">
       <Field.Body>
         <Field>
-          <Control iconLeftName="fas fa-tags">
-            <Taginput defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+          <Control>
+            <Taginput
+              icon="tags"
+              defaultValue={['React', 'TypeScript']}
+              placeholder="Add a tag..."
+              tagColor="primary"
+            />
           </Control>
         </Field>
       </Field.Body>
@@ -443,6 +446,42 @@ Use `defaultValue` for internal state management:
 
 ```tsx
 <Taginput defaultValue={['React', 'TypeScript']} />
+```
+
+---
+
+## Form Submission
+
+`Taginput` is an HTML form element. Pass a `name` prop and one hidden `<input>` per tag is rendered, producing standard form-encoded array submission (e.g., `tags=react&tags=vue&tags=angular`). Standard server-side parsers (PHP, Express body-parser, etc.) handle this format natively.
+
+| Prop | Description |
+| --- | --- |
+| `name` | Form field name. When set, one hidden input per tag is rendered. |
+| `form` | Optional id of the form the hidden inputs belong to. |
+
+```tsx live
+function TaginputFormDemo() {
+  const [submitted, setSubmitted] = React.useState('');
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+      }}
+    >
+      <Taginput
+        name="tags"
+        defaultValue={['react', 'vue', 'angular']}
+        placeholder="Add a tag…"
+      />
+      <div style={{ marginTop: '1rem' }}>
+        <button type="submit" className="button is-primary">Submit</button>
+      </div>
+      {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
+    </form>
+  );
+}
 ```
 
 ---

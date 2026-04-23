@@ -9,10 +9,6 @@ sidebar_label: Switch
 
 The `Switch` component provides a toggle switch for boolean on/off states. It's built on top of a checkbox input and supports multiple colors, sizes, and style variants. Perfect for settings pages, feature toggles, and preference selections.
 
-:::info
-The Switch requires importing the extras CSS. See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

@@ -807,3 +807,39 @@ export const WithFieldControlWrapper: Story = {
     </Field>
   ),
 };
+
+/**
+ * Form submission — Slider is HTML-form-compatible. In single-value mode pass
+ * a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb
+ * submits as its own form field.
+ */
+export const RangeWithNames: Story = {
+  render: function SliderForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Slider
+          range
+          nameLow="priceMin"
+          nameHigh="priceMax"
+          defaultValue={[20, 80]}
+          showOutput
+        />
+        <div style={{ marginTop: '1.5rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
+};

@@ -6,25 +6,30 @@ sidebar_position: 1
 
 # Configuration
 
-This React library provides powerful configuration capabilities through the `ConfigProvider` component, enabling global settings that affect all child components. The primary use case is CSS class prefixing for namespace management and framework integration.
+`ConfigProvider` is bestax-bulma's extension point for app-wide choices that Bulma itself can't express in React: a class-prefix namespace for the Bulma CSS classes your components emit, and a default icon library every `Icon` should fall back to. It works through React context, so any setting you provide applies to every descendant component — no prop drilling.
 
 ## Overview
 
-The `ConfigProvider` component uses React Context to provide configuration settings to all child components. Currently, it supports class prefixing, which allows you to namespace all Bulma CSS classes with a custom prefix.
+`ConfigProvider` supports two settings today:
 
-:::tip Why Use Configuration?
-Configuration is essential for maintaining organized, conflict-free CSS architecture in modern web applications. While not always necessary, it becomes crucial when integrating multiple CSS frameworks or when you need organized, namespaced CSS that follows your project's conventions.
-:::
+- **`classPrefix`** — prefix applied to every Bulma class name the library renders (pairs with Bulma's official prefixed CSS builds).
+- **`iconLibrary`** — the default icon library (`'fa'`, `'mdi'`, `'ion'`, `'material-icons'`, `'material-symbols'`) that `Icon` components resolve to when no `library` prop is set.
+
+Both are optional; without a `ConfigProvider` the library uses unprefixed Bulma classes and Font Awesome icons.
 
 ## CSS Class Prefixing
 
-CSS class prefixing adds a namespace to all Bulma classes, transforming them from standard names to prefixed versions:
+Class prefixing adds a namespace to every Bulma class the library renders:
 
 - `button` becomes `bulma-button`
 - `box` becomes `bulma-box`
 - `title` becomes `bulma-title`
 
-This helps avoid conflicts with other CSS frameworks and provides better organization.
+The goal is to avoid collisions between Bulma's generic class names (`.button`, `.card`, `.title`, `.menu`, `.notification`, …) and the class names used by your own application's CSS. Teams that have their own hand-written stylesheets — design tokens, layout utilities, component classes — often already use some of those names; prefixing every Bulma class lets both sets coexist cleanly.
+
+:::note Not for combining CSS frameworks
+Class prefixing is about namespacing Bulma's class names, not about running bestax alongside another CSS framework like Bootstrap or Tailwind Preflight. Bulma's base-element rules (in `bulma/sass/base/minireset.scss` and `generic.scss`) target raw HTML tags — `body`, `p`, `h1`–`h6`, `ul`, `img`, `table`, … — and apply globally regardless of any class prefix. Stacking Bulma on top of another framework's reset is not a supported setup; pick one framework for the base layer.
+:::
 
 ## Basic Usage
 
@@ -55,30 +60,59 @@ This renders HTML with prefixed CSS classes:
 </div>
 ```
 
-### Framework Integration
+### Avoiding Conflicts With Your Own Stylesheets
 
-When using multiple CSS frameworks, prefixing prevents class name conflicts:
+If your application already ships its own CSS — a home-grown design system, marketing-page styles, vendored legacy stylesheets — odds are some of your selectors clash with Bulma's (`.button`, `.card`, `.title`, `.menu`, `.notification`, `.content`…). Prefixing every Bulma class keeps the two worlds distinct:
 
 ```tsx
-function MultiFrameworkApp() {
-  return (
-    <div>
-      {/* Bootstrap section */}
-      <div className="card p-4 mb-4">
-        <h4 className="card-title">Bootstrap Components</h4>
-        <button className="btn btn-primary">Bootstrap Button</button>
-      </div>
+import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
+import 'bulma/css/versions/bulma-prefixed.min.css';
+import './styles/app.css'; // your own CSS, free to define its own .button, .card, etc.
 
-      {/* Prefixed Bulma section */}
-      <ConfigProvider classPrefix="bulma-">
-        <Box p="4">
-          <Title size="4">Bulma Components</Title>
-          <Button color="primary">Bulma Button</Button>
-        </Box>
-      </ConfigProvider>
-    </div>
+function App() {
+  return (
+    <ConfigProvider classPrefix="bulma-">
+      {/* bestax renders .bulma-button, .bulma-box, etc.
+          Your app's own .button / .card rules are untouched. */}
+      <Box p="4">
+        <Title size="4">App section</Title>
+        <Button color="primary">Action</Button>
+      </Box>
+    </ConfigProvider>
   );
 }
+```
+
+## Default Icon Library
+
+Every `Icon` component can resolve to a different icon library — Font Awesome, Material Design Icons, Ionicons, Material Icons, or Material Symbols. Setting `iconLibrary` on `ConfigProvider` lets the whole tree default to one library; individual `Icon` components can still override per-use.
+
+```tsx
+import { ConfigProvider, Icon, Button } from '@allxsmith/bestax-bulma';
+import '@mdi/font/css/materialdesignicons.min.css';
+
+function App() {
+  return (
+    <ConfigProvider iconLibrary="mdi">
+      <Button color="primary">
+        <Icon name="rocket-launch" />
+        <span>Launch</span>
+      </Button>
+    </ConfigProvider>
+  );
+}
+```
+
+Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'` (Ionicons), `'material-icons'`, and `'material-symbols'`. This is the same choice `npm create bestax@latest` prompts for during project setup.
+
+## Combining Prefix and Icon Library
+
+Both settings are independent and compose. Set whichever you need:
+
+```tsx
+<ConfigProvider classPrefix="bulma-" iconLibrary="mdi">
+  <App />
+</ConfigProvider>
 ```
 
 ## Official Prefixed Bulma CSS
@@ -164,51 +198,71 @@ function NestedConfiguration() {
 
 ### Using Configuration in Custom Components
 
-Access configuration values in your own components:
+Your own components can participate in the same prefix/icon conventions as bestax's built-ins:
 
 ```tsx
-import { useConfig } from '@allxsmith/bestax-bulma';
+import { usePrefixedClass } from '@allxsmith/bestax-bulma';
 
 function CustomComponent() {
-  const { classPrefix } = useConfig();
-  const className = classPrefix
-    ? `${classPrefix}custom-component`
-    : 'custom-component';
-
-  return (
-    <div className={className}>
-      Custom component with prefix: {classPrefix || 'none'}
-    </div>
-  );
+  const prefixed = usePrefixedClass();
+  return <div className={prefixed('custom-component')}>Custom content</div>;
 }
 ```
 
 ## Configuration Hooks
 
-The library provides hooks for accessing configuration:
+Four hooks expose the active configuration so your own components can honor the same settings as bestax's built-ins.
 
 ### useConfig
 
-Returns the complete configuration context:
+Returns the full configuration object:
 
 ```tsx
 import { useConfig } from '@allxsmith/bestax-bulma';
 
 function MyComponent() {
-  const { classPrefix } = useConfig();
-  // Use configuration values
+  const { classPrefix, iconLibrary } = useConfig();
+  // ...
 }
 ```
 
 ### useClassPrefix
 
-Convenience hook that returns just the class prefix:
+Convenience hook that returns just the class prefix as a string (empty string if none):
 
 ```tsx
 import { useClassPrefix } from '@allxsmith/bestax-bulma';
 
 function MyComponent() {
-  const classPrefix = useClassPrefix(); // Returns prefix or empty string
+  const classPrefix = useClassPrefix();
+}
+```
+
+### usePrefixedClass
+
+Returns a function that applies the configured prefix to a class name — handy when building custom components that need to stay in sync with a prefixed Bulma build:
+
+```tsx
+import { usePrefixedClass } from '@allxsmith/bestax-bulma';
+
+function CustomBanner() {
+  const prefixed = usePrefixedClass();
+  // Renders "bulma-notification" under ConfigProvider classPrefix="bulma-",
+  // or plain "notification" without a prefix.
+  return <div className={prefixed('notification')}>Hello</div>;
+}
+```
+
+### useIconLibrary
+
+Returns the configured icon library (or `undefined`):
+
+```tsx
+import { useIconLibrary } from '@allxsmith/bestax-bulma';
+
+function MyIcon({ name }) {
+  const library = useIconLibrary() ?? 'fa';
+  // Render an icon using the configured library
 }
 ```
 
@@ -230,7 +284,7 @@ function TenantApp({ tenantName }) {
 
 ### Component Library Wrapping
 
-When creating your own component library that wraps Bulma:
+When building your own component library on top of bestax, give its Bulma classes a distinct namespace so they can't clash with anything a consumer adds:
 
 ```tsx
 function MyLibraryProvider({ children }) {
@@ -238,26 +292,12 @@ function MyLibraryProvider({ children }) {
 }
 ```
 
-### Legacy System Integration
-
-When integrating with existing systems that have their own CSS:
-
-```tsx
-function LegacyIntegration() {
-  return (
-    <ConfigProvider classPrefix="bulma-">
-      <ModernBulmaUI />
-    </ConfigProvider>
-  );
-}
-```
-
 ## Best Practices
 
-1. **Set at the root level**: Apply ConfigProvider at the highest level of your component tree for consistency
-2. **Use consistent prefixes**: Choose a prefix and stick with it throughout your application
-3. **Match CSS and React**: Ensure your CSS prefix matches your ConfigProvider prefix
-4. **Document your choice**: Make sure your team understands why and how you're using prefixes
+1. **Set at the root level** — apply `ConfigProvider` once near the top of your tree; nest only when a subtree genuinely needs different settings.
+2. **Match CSS and React** — if you pass `classPrefix="bulma-"`, the imported Bulma CSS must be a prefixed build with the same prefix (`bulma/css/versions/bulma-prefixed.min.css` or your own Sass build).
+3. **Match icon font and setting** — if you set `iconLibrary="mdi"`, make sure the MDI font package is imported somewhere in your app.
+4. **Trust one source** — the `create-bestax` installer wires all of this up in a consistent way; reach for a custom `ConfigProvider` only when the defaults don't fit.
 
 ## Integration with Other Features
 

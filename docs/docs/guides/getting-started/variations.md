@@ -1,10 +1,10 @@
 ---
-title: Bestax Variations
-sidebar_label: Bestax Variations
+title: CSS Variations
+sidebar_label: CSS Variations
 sidebar_position: 2
 ---
 
-# Bestax Variations
+# CSS Variations
 
 Bestax ships pre-built CSS variations that combine Bulma with bestax extras into a single file. Each variation mirrors a Bulma variation but includes all bestax extra component styles, so you only need one CSS import.
 
@@ -242,13 +242,8 @@ For teams that want a custom class prefix matching their brand or organization. 
      $class-prefix: 'mycompany-'
    );
 
-   // Include bestax extras
-   @use '@allxsmith/bestax-bulma/src/scss/variables';
-   @use '@allxsmith/bestax-bulma/src/scss/mixins';
-   @use '@allxsmith/bestax-bulma/src/scss/components/index' as components;
-   @use '@allxsmith/bestax-bulma/src/scss/form/index' as form;
-   @use '@allxsmith/bestax-bulma/src/scss/elements/index' as elements;
-   @use '@allxsmith/bestax-bulma/src/scss/helpers/index' as helpers;
+   // Include bestax extras (Toast, Dialog, Carousel, Slider, Switch, etc.)
+   @use '@allxsmith/bestax-bulma/scss';
    ```
 
 3. **Import the custom SCSS file:**
@@ -300,15 +295,15 @@ This approach allows you to:
 
 ## File Size Comparison
 
-| Variation                | Gzipped Size | Description                        |
-| ------------------------ | ------------ | ---------------------------------- |
-| Complete                 | ~78KB        | Full-featured, recommended         |
-| Prefixed (`bestax-`)    | ~79KB        | Full + `bestax-` class prefix      |
-| Bulma-Prefixed (`bulma-`)| ~79KB       | Full + `bulma-` class prefix       |
-| No Helpers               | ~63KB        | No helper utilities                |
-| No Helpers, Prefixed     | ~64KB        | No helpers + `bestax-` prefix      |
-| No Dark Mode             | ~66KB        | Light theme only                   |
-| Custom Brand             | ~78KB        | Custom prefix, built from source   |
+| Variation                 | Gzipped Size | Description                      |
+| ------------------------- | ------------ | -------------------------------- |
+| Complete                  | ~78KB        | Full-featured, recommended       |
+| Prefixed (`bestax-`)      | ~80KB        | Full + `bestax-` class prefix    |
+| Bulma-Prefixed (`bulma-`) | ~80KB        | Full + `bulma-` class prefix     |
+| No Helpers                | ~63KB        | No helper utilities              |
+| No Helpers, Prefixed      | ~64KB        | No helpers + `bestax-` prefix    |
+| No Dark Mode              | ~66KB        | Light theme only                 |
+| Custom Brand              | ~78KB        | Custom prefix, built from source |
 
 :::tip
 All sizes are approximate gzipped transfer sizes. Enable gzip compression on your server to achieve these transfer sizes.

@@ -569,3 +569,37 @@ export const WithFieldControlWrapper: Story = {
     </Field>
   ),
 };
+
+/**
+ * Form submission — Autocomplete is HTML-form-compatible. Pass a `name` prop
+ * and the typed/selected text is forwarded to the inner `<input>` so the value
+ * submits with the surrounding form.
+ */
+export const WithName: Story = {
+  render: function AutocompleteForm() {
+    const [submitted, setSubmitted] = useState<string>('');
+    return (
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
+        }}
+      >
+        <Autocomplete
+          name="city"
+          data={['New York', 'London', 'Paris', 'Tokyo', 'Sydney']}
+          placeholder="Search a city…"
+        />
+        <div style={{ marginTop: '1rem' }}>
+          <button type="submit" className="button is-primary">
+            Submit
+          </button>
+        </div>
+        {submitted && (
+          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
+        )}
+      </form>
+    );
+  },
+};

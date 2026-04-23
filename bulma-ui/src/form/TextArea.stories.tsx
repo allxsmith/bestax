@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
 import { TextArea } from './TextArea';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -80,191 +79,182 @@ export default meta;
 type Story = StoryObj<typeof TextArea>;
 
 /**
- * Basic textarea field with a label.
+ * A standard multi-line text input. The `placeholder` prop provides hint text.
  */
 export const Default: Story = {
   args: {
-    label: 'Bio',
-    placeholder: 'Tell us about yourself...',
-    rows: 4,
+    label: 'Default',
+    placeholder: 'e.g. Hello world',
   },
 };
 
 /**
- * Textarea field with validation message.
+ * Set the `rows` prop to control the visible number of text lines.
  */
-export const WithMessage: Story = {
+export const RowCount: Story = {
   args: {
-    label: 'Comments',
-    placeholder: 'Your comments...',
-    rows: 3,
-    message: 'Maximum 500 characters',
-    messageColor: 'info',
+    label: 'Rows',
+    rows: 10,
+    placeholder: '10 rows',
   },
 };
 
 /**
- * Textarea field showing an error state.
+ * The `color` prop applies Bulma color modifiers.
  */
-export const ErrorState: Story = {
-  args: {
-    label: 'Description',
-    value: '',
-    color: 'danger',
-    message: 'Description is required',
-    messageColor: 'danger',
-    rows: 3,
-    onChange: () => {},
-  },
+export const Colors: Story = {
+  render: () => (
+    <>
+      <TextArea label="Primary" color="primary" placeholder="Primary textarea" />
+      <TextArea label="Link" color="link" placeholder="Link textarea" />
+      <TextArea label="Info" color="info" placeholder="Info textarea" />
+      <TextArea label="Success" color="success" placeholder="Success textarea" />
+      <TextArea label="Warning" color="warning" placeholder="Warning textarea" />
+      <TextArea label="Danger" color="danger" placeholder="Danger textarea" />
+    </>
+  ),
 };
 
 /**
- * Different textarea sizes.
+ * The `size` prop controls the overall size of the textarea.
  */
 export const Sizes: Story = {
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <TextArea
-        label="Small"
-        size="small"
-        placeholder="Small textarea"
-        rows={2}
-      />
-      <TextArea
-        label="Normal"
-        placeholder="Normal textarea"
-        rows={2}
-      />
-      <TextArea
-        label="Medium"
-        size="medium"
-        placeholder="Medium textarea"
-        rows={2}
-      />
-      <TextArea
-        label="Large"
-        size="large"
-        placeholder="Large textarea"
-        rows={2}
-      />
-    </div>
+    <>
+      <TextArea label="Small" size="small" placeholder="Small textarea" />
+      <TextArea label="Normal" placeholder="Normal textarea" />
+      <TextArea label="Medium" size="medium" placeholder="Medium textarea" />
+      <TextArea label="Large" size="large" placeholder="Large textarea" />
+    </>
   ),
 };
 
 /**
- * Disabled and read-only states.
+ * `isHovered`, `isFocused`, and `isLoading` force the corresponding state.
+ */
+export const States: Story = {
+  render: () => (
+    <>
+      <TextArea label="Normal" placeholder="Normal textarea" />
+      <TextArea label="Hover" isHovered placeholder="Hovered textarea" />
+      <TextArea label="Focus" isFocused placeholder="Focused textarea" />
+      <TextArea label="Loading" isLoading placeholder="Loading textarea" />
+    </>
+  ),
+};
+
+/**
+ * Loading indicator at every textarea size. Use `controlSize` on `<TextArea>`
+ * to scale the spinner to match.
+ */
+export const LoadingSizes: Story = {
+  render: () => (
+    <>
+      <TextArea
+        label="Loading Small"
+        size="small"
+        controlSize="small"
+        isLoading
+        placeholder="Small loading textarea"
+      />
+      <TextArea
+        label="Loading Normal"
+        isLoading
+        placeholder="Normal loading textarea"
+      />
+      <TextArea
+        label="Loading Medium"
+        size="medium"
+        controlSize="medium"
+        isLoading
+        placeholder="Medium loading textarea"
+      />
+      <TextArea
+        label="Loading Large"
+        size="large"
+        controlSize="large"
+        isLoading
+        placeholder="Large loading textarea"
+      />
+    </>
+  ),
+};
+
+/**
+ * Disabled textareas cannot be interacted with; read-only textareas can be
+ * focused but not edited.
  */
 export const DisabledAndReadOnly: Story = {
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <TextArea
-        label="Disabled"
-        value="Cannot edit this"
-        disabled
-        rows={2}
-        onChange={() => {}}
-      />
-      <TextArea
-        label="Read Only"
-        value="Read only value"
-        readOnly
-        rows={2}
-        onChange={() => {}}
-      />
-    </div>
+    <>
+      <TextArea label="Disabled" disabled placeholder="Disabled textarea" />
+      <TextArea label="Read Only" readOnly value="This content is readonly" />
+    </>
   ),
 };
 
 /**
- * Fixed-size textarea.
+ * Set `hasFixedSize` to prevent the textarea from being user-resized.
  */
 export const FixedSize: Story = {
   args: {
     label: 'Fixed Size',
-    placeholder: 'This textarea cannot be resized',
-    rows: 4,
     hasFixedSize: true,
+    rows: 3,
+    placeholder: 'Fixed size textarea',
   },
 };
 
 /**
- * Horizontal field layout.
+ * Use `horizontal` to render the label to the left of the textarea.
  */
 export const Horizontal: Story = {
+  args: {
+    horizontal: true,
+    label: 'Question',
+    placeholder: 'Explain how we can help you',
+    rows: 4,
+  },
+};
+
+// ============================================================
+// Context-Aware Rendering — TextArea adjusts to its surrounding wrappers
+// ============================================================
+
+/**
+ * Default (with label) — TextArea renders its own Field+Control wrappers automatically.
+ */
+export const WithLabel: Story = {
   render: () => (
-    <div>
-      <TextArea
-        horizontal
-        label="Message"
-        placeholder="Your message..."
-        rows={4}
-        labelSize="normal"
-      />
-    </div>
+    <TextArea label="Message" placeholder="Enter your message" />
   ),
 };
 
 /**
- * Controlled textarea with character count.
- */
-export const CharacterCount: Story = {
-  render: function CharCountTextArea() {
-    const maxChars = 200;
-    const [value, setValue] = useState('');
-    const remaining = maxChars - value.length;
-    const isOver = remaining < 0;
-
-    return (
-      <TextArea
-        label="Tweet"
-        placeholder="What's happening?"
-        rows={3}
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        color={isOver ? 'danger' : undefined}
-        message={`${remaining} characters remaining`}
-        messageColor={isOver ? 'danger' : remaining < 20 ? 'warning' : undefined}
-      />
-    );
-  },
-};
-
-// ============================================================
-// Context-aware Field/Control stories
-// ============================================================
-
-/**
- * Standalone with label — TextArea renders its own Field+Control wrapper automatically.
- */
-export const WithLabel: Story = {
-  render: () => <TextArea label="Bio" placeholder="Tell us about yourself" />,
-};
-
-/**
  * Inside Field — the outer Field turns off TextArea's auto Field rendering via context.
- * Demonstrates horizontal layout composition.
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Bio">
+    <Field horizontal label="Message">
       <Field.Body>
-        <TextArea placeholder="Tell us about yourself" />
+        <Field>
+          <TextArea placeholder="Enter your message" />
+        </Field>
       </Field.Body>
     </Field>
   ),
 };
 
 /**
- * Full manual composition — Field+Control provided externally,
- * TextArea renders just its raw element.
+ * Inside Field and Control — TextArea renders just its raw element.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Bio">
+    <Field horizontal label="Message">
       <Field.Body>
         <Field>
-          <Control>
-            <TextArea placeholder="Tell us about yourself" />
+          <Control iconLeftName="comment">
+            <TextArea placeholder="Enter your message" />
           </Control>
         </Field>
       </Field.Body>

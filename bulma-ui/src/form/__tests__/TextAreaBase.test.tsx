@@ -38,7 +38,9 @@ describe('TextAreaBase', () => {
     expect(textarea).toHaveClass('is-static');
     expect(textarea).toHaveClass('is-hovered');
     expect(textarea).toHaveClass('is-focused');
-    expect(textarea).toHaveClass('is-loading');
+    // is-loading is intentionally NOT applied to <textarea> — Bulma's documented
+    // pattern puts is-loading on the wrapping .control instead.
+    expect(textarea).not.toHaveClass('is-loading');
     expect(textarea).toHaveClass('is-active');
     expect(textarea).toHaveClass('has-fixed-size');
   });

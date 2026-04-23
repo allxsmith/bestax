@@ -179,3 +179,18 @@ $radio-transition-duration: cv.getVar("duration") !default;
     }
   }
 }
+
+// Vertical alignment for horizontal-field layouts.
+// Bulma applies `padding-top: 0.375em` to `.field-label.is-normal` so its
+// baseline aligns with the text inside `.input`. Our themed radios have no
+// internal padding, so without this match they sit ~6px higher than the
+// field-label and look misaligned. Apply the same padding on the radios
+// wrapper, but only inside a horizontal field-body so vertical/standalone
+// usage is unaffected.
+.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal {
+  .#{iv.$class-prefix}field-body {
+    .#{iv.$class-prefix}radios {
+      padding-top: 0.375em;
+    }
+  }
+}

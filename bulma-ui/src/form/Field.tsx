@@ -12,7 +12,8 @@ import { FieldProvider } from './FormContext';
  *
  * @property {boolean} [horizontal] - Renders the field as horizontal (label and control side by side).
  * @property {boolean|'centered'|'right'|'multiline'} [grouped] - Group controls in a row (optionally centered, right, or multiline).
- * @property {boolean} [hasAddons] - Group controls as addons.
+ * @property {boolean|'centered'|'right'} [hasAddons] - Group controls as addons (optionally centered or right-aligned).
+ * @property {boolean} [narrow] - Constrains the field to its content's width (used inside horizontal field bodies).
  * @property {React.ReactNode} [label] - Field label.
  * @property {'small'|'normal'|'medium'|'large'} [labelSize] - Size for the label.
  * @property {object} [labelProps] - Props for the label element.
@@ -28,7 +29,8 @@ export interface FieldProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   horizontal?: boolean;
   grouped?: boolean | 'centered' | 'right' | 'multiline';
-  hasAddons?: boolean;
+  hasAddons?: boolean | 'centered' | 'right';
+  narrow?: boolean;
   label?: React.ReactNode;
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -180,6 +182,7 @@ export const Field: React.FC<FieldProps> & {
   horizontal,
   grouped,
   hasAddons,
+  narrow,
   label,
   labelSize,
   labelProps,
@@ -199,6 +202,9 @@ export const Field: React.FC<FieldProps> & {
   const mainClass = usePrefixedClassNames('field', {
     'is-horizontal': horizontal,
     'has-addons': !!hasAddons,
+    'has-addons-centered': hasAddons === 'centered',
+    'has-addons-right': hasAddons === 'right',
+    'is-narrow': narrow,
     'is-grouped':
       grouped === true ||
       grouped === 'centered' ||
@@ -242,16 +248,24 @@ export const Field: React.FC<FieldProps> & {
     }
   }
 
-  // If horizontal, wrap children in FieldBody (unless children is already a FieldBody)
+  // If horizontal, wrap children in FieldBody (unless the user already provided
+  // a FieldBody — either as the single child, or as one element among siblings
+  // like <Field.Label/> + <Field.Body/>).
   let content = children;
   if (horizontal) {
-    // If children is a FieldBody already, don't double wrap
-    // Simple check using displayName
-    if (
-      React.isValidElement(children) &&
-      // @ts-expect-error children.type && children.type.displayName &&
-      (children.type === FieldBody || children.type.displayName === 'FieldBody')
-    ) {
+    const isFieldBody = (c: React.ReactNode): boolean =>
+      React.isValidElement(c) &&
+      // @ts-expect-error displayName isn't on the public type
+      (c.type === FieldBody || c.type?.displayName === 'FieldBody');
+    const isFieldLabel = (c: React.ReactNode): boolean =>
+      React.isValidElement(c) &&
+      // @ts-expect-error displayName isn't on the public type
+      (c.type === FieldLabel || c.type?.displayName === 'FieldLabel');
+    const childArray = React.Children.toArray(children);
+    const userProvidedStructure = childArray.some(
+      c => isFieldBody(c) || isFieldLabel(c)
+    );
+    if (userProvidedStructure) {
       content = children;
     } else {
       content = <FieldBody>{children}</FieldBody>;

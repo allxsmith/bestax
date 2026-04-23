@@ -204,3 +204,14 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     }
   }
 }
+
+// Vertical alignment for horizontal-field layouts.
+// Match `.field-label.is-normal`'s `padding-top: 0.375em` so the checkbox
+// group baseline lines up with the field-label text.
+.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal {
+  .#{iv.$class-prefix}field-body {
+    .#{iv.$class-prefix}checkboxes {
+      padding-top: 0.375em;
+    }
+  }
+}

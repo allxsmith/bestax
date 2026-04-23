@@ -8,10 +8,6 @@ sidebar_position: 3
 
 The **Components** section provides higher-level, composable UI building blocks for your Bulma React applications. These components combine Bulma's styles and patterns with React flexibility, offering navigation, layout, feedback, and interactive controls. Each component supports Bulma's utility props for color, spacing, and accessibility, making it easy to build robust, consistent interfaces.
 
-:::info Extras CSS Required
-The following components require additional CSS: **Carousel**, **Collapse**, **Dialog**, **Loading**, **Sidebar**, **Snackbar**, **Steps**, **Toast**, **Tooltip**. Import `@allxsmith/bestax-bulma/dist/extras.css` in your application. See the [Using Extras guide](/docs/guides/getting-started/using-extras) for setup instructions.
-:::
-
 ---
 
 ## Navigation
@@ -331,9 +327,9 @@ function example() {
         modalCardTitle="Modal Card Title"
         modalCardFoot={
           <Buttons>
-            <Button color="primary" className="button is-success">Save</Button>
-            <Button color="warning" className="button">Cancel</Button>
-          </>
+            <Button color="primary">Save</Button>
+            <Button color="warning">Cancel</Button>
+          </Buttons>
         }
       >
         Modal card body content goes here...

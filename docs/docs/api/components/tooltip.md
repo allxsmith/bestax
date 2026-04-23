@@ -9,10 +9,6 @@ sidebar_label: Tooltip
 
 The `Tooltip` component displays helpful information when users hover over or focus on an element. It supports multiple positions, colors, and styles. Perfect for providing additional context, abbreviation expansions, or action descriptions.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

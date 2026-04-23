@@ -180,11 +180,9 @@ This example demonstrates using the `fullheightWithNavbar` prop to create a hero
         </Navbar.Start>
         <Navbar.End>
           <Navbar.Item as="span">
-            <Buttons>
-              <Button color="primary" isInverted as="a">
-                Github
-              </Button>
-            </Buttons>
+            <Button color="primary" isInverted as="a" mx="2">
+              Github
+            </Button>
           </Navbar.Item>
         </Navbar.End>
       </Navbar.Menu>
@@ -213,10 +211,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
       <Container>
         <Navbar.Brand>
           <Navbar.Item as="a">
-            <img
-              src="https://bulma.io/assets/images/bulma-type-white.png"
-              alt="Logo"
-            />
+            <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
           </Navbar.Item>
           <Navbar.Burger />
         </Navbar.Brand>
@@ -228,7 +223,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
             <Navbar.Item as="a">APIs</Navbar.Item>
             <Navbar.Item as="a">Blog</Navbar.Item>
             <Navbar.Item as="span">
-              <Button color="primary" isInverted as="a">
+              <Button color="primary" isInverted as="a" mx="2">
                 <Icon
                   library="fa"
                   name="github"

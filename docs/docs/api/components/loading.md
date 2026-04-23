@@ -9,10 +9,6 @@ sidebar_label: Loading
 
 The `Loading` component provides a loading overlay with a spinner animation. It can be used as a full-page overlay or a container overlay to indicate loading states. Supports different sizes, color variants, optional cancel functionality, and custom loading messages.
 
-:::info
-See the [Extras Setup Guide](../../guides/getting-started/using-extras.md) for installation instructions.
-:::
-
 ---
 
 ## Import

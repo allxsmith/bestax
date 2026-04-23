@@ -6,16 +6,14 @@ sidebar_position: 3
 
 # Toolchains
 
-Complete integration guides for using bestax-bulma with popular React frameworks and build tools.
+Start a new project with your framework's own scaffolder (Vite, `create-next-app`, or CRA) and wire bestax-bulma in. Pick this guide if you want full control over your toolchain.
 
-:::info Prerequisites
-This guide assumes you've already installed bestax-bulma and understand the basics. If not, check out:
+:::tip Looking for the easy path?
+- **[Quick Start](/docs/guides/intro)** — run `npm create bestax@latest` and the scaffolder sets up a Vite + React project with bestax-bulma and CSS pre-configured. Done in two minutes.
+- **[Installation](/docs/guides/getting-started/installation)** — adding bestax-bulma to an existing app, or choosing between the combined `bestax.css` bundle, separate CSS, CDN, or a custom SCSS build. Covers icon libraries too.
 
-- [Quick Start](/docs/guides/intro) - 2-minute setup
-- [Installation Guide](/docs/guides/getting-started/installation) - Package options, Bulma CSS, icons
-  :::
-
-Each framework has specific setup requirements and best practices. Choose your framework below for detailed instructions.
+Use the per-framework walkthroughs below only if neither of those fits.
+:::
 
 ---
 
@@ -165,8 +163,11 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
    ```bash
    npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
-   npm install -D @types/react @types/react-dom
    ```
+
+   :::note
+   The `react-ts` template already includes `@types/react` and `@types/react-dom` — no extra type packages needed.
+   :::
 
 3. **Update your main.tsx file:**
 
@@ -298,8 +299,8 @@ Next.js is a popular React framework that provides server-side rendering, static
 3. **Update your root layout:**
 
    ```jsx title="src/app/layout.js"
-   // Import Bulma CSS globally
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS globally (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    import '@fortawesome/fontawesome-free/css/all.min.css';
 
    export const metadata = {
@@ -425,8 +426,8 @@ Next.js is a popular React framework that provides server-side rendering, static
    ```tsx title="src/app/layout.tsx"
    import type { Metadata } from 'next';
 
-   // Import Bulma CSS globally
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS globally (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    import '@fortawesome/fontawesome-free/css/all.min.css';
 
    export const metadata: Metadata = {
@@ -469,7 +470,7 @@ Next.js is a popular React framework that provides server-side rendering, static
    // Note: this page.modules.css has some styles you should review since
    //       they may not pertain to our example
    // import styles from "./page.module.css";
-   export default function Home(): JSX.Element {
+   export default function Home() {
      const [showNotification, setShowNotification] = useState<boolean>(false);
 
      return (
@@ -525,6 +526,10 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 ## CRA and Other Legacy Bundlers
 
+:::warning Create React App is deprecated
+The React team [officially sunsetted Create React App in February 2025](https://react.dev/blog/2025/02/14/sunsetting-create-react-app). For new projects, use [Vite](#️-vite--react--bulma--bestax-bulma) or [Next.js](#nextjs) instead. The instructions below are kept for teams maintaining existing CRA apps.
+:::
+
 For Create React App and other legacy bundlers like Webpack 4, the setup process is slightly different.
 
 ### JavaScript Example (Create React App)
@@ -550,8 +555,8 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
    import App from './App';
    import reportWebVitals from './reportWebVitals';
 
-   // Import Bulma CSS
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
    // Import default CRA styles last
@@ -664,8 +669,8 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
    import App from './App';
    import reportWebVitals from './reportWebVitals';
 
-   // Import Bulma CSS
-   import 'bulma/css/bulma.min.css';
+   // Import Bestax CSS (includes Bulma + extras)
+   import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
    // Import default CRA styles last
@@ -753,112 +758,6 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
    npm start
    ```
 
-   Your Create React App + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
-
----
-
-````
-
-### TypeScript Example (Create React App)
-
-1. **Create a new CRA TypeScript project:**
-
-```bash
-npx create-react-app my-bulma-cra-ts-app --template typescript
-cd my-bulma-cra-ts-app
-````
-
-2. **Install bestax-bulma and dependencies:**
-
-   ```bash
-   npm install @allxsmith/bestax-bulma @fortawesome/fontawesome-free
-   ```
-
-3. **Update your index.tsx:**
-
-   ```tsx title="src/index.tsx"
-   import React from 'react';
-   import ReactDOM from 'react-dom/client';
-   import App from './App';
-
-   // Import Bulma CSS
-   import 'bulma/css/bulma.min.css';
-   // Import Font Awesome
-   import '@fortawesome/fontawesome-free/css/all.min.css';
-   // Import default CRA styles last
-   import './index.css';
-
-   const root = ReactDOM.createRoot(
-     document.getElementById('root') as HTMLElement
-   );
-   root.render(
-     <React.StrictMode>
-       <App />
-     </React.StrictMode>
-   );
-   ```
-
-4. **Update your App.tsx:**
-
-   ```tsx title="src/App.tsx"
-   import { useState } from 'react';
-   import {
-     Box,
-     Button,
-     Title,
-     SubTitle,
-     Icon,
-     Notification,
-     Columns,
-     Column,
-   } from '@allxsmith/bestax-bulma';
-
-   const App: React.FC = () => {
-     const [showNotification, setShowNotification] = useState<boolean>(false);
-
-     return (
-       <Box textAlign="centered">
-         <Title size="1" textAlign="centered">
-           🚀 Create React App + bestax-bulma
-         </Title>
-
-         <SubTitle size="4" textAlign="centered" color="grey">
-           Client-side rendering with TypeScript and Bulma components
-         </SubTitle>
-
-         <Columns isCentered mt="5">
-           <Column size="half">
-             <Button
-               color="primary"
-               size="large"
-               onClick={() => setShowNotification(!showNotification)}
-             >
-               <Icon name="magic" />
-               <span>Toggle Notification</span>
-             </Button>
-
-             {showNotification && (
-               <Notification color="success" mt="4">
-                 <Icon name="check-circle" />
-                 <strong>Success!</strong> Your Create React App TypeScript +
-                 bestax-bulma setup is working perfectly!
-               </Notification>
-             )}
-           </Column>
-         </Columns>
-       </Box>
-     );
-   };
-
-   export default App;
-   ```
-
-5. **Run your application:**
-
-   ```bash
-   npm start
-   ```
-
    :::tip Application Available
    Your Create React App + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
    :::
@@ -881,7 +780,7 @@ bestax-bulma is designed to work seamlessly with SSR frameworks. Here are some i
 
 ```tsx
 // ✅ Good: Import CSS in layout.tsx (App Router) or _app.tsx (Pages Router)
-import 'bulma/css/bulma.min.css';
+import '@allxsmith/bestax-bulma/bestax.css';
 
 // ❌ Avoid: Importing CSS in individual components
 // This can cause CSS to load after component render
@@ -891,17 +790,21 @@ import 'bulma/css/bulma.min.css';
 
 ```tsx title="app/root.tsx"
 import type { LinksFunction } from '@remix-run/node';
-import bulmaStyles from 'bulma/css/bulma.min.css';
+import bestaxStyles from '@allxsmith/bestax-bulma/bestax.css?url';
 
 export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: bulmaStyles },
+  { rel: 'stylesheet', href: bestaxStyles },
 ];
 ```
+
+:::note
+Remix v2+ requires the `?url` suffix on CSS imports used in `LinksFunction`.
+:::
 
 ### Gatsby
 
 ```tsx title="gatsby-browser.js"
-import 'bulma/css/bulma.min.css';
+import '@allxsmith/bestax-bulma/bestax.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 ```
 
@@ -947,12 +850,12 @@ import BestaxBulma from '@allxsmith/bestax-bulma';
 
 **Problem**: Bulma styles are overridden by other CSS.
 
-**Solution**: Import Bulma CSS before your custom styles:
+**Solution**: Import the bestax stylesheet before your custom styles:
 
 ```tsx
 // ✅ Correct order
-import 'bulma/css/bulma.min.css'; // First
-import './custom-styles.css'; // After Bulma
+import '@allxsmith/bestax-bulma/bestax.css'; // First
+import './custom-styles.css'; // After
 ```
 
 ### Migration from Other Libraries

@@ -75,7 +75,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       iconLeftName,
       iconLeftSize,
       hasIconsLeft,
-      isLoading: controlIsLoading,
       isExpanded,
       controlSize,
       // Message props
@@ -84,7 +83,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       // Container class overrides
       fieldClassName,
       controlClassName,
-      // Everything else goes to Select
+      // Everything else (including isLoading) goes to Select.
+      // Note: isLoading on a select is rendered on the .select wrapper itself
+      // (replacing the chevron with a spinner), not on .control — this matches
+      // Bulma's documented behavior for `<div class="select is-loading">`.
       ...selectProps
     },
     ref
@@ -104,7 +106,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           iconLeftName={iconLeftName}
           iconLeftSize={iconLeftSize}
           hasIconsLeft={hasIconsLeft}
-          isLoading={controlIsLoading}
           isExpanded={isExpanded}
           size={controlSize}
           className={controlClassName}
