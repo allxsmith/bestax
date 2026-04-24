@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   ConfigProvider,
@@ -346,14 +346,14 @@ describe('Integration with mock Bulma components', () => {
     );
 
     const components = getAllByTestId('mock-bulma-component');
-    const nestedComponent = getByTestId('nested-wrapper').querySelector(
-      '[data-testid="mock-bulma-component"]'
+    const nestedComponent = within(getByTestId('nested-wrapper')).getByTestId(
+      'mock-bulma-component'
     );
 
     // First component should have outer prefix
     expect(components[0].className).toBe('outer-button');
     // Nested component should have inner prefix
-    expect(nestedComponent?.className).toBe('inner-button');
+    expect(nestedComponent.className).toBe('inner-button');
   });
 });
 
@@ -435,7 +435,7 @@ describe('Real-world usage scenarios', () => {
 
     const { getByTestId } = render(<MicroFrontendApp />);
     const wrapper = getByTestId('app-wrapper');
-    const buttons = wrapper.querySelectorAll('button');
+    const buttons = within(wrapper).getAllByRole('button');
 
     expect(buttons[0].className).toBe('mf-bulma-button is-primary');
     expect(buttons[1].className).toBe(
@@ -459,7 +459,7 @@ describe('Real-world usage scenarios', () => {
       </div>
     );
 
-    const buttons = document.querySelectorAll('button');
+    const buttons = screen.getAllByRole('button');
     expect(buttons[0].className).toBe('button'); // Standard
     expect(buttons[1].className).toBe('lib-button'); // Prefixed
   });
@@ -481,7 +481,7 @@ describe('Real-world usage scenarios', () => {
       </ConfigProvider>
     );
 
-    const buttons = document.querySelectorAll('button');
+    const buttons = screen.getAllByRole('button');
     expect(buttons[0].className).toBe('app-button'); // Top level
     expect(buttons[1].className).toBe('section-button'); // Section level
     expect(buttons[2].className).toBe('sub-button'); // Subsection level
@@ -513,7 +513,7 @@ describe('Complete prefix functionality', () => {
     expect(buttonsContainer).toHaveClass('bulma-mt-4');
 
     // Check first Button
-    const buttons = container.querySelectorAll('button');
+    const buttons = screen.getAllByRole('button');
     expect(buttons[0]).toHaveClass('bulma-button');
     expect(buttons[0]).toHaveClass('bulma-is-primary');
     expect(buttons[0]).toHaveClass('bulma-is-large');
@@ -543,7 +543,7 @@ describe('Complete prefix functionality', () => {
     expect(buttonsContainer).toHaveClass('mt-4');
 
     // Check Button
-    const button = container.querySelector('button');
+    const button = screen.getByRole('button');
     expect(button).toHaveClass('button');
     expect(button).toHaveClass('is-primary');
     expect(button).toHaveClass('is-large');
@@ -551,7 +551,7 @@ describe('Complete prefix functionality', () => {
   });
 
   it('handles nested providers correctly', () => {
-    const { container } = render(
+    render(
       <ConfigProvider classPrefix="outer-">
         <Button color="primary" m="1">
           Outer
@@ -564,7 +564,7 @@ describe('Complete prefix functionality', () => {
       </ConfigProvider>
     );
 
-    const buttons = container.querySelectorAll('button');
+    const buttons = screen.getAllByRole('button');
 
     // Outer button
     expect(buttons[0]).toHaveClass('outer-button');
@@ -622,14 +622,16 @@ describe('Complete prefix functionality', () => {
     );
 
     // Button should use prefix
-    const button = container.querySelector('button');
+    const button = screen.getByRole('button');
     expect(button).toHaveClass('bulma-button');
     expect(button).toHaveClass('bulma-is-primary');
 
     // Icon should use material-icons and prefixed icon class
+    // (.icon is a Bulma layout/component primitive — keep querySelector)
     const iconContainer = container.querySelector('.bulma-icon');
     expect(iconContainer).toBeInTheDocument();
 
+    // <i> font tag has no role — keep querySelector
     const iconElement = container.querySelector('i');
     expect(iconElement).toHaveClass('material-icons');
     expect(iconElement?.textContent).toBe('home');

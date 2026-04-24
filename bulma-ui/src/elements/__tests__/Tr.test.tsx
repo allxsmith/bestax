@@ -95,7 +95,7 @@ describe('Tr Component', () => {
 
   describe('ClassPrefix', () => {
     it('applies classPrefix to modifier classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="my-prefix-">
           <table>
             <tbody>
@@ -106,13 +106,13 @@ describe('Tr Component', () => {
           </table>
         </ConfigProvider>
       );
-      const tr = container.querySelector('tr');
+      const tr = screen.getByRole('row', { name: /Test/i });
       expect(tr).toHaveClass('my-prefix-is-primary');
       expect(tr).toHaveClass('my-prefix-is-selected');
     });
 
     it('uses default classes when no classPrefix provided', () => {
-      const { container } = render(
+      render(
         <ConfigProvider>
           <table>
             <tbody>
@@ -123,13 +123,13 @@ describe('Tr Component', () => {
           </table>
         </ConfigProvider>
       );
-      const tr = container.querySelector('tr');
+      const tr = screen.getByRole('row', { name: /Test/i });
       expect(tr).toHaveClass('is-primary');
       expect(tr).toHaveClass('is-selected');
     });
 
     it('uses default classes when classPrefix is undefined', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix={undefined}>
           <table>
             <tbody>
@@ -140,13 +140,13 @@ describe('Tr Component', () => {
           </table>
         </ConfigProvider>
       );
-      const tr = container.querySelector('tr');
+      const tr = screen.getByRole('row', { name: /Test/i });
       expect(tr).toHaveClass('is-primary');
       expect(tr).toHaveClass('is-selected');
     });
 
     it('applies prefix to both modifier and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <table>
             <tbody>
@@ -158,7 +158,7 @@ describe('Tr Component', () => {
         </ConfigProvider>
       );
 
-      const tr = container.querySelector('tr');
+      const tr = screen.getByRole('row', { name: /Test Row/i });
       expect(tr).toHaveClass('bulma-is-primary');
       expect(tr).toHaveClass('bulma-is-selected');
       expect(tr).toHaveClass('bulma-m-2');
@@ -166,7 +166,7 @@ describe('Tr Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <table>
           <tbody>
             <Tr color="info" isSelected textAlign="centered">
@@ -176,7 +176,7 @@ describe('Tr Component', () => {
         </table>
       );
 
-      const tr = container.querySelector('tr');
+      const tr = screen.getByRole('row', { name: /Standard Row/i });
       expect(tr).toHaveClass('is-info');
       expect(tr).toHaveClass('is-selected');
       expect(tr).toHaveClass('has-text-centered');

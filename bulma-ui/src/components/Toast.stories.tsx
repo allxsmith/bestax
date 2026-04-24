@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { Toast, ToastContainer, toast } from './Toast';
+import {
+  Toast,
+  ToastContainer,
+  toast,
+  type ToastPosition,
+  type ToastType,
+} from './Toast';
 import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Toast> = {
@@ -122,7 +128,7 @@ export const Types: Story = {
           {types.map(type => (
             <Button
               key={type}
-              color={type as any}
+              color={type}
               onClick={() => setActive(type)}
               disabled={active !== null}
             >
@@ -133,7 +139,7 @@ export const Types: Story = {
         {active && (
           <Toast
             message={`This is a ${active} toast`}
-            type={active as any}
+            type={active as ToastType}
             duration={3000}
             onClose={() => setActive(null)}
           />
@@ -175,7 +181,7 @@ export const Positions: Story = {
         {activePosition && (
           <Toast
             message={`Toast at ${activePosition}`}
-            position={activePosition as any}
+            position={activePosition as ToastPosition}
             duration={3000}
             onClose={() => setActivePosition(null)}
           />

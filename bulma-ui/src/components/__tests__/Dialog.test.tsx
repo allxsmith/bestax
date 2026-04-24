@@ -273,6 +273,76 @@ describe('Dialog', () => {
       render(<Dialog isOpen message="Test" ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
     });
+
+    it('invokes a callback ref with the dialog element', () => {
+      // Hits the `typeof ref === "function"` branch in the combined ref.
+      const calls: (HTMLDivElement | null)[] = [];
+      const callbackRef = (node: HTMLDivElement | null) => {
+        calls.push(node);
+      };
+      const { unmount } = render(
+        <Dialog isOpen message="Test" ref={callbackRef} />
+      );
+      // First call should pass the mounted dialog element.
+      expect(calls[0]).toBeInstanceOf(HTMLDivElement);
+      unmount();
+    });
+  });
+
+  describe('Branch coverage gaps', () => {
+    it('handleCancel is a no-op when canCancel is false (cancel button click)', () => {
+      const onCancel = jest.fn();
+      render(
+        <Dialog
+          isOpen
+          message="Test"
+          showCancel
+          canCancel={false}
+          onCancel={onCancel}
+          cancelText="Cancel"
+        />
+      );
+      const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+      fireEvent.click(cancelBtn);
+      // canCancel is false, so onCancel should not have been called.
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    it('handleCancel tolerates a missing onCancel prop', () => {
+      // Cancel button click triggers handleCancel; with canCancel=true and no
+      // onCancel, the optional chain in `onCancel?.()` short-circuits.
+      render(<Dialog isOpen message="Test" showCancel cancelText="Cancel" />);
+      const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+      expect(() => fireEvent.click(cancelBtn)).not.toThrow();
+    });
+
+    it('handleConfirm tolerates a missing onConfirm prop', () => {
+      render(<Dialog isOpen message="Test" />);
+      const confirm = screen.getByRole('button', { name: 'OK' });
+      // No onConfirm passed — must not throw.
+      expect(() => fireEvent.click(confirm)).not.toThrow();
+    });
+
+    it('does not call onCancel for non-Escape keys', () => {
+      const onCancel = jest.fn();
+      render(<Dialog isOpen message="Test" canCancel onCancel={onCancel} />);
+      fireEvent.keyDown(document, { key: 'Enter' });
+      expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    it('renders chained dialogs and refcounts the body scroll lock', () => {
+      // Open two dialogs to hit the _scrollLockCount > 1 branch.
+      const { unmount: unmountA } = render(<Dialog isOpen message="A" />);
+      const { unmount: unmountB } = render(<Dialog isOpen message="B" />);
+      // Body should be scroll-locked while at least one dialog is open.
+      expect(document.body.style.overflow).toBe('hidden');
+      unmountA();
+      // Still locked because B is open.
+      expect(document.body.style.overflow).toBe('hidden');
+      unmountB();
+      // Now released.
+      expect(document.body.style.overflow).toBe('');
+    });
   });
 });
 
@@ -324,7 +394,7 @@ describe('Dialog Programmatic API', () => {
     });
 
     it('resolves with provided value', async () => {
-      let resolvedValue: any;
+      let resolvedValue: unknown;
       const promise = dialog.confirm({ message: 'Test' });
       promise.then(val => {
         resolvedValue = val;
@@ -426,5 +496,36 @@ describe('DialogContainer', () => {
 
     await Promise.resolve();
     expect(result).toBe(false);
+  });
+
+  it('resolves alert with undefined on confirm (covers non-confirm ternary branch)', async () => {
+    render(<DialogContainer />);
+
+    let result: unknown = 'unset';
+    act(() => {
+      dialog.alert({ message: 'Hello' }).then(r => {
+        result = r;
+      });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }));
+    await Promise.resolve();
+    expect(result).toBeUndefined();
+  });
+
+  it('alert Escape resolves with undefined (covers cancel ternary non-confirm branch)', async () => {
+    render(<DialogContainer />);
+
+    let result: unknown = 'unset';
+    act(() => {
+      dialog.alert({ message: 'Hello' }).then(r => {
+        result = r;
+      });
+    });
+
+    // Escape triggers handleCancel (canCancel defaults to true).
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await Promise.resolve();
+    expect(result).toBeUndefined();
   });
 });

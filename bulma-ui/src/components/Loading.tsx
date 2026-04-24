@@ -37,7 +37,7 @@ export type LoadingColor =
 export interface LoadingProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size' | 'overlay'> {
   active?: boolean;
   isFullPage?: boolean;
   size?: 'small' | 'medium' | 'large';

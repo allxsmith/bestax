@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
-import { Autocomplete } from './Autocomplete';
+import React, { useState } from 'react';
+import { Autocomplete, type AutocompleteItem } from './Autocomplete';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Field } from './Field';
@@ -153,7 +153,9 @@ export const Default: Story = {
  */
 export const ObjectData: Story = {
   render: function ObjectDataExample() {
-    const [selected, setSelected] = useState<any>(null);
+    const [selected, setSelected] = useState<(typeof countries)[number] | null>(
+      null
+    );
 
     return (
       <ResponsiveWrapper>
@@ -161,7 +163,9 @@ export const ObjectData: Story = {
           data={countries}
           field="label"
           placeholder="Search for a country..."
-          onSelect={item => setSelected(item)}
+          onSelect={item =>
+            setSelected(item as (typeof countries)[number] | null)
+          }
         />
         {selected && (
           <Paragraph mt="4">
@@ -238,14 +242,20 @@ export const CustomTemplate: Story = {
           data={countries}
           field="label"
           placeholder="Search for a country..."
-          itemTemplate={item => (
-            <Block display="flex" alignItems="center">
-              <Span mr="2" textSize="5">
-                {(item as any).flag}
-              </Span>
-              <Span>{(item as any).label}</Span>
-            </Block>
-          )}
+          itemTemplate={item => {
+            const country = item as AutocompleteItem & {
+              flag: string;
+              label: string;
+            };
+            return (
+              <Block display="flex" alignItems="center">
+                <Span mr="2" textSize="5">
+                  {country.flag}
+                </Span>
+                <Span>{country.label}</Span>
+              </Block>
+            );
+          }}
         />
       </ResponsiveWrapper>
     );
@@ -484,7 +494,7 @@ export const DisabledItems: Story = {
  */
 export const FormIntegration: Story = {
   render: function FormIntegrationExample() {
-    const [fruit, setFruit] = useState('');
+    const [, setFruit] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();

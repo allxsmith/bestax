@@ -360,7 +360,6 @@ export const NotificationContainer: React.FC<{
   const isBottom = position.startsWith('bottom');
   const isCenter = position === 'top' || position === 'bottom';
   const isRight = position.endsWith('right');
-  const isLeft = position.endsWith('left');
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',

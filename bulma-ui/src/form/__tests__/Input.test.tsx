@@ -8,10 +8,11 @@ describe('Input', () => {
   describe('rendering', () => {
     it('renders an input inside a field', () => {
       const { container } = render(<Input data-testid="input" />);
-      expect(screen.getByTestId('input')).toBeInTheDocument();
+      const input = screen.getByTestId('input');
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveClass('input');
       expect(container.querySelector('.field')).toBeInTheDocument();
       expect(container.querySelector('.control')).toBeInTheDocument();
-      expect(container.querySelector('.input')).toBeInTheDocument();
     });
 
     it('renders with a label', () => {
@@ -58,14 +59,12 @@ describe('Input', () => {
 
   describe('input props', () => {
     it('passes color to input', () => {
-      const { container } = render(
-        <Input color="danger" data-testid="input" />
-      );
+      render(<Input color="danger" data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveClass('is-danger');
     });
 
     it('passes size to input', () => {
-      const { container } = render(<Input size="large" data-testid="input" />);
+      render(<Input size="large" data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveClass('is-large');
     });
 
@@ -179,7 +178,7 @@ describe('Input', () => {
       );
       expect(container.querySelector('.bulma-field')).toBeInTheDocument();
       expect(container.querySelector('.bulma-control')).toBeInTheDocument();
-      expect(container.querySelector('.bulma-input')).toBeInTheDocument();
+      expect(screen.getByTestId('input')).toHaveClass('bulma-input');
       expect(container.querySelector('.bulma-help')).toBeInTheDocument();
       expect(container.querySelector('.bulma-label')).toBeInTheDocument();
     });

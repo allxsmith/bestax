@@ -5,7 +5,6 @@ import { Block } from '../elements/Block';
 import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
-import { Icon } from '../elements/Icon';
 import { Notification } from '../elements/Notification';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
@@ -76,89 +75,91 @@ export const Default: Story = {
   ),
 };
 
+const ControlledTabsExample = () => {
+  const [active, setActive] = useState(0);
+  return (
+    <Block>
+      <Paragraph>
+        Active tab: <strong>{active}</strong>
+      </Paragraph>
+      <Tabs value={active} onChange={setActive}>
+        <Tabs.List>
+          <Tabs.Tab index={0}>Overview</Tabs.Tab>
+          <Tabs.Tab index={1}>Details</Tabs.Tab>
+          <Tabs.Tab index={2}>Reviews</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Content>
+          <Tabs.Content.Item index={0}>
+            <Paragraph>Product overview and summary.</Paragraph>
+          </Tabs.Content.Item>
+          <Tabs.Content.Item index={1}>
+            <Paragraph>Specifications and technical details.</Paragraph>
+          </Tabs.Content.Item>
+          <Tabs.Content.Item index={2}>
+            <Paragraph>Customer reviews and ratings.</Paragraph>
+          </Tabs.Content.Item>
+        </Tabs.Content>
+      </Tabs>
+    </Block>
+  );
+};
+
 export const Controlled: Story = {
-  render: () => {
-    const [active, setActive] = useState(0);
-    return (
-      <Block>
-        <Paragraph>
-          Active tab: <strong>{active}</strong>
-        </Paragraph>
-        <Tabs value={active} onChange={setActive}>
-          <Tabs.List>
-            <Tabs.Tab index={0}>Overview</Tabs.Tab>
-            <Tabs.Tab index={1}>Details</Tabs.Tab>
-            <Tabs.Tab index={2}>Reviews</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Content>
-            <Tabs.Content.Item index={0}>
-              <Paragraph>Product overview and summary.</Paragraph>
-            </Tabs.Content.Item>
-            <Tabs.Content.Item index={1}>
-              <Paragraph>Specifications and technical details.</Paragraph>
-            </Tabs.Content.Item>
-            <Tabs.Content.Item index={2}>
-              <Paragraph>Customer reviews and ratings.</Paragraph>
-            </Tabs.Content.Item>
-          </Tabs.Content>
-        </Tabs>
-      </Block>
-    );
-  },
+  render: () => <ControlledTabsExample />,
+};
+
+const ExternalNavigationTabsExample = () => {
+  const tabs = ['Account', 'Security', 'Notifications', 'Billing'];
+  const [active, setActive] = useState(0);
+
+  const goPrev = () => setActive(i => Math.max(0, i - 1));
+  const goNext = () => setActive(i => Math.min(tabs.length - 1, i + 1));
+
+  return (
+    <Block>
+      <Tabs value={active} onChange={setActive}>
+        <Tabs.List>
+          {tabs.map((label, i) => (
+            <Tabs.Tab key={i} index={i}>
+              {label}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+        <Tabs.Content>
+          <Tabs.Content.Item index={0}>
+            <Paragraph>Manage your account details and display name.</Paragraph>
+          </Tabs.Content.Item>
+          <Tabs.Content.Item index={1}>
+            <Paragraph>
+              Update your password and two-factor authentication.
+            </Paragraph>
+          </Tabs.Content.Item>
+          <Tabs.Content.Item index={2}>
+            <Paragraph>Choose which notifications you receive.</Paragraph>
+          </Tabs.Content.Item>
+          <Tabs.Content.Item index={3}>
+            <Paragraph>View invoices and manage your subscription.</Paragraph>
+          </Tabs.Content.Item>
+        </Tabs.Content>
+      </Tabs>
+      <Buttons>
+        <Button onClick={goPrev} isDisabled={active === 0}>
+          Previous
+        </Button>
+        <Button
+          onClick={goNext}
+          isDisabled={active === tabs.length - 1}
+          color="primary"
+        >
+          Next
+        </Button>
+      </Buttons>
+    </Block>
+  );
 };
 
 export const ExternalNavigation: Story = {
-  render: () => {
-    const tabs = ['Account', 'Security', 'Notifications', 'Billing'];
-    const [active, setActive] = useState(0);
-
-    const goPrev = () => setActive(i => Math.max(0, i - 1));
-    const goNext = () => setActive(i => Math.min(tabs.length - 1, i + 1));
-
-    return (
-      <Block>
-        <Tabs value={active} onChange={setActive}>
-          <Tabs.List>
-            {tabs.map((label, i) => (
-              <Tabs.Tab key={i} index={i}>
-                {label}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-          <Tabs.Content>
-            <Tabs.Content.Item index={0}>
-              <Paragraph>
-                Manage your account details and display name.
-              </Paragraph>
-            </Tabs.Content.Item>
-            <Tabs.Content.Item index={1}>
-              <Paragraph>
-                Update your password and two-factor authentication.
-              </Paragraph>
-            </Tabs.Content.Item>
-            <Tabs.Content.Item index={2}>
-              <Paragraph>Choose which notifications you receive.</Paragraph>
-            </Tabs.Content.Item>
-            <Tabs.Content.Item index={3}>
-              <Paragraph>View invoices and manage your subscription.</Paragraph>
-            </Tabs.Content.Item>
-          </Tabs.Content>
-        </Tabs>
-        <Buttons>
-          <Button onClick={goPrev} isDisabled={active === 0}>
-            Previous
-          </Button>
-          <Button
-            onClick={goNext}
-            isDisabled={active === tabs.length - 1}
-            color="primary"
-          >
-            Next
-          </Button>
-        </Buttons>
-      </Block>
-    );
-  },
+  render: () => <ExternalNavigationTabsExample />,
 };
 
 export const AlignmentCentered: Story = {

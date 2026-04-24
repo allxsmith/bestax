@@ -156,8 +156,8 @@ describe('Carousel', () => {
     });
 
     it('renders indicator buttons using Button component', () => {
-      const { container } = render(<TestCarousel />);
-      const indicators = container.querySelectorAll('.indicator-item');
+      render(<TestCarousel />);
+      const indicators = screen.getAllByRole('tab');
       indicators.forEach(indicator => {
         expect(indicator.tagName).toBe('BUTTON');
         expect(indicator).toHaveClass('button');
@@ -349,16 +349,22 @@ describe('Carousel', () => {
 
   describe('Arrow Background', () => {
     it('renders arrows with background by default', () => {
-      const { container } = render(<TestCarousel />);
-      const arrows = container.querySelectorAll('.carousel-arrow');
+      render(<TestCarousel />);
+      const arrows = [
+        screen.getByLabelText('Previous slide'),
+        screen.getByLabelText('Next slide'),
+      ];
       arrows.forEach(arrow => {
         expect(arrow).not.toHaveClass('is-transparent');
       });
     });
 
     it('renders arrows without background when arrowBackground is false', () => {
-      const { container } = render(<TestCarousel arrowBackground={false} />);
-      const arrows = container.querySelectorAll('.carousel-arrow');
+      render(<TestCarousel arrowBackground={false} />);
+      const arrows = [
+        screen.getByLabelText('Previous slide'),
+        screen.getByLabelText('Next slide'),
+      ];
       arrows.forEach(arrow => {
         expect(arrow).toHaveClass('is-transparent');
       });
@@ -452,6 +458,20 @@ describe('Carousel', () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
+    it('ignores mouseMove and mouseUp without prior mouseDown', () => {
+      const onChange = jest.fn();
+      const { container } = render(<TestCarousel onChange={onChange} />);
+      const carouselContainer = container.querySelector('.carousel-container')!;
+
+      // Without a prior mouseDown, isDragging is false, so handleDragMove and
+      // handleDragEnd should both early-return (covers the !isDragging branches).
+      fireEvent.mouseMove(carouselContainer, { clientX: 100 });
+      fireEvent.mouseUp(carouselContainer);
+      fireEvent.mouseLeave(carouselContainer);
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
     it('does not drag when hasDrag is false', () => {
       const onChange = jest.fn();
       const { container } = render(
@@ -483,6 +503,20 @@ describe('Carousel', () => {
 
       expect(onChange).toHaveBeenCalledWith(1);
     });
+
+    it('ignores touchMove without prior touchStart', () => {
+      // Unlike onMouseMove, the onTouchMove handler is always wired when
+      // hasDrag=true (no isDragging guard at the JSX level), so a stray
+      // touchMove exercises the `if (!isDragging) return` early-return.
+      const onChange = jest.fn();
+      const { container } = render(<TestCarousel onChange={onChange} />);
+      const carouselContainer = container.querySelector('.carousel-container')!;
+
+      fireEvent.touchMove(carouselContainer, { touches: [{ clientX: 100 }] });
+      fireEvent.touchEnd(carouselContainer);
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Ref Forwarding', () => {
@@ -491,74 +525,241 @@ describe('Carousel', () => {
       render(<TestCarousel ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLDivElement);
     });
+
+    it('supports function refs', () => {
+      const refFn = jest.fn();
+      render(<TestCarousel ref={refFn} />);
+      expect(refFn).toHaveBeenCalled();
+      // The first call should be with an HTMLDivElement node
+      const node = refFn.mock.calls[0][0];
+      expect(node).toBeInstanceOf(HTMLDivElement);
+    });
+  });
+
+  describe('Wrap-around transition cleanup', () => {
+    it('clears skipTransition after wrap-around forward (next from last)', () => {
+      const onChange = jest.fn();
+      render(<TestCarousel value={2} onChange={onChange} />);
+
+      // Click next while at last slide - triggers isWrapping=true and animates
+      // toward clone of first slide.
+      fireEvent.click(screen.getByLabelText('Next slide'));
+
+      const slidesContainer = document.querySelector('.carousel-slides')!;
+      // First transitionEnd: snap to real first slide, schedule rAFs to clear
+      // skipTransition.
+      fireEvent.transitionEnd(slidesContainer);
+      expect(onChange).toHaveBeenCalledWith(0);
+
+      // Flush both nested requestAnimationFrame callbacks so setSkipTransition(false)
+      // executes (covers the inner rAF body).
+      act(() => {
+        jest.runAllTimers();
+      });
+    });
+
+    it('clears skipTransition after wrap-around backward (prev from first)', () => {
+      const onChange = jest.fn();
+      render(<TestCarousel value={0} onChange={onChange} />);
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+
+      const slidesContainer = document.querySelector('.carousel-slides')!;
+      fireEvent.transitionEnd(slidesContainer);
+      expect(onChange).toHaveBeenCalledWith(2);
+
+      act(() => {
+        jest.runAllTimers();
+      });
+    });
+
+    it('ignores transitionEnd when not wrapping', () => {
+      const onChange = jest.fn();
+      const { container } = render(
+        <TestCarousel value={0} onChange={onChange} />
+      );
+      const slidesContainer = container.querySelector('.carousel-slides')!;
+
+      // Plain transitionEnd without prior wrap-around trigger should be a no-op.
+      fireEvent.transitionEnd(slidesContainer);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Single-slide repeat edge cases', () => {
+    // Hits the `repeat && index < 0` branch (newIndex = itemCount - 1) and the
+    // `repeat && index >= itemCount` branch (newIndex = 0) in setActiveIndex.
+    // For a single-slide carousel, goToPrev/goToNext fall through to the plain
+    // setActiveIndex(activeIndex +/- 1) path because the wrap-clone branch
+    // requires itemCount > 1.
+    it('wraps backward via keyboard with repeat and a single slide', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel onChange={onChange}>
+          <CarouselItem>
+            <button data-testid="inner">Only</button>
+          </CarouselItem>
+        </Carousel>
+      );
+
+      // Single-slide carousels render no arrows, so focus an inner element to
+      // satisfy the keyboard handler's contains() check.
+      screen.getByTestId('inner').focus();
+
+      fireEvent.keyDown(document, { key: 'ArrowLeft' });
+      // setActiveIndex(-1) with repeat=true => newIndex = itemCount - 1 = 0
+      expect(onChange).toHaveBeenCalledWith(0);
+    });
+
+    it('wraps forward via keyboard with repeat and a single slide', () => {
+      const onChange = jest.fn();
+      render(
+        <Carousel onChange={onChange}>
+          <CarouselItem>
+            <button data-testid="inner">Only</button>
+          </CarouselItem>
+        </Carousel>
+      );
+
+      screen.getByTestId('inner').focus();
+
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      // setActiveIndex(1) with repeat=true and itemCount=1 => newIndex = 0
+      expect(onChange).toHaveBeenCalledWith(0);
+    });
+
+    it('clamps to range when repeat is false (indicator click path)', () => {
+      const onChange = jest.fn();
+      render(<TestCarousel repeat={false} onChange={onChange} />);
+
+      // Indicator click goes through goToSlide -> setActiveIndex with an
+      // in-range index, exercising the non-repeat clamp branch
+      // (Math.max(0, Math.min(index, itemCount - 1))).
+      const indicators = screen.getAllByRole('tab');
+      fireEvent.click(indicators[2]);
+      expect(onChange).toHaveBeenCalledWith(2);
+    });
+
+    it('navigates without onChange callback', () => {
+      // Covers the optional-chaining false branch on `onChange?.(newIndex)`.
+      // Should not throw when onChange is undefined.
+      render(<TestCarousel />);
+      expect(() =>
+        fireEvent.click(screen.getByLabelText('Next slide'))
+      ).not.toThrow();
+    });
+
+    it('does not toggle pause state when pauseOnHover is false on leave', () => {
+      // Covers the `if (pauseOnHover)` false branch in handleMouseLeave.
+      const onChange = jest.fn();
+      render(
+        <TestCarousel
+          autoplay
+          interval={1000}
+          pauseOnHover={false}
+          onChange={onChange}
+        />
+      );
+
+      // Trigger mouseLeave directly without a prior mouseEnter; with
+      // pauseOnHover=false the handler should be a no-op (auto-play continues).
+      fireEvent.mouseLeave(screen.getByRole('region'));
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('ignores keyboard events when carousel is not focused', () => {
+      // Covers the early-return branch in the keydown handler.
+      const onChange = jest.fn();
+      render(
+        <>
+          <button data-testid="outside">Outside</button>
+          <TestCarousel value={1} onChange={onChange} />
+        </>
+      );
+
+      // Focus a button OUTSIDE the carousel.
+      screen.getByTestId('outside').focus();
+
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+      fireEvent.keyDown(document, { key: 'ArrowLeft' });
+      fireEvent.keyDown(document, { key: 'Enter' }); // unrelated key, also no-op
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Custom Icons', () => {
     it('renders Icon component when iconPrev is provided', () => {
-      const { container } = render(
-        <TestCarousel iconPrev="chevron-left" iconLibrary="fa" />
-      );
-      const prevButton = container.querySelector('.carousel-arrow.is-prev');
-      expect(prevButton?.querySelector('.icon')).toBeInTheDocument();
-      expect(prevButton?.querySelector('svg')).not.toBeInTheDocument();
+      render(<TestCarousel iconPrev="chevron-left" iconLibrary="fa" />);
+      const prevButton = screen.getByLabelText('Previous slide');
+      expect(prevButton.querySelector('.icon')).toBeInTheDocument();
+      expect(prevButton.querySelector('svg')).not.toBeInTheDocument();
     });
 
     it('renders Icon component when iconNext is provided', () => {
-      const { container } = render(
-        <TestCarousel iconNext="chevron-right" iconLibrary="fa" />
-      );
-      const nextButton = container.querySelector('.carousel-arrow.is-next');
-      expect(nextButton?.querySelector('.icon')).toBeInTheDocument();
+      render(<TestCarousel iconNext="chevron-right" iconLibrary="fa" />);
+      const nextButton = screen.getByLabelText('Next slide');
+      expect(nextButton.querySelector('.icon')).toBeInTheDocument();
     });
 
     it('renders default SVG icons when no icon props provided', () => {
-      const { container } = render(<TestCarousel />);
-      expect(container.querySelectorAll('.carousel-arrow svg')).toHaveLength(2);
+      render(<TestCarousel />);
+      expect(
+        screen.getByLabelText('Previous slide').querySelector('svg')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByLabelText('Next slide').querySelector('svg')
+      ).toBeInTheDocument();
     });
 
     it('passes iconLibrary to Icon component', () => {
-      const { container } = render(
-        <TestCarousel iconPrev="arrow-left" iconLibrary="mdi" />
-      );
+      render(<TestCarousel iconPrev="arrow-left" iconLibrary="mdi" />);
       // MDI icons use "mdi mdi-{name}" classes
-      const icon = container.querySelector('.carousel-arrow.is-prev .icon i');
+      const icon = screen
+        .getByLabelText('Previous slide')
+        .querySelector('.icon i');
       expect(icon).toHaveClass('mdi');
     });
 
     it('passes iconVariant to Icon component', () => {
-      const { container } = render(
+      render(
         <TestCarousel iconPrev="star" iconLibrary="fa" iconVariant="regular" />
       );
-      const icon = container.querySelector('.carousel-arrow.is-prev .icon i');
+      const icon = screen
+        .getByLabelText('Previous slide')
+        .querySelector('.icon i');
       expect(icon).toHaveClass('far'); // Font Awesome regular
     });
 
     it('passes iconSize to Icon component', () => {
-      const { container } = render(
+      render(
         <TestCarousel iconPrev="star" iconLibrary="fa" iconSize="large" />
       );
-      const icon = container.querySelector('.carousel-arrow.is-prev .icon');
+      const icon = screen
+        .getByLabelText('Previous slide')
+        .querySelector('.icon');
       expect(icon).toHaveClass('is-large');
     });
 
     it('allows only iconPrev without iconNext', () => {
-      const { container } = render(
-        <TestCarousel iconPrev="chevron-left" iconLibrary="fa" />
-      );
-      const prevButton = container.querySelector('.carousel-arrow.is-prev');
-      const nextButton = container.querySelector('.carousel-arrow.is-next');
-      expect(prevButton?.querySelector('.icon')).toBeInTheDocument();
-      expect(nextButton?.querySelector('svg')).toBeInTheDocument(); // default SVG
+      render(<TestCarousel iconPrev="chevron-left" iconLibrary="fa" />);
+      const prevButton = screen.getByLabelText('Previous slide');
+      const nextButton = screen.getByLabelText('Next slide');
+      expect(prevButton.querySelector('.icon')).toBeInTheDocument();
+      expect(nextButton.querySelector('svg')).toBeInTheDocument(); // default SVG
     });
 
     it('allows only iconNext without iconPrev', () => {
-      const { container } = render(
-        <TestCarousel iconNext="chevron-right" iconLibrary="fa" />
-      );
-      const prevButton = container.querySelector('.carousel-arrow.is-prev');
-      const nextButton = container.querySelector('.carousel-arrow.is-next');
-      expect(prevButton?.querySelector('svg')).toBeInTheDocument(); // default SVG
-      expect(nextButton?.querySelector('.icon')).toBeInTheDocument();
+      render(<TestCarousel iconNext="chevron-right" iconLibrary="fa" />);
+      const prevButton = screen.getByLabelText('Previous slide');
+      const nextButton = screen.getByLabelText('Next slide');
+      expect(prevButton.querySelector('svg')).toBeInTheDocument(); // default SVG
+      expect(nextButton.querySelector('.icon')).toBeInTheDocument();
     });
 
     it('navigation works with custom icons', () => {
@@ -577,7 +778,7 @@ describe('Carousel', () => {
     });
 
     it('disabled state works with custom icons', () => {
-      const { container } = render(
+      render(
         <TestCarousel
           value={0}
           repeat={false}
@@ -586,7 +787,7 @@ describe('Carousel', () => {
           iconLibrary="fa"
         />
       );
-      const prevButton = container.querySelector('.carousel-arrow.is-prev');
+      const prevButton = screen.getByLabelText('Previous slide');
       expect(prevButton).toBeDisabled();
     });
   });

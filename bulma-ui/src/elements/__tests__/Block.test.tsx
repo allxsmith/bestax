@@ -40,17 +40,28 @@ describe('Block Component', () => {
   });
 
   // Test 6: Applies Bulma helper classes from useBulmaClasses
-  test('applies Bulma helper classes', () => {
-    render(
-      <Block m="3" p="4" textAlign="centered" textWeight="bold">
-        Test
-      </Block>
-    );
-    const block = screen.getByText('Test');
-    expect(block).toHaveClass('m-3', { exact: false });
-    expect(block).toHaveClass('p-4', { exact: false });
-    expect(block).toHaveClass('has-text-centered', { exact: false });
-    expect(block).toHaveClass('has-text-weight-bold', { exact: false });
+  test('applies margin helper class', () => {
+    render(<Block m="3">Test</Block>);
+    expect(screen.getByText('Test')).toHaveClass('m-3', { exact: false });
+  });
+
+  test('applies padding helper class', () => {
+    render(<Block p="4">Test</Block>);
+    expect(screen.getByText('Test')).toHaveClass('p-4', { exact: false });
+  });
+
+  test('applies textAlign helper class', () => {
+    render(<Block textAlign="centered">Test</Block>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-centered', {
+      exact: false,
+    });
+  });
+
+  test('applies textWeight helper class', () => {
+    render(<Block textWeight="bold">Test</Block>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-weight-bold', {
+      exact: false,
+    });
   });
 
   // Test 7: Passes HTML attributes to div
@@ -138,7 +149,7 @@ describe('Block Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Block m="2" p="3">
             Test Block
@@ -146,20 +157,20 @@ describe('Block Component', () => {
         </ConfigProvider>
       );
 
-      const block = container.querySelector('div');
+      const block = screen.getByText('Test Block');
       expect(block).toHaveClass('bulma-block');
       expect(block).toHaveClass('bulma-m-2');
       expect(block).toHaveClass('bulma-p-3');
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Block m="4" textAlign="centered">
           Standard Block
         </Block>
       );
 
-      const block = container.querySelector('div');
+      const block = screen.getByText('Standard Block');
       expect(block).toHaveClass('block');
       expect(block).toHaveClass('m-4');
       expect(block).toHaveClass('has-text-centered');

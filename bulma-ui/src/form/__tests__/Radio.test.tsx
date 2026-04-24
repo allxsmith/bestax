@@ -10,77 +10,75 @@ describe('Radio', () => {
   });
 
   it('applies className and Bulma class', () => {
-    const { container } = render(
-      <Radio className="custom-class">Label Radio</Radio>
-    );
-    const label = container.querySelector('label');
+    render(<Radio className="custom-class">Label Radio</Radio>);
+    const label = screen.getByLabelText('Label Radio').closest('label');
     expect(label).toHaveClass('styled-radio');
     expect(label).toHaveClass('radio');
     expect(label).toHaveClass('custom-class');
   });
 
   it('applies classPrefix when provided', () => {
-    const { container } = render(
+    render(
       <ConfigProvider classPrefix="custom-">
         <Radio>Test Radio</Radio>
       </ConfigProvider>
     );
-    const label = container.querySelector('label');
+    const label = screen.getByLabelText('Test Radio').closest('label');
     expect(label).toHaveClass('custom-styled-radio');
     expect(label).toHaveClass('custom-radio');
   });
 
   describe('ClassPrefix', () => {
     it('applies prefix to classes when provided', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Radio data-testid="radio">Test</Radio>
         </ConfigProvider>
       );
-      const label = container.querySelector('label');
+      const label = screen.getByLabelText('Test').closest('label');
       expect(label).toHaveClass('bulma-styled-radio');
       expect(label).toHaveClass('bulma-radio');
     });
 
     it('uses default classes when no prefix is provided', () => {
-      const { container } = render(<Radio data-testid="radio">Test</Radio>);
-      const label = container.querySelector('label');
+      render(<Radio data-testid="radio">Test</Radio>);
+      const label = screen.getByLabelText('Test').closest('label');
       expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
     });
 
     it('uses default classes when classPrefix is undefined', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix={undefined}>
           <Radio data-testid="radio">Test</Radio>
         </ConfigProvider>
       );
-      const label = container.querySelector('label');
+      const label = screen.getByLabelText('Test').closest('label');
       expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Radio m="2" data-testid="radio">
             Test
           </Radio>
         </ConfigProvider>
       );
-      const label = container.querySelector('label');
+      const label = screen.getByLabelText('Test').closest('label');
       expect(label).toHaveClass('bulma-styled-radio');
       expect(label).toHaveClass('bulma-radio');
       expect(label).toHaveClass('bulma-m-2');
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Radio p="3" data-testid="radio">
           Test
         </Radio>
       );
-      const label = container.querySelector('label');
+      const label = screen.getByLabelText('Test').closest('label');
       expect(label).toHaveClass('styled-radio');
       expect(label).toHaveClass('radio');
       expect(label).toHaveClass('p-3');
@@ -134,5 +132,25 @@ describe('Radio', () => {
   it('passes other props to input', () => {
     render(<Radio data-testid="my-radio">Other Radio</Radio>);
     expect(screen.getByTestId('my-radio')).toBeInTheDocument();
+  });
+
+  describe('invalid color/size guards', () => {
+    it('does not apply is-${color} when color is not in radioColors', () => {
+      render(
+        // @ts-expect-error intentionally invalid color
+        <Radio color="not-a-color">Bad Color</Radio>
+      );
+      const label = screen.getByLabelText('Bad Color').closest('label');
+      expect(label).not.toHaveClass('is-not-a-color');
+    });
+
+    it('does not apply is-${size} when size is not in radioSizes', () => {
+      render(
+        // @ts-expect-error intentionally invalid size
+        <Radio size="huge">Bad Size</Radio>
+      );
+      const label = screen.getByLabelText('Bad Size').closest('label');
+      expect(label).not.toHaveClass('is-huge');
+    });
   });
 });

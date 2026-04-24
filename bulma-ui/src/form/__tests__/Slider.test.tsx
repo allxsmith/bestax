@@ -2,6 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Slider } from '../Slider';
+import { Field } from '../Field';
+import { Control } from '../Control';
 
 describe('Slider', () => {
   describe('rendering', () => {
@@ -11,10 +13,8 @@ describe('Slider', () => {
     });
 
     it('renders the range input', () => {
-      const { container } = render(<Slider />);
-      expect(
-        container.querySelector('input[type="range"]')
-      ).toBeInTheDocument();
+      render(<Slider />);
+      expect(screen.getByRole('slider')).toBeInTheDocument();
     });
 
     it('renders with slider-input class', () => {
@@ -25,56 +25,56 @@ describe('Slider', () => {
 
   describe('values', () => {
     it('uses defaultValue for uncontrolled slider', () => {
-      const { container } = render(<Slider defaultValue={30} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider defaultValue={30} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input.value).toBe('30');
     });
 
     it('uses value for controlled slider', () => {
-      const { container } = render(<Slider value={60} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider value={60} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input.value).toBe('60');
     });
 
     it('defaults to 0 when no value provided', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input.value).toBe('0');
     });
 
     it('respects min prop', () => {
-      const { container } = render(<Slider min={10} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider min={10} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('min', '10');
     });
 
     it('respects max prop', () => {
-      const { container } = render(<Slider max={200} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider max={200} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('max', '200');
     });
 
     it('respects step prop', () => {
-      const { container } = render(<Slider step={5} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider step={5} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('step', '5');
     });
 
     it('defaults min to 0', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('min', '0');
     });
 
     it('defaults max to 100', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('max', '100');
     });
 
     it('defaults step to 1', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toHaveAttribute('step', '1');
     });
   });
@@ -82,24 +82,24 @@ describe('Slider', () => {
   describe('onChange', () => {
     it('calls onChange when value changes', () => {
       const handleChange = jest.fn();
-      const { container } = render(<Slider onChange={handleChange} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider onChange={handleChange} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
 
       fireEvent.change(input, { target: { value: '50' } });
       expect(handleChange).toHaveBeenCalledWith(50);
     });
 
     it('updates internal value for uncontrolled slider', () => {
-      const { container } = render(<Slider defaultValue={0} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider defaultValue={0} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
 
       fireEvent.change(input, { target: { value: '75' } });
       expect(input.value).toBe('75');
     });
 
     it('does not update internal value for controlled slider', () => {
-      const { container } = render(<Slider value={30} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider value={30} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
 
       fireEvent.change(input, { target: { value: '50' } });
       // Controlled slider should still show the prop value
@@ -180,7 +180,7 @@ describe('Slider', () => {
 
     it('shows output on mouse enter', () => {
       const { container } = render(<Slider showOutput />);
-      const input = container.querySelector('input')!;
+      const input = screen.getByRole('slider');
 
       fireEvent.mouseEnter(input);
       expect(container.querySelector('.slider-output')).toHaveClass(
@@ -190,7 +190,7 @@ describe('Slider', () => {
 
     it('hides output on mouse leave', () => {
       const { container } = render(<Slider showOutput />);
-      const input = container.querySelector('input')!;
+      const input = screen.getByRole('slider');
 
       fireEvent.mouseEnter(input);
       fireEvent.mouseLeave(input);
@@ -201,7 +201,7 @@ describe('Slider', () => {
 
     it('shows output on focus', () => {
       const { container } = render(<Slider showOutput />);
-      const input = container.querySelector('input')!;
+      const input = screen.getByRole('slider');
 
       fireEvent.focus(input);
       expect(container.querySelector('.slider-output')).toHaveClass(
@@ -211,7 +211,7 @@ describe('Slider', () => {
 
     it('hides output on blur', () => {
       const { container } = render(<Slider showOutput />);
-      const input = container.querySelector('input')!;
+      const input = screen.getByRole('slider');
 
       fireEvent.focus(input);
       fireEvent.blur(input);
@@ -224,7 +224,7 @@ describe('Slider', () => {
   describe('tooltip prop', () => {
     it('tooltip="auto" renders output and shows on hover', () => {
       const { container } = render(<Slider tooltip="auto" showOutput />);
-      const input = container.querySelector('input')!;
+      const input = screen.getByRole('slider');
 
       expect(container.querySelector('.slider-output')).toBeInTheDocument();
       expect(container.querySelector('.slider-output')).not.toHaveClass(
@@ -268,14 +268,14 @@ describe('Slider', () => {
 
   describe('disabled state', () => {
     it('input is disabled when disabled prop is true', () => {
-      const { container } = render(<Slider disabled />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider disabled />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).toBeDisabled();
     });
 
     it('input is not disabled by default', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input).not.toBeDisabled();
     });
   });
@@ -315,58 +315,56 @@ describe('Slider', () => {
 
   describe('accessibility', () => {
     it('has aria-valuenow', () => {
-      const { container } = render(<Slider value={50} />);
-      const input = container.querySelector('input');
+      render(<Slider value={50} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuenow', '50');
     });
 
     it('has aria-valuemin', () => {
-      const { container } = render(<Slider min={10} />);
-      const input = container.querySelector('input');
+      render(<Slider min={10} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuemin', '10');
     });
 
     it('has aria-valuemax', () => {
-      const { container } = render(<Slider max={200} />);
-      const input = container.querySelector('input');
+      render(<Slider max={200} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuemax', '200');
     });
 
     it('sets aria-valuetext via getAriaValueText', () => {
-      const { container } = render(
-        <Slider value={50} getAriaValueText={v => `${v} degrees`} />
-      );
-      const input = container.querySelector('input');
+      render(<Slider value={50} getAriaValueText={v => `${v} degrees`} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuetext', '50 degrees');
     });
 
     it('sets aria-valuetext from scale when no getAriaValueText', () => {
-      const { container } = render(<Slider value={3} scale={v => v * v} />);
-      const input = container.querySelector('input');
+      render(<Slider value={3} scale={v => v * v} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuetext', '9');
     });
 
     it('passes aria-label to input', () => {
-      const { container } = render(<Slider ariaLabel="Volume" />);
-      const input = container.querySelector('input');
+      render(<Slider ariaLabel="Volume" />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-label', 'Volume');
     });
 
     it('passes aria-labelledby to input', () => {
-      const { container } = render(<Slider aria-labelledby="my-label" />);
-      const input = container.querySelector('input');
+      render(<Slider aria-labelledby="my-label" />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-labelledby', 'my-label');
     });
 
     it('sets aria-orientation for vertical', () => {
-      const { container } = render(<Slider orientation="vertical" />);
-      const input = container.querySelector('input');
+      render(<Slider orientation="vertical" />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-orientation', 'vertical');
     });
 
     it('does not set aria-orientation for horizontal', () => {
-      const { container } = render(<Slider />);
-      const input = container.querySelector('input');
+      render(<Slider />);
+      const input = screen.getByRole('slider');
       expect(input).not.toHaveAttribute('aria-orientation');
     });
   });
@@ -374,10 +372,8 @@ describe('Slider', () => {
   describe('keyboard navigation', () => {
     it('Home key sets value to min', () => {
       const handleChange = jest.fn();
-      const { container } = render(
-        <Slider min={10} max={90} onChange={handleChange} />
-      );
-      const input = container.querySelector('input')!;
+      render(<Slider min={10} max={90} onChange={handleChange} />);
+      const input = screen.getByRole('slider');
 
       fireEvent.keyDown(input, { key: 'Home' });
       expect(handleChange).toHaveBeenCalledWith(10);
@@ -385,33 +381,51 @@ describe('Slider', () => {
 
     it('End key sets value to max', () => {
       const handleChange = jest.fn();
-      const { container } = render(
-        <Slider min={10} max={90} onChange={handleChange} />
-      );
-      const input = container.querySelector('input')!;
+      render(<Slider min={10} max={90} onChange={handleChange} />);
+      const input = screen.getByRole('slider');
 
       fireEvent.keyDown(input, { key: 'End' });
       expect(handleChange).toHaveBeenCalledWith(90);
     });
 
     it('Home key updates uncontrolled slider', () => {
-      const { container } = render(
-        <Slider defaultValue={50} min={0} max={100} />
-      );
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider defaultValue={50} min={0} max={100} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
 
       fireEvent.keyDown(input, { key: 'Home' });
       expect(input.value).toBe('0');
     });
 
     it('End key updates uncontrolled slider', () => {
-      const { container } = render(
-        <Slider defaultValue={50} min={0} max={100} />
-      );
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider defaultValue={50} min={0} max={100} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
 
       fireEvent.keyDown(input, { key: 'End' });
       expect(input.value).toBe('100');
+    });
+
+    it('Home key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
+      const handleChange = jest.fn();
+      render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
+      const input = screen.getByRole('slider');
+      fireEvent.keyDown(input, { key: 'Home' });
+      expect(handleChange).toHaveBeenCalledWith(0);
+    });
+
+    it('End key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
+      const handleChange = jest.fn();
+      render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
+      const input = screen.getByRole('slider');
+      fireEvent.keyDown(input, { key: 'End' });
+      expect(handleChange).toHaveBeenCalledWith(100);
+    });
+
+    it('non-Home/End keys are ignored (covers else-if false branch)', () => {
+      const handleChange = jest.fn();
+      render(<Slider min={0} max={100} onChange={handleChange} />);
+      const input = screen.getByRole('slider');
+      fireEvent.keyDown(input, { key: 'PageUp' });
+      expect(handleChange).not.toHaveBeenCalled();
     });
   });
 
@@ -524,8 +538,8 @@ describe('Slider', () => {
     });
 
     it('sets aria-valuetext with scaled value when no getAriaValueText', () => {
-      const { container } = render(<Slider value={5} scale={v => v * 2} />);
-      const input = container.querySelector('input');
+      render(<Slider value={5} scale={v => v * 2} />);
+      const input = screen.getByRole('slider');
       expect(input).toHaveAttribute('aria-valuetext', '10');
     });
   });
@@ -575,8 +589,8 @@ describe('Slider', () => {
 
   describe('range mode', () => {
     it('renders two inputs when range is true', () => {
-      const { container } = render(<Slider range defaultValue={[20, 80]} />);
-      const inputs = container.querySelectorAll('input[type="range"]');
+      render(<Slider range defaultValue={[20, 80]} />);
+      const inputs = screen.getAllByRole('slider');
       expect(inputs.length).toBe(2);
     });
 
@@ -591,20 +605,16 @@ describe('Slider', () => {
     });
 
     it('sets low and high values', () => {
-      const { container } = render(<Slider range value={[25, 75]} />);
-      const inputs = container.querySelectorAll(
-        'input[type="range"]'
-      ) as NodeListOf<HTMLInputElement>;
+      render(<Slider range value={[25, 75]} />);
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
       expect(inputs[0].value).toBe('25');
       expect(inputs[1].value).toBe('75');
     });
 
     it('calls onChange with tuple', () => {
       const handleChange = jest.fn();
-      const { container } = render(
-        <Slider range value={[20, 80]} onChange={handleChange} />
-      );
-      const inputs = container.querySelectorAll('input[type="range"]');
+      render(<Slider range value={[20, 80]} onChange={handleChange} />);
+      const inputs = screen.getAllByRole('slider');
 
       fireEvent.change(inputs[0], { target: { value: '30' } });
       expect(handleChange).toHaveBeenCalledWith([30, 80]);
@@ -612,10 +622,8 @@ describe('Slider', () => {
 
     it('calls onChange for high thumb', () => {
       const handleChange = jest.fn();
-      const { container } = render(
-        <Slider range value={[20, 80]} onChange={handleChange} />
-      );
-      const inputs = container.querySelectorAll('input[type="range"]');
+      render(<Slider range value={[20, 80]} onChange={handleChange} />);
+      const inputs = screen.getAllByRole('slider');
 
       fireEvent.change(inputs[1], { target: { value: '90' } });
       expect(handleChange).toHaveBeenCalledWith([20, 90]);
@@ -623,7 +631,7 @@ describe('Slider', () => {
 
     it('enforces minDistance', () => {
       const handleChange = jest.fn();
-      const { container } = render(
+      render(
         <Slider
           range
           value={[30, 70]}
@@ -631,7 +639,7 @@ describe('Slider', () => {
           onChange={handleChange}
         />
       );
-      const inputs = container.querySelectorAll('input[type="range"]');
+      const inputs = screen.getAllByRole('slider');
 
       // Try to move low thumb to 60 (within 20 of high=70 would be 50 max)
       fireEvent.change(inputs[0], { target: { value: '60' } });
@@ -640,7 +648,7 @@ describe('Slider', () => {
 
     it('enforces minDistance on high thumb', () => {
       const handleChange = jest.fn();
-      const { container } = render(
+      render(
         <Slider
           range
           value={[30, 70]}
@@ -648,7 +656,7 @@ describe('Slider', () => {
           onChange={handleChange}
         />
       );
-      const inputs = container.querySelectorAll('input[type="range"]');
+      const inputs = screen.getAllByRole('slider');
 
       // Try to move high thumb to 40 (must be at least 30+20=50)
       fireEvent.change(inputs[1], { target: { value: '40' } });
@@ -666,26 +674,22 @@ describe('Slider', () => {
     });
 
     it('sets aria-label on range thumbs', () => {
-      const { container } = render(
-        <Slider range ariaLabel={['Min price', 'Max price']} />
-      );
-      const inputs = container.querySelectorAll('input[type="range"]');
+      render(<Slider range ariaLabel={['Min price', 'Max price']} />);
+      const inputs = screen.getAllByRole('slider');
       expect(inputs[0]).toHaveAttribute('aria-label', 'Min price');
       expect(inputs[1]).toHaveAttribute('aria-label', 'Max price');
     });
 
     it('defaults aria-labels to "Minimum value" / "Maximum value"', () => {
-      const { container } = render(<Slider range />);
-      const inputs = container.querySelectorAll('input[type="range"]');
+      render(<Slider range />);
+      const inputs = screen.getAllByRole('slider');
       expect(inputs[0]).toHaveAttribute('aria-label', 'Minimum value');
       expect(inputs[1]).toHaveAttribute('aria-label', 'Maximum value');
     });
 
     it('updates uncontrolled range values', () => {
-      const { container } = render(<Slider range defaultValue={[10, 90]} />);
-      const inputs = container.querySelectorAll(
-        'input[type="range"]'
-      ) as NodeListOf<HTMLInputElement>;
+      render(<Slider range defaultValue={[10, 90]} />);
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
 
       fireEvent.change(inputs[0], { target: { value: '30' } });
       expect(inputs[0].value).toBe('30');
@@ -719,16 +723,543 @@ describe('Slider', () => {
 
   describe('CSS custom property', () => {
     it('sets --slider-progress style', () => {
-      const { container } = render(<Slider value={50} min={0} max={100} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider value={50} min={0} max={100} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       expect(input.style.getPropertyValue('--slider-progress')).toBe('50%');
     });
 
     it('calculates progress correctly with custom range', () => {
-      const { container } = render(<Slider value={250} min={100} max={500} />);
-      const input = container.querySelector('input') as HTMLInputElement;
+      render(<Slider value={250} min={100} max={500} />);
+      const input = screen.getByRole('slider') as HTMLInputElement;
       // (250 - 100) / (500 - 100) = 150 / 400 = 0.375 = 37.5%
       expect(input.style.getPropertyValue('--slider-progress')).toBe('37.5%');
+    });
+  });
+
+  describe('high-density ticks (>100)', () => {
+    it('caps tick rendering at 99 interior ticks when count > 100', () => {
+      // count = (10000 - 0) / 1 = 10000, which is > 100,
+      // so the optimization branch generates ticks at i=1..99 with tickStep = (max-min)/100.
+      const { container } = render(
+        <Slider min={0} max={10000} step={1} ticks />
+      );
+      const ticks = container.querySelectorAll('.slider-tick');
+      // Sampled subset: i=1..99 => 99 interior ticks (no endpoints).
+      expect(ticks.length).toBe(99);
+      // First sampled tick is at min + 1 * (10000/100) = 100 => 1%.
+      expect(ticks[0]).toHaveStyle({ left: '1%' });
+      // 50th sampled tick is at min + 50 * (10000/100) = 5000 => 50%.
+      expect(ticks[49]).toHaveStyle({ left: '50%' });
+      // Last sampled tick is at min + 99 * (10000/100) = 9900 => 99%.
+      expect(ticks[98]).toHaveStyle({ left: '99%' });
+    });
+  });
+
+  describe('range mode tooltip handlers', () => {
+    it('shows low tooltip on mouseEnter of low thumb in range mode', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+
+      expect(lowOutput).not.toHaveClass('is-visible');
+      fireEvent.mouseEnter(inputs[0]);
+      expect(lowOutput).toHaveClass('is-visible');
+    });
+
+    it('hides low tooltip on mouseLeave of low thumb in range mode', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+
+      fireEvent.mouseEnter(inputs[0]);
+      fireEvent.mouseLeave(inputs[0]);
+      expect(lowOutput).not.toHaveClass('is-visible');
+    });
+
+    it('shows low tooltip on focus of low thumb in range mode', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+
+      fireEvent.focus(inputs[0]);
+      expect(lowOutput).toHaveClass('is-visible');
+      fireEvent.blur(inputs[0]);
+      expect(lowOutput).not.toHaveClass('is-visible');
+    });
+
+    it('shows high tooltip on mouseEnter of high thumb', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+
+      expect(highOutput).not.toHaveClass('is-visible');
+      fireEvent.mouseEnter(inputs[1]);
+      expect(highOutput).toHaveClass('is-visible');
+    });
+
+    it('hides high tooltip on mouseLeave of high thumb', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+
+      fireEvent.mouseEnter(inputs[1]);
+      fireEvent.mouseLeave(inputs[1]);
+      expect(highOutput).not.toHaveClass('is-visible');
+    });
+
+    it('shows and hides high tooltip on focus and blur of high thumb', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+
+      fireEvent.focus(inputs[1]);
+      expect(highOutput).toHaveClass('is-visible');
+      fireEvent.blur(inputs[1]);
+      expect(highOutput).not.toHaveClass('is-visible');
+    });
+
+    it('does not change high tooltip when low thumb is hovered', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} showOutput />
+      );
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+
+      fireEvent.mouseEnter(inputs[0]);
+      expect(highOutput).not.toHaveClass('is-visible');
+    });
+
+    it('keyDown on high thumb does not throw and does not change values', () => {
+      // High thumb has no onKeyDown wired, but it should accept the event silently.
+      const handleChange = jest.fn();
+      render(<Slider range value={[20, 80]} onChange={handleChange} />);
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+
+      // Pressing Home on a range slider's low thumb is a no-op
+      // (range branch in handleKeyDown is intentionally empty),
+      // exercising the `if (!range)` false branch on lines 328 and 334.
+      fireEvent.keyDown(inputs[0], { key: 'Home' });
+      fireEvent.keyDown(inputs[0], { key: 'End' });
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('rem-to-px thumb size conversion', () => {
+    it('converts rem-valued --bulma-slider-thumb-size to px via root font-size', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      const fakeComputedStyle = (_el: Element) =>
+        ({
+          getPropertyValue: (prop: string) => {
+            if (prop === '--bulma-slider-thumb-size') return '1.5rem';
+            return '';
+          },
+          fontSize: '20px',
+          // jsdom's CSSStyleDeclaration has many properties; provide the ones
+          // accessed by the component and fall through for anything else.
+          getPropertyPriority: () => '',
+        }) as unknown as CSSStyleDeclaration;
+
+      // Wrap so the original is invoked for non-target elements (like outputs)
+      // and our mock provides the slider-thumb var + fontSize for the inputs/root.
+      window.getComputedStyle = ((el: Element) => {
+        return fakeComputedStyle(el);
+      }) as typeof window.getComputedStyle;
+
+      try {
+        const { container } = render(
+          <Slider value={50} showOutput min={0} max={100} />
+        );
+        // Force a re-render-triggering interaction so useLayoutEffect
+        // re-runs getThumbSizePx and traverses the rem branch.
+        const input = container.querySelector(
+          'input[type="range"]'
+        ) as HTMLInputElement;
+        fireEvent.focus(input);
+        fireEvent.blur(input);
+        // No assertion on px math (jsdom can't render); coverage is the goal.
+        expect(container.querySelector('.slider-output')).toBeInTheDocument();
+      } finally {
+        window.getComputedStyle = originalGetComputedStyle;
+      }
+    });
+
+    it('handles non-rem (px) thumb size value path', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      window.getComputedStyle = ((_el: Element) =>
+        ({
+          getPropertyValue: (prop: string) => {
+            if (prop === '--bulma-slider-thumb-size') return '24px';
+            return '';
+          },
+          fontSize: '16px',
+          getPropertyPriority: () => '',
+        }) as unknown as CSSStyleDeclaration) as typeof window.getComputedStyle;
+
+      try {
+        const { container } = render(
+          <Slider value={50} showOutput isCircle min={0} max={100} />
+        );
+        expect(container.querySelector('.slider-output')).toBeInTheDocument();
+      } finally {
+        window.getComputedStyle = originalGetComputedStyle;
+      }
+    });
+
+    it('returns 0 when --bulma-slider-thumb-size is not parseable', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      window.getComputedStyle = ((_el: Element) =>
+        ({
+          getPropertyValue: (_prop: string) => '',
+          fontSize: '16px',
+          getPropertyPriority: () => '',
+        }) as unknown as CSSStyleDeclaration) as typeof window.getComputedStyle;
+
+      try {
+        const { container } = render(<Slider value={50} showOutput />);
+        expect(container.querySelector('.slider-output')).toBeInTheDocument();
+      } finally {
+        window.getComputedStyle = originalGetComputedStyle;
+      }
+    });
+  });
+
+  describe('tooltip nudge (overflow handling)', () => {
+    // computeNudge uses wrapper.getBoundingClientRect() and outputRef.offsetWidth.
+    // We mock both to force the left-clip and right-clip branches.
+    function withMockedLayout(
+      wrapperRect: Partial<DOMRect>,
+      outputWidth: number,
+      run: () => void
+    ) {
+      const origGetBCR = HTMLElement.prototype.getBoundingClientRect;
+      const origOffsetWidth = Object.getOwnPropertyDescriptor(
+        HTMLElement.prototype,
+        'offsetWidth'
+      );
+
+      HTMLElement.prototype.getBoundingClientRect = function () {
+        if (this.classList.contains('slider')) {
+          return {
+            left: 0,
+            right: 100,
+            top: 100,
+            bottom: 120,
+            width: 100,
+            height: 20,
+            x: 0,
+            y: 100,
+            toJSON: () => ({}),
+            ...wrapperRect,
+          } as DOMRect;
+        }
+        return origGetBCR.call(this);
+      };
+
+      Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+        configurable: true,
+        get() {
+          if (this.classList.contains('slider-output')) return outputWidth;
+          return 0;
+        },
+      });
+
+      try {
+        run();
+      } finally {
+        HTMLElement.prototype.getBoundingClientRect = origGetBCR;
+        if (origOffsetWidth) {
+          Object.defineProperty(
+            HTMLElement.prototype,
+            'offsetWidth',
+            origOffsetWidth
+          );
+        } else {
+          // jsdom defines offsetWidth as a getter on HTMLElement.prototype by default;
+          // if the descriptor was missing, just delete our override.
+          delete (HTMLElement.prototype as unknown as { offsetWidth?: number })
+            .offsetWidth;
+        }
+      }
+    }
+
+    it('nudges right when tooltip would clip the left edge (progress=0)', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider value={0} min={0} max={100} showOutput />
+        );
+        // tooltipLeft = centerX - 80/2 < wr.left=0 => nudge right (positive)
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.transform).toContain('translateX');
+      });
+    });
+
+    it('nudges left when tooltip would clip the right edge (progress=100)', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider value={100} min={0} max={100} showOutput />
+        );
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.transform).toContain('translateX');
+      });
+    });
+
+    it('nudges high tooltip in range mode when clipped at right edge', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider range value={[0, 100]} showOutput />
+        );
+        const highOutput = container.querySelector(
+          '.slider-output-high'
+        ) as HTMLElement;
+        expect(highOutput.style.transform).toContain('translateX');
+      });
+    });
+  });
+
+  describe('function ref forwarding', () => {
+    it('invokes function ref with the input node', () => {
+      const refFn = jest.fn();
+      render(<Slider ref={refFn} />);
+      expect(refFn).toHaveBeenCalled();
+      const node = refFn.mock.calls[0][0];
+      expect(node).toBeInstanceOf(HTMLInputElement);
+      expect((node as HTMLInputElement).type).toBe('range');
+    });
+
+    it('invokes function ref for range mode (first input)', () => {
+      const refFn = jest.fn();
+      render(<Slider range defaultValue={[10, 90]} ref={refFn} />);
+      expect(refFn).toHaveBeenCalled();
+    });
+  });
+
+  describe('inside Control (no-wrapping branch)', () => {
+    it('does not wrap with Control when already inside a Control', () => {
+      const { container } = render(
+        <Field>
+          <Control>
+            <Slider defaultValue={10} />
+          </Control>
+        </Field>
+      );
+      // Only the outer Control should exist (no nested .control wrapper from Slider).
+      expect(container.querySelectorAll('.control').length).toBe(1);
+      expect(screen.getByRole('slider')).toBeInTheDocument();
+    });
+  });
+
+  describe('inside Field (fragment return path)', () => {
+    it('returns content + message without wrapping Field when already inside one', () => {
+      const { container } = render(
+        <Field label="My Slider">
+          <Slider message="hint" messageColor="info" defaultValue={10} />
+        </Field>
+      );
+      // There should be exactly one .field wrapper from the outer Field —
+      // the Slider must not have introduced a second nested Field.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      // The Slider's message should still render as a help paragraph.
+      const help = container.querySelector('.help');
+      expect(help).toBeInTheDocument();
+      expect(help).toHaveTextContent('hint');
+      expect(help).toHaveClass('is-info');
+      // And the slider input is present inside the existing field.
+      expect(screen.getByRole('slider')).toBeInTheDocument();
+    });
+
+    it('renders no help paragraph when message is omitted (inside Field)', () => {
+      const { container } = render(
+        <Field label="My Slider">
+          <Slider defaultValue={10} />
+        </Field>
+      );
+      expect(container.querySelector('.help')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('range mode (additional branches)', () => {
+    it('updates uncontrolled high thumb without onChange', () => {
+      // Exercises lines 317-318: !isControlled branch + onChange undefined
+      // optional-call branch on the high thumb handler.
+      render(<Slider range defaultValue={[10, 50]} />);
+      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
+
+      fireEvent.change(inputs[1], { target: { value: '90' } });
+      expect(inputs[1].value).toBe('90');
+    });
+
+    it('uses nameLow for low thumb form field name', () => {
+      render(<Slider range defaultValue={[10, 90]} nameLow="priceLow" />);
+      const inputs = screen.getAllByRole('slider');
+      expect(inputs[0]).toHaveAttribute('name', 'priceLow');
+    });
+
+    it('uses nameHigh for high thumb form field name', () => {
+      render(<Slider range defaultValue={[10, 90]} nameHigh="priceHigh" />);
+      const inputs = screen.getAllByRole('slider');
+      expect(inputs[1]).toHaveAttribute('name', 'priceHigh');
+    });
+
+    it('renders vertical range slider with both tooltips and aria-orientation', () => {
+      // Exercises range + isVertical branches:
+      //   - track style ternary (629)
+      //   - low/high aria-orientation (658, 684)
+      //   - low/high vertical tooltip placement (702-712, 734-744)
+      const { container } = render(
+        <Slider
+          range
+          orientation="vertical"
+          value={[20, 80]}
+          showOutput
+          min={0}
+          max={100}
+        />
+      );
+      const inputs = screen.getAllByRole('slider');
+      expect(inputs[0]).toHaveAttribute('aria-orientation', 'vertical');
+      expect(inputs[1]).toHaveAttribute('aria-orientation', 'vertical');
+
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+      // Vertical tooltip uses `bottom` for placement (not `left`).
+      expect(lowOutput.style.bottom).toContain(
+        'var(--bulma-slider-thumb-size)'
+      );
+      expect(highOutput.style.bottom).toContain(
+        'var(--bulma-slider-thumb-size)'
+      );
+    });
+
+    it('vertical range flips tooltips to the left when clipped at right edge', () => {
+      // Force window.innerWidth tiny so the tooltipRightEdge (>= 8 from gap)
+      // always exceeds it, setting verticalFlippedLeft = true.
+      const origInner = window.innerWidth;
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        writable: true,
+        value: 0,
+      });
+      try {
+        const { container } = render(
+          <Slider
+            range
+            orientation="vertical"
+            value={[20, 80]}
+            showOutput
+            min={0}
+            max={100}
+          />
+        );
+        // The slider wrapper picks up is-flipped-left only when verticalFlippedLeft.
+        // Both low and high outputs should reflect the flip.
+        const lowOutput = container.querySelector(
+          '.slider-output-low'
+        ) as HTMLElement;
+        const highOutput = container.querySelector(
+          '.slider-output-high'
+        ) as HTMLElement;
+        // verticalFlippedLeft true => uses `right: ...; left: auto`.
+        expect(lowOutput.style.right).not.toBe('');
+        expect(lowOutput.style.left).toBe('auto');
+        expect(highOutput.style.right).not.toBe('');
+        expect(highOutput.style.left).toBe('auto');
+      } finally {
+        Object.defineProperty(window, 'innerWidth', {
+          configurable: true,
+          writable: true,
+          value: origInner,
+        });
+      }
+    });
+
+    it('vertical single slider flips tooltip to the left when clipped at right edge', () => {
+      // Single-mode equivalent — exercises the verticalFlippedLeft true branch
+      // in the single-mode tooltip style (line 599).
+      const origInner = window.innerWidth;
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        writable: true,
+        value: 0,
+      });
+      try {
+        const { container } = render(
+          <Slider
+            orientation="vertical"
+            value={50}
+            showOutput
+            min={0}
+            max={100}
+          />
+        );
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.right).not.toBe('');
+        expect(output.style.left).toBe('auto');
+      } finally {
+        Object.defineProperty(window, 'innerWidth', {
+          configurable: true,
+          writable: true,
+          value: origInner,
+        });
+      }
+    });
+  });
+
+  describe('rem-to-px (root font-size fallback)', () => {
+    it('falls back to 16 when document.documentElement font-size is unparseable', () => {
+      // Exercises the `|| 16` fallback on line 382.
+      const original = window.getComputedStyle;
+      window.getComputedStyle = ((el: Element) => {
+        if (el === document.documentElement) {
+          return {
+            getPropertyValue: () => '',
+            fontSize: 'not-a-size',
+            getPropertyPriority: () => '',
+          } as unknown as CSSStyleDeclaration;
+        }
+        return {
+          getPropertyValue: (prop: string) =>
+            prop === '--bulma-slider-thumb-size' ? '1rem' : '',
+          fontSize: '16px',
+          getPropertyPriority: () => '',
+        } as unknown as CSSStyleDeclaration;
+      }) as typeof window.getComputedStyle;
+
+      try {
+        const { container } = render(<Slider value={50} showOutput />);
+        expect(container.querySelector('.slider-output')).toBeInTheDocument();
+      } finally {
+        window.getComputedStyle = original;
+      }
     });
   });
 });

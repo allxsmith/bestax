@@ -184,6 +184,44 @@ function getTickPositions(
  */
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(
   (props, ref) => {
+    // Pull out fields that differ between the single and range branches
+    // *first*, by narrowing on the `range` discriminator. We then destructure
+    // the remaining base props from a `SliderBaseProps` view of `props`.
+    //
+    // Why not destructure everything via `props as SliderRangeProps & SliderSingleProps`?
+    // Because intersecting the two halves of a discriminated union collapses
+    // overlapping fields (e.g. `range: true & false`, `value: number & [number, number]`,
+    // `onChange`, `ariaLabel`) to `never`, which breaks call sites and rest spreads.
+    let range: boolean | undefined;
+    let controlledValue: number | [number, number] | undefined;
+    let defaultValue: number | [number, number] | undefined;
+    let onChange:
+      | ((v: number) => void)
+      | ((v: [number, number]) => void)
+      | undefined;
+    let ariaLabel: string | [string, string] | undefined;
+    let minDistance = 0;
+    let nameLow: string | undefined;
+    let nameHigh: string | undefined;
+    if (props.range === true) {
+      range = true;
+      controlledValue = props.value;
+      defaultValue = props.defaultValue;
+      onChange = props.onChange;
+      ariaLabel = props.ariaLabel;
+      minDistance = props.minDistance ?? 0;
+      nameLow = props.nameLow;
+      nameHigh = props.nameHigh;
+    } else {
+      range = props.range;
+      controlledValue = props.value;
+      defaultValue = props.defaultValue;
+      onChange = props.onChange;
+      ariaLabel = props.ariaLabel;
+    }
+
+    // Destructure base / shared props from a `SliderBaseProps` view. None of
+    // these fields differ between the two branches, so this view is safe.
     const {
       label,
       labelSize,
@@ -192,8 +230,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       message,
       messageColor,
       fieldClassName,
-      value: controlledValue,
-      defaultValue,
       min = 0,
       max = 100,
       step = 1,
@@ -209,16 +245,37 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       orientation = 'horizontal',
       scale,
       getAriaValueText,
-      onChange,
       formatOutput,
-      range,
-      minDistance = 0,
-      ariaLabel,
-      nameLow,
-      nameHigh,
       className,
+      // Strip the discriminated/union fields from `restProps` so they don't
+      // flow back into `useBulmaClasses` / spread onto inputs.
+      range: _range,
+      value: _value,
+      defaultValue: _defaultValue,
+      onChange: _onChange,
+      ariaLabel: _ariaLabel,
+      minDistance: _minDistance,
+      nameLow: _nameLow,
+      nameHigh: _nameHigh,
       ...restProps
-    } = props as SliderRangeProps & SliderSingleProps;
+    } = props as SliderBaseProps & {
+      range?: boolean;
+      value?: number | [number, number];
+      defaultValue?: number | [number, number];
+      onChange?: (v: never) => void;
+      ariaLabel?: string | [string, string];
+      minDistance?: number;
+      nameLow?: string;
+      nameHigh?: string;
+    };
+    void _range;
+    void _value;
+    void _defaultValue;
+    void _onChange;
+    void _ariaLabel;
+    void _minDistance;
+    void _nameLow;
+    void _nameHigh;
 
     const insideField = useInsideField();
     const insideControl = useInsideControl();

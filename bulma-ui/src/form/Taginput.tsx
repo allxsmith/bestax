@@ -26,7 +26,7 @@ import { Icon } from '../elements/Icon';
 export interface TaginputItem {
   value: string;
   label?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /** A tag can be either a TaginputItem object or a plain string. */
@@ -247,7 +247,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Get display value from tag
     const getDisplayValue = (tag: TaginputTag): string => {
       if (typeof tag === 'string') return tag;
-      return tag[field] || tag.value || '';
+      const fieldValue = tag[field];
+      if (typeof fieldValue === 'string') return fieldValue;
+      return tag.value || '';
     };
 
     // Filter autocomplete data

@@ -68,7 +68,7 @@ export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
  * Props for the PanelIcon component.
  * Extends IconProps but uses 'panel-icon' as the container class.
  */
-export interface PanelIconProps extends Omit<IconProps, 'containerClassName'> {}
+export type PanelIconProps = Omit<IconProps, 'containerClassName'>;
 
 /**
  * Props for the PanelInputBlock component.

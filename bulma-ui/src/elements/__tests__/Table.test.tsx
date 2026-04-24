@@ -140,7 +140,7 @@ describe('Table Component', () => {
       const tableContainer = container.querySelector('.bulma-table-container');
       expect(tableContainer).toBeInTheDocument();
 
-      const table = container.querySelector('table');
+      const table = screen.getByRole('table');
       expect(table).toHaveClass('bulma-table');
       expect(table).toHaveClass('bulma-is-bordered');
       expect(table).toHaveClass('bulma-is-striped');
@@ -162,7 +162,7 @@ describe('Table Component', () => {
       const tableContainer = container.querySelector('.table-container');
       expect(tableContainer).toBeInTheDocument();
 
-      const table = container.querySelector('table');
+      const table = screen.getByRole('table');
       expect(table).toHaveClass('table');
       expect(table).toHaveClass('is-bordered');
       expect(table).toHaveClass('is-hoverable');

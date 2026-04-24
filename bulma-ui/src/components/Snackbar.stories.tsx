@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { Snackbar, SnackbarContainer, snackbar } from './Snackbar';
+import {
+  Snackbar,
+  SnackbarContainer,
+  snackbar,
+  type SnackbarPosition,
+  type SnackbarType,
+} from './Snackbar';
 import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Snackbar> = {
@@ -147,7 +153,7 @@ export const Positions: Story = {
         {position && (
           <Snackbar
             message={`Snackbar at ${position}`}
-            position={position as any}
+            position={position as SnackbarPosition}
             actionText="OK"
             onAction={() => {}}
             duration={3000}
@@ -184,18 +190,18 @@ export const TypeColorsActionButton: Story = {
           {types.map(type => (
             <Button
               key={type}
-              color={type as any}
+              color={type}
               onClick={() => setCurrent(type)}
               disabled={current !== null}
             >
-              type="{type}"
+              type=&quot;{type}&quot;
             </Button>
           ))}
         </div>
         {current && (
           <Snackbar
             message={`Action button is ${current}-colored`}
-            type={current as any}
+            type={current as SnackbarType}
             actionText="Action"
             onAction={() => {}}
             duration={3000}
@@ -233,18 +239,18 @@ export const ColorColorsBackground: Story = {
           {colors.map(color => (
             <Button
               key={color}
-              color={color as any}
+              color={color}
               onClick={() => setCurrent(color)}
               disabled={current !== null}
             >
-              color="{color}"
+              color=&quot;{color}&quot;
             </Button>
           ))}
         </div>
         {current && (
           <Snackbar
             message={`Background is ${current}`}
-            color={current as any}
+            color={current as (typeof colors)[number]}
             actionText="OK"
             onAction={() => {}}
             duration={3000}

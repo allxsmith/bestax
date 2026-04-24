@@ -67,17 +67,28 @@ describe('Content Component', () => {
   });
 
   // Test 7: Applies Bulma helper classes from useBulmaClasses
-  test('applies Bulma helper classes', () => {
-    render(
-      <Content m="3" p="4" textAlign="centered" textWeight="bold">
-        Test
-      </Content>
-    );
-    const content = screen.getByText('Test');
-    expect(content).toHaveClass('m-3', { exact: false });
-    expect(content).toHaveClass('p-4', { exact: false });
-    expect(content).toHaveClass('has-text-centered', { exact: false });
-    expect(content).toHaveClass('has-text-weight-bold', { exact: false });
+  test('applies margin helper class', () => {
+    render(<Content m="3">Test</Content>);
+    expect(screen.getByText('Test')).toHaveClass('m-3', { exact: false });
+  });
+
+  test('applies padding helper class', () => {
+    render(<Content p="4">Test</Content>);
+    expect(screen.getByText('Test')).toHaveClass('p-4', { exact: false });
+  });
+
+  test('applies textAlign helper class', () => {
+    render(<Content textAlign="centered">Test</Content>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-centered', {
+      exact: false,
+    });
+  });
+
+  test('applies textWeight helper class', () => {
+    render(<Content textWeight="bold">Test</Content>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-weight-bold', {
+      exact: false,
+    });
   });
 
   // Test 8: Passes HTML attributes to div
@@ -196,7 +207,7 @@ describe('Content Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Content size="large" m="2" p="3">
             Test Content
@@ -204,7 +215,7 @@ describe('Content Component', () => {
         </ConfigProvider>
       );
 
-      const content = container.querySelector('div');
+      const content = screen.getByText('Test Content');
       expect(content).toHaveClass('bulma-content');
       expect(content).toHaveClass('bulma-is-large');
       expect(content).toHaveClass('bulma-m-2');
@@ -212,13 +223,13 @@ describe('Content Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Content size="medium" textAlign="centered">
           Standard Content
         </Content>
       );
 
-      const content = container.querySelector('div');
+      const content = screen.getByText('Standard Content');
       expect(content).toHaveClass('content');
       expect(content).toHaveClass('is-medium');
       expect(content).toHaveClass('has-text-centered');

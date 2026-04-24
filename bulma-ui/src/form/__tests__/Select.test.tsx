@@ -2,6 +2,8 @@ import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Select } from '../Select';
+import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Select', () => {
@@ -18,10 +20,11 @@ describe('Select', () => {
       const { container } = render(
         <Select data-testid="select">{renderOptions()}</Select>
       );
-      expect(screen.getByTestId('select')).toBeInTheDocument();
+      const select = screen.getByTestId('select');
+      expect(select).toBeInTheDocument();
+      expect(select.closest('.select')).toBeInTheDocument();
       expect(container.querySelector('.field')).toBeInTheDocument();
       expect(container.querySelector('.control')).toBeInTheDocument();
-      expect(container.querySelector('.select')).toBeInTheDocument();
     });
 
     it('renders with a label', () => {
@@ -66,17 +69,17 @@ describe('Select', () => {
 
   describe('select props', () => {
     it('passes color to select wrapper', () => {
-      const { container } = render(
-        <Select color="danger">{renderOptions()}</Select>
+      render(<Select color="danger">{renderOptions()}</Select>);
+      expect(screen.getByRole('combobox').closest('.select')).toHaveClass(
+        'is-danger'
       );
-      expect(container.querySelector('.select')).toHaveClass('is-danger');
     });
 
     it('passes size to select wrapper', () => {
-      const { container } = render(
-        <Select size="large">{renderOptions()}</Select>
+      render(<Select size="large">{renderOptions()}</Select>);
+      expect(screen.getByRole('combobox').closest('.select')).toHaveClass(
+        'is-large'
       );
-      expect(container.querySelector('.select')).toHaveClass('is-large');
     });
 
     it('passes disabled', () => {
@@ -116,7 +119,9 @@ describe('Select', () => {
       );
       // Per Bulma: <div class="select is-loading"> replaces the chevron with a
       // spinner. The .control wrapper does NOT receive is-loading.
-      expect(container.querySelector('.select')).toHaveClass('is-loading');
+      expect(screen.getByRole('combobox').closest('.select')).toHaveClass(
+        'is-loading'
+      );
       expect(container.querySelector('.control')).not.toHaveClass('is-loading');
     });
 
@@ -158,9 +163,40 @@ describe('Select', () => {
       );
       expect(container.querySelector('.bulma-field')).toBeInTheDocument();
       expect(container.querySelector('.bulma-control')).toBeInTheDocument();
-      expect(container.querySelector('.bulma-select')).toBeInTheDocument();
+      expect(
+        screen.getByRole('combobox').closest('.bulma-select')
+      ).toBeInTheDocument();
       expect(container.querySelector('.bulma-help')).toBeInTheDocument();
       expect(container.querySelector('.bulma-label')).toBeInTheDocument();
+    });
+  });
+
+  describe('inside a Field wrapper', () => {
+    it('renders as a bare fragment (no extra Field wrapper) when nested in a Field', () => {
+      const { container } = render(
+        <Field label="Country">
+          <Select message="hint" messageColor="info">
+            {renderOptions()}
+          </Select>
+        </Field>
+      );
+      // Exactly ONE field — the outer Field — and the help message still
+      // renders inline as part of the bare fragment fallback.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      const help = screen.getByText('hint');
+      expect(help).toHaveClass('help');
+      expect(help).toHaveClass('is-info');
+    });
+
+    it('skips wrapping in Control when already inside a Control', () => {
+      const { container } = render(
+        <Field label="Country">
+          <Control>
+            <Select>{renderOptions()}</Select>
+          </Control>
+        </Field>
+      );
+      expect(container.querySelectorAll('.control').length).toBe(1);
     });
   });
 });

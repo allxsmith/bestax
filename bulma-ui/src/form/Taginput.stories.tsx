@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Taginput, TaginputTag } from './Taginput';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -618,6 +618,7 @@ export const CustomTemplate: Story = {
       { value: 'ts', label: 'TypeScript', icon: '💎' },
       { value: 'py', label: 'Python', icon: '🐍' },
     ];
+    type Language = (typeof languages)[number];
 
     return (
       <div style={{ maxWidth: '500px' }}>
@@ -626,7 +627,7 @@ export const CustomTemplate: Story = {
           field="label"
           tagTemplate={tag => (
             <span>
-              {(tag as any).icon} {(tag as any).label}
+              {(tag as Language).icon} {(tag as Language).label}
             </span>
           )}
           placeholder="Add languages..."

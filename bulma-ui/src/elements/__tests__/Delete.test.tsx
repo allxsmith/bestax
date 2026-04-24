@@ -115,22 +115,22 @@ describe('Delete Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Delete size="large" m="2" />
         </ConfigProvider>
       );
 
-      const button = container.querySelector('button');
+      const button = screen.getByRole('button');
       expect(button).toHaveClass('bulma-delete');
       expect(button).toHaveClass('bulma-is-large');
       expect(button).toHaveClass('bulma-m-2');
     });
 
     it('works without prefix', () => {
-      const { container } = render(<Delete size="medium" p="3" />);
+      render(<Delete size="medium" p="3" />);
 
-      const button = container.querySelector('button');
+      const button = screen.getByRole('button');
       expect(button).toHaveClass('delete');
       expect(button).toHaveClass('is-medium');
       expect(button).toHaveClass('p-3');

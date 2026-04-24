@@ -114,8 +114,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
   const [contentStyle, setContentStyle] = useState<React.CSSProperties>({});
-  const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLSpanElement | null>(null);
 

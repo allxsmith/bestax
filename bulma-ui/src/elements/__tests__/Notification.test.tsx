@@ -111,7 +111,7 @@ describe('Notification Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Notification color="primary" isLight hasDelete m="2">
             Test Notification
@@ -119,29 +119,29 @@ describe('Notification Component', () => {
         </ConfigProvider>
       );
 
-      const notification = container.querySelector('div');
+      const notification = screen.getByText('Test Notification').closest('div');
       expect(notification).toHaveClass('bulma-notification');
       expect(notification).toHaveClass('bulma-is-primary');
       expect(notification).toHaveClass('bulma-is-light');
       expect(notification).toHaveClass('bulma-m-2');
 
-      const deleteButton = container.querySelector('button');
+      const deleteButton = screen.getByRole('button');
       expect(deleteButton).toHaveClass('bulma-delete');
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Notification color="info" hasDelete p="3">
           Standard Notification
         </Notification>
       );
 
-      const notif = container.querySelector('div');
+      const notif = screen.getByText('Standard Notification').closest('div');
       expect(notif).toHaveClass('notification');
       expect(notif).toHaveClass('is-info');
       expect(notif).toHaveClass('p-3');
 
-      const deleteButton = container.querySelector('button');
+      const deleteButton = screen.getByRole('button');
       expect(deleteButton).toHaveClass('delete');
     });
   });
@@ -368,6 +368,92 @@ describe('Notification Programmatic API', () => {
       expect(
         screen.queryByLabelText('Close notification')
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('pauseOnHover', () => {
+    it('pauses auto-dismiss timer when mouse enters and resumes on leave', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: 'Hoverable',
+          duration: 3000,
+          pauseOnHover: true,
+        });
+      });
+
+      const notif = screen.getByText('Hoverable').closest('.notification')!;
+      expect(notif).toBeInTheDocument();
+
+      // Hover before timer fires — pauses the timer
+      act(() => {
+        fireEvent.mouseEnter(notif);
+      });
+
+      // Advance well past the duration; should still be present (paused)
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+      expect(screen.getByText('Hoverable')).toBeInTheDocument();
+
+      // Leave triggers a fresh timer
+      act(() => {
+        fireEvent.mouseLeave(notif);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(screen.queryByText('Hoverable')).not.toBeInTheDocument();
+    });
+
+    it('renders container at bottom-left position', () => {
+      render(<NotificationContainer position="bottom-left" />);
+      act(() => {
+        notification.show({ message: 'BL', duration: 0 });
+      });
+      expect(screen.getByText('BL')).toBeInTheDocument();
+    });
+
+    it('renders container at top-center position', () => {
+      render(<NotificationContainer position="top" />);
+      act(() => {
+        notification.show({ message: 'TC', duration: 0 });
+      });
+      expect(screen.getByText('TC')).toBeInTheDocument();
+    });
+
+    it('renders container at bottom-center position', () => {
+      render(<NotificationContainer position="bottom" />);
+      act(() => {
+        notification.show({ message: 'BC', duration: 0 });
+      });
+      expect(screen.getByText('BC')).toBeInTheDocument();
+    });
+
+    it('does not pause auto-dismiss when pauseOnHover is false', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: 'NoPause',
+          duration: 3000,
+          pauseOnHover: false,
+        });
+      });
+
+      const notif = screen.getByText('NoPause').closest('.notification')!;
+      expect(notif).toBeInTheDocument();
+
+      // Mouse enter and leave should NOT toggle pause
+      act(() => {
+        fireEvent.mouseEnter(notif);
+        fireEvent.mouseLeave(notif);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+      expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
     });
   });
 });

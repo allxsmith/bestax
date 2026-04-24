@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { Rate } from '../Rate';
 import { Taginput } from '../Taginput';
@@ -32,31 +32,25 @@ describe('Form submission integration', () => {
   });
 
   it('Autocomplete forwards name to inner input', () => {
-    const { container } = render(
-      <Autocomplete name="city" data={['NY', 'LA']} />
-    );
-    const input = container.querySelector('input[type="text"]');
-    expect(input).toHaveAttribute('name', 'city');
+    render(<Autocomplete name="city" data={['NY', 'LA']} />);
+    expect(screen.getByRole('combobox')).toHaveAttribute('name', 'city');
   });
 
   it('Slider single mode forwards name from rest', () => {
-    const { container } = render(<Slider name="vol" defaultValue={50} />);
-    const input = container.querySelector('input[type="range"]');
-    expect(input).toHaveAttribute('name', 'vol');
+    render(<Slider name="vol" defaultValue={50} />);
+    expect(screen.getByRole('slider')).toHaveAttribute('name', 'vol');
   });
 
   it('Slider range mode applies nameLow/nameHigh to each thumb', () => {
-    const { container } = render(
-      <Slider range nameLow="lo" nameHigh="hi" defaultValue={[10, 90]} />
-    );
-    const inputs = container.querySelectorAll('input[type="range"]');
+    render(<Slider range nameLow="lo" nameHigh="hi" defaultValue={[10, 90]} />);
+    const inputs = screen.getAllByRole('slider');
     expect(inputs).toHaveLength(2);
     expect(inputs[0]).toHaveAttribute('name', 'lo');
     expect(inputs[1]).toHaveAttribute('name', 'hi');
   });
 
   it('Radios spreads name to each Radio child without own name', () => {
-    const { container } = render(
+    render(
       <Radios name="color">
         <Radio value="r">Red</Radio>
         <Radio value="g">Green</Radio>
@@ -65,7 +59,7 @@ describe('Form submission integration', () => {
         </Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll('input[type="radio"]');
+    const radios = screen.getAllByRole('radio');
     expect(radios[0]).toHaveAttribute('name', 'color');
     expect(radios[1]).toHaveAttribute('name', 'color');
     expect(radios[2]).toHaveAttribute('name', 'override');
@@ -80,7 +74,7 @@ describe('Form submission integration', () => {
         <Radio value={value}>{label}</Radio>
       </div>
     );
-    const { container } = render(
+    render(
       <Radios name="plan">
         <RadioCard value="basic" label="Basic" />
         <RadioCard value="pro" label="Pro" />
@@ -89,7 +83,7 @@ describe('Form submission integration', () => {
         </>
       </Radios>
     );
-    const radios = container.querySelectorAll('input[type="radio"]');
+    const radios = screen.getAllByRole('radio');
     expect(radios).toHaveLength(3);
     expect(radios[0]).toHaveAttribute('name', 'plan');
     expect(radios[1]).toHaveAttribute('name', 'plan');

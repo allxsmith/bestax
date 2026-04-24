@@ -431,6 +431,89 @@ describe('Steps', () => {
     });
   });
 
+  describe('children rendering branches', () => {
+    it('returns null when neither items nor children are provided (still renders nav buttons)', () => {
+      const { container } = render(<Steps hasNavigation />);
+      const list = container.querySelector('ul.steps-list');
+      expect(list).toBeInTheDocument();
+      // No step segments rendered
+      expect(container.querySelectorAll('.steps-segment')).toHaveLength(0);
+      // Nav buttons still render
+      expect(screen.getByText('Previous')).toBeInTheDocument();
+      expect(screen.getByText('Next')).toBeInTheDocument();
+      // With totalSteps=0, value=0 means value === totalSteps - 1 is false (0 !== -1)
+      // and value === 0 is true, so Previous is disabled, Next is not
+      expect(screen.getByText('Previous')).toBeDisabled();
+      expect(screen.getByText('Next')).not.toBeDisabled();
+    });
+
+    it('returns null when neither items nor children are provided (no nav)', () => {
+      const { container } = render(<Steps />);
+      const list = container.querySelector('ul.steps-list');
+      expect(list).toBeInTheDocument();
+      expect(list!.children).toHaveLength(0);
+      expect(
+        container.querySelector('.steps-navigation')
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders empty when items is an empty array (falls through to children branch returning null)', () => {
+      const { container } = render(<Steps items={[]} />);
+      expect(container.querySelectorAll('.steps-segment')).toHaveLength(0);
+    });
+
+    it('calls onStepClick with index when clickable child is clicked (children branch)', () => {
+      const handleClick = jest.fn();
+      const { container } = render(
+        <Steps value={0} onStepClick={handleClick}>
+          <Steps.Step label="A" clickable />
+          <Steps.Step label="B" clickable />
+        </Steps>
+      );
+      const segments = container.querySelectorAll('.steps-segment');
+      fireEvent.click(segments[1]);
+      expect(handleClick).toHaveBeenCalledWith(1);
+    });
+
+    it('preserves child onClick when child is not clickable (children branch fallback)', () => {
+      const childHandler = jest.fn();
+      const stepsHandler = jest.fn();
+      const { container } = render(
+        <Steps value={0} onStepClick={stepsHandler}>
+          <Steps.Step label="A" clickable onClick={childHandler} />
+        </Steps>
+      );
+      // Child has clickable=true, so it should use the steps onStepClick (called with index 0)
+      fireEvent.click(container.querySelector('.steps-segment')!);
+      expect(stepsHandler).toHaveBeenCalledWith(0);
+    });
+
+    it('falls back to child onClick when no onStepClick is provided', () => {
+      const childHandler = jest.fn();
+      const { container } = render(
+        <Steps value={0}>
+          <Steps.Step label="A" clickable onClick={childHandler} />
+        </Steps>
+      );
+      // No onStepClick on Steps, so the child.props.onClick is used
+      fireEvent.click(container.querySelector('.steps-segment')!);
+      expect(childHandler).toHaveBeenCalled();
+    });
+
+    it('returns non-element children unchanged (children branch passthrough)', () => {
+      const { container } = render(
+        <Steps>
+          {'plain text'}
+          <Steps.Step label="A" />
+          {null}
+        </Steps>
+      );
+      // Plain text child is returned as-is via the `return child` branch
+      expect(container.textContent).toContain('plain text');
+      expect(container.querySelectorAll('.steps-segment')).toHaveLength(1);
+    });
+  });
+
   describe('clickable steps', () => {
     it('calls onStepClick when clickable step is clicked', () => {
       const handleClick = jest.fn();
@@ -500,6 +583,86 @@ describe('Steps', () => {
       handleClick.mockClear();
       fireEvent.keyDown(segment, { key: ' ' });
       expect(handleClick).toHaveBeenCalledWith(0);
+    });
+
+    it('does nothing on non-Enter/Space keypress for clickable step (covers if-false branch)', () => {
+      const handleClick = jest.fn();
+      const { container } = render(
+        <Steps
+          value={0}
+          onStepClick={handleClick}
+          items={[{ label: 'Step 1', clickable: true }]}
+        />
+      );
+      const segment = container.querySelector('.steps-segment')!;
+      fireEvent.keyDown(segment, { key: 'a' });
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('navigation fallback branches', () => {
+    it('uses onStepClick fallback for Previous when onPrev is omitted', () => {
+      const handleStep = jest.fn();
+      render(
+        <Steps
+          hasNavigation
+          value={1}
+          onStepClick={handleStep}
+          items={[{ label: 'A' }, { label: 'B' }]}
+        />
+      );
+      fireEvent.click(screen.getByText('Previous'));
+      expect(handleStep).toHaveBeenCalledWith(0);
+    });
+
+    it('uses onStepClick fallback for Next when onNext is omitted', () => {
+      const handleStep = jest.fn();
+      render(
+        <Steps
+          hasNavigation
+          value={0}
+          onStepClick={handleStep}
+          items={[{ label: 'A' }, { label: 'B' }]}
+        />
+      );
+      fireEvent.click(screen.getByText('Next'));
+      expect(handleStep).toHaveBeenCalledWith(1);
+    });
+
+    it('does not throw when neither onPrev nor onStepClick is provided', () => {
+      render(
+        <Steps
+          hasNavigation
+          value={1}
+          items={[{ label: 'A' }, { label: 'B' }]}
+        />
+      );
+      expect(() => fireEvent.click(screen.getByText('Previous'))).not.toThrow();
+    });
+
+    it('does not throw when neither onNext nor onStepClick is provided', () => {
+      render(
+        <Steps
+          hasNavigation
+          value={0}
+          items={[{ label: 'A' }, { label: 'B' }]}
+        />
+      );
+      expect(() => fireEvent.click(screen.getByText('Next'))).not.toThrow();
+    });
+  });
+
+  describe('showStepNumbers with children', () => {
+    it('omits step number on children when showStepNumbers is false', () => {
+      const { container } = render(
+        <Steps showStepNumbers={false}>
+          <Steps.Step label="A" />
+          <Steps.Step label="B" />
+        </Steps>
+      );
+      // Markers should be empty when no number/icon/completed icon
+      const markers = container.querySelectorAll('.steps-marker');
+      expect(markers[0].textContent).toBe('');
     });
   });
 

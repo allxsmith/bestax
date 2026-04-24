@@ -1,12 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Tabs, {
-  TabList,
-  Tab,
-  TabItem,
-  TabsContent,
-  TabContentItem,
-} from '../Tabs';
+import Tabs, { Tab, TabContentItem } from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tabs', () => {
@@ -494,7 +488,7 @@ describe('Tabs', () => {
 
   describe('Tabs.Content', () => {
     it('renders div with tabs-content class', () => {
-      const { container } = render(
+      render(
         <Tabs>
           <Tabs.List>
             <Tabs.Tab index={0}>Tab</Tabs.Tab>
@@ -624,7 +618,7 @@ describe('Tabs', () => {
 
   describe('vertical', () => {
     it('applies is-vertical class on tabs-root', () => {
-      const { container } = render(
+      render(
         <Tabs vertical data-testid="tabs">
           <Tabs.List>
             <Tabs.Tab index={0}>Tab 1</Tabs.Tab>
@@ -783,6 +777,34 @@ describe('Tabs', () => {
         'aria-hidden',
         'true'
       );
+    });
+  });
+
+  describe('rendered outside Tabs context', () => {
+    it('Tab renders defensively (isActive=false) when no Tabs context is present', () => {
+      // Hits the `ctx ? ... : false` false branch in Tab.
+      render(
+        <Tab index={0} data-testid="solo-tab">
+          Solo
+        </Tab>
+      );
+      const tab = screen.getByTestId('solo-tab');
+      expect(tab).toHaveAttribute('aria-selected', 'false');
+      expect(tab).not.toHaveClass('is-active');
+      // Clicking without a context must not throw.
+      expect(() => fireEvent.click(tab.querySelector('a')!)).not.toThrow();
+    });
+
+    it('TabContentItem renders defensively (isActive=false) when no Tabs context is present', () => {
+      // Hits the `ctx ? ... : false` false branch in TabContentItem.
+      render(
+        <TabContentItem index={0} data-testid="solo-panel">
+          Solo Content
+        </TabContentItem>
+      );
+      const panel = screen.getByTestId('solo-panel');
+      expect(panel).toHaveAttribute('aria-hidden', 'true');
+      expect(panel).not.toHaveClass('is-active');
     });
   });
 });

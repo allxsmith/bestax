@@ -33,12 +33,12 @@ describe('Tooltip', () => {
     });
 
     it('renders tooltip content with label', () => {
-      const { container } = render(
+      render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip-content')).toHaveTextContent(
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
         'Test tooltip'
       );
     });
@@ -471,24 +471,21 @@ describe('Tooltip', () => {
 
   describe('accessibility', () => {
     it('tooltip content has role="tooltip"', () => {
-      const { container } = render(
+      render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip-content')).toHaveAttribute(
-        'role',
-        'tooltip'
-      );
+      expect(screen.getByRole('tooltip', { hidden: true })).toBeInTheDocument();
     });
 
     it('tooltip content has aria-hidden="true" when not visible', () => {
-      const { container } = render(
+      render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip-content')).toHaveAttribute(
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
         'aria-hidden',
         'true'
       );
@@ -506,7 +503,7 @@ describe('Tooltip', () => {
         jest.runAllTimers();
       });
 
-      expect(screen.getByRole('tooltip')).toHaveAttribute(
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
         'aria-hidden',
         'false'
       );
@@ -518,7 +515,7 @@ describe('Tooltip', () => {
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip')).toHaveAttribute(
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
         'aria-hidden',
         'false'
       );
@@ -536,12 +533,12 @@ describe('Tooltip', () => {
     });
 
     it('applies tooltipClassName to content', () => {
-      const { container } = render(
+      render(
         <Tooltip label="Test" tooltipClassName="custom-tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip-content')).toHaveClass(
+      expect(screen.getByRole('tooltip', { hidden: true })).toHaveClass(
         'custom-tooltip'
       );
     });
@@ -594,9 +591,364 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('auto position resolution', () => {
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    const originalGetBoundingClientRect =
+      Element.prototype.getBoundingClientRect;
+
+    const setViewport = (width: number, height: number) => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: width,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        value: height,
+        writable: true,
+        configurable: true,
+      });
+    };
+
+    const mockRects = (
+      wrapperRect: Partial<DOMRect>,
+      contentRect: Partial<DOMRect> = {}
+    ) => {
+      Element.prototype.getBoundingClientRect = function (this: Element) {
+        const isContent = this.classList.contains('tooltip-content');
+        const rect = isContent ? contentRect : wrapperRect;
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: 0,
+          height: 0,
+          toJSON: () => ({}),
+          ...rect,
+        } as DOMRect;
+      };
+    };
+
+    afterEach(() => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: originalInnerWidth,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        value: originalInnerHeight,
+        writable: true,
+        configurable: true,
+      });
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
+
+    it('resolves auto position to top when there is space above', () => {
+      setViewport(1024, 768);
+      mockRects({ top: 100, bottom: 120, left: 500, right: 540 });
+
+      const { container } = render(
+        <Tooltip label="Test" position="auto" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(container.querySelector('.tooltip')).toHaveClass('is-top');
+    });
+
+    it('resolves auto position to bottom when top space is too small but bottom is sufficient', () => {
+      setViewport(1024, 768);
+      // top space = 10 (< 40 margin), bottom space = 768 - 30 = 738 (>= 40)
+      mockRects({ top: 10, bottom: 30, left: 500, right: 540 });
+
+      const { container } = render(
+        <Tooltip label="Test" position="auto" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(container.querySelector('.tooltip')).toHaveClass('is-bottom');
+    });
+
+    it('resolves auto position to right when both vertical spaces are insufficient and right has more room', () => {
+      setViewport(1024, 100);
+      // top = 10 (<40), bottom = 100 - 90 = 10 (<40)
+      // wrapper at left: 50, right: 90 — right space = 1024 - 90 = 934, left space = 50
+      mockRects({ top: 10, bottom: 90, left: 50, right: 90 });
+
+      const { container } = render(
+        <Tooltip label="Test" position="auto" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(container.querySelector('.tooltip')).toHaveClass('is-right');
+    });
+
+    it('resolves auto position to left when both vertical spaces are insufficient and left has more room', () => {
+      setViewport(1024, 100);
+      // top = 10 (<40), bottom = 100 - 90 = 10 (<40)
+      // wrapper at left: 900, right: 1000 — right space = 24, left space = 900
+      mockRects({ top: 10, bottom: 90, left: 900, right: 1000 });
+
+      const { container } = render(
+        <Tooltip label="Test" position="auto" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(container.querySelector('.tooltip')).toHaveClass('is-left');
+    });
+  });
+
+  describe('overflow correction', () => {
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
+    const originalGetBoundingClientRect =
+      Element.prototype.getBoundingClientRect;
+    const originalRAF = window.requestAnimationFrame;
+
+    const setViewport = (width: number, height: number) => {
+      Object.defineProperty(window, 'innerWidth', {
+        value: width,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        value: height,
+        writable: true,
+        configurable: true,
+      });
+    };
+
+    const mockRects = (
+      wrapperRect: Partial<DOMRect>,
+      contentRect: Partial<DOMRect>
+    ) => {
+      Element.prototype.getBoundingClientRect = function (this: Element) {
+        const isContent = this.classList.contains('tooltip-content');
+        const rect = isContent ? contentRect : wrapperRect;
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: 0,
+          height: 0,
+          toJSON: () => ({}),
+          ...rect,
+        } as DOMRect;
+      };
+    };
+
+    beforeEach(() => {
+      // Make rAF synchronous so the overflow-correction callback runs in act().
+      window.requestAnimationFrame = (cb: FrameRequestCallback) => {
+        cb(0);
+        return 0;
+      };
+    });
+
+    afterEach(() => {
+      window.requestAnimationFrame = originalRAF;
+      Object.defineProperty(window, 'innerWidth', {
+        value: originalInnerWidth,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        value: originalInnerHeight,
+        writable: true,
+        configurable: true,
+      });
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    });
+
+    it('shifts vertical-position tooltip right when content overflows the left edge', () => {
+      setViewport(1024, 768);
+      // Wrapper near left edge so tooltip-content (centered) overflows left.
+      // contentRect.left = -10 (< edgePadding 8) → shift = 8 - (-10) = 18
+      mockRects(
+        { top: 100, bottom: 120, left: 0, right: 40 },
+        { top: 60, bottom: 100, left: -10, right: 90 }
+      );
+
+      render(
+        <Tooltip label="Test" position="top" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      expect(content.style.left).toBe('calc(50% + 18px)');
+      expect(content.style.getPropertyValue('--tooltip-arrow-offset')).toBe(
+        '-18px'
+      );
+    });
+
+    it('shifts vertical-position tooltip left when content overflows the right edge', () => {
+      setViewport(1024, 768);
+      // contentRect.right = 1030 > innerWidth 1024 - edgePadding 8 = 1016
+      // shift = 1030 - 1016 = 14
+      mockRects(
+        { top: 100, bottom: 120, left: 980, right: 1024 },
+        { top: 60, bottom: 100, left: 930, right: 1030 }
+      );
+
+      render(
+        <Tooltip label="Test" position="bottom" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      expect(content.style.left).toBe('calc(50% - 14px)');
+      expect(content.style.getPropertyValue('--tooltip-arrow-offset')).toBe(
+        '14px'
+      );
+    });
+
+    it('shifts horizontal-position tooltip down when content overflows the top edge', () => {
+      setViewport(1024, 768);
+      // contentRect.top = -5 (< edgePadding 8) → shift = 8 - (-5) = 13
+      mockRects(
+        { top: 50, bottom: 90, left: 100, right: 140 },
+        { top: -5, bottom: 35, left: 150, right: 250 }
+      );
+
+      render(
+        <Tooltip label="Test" position="right" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      expect(content.style.top).toBe('calc(50% + 13px)');
+      expect(content.style.getPropertyValue('--tooltip-arrow-offset')).toBe(
+        '-13px'
+      );
+    });
+
+    it('does not shift vertical-position tooltip when content fits within viewport', () => {
+      setViewport(1024, 768);
+      // contentRect well within viewport: left 200 (>= 8) and right 400 (<= 1016)
+      mockRects(
+        { top: 100, bottom: 120, left: 250, right: 350 },
+        { top: 60, bottom: 100, left: 200, right: 400 }
+      );
+
+      render(
+        <Tooltip label="Test" position="top" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      // No corrective inline styles applied.
+      expect(content.getAttribute('style')).toBeNull();
+    });
+
+    it('does not shift horizontal-position tooltip when content fits within viewport', () => {
+      setViewport(1024, 768);
+      // contentRect well within viewport: top 200 (>= 8) and bottom 400 (<= 760)
+      mockRects(
+        { top: 250, bottom: 350, left: 100, right: 140 },
+        { top: 200, bottom: 400, left: 150, right: 250 }
+      );
+
+      render(
+        <Tooltip label="Test" position="right" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      expect(content.getAttribute('style')).toBeNull();
+    });
+
+    it('shifts horizontal-position tooltip up when content overflows the bottom edge', () => {
+      setViewport(1024, 768);
+      // contentRect.bottom = 775 > innerHeight 768 - edgePadding 8 = 760
+      // shift = 775 - 760 = 15
+      mockRects(
+        { top: 700, bottom: 740, left: 100, right: 140 },
+        { top: 735, bottom: 775, left: 0, right: 90 }
+      );
+
+      render(
+        <Tooltip label="Test" position="left" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      const content = screen.getByRole('tooltip', {
+        hidden: true,
+      }) as HTMLElement;
+      expect(content.style.top).toBe('calc(50% - 15px)');
+      expect(content.style.getPropertyValue('--tooltip-arrow-offset')).toBe(
+        '15px'
+      );
+    });
+  });
+
   describe('custom content', () => {
     it('renders ReactNode content when content prop is provided', () => {
-      const { container } = render(
+      render(
         <Tooltip
           content={
             <span data-testid="rich">
@@ -607,18 +959,18 @@ describe('Tooltip', () => {
           <button>Hover me</button>
         </Tooltip>
       );
-      const tooltipContent = container.querySelector('.tooltip-content');
+      const tooltipContent = screen.getByRole('tooltip', { hidden: true });
       expect(tooltipContent).toContainHTML('<strong>Bold</strong>');
       expect(tooltipContent).toHaveTextContent('Bold text');
     });
 
     it('content takes precedence over label when both provided', () => {
-      const { container } = render(
+      render(
         <Tooltip label="Label text" content={<em>Content text</em>}>
           <button>Hover me</button>
         </Tooltip>
       );
-      const tooltipContent = container.querySelector('.tooltip-content');
+      const tooltipContent = screen.getByRole('tooltip', { hidden: true });
       expect(tooltipContent).toHaveTextContent('Content text');
       expect(tooltipContent).not.toHaveTextContent('Label text');
     });

@@ -35,17 +35,28 @@ describe('Span Component', () => {
     });
   });
 
-  test('applies Bulma helper classes', () => {
-    render(
-      <Span m="3" p="4" textAlign="centered" textWeight="bold">
-        Test
-      </Span>
-    );
-    const span = screen.getByText('Test');
-    expect(span).toHaveClass('m-3', { exact: false });
-    expect(span).toHaveClass('p-4', { exact: false });
-    expect(span).toHaveClass('has-text-centered', { exact: false });
-    expect(span).toHaveClass('has-text-weight-bold', { exact: false });
+  test('applies margin helper class', () => {
+    render(<Span m="3">Test</Span>);
+    expect(screen.getByText('Test')).toHaveClass('m-3', { exact: false });
+  });
+
+  test('applies padding helper class', () => {
+    render(<Span p="4">Test</Span>);
+    expect(screen.getByText('Test')).toHaveClass('p-4', { exact: false });
+  });
+
+  test('applies textAlign helper class', () => {
+    render(<Span textAlign="centered">Test</Span>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-centered', {
+      exact: false,
+    });
+  });
+
+  test('applies textWeight helper class', () => {
+    render(<Span textWeight="bold">Test</Span>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-weight-bold', {
+      exact: false,
+    });
   });
 
   test('applies textSize class', () => {

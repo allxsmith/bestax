@@ -43,7 +43,7 @@ function useTabsContext(): TabsContextValue | null {
  */
 export interface TabsProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   align?: 'centered' | 'right' | 'left';
   size?: 'small' | 'medium' | 'large';

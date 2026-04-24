@@ -1,4 +1,5 @@
 import React, { forwardRef, useState, useCallback, useRef } from 'react';
+import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useInsideField } from './FormContext';

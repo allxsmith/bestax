@@ -169,7 +169,7 @@ describe('Button Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Button color="primary" size="large" m="2" isRounded>
             Test Button
@@ -177,7 +177,7 @@ describe('Button Component', () => {
         </ConfigProvider>
       );
 
-      const button = container.querySelector('button');
+      const button = screen.getByRole('button', { name: 'Test Button' });
       expect(button).toHaveClass('bulma-button');
       expect(button).toHaveClass('bulma-is-primary');
       expect(button).toHaveClass('bulma-is-large');
@@ -186,13 +186,13 @@ describe('Button Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Button color="info" size="medium" p="3">
           Standard Button
         </Button>
       );
 
-      const button = container.querySelector('button');
+      const button = screen.getByRole('button', { name: 'Standard Button' });
       expect(button).toHaveClass('button');
       expect(button).toHaveClass('is-info');
       expect(button).toHaveClass('is-medium');

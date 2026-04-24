@@ -250,7 +250,7 @@ describe('SubTitle Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <SubTitle size="2" m="2" p="3">
             Test SubTitle
@@ -258,7 +258,10 @@ describe('SubTitle Component', () => {
         </ConfigProvider>
       );
 
-      const subtitle = container.querySelector('h2');
+      const subtitle = screen.getByRole('heading', {
+        name: 'Test SubTitle',
+        level: 2,
+      });
       expect(subtitle).toHaveClass('bulma-subtitle');
       expect(subtitle).toHaveClass('bulma-is-2');
       expect(subtitle).toHaveClass('bulma-m-2');
@@ -266,13 +269,16 @@ describe('SubTitle Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <SubTitle size="3" textAlign="centered">
           Standard SubTitle
         </SubTitle>
       );
 
-      const subtitle = container.querySelector('h3');
+      const subtitle = screen.getByRole('heading', {
+        name: 'Standard SubTitle',
+        level: 3,
+      });
       expect(subtitle).toHaveClass('subtitle');
       expect(subtitle).toHaveClass('is-3');
       expect(subtitle).toHaveClass('has-text-centered');

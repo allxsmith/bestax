@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import Checkboxes from '../Checkboxes';
 import Checkbox from '../Checkbox';
+import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Checkboxes', () => {
@@ -120,6 +122,73 @@ describe('Checkboxes', () => {
       const checkboxes = screen.getByTestId('checkboxes');
       expect(checkboxes).toHaveClass('checkboxes');
       expect(checkboxes).toHaveClass('p-3');
+    });
+  });
+
+  describe('inside a Field wrapper', () => {
+    it('renders as a bare fragment (no extra Field wrapper) when nested in a Field', () => {
+      render(
+        <Field label="Tags">
+          <Checkboxes message="hint" messageColor="info">
+            <Checkbox>One</Checkbox>
+          </Checkboxes>
+        </Field>
+      );
+      // There should be exactly ONE field wrapper — the outer Field — and the
+      // Checkboxes should not have wrapped its content in another Field.
+      const fields = document.querySelectorAll('.field');
+      expect(fields.length).toBe(1);
+
+      // The help message still renders as part of the bare fragment fallback.
+      const help = screen.getByText('hint');
+      expect(help).toHaveClass('help');
+      expect(help).toHaveClass('is-info');
+    });
+
+    it('skips wrapping in Control when already inside a Control', () => {
+      render(
+        <Field label="Tags">
+          <Control>
+            <Checkboxes data-testid="cbs">
+              <Checkbox>One</Checkbox>
+            </Checkboxes>
+          </Control>
+        </Field>
+      );
+      // Only ONE control wrapper — the outer Control.
+      const controls = document.querySelectorAll('.control');
+      expect(controls.length).toBe(1);
+      expect(screen.getByTestId('cbs')).toHaveClass('checkboxes');
+    });
+  });
+
+  describe('controlled mode', () => {
+    it('does not call setInternalValue when value is controlled (suppresses setInternal branch)', () => {
+      const handleChange = jest.fn();
+      const { getByLabelText } = render(
+        <Checkboxes name="tags" value={['a']} onChange={handleChange}>
+          <Checkbox value="a">A</Checkbox>
+          <Checkbox value="b">B</Checkbox>
+        </Checkboxes>
+      );
+      const b = getByLabelText('B') as HTMLInputElement;
+      // Click B to trigger the group onChange path with isControlled=true.
+      b.click();
+      expect(handleChange).toHaveBeenCalledWith(['a', 'b']);
+    });
+
+    it('uncontrolled defaultValue without onChange triggers internal update branch only', () => {
+      // Group is "active" (defaultValue is set) but no onChange — exercises the
+      // !isControlled branch followed by the optional-chain miss on onChange.
+      const { getByLabelText } = render(
+        <Checkboxes name="tags" defaultValue={['a']}>
+          <Checkbox value="a">A</Checkbox>
+          <Checkbox value="b">B</Checkbox>
+        </Checkboxes>
+      );
+      const b = getByLabelText('B') as HTMLInputElement;
+      b.click();
+      expect(b.checked).toBe(true);
     });
   });
 });

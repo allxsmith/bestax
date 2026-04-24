@@ -288,7 +288,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
  * Props for the SidebarClose component.
  * Extends standard button attributes.
  */
-interface SidebarCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
  * Sidebar close button.

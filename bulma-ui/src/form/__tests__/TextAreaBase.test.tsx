@@ -15,7 +15,7 @@ describe('TextAreaBase', () => {
   });
 
   it('applies Bulma and custom classes', () => {
-    const { container } = render(
+    render(
       <TextAreaBase
         color="primary"
         size="large"
@@ -29,7 +29,7 @@ describe('TextAreaBase', () => {
         hasFixedSize
       />
     );
-    const textarea = container.querySelector('textarea');
+    const textarea = screen.getByRole('textbox');
     expect(textarea).toHaveClass('textarea');
     expect(textarea).toHaveClass('is-primary');
     expect(textarea).toHaveClass('is-large');
@@ -83,13 +83,13 @@ describe('TextAreaBase', () => {
   });
 
   it('applies classPrefix when provided via ConfigProvider', () => {
-    const { container } = render(
+    render(
       <ConfigProvider classPrefix="bulma-">
         <TextAreaBase />
       </ConfigProvider>
     );
-    const textarea = container.querySelector('.bulma-textarea');
-    expect(textarea).toBeInTheDocument();
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass('bulma-textarea');
     expect(textarea).not.toHaveClass('textarea');
   });
 

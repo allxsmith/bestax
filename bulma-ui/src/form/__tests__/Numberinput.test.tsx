@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Numberinput } from '../Numberinput';
+import { Field } from '../Field';
 
 describe('Numberinput', () => {
   describe('Rendering', () => {
@@ -151,6 +152,38 @@ describe('Numberinput', () => {
       expect(
         screen.getByRole('button', { name: /decrease/i })
       ).not.toBeDisabled();
+    });
+
+    it('clamps below-min value during decrement (covers if-true min branch)', async () => {
+      const handleChange = jest.fn();
+      // step=2, value=1, min=0 -> decrement gives -1 -> clamp to 0.
+      render(
+        <Numberinput value={1} min={0} step={2} onChange={handleChange} />
+      );
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(0);
+    });
+
+    it('clamps above-max value during increment (covers if-true max branch)', async () => {
+      const handleChange = jest.fn();
+      // step=2, value=9, max=10 -> increment gives 11 -> clamp to 10.
+      render(
+        <Numberinput value={9} max={10} step={2} onChange={handleChange} />
+      );
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(10);
+    });
+
+    it('decrement falls back to 0 when value is undefined (covers ?? falsy branch)', async () => {
+      const handleChange = jest.fn();
+      // No defaultValue, no value -> internal currentValue is undefined.
+      // Decrement should treat it as 0 - 1 = -1.
+      render(<Numberinput onChange={handleChange} />);
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(-1);
     });
   });
 
@@ -717,6 +750,167 @@ describe('Numberinput', () => {
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
       await userEvent.click(decrementBtn);
       expect(handleChange).toHaveBeenCalledWith(4);
+    });
+
+    it('renders bare mode with controls on the left in dec/inc/input order', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} bare controlsPosition="left" />
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper).toHaveClass('numberinput');
+      expect(wrapper).toHaveClass('controls-left');
+      expect(wrapper).toHaveStyle({ display: 'contents' });
+      const controls = wrapper.querySelectorAll('.control');
+      expect(controls).toHaveLength(3);
+      expect(controls[0].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      expect(controls[1].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+      expect(controls[2].querySelector('input')).toBeInTheDocument();
+    });
+
+    it('renders bare mode with controls on the right in input/dec/inc order', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} bare controlsPosition="right" />
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper).toHaveClass('numberinput');
+      expect(wrapper).toHaveClass('controls-right');
+      expect(wrapper).toHaveStyle({ display: 'contents' });
+      const controls = wrapper.querySelectorAll('.control');
+      expect(controls).toHaveLength(3);
+      expect(controls[0].querySelector('input')).toBeInTheDocument();
+      expect(controls[1].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Decrease value'
+      );
+      expect(controls[2].querySelector('button')).toHaveAttribute(
+        'aria-label',
+        'Increase value'
+      );
+    });
+  });
+
+  describe('Message (help text)', () => {
+    it('renders message as a help paragraph', () => {
+      const { container } = render(
+        <Numberinput defaultValue={5} message="Helpful hint" />
+      );
+      const help = container.querySelector('p.help');
+      expect(help).toBeInTheDocument();
+      expect(help).toHaveTextContent('Helpful hint');
+    });
+
+    it('applies messageColor class to help paragraph', () => {
+      const { container } = render(
+        <Numberinput
+          defaultValue={5}
+          message="Bad value"
+          messageColor="danger"
+        />
+      );
+      const help = container.querySelector('p.help');
+      expect(help).toHaveClass('is-danger');
+    });
+
+    it('renders message inline (no extra Field) when inside an existing Field', () => {
+      const { container } = render(
+        <Field>
+          <Numberinput defaultValue={5} bare={false} message="Inline help" />
+        </Field>
+      );
+      // Only one .field wrapper — the outer Field — and the help is inside it.
+      const fields = container.querySelectorAll('.field');
+      // The Numberinput itself adds .field class to its wrapper too,
+      // but since insideField=true and bare=false, no extra <Field> is rendered.
+      // We just assert the help text is present once.
+      expect(fields.length).toBeGreaterThanOrEqual(1);
+      const helps = container.querySelectorAll('p.help');
+      expect(helps).toHaveLength(1);
+      expect(helps[0]).toHaveTextContent('Inline help');
+    });
+
+    it('renders stepper message inline when inside an existing Field', () => {
+      const { container } = render(
+        <Field>
+          <Numberinput
+            defaultValue={5}
+            variant="stepper"
+            message="Stepper hint"
+          />
+        </Field>
+      );
+      const helps = container.querySelectorAll('p.help');
+      expect(helps).toHaveLength(1);
+      expect(helps[0]).toHaveTextContent('Stepper hint');
+    });
+  });
+
+  describe('Combined Ref Callback', () => {
+    it('invokes function refs with the input node', () => {
+      const refFn = jest.fn();
+      render(<Numberinput defaultValue={5} ref={refFn} />);
+      expect(refFn).toHaveBeenCalled();
+      const lastCallArg = refFn.mock.calls[refFn.mock.calls.length - 1][0];
+      expect(lastCallArg).toBeInstanceOf(HTMLInputElement);
+    });
+  });
+
+  describe('Branch Coverage Edge Cases', () => {
+    it('renders with no value or defaultValue (currentValue undefined)', () => {
+      render(<Numberinput />);
+      const input = screen.getByRole('spinbutton');
+      expect(input).toBeInTheDocument();
+      // value falls back to '' when currentValue is undefined
+      expect(input).toHaveValue(null);
+      expect(input).not.toHaveAttribute('aria-valuenow');
+    });
+
+    it('uses exponential step when currentValue is undefined', async () => {
+      const handleChange = jest.fn();
+      render(<Numberinput step={1} exponential onChange={handleChange} />);
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+      // (currentValue ?? 0) + step * max(1, floor(abs(0))) = 0 + 1 = 1
+      expect(handleChange).toHaveBeenCalledWith(1);
+    });
+
+    it('does not clamp value when no min/max is set', async () => {
+      const handleChange = jest.fn();
+      render(<Numberinput value={5} onChange={handleChange} />);
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+      // No min, no max — value passes through untouched
+      expect(handleChange).toHaveBeenCalledWith(4);
+    });
+
+    it('does not clamp when min is set but value is above min', async () => {
+      const handleChange = jest.fn();
+      render(<Numberinput value={10} min={0} onChange={handleChange} />);
+      const decrementBtn = screen.getByRole('button', { name: /decrease/i });
+      await userEvent.click(decrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(9);
+    });
+
+    it('does not clamp when max is set but value is below max', async () => {
+      const handleChange = jest.fn();
+      render(<Numberinput value={1} max={10} onChange={handleChange} />);
+      const incrementBtn = screen.getByRole('button', { name: /increase/i });
+      await userEvent.click(incrementBtn);
+      expect(handleChange).toHaveBeenCalledWith(2);
+    });
+
+    it('ignores keys other than ArrowUp/ArrowDown', () => {
+      const handleChange = jest.fn();
+      render(<Numberinput value={5} onChange={handleChange} />);
+      const input = screen.getByRole('spinbutton');
+      fireEvent.keyDown(input, { key: 'Enter' });
+      fireEvent.keyDown(input, { key: 'a' });
+      expect(handleChange).not.toHaveBeenCalled();
     });
   });
 

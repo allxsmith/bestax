@@ -127,7 +127,7 @@ describe('Tag Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Tag color="primary" size="large" isRounded m="2">
             Test Tag
@@ -135,7 +135,7 @@ describe('Tag Component', () => {
         </ConfigProvider>
       );
 
-      const tag = container.querySelector('span');
+      const tag = screen.getByText('Test Tag');
       expect(tag).toHaveClass('bulma-tag');
       expect(tag).toHaveClass('bulma-is-primary');
       expect(tag).toHaveClass('bulma-is-large');
@@ -144,13 +144,13 @@ describe('Tag Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Tag color="info" size="medium" p="3">
           Standard Tag
         </Tag>
       );
 
-      const tag = container.querySelector('span');
+      const tag = screen.getByText('Standard Tag');
       expect(tag).toHaveClass('tag');
       expect(tag).toHaveClass('is-info');
       expect(tag).toHaveClass('is-medium');

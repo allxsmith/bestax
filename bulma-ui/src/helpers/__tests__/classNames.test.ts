@@ -161,3 +161,48 @@ describe('usePrefixedClassNames', () => {
     expect(typeof usePrefixedClassNames).toBe('function');
   });
 });
+
+describe('classNames branch coverage gaps', () => {
+  it('drops empty fragments produced by splitting whitespace-only padding', () => {
+    // Leading/trailing whitespace -> split produces ['', 'foo', ''] — empty
+    // pieces must be dropped (covers the `if (cls)` branch).
+    expect(classNames('  foo  ')).toBe('foo');
+    expect(classNames('  ')).toBe('');
+  });
+
+  it('drops empty fragments from object keys with surrounding whitespace', () => {
+    // The same empty-piece guard fires for object keys.
+    expect(classNames({ '  foo  ': true })).toBe('foo');
+    expect(classNames({ '   ': true })).toBe('');
+  });
+
+  it('ignores non-array, non-string, non-object items (booleans/symbols typed loose)', () => {
+    // The `else if (typeof item === "object")` branch's "neither" path is hit
+    // when an unexpected type sneaks in (defensive cast). True/Symbol won't
+    // match any of the typed branches and are simply ignored.
+    expect(
+      // @ts-expect-error intentionally invalid type to exercise fallthrough
+      classNames(true, Symbol('x'))
+    ).toBe('');
+  });
+});
+
+describe('createPrefixedClassNames branch coverage gaps', () => {
+  it('drops empty fragments from whitespace-padded strings', () => {
+    const fn = createPrefixedClassNames('px-');
+    expect(fn('  foo  ')).toBe('px-foo');
+    expect(fn('  ')).toBe('');
+  });
+
+  it('drops empty fragments from object keys with surrounding whitespace', () => {
+    const fn = createPrefixedClassNames('px-');
+    expect(fn({ '  foo  ': true })).toBe('px-foo');
+    expect(fn({ '   ': true })).toBe('');
+  });
+
+  it('ignores non-array, non-string, non-object items', () => {
+    const fn = createPrefixedClassNames('px-');
+    // @ts-expect-error intentionally invalid type to exercise fallthrough
+    expect(fn(true, Symbol('x'))).toBe('');
+  });
+});

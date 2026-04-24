@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
-import { LinkButton, LinkButtonProps } from './LinkButton';
+import { LinkButton } from './LinkButton';
 import { Buttons } from './Buttons';
 import { Button } from './Button';
 import { Field } from '../form/Field';
@@ -192,85 +192,89 @@ export const AllSizes: Story = {
 };
 
 // Click counter showing all variants fire onClick
-export const ClickCounter: Story = {
-  render: () => {
-    const [count, setCount] = useState(0);
+const LinkButtonStateDemo = () => {
+  const [count, setCount] = useState(0);
 
-    return (
-      <div>
-        <p style={{ marginBottom: '1rem' }}>
-          Click count: <strong>{count}</strong>
-        </p>
-        <Buttons>
-          <LinkButton variant="text" onClick={() => setCount(c => c + 1)}>
-            Text +1
-          </LinkButton>
-          <LinkButton variant="ghost" onClick={() => setCount(c => c + 1)}>
-            Ghost +1
-          </LinkButton>
-          <LinkButton variant="underline" onClick={() => setCount(c => c + 1)}>
-            Underline +1
-          </LinkButton>
-          <Button color="light" onClick={() => setCount(0)}>
-            Reset
-          </Button>
-        </Buttons>
-      </div>
-    );
-  },
+  return (
+    <div>
+      <p style={{ marginBottom: '1rem' }}>
+        Click count: <strong>{count}</strong>
+      </p>
+      <Buttons>
+        <LinkButton variant="text" onClick={() => setCount(c => c + 1)}>
+          Text +1
+        </LinkButton>
+        <LinkButton variant="ghost" onClick={() => setCount(c => c + 1)}>
+          Ghost +1
+        </LinkButton>
+        <LinkButton variant="underline" onClick={() => setCount(c => c + 1)}>
+          Underline +1
+        </LinkButton>
+        <Button color="light" onClick={() => setCount(0)}>
+          Reset
+        </Button>
+      </Buttons>
+    </div>
+  );
+};
+
+export const ClickCounter: Story = {
+  render: () => <LinkButtonStateDemo />,
   name: 'Click Counter',
 };
 
 // In-form context
-export const InFormContext: Story = {
-  render: () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+const LinkButtonInFormDemo = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
-    return (
-      <form onSubmit={e => e.preventDefault()}>
-        <Input
-          label="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Enter your name"
-        />
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="Enter your email"
-        />
-        <Field>
-          <div className="control">
-            <Button color="primary" size="medium" type="submit" isFullWidth>
-              Create account
-            </Button>
-          </div>
-        </Field>
-        <Buttons size="small" className="is-centered">
-          <LinkButton
-            variant="underline"
-            color="link"
-            size="small"
-            onClick={() => {
-              setName('');
-              setEmail('');
-            }}
-          >
-            Clear form
-          </LinkButton>
-          <LinkButton
-            variant="underline"
-            size="small"
-            onClick={() => alert(`Preview: ${name} <${email}>`)}
-          >
-            Preview
-          </LinkButton>
-        </Buttons>
-      </form>
-    );
-  },
+  return (
+    <form onSubmit={e => e.preventDefault()}>
+      <Input
+        label="Name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Enter your name"
+      />
+      <Input
+        label="Email"
+        type="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        placeholder="Enter your email"
+      />
+      <Field>
+        <div className="control">
+          <Button color="primary" size="medium" type="submit" isFullWidth>
+            Create account
+          </Button>
+        </div>
+      </Field>
+      <Buttons size="small" className="is-centered">
+        <LinkButton
+          variant="underline"
+          color="link"
+          size="small"
+          onClick={() => {
+            setName('');
+            setEmail('');
+          }}
+        >
+          Clear form
+        </LinkButton>
+        <LinkButton
+          variant="underline"
+          size="small"
+          onClick={() => alert(`Preview: ${name} <${email}>`)}
+        >
+          Preview
+        </LinkButton>
+      </Buttons>
+    </form>
+  );
+};
+
+export const InFormContext: Story = {
+  render: () => <LinkButtonInFormDemo />,
   name: 'In Form Context',
 };

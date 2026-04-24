@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Icon } from '../Icon';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -71,29 +71,29 @@ describe('Icon', () => {
   });
 
   it('renders aria-label and passes style to span', () => {
-    const { container } = render(
-      <Icon name="star" ariaLabel="star icon" style={{ color: 'red' }} />
-    );
-    const span = container.querySelector('span');
+    render(<Icon name="star" ariaLabel="star icon" style={{ color: 'red' }} />);
+    const span = screen.getByLabelText('star icon');
     expect(span).toHaveAttribute('aria-label', 'star icon');
     expect(span).toHaveStyle({ color: 'rgb(255, 0, 0)' });
   });
 
   it('applies Bulma size modifier', () => {
-    const { container } = render(<Icon name="star" size="large" />);
-    const span = container.querySelector('span.icon');
+    render(<Icon name="star" size="large" />);
+    const span = screen.getByLabelText('icon');
+    expect(span).toHaveClass('icon');
     expect(span).toHaveClass('is-large');
   });
 
   it('applies custom className and Bulma helpers', () => {
-    const { container } = render(
+    render(
       <Icon name="star" className="my-custom-class" m="2" textColor="primary" />
     );
-    const span = container.querySelector('span.icon');
+    const span = screen.getByLabelText('icon');
+    expect(span).toHaveClass('icon');
     expect(span).toHaveClass('my-custom-class');
     // m="2" and textColor="primary" should result in Bulma classes
-    expect(span?.className).toMatch(/has-text-primary/);
-    expect(span?.className).toMatch(/m-2/);
+    expect(span.className).toMatch(/has-text-primary/);
+    expect(span.className).toMatch(/m-2/);
   });
 
   it('defaults to "fas" style when no Font Awesome style is provided', () => {
@@ -281,7 +281,7 @@ describe('Icon', () => {
       expect(i).toHaveClass('material-symbols-outlined', 'is-size-1');
       expect(i).toHaveTextContent('settings');
 
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('icon', 'is-large');
     });
 
@@ -387,52 +387,52 @@ describe('Icon', () => {
 
   describe('ClassPrefix', () => {
     it('applies classPrefix to main class', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="my-prefix-">
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('my-prefix-icon');
     });
 
     it('uses default class when no classPrefix provided', () => {
-      const { container } = render(
+      render(
         <ConfigProvider>
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('icon');
     });
 
     it('uses default class when classPrefix is undefined', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix={undefined}>
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('icon');
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Icon name="star" size="large" m="2" />
         </ConfigProvider>
       );
 
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('bulma-icon');
       expect(span).toHaveClass('bulma-is-large');
       expect(span).toHaveClass('bulma-m-2');
     });
 
     it('works without prefix', () => {
-      const { container } = render(<Icon name="heart" size="medium" p="3" />);
+      render(<Icon name="heart" size="medium" p="3" />);
 
-      const span = container.querySelector('span');
+      const span = screen.getByLabelText('icon');
       expect(span).toHaveClass('icon');
       expect(span).toHaveClass('is-medium');
       expect(span).toHaveClass('p-3');
@@ -458,6 +458,36 @@ describe('Icon', () => {
       const { container } = render(<Icon icon="icon-class some-icon" />);
       const i = container.querySelector('i');
       expect(i).toHaveClass('fas', 'fa-some-icon');
+    });
+
+    it('ignores a non-string `icon` prop without throwing', () => {
+      // Hits the `typeof icon === "string"` false branch in the legacy parser.
+      render(
+        <Icon
+          // @ts-expect-error intentionally non-string to exercise fallthrough
+          icon={123}
+        />
+      );
+      // No name was derived (legacy parser only handles strings) and the
+      // component still renders without crashing.
+      expect(screen.getByLabelText('icon')).toBeInTheDocument();
+    });
+  });
+
+  describe('containerClassName override', () => {
+    it('uses containerClassName instead of the default `icon` class', () => {
+      render(<Icon name="star" containerClassName="panel-icon" />);
+      const span = screen.getByLabelText('icon');
+      expect(span).toHaveClass('panel-icon');
+      expect(span).not.toHaveClass('icon');
+    });
+
+    it('appends a separate is-${size} modifier when containerClassName + size are both set', () => {
+      render(<Icon name="star" containerClassName="panel-icon" size="small" />);
+      const span = screen.getByLabelText('icon');
+      expect(span).toHaveClass('panel-icon');
+      expect(span).toHaveClass('is-small');
+      expect(span).not.toHaveClass('icon');
     });
   });
 });

@@ -350,3 +350,83 @@ describe('Navbar.Dropdown', () => {
     expect(divider).toHaveClass('navbar-divider');
   });
 });
+
+describe('Navbar.Link', () => {
+  it('renders link with navbar-link class by default', () => {
+    render(<Navbar.Link href="/home">Home</Navbar.Link>);
+    const link = screen.getByRole('link');
+    expect(link).toHaveClass('navbar-link');
+    expect(link).toHaveTextContent('Home');
+  });
+
+  it('applies textColor, bgColor, and margin helper classes', () => {
+    render(
+      <Navbar.Link href="/home" textColor="primary" bgColor="light" m="2">
+        Home
+      </Navbar.Link>
+    );
+    const link = screen.getByRole('link');
+    expect(link).toHaveClass('navbar-link');
+    expect(link).toHaveClass('has-text-primary');
+    expect(link).toHaveClass('has-background-light');
+    expect(link).toHaveClass('m-2');
+  });
+
+  it('applies is-arrowless when arrowless is true', () => {
+    render(
+      <Navbar.Link href="/home" arrowless>
+        Home
+      </Navbar.Link>
+    );
+    expect(screen.getByRole('link')).toHaveClass('is-arrowless');
+  });
+
+  it('allows changing root element with "as"', () => {
+    render(
+      <Navbar.Link as="span" data-testid="navlink">
+        Span Link
+      </Navbar.Link>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link.tagName).toBe('SPAN');
+    expect(link).toHaveClass('navbar-link');
+  });
+
+  it('accepts custom className', () => {
+    render(
+      <Navbar.Link className="custom-link" data-testid="navlink">
+        Custom
+      </Navbar.Link>
+    );
+    expect(screen.getByTestId('navlink')).toHaveClass('custom-link');
+  });
+
+  it('does not pass Bulma helper props to underlying element', () => {
+    render(
+      <Navbar.Link
+        textColor="danger"
+        bgColor="white"
+        p="3"
+        data-testid="navlink"
+      >
+        Link
+      </Navbar.Link>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link).not.toHaveAttribute('textColor');
+    expect(link).not.toHaveAttribute('bgColor');
+    expect(link).toHaveClass('p-3');
+  });
+
+  it('applies prefix to navbar-link and helper classes via ConfigProvider', () => {
+    render(
+      <ConfigProvider classPrefix="bulma-">
+        <Navbar.Link textColor="info" m="1" data-testid="navlink">
+          Prefixed
+        </Navbar.Link>
+      </ConfigProvider>
+    );
+    const link = screen.getByTestId('navlink');
+    expect(link).toHaveClass('bulma-navbar-link');
+  });
+});

@@ -216,14 +216,10 @@ describe('Snackbar', () => {
 
   describe('Inline', () => {
     it('renders without portal when inline is true', () => {
-      const { container } = render(
-        <Snackbar message="Test" duration={0} inline />
-      );
-      const snackbarEl = container.querySelector('.snackbar');
+      render(<Snackbar message="Test" duration={0} inline />);
+      const snackbarEl = screen.getByRole('status');
       expect(snackbarEl).toBeInTheDocument();
-      expect(
-        snackbarEl?.closest('.snackbar-container')
-      ).not.toBeInTheDocument();
+      expect(snackbarEl.closest('.snackbar-container')).not.toBeInTheDocument();
     });
 
     it('renders with portal by default', () => {
@@ -430,6 +426,13 @@ describe('Snackbar', () => {
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+
+    it('mouseLeave is a no-op when pauseOnHover is false (covers if-false branch)', () => {
+      render(<Snackbar message="Test" duration={3000} pauseOnHover={false} />);
+      const snackbarEl = screen.getByRole('status');
+      // Should not throw and should leave isPaused alone (false branch).
+      expect(() => fireEvent.mouseLeave(snackbarEl)).not.toThrow();
+    });
   });
 
   describe('Click to Dismiss', () => {
@@ -516,6 +519,15 @@ describe('Snackbar', () => {
 
       expect(onClose).not.toHaveBeenCalled();
     });
+
+    it('non-Escape key with cancelable does not close (covers if-false branch)', () => {
+      const onClose = jest.fn();
+      render(
+        <Snackbar message="Test" duration={0} cancelable onClose={onClose} />
+      );
+      fireEvent.keyDown(document, { key: 'a' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 
   describe('Accessibility', () => {
@@ -527,6 +539,110 @@ describe('Snackbar', () => {
     it('has aria-live polite', () => {
       render(<Snackbar message="Test" duration={0} />);
       expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+    });
+  });
+
+  describe('Container target', () => {
+    it('mounts into element matched by string selector', () => {
+      const mount = document.createElement('div');
+      mount.id = 'snackbar-mount-target';
+      document.body.appendChild(mount);
+
+      try {
+        render(
+          <Snackbar
+            message="Custom container"
+            duration={0}
+            container="#snackbar-mount-target"
+          />
+        );
+
+        expect(mount.querySelector('.snackbar-container')).toBeInTheDocument();
+        expect(screen.getByText('Custom container')).toBeInTheDocument();
+      } finally {
+        document.body.removeChild(mount);
+      }
+    });
+
+    it('falls back to document.body when string selector matches nothing', () => {
+      render(
+        <Snackbar
+          message="Fallback to body"
+          duration={0}
+          container="#does-not-exist"
+        />
+      );
+
+      const snackbarEl = screen.getByText('Fallback to body');
+      const containerEl = snackbarEl.closest('.snackbar-container');
+      expect(containerEl).toBeInTheDocument();
+      // Portal mounted directly under document.body when selector misses.
+      expect(containerEl?.parentElement).toBe(document.body);
+    });
+
+    it('mounts into provided HTMLElement container', () => {
+      const mount = document.createElement('div');
+      mount.id = 'snackbar-html-element-target';
+      document.body.appendChild(mount);
+
+      try {
+        render(
+          <Snackbar
+            message="HTMLElement container"
+            duration={0}
+            container={mount}
+          />
+        );
+
+        expect(mount.querySelector('.snackbar-container')).toBeInTheDocument();
+        expect(screen.getByText('HTMLElement container')).toBeInTheDocument();
+      } finally {
+        document.body.removeChild(mount);
+      }
+    });
+  });
+
+  describe('Action button without onAction handler', () => {
+    it('renders and handles click without throwing when onAction is omitted', () => {
+      const onClose = jest.fn();
+      render(
+        <Snackbar
+          message="Test"
+          actionText="Undo"
+          onClose={onClose}
+          duration={0}
+        />
+      );
+
+      expect(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      }).not.toThrow();
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Action/Cancel button isolation', () => {
+    it('renders only the action button when only actionText is provided', () => {
+      render(<Snackbar message="Test" duration={0} actionText="OK" />);
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0]).toHaveTextContent('OK');
+      expect(document.querySelector('.snackbar-action')).toBeInTheDocument();
+      expect(
+        document.querySelector('.snackbar-cancel')
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders only the cancel button when only cancelText is provided', () => {
+      render(<Snackbar message="Test" duration={0} cancelText="Cancel" />);
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0]).toHaveTextContent('Cancel');
+      expect(document.querySelector('.snackbar-cancel')).toBeInTheDocument();
+      expect(
+        document.querySelector('.snackbar-action')
+      ).not.toBeInTheDocument();
     });
   });
 });
@@ -713,5 +829,25 @@ describe('SnackbarContainer', () => {
 
     const container = screen.getByRole('status').closest('.snackbar-container');
     expect(container).toHaveClass('is-bottom-right');
+  });
+
+  it('closes current snackbar via inner onClose handler and advances queue', () => {
+    render(<SnackbarContainer />);
+
+    act(() => {
+      snackbar.show({ message: 'First', duration: 0 });
+      snackbar.show({ message: 'Second', duration: 0 });
+    });
+
+    expect(screen.getByText('First')).toBeInTheDocument();
+
+    // Click the snackbar itself; that fires the inner onClose, which the
+    // SnackbarContainer wires to snackbar.close() — covering line 463.
+    act(() => {
+      fireEvent.click(screen.getByRole('status'));
+    });
+
+    expect(screen.queryByText('First')).not.toBeInTheDocument();
+    expect(screen.getByText('Second')).toBeInTheDocument();
   });
 });

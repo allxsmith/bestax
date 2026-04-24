@@ -913,6 +913,31 @@ describe('useBulmaClasses', () => {
     });
   });
 
+  // FULL HEIGHT HELPER
+  describe('fullHeight helper', () => {
+    it('applies is-full-height class when fullHeight is true', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        fullHeight: true,
+      });
+      expect(bulmaHelperClasses).toBe('is-full-height');
+    });
+
+    it('does not apply is-full-height when fullHeight is false', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        fullHeight: false,
+      });
+      expect(bulmaHelperClasses).toBe('');
+    });
+
+    it('applies is-full-height with class prefix', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses(
+        { fullHeight: true },
+        'bulma-'
+      );
+      expect(bulmaHelperClasses).toBe('bulma-is-full-height');
+    });
+  });
+
   describe('Viewport-specific text size properties', () => {
     it('applies mobile text size class', () => {
       const { bulmaHelperClasses } = renderUseBulmaClasses({
@@ -1338,6 +1363,22 @@ describe('useBulmaClasses', () => {
       expect(bulmaHelperClasses).toContain('is-flex-grow-1');
       expect(bulmaHelperClasses).not.toContain('is-justify-content-center');
       expect(bulmaHelperClasses).not.toContain('is-align-items-center');
+    });
+  });
+
+  describe('Branch coverage gaps', () => {
+    it('ignores invalid visibility (covers else-if false branch)', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        visibility: 'bogus' as any,
+      });
+      expect(bulmaHelperClasses).toBe('');
+    });
+
+    it('ignores invalid cursor (covers else-if false branch)', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'wait' as any,
+      });
+      expect(bulmaHelperClasses).toBe('');
     });
   });
 });

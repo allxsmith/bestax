@@ -65,7 +65,6 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       isStatic,
       isHovered,
       isFocused,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       isLoading: _isLoading,
       isActive,
       hasFixedSize,

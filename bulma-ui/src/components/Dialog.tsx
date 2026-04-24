@@ -355,20 +355,16 @@ export interface PromptOptions extends ConfirmOptions {
   defaultValue?: string;
 }
 
-let dialogListeners: Set<
-  (
-    dialog: {
-      type: 'alert' | 'confirm' | 'prompt';
-      options: any;
-      resolve: (value: any) => void;
-    } | null
-  ) => void
-> = new Set();
-let currentDialog: {
+type DialogResolve = (value?: void | boolean | string) => void;
+
+type DialogState = {
   type: 'alert' | 'confirm' | 'prompt';
-  options: any;
-  resolve: (value: any) => void;
-} | null = null;
+  options: PromptOptions;
+  resolve: DialogResolve;
+};
+
+let dialogListeners: Set<(dialog: DialogState | null) => void> = new Set();
+let currentDialog: DialogState | null = null;
 
 const notifyDialogListeners = () => {
   dialogListeners.forEach(listener => listener(currentDialog));
@@ -382,9 +378,13 @@ export const dialog = {
    * Show an alert dialog. Returns a promise that resolves when closed.
    */
   alert: (options: AlertOptions | string): Promise<void> => {
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       const opts = typeof options === 'string' ? { message: options } : options;
-      currentDialog = { type: 'alert', options: opts, resolve };
+      currentDialog = {
+        type: 'alert',
+        options: opts,
+        resolve: () => resolve(),
+      };
       notifyDialogListeners();
     });
   },
@@ -393,9 +393,13 @@ export const dialog = {
    * Show a confirm dialog. Returns a promise that resolves to true/false.
    */
   confirm: (options: ConfirmOptions | string): Promise<boolean> => {
-    return new Promise(resolve => {
+    return new Promise<boolean>(resolve => {
       const opts = typeof options === 'string' ? { message: options } : options;
-      currentDialog = { type: 'confirm', options: opts, resolve };
+      currentDialog = {
+        type: 'confirm',
+        options: opts,
+        resolve: value => resolve(Boolean(value)),
+      };
       notifyDialogListeners();
     });
   },
@@ -403,7 +407,7 @@ export const dialog = {
   /**
    * Close the current dialog.
    */
-  close: (value?: any): void => {
+  close: (value?: void | boolean | string): void => {
     if (currentDialog) {
       currentDialog.resolve(value);
       currentDialog = null;
@@ -414,15 +418,7 @@ export const dialog = {
   /**
    * Subscribe to dialog changes.
    */
-  subscribe: (
-    listener: (
-      dialog: {
-        type: 'alert' | 'confirm' | 'prompt';
-        options: any;
-        resolve: (value: any) => void;
-      } | null
-    ) => void
-  ): (() => void) => {
+  subscribe: (listener: (dialog: DialogState | null) => void): (() => void) => {
     dialogListeners.add(listener);
     return () => dialogListeners.delete(listener);
   },
@@ -436,11 +432,7 @@ export const dialog = {
  * @returns {JSX.Element | null} The rendered dialog, or null if none is active.
  */
 export const DialogContainer: React.FC = () => {
-  const [current, setCurrent] = React.useState<{
-    type: 'alert' | 'confirm' | 'prompt';
-    options: any;
-    resolve: (value: any) => void;
-  } | null>(null);
+  const [current, setCurrent] = React.useState<DialogState | null>(null);
 
   useEffect(() => {
     return dialog.subscribe(setCurrent);

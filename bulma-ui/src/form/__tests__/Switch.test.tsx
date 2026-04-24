@@ -22,8 +22,10 @@ describe('Switch', () => {
     });
 
     it('applies the switch class to the label', () => {
-      const { container } = render(<Switch />);
-      expect(container.querySelector('label')).toHaveClass('switch');
+      render(<Switch data-testid="switch" />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'switch'
+      );
     });
 
     it('renders check span element', () => {
@@ -41,8 +43,10 @@ describe('Switch', () => {
       'warning',
       'danger',
     ] as const)('applies is-%s class when color="%s"', color => {
-      const { container } = render(<Switch color={color} />);
-      expect(container.querySelector('label')).toHaveClass(`is-${color}`);
+      render(<Switch data-testid="switch" color={color} />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        `is-${color}`
+      );
     });
   });
 
@@ -50,38 +54,53 @@ describe('Switch', () => {
     it.each(['small', 'normal', 'medium', 'large'] as const)(
       'applies is-%s class when size="%s"',
       size => {
-        const { container } = render(<Switch size={size} />);
-        expect(container.querySelector('label')).toHaveClass(`is-${size}`);
+        render(<Switch data-testid="switch" size={size} />);
+        expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+          `is-${size}`
+        );
       }
     );
   });
 
   describe('style variants', () => {
     it('applies is-rounded class when isRounded is true', () => {
-      const { container } = render(<Switch isRounded />);
-      expect(container.querySelector('label')).toHaveClass('is-rounded');
+      render(<Switch data-testid="switch" isRounded />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'is-rounded'
+      );
     });
 
     it('applies is-thin class when isThin is true', () => {
-      const { container } = render(<Switch isThin />);
-      expect(container.querySelector('label')).toHaveClass('is-thin');
+      render(<Switch data-testid="switch" isThin />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'is-thin'
+      );
     });
 
     it('applies is-outlined class when isOutlined is true', () => {
-      const { container } = render(<Switch isOutlined />);
-      expect(container.querySelector('label')).toHaveClass('is-outlined');
+      render(<Switch data-testid="switch" isOutlined />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'is-outlined'
+      );
     });
 
     it('applies is-rtl class when isRtl is true', () => {
-      const { container } = render(<Switch isRtl />);
-      expect(container.querySelector('label')).toHaveClass('is-rtl');
+      render(<Switch data-testid="switch" isRtl />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'is-rtl'
+      );
     });
 
     it('does not apply variant classes when props are false', () => {
-      const { container } = render(
-        <Switch isRounded={false} isThin={false} isOutlined={false} />
+      render(
+        <Switch
+          data-testid="switch"
+          isRounded={false}
+          isThin={false}
+          isOutlined={false}
+        />
       );
-      const label = container.querySelector('label');
+      const label = screen.getByTestId('switch').closest('label');
       expect(label).not.toHaveClass('is-rounded');
       expect(label).not.toHaveClass('is-thin');
       expect(label).not.toHaveClass('is-outlined');
@@ -158,15 +177,22 @@ describe('Switch', () => {
 
   describe('className handling', () => {
     it('applies custom className', () => {
-      const { container } = render(<Switch className="custom-class" />);
-      expect(container.querySelector('label')).toHaveClass('custom-class');
+      render(<Switch data-testid="switch" className="custom-class" />);
+      expect(screen.getByTestId('switch').closest('label')).toHaveClass(
+        'custom-class'
+      );
     });
 
     it('combines multiple classes correctly', () => {
-      const { container } = render(
-        <Switch color="primary" isRounded className="custom-class" />
+      render(
+        <Switch
+          data-testid="switch"
+          color="primary"
+          isRounded
+          className="custom-class"
+        />
       );
-      const label = container.querySelector('label');
+      const label = screen.getByTestId('switch').closest('label');
       expect(label).toHaveClass(
         'switch',
         'is-primary',
@@ -213,33 +239,39 @@ describe('Switch', () => {
     ] as const)(
       'applies is-%s-passive class when passiveType="%s"',
       passiveType => {
-        const { container } = render(<Switch passiveType={passiveType} />);
-        expect(container.querySelector('label')).toHaveClass(
+        render(<Switch data-testid="switch" passiveType={passiveType} />);
+        expect(screen.getByTestId('switch').closest('label')).toHaveClass(
           `is-${passiveType}-passive`
         );
       }
     );
 
     it('does not apply passive class when passiveType is not set', () => {
-      const { container } = render(<Switch />);
-      const label = container.querySelector('label');
+      render(<Switch data-testid="switch" />);
+      const label = screen.getByTestId('switch').closest('label');
       expect(label?.className).not.toMatch(/passive/);
     });
 
     it('applies both color and passiveType classes', () => {
-      const { container } = render(
-        <Switch color="success" passiveType="danger" />
+      render(
+        <Switch data-testid="switch" color="success" passiveType="danger" />
       );
-      const label = container.querySelector('label');
+      const label = screen.getByTestId('switch').closest('label');
       expect(label).toHaveClass('is-success');
       expect(label).toHaveClass('is-danger-passive');
     });
 
     it('combines passiveType with other variant classes', () => {
-      const { container } = render(
-        <Switch color="primary" passiveType="warning" isRounded isOutlined />
+      render(
+        <Switch
+          data-testid="switch"
+          color="primary"
+          passiveType="warning"
+          isRounded
+          isOutlined
+        />
       );
-      const label = container.querySelector('label');
+      const label = screen.getByTestId('switch').closest('label');
       expect(label).toHaveClass(
         'switch',
         'is-primary',
@@ -252,8 +284,8 @@ describe('Switch', () => {
 
   describe('Bulma helper classes', () => {
     it('applies Bulma helper classes from props', () => {
-      const { container } = render(<Switch m="2" p="3" />);
-      const label = container.querySelector('label');
+      render(<Switch data-testid="switch" m="2" p="3" />);
+      const label = screen.getByTestId('switch').closest('label');
       expect(label).toHaveClass('m-2', 'p-3');
     });
   });

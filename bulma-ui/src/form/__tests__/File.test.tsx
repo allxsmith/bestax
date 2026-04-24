@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import File from '../File';
+import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('File', () => {
@@ -156,5 +157,20 @@ describe('File', () => {
     const file = new window.File(['abc'], 'test.txt', { type: 'text/plain' });
     fireEvent.change(input, { target: { files: [file] } });
     expect(handleChange).toHaveBeenCalled();
+  });
+
+  describe('inside a Field wrapper', () => {
+    it('renders as a bare fragment (no extra Field wrapper) when nested in a Field', () => {
+      const { container } = render(
+        <Field label="Avatar">
+          <File message="hint" messageColor="info" />
+        </Field>
+      );
+      // Only the outer Field wrapper exists.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      const help = screen.getByText('hint');
+      expect(help).toHaveClass('help');
+      expect(help).toHaveClass('is-info');
+    });
   });
 });

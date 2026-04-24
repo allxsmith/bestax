@@ -17,25 +17,25 @@ describe('SelectBase', () => {
   });
 
   it('applies Bulma and custom classes', () => {
-    const { container } = render(
+    render(
       <SelectBase color="primary" size="large" className="custom-select">
         <option>Option</option>
       </SelectBase>
     );
     // Should have wrapper div with Bulma and custom classes
-    const wrapper = container.querySelector('.select');
+    const wrapper = screen.getByRole('combobox').closest('.select');
     expect(wrapper).toHaveClass('is-primary');
     expect(wrapper).toHaveClass('is-large');
     expect(wrapper).toHaveClass('custom-select');
   });
 
   it('applies is-rounded, is-loading, and is-active modifiers', () => {
-    const { container } = render(
+    render(
       <SelectBase isRounded isLoading isActive>
         <option>Option</option>
       </SelectBase>
     );
-    const wrapper = container.querySelector('.select');
+    const wrapper = screen.getByRole('combobox').closest('.select');
     expect(wrapper).toHaveClass('is-rounded');
     expect(wrapper).toHaveClass('is-loading');
     expect(wrapper).toHaveClass('is-active');
@@ -109,14 +109,14 @@ describe('SelectBase', () => {
   });
 
   it('applies classPrefix when provided via ConfigProvider', () => {
-    const { container } = render(
+    render(
       <ConfigProvider classPrefix="bulma-">
         <SelectBase>
           <option>test</option>
         </SelectBase>
       </ConfigProvider>
     );
-    const select = container.querySelector('.bulma-select');
+    const select = screen.getByRole('combobox').closest('.bulma-select');
     expect(select).toBeInTheDocument();
     expect(select).not.toHaveClass('select');
   });

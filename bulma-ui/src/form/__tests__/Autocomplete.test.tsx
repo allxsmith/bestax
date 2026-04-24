@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Autocomplete } from '../Autocomplete';
+import { Field } from '../Field';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
 
@@ -362,7 +363,9 @@ describe('Autocomplete', () => {
           data={countries}
           field="label"
           itemTemplate={item => (
-            <span data-testid="custom">{(item as any).label}</span>
+            <span data-testid="custom">
+              {(item as { label: string }).label}
+            </span>
           )}
         />
       );
@@ -593,6 +596,434 @@ describe('Autocomplete', () => {
       const ref = React.createRef<HTMLInputElement>();
       render(<Autocomplete data={fruits} ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    });
+
+    it('supports callback refs', () => {
+      const refCallback = jest.fn();
+      render(<Autocomplete data={fruits} ref={refCallback} />);
+      expect(refCallback).toHaveBeenCalledWith(expect.any(HTMLInputElement));
+    });
+  });
+
+  describe('ArrowDown opens closed dropdown', () => {
+    it('opens dropdown on ArrowDown when closed (without openOnFocus)', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+
+      // Dropdown is closed initially (no openOnFocus, no input value)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+  });
+
+  describe('Infinite Scroll', () => {
+    it('calls onInfiniteScroll when scrolled near bottom', () => {
+      const onInfiniteScroll = jest.fn();
+      render(
+        <Autocomplete
+          data={fruits}
+          checkInfiniteScroll
+          infiniteScrollDistance={50}
+          onInfiniteScroll={onInfiniteScroll}
+        />
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const listbox = screen.getByRole('listbox');
+
+      // Force the dropdown div's scroll metrics so the threshold triggers.
+      Object.defineProperty(listbox, 'scrollHeight', {
+        configurable: true,
+        value: 500,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        configurable: true,
+        value: 200,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        configurable: true,
+        writable: true,
+        value: 260, // 500 - 260 - 200 = 40 <= 50 -> triggers
+      });
+
+      fireEvent.scroll(listbox);
+
+      expect(onInfiniteScroll).toHaveBeenCalled();
+    });
+
+    it('does not call onInfiniteScroll when far from bottom', () => {
+      const onInfiniteScroll = jest.fn();
+      render(
+        <Autocomplete
+          data={fruits}
+          checkInfiniteScroll
+          infiniteScrollDistance={50}
+          onInfiniteScroll={onInfiniteScroll}
+        />
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const listbox = screen.getByRole('listbox');
+      Object.defineProperty(listbox, 'scrollHeight', {
+        configurable: true,
+        value: 500,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        configurable: true,
+        value: 200,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        configurable: true,
+        writable: true,
+        value: 0, // 500 - 0 - 200 = 300 > 50 -> no trigger
+      });
+
+      fireEvent.scroll(listbox);
+
+      expect(onInfiniteScroll).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when checkInfiniteScroll is disabled', () => {
+      const onInfiniteScroll = jest.fn();
+      render(
+        <Autocomplete data={fruits} onInfiniteScroll={onInfiniteScroll} />
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const listbox = screen.getByRole('listbox');
+      fireEvent.scroll(listbox);
+
+      expect(onInfiniteScroll).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ScrollIntoView', () => {
+    it('calls scrollIntoView when highlight changes', () => {
+      const scrollIntoViewMock = jest.fn();
+      // Stub scrollIntoView on the prototype so JSDOM picks it up for all anchors.
+      const original = (
+        HTMLElement.prototype as unknown as { scrollIntoView: () => void }
+      ).scrollIntoView;
+      (
+        HTMLElement.prototype as unknown as { scrollIntoView: () => void }
+      ).scrollIntoView = scrollIntoViewMock;
+
+      try {
+        render(<Autocomplete data={fruits} />);
+        const input = screen.getByRole('combobox');
+
+        fireEvent.change(input, { target: { value: 'a' } });
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+        expect(scrollIntoViewMock).toHaveBeenCalledWith({ block: 'nearest' });
+      } finally {
+        (
+          HTMLElement.prototype as unknown as { scrollIntoView: () => void }
+        ).scrollIntoView = original;
+      }
+    });
+  });
+
+  describe('Disabled item interactions', () => {
+    it('does not change highlight on mouse-enter of disabled item', () => {
+      const dataWithDisabled = [
+        { value: 'a', label: 'Apple', disabled: true },
+        { value: 'b', label: 'Banana' },
+      ];
+      render(<Autocomplete data={dataWithDisabled} field="label" />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const apple = screen.getByRole('option', { name: 'Apple' });
+
+      // Mouse enter on disabled item should be a no-op
+      fireEvent.mouseEnter(apple);
+
+      expect(apple).not.toHaveClass('is-active');
+    });
+
+    it('changes highlight on mouse-enter of enabled item', () => {
+      const dataWithDisabled = [
+        { value: 'a', label: 'Apple', disabled: true },
+        { value: 'b', label: 'Banana' },
+      ];
+      render(<Autocomplete data={dataWithDisabled} field="label" />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'b' } });
+
+      const banana = screen.getByRole('option', { name: 'Banana' });
+      fireEvent.mouseEnter(banana);
+
+      expect(banana).toHaveClass('is-active');
+    });
+  });
+
+  describe('Inside Field', () => {
+    it('renders without inner Field when wrapped in Field', () => {
+      const { container } = render(
+        <Field label="Wrapper">
+          <Autocomplete data={fruits} message="A message" />
+        </Field>
+      );
+
+      // Should only have one .field (the outer Field), not a nested one.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      expect(screen.getByText('A message')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+  });
+
+  describe('Branch coverage', () => {
+    it('renders with no data prop (default empty array)', () => {
+      // Cast to bypass required-prop type check since we're testing the default.
+      const Comp = Autocomplete as unknown as React.ComponentType<
+        Record<string, unknown>
+      >;
+      render(<Comp />);
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('falls back to value when field key is missing', () => {
+      const data = [{ value: 'fallback-value' }];
+      render(<Autocomplete data={data} field="label" />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'fall' } });
+
+      expect(
+        screen.getByRole('option', { name: 'fallback-value' })
+      ).toBeInTheDocument();
+    });
+
+    it('returns empty string when field and value are both missing', () => {
+      const data = [{ foo: 'bar' } as unknown as { label: string }];
+      render(<Autocomplete data={data} field="label" />);
+      const input = screen.getByRole('combobox');
+
+      // Open dropdown via keyboard so we don't filter anything out
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      // Empty string display value -> option exists with empty name
+      expect(screen.getAllByRole('option').length).toBe(1);
+    });
+
+    it('does not open dropdown when input change has empty newValue', () => {
+      const onInput = jest.fn();
+      // Controlled with current value 'x', dispatch a change to '' -> branch !isActive && !newValue is false-side
+      render(<Autocomplete data={fruits} value="x" onInput={onInput} />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: '' } });
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(onInput).toHaveBeenCalledWith('');
+    });
+
+    it('does not update internal value on selection when controlled', () => {
+      const onSelect = jest.fn();
+      const onInput = jest.fn();
+      render(
+        <Autocomplete
+          data={fruits}
+          value="a"
+          onSelect={onSelect}
+          onInput={onInput}
+        />
+      );
+      const input = screen.getByRole('combobox');
+
+      // Open dropdown via keyboard since value is already 'a' (no change event would fire)
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.click(screen.getByRole('option', { name: 'Apple' }));
+
+      expect(onSelect).toHaveBeenCalledWith('Apple');
+      // Controlled value remains 'a' — internal state did not override it.
+      expect(input).toHaveValue('a');
+    });
+
+    it('does not update internal value on clear when controlled', () => {
+      const onInput = jest.fn();
+      const onSelect = jest.fn();
+      render(
+        <Autocomplete
+          data={fruits}
+          value="something"
+          clearable
+          onInput={onInput}
+          onSelect={onSelect}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+
+      expect(onInput).toHaveBeenCalledWith('');
+      expect(onSelect).toHaveBeenCalledWith(null);
+      // Value stays 'something' because parent controls it.
+      expect(screen.getByRole('combobox')).toHaveValue('something');
+    });
+
+    it('closes on click outside without selecting when no item is highlighted (selectOnClickOutside)', () => {
+      const onSelect = jest.fn();
+      render(
+        <div>
+          <Autocomplete
+            data={fruits}
+            onSelect={onSelect}
+            selectOnClickOutside
+          />
+          <button>Outside</button>
+        </div>
+      );
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      // No ArrowDown -> highlightedIndex stays at -1
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('caps ArrowDown at last item', () => {
+      render(<Autocomplete data={['One', 'Two']} />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: '' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' }); // should stay at last
+
+      const options = screen.getAllByRole('option');
+      expect(options[1]).toHaveClass('is-active');
+    });
+
+    it('does not move on ArrowUp when no item is highlighted', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowUp' }); // highlight stays at -1
+
+      const options = screen.getAllByRole('option');
+      options.forEach(opt => expect(opt).not.toHaveClass('is-active'));
+    });
+
+    it('does nothing on Enter when no item is highlighted', () => {
+      const onSelect = jest.fn();
+      render(<Autocomplete data={fruits} onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('closes on Tab without selecting when no item is highlighted', () => {
+      const onSelect = jest.fn();
+      render(<Autocomplete data={fruits} onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'Tab' });
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('does not throw when onInfiniteScroll callback is omitted', () => {
+      render(<Autocomplete data={fruits} checkInfiniteScroll />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const listbox = screen.getByRole('listbox');
+      Object.defineProperty(listbox, 'scrollHeight', {
+        configurable: true,
+        value: 500,
+      });
+      Object.defineProperty(listbox, 'clientHeight', {
+        configurable: true,
+        value: 200,
+      });
+      Object.defineProperty(listbox, 'scrollTop', {
+        configurable: true,
+        writable: true,
+        value: 260,
+      });
+
+      expect(() => fireEvent.scroll(listbox)).not.toThrow();
+    });
+
+    it('returns early in handleSelect when item is disabled (via Enter w/ keepFirst)', () => {
+      const onSelect = jest.fn();
+      const data = [
+        { value: 'a', label: 'Apple', disabled: true },
+        { value: 'b', label: 'Banana' },
+      ];
+      // keepFirst highlights index 0 even though it's disabled.
+      // Pressing Enter calls handleSelect with the disabled item.
+      render(
+        <Autocomplete data={data} field="label" keepFirst onSelect={onSelect} />
+      );
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      // First item (disabled) is highlighted via keepFirst. Press Enter.
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      // handleSelect returned early -> onSelect not called
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('handles clear without onInput / onSelect callbacks (optional chains)', () => {
+      // No onInput, no onSelect -> exercises the falsy side of `onInput?.` and `onSelect?.`
+      render(<Autocomplete data={fruits} clearable />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'test' } });
+      expect(() =>
+        fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+      ).not.toThrow();
+    });
+
+    it('handles click outside but inside autocomplete container does not close', () => {
+      render(
+        <div>
+          <Autocomplete data={fruits} />
+        </div>
+      );
+      const input = screen.getByRole('combobox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // Click on an element INSIDE the autocomplete (the input itself).
+      // This exercises the `if (!isInside)` falsy branch of click-outside listener.
+      fireEvent.mouseDown(input);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('caps ArrowDown at last item (final cap branch)', () => {
+      render(<Autocomplete data={['One', 'Two']} openOnFocus />);
+      const input = screen.getByRole('combobox');
+
+      fireEvent.focus(input);
+      // From -1 -> 0 -> 1 -> 1 (cap)
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' }); // cap branch
+
+      const options = screen.getAllByRole('option');
+      expect(options[1]).toHaveClass('is-active');
     });
   });
 });

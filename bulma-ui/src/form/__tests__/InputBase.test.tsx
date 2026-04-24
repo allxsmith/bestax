@@ -15,7 +15,7 @@ describe('InputBase', () => {
   });
 
   it('applies Bulma and custom classes', () => {
-    const { container } = render(
+    render(
       <InputBase
         color="primary"
         size="large"
@@ -27,7 +27,7 @@ describe('InputBase', () => {
         isLoading
       />
     );
-    const input = container.querySelector('input');
+    const input = screen.getByRole('textbox');
     expect(input).toHaveClass('input');
     expect(input).toHaveClass('is-primary');
     expect(input).toHaveClass('is-large');
@@ -71,13 +71,13 @@ describe('InputBase', () => {
   });
 
   it('applies classPrefix when provided via ConfigProvider', () => {
-    const { container } = render(
+    render(
       <ConfigProvider classPrefix="bulma-">
         <InputBase />
       </ConfigProvider>
     );
-    const input = container.querySelector('.bulma-input');
-    expect(input).toBeInTheDocument();
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass('bulma-input');
     expect(input).not.toHaveClass('input');
   });
 

@@ -135,16 +135,16 @@ describe('Theme', () => {
   });
 
   it('renders children directly without wrapper when isRoot=true', () => {
-    const { container } = render(
+    const { container, getByTestId } = render(
       <Theme primaryH="240" isRoot>
         <div data-testid="direct-child">Direct Child</div>
       </Theme>
     );
 
     // When isRoot=true, children should be rendered directly without a wrapper div
-    const directChild = container.querySelector('[data-testid="direct-child"]');
+    const directChild = getByTestId('direct-child');
     expect(directChild).toBeInTheDocument();
-    expect(directChild?.parentElement).toBe(container); // Direct child of container
+    expect(directChild.parentElement).toBe(container); // Direct child of container
   });
 
   it('does not create style element when isRoot=true but no valid CSS variables provided', () => {
@@ -157,5 +157,66 @@ describe('Theme', () => {
     // Check that no style element was created when no valid CSS variables are provided
     const styleElement = document.getElementById('bestax-bulma-theme-vars');
     expect(styleElement).toBeNull();
+  });
+
+  it('reuses an existing style element when one already exists', () => {
+    // Pre-create the style element so the isRoot effect re-uses it instead of
+    // creating a new one (covers the `if (!styleElement)` false branch).
+    const preExisting = document.createElement('style');
+    preExisting.id = 'bestax-bulma-theme-vars';
+    document.head.appendChild(preExisting);
+
+    const { unmount } = render(
+      <Theme primaryH="180" isRoot>
+        <div>Test</div>
+      </Theme>
+    );
+
+    const styleElement = document.getElementById('bestax-bulma-theme-vars');
+    // Should be the SAME element we pre-created.
+    expect(styleElement).toBe(preExisting);
+    expect(styleElement?.textContent).toContain('--bulma-primary-h: 180');
+
+    unmount();
+  });
+
+  it('cleanup is a no-op when style element was already removed', () => {
+    // Render an isRoot Theme so the cleanup-on-unmount path runs.
+    const { unmount } = render(
+      <Theme primaryH="240" isRoot>
+        <div>Test</div>
+      </Theme>
+    );
+
+    // Remove the style element manually to exercise the `if (element)` false
+    // branch in the cleanup function.
+    const styleElement = document.getElementById('bestax-bulma-theme-vars');
+    expect(styleElement).toBeInTheDocument();
+    styleElement?.remove();
+    expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+
+    // Unmount — cleanup must not throw even though the element is gone.
+    expect(() => unmount()).not.toThrow();
+  });
+
+  it('skips invalid CSS variable keys when building the local style object', () => {
+    // Inject a non-Bulma key via bulmaVars; the local-style branch's
+    // `bulmaCssVars.includes(key) && value` guard should drop it.
+    const vars = {
+      '--bulma-scheme-h': '50',
+      // Deliberately invalid key — exercises the `false &&` path.
+      '--not-a-bulma-var': 'oops',
+    } as Record<string, string>;
+    const { container } = render(
+      <Theme bulmaVars={vars}>
+        <div>Test</div>
+      </Theme>
+    );
+
+    const themeDiv = container.firstChild as HTMLElement;
+    // Valid var applied.
+    expect(themeDiv.style.getPropertyValue('--bulma-scheme-h')).toBe('50');
+    // Invalid var skipped.
+    expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
   });
 });

@@ -27,7 +27,7 @@ export interface AutocompleteItem {
   value: string;
   label?: string;
   disabled?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -131,7 +131,6 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     {
       data = [],
       value: controlledValue,
-      selected,
       placeholder,
       field = 'label',
       clearable = false,
@@ -140,7 +139,6 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       keepOpen = false,
       selectOnClickOutside = false,
       maxHeight = 200,
-      dropdown = false,
       loading = false,
       disabled = false,
       checkInfiniteScroll = false,
@@ -189,7 +187,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Get display value from item
     const getDisplayValue = (item: AutocompleteItem | string): string => {
       if (typeof item === 'string') return item;
-      return item[field] || item.value || '';
+      const fieldValue = item[field];
+      if (typeof fieldValue === 'string') return fieldValue;
+      return item.value || '';
     };
 
     // Filter data based on input

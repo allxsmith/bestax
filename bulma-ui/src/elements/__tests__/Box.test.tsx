@@ -56,17 +56,28 @@ describe('Box Component', () => {
   });
 
   // Test 8: Applies Bulma helper classes from useBulmaClasses
-  test('applies Bulma helper classes', () => {
-    render(
-      <Box m="3" p="4" textAlign="centered" textWeight="bold">
-        Test
-      </Box>
-    );
-    const box = screen.getByText('Test');
-    expect(box).toHaveClass('m-3', { exact: false });
-    expect(box).toHaveClass('p-4', { exact: false });
-    expect(box).toHaveClass('has-text-centered', { exact: false });
-    expect(box).toHaveClass('has-text-weight-bold', { exact: false });
+  test('applies margin helper class', () => {
+    render(<Box m="3">Test</Box>);
+    expect(screen.getByText('Test')).toHaveClass('m-3', { exact: false });
+  });
+
+  test('applies padding helper class', () => {
+    render(<Box p="4">Test</Box>);
+    expect(screen.getByText('Test')).toHaveClass('p-4', { exact: false });
+  });
+
+  test('applies textAlign helper class', () => {
+    render(<Box textAlign="centered">Test</Box>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-centered', {
+      exact: false,
+    });
+  });
+
+  test('applies textWeight helper class', () => {
+    render(<Box textWeight="bold">Test</Box>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-weight-bold', {
+      exact: false,
+    });
   });
 
   // Test 9: Passes HTML attributes to div
@@ -161,7 +172,7 @@ describe('Box Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Box hasShadow={false} m="2">
             Test Box
@@ -169,20 +180,20 @@ describe('Box Component', () => {
         </ConfigProvider>
       );
 
-      const box = container.querySelector('div');
+      const box = screen.getByText('Test Box');
       expect(box).toHaveClass('bulma-box');
       expect(box).toHaveClass('bulma-is-shadowless');
       expect(box).toHaveClass('bulma-m-2');
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Box hasShadow={false} p="3">
           Standard Box
         </Box>
       );
 
-      const box = container.querySelector('div');
+      const box = screen.getByText('Standard Box');
       expect(box).toHaveClass('box');
       expect(box).toHaveClass('is-shadowless');
       expect(box).toHaveClass('p-3');

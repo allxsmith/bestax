@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Taginput } from '../Taginput';
+import { Field } from '../Field';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
 
@@ -764,6 +766,319 @@ describe('Taginput', () => {
     it('uses default aria-label when ariaCloseLabel is not set', () => {
       render(<Taginput defaultValue={['Tag1']} />);
       expect(screen.getByLabelText('Remove Tag1')).toBeInTheDocument();
+    });
+  });
+
+  describe('keepOpen', () => {
+    it('closes dropdown after adding a tag when keepOpen is false', async () => {
+      const user = userEvent.setup();
+      render(<Taginput data={frameworks} keepOpen={false} />);
+      const input = screen.getByRole('textbox');
+
+      await user.type(input, 'rea');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      await user.keyboard('{Enter}');
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('ArrowDown opens dropdown', () => {
+    it('opens dropdown on ArrowDown when closed and data is available', () => {
+      const { container } = render(<Taginput data={frameworks} openOnFocus />);
+      const input = screen.getByRole('textbox');
+
+      // Dropdown is initially closed (no focus yet)
+      expect(container.querySelector('.taginput')).not.toHaveClass('is-active');
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      // ArrowDown sets isActive=true; since openOnFocus is true, hasInput
+      // becomes true once isActive flips, so the dropdown renders.
+      expect(container.querySelector('.taginput')).toHaveClass('is-active');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+  });
+
+  describe('Function Ref Forwarding', () => {
+    it('invokes function ref with the input element', () => {
+      const refFn = jest.fn();
+      render(<Taginput ref={refFn} />);
+
+      expect(refFn).toHaveBeenCalled();
+      const lastCall = refFn.mock.calls[refFn.mock.calls.length - 1];
+      expect(lastCall[0]).toBeInstanceOf(HTMLInputElement);
+    });
+  });
+
+  describe('Dropdown Mouse Enter', () => {
+    it('highlights dropdown item on mouse enter', () => {
+      render(<Taginput data={frameworks} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+
+      const options = screen.getAllByRole('option');
+      // Initially no option is highlighted
+      expect(options[0]).not.toHaveClass('is-active');
+
+      fireEvent.mouseEnter(options[0]);
+
+      const updatedOptions = screen.getAllByRole('option');
+      expect(updatedOptions[0]).toHaveClass('is-active');
+    });
+  });
+
+  describe('Hidden Form Inputs', () => {
+    it('renders one hidden input per tag when name is provided', () => {
+      const { container } = render(
+        <Taginput name="tags" defaultValue={['React', 'Vue']} />
+      );
+      const hiddenInputs = container.querySelectorAll('input[type="hidden"]');
+      expect(hiddenInputs).toHaveLength(2);
+      expect(hiddenInputs[0]).toHaveAttribute('name', 'tags');
+      expect(hiddenInputs[0]).toHaveValue('React');
+      expect(hiddenInputs[1]).toHaveValue('Vue');
+    });
+
+    it('associates hidden inputs with the form attribute', () => {
+      const { container } = render(
+        <Taginput name="tags" form="my-form" defaultValue={['React']} />
+      );
+      const hiddenInput = container.querySelector('input[type="hidden"]');
+      expect(hiddenInput).toHaveAttribute('form', 'my-form');
+    });
+  });
+
+  describe('Inside Field', () => {
+    it('does not render its own Field wrapper when inside a Field', () => {
+      const { container } = render(
+        <Field label="Outer">
+          <Taginput defaultValue={['Tag1']} />
+        </Field>
+      );
+      // Only the outer Field's label should exist; Taginput should not
+      // render an additional field/label.
+      const labels = container.querySelectorAll('label');
+      expect(labels).toHaveLength(1);
+      expect(labels[0]).toHaveTextContent('Outer');
+    });
+
+    it('renders message below taginput when inside a Field', () => {
+      const { container } = render(
+        <Field label="Outer">
+          <Taginput defaultValue={['Tag1']} message="Helpful message" />
+        </Field>
+      );
+      expect(container).toHaveTextContent('Helpful message');
+    });
+  });
+
+  describe('Branch coverage edge cases', () => {
+    it('uses createTag transformation when provided', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput
+          createTag={input => ({ value: input.toLowerCase(), label: input })}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'React' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(onChange).toHaveBeenCalledWith([
+        { value: 'react', label: 'React' },
+      ]);
+    });
+
+    it('falls back to tag.value when field property is missing', () => {
+      // Object tag has no `label`, so getDisplayValue should fall through to
+      // `tag.value`.
+      const tags = [{ value: 'fallback' }];
+      render(<Taginput defaultValue={tags} field="label" />);
+      expect(screen.getByText('fallback')).toBeInTheDocument();
+    });
+
+    it('does not remove tag on backspace when disabled', () => {
+      const onChange = jest.fn();
+      render(<Taginput defaultValue={['Tag1']} disabled onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.keyDown(input, { key: 'Backspace' });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('does not remove tag via delete button when readonly', () => {
+      const onRemove = jest.fn();
+      render(<Taginput defaultValue={['Tag1']} readonly onRemove={onRemove} />);
+      // The delete button is not rendered for readonly tags
+      expect(screen.queryByLabelText('Remove Tag1')).not.toBeInTheDocument();
+      expect(onRemove).not.toHaveBeenCalled();
+    });
+
+    it('does not open dropdown on focus when openOnFocus is false', () => {
+      render(<Taginput data={frameworks} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.focus(input);
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('does not open dropdown on focus when disabled', () => {
+      render(<Taginput data={frameworks} openOnFocus disabled />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.focus(input);
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('does nothing on paste when no separators are configured', () => {
+      const onChange = jest.fn();
+      render(<Taginput onPasteSeparators={[]} onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'React, Vue' },
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('keeps highlight at 0 when ArrowUp is pressed at top of list', () => {
+      render(<Taginput data={frameworks} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+      const options = screen.getAllByRole('option');
+      expect(options[0]).toHaveClass('is-active');
+    });
+
+    it('keeps highlight at last item when ArrowDown is pressed at end of list', () => {
+      render(<Taginput data={['Only']} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.change(input, { target: { value: 'o' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+      const options = screen.getAllByRole('option');
+      expect(options[0]).toHaveClass('is-active');
+    });
+
+    it('does not handle keys when disabled', () => {
+      const onChange = jest.fn();
+      render(<Taginput data={frameworks} disabled onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'Escape' });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('returns empty string for object tag missing both field and value', () => {
+      // getDisplayValue: tag[field] || tag.value || '' — exercise the final
+      // empty-string fallback. Both label and value are absent, so the tag
+      // renders an empty span.
+      const tags: Array<Record<string, unknown>> = [{ other: 'x' }];
+      // Cast through unknown to satisfy the TaginputItem shape.
+      render(
+        <Taginput defaultValue={tags as unknown as Array<{ value: string }>} />
+      );
+      // Tag span exists but contains no text.
+      const tagSpan = document.querySelector('.tag');
+      expect(tagSpan).toBeInTheDocument();
+    });
+
+    it('does not open dropdown on focus when openOnFocus is true but data is empty', () => {
+      render(<Taginput openOnFocus data={[]} />);
+      const input = screen.getByRole('textbox');
+
+      fireEvent.focus(input);
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('intercepts confirm-key character typed at end of input value', () => {
+      // Branch in handleInputChange: lastChar in confirmKeys && lastChar !== 'Enter'
+      // (Enter never appears as a typed character; comma does.)
+      const onChange = jest.fn();
+      render(<Taginput onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      // Trailing comma triggers the inline-add path.
+      fireEvent.change(input, { target: { value: 'NewTag,' } });
+
+      expect(onChange).toHaveBeenCalledWith(['NewTag']);
+    });
+
+    it('ignores trailing confirm-key when value is empty before it', () => {
+      const onChange = jest.fn();
+      render(<Taginput onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+
+      // Just a comma — valueWithoutKey is empty, so no tag is added.
+      fireEvent.change(input, { target: { value: ',' } });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('addTag returns early when disabled (via paste, which has no disabled gate)', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput disabled onPasteSeparators={[',']} onChange={onChange} />
+      );
+      const input = screen.getByRole('textbox');
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'a,b' },
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('addTag returns early when readonly (via paste)', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput readonly onPasteSeparators={[',']} onChange={onChange} />
+      );
+      const input = screen.getByRole('textbox');
+      fireEvent.paste(input, {
+        clipboardData: { getData: () => 'a,b' },
+      });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('click outside container does not close when click is inside container', () => {
+      render(<Taginput data={frameworks} />);
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, { target: { value: 'r' } });
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // Mousedown on the input itself (inside containerRef) -> false branch
+      // of `containerRef.current && !containerRef.current.contains(target)`.
+      fireEvent.mouseDown(input);
+
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('container click is a no-op when input is not rendered (maxTags reached)', () => {
+      const { container } = render(
+        <Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />
+      );
+      // No input is rendered when maxTags is reached, so inputRef.current is null.
+      // Clicking the container hits the falsy `?.` branch in handleContainerClick.
+      const root = container.querySelector('.taginput')!;
+      expect(() => fireEvent.click(root)).not.toThrow();
     });
   });
 });

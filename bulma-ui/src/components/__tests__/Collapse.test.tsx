@@ -482,6 +482,181 @@ describe('Collapse', () => {
     });
   });
 
+  describe('slide animation height transitions', () => {
+    let rafSpy: jest.SpyInstance;
+    let scrollHeightSpy: jest.SpyInstance | undefined;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      // Run rAF callbacks synchronously so the close transition can be observed
+      rafSpy = jest
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((cb: FrameRequestCallback) => {
+          cb(0);
+          return 0 as unknown as number;
+        });
+      // jsdom returns 0 for scrollHeight; stub it so the open path uses a
+      // realistic measured pixel value
+      scrollHeightSpy = jest
+        .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+        .mockReturnValue(123);
+    });
+
+    afterEach(() => {
+      rafSpy.mockRestore();
+      scrollHeightSpy?.mockRestore();
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      jest.useRealTimers();
+    });
+
+    it('sets measured height then auto when opening with slide animation', () => {
+      const { container } = render(
+        <Collapse trigger={<button>Toggle</button>} animation="slide">
+          Content
+        </Collapse>
+      );
+
+      const wrapper = container.querySelector('.collapse-content')
+        ?.parentElement as HTMLElement;
+      // Closed initially: height should be 0
+      expect(wrapper.style.height).toBe('0px');
+
+      // Open it via the trigger
+      const trigger = container.querySelector('.collapse-trigger')!;
+      act(() => {
+        fireEvent.click(trigger);
+      });
+
+      // After opening, height should be set to the measured scrollHeight (123px)
+      expect(wrapper.style.height).toBe('123px');
+
+      // After the 300ms transition timer fires, height should be 'auto'
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      expect(wrapper.style.height).toBe('auto');
+    });
+
+    it('sets measured height then auto on mount when defaultOpen with slide animation', () => {
+      const { container } = render(
+        <Collapse
+          trigger={<button>Toggle</button>}
+          animation="slide"
+          defaultOpen
+        >
+          Content
+        </Collapse>
+      );
+
+      const wrapper = container.querySelector('.collapse-content')
+        ?.parentElement as HTMLElement;
+      // The opening effect runs on mount and sets height to measured scrollHeight
+      expect(wrapper.style.height).toBe('123px');
+
+      // After the 300ms transition timer, height collapses to 'auto'
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      expect(wrapper.style.height).toBe('auto');
+    });
+
+    it('clears the open-transition timer on unmount', () => {
+      const clearSpy = jest.spyOn(global, 'clearTimeout');
+      const { unmount } = render(
+        <Collapse
+          trigger={<button>Toggle</button>}
+          animation="slide"
+          defaultOpen
+        >
+          Content
+        </Collapse>
+      );
+
+      unmount();
+      expect(clearSpy).toHaveBeenCalled();
+      clearSpy.mockRestore();
+    });
+
+    it('animates from auto to measured height to 0 when closing slide animation', () => {
+      const { container } = render(
+        <Collapse
+          trigger={<button>Toggle</button>}
+          animation="slide"
+          defaultOpen
+        >
+          Content
+        </Collapse>
+      );
+
+      const wrapper = container.querySelector('.collapse-content')
+        ?.parentElement as HTMLElement;
+
+      // Let the open transition settle so internal height becomes 'auto'
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      expect(wrapper.style.height).toBe('auto');
+
+      // Now close — should hit the auto -> measured -> 0 path
+      const trigger = container.querySelector('.collapse-trigger')!;
+      act(() => {
+        fireEvent.click(trigger);
+      });
+
+      // rAF is mocked synchronous, so by the time act() returns, the
+      // setHeight(measured) and the rAF setHeight(0) have both flushed.
+      // Final committed height should be 0.
+      expect(wrapper.style.height).toBe('0px');
+      expect(rafSpy).toHaveBeenCalled();
+    });
+
+    it('sets height to 0 directly when closing slide animation from non-auto height', () => {
+      // Start closed (height = 0), open, then immediately close before the
+      // 300ms timer fires so internal height state is still numeric, not 'auto'.
+      const { container } = render(
+        <Collapse trigger={<button>Toggle</button>} animation="slide">
+          Content
+        </Collapse>
+      );
+      const wrapper = container.querySelector('.collapse-content')
+        ?.parentElement as HTMLElement;
+
+      const trigger = container.querySelector('.collapse-trigger')!;
+      act(() => {
+        fireEvent.click(trigger);
+      });
+      // Height is now the measured pixel value, not 'auto'
+      expect(wrapper.style.height).toBe('123px');
+
+      // Close before the auto-transition timer fires
+      act(() => {
+        fireEvent.click(trigger);
+      });
+      expect(wrapper.style.height).toBe('0px');
+    });
+
+    it('does not run slide-animation effect when animation is not slide', () => {
+      const { container } = render(
+        <Collapse
+          trigger={<button>Toggle</button>}
+          animation="fade"
+          defaultOpen
+        >
+          Content
+        </Collapse>
+      );
+      const wrapper = container.querySelector('.collapse-content')
+        ?.parentElement as HTMLElement;
+      // Fade path uses opacity; height is 'auto' from initial state but the
+      // wrapper style for fade uses height: 'auto' when open
+      expect(wrapper.style.opacity).toBe('1');
+      // rAF should not have been invoked because the slide-effect early-returns
+      expect(rafSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('complex content', () => {
     it('renders complex children', () => {
       render(

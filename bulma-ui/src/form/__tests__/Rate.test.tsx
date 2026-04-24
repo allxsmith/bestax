@@ -2,6 +2,31 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Rate } from '../Rate';
+import { Field } from '../Field';
+import { Control } from '../Control';
+
+/**
+ * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
+ * precision-mode click/move handlers can compute a deterministic
+ * `relativeX = (clientX - rect.left) / rect.width`.
+ */
+function stubRectsOnRateItems(container: HTMLElement, width = 20) {
+  const items = container.querySelectorAll<HTMLSpanElement>('.rate-item');
+  items.forEach((item, idx) => {
+    item.getBoundingClientRect = () =>
+      ({
+        left: idx * width,
+        top: 0,
+        right: idx * width + width,
+        bottom: 24,
+        width,
+        height: 24,
+        x: idx * width,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
+  });
+}
 
 describe('Rate', () => {
   describe('Rendering', () => {
@@ -309,6 +334,26 @@ describe('Rate', () => {
       fireEvent.keyDown(container, { key: 'ArrowRight' });
 
       expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('non-arrow/Home/End keys are no-op (covers else-if false branch)', () => {
+      const handleChange = jest.fn();
+      render(<Rate value={3} onChange={handleChange} />);
+      const container = screen.getByRole('radiogroup');
+      fireEvent.keyDown(container, { key: 'PageDown' });
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Hidden form input', () => {
+    it('renders hidden input with name and value', () => {
+      const { container } = render(<Rate name="rating" value={4} />);
+      const hidden = container.querySelector(
+        'input[type="hidden"]'
+      ) as HTMLInputElement;
+      expect(hidden).toBeInTheDocument();
+      expect(hidden.name).toBe('rating');
+      expect(hidden.value).toBe('4');
     });
   });
 
@@ -637,6 +682,273 @@ describe('Rate', () => {
       // Should not crash, just not show text for values outside array
       const container = screen.getByRole('radiogroup');
       expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Precision Click & Hover (fractional)', () => {
+    it('clicks at left half of an icon and snaps to half value (precision=0.5)', () => {
+      const handleChange = jest.fn();
+      const { container } = render(
+        <Rate value={0} precision={0.5} onChange={handleChange} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // 3rd star (index 2): rect.left = 40, width = 20.
+      // clientX = 45 -> relativeX = 0.25 -> rawValue = 2.25 -> snapped to 2.5
+      fireEvent.click(stars[2], { clientX: 45 });
+
+      expect(handleChange).toHaveBeenCalledWith(2.5);
+    });
+
+    it('clicks at right portion of an icon and snaps to whole value (precision=0.5)', () => {
+      const handleChange = jest.fn();
+      const { container } = render(
+        <Rate value={0} precision={0.5} onChange={handleChange} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // 1st star (index 0): rect.left = 0, width = 20. clientX = 18
+      // relativeX = 0.9 -> rawValue = 0.9 -> snapped to 1.0
+      fireEvent.click(stars[0], { clientX: 18 });
+
+      expect(handleChange).toHaveBeenCalledWith(1);
+    });
+
+    it('precision click in RTL inverts relativeX', () => {
+      const handleChange = jest.fn();
+      const { container } = render(
+        <Rate value={0} precision={0.5} rtl onChange={handleChange} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // In RTL, stars are rendered in reverse iconIndex order. The first
+      // visual star corresponds to iconIndex = max - 1 = 4. Stub left = 0,
+      // width = 20. clientX = 5 -> relativeX = 0.25 -> after rtl invert
+      // becomes 0.75 -> rawValue = 4.75 -> snapped to 5.
+      fireEvent.click(stars[0], { clientX: 5 });
+
+      expect(handleChange).toHaveBeenCalledWith(5);
+    });
+
+    it('precision click clamps to minimum precision step', () => {
+      const handleChange = jest.fn();
+      const { container } = render(
+        <Rate value={0} precision={0.5} onChange={handleChange} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // 1st star (index 0): clientX = 0 -> relativeX = 0 -> rawValue = 0
+      // -> snapped to 0 -> clamped up to precision (0.5)
+      fireEvent.click(stars[0], { clientX: 0 });
+
+      expect(handleChange).toHaveBeenCalledWith(0.5);
+    });
+
+    it('precision click does nothing when disabled', () => {
+      const handleChange = jest.fn();
+      const { container } = render(
+        <Rate value={0} precision={0.5} disabled onChange={handleChange} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      fireEvent.click(stars[2], { clientX: 45 });
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it('precision hover updates aria-valuenow on mouse move', () => {
+      const { container } = render(<Rate value={0} precision={0.5} />);
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // mouseEnter sets hoverValue = iconIndex + 1 (whole). Then mouseMove
+      // refines based on clientX: index 1, clientX = 25 ->
+      // rect.left = 20, width = 20 -> relativeX = 0.25 -> rawValue = 1.25
+      // -> snapped to 1.5
+      fireEvent.mouseEnter(stars[1]);
+      fireEvent.mouseMove(stars[1], { clientX: 25 });
+
+      // displayValue (used for radiogroup aria-valuenow) is currentValue,
+      // not hoverValue, so to verify hover-driven precision we check the
+      // partial-fill clipPath which is driven by displayValue and updates
+      // when hoverValue is set.
+      const clipPaths = container.querySelectorAll('clipPath rect');
+      // At hoverValue=1.5, icon index 1 has fillPercent=50, so a partial
+      // SVG with a clip rect of width 12 should be present.
+      const widths = Array.from(clipPaths).map(r => r.getAttribute('width'));
+      expect(widths).toContain('12');
+    });
+
+    it('precision hover applies rtl inversion', () => {
+      const { container } = render(<Rate value={0} precision={0.5} rtl />);
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // Visual index 0 -> iconIndex 4. clientX = 15 -> relativeX = 0.75 ->
+      // rtl invert -> 0.25 -> rawValue = 4.25 -> snapped to 4.5
+      fireEvent.mouseEnter(stars[0]);
+      fireEvent.mouseMove(stars[0], { clientX: 15 });
+
+      const clipPaths = container.querySelectorAll('clipPath rect');
+      const widths = Array.from(clipPaths).map(r => r.getAttribute('width'));
+      // iconIndex 4 with fillPercent 50 -> width 12
+      expect(widths).toContain('12');
+    });
+
+    it('precision hover is a no-op when disabled', () => {
+      const { container } = render(<Rate value={0} precision={0.5} disabled />);
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      fireEvent.mouseMove(stars[2], { clientX: 45 });
+
+      // Disabled => hoverValue stays null => no partial fill clip rects
+      expect(container.querySelectorAll('clipPath rect').length).toBe(0);
+    });
+
+    it('updates uncontrolled value via precision click (line 302 path)', () => {
+      const { container } = render(<Rate defaultValue={0} precision={0.5} />);
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // Index 2, clientX 45 -> snapped to 2.5
+      fireEvent.click(stars[2], { clientX: 45 });
+
+      const radiogroup = screen.getByRole('radiogroup');
+      expect(radiogroup).toHaveAttribute('aria-valuenow', '2.5');
+    });
+
+    it('keyboard step in uncontrolled precision mode updates internal value', () => {
+      // Hits the `if (!isControlled) setInternalValue(newValue)` branch
+      // inside handleKeyDown (line 302 region).
+      render(<Rate defaultValue={2} precision={0.5} />);
+
+      const radiogroup = screen.getByRole('radiogroup');
+      fireEvent.keyDown(radiogroup, { key: 'ArrowRight' });
+
+      expect(radiogroup).toHaveAttribute('aria-valuenow', '2.5');
+    });
+  });
+
+  describe('Fractional hover text suffix', () => {
+    it('appends "+" to text when precision<1 and hoverValue is fractional', () => {
+      const texts = ['Bad', 'Poor', 'Normal', 'Good', 'Super'];
+      const { container } = render(
+        <Rate defaultValue={0} precision={0.5} showText texts={texts} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // Set hover to a fractional value: index 2, clientX 45 -> 2.5
+      fireEvent.mouseEnter(stars[2]);
+      fireEvent.mouseMove(stars[2], { clientX: 45 });
+
+      // Math.ceil(2.5) - 1 = 2 -> texts[2] = "Normal"; with fractional
+      // hover and precision<1 the text becomes "Normal+".
+      expect(screen.getByText('Normal+')).toBeInTheDocument();
+    });
+  });
+
+  describe('Custom Icon partial fill', () => {
+    it('passes fillPercent to customIcon when value is fractional', () => {
+      const customIcon = jest.fn(() => <span data-testid="ci">x</span>);
+      render(
+        <Rate
+          value={2.5}
+          precision={0.5}
+          onChange={() => {}}
+          customIcon={customIcon}
+        />
+      );
+
+      // Icon at index 2 should be the partial one with fillPercent ~50.
+      const partialCall = customIcon.mock.calls.find(
+        ([props]) =>
+          (props as { index: number }).index === 2 &&
+          (props as { fillPercent: number }).fillPercent > 0 &&
+          (props as { fillPercent: number }).fillPercent < 100
+      );
+      expect(partialCall).toBeDefined();
+      const props = partialCall![0] as {
+        index: number;
+        isActive: boolean;
+        fillPercent: number;
+        value: number;
+      };
+      expect(props.fillPercent).toBe(50);
+      expect(props.isActive).toBe(true);
+      expect(props.value).toBe(2.5);
+    });
+
+    it('marks customIcon as hovered when hoverValue passes its index (partial path)', () => {
+      const customIcon = jest.fn(() => <span data-testid="ci">x</span>);
+      const { container } = render(
+        <Rate defaultValue={0} precision={0.5} customIcon={customIcon} />
+      );
+      stubRectsOnRateItems(container);
+
+      const stars = screen.getAllByRole('radio');
+      // Hover sets a fractional hoverValue 2.5; partial branch executes for
+      // the icon at index 2 with fillPercent=50.
+      fireEvent.mouseEnter(stars[2]);
+      fireEvent.mouseMove(stars[2], { clientX: 45 });
+
+      const partialCalls = customIcon.mock.calls.filter(
+        ([props]) =>
+          (props as { fillPercent: number }).fillPercent > 0 &&
+          (props as { fillPercent: number }).fillPercent < 100
+      );
+      expect(partialCalls.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Icon-name partial fill', () => {
+    it('renders layered icon-name partial when value is fractional', () => {
+      const { container } = render(
+        <Rate
+          value={2.5}
+          precision={0.5}
+          onChange={() => {}}
+          iconName="star"
+          iconLibrary="fa"
+          iconVariant="solid"
+        />
+      );
+
+      const partial = container.querySelector('.rate-icon-partial');
+      expect(partial).toBeInTheDocument();
+      // CSS variable is set via inline style
+      expect(partial).toHaveStyle({ '--rate-fill-percent': '50%' });
+      // Background and foreground icon layers exist
+      expect(container.querySelector('.rate-icon-bg')).toBeInTheDocument();
+      expect(container.querySelector('.rate-icon-fg')).toBeInTheDocument();
+    });
+  });
+
+  describe('Inside Field + Control wrappers', () => {
+    it('renders fragment (no extra Field/Control) when already inside both', () => {
+      // This wraps Rate inside both Field and Control so insideField and
+      // insideControl are true, exercising the bare-fragment return path.
+      const { container } = render(
+        <Field label="Rating">
+          <Control>
+            <Rate defaultValue={2} message="help text" messageColor="info" />
+          </Control>
+        </Field>
+      );
+
+      // Only one Field and one Control wrapper should exist.
+      expect(container.querySelectorAll('.field')).toHaveLength(1);
+      expect(container.querySelectorAll('.control')).toHaveLength(1);
+      // Rate still rendered.
+      expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+      // message rendered as a help element via the fragment branch.
+      expect(screen.getByText('help text')).toBeInTheDocument();
     });
   });
 });

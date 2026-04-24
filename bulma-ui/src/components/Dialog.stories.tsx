@@ -164,7 +164,7 @@ export const Types: Story = {
           {types.map(({ type, title }) => (
             <Button
               key={type}
-              color={type === 'default' ? undefined : (type as any)}
+              color={type === 'default' ? undefined : type}
               onClick={() => setOpenType(type)}
             >
               {title}

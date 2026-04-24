@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Steps } from './Steps';
 import { Block } from '../elements/Block';
 import { Box } from '../elements/Box';

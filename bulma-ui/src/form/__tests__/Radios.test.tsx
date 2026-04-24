@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import Radios from '../Radios';
 import Radio from '../Radio';
+import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Radios', () => {
@@ -119,6 +121,72 @@ describe('Radios', () => {
       const radios = screen.getByTestId('radios');
       expect(radios).toHaveClass('radios');
       expect(radios).toHaveClass('p-3');
+    });
+  });
+
+  describe('inside a Field wrapper', () => {
+    it('renders as a bare fragment (no extra Field wrapper) when nested in a Field', () => {
+      render(
+        <Field label="Color">
+          <Radios message="hint" messageColor="info">
+            <Radio name="c" value="red">
+              Red
+            </Radio>
+          </Radios>
+        </Field>
+      );
+      // Exactly one Field wrapper (the outer one).
+      const fields = document.querySelectorAll('.field');
+      expect(fields.length).toBe(1);
+
+      const help = screen.getByText('hint');
+      expect(help).toHaveClass('help');
+      expect(help).toHaveClass('is-info');
+    });
+
+    it('skips wrapping in Control when already inside a Control', () => {
+      render(
+        <Field label="Color">
+          <Control>
+            <Radios data-testid="rgrp">
+              <Radio name="c" value="red">
+                Red
+              </Radio>
+            </Radios>
+          </Control>
+        </Field>
+      );
+      const controls = document.querySelectorAll('.control');
+      expect(controls.length).toBe(1);
+      expect(screen.getByTestId('rgrp')).toHaveClass('radios');
+    });
+  });
+
+  describe('controlled / uncontrolled internal state branches', () => {
+    it('uncontrolled defaultValue without onChange still updates internal state on click', () => {
+      // Hits the !isControlled branch followed by the optional-chain miss for onChange.
+      const { getByLabelText } = render(
+        <Radios name="c" defaultValue="red">
+          <Radio value="red">Red</Radio>
+          <Radio value="green">Green</Radio>
+        </Radios>
+      );
+      const green = getByLabelText('Green') as HTMLInputElement;
+      green.click();
+      expect(green.checked).toBe(true);
+    });
+
+    it('controlled value with onChange dispatches without mutating internal state', () => {
+      const handleChange = jest.fn();
+      const { getByLabelText } = render(
+        <Radios name="c" value="red" onChange={handleChange}>
+          <Radio value="red">Red</Radio>
+          <Radio value="green">Green</Radio>
+        </Radios>
+      );
+      const green = getByLabelText('Green') as HTMLInputElement;
+      green.click();
+      expect(handleChange).toHaveBeenCalledWith('green');
     });
   });
 });

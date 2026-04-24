@@ -450,5 +450,156 @@ describe('Sidebar', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(handleClose).not.toHaveBeenCalled();
     });
+
+    it('removes keydown listener on unmount (no leak)', () => {
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const { unmount } = render(
+        <Sidebar isOpen onClose={() => {}}>
+          <div>Content</div>
+        </Sidebar>
+      );
+
+      unmount();
+
+      const removedKeydown = removeSpy.mock.calls.some(
+        ([eventName]) => eventName === 'keydown'
+      );
+      expect(removedKeydown).toBe(true);
+      removeSpy.mockRestore();
+    });
+
+    it('restores body overflow to original value on unmount', () => {
+      const original = 'scroll';
+      document.body.style.overflow = original;
+
+      const { unmount } = render(
+        <Sidebar isOpen onClose={() => {}}>
+          <div>Content</div>
+        </Sidebar>
+      );
+
+      expect(document.body.style.overflow).toBe('hidden');
+
+      unmount();
+
+      expect(document.body.style.overflow).toBe(original);
+
+      // cleanup
+      document.body.style.overflow = '';
+    });
+
+    it('does not trigger onClose for non-Escape keys', () => {
+      const handleClose = jest.fn();
+      render(
+        <Sidebar isOpen onClose={handleClose}>
+          <div>Content</div>
+        </Sidebar>
+      );
+
+      fireEvent.keyDown(document, { key: 'Enter' });
+      fireEvent.keyDown(document, { key: 'a' });
+
+      expect(handleClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Inline Rendering', () => {
+    it('renders inline (no portal) when inline is true', () => {
+      render(
+        <div data-testid="container">
+          <Sidebar isOpen onClose={() => {}} inline>
+            <div>Inline content</div>
+          </Sidebar>
+        </div>
+      );
+
+      const sidebar = screen.getByRole('dialog');
+      // sidebar should be inside the container, not on document.body
+      expect(screen.getByTestId('container')).toContainElement(sidebar);
+      expect(sidebar.parentElement).not.toBe(document.body);
+    });
+  });
+
+  describe('Ref Forwarding (function ref)', () => {
+    it('invokes function refs with the sidebar element', () => {
+      const fnRef = jest.fn();
+      render(
+        <Sidebar isOpen onClose={() => {}} ref={fnRef}>
+          <div>Content</div>
+        </Sidebar>
+      );
+
+      expect(fnRef).toHaveBeenCalled();
+      const node = fnRef.mock.calls[0][0];
+      expect(node).toBeInstanceOf(HTMLElement);
+      expect((node as HTMLElement).tagName).toBe('ASIDE');
+    });
+  });
+
+  describe('Sub-components', () => {
+    it('renders Sidebar.Header with sidebar-header class', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <Sidebar.Header data-testid="header" className="extra">
+            Header content
+          </Sidebar.Header>
+        </Sidebar>
+      );
+
+      const header = screen.getByTestId('header');
+      expect(header).toHaveClass('sidebar-header');
+      expect(header).toHaveClass('extra');
+      expect(header).toHaveTextContent('Header content');
+    });
+
+    it('renders Sidebar.Title with sidebar-title class', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <Sidebar.Title data-testid="title" className="extra">
+            Title text
+          </Sidebar.Title>
+        </Sidebar>
+      );
+
+      const title = screen.getByTestId('title');
+      expect(title.tagName).toBe('P');
+      expect(title).toHaveClass('sidebar-title');
+      expect(title).toHaveClass('extra');
+      expect(title).toHaveTextContent('Title text');
+    });
+
+    it('renders Sidebar.Close as a button with sidebar-close class', () => {
+      const handleClick = jest.fn();
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <Sidebar.Close data-testid="close" onClick={handleClick}>
+            X
+          </Sidebar.Close>
+        </Sidebar>
+      );
+
+      const close = screen.getByTestId('close');
+      expect(close.tagName).toBe('BUTTON');
+      expect(close).toHaveClass('sidebar-close');
+      expect(close).toHaveAttribute('aria-label', 'Close');
+      expect(close).toHaveAttribute('type', 'button');
+      fireEvent.click(close);
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders Sidebar.Footer with sidebar-footer class', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <Sidebar.Footer data-testid="footer" className="extra">
+            Footer content
+          </Sidebar.Footer>
+        </Sidebar>
+      );
+
+      const footer = screen.getByTestId('footer');
+      expect(footer).toHaveClass('sidebar-footer');
+      expect(footer).toHaveClass('extra');
+      expect(footer).toHaveTextContent('Footer content');
+    });
   });
 });

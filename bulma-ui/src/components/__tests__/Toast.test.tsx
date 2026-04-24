@@ -305,6 +305,34 @@ describe('Toast', () => {
     });
   });
 
+  describe('Branch coverage', () => {
+    it('handles close without onClose handler (covers `onClose?.` falsy branch)', () => {
+      // No onClose prop -> handleClose hits the falsy `?.` branch.
+      render(<Toast message="Test" duration={0} />);
+      expect(() => fireEvent.click(screen.getByRole('alert'))).not.toThrow();
+    });
+
+    it('does not close when click is inside the toast (covers contains-true branch)', () => {
+      const onClose = jest.fn();
+      render(<Toast message="Hello" duration={0} onClose={onClose} />);
+
+      // Flush deferred listener attach.
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      // Click on the toast itself -> contains() returns true -> false branch
+      // of `!toastRef.current.contains(target)`. Inner click also calls handleClose
+      // via the alert's onClick, but the document click listener should be a no-op.
+      const alert = screen.getByRole('alert');
+      // Use mouseDown then click; we want to verify the document listener
+      // doesn't fire when click target is inside.
+      fireEvent.click(alert);
+      // The click handler on the toast itself fires onClose once.
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Accessibility', () => {
     it('has alert role', () => {
       render(<Toast message="Test" duration={0} />);
@@ -314,6 +342,86 @@ describe('Toast', () => {
     it('has aria-live polite', () => {
       render(<Toast message="Test" duration={0} />);
       expect(screen.getByRole('alert')).toHaveAttribute('aria-live', 'polite');
+    });
+  });
+
+  describe('Container resolution', () => {
+    it('mounts into a string selector container when it exists', () => {
+      const target = document.createElement('div');
+      target.id = 'toast-target';
+      document.body.appendChild(target);
+
+      render(
+        <Toast message="In selector" duration={0} container="#toast-target" />
+      );
+
+      const toastEl = screen.getByRole('alert');
+      expect(target.contains(toastEl)).toBe(true);
+
+      document.body.removeChild(target);
+    });
+
+    it('falls back to document.body when string selector matches nothing', () => {
+      render(
+        <Toast
+          message="Fallback toast"
+          duration={0}
+          container="#does-not-exist"
+        />
+      );
+
+      const toastEl = screen.getByRole('alert');
+      const containerEl = toastEl.closest('.toast-container');
+      expect(containerEl).not.toBeNull();
+      // When no selector matches, the toast-container is rendered directly under <body>
+      expect(containerEl?.parentElement).toBe(document.body);
+    });
+
+    it('mounts into an HTMLElement container', () => {
+      const target = document.createElement('div');
+      document.body.appendChild(target);
+
+      render(
+        <Toast message="Element target" duration={0} container={target} />
+      );
+
+      const toastEl = screen.getByRole('alert');
+      expect(target.contains(toastEl)).toBe(true);
+
+      document.body.removeChild(target);
+    });
+  });
+
+  describe('Inline rendering', () => {
+    it('renders without a portal when inline is true', () => {
+      const { container: rtlContainer } = render(
+        <Toast message="Inline toast" duration={0} inline />
+      );
+
+      const toastEl = screen.getByRole('alert');
+      // Inline render: the toast lives inside the test renderer's container,
+      // not portaled into document.body directly.
+      expect(rtlContainer.contains(toastEl)).toBe(true);
+    });
+  });
+
+  describe('Forwarded ref', () => {
+    it('assigns to a MutableRefObject ref', () => {
+      const ref = React.createRef<HTMLDivElement>();
+      render(<Toast message="Ref test" duration={0} ref={ref} />);
+
+      expect(ref.current).not.toBeNull();
+      expect(ref.current).toBe(screen.getByRole('alert'));
+    });
+
+    it('invokes a function ref', () => {
+      const fnRef = jest.fn();
+      render(<Toast message="Fn ref test" duration={0} ref={fnRef} />);
+
+      expect(fnRef).toHaveBeenCalled();
+      // Last call should be with the toast HTMLElement
+      const lastArg = fnRef.mock.calls[fnRef.mock.calls.length - 1][0];
+      expect(lastArg).toBe(screen.getByRole('alert'));
     });
   });
 });
@@ -460,6 +568,25 @@ describe('ToastContainer', () => {
 
     const container = screen.getByText('Test').closest('.toast-container');
     expect(container).toHaveClass('is-bottom-left');
+  });
+
+  it('removes toast from container when its onClose fires (click-to-dismiss)', () => {
+    render(<ToastContainer />);
+
+    act(() => {
+      toast.show({ message: 'Auto-removed', duration: 0 });
+    });
+
+    expect(screen.getByText('Auto-removed')).toBeInTheDocument();
+
+    // Click the toast — Toast's dismissible=true triggers handleClose, which
+    // calls the onClose wired up by ToastContainer (line 397) to remove the
+    // toast from the container's list.
+    act(() => {
+      fireEvent.click(screen.getByText('Auto-removed'));
+    });
+
+    expect(screen.queryByText('Auto-removed')).not.toBeInTheDocument();
   });
 });
 

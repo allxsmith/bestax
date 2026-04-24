@@ -2,16 +2,19 @@ import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TextArea } from '../TextArea';
+import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('TextArea', () => {
   describe('rendering', () => {
     it('renders a textarea inside a field', () => {
       const { container } = render(<TextArea data-testid="textarea" />);
-      expect(screen.getByTestId('textarea')).toBeInTheDocument();
+      const textarea = screen.getByTestId('textarea');
+      expect(textarea).toBeInTheDocument();
+      expect(textarea).toHaveClass('textarea');
       expect(container.querySelector('.field')).toBeInTheDocument();
       expect(container.querySelector('.control')).toBeInTheDocument();
-      expect(container.querySelector('.textarea')).toBeInTheDocument();
     });
 
     it('renders with a label', () => {
@@ -163,9 +166,37 @@ describe('TextArea', () => {
       );
       expect(container.querySelector('.bulma-field')).toBeInTheDocument();
       expect(container.querySelector('.bulma-control')).toBeInTheDocument();
-      expect(container.querySelector('.bulma-textarea')).toBeInTheDocument();
+      expect(screen.getByTestId('textarea')).toHaveClass('bulma-textarea');
       expect(container.querySelector('.bulma-help')).toBeInTheDocument();
       expect(container.querySelector('.bulma-label')).toBeInTheDocument();
+    });
+  });
+
+  describe('inside a Field wrapper', () => {
+    it('renders as a bare fragment (no extra Field wrapper) when nested in a Field', () => {
+      const { container } = render(
+        <Field label="Bio">
+          <TextArea data-testid="ta" message="hint" messageColor="info" />
+        </Field>
+      );
+      // Only the outer Field wrapper exists.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      expect(screen.getByTestId('ta')).toBeInTheDocument();
+      const help = screen.getByText('hint');
+      expect(help).toHaveClass('help');
+      expect(help).toHaveClass('is-info');
+    });
+
+    it('skips wrapping in Control when already inside a Control', () => {
+      const { container } = render(
+        <Field label="Bio">
+          <Control>
+            <TextArea data-testid="ta" />
+          </Control>
+        </Field>
+      );
+      expect(container.querySelectorAll('.control').length).toBe(1);
+      expect(screen.getByTestId('ta')).toBeInTheDocument();
     });
   });
 });

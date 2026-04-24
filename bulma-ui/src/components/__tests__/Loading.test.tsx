@@ -6,18 +6,18 @@ import { Loading } from '../Loading';
 describe('Loading', () => {
   describe('rendering', () => {
     it('renders nothing when not active', () => {
-      const { container } = render(<Loading />);
-      expect(container.querySelector('.loading')).not.toBeInTheDocument();
+      render(<Loading />);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     it('renders nothing when active is false', () => {
-      const { container } = render(<Loading active={false} />);
-      expect(container.querySelector('.loading')).not.toBeInTheDocument();
+      render(<Loading active={false} />);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     it('renders when active is true', () => {
-      const { container } = render(<Loading active />);
-      expect(container.querySelector('.loading')).toBeInTheDocument();
+      render(<Loading active />);
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
 
     it('renders loading overlay', () => {
@@ -53,22 +53,20 @@ describe('Loading', () => {
 
   describe('active state', () => {
     it('applies is-active class when active', () => {
-      const { container } = render(<Loading active />);
-      expect(container.querySelector('.loading')).toHaveClass('is-active');
+      render(<Loading active />);
+      expect(screen.getByRole('alert')).toHaveClass('is-active');
     });
   });
 
   describe('full page mode', () => {
     it('applies is-full-page class when isFullPage is true', () => {
-      const { container } = render(<Loading active isFullPage />);
-      expect(container.querySelector('.loading')).toHaveClass('is-full-page');
+      render(<Loading active isFullPage />);
+      expect(screen.getByRole('alert')).toHaveClass('is-full-page');
     });
 
     it('does not apply is-full-page class when isFullPage is false', () => {
-      const { container } = render(<Loading active isFullPage={false} />);
-      expect(container.querySelector('.loading')).not.toHaveClass(
-        'is-full-page'
-      );
+      render(<Loading active isFullPage={false} />);
+      expect(screen.getByRole('alert')).not.toHaveClass('is-full-page');
     });
   });
 
@@ -103,14 +101,14 @@ describe('Loading', () => {
     ] as const)(
       'applies is-%s class to loading element when color="%s"',
       color => {
-        const { container } = render(<Loading active color={color} />);
-        expect(container.querySelector('.loading')).toHaveClass(`is-${color}`);
+        render(<Loading active color={color} />);
+        expect(screen.getByRole('alert')).toHaveClass(`is-${color}`);
       }
     );
 
     it('does not apply color class when color prop is omitted', () => {
-      const { container } = render(<Loading active />);
-      const loading = container.querySelector('.loading');
+      render(<Loading active />);
+      const loading = screen.getByRole('alert');
       expect(loading).not.toHaveClass('is-primary');
       expect(loading).not.toHaveClass('is-link');
       expect(loading).not.toHaveClass('is-info');
@@ -120,10 +118,8 @@ describe('Loading', () => {
     });
 
     it('combines color with other classes correctly', () => {
-      const { container } = render(
-        <Loading active color="primary" isFullPage className="custom" />
-      );
-      const loading = container.querySelector('.loading');
+      render(<Loading active color="primary" isFullPage className="custom" />);
+      const loading = screen.getByRole('alert');
       expect(loading).toHaveClass(
         'loading',
         'is-active',
@@ -207,6 +203,16 @@ describe('Loading', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(handleCancel).not.toHaveBeenCalled();
     });
+
+    it('does not call onCancel on non-Escape keys', () => {
+      // Hits the `e.key === 'Escape'` false branch in the keydown handler.
+      const handleCancel = jest.fn();
+      render(<Loading active canCancel onCancel={handleCancel} />);
+
+      fireEvent.keyDown(document, { key: 'Enter' });
+      fireEvent.keyDown(document, { key: 'a' });
+      expect(handleCancel).not.toHaveBeenCalled();
+    });
   });
 
   describe('accessibility', () => {
@@ -247,8 +253,8 @@ describe('Loading', () => {
 
   describe('className handling', () => {
     it('applies custom className', () => {
-      const { container } = render(<Loading active className="custom-class" />);
-      expect(container.querySelector('.loading')).toHaveClass('custom-class');
+      render(<Loading active className="custom-class" />);
+      expect(screen.getByRole('alert')).toHaveClass('custom-class');
     });
 
     it('applies overlayClassName', () => {
@@ -270,10 +276,8 @@ describe('Loading', () => {
     });
 
     it('combines multiple classes correctly', () => {
-      const { container } = render(
-        <Loading active isFullPage className="custom-class" />
-      );
-      const loading = container.querySelector('.loading');
+      render(<Loading active isFullPage className="custom-class" />);
+      const loading = screen.getByRole('alert');
       expect(loading).toHaveClass(
         'loading',
         'is-active',
@@ -285,8 +289,8 @@ describe('Loading', () => {
 
   describe('Bulma helper classes', () => {
     it('applies Bulma helper classes from props', () => {
-      const { container } = render(<Loading active m="2" p="3" />);
-      const loading = container.querySelector('.loading');
+      render(<Loading active m="2" p="3" />);
+      const loading = screen.getByRole('alert');
       expect(loading).toHaveClass('m-2', 'p-3');
     });
   });
@@ -363,16 +367,14 @@ describe('Loading', () => {
     it.each(['light', 'dark', 'opaque'] as const)(
       'applies is-%s class when overlay="%s"',
       overlay => {
-        const { container } = render(<Loading active overlay={overlay} />);
-        expect(container.querySelector('.loading')).toHaveClass(
-          `is-${overlay}`
-        );
+        render(<Loading active overlay={overlay} />);
+        expect(screen.getByRole('alert')).toHaveClass(`is-${overlay}`);
       }
     );
 
     it('does not apply overlay class when no overlay prop', () => {
-      const { container } = render(<Loading active />);
-      const loading = container.querySelector('.loading');
+      render(<Loading active />);
+      const loading = screen.getByRole('alert');
       expect(loading).not.toHaveClass('is-light');
       expect(loading).not.toHaveClass('is-dark');
       expect(loading).not.toHaveClass('is-opaque');
@@ -381,31 +383,25 @@ describe('Loading', () => {
 
   describe('is-cancelable class', () => {
     it('applies is-cancelable class when canCancel is true', () => {
-      const { container } = render(<Loading active canCancel />);
-      expect(container.querySelector('.loading')).toHaveClass('is-cancelable');
+      render(<Loading active canCancel />);
+      expect(screen.getByRole('alert')).toHaveClass('is-cancelable');
     });
 
     it('does not apply is-cancelable class when canCancel is false', () => {
-      const { container } = render(<Loading active canCancel={false} />);
-      expect(container.querySelector('.loading')).not.toHaveClass(
-        'is-cancelable'
-      );
+      render(<Loading active canCancel={false} />);
+      expect(screen.getByRole('alert')).not.toHaveClass('is-cancelable');
     });
 
     it('does not apply is-cancelable class by default', () => {
-      const { container } = render(<Loading active />);
-      expect(container.querySelector('.loading')).not.toHaveClass(
-        'is-cancelable'
-      );
+      render(<Loading active />);
+      expect(screen.getByRole('alert')).not.toHaveClass('is-cancelable');
     });
   });
 
   describe('HTML attributes', () => {
     it('passes through HTML attributes', () => {
-      const { container } = render(
-        <Loading active data-testid="loading" id="my-loading" />
-      );
-      const loading = container.querySelector('.loading');
+      render(<Loading active data-testid="loading" id="my-loading" />);
+      const loading = screen.getByRole('alert');
       expect(loading).toHaveAttribute('data-testid', 'loading');
       expect(loading).toHaveAttribute('id', 'my-loading');
     });

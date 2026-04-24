@@ -94,7 +94,7 @@ describe('Td Component', () => {
 
   describe('ClassPrefix', () => {
     it('applies classPrefix to color classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="my-prefix-">
           <table>
             <tbody>
@@ -105,12 +105,12 @@ describe('Td Component', () => {
           </table>
         </ConfigProvider>
       );
-      const td = container.querySelector('td');
+      const td = screen.getByRole('cell', { name: 'Test' });
       expect(td).toHaveClass('my-prefix-is-primary');
     });
 
     it('uses default classes when no classPrefix provided', () => {
-      const { container } = render(
+      render(
         <ConfigProvider>
           <table>
             <tbody>
@@ -121,12 +121,12 @@ describe('Td Component', () => {
           </table>
         </ConfigProvider>
       );
-      const td = container.querySelector('td');
+      const td = screen.getByRole('cell', { name: 'Test' });
       expect(td).toHaveClass('is-primary');
     });
 
     it('uses default classes when classPrefix is undefined', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix={undefined}>
           <table>
             <tbody>
@@ -137,12 +137,12 @@ describe('Td Component', () => {
           </table>
         </ConfigProvider>
       );
-      const td = container.querySelector('td');
+      const td = screen.getByRole('cell', { name: 'Test' });
       expect(td).toHaveClass('is-primary');
     });
 
     it('applies prefix to both color and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <table>
             <tbody>
@@ -156,14 +156,14 @@ describe('Td Component', () => {
         </ConfigProvider>
       );
 
-      const td = container.querySelector('td');
+      const td = screen.getByRole('cell', { name: 'Test Cell' });
       expect(td).toHaveClass('bulma-is-primary');
       expect(td).toHaveClass('bulma-m-2');
       expect(td).toHaveClass('bulma-p-3');
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <table>
           <tbody>
             <tr>
@@ -175,7 +175,7 @@ describe('Td Component', () => {
         </table>
       );
 
-      const td = container.querySelector('td');
+      const td = screen.getByRole('cell', { name: 'Standard Cell' });
       expect(td).toHaveClass('is-info');
       expect(td).toHaveClass('has-text-centered');
     });

@@ -403,7 +403,7 @@ export const CustomIndicator: Story = {
 export const Inactive: Story = {
   render: () => (
     <Box relative p="4">
-      <Loading active={false}>This text won't be shown</Loading>
+      <Loading active={false}>This text won&apos;t be shown</Loading>
       <Content>
         <Paragraph>
           The loading overlay is inactive (active=false), so the content is

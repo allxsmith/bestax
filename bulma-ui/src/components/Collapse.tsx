@@ -122,10 +122,13 @@ export const Collapse: React.FC<CollapseProps> = ({
     } else {
       // Closing: first set to current height, then to 0
       if (height === 'auto') {
+        // Read scrollHeight and offsetHeight to capture the current size and
+        // force a layout flush, then schedule the height transition to 0.
+        // (Reading offsetHeight after assignment is the standard reflow trick;
+        // assigning into a state setter avoids a bare expression statement.)
         const currentHeight = contentRef.current.scrollHeight;
-        setHeight(currentHeight);
-        // Force reflow
-        contentRef.current.offsetHeight;
+        const reflowHeight = contentRef.current.offsetHeight;
+        setHeight(Math.max(currentHeight, reflowHeight));
         requestAnimationFrame(() => {
           setHeight(0);
         });
