@@ -96,9 +96,7 @@ export const WithName: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },

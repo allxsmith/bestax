@@ -19,13 +19,7 @@ export interface FormFieldProps {
   /** Help/validation message below the input. */
   message?: React.ReactNode;
   /** Bulma color for the message. */
-  messageColor?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger';
+  messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Additional CSS classes for the Field wrapper. */
   fieldClassName?: string;
 }

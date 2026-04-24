@@ -108,16 +108,10 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     // Group-managed checked state — only when the group is in
     // controlled/uncontrolled mode (group.value is defined) AND this Checkbox
     // has a value to compare against. Local `checked` always wins.
-    const groupManaged =
-      group?.value !== undefined && value !== undefined;
-    const groupHas =
-      groupManaged && group!.value!.includes(String(value));
+    const groupManaged = group?.value !== undefined && value !== undefined;
+    const groupHas = groupManaged && group!.value!.includes(String(value));
     const effectiveChecked =
-      checked !== undefined
-        ? checked
-        : groupManaged
-          ? groupHas
-          : undefined;
+      checked !== undefined ? checked : groupManaged ? groupHas : undefined;
     // When the group manages checked, suppress local defaultChecked to avoid
     // the controlled/uncontrolled React warning.
     const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;

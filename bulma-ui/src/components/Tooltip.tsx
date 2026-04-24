@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
@@ -104,9 +110,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const [isVisible, setIsVisible] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [resolvedPosition, setResolvedPosition] = useState<Exclude<TooltipPosition, 'auto'>>(
-    position === 'auto' ? 'top' : position
-  );
+  const [resolvedPosition, setResolvedPosition] = useState<
+    Exclude<TooltipPosition, 'auto'>
+  >(position === 'auto' ? 'top' : position);
   const [contentStyle, setContentStyle] = useState<React.CSSProperties>({});
   const openTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -206,20 +212,25 @@ export const Tooltip: React.FC<TooltipProps> = ({
       // Check if it overflows left or right and apply a corrective shift.
       const pos = isAuto ? undefined : position; // read from state won't be updated yet in auto
       const effectivePos = pos || 'top'; // fallback, actual is set by state
-      const isVertical = effectivePos === 'top' || effectivePos === 'bottom' ||
-        resolvedPosition === 'top' || resolvedPosition === 'bottom';
+      const isVertical =
+        effectivePos === 'top' ||
+        effectivePos === 'bottom' ||
+        resolvedPosition === 'top' ||
+        resolvedPosition === 'bottom';
 
       if (isVertical) {
         if (contentRect.left < edgePadding) {
           // Overflows left — shift right
           const shift = edgePadding - contentRect.left;
           style.left = `calc(50% + ${shift}px)`;
-          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${-shift}px`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] =
+            `${-shift}px`;
         } else if (contentRect.right > window.innerWidth - edgePadding) {
           // Overflows right — shift left
           const shift = contentRect.right - (window.innerWidth - edgePadding);
           style.left = `calc(50% - ${shift}px)`;
-          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${shift}px`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] =
+            `${shift}px`;
         }
       } else {
         // For left/right positions, tooltip is centered vertically via CSS
@@ -227,11 +238,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
         if (contentRect.top < edgePadding) {
           const shift = edgePadding - contentRect.top;
           style.top = `calc(50% + ${shift}px)`;
-          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${-shift}px`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] =
+            `${-shift}px`;
         } else if (contentRect.bottom > window.innerHeight - edgePadding) {
           const shift = contentRect.bottom - (window.innerHeight - edgePadding);
           style.top = `calc(50% - ${shift}px)`;
-          (style as Record<string, string>)['--tooltip-arrow-offset'] = `${shift}px`;
+          (style as Record<string, string>)['--tooltip-arrow-offset'] =
+            `${shift}px`;
         }
       }
 

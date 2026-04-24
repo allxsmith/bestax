@@ -128,10 +128,10 @@ Use the `backgroundColor` prop to apply background colors to any component. The 
 
 ### Special Backgrounds
 
-| Property                    | Bulma Class              | Background Value         |
-| --------------------------- | ------------------------ | ------------------------ |
-| `backgroundColor="inherit"` | `has-background-inherit` | Inherit from parent      |
-| `backgroundColor="current"` | `has-background-current` | Current color value      |
+| Property                    | Bulma Class              | Background Value    |
+| --------------------------- | ------------------------ | ------------------- |
+| `backgroundColor="inherit"` | `has-background-inherit` | Inherit from parent |
+| `backgroundColor="current"` | `has-background-current` | Current color value |
 
 ### Example Usage
 

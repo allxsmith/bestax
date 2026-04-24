@@ -21,15 +21,15 @@ import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                          | Description                                      |
-| ----------- | --------------------------------------------- | ------------------------------------------------ |
-| `disabled`  | `boolean`                                     | Whether the checkbox is disabled.                |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | Color of the checkbox. |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'` | Size of the checkbox.                       |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper. |
-| `className` | `string`                                      | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                             | Label/content for the checkbox.                  |
-| ...         | All standard `<input>` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop        | Type                                                                                                                                                                                                                                                                                     | Description                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `disabled`  | `boolean`                                                                                                                                                                                                                                                                                | Whether the checkbox is disabled.                |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Color of the checkbox.                           |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | Size of the checkbox.                            |
+| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper.                               |
+| `className` | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes.                          |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | Label/content for the checkbox.                  |
+| ...         | All standard `<input>` and Bulma helper props                                                                                                                                                                                                                                            | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
 

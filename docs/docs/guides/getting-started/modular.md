@@ -53,7 +53,11 @@ import { Input, Select, Checkbox } from '@allxsmith/bestax-bulma'; // Form
 import { Container, Hero, Section } from '@allxsmith/bestax-bulma'; // Layout
 import { Columns, Column } from '@allxsmith/bestax-bulma'; // Columns
 import { Grid, Cell } from '@allxsmith/bestax-bulma'; // Grid
-import { ConfigProvider, Theme, useBulmaClasses } from '@allxsmith/bestax-bulma'; // Helpers
+import {
+  ConfigProvider,
+  Theme,
+  useBulmaClasses,
+} from '@allxsmith/bestax-bulma'; // Helpers
 ```
 
 :::info Full export list
@@ -188,9 +192,10 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 ```
 
 :::info Shortcuts
+
 - `@use '@allxsmith/bestax-bulma/scss/bestax'` — SCSS source for the full combined bundle (Bulma + all extras). Use this instead of `bestax.css` when you want a single SCSS entry point that participates in your Sass build.
 - `@use '@allxsmith/bestax-bulma/scss'` — extras only (equivalent to `extras.css` but from source).
-:::
+  :::
 
 #### Complete example
 

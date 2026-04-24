@@ -21,30 +21,30 @@ import { Rate } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                                        | Default | Description                                      |
-| -------------- | ------------------------------------------- | ------- | ------------------------------------------------ |
-| `value`        | `number`                                    | —       | Controlled value (0 to max).                     |
-| `defaultValue` | `number`                                    | `0`     | Default value for uncontrolled usage.            |
-| `max`          | `number`                                    | `5`     | Maximum rating value.                            |
-| `size`         | `'small'` \| `'medium'` \| `'large'`        | —       | Size variant.                                    |
-| `disabled`     | `boolean`                                   | `false` | Whether the rating is disabled.                  |
-| `showScore`    | `boolean`                                   | `false` | Show the numeric score next to stars.            |
-| `showText`     | `boolean`                                   | `false` | Show custom text based on value.                 |
-| `texts`        | `string[]`                                  | —       | Array of text labels for each rating value.      |
-| `onChange`     | `(value: number) => void`                   | —       | Callback when rating changes.                    |
-| `customIcon`   | `(props: RateIconProps) => React.ReactNode` | —       | Custom icon renderer.                            |
-| `iconName`     | `string`                                    | —       | Custom icon name for the rating stars.           |
-| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | — | Icon library to use.                |
-| `iconVariant`  | `string`                                    | —       | Icon style variant.                              |
-| `iconFeatures` | `string` \| `string[]`                      | —       | Additional icon modifiers.                       |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | — | Color of the active rating icons.   |
-| `precision`    | `number`                                    | `1`     | Rating precision (e.g., `0.5` for half stars).   |
-| `customText`   | `string`                                    | —       | Custom text displayed next to the rating.        |
-| `spaced`       | `boolean`                                   | `false` | Add spacing between icons.                       |
-| `rtl`          | `boolean`                                   | `false` | Right-to-left direction.                         |
-| `className`    | `string`                                    | —       | Additional CSS classes.                          |
-| `ref`          | `React.Ref<HTMLElement>`                    | —       | Ref forwarded to the container element.          |
-| ...            | All standard HTML and Bulma helper props    |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop           | Type                                                                            | Default | Description                                      |
+| -------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `value`        | `number`                                                                        | —       | Controlled value (0 to max).                     |
+| `defaultValue` | `number`                                                                        | `0`     | Default value for uncontrolled usage.            |
+| `max`          | `number`                                                                        | `5`     | Maximum rating value.                            |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size variant.                                    |
+| `disabled`     | `boolean`                                                                       | `false` | Whether the rating is disabled.                  |
+| `showScore`    | `boolean`                                                                       | `false` | Show the numeric score next to stars.            |
+| `showText`     | `boolean`                                                                       | `false` | Show custom text based on value.                 |
+| `texts`        | `string[]`                                                                      | —       | Array of text labels for each rating value.      |
+| `onChange`     | `(value: number) => void`                                                       | —       | Callback when rating changes.                    |
+| `customIcon`   | `(props: RateIconProps) => React.ReactNode`                                     | —       | Custom icon renderer.                            |
+| `iconName`     | `string`                                                                        | —       | Custom icon name for the rating stars.           |
+| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`      | —       | Icon library to use.                             |
+| `iconVariant`  | `string`                                                                        | —       | Icon style variant.                              |
+| `iconFeatures` | `string` \| `string[]`                                                          | —       | Additional icon modifiers.                       |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the active rating icons.                |
+| `precision`    | `number`                                                                        | `1`     | Rating precision (e.g., `0.5` for half stars).   |
+| `customText`   | `string`                                                                        | —       | Custom text displayed next to the rating.        |
+| `spaced`       | `boolean`                                                                       | `false` | Add spacing between icons.                       |
+| `rtl`          | `boolean`                                                                       | `false` | Right-to-left direction.                         |
+| `className`    | `string`                                                                        | —       | Additional CSS classes.                          |
+| `ref`          | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the container element.          |
+| ...            | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ### RateIconProps
 
@@ -305,9 +305,9 @@ Clicking the same star twice will deselect it (set value to 0). This allows user
 
 `Rate` is an HTML form element. Pass a `name` prop and the current rating value is rendered as a hidden `<input type="hidden">` inside the component, so it's included in `FormData` on submit and posts to the server like any native input.
 
-| Prop | Description |
-| --- | --- |
-| `name` | Form field name. When set, a hidden input is rendered. |
+| Prop   | Description                                                                                               |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| `name` | Form field name. When set, a hidden input is rendered.                                                    |
 | `form` | Optional id of the form this hidden input belongs to (use when the input lives outside the form element). |
 
 Submit the form below and inspect the resulting `FormData` entries:
@@ -325,7 +325,9 @@ function RateFormDemo() {
     >
       <Rate name="rating" defaultValue={3} showScore />
       <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>

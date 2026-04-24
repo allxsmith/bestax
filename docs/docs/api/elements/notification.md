@@ -25,16 +25,16 @@ import { Notification } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                             | Default | Description                                        |
-| ----------- | ------------------------------------------------ | ------- | -------------------------------------------------- |
-| `className` | `string`                                         | —       | Additional CSS classes.                            |
-| `color`     | `Bulma color` (e.g. `'primary'`, `'info'`, etc.) | —       | Bulma color modifier for the notification.         |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | — | Text color helper. |
-| `isLight`   | `boolean`                                        | —       | Use the light color variant.                       |
-| `hasDelete` | `boolean`                                        | —       | Shows a close (delete) button in the notification. |
-| `onDelete`  | `() => void`                                     | —       | Callback fired when the delete button is clicked.  |
-| `children`  | `React.ReactNode`                                | —       | Content inside the notification.                   |
-| ...         | All standard `<div>` and Bulma helper props      |         | (See [Helper Props](../helpers/usebulmaclasses))   |
+| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                        |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------- |
+| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                            |
+| `color`     | `Bulma color` (e.g. `'primary'`, `'info'`, etc.)                                                                                                                                                                                                                                         | —       | Bulma color modifier for the notification.         |
+| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                 |
+| `isLight`   | `boolean`                                                                                                                                                                                                                                                                                | —       | Use the light color variant.                       |
+| `hasDelete` | `boolean`                                                                                                                                                                                                                                                                                | —       | Shows a close (delete) button in the notification. |
+| `onDelete`  | `() => void`                                                                                                                                                                                                                                                                             | —       | Callback fired when the delete button is clicked.  |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content inside the notification.                   |
+| ...         | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses))   |
 
 ---
 

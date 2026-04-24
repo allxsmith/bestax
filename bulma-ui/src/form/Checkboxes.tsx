@@ -22,8 +22,7 @@ import { FormFieldProps } from './fieldProps';
  * @property {React.ReactNode} [children] - Checkbox elements to render in the group.
  */
 export interface CheckboxesProps
-  extends Omit<BulmaClassesProps, 'color'>,
-    FormFieldProps {
+  extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
   className?: string;
   name?: string;
   value?: string[];
@@ -120,9 +119,7 @@ export const Checkboxes: React.FC<CheckboxesProps> = ({
   const ctx = useMemo<CheckboxesGroupContextValue>(
     () => ({
       name,
-      ...(groupActive
-        ? { value: currentValue, onChange: handleChange }
-        : {}),
+      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
     }),
     [name, groupActive, currentValue, handleChange]
   );

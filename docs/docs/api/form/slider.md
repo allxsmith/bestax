@@ -21,33 +21,33 @@ import { Slider } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                                                                            | Default | Description                                      |
-| -------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `value`        | `number`                                                                        | —       | Controlled value.                                |
-| `defaultValue` | `number`                                                                        | `0`     | Default value for uncontrolled usage.            |
-| `min`          | `number`                                                                        | `0`     | Minimum value.                                   |
-| `max`          | `number`                                                                        | `100`   | Maximum value.                                   |
-| `step`         | `number`                                                                        | `1`     | Step increment.                                  |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size variant.                                    |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant.                                   |
-| `isRounded`    | `boolean`                                                                       | `false` | Use rounded track ends.                          |
-| `isCircle`     | `boolean`                                                                       | `false` | Use circular thumb.                              |
-| `disabled`     | `boolean`                                                                       | `false` | Whether the slider is disabled.                  |
-| `showOutput`   | `boolean`                                                                       | `false` | Show current value tooltip.                      |
-| `onChange`     | `(value: number) => void`                                                       | —       | Callback when value changes.                     |
-| `formatOutput` | `(value: number) => string`                                                     | —       | Format function for output display.              |
-| `tooltip`      | `'auto'` \| `'always'` \| `'hidden'`                                            | —       | Controls tooltip visibility on the thumb.        |
-| `ticks`        | `boolean`                                                                       | —       | Shows tick marks along the track.                |
-| `marks`        | `SliderMark[]`                                                                  | —       | Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. |
-| `orientation`  | `'horizontal'` \| `'vertical'`                                                  | `'horizontal'` | Orientation of the slider.                |
-| `scale`        | `(value: number) => number`                                                     | —       | Function to scale the displayed value.           |
-| `getAriaValueText` | `(value: number) => string`                                                 | —       | Function to generate the `aria-valuetext` attribute. |
-| `range`        | `boolean`                                                                       | `false` | Enables range mode with two thumbs.              |
-| `minDistance`   | `number`                                                                       | `0`     | Minimum distance between thumbs in range mode.   |
-| `ariaLabel`    | `string` \| `[string, string]`                                                  | —       | ARIA label(s) for the slider thumb(s).           |
-| `className`    | `string`                                                                        | —       | Additional CSS classes.                          |
-| `ref`          | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the input element.              |
-| ...            | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop               | Type                                                                            | Default        | Description                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `value`            | `number`                                                                        | —              | Controlled value.                                                                           |
+| `defaultValue`     | `number`                                                                        | `0`            | Default value for uncontrolled usage.                                                       |
+| `min`              | `number`                                                                        | `0`            | Minimum value.                                                                              |
+| `max`              | `number`                                                                        | `100`          | Maximum value.                                                                              |
+| `step`             | `number`                                                                        | `1`            | Step increment.                                                                             |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —              | Size variant.                                                                               |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —              | Color variant.                                                                              |
+| `isRounded`        | `boolean`                                                                       | `false`        | Use rounded track ends.                                                                     |
+| `isCircle`         | `boolean`                                                                       | `false`        | Use circular thumb.                                                                         |
+| `disabled`         | `boolean`                                                                       | `false`        | Whether the slider is disabled.                                                             |
+| `showOutput`       | `boolean`                                                                       | `false`        | Show current value tooltip.                                                                 |
+| `onChange`         | `(value: number) => void`                                                       | —              | Callback when value changes.                                                                |
+| `formatOutput`     | `(value: number) => string`                                                     | —              | Format function for output display.                                                         |
+| `tooltip`          | `'auto'` \| `'always'` \| `'hidden'`                                            | —              | Controls tooltip visibility on the thumb.                                                   |
+| `ticks`            | `boolean`                                                                       | —              | Shows tick marks along the track.                                                           |
+| `marks`            | `SliderMark[]`                                                                  | —              | Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. |
+| `orientation`      | `'horizontal'` \| `'vertical'`                                                  | `'horizontal'` | Orientation of the slider.                                                                  |
+| `scale`            | `(value: number) => number`                                                     | —              | Function to scale the displayed value.                                                      |
+| `getAriaValueText` | `(value: number) => string`                                                     | —              | Function to generate the `aria-valuetext` attribute.                                        |
+| `range`            | `boolean`                                                                       | `false`        | Enables range mode with two thumbs.                                                         |
+| `minDistance`      | `number`                                                                        | `0`            | Minimum distance between thumbs in range mode.                                              |
+| `ariaLabel`        | `string` \| `[string, string]`                                                  | —              | ARIA label(s) for the slider thumb(s).                                                      |
+| `className`        | `string`                                                                        | —              | Additional CSS classes.                                                                     |
+| `ref`              | `React.Ref<HTMLElement>`                                                        | —              | Ref forwarded to the input element.                                                         |
+| ...                | All standard HTML and Bulma helper props                                        |                | (See [Helper Props](../helpers/usebulmaclasses))                                            |
 
 ---
 
@@ -296,10 +296,10 @@ Use `defaultValue` for internal state management:
 
 `Slider` uses a native `<input type="range">` and is HTML-form-compatible. In single-value mode pass a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb submits as its own field.
 
-| Mode | Prop(s) |
-| --- | --- |
-| Single | `name` (forwarded to the single `<input type="range">`) |
-| Range | `nameLow` (low thumb), `nameHigh` (high thumb) — both render as separate `<input type="range">` elements |
+| Mode   | Prop(s)                                                                                                  |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+| Single | `name` (forwarded to the single `<input type="range">`)                                                  |
+| Range  | `nameLow` (low thumb), `nameHigh` (high thumb) — both render as separate `<input type="range">` elements |
 
 ```tsx live
 function SliderRangeFormDemo() {
@@ -320,7 +320,9 @@ function SliderRangeFormDemo() {
         showOutput
       />
       <div style={{ marginTop: '1.5rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>

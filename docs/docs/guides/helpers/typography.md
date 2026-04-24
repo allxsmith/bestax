@@ -86,8 +86,8 @@ You can apply responsive text sizes that change based on screen size using the `
 
 For combining multiple viewports on a single element, use these per-viewport props instead of `viewport` + `textSize`. Each accepts values `'1'` through `'7'`.
 
-| Property             | Bulma Class Pattern | Target Viewport  |
-| -------------------- | ------------------- | ---------------- |
+| Property             | Bulma Class Pattern      | Target Viewport  |
+| -------------------- | ------------------------ | ---------------- |
 | `textSizeMobile`     | `is-size-{n}-mobile`     | Up to 768px      |
 | `textSizeTablet`     | `is-size-{n}-tablet`     | 769px – 1023px   |
 | `textSizeDesktop`    | `is-size-{n}-desktop`    | 1024px – 1215px  |
@@ -184,8 +184,8 @@ Apply responsive text alignment that changes based on screen size.
 
 Like the text size viewport props, these per-viewport alignment props can be combined on one element. Each accepts `'centered'`, `'justified'`, `'left'`, or `'right'`.
 
-| Property              | Bulma Class Pattern         | Target Viewport  |
-| --------------------- | --------------------------- | ---------------- |
+| Property              | Bulma Class Pattern           | Target Viewport  |
+| --------------------- | ----------------------------- | ---------------- |
 | `textAlignMobile`     | `has-text-{value}-mobile`     | Up to 768px      |
 | `textAlignTablet`     | `has-text-{value}-tablet`     | 769px – 1023px   |
 | `textAlignDesktop`    | `has-text-{value}-desktop`    | 1024px – 1215px  |

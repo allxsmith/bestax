@@ -124,7 +124,11 @@ The loading indicator at every textarea size. Use `controlSize` on `<TextArea>` 
     isLoading
     placeholder="Small loading textarea"
   />
-  <TextArea label="Loading Normal" isLoading placeholder="Normal loading textarea" />
+  <TextArea
+    label="Loading Normal"
+    isLoading
+    placeholder="Normal loading textarea"
+  />
   <TextArea
     label="Loading Medium"
     size="medium"
@@ -162,7 +166,12 @@ Disabled textareas cannot be interacted with; read-only textareas can be focused
 Set `hasFixedSize` to prevent the textarea from being user-resized.
 
 ```tsx live
-<TextArea label="Fixed Size" hasFixedSize rows={3} placeholder="Fixed size textarea" />
+<TextArea
+  label="Fixed Size"
+  hasFixedSize
+  rows={3}
+  placeholder="Fixed size textarea"
+/>
 ```
 
 ---

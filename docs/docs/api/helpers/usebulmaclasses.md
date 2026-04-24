@@ -207,7 +207,13 @@ export interface BulmaClassesProps {
   textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
-  display?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  display?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
   visibility?: 'hidden' | 'sr-only' | 'invisible';
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
@@ -260,11 +266,41 @@ export interface BulmaClassesProps {
   clearfix?: boolean;
   relative?: boolean;
   fullHeight?: boolean;
-  displayMobile?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
-  displayTablet?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
-  displayDesktop?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
-  displayWidescreen?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
-  displayFullhd?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
+  displayMobile?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
+  displayTablet?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
+  displayDesktop?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
+  displayWidescreen?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
+  displayFullhd?:
+    | 'block'
+    | 'flex'
+    | 'inline'
+    | 'inline-block'
+    | 'inline-flex'
+    | 'none';
   textSizeMobile?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textSizeTablet?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textSizeDesktop?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
@@ -950,12 +986,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples f
 #### Skeleton Image
 
 ```tsx live
-<Image
-  skeleton
-  src="/img/react-logo.png"
-  alt="Skeleton image"
-  size="128x128"
-/>
+<Image skeleton src="/img/react-logo.png" alt="Skeleton image" size="128x128" />
 ```
 
 #### Skeleton Notification

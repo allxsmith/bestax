@@ -125,14 +125,7 @@ export const UnderlineWithColors: Story = {
   render: () => (
     <Buttons>
       {(
-        [
-          'primary',
-          'link',
-          'info',
-          'success',
-          'warning',
-          'danger',
-        ] as const
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
       ).map(color => (
         <LinkButton key={color} variant="underline" color={color}>
           {color.charAt(0).toUpperCase() + color.slice(1)}
@@ -148,14 +141,7 @@ export const AllColors: Story = {
   render: () => (
     <Buttons>
       {(
-        [
-          'primary',
-          'link',
-          'info',
-          'success',
-          'warning',
-          'danger',
-        ] as const
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
       ).map(color => (
         <LinkButton key={color} color={color}>
           {color.charAt(0).toUpperCase() + color.slice(1)}
@@ -171,14 +157,7 @@ export const AllColorsGhost: Story = {
   render: () => (
     <Buttons>
       {(
-        [
-          'primary',
-          'link',
-          'info',
-          'success',
-          'warning',
-          'danger',
-        ] as const
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
       ).map(color => (
         <LinkButton key={color} variant="ghost" color={color}>
           {color.charAt(0).toUpperCase() + color.slice(1)}

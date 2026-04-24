@@ -168,4 +168,3 @@ function Demo() {
 - ✅ **Tree Shakeable** - Only import what you need
 - ✅ **99% Test Coverage** - Reliable and stable
 - ✅ **Just One Dependency** - Bulma. Every Bulma library depends on it — we bundle it for you
-

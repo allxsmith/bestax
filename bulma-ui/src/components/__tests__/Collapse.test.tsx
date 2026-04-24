@@ -328,7 +328,11 @@ describe('Collapse', () => {
 
     it('uses opacity for fade animation when open', () => {
       const { container } = render(
-        <Collapse trigger={<button>Toggle</button>} animation="fade" defaultOpen>
+        <Collapse
+          trigger={<button>Toggle</button>}
+          animation="fade"
+          defaultOpen
+        >
           Content
         </Collapse>
       );

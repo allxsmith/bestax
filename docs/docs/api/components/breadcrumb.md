@@ -308,7 +308,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li>
     <a href="#">
       <Icon
-        library="fa" name="home"
+        library="fa"
+        name="home"
         textColor="primary"
         size="small"
         ariaLabel="home icon"
@@ -319,7 +320,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li>
     <a href="#">
       <Icon
-        library="fa" name="folder"
+        library="fa"
+        name="folder"
         textColor="info"
         size="small"
         ariaLabel="category icon"
@@ -330,7 +332,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li className="is-active">
     <a href="#">
       <Icon
-        library="fa" name="file"
+        library="fa"
+        name="file"
         textColor="success"
         size="small"
         ariaLabel="item icon"

@@ -142,7 +142,10 @@ export const Sizes: Story = {
         buttonLabel="Choose a file\u2026"
         iconLeft={<Icon name="upload" />}
       />
-      <File buttonLabel="Choose a file\u2026" iconLeft={<Icon name="upload" />} />
+      <File
+        buttonLabel="Choose a file\u2026"
+        iconLeft={<Icon name="upload" />}
+      />
       <File
         size="medium"
         buttonLabel="Choose a file\u2026"

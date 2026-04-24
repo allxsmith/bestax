@@ -21,27 +21,27 @@ import { Snackbar, SnackbarContainer, snackbar } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop         | Type                                                                | Default     | Description                                          |
-| ------------ | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------- |
-| `message`    | `string`                                                            | —           | The message to display (required).                   |
-| `type`       | `'default'` \| `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | `'default'` | Color type for the action button.                    |
-| `position`   | `'top-left'` \| `'top'` \| `'top-right'` \| `'bottom-left'` \| `'bottom'` \| `'bottom-right'` | `'bottom-right'` | Position on the screen.                          |
-| `duration`   | `number`                                                            | `4000`      | Duration in ms before auto-close. 0 = no auto-close. |
-| `onClose`    | `() => void`                                                        | —           | Callback when snackbar closes.                       |
-| `actionText` | `string`                                                            | —           | Text for the action button.                          |
-| `onAction`   | `() => void`                                                        | —           | Callback when action button is clicked.              |
-| `cancelable` | `boolean`                                                           | `true`      | Whether the snackbar can be dismissed.               |
-| `className`  | `string`                                                            | —           | Additional CSS classes.                              |
-| `ref`        | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the snackbar element.               |
-| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` | — | Background color of the snackbar. |
-| `indefinite` | `boolean`                                                           | `false`     | Keeps the snackbar visible indefinitely (ignores `duration`). |
-| `pauseOnHover` | `boolean`                                                         | `true`      | Pauses the auto-dismiss timer while hovering.        |
-| `cancelText` | `string`                                                            | —           | Text for the cancel/close button.                    |
-| `container`  | `string \| HTMLElement`                                             | —           | CSS selector or DOM node to mount the snackbar into. |
-| `dismissible` | `boolean`                                                          | `false`     | Allows dismissing with a click anywhere on the snackbar. |
-| `rounded`    | `boolean`                                                           | `false`     | Applies rounded corners.                             |
-| `inline`     | `boolean`                                                           | `false`     | Renders inline instead of using a portal.            |
-| ...          | All standard HTML and Bulma helper props                            |             | (See [Helper Props](../helpers/usebulmaclasses))     |
+| Prop           | Type                                                                                                                                                                                                                                                       | Default          | Description                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------- |
+| `message`      | `string`                                                                                                                                                                                                                                                   | —                | The message to display (required).                            |
+| `type`         | `'default'` \| `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                             | `'default'`      | Color type for the action button.                             |
+| `position`     | `'top-left'` \| `'top'` \| `'top-right'` \| `'bottom-left'` \| `'bottom'` \| `'bottom-right'`                                                                                                                                                              | `'bottom-right'` | Position on the screen.                                       |
+| `duration`     | `number`                                                                                                                                                                                                                                                   | `4000`           | Duration in ms before auto-close. 0 = no auto-close.          |
+| `onClose`      | `() => void`                                                                                                                                                                                                                                               | —                | Callback when snackbar closes.                                |
+| `actionText`   | `string`                                                                                                                                                                                                                                                   | —                | Text for the action button.                                   |
+| `onAction`     | `() => void`                                                                                                                                                                                                                                               | —                | Callback when action button is clicked.                       |
+| `cancelable`   | `boolean`                                                                                                                                                                                                                                                  | `true`           | Whether the snackbar can be dismissed.                        |
+| `className`    | `string`                                                                                                                                                                                                                                                   | —                | Additional CSS classes.                                       |
+| `ref`          | `React.Ref<HTMLElement>`                                                                                                                                                                                                                                   | —                | Ref forwarded to the snackbar element.                        |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` | —                | Background color of the snackbar.                             |
+| `indefinite`   | `boolean`                                                                                                                                                                                                                                                  | `false`          | Keeps the snackbar visible indefinitely (ignores `duration`). |
+| `pauseOnHover` | `boolean`                                                                                                                                                                                                                                                  | `true`           | Pauses the auto-dismiss timer while hovering.                 |
+| `cancelText`   | `string`                                                                                                                                                                                                                                                   | —                | Text for the cancel/close button.                             |
+| `container`    | `string \| HTMLElement`                                                                                                                                                                                                                                    | —                | CSS selector or DOM node to mount the snackbar into.          |
+| `dismissible`  | `boolean`                                                                                                                                                                                                                                                  | `false`          | Allows dismissing with a click anywhere on the snackbar.      |
+| `rounded`      | `boolean`                                                                                                                                                                                                                                                  | `false`          | Applies rounded corners.                                      |
+| `inline`       | `boolean`                                                                                                                                                                                                                                                  | `false`          | Renders inline instead of using a portal.                     |
+| ...            | All standard HTML and Bulma helper props                                                                                                                                                                                                                   |                  | (See [Helper Props](../helpers/usebulmaclasses))              |
 
 ---
 
@@ -163,7 +163,9 @@ function example() {
       <Buttons>
         <Button onClick={() => setPosition('bottom-left')}>Bottom Left</Button>
         <Button onClick={() => setPosition('bottom')}>Bottom</Button>
-        <Button onClick={() => setPosition('bottom-right')}>Bottom Right</Button>
+        <Button onClick={() => setPosition('bottom-right')}>
+          Bottom Right
+        </Button>
       </Buttons>
       {position && (
         <Snackbar

@@ -242,22 +242,40 @@ export const QueuedNotifications: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <NotificationContainer position="top-right" />
-        <p className="mb-4">
-          Queued notifications display one at a time.
-        </p>
+        <p className="mb-4">Queued notifications display one at a time.</p>
         <div className="buttons">
           <Button
             color="primary"
             onClick={() => {
-              notification.show({ message: 'Queued 1 of 3', color: 'info', queue: true, duration: 2000 });
-              notification.show({ message: 'Queued 2 of 3', color: 'success', queue: true, duration: 2000 });
-              notification.show({ message: 'Queued 3 of 3', color: 'warning', queue: true, duration: 2000 });
+              notification.show({
+                message: 'Queued 1 of 3',
+                color: 'info',
+                queue: true,
+                duration: 2000,
+              });
+              notification.show({
+                message: 'Queued 2 of 3',
+                color: 'success',
+                queue: true,
+                duration: 2000,
+              });
+              notification.show({
+                message: 'Queued 3 of 3',
+                color: 'warning',
+                queue: true,
+                duration: 2000,
+              });
             }}
           >
             Show 3 Queued
           </Button>
           <Button
-            onClick={() => notification.show({ message: 'Non-queued (stacks)', duration: 3000 })}
+            onClick={() =>
+              notification.show({
+                message: 'Non-queued (stacks)',
+                duration: 3000,
+              })
+            }
           >
             Non-Queued
           </Button>
@@ -273,7 +291,12 @@ export const QueuedNotifications: Story = {
 export const Positions: Story = {
   render: function PositionsExample() {
     const [pos, setPos] = React.useState<
-      'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right'
+      | 'top-left'
+      | 'top'
+      | 'top-right'
+      | 'bottom-left'
+      | 'bottom'
+      | 'bottom-right'
     >('top-right');
 
     return (
@@ -281,7 +304,14 @@ export const Positions: Story = {
         <NotificationContainer position={pos} />
         <div className="buttons">
           {(
-            ['top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'] as const
+            [
+              'top-left',
+              'top',
+              'top-right',
+              'bottom-left',
+              'bottom',
+              'bottom-right',
+            ] as const
           ).map(p => (
             <Button
               key={p}

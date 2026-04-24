@@ -14,16 +14,16 @@ Most React Bulma packages on npm still target Bulma v0.9.4. That means no CSS va
 
 ### Library Comparison
 
-| Feature                       | Other Libraries          | bestax-bulma                                                                                |
-| ----------------------------- | ------------------------ | ------------------------------------------------------------------------------------------- |
-| **Bulma Version**             | v0.9.4 or older          | v1.0+ (latest)                                                                              |
-| **CSS Variables**             | ❌ Not supported         | ✅ Full support (500+ variables)                                                            |
-| **Runtime Theming**           | ❌ Limited               | ✅ Complete `Theme` component                                                               |
-| **CSS Grid**                  | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                                        |
-| **Skeleton Loading**          | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                          |
-| **Class Prefixing**           | ❌ No support            | ✅ `ConfigProvider` support                                                                 |
-| **Dark Mode**                 | ❌ Manual implementation | ✅ Built-in theme support                                                                   |
-| **Components beyond Bulma**   | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, Switch |
+| Feature                     | Other Libraries          | bestax-bulma                                                                                |
+| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------------- |
+| **Bulma Version**           | v0.9.4 or older          | v1.0+ (latest)                                                                              |
+| **CSS Variables**           | ❌ Not supported         | ✅ Full support (500+ variables)                                                            |
+| **Runtime Theming**         | ❌ Limited               | ✅ Complete `Theme` component                                                               |
+| **CSS Grid**                | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                                        |
+| **Skeleton Loading**        | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                          |
+| **Class Prefixing**         | ❌ No support            | ✅ `ConfigProvider` support                                                                 |
+| **Dark Mode**               | ❌ Manual implementation | ✅ Built-in theme support                                                                   |
+| **Components beyond Bulma** | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, Switch |
 
 ## New Features in Bulma V1
 
@@ -271,30 +271,30 @@ Bulma is a CSS framework — it doesn't ship carousels, dialogs, autocompletes, 
 
 ### Interactive components
 
-| Component    | What it adds                                                  |
-| ------------ | ------------------------------------------------------------- |
-| **Carousel** | Slide-based content viewer with auto-advance and indicators   |
-| **Dialog**   | Modal dialog with confirm/cancel callbacks                    |
-| **Collapse** | Expandable content region with animation                      |
-| **Sidebar**  | Slide-in navigation panel                                     |
-| **Toast**    | Transient notification stack                                  |
-| **Snackbar** | Bottom-anchored single-line notification                      |
-| **Loading**  | Full-page or in-box loading overlay                           |
-| **Tooltip**  | Hover-triggered label with configurable delay                 |
+| Component    | What it adds                                                |
+| ------------ | ----------------------------------------------------------- |
+| **Carousel** | Slide-based content viewer with auto-advance and indicators |
+| **Dialog**   | Modal dialog with confirm/cancel callbacks                  |
+| **Collapse** | Expandable content region with animation                    |
+| **Sidebar**  | Slide-in navigation panel                                   |
+| **Toast**    | Transient notification stack                                |
+| **Snackbar** | Bottom-anchored single-line notification                    |
+| **Loading**  | Full-page or in-box loading overlay                         |
+| **Tooltip**  | Hover-triggered label with configurable delay               |
 
 ### Form components beyond Bulma
 
-| Component        | What it adds                                                     |
-| ---------------- | ---------------------------------------------------------------- |
-| **Autocomplete** | Searchable select with keyboard navigation                       |
-| **Rate**         | Star-rating input                                                |
-| **Slider**       | Themed range input                                               |
-| **Taginput**     | Free-text tag entry                                              |
-| **Switch**       | Toggle switch styled to match Bulma controls                     |
-| **NumberInput**  | Numeric input with increment/decrement controls                  |
-| **Checkboxes**   | Grouped checkbox list with shared label / layout                 |
-| **Radios**       | Grouped radio list with shared label / layout                    |
-| **Field**        | Convenience wrapper that bundles `Field` / `Control` / `Label`   |
+| Component        | What it adds                                                   |
+| ---------------- | -------------------------------------------------------------- |
+| **Autocomplete** | Searchable select with keyboard navigation                     |
+| **Rate**         | Star-rating input                                              |
+| **Slider**       | Themed range input                                             |
+| **Taginput**     | Free-text tag entry                                            |
+| **Switch**       | Toggle switch styled to match Bulma controls                   |
+| **NumberInput**  | Numeric input with increment/decrement controls                |
+| **Checkboxes**   | Grouped checkbox list with shared label / layout               |
+| **Radios**       | Grouped radio list with shared label / layout                  |
+| **Field**        | Convenience wrapper that bundles `Field` / `Control` / `Label` |
 
 Each of these is a full React component with TypeScript types, Storybook examples, and its own API page under the **Components** and **Form** sections.
 

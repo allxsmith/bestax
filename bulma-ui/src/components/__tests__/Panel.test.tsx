@@ -185,7 +185,12 @@ describe('Panel.Icon', () => {
   it('accepts custom className', () => {
     render(
       <Panel.Block>
-        <Panel.Icon name="user" variant="solid" className="custom-icon" data-testid="icon" />
+        <Panel.Icon
+          name="user"
+          variant="solid"
+          className="custom-icon"
+          data-testid="icon"
+        />
       </Panel.Block>
     );
     expect(screen.getByTestId('icon')).toHaveClass('custom-icon', 'panel-icon');

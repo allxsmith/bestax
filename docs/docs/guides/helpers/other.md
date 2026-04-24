@@ -586,8 +586,8 @@ function InteractionExamples() {
 
 The `cursor` prop sets the mouse cursor style. `cursor="pointer"` reuses Bulma's built-in `is-clickable` class; `cursor="help"` uses bestax's project-level `is-cursor-help` class to indicate a help/tooltip affordance.
 
-| Property          | Bulma Class      | CSS Property      |
-| ----------------- | ---------------- | ----------------- |
+| Property           | Bulma Class      | CSS Property      |
+| ------------------ | ---------------- | ----------------- |
 | `cursor="pointer"` | `is-clickable`   | `cursor: pointer` |
 | `cursor="help"`    | `is-cursor-help` | `cursor: help`    |
 
@@ -599,7 +599,13 @@ import { Box } from '@allxsmith/bestax-bulma';
 function CursorExamples() {
   return (
     <Box p="4">
-      <Box cursor="pointer" backgroundColor="primary" color="white" p="3" mb="3">
+      <Box
+        cursor="pointer"
+        backgroundColor="primary"
+        color="white"
+        p="3"
+        mb="3"
+      >
         Cursor: pointer (is-clickable)
       </Box>
       <Box cursor="help" backgroundColor="info" color="white" p="3">
@@ -631,9 +637,9 @@ The `fullHeight` prop applies `height: 100%`, useful for making a child fill its
 
 The `skeleton` prop toggles Bulma's skeleton loading state on a component. See the [skeleton examples in the useBulmaClasses API reference](/docs/api/helpers/usebulmaclasses#skeleton-examples) for per-component usage.
 
-| Property          | Bulma Class   | Effect                    |
-| ----------------- | ------------- | ------------------------- |
-| `skeleton={true}` | `is-skeleton` | Skeleton loading effect   |
+| Property          | Bulma Class   | Effect                  |
+| ----------------- | ------------- | ----------------------- |
+| `skeleton={true}` | `is-skeleton` | Skeleton loading effect |
 
 ## Position Relative
 
@@ -669,9 +675,7 @@ function PositionRelativeExamples() {
             p="4"
             style={{ height: '200px', border: '2px dashed #ccc' }}
           >
-            <Content>
-              This container has position: relative
-            </Content>
+            <Content>This container has position: relative</Content>
             <Box
               style={{
                 position: 'absolute',

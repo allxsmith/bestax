@@ -4,7 +4,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import { visualizer } from 'rollup-plugin-visualizer';
 import scss from 'rollup-plugin-scss';
 
-const variationBuild = (name) => ({
+const variationBuild = name => ({
   input: `src/scss/versions/${name}.scss`,
   output: { file: `dist/versions/${name}.js`, format: 'es' },
   plugins: [

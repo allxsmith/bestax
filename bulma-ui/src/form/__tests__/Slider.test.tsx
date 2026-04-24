@@ -227,16 +227,24 @@ describe('Slider', () => {
       const input = container.querySelector('input')!;
 
       expect(container.querySelector('.slider-output')).toBeInTheDocument();
-      expect(container.querySelector('.slider-output')).not.toHaveClass('is-visible');
+      expect(container.querySelector('.slider-output')).not.toHaveClass(
+        'is-visible'
+      );
 
       fireEvent.mouseEnter(input);
-      expect(container.querySelector('.slider-output')).toHaveClass('is-visible');
+      expect(container.querySelector('.slider-output')).toHaveClass(
+        'is-visible'
+      );
     });
 
     it('tooltip="always" renders output with is-visible always', () => {
       const { container } = render(<Slider tooltip="always" showOutput />);
-      expect(container.querySelector('.slider-output')).toHaveClass('is-visible');
-      expect(container.querySelector('.slider')).toHaveClass('has-output-always');
+      expect(container.querySelector('.slider-output')).toHaveClass(
+        'is-visible'
+      );
+      expect(container.querySelector('.slider')).toHaveClass(
+        'has-output-always'
+      );
     });
 
     it('tooltip="hidden" does not render output even with showOutput', () => {
@@ -252,7 +260,9 @@ describe('Slider', () => {
     it('showOutput without tooltip defaults to auto behavior', () => {
       const { container } = render(<Slider showOutput />);
       expect(container.querySelector('.slider')).toHaveClass('has-output');
-      expect(container.querySelector('.slider')).not.toHaveClass('has-output-always');
+      expect(container.querySelector('.slider')).not.toHaveClass(
+        'has-output-always'
+      );
     });
   });
 
@@ -331,33 +341,25 @@ describe('Slider', () => {
     });
 
     it('sets aria-valuetext from scale when no getAriaValueText', () => {
-      const { container } = render(
-        <Slider value={3} scale={v => v * v} />
-      );
+      const { container } = render(<Slider value={3} scale={v => v * v} />);
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-valuetext', '9');
     });
 
     it('passes aria-label to input', () => {
-      const { container } = render(
-        <Slider ariaLabel="Volume" />
-      );
+      const { container } = render(<Slider ariaLabel="Volume" />);
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-label', 'Volume');
     });
 
     it('passes aria-labelledby to input', () => {
-      const { container } = render(
-        <Slider aria-labelledby="my-label" />
-      );
+      const { container } = render(<Slider aria-labelledby="my-label" />);
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-labelledby', 'my-label');
     });
 
     it('sets aria-orientation for vertical', () => {
-      const { container } = render(
-        <Slider orientation="vertical" />
-      );
+      const { container } = render(<Slider orientation="vertical" />);
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-orientation', 'vertical');
     });
@@ -483,7 +485,9 @@ describe('Slider', () => {
     it('marks without labels do not add tick-label class', () => {
       const marks = [{ value: 50 }];
       const { container } = render(<Slider marks={marks} />);
-      expect(container.querySelector('.slider')).not.toHaveClass('has-tick-labels');
+      expect(container.querySelector('.slider')).not.toHaveClass(
+        'has-tick-labels'
+      );
     });
 
     it('marks take precedence over ticks', () => {
@@ -507,7 +511,9 @@ describe('Slider', () => {
         />
       );
       // scale(3) = 9, then formatOutput(9) = "9 units"
-      expect(container.querySelector('.slider-output')).toHaveTextContent('9 units');
+      expect(container.querySelector('.slider-output')).toHaveTextContent(
+        '9 units'
+      );
     });
 
     it('applies scale to default output display', () => {
@@ -518,9 +524,7 @@ describe('Slider', () => {
     });
 
     it('sets aria-valuetext with scaled value when no getAriaValueText', () => {
-      const { container } = render(
-        <Slider value={5} scale={v => v * 2} />
-      );
+      const { container } = render(<Slider value={5} scale={v => v * 2} />);
       const input = container.querySelector('input');
       expect(input).toHaveAttribute('aria-valuetext', '10');
     });
@@ -540,7 +544,9 @@ describe('Slider', () => {
     it('sets wrapper height style for vertical', () => {
       const { container } = render(<Slider orientation="vertical" />);
       const wrapper = container.querySelector('.slider') as HTMLElement;
-      expect(wrapper.style.height).toBe('var(--bulma-slider-vertical-height, 200px)');
+      expect(wrapper.style.height).toBe(
+        'var(--bulma-slider-vertical-height, 200px)'
+      );
     });
 
     it('positions output with bottom for vertical', () => {
@@ -586,7 +592,9 @@ describe('Slider', () => {
 
     it('sets low and high values', () => {
       const { container } = render(<Slider range value={[25, 75]} />);
-      const inputs = container.querySelectorAll('input[type="range"]') as NodeListOf<HTMLInputElement>;
+      const inputs = container.querySelectorAll(
+        'input[type="range"]'
+      ) as NodeListOf<HTMLInputElement>;
       expect(inputs[0].value).toBe('25');
       expect(inputs[1].value).toBe('75');
     });
@@ -616,7 +624,12 @@ describe('Slider', () => {
     it('enforces minDistance', () => {
       const handleChange = jest.fn();
       const { container } = render(
-        <Slider range value={[30, 70]} minDistance={20} onChange={handleChange} />
+        <Slider
+          range
+          value={[30, 70]}
+          minDistance={20}
+          onChange={handleChange}
+        />
       );
       const inputs = container.querySelectorAll('input[type="range"]');
 
@@ -628,7 +641,12 @@ describe('Slider', () => {
     it('enforces minDistance on high thumb', () => {
       const handleChange = jest.fn();
       const { container } = render(
-        <Slider range value={[30, 70]} minDistance={20} onChange={handleChange} />
+        <Slider
+          range
+          value={[30, 70]}
+          minDistance={20}
+          onChange={handleChange}
+        />
       );
       const inputs = container.querySelectorAll('input[type="range"]');
 
@@ -664,22 +682,22 @@ describe('Slider', () => {
     });
 
     it('updates uncontrolled range values', () => {
-      const { container } = render(
-        <Slider range defaultValue={[10, 90]} />
-      );
-      const inputs = container.querySelectorAll('input[type="range"]') as NodeListOf<HTMLInputElement>;
+      const { container } = render(<Slider range defaultValue={[10, 90]} />);
+      const inputs = container.querySelectorAll(
+        'input[type="range"]'
+      ) as NodeListOf<HTMLInputElement>;
 
       fireEvent.change(inputs[0], { target: { value: '30' } });
       expect(inputs[0].value).toBe('30');
     });
 
     it('renders track with progress vars', () => {
-      const { container } = render(
-        <Slider range value={[25, 75]} />
-      );
+      const { container } = render(<Slider range value={[25, 75]} />);
       const track = container.querySelector('.slider-track') as HTMLElement;
       expect(track.style.getPropertyValue('--slider-progress-low')).toBe('25%');
-      expect(track.style.getPropertyValue('--slider-progress-high')).toBe('75%');
+      expect(track.style.getPropertyValue('--slider-progress-high')).toBe(
+        '75%'
+      );
     });
   });
 

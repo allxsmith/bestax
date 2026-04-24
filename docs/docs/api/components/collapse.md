@@ -21,22 +21,22 @@ import { Collapse } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop               | Type                                     | Default | Description                                      |
-| ------------------ | ---------------------------------------- | ------- | ------------------------------------------------ |
-| `open`             | `boolean`                                | —       | Controlled open state.                           |
-| `defaultOpen`      | `boolean`                                | `false` | Initial open state for uncontrolled usage.       |
-| `onOpen`           | `() => void`                             | —       | Callback when collapse opens.                    |
-| `onClose`          | `() => void`                             | —       | Callback when collapse closes.                   |
-| `trigger`          | `React.ReactNode`                        | —       | The clickable trigger element (header/button).   |
-| `animation`        | `'fade'` \| `'slide'` \| `false`         | `'fade'` | Animation style, or `false` to disable.         |
-| `ariaId`           | `string`                                 | auto    | Custom aria id for accessibility.                |
-| `children`         | `React.ReactNode`                        | —       | The collapsible content.                         |
-| `className`        | `string`                                 | —       | Additional CSS classes.                          |
-| `triggerClassName` | `string`                                 | —       | Additional classes for the trigger wrapper.      |
-| `contentClassName` | `string`                                 | —       | Additional classes for the content wrapper.      |
-| `position`         | `'top'` \| `'bottom'`                    | `'top'` | Position of the trigger relative to content.     |
-| `bordered`         | `boolean`                                | —       | Adds a border around the collapse.               |
-| ...                | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop               | Type                                     | Default  | Description                                      |
+| ------------------ | ---------------------------------------- | -------- | ------------------------------------------------ |
+| `open`             | `boolean`                                | —        | Controlled open state.                           |
+| `defaultOpen`      | `boolean`                                | `false`  | Initial open state for uncontrolled usage.       |
+| `onOpen`           | `() => void`                             | —        | Callback when collapse opens.                    |
+| `onClose`          | `() => void`                             | —        | Callback when collapse closes.                   |
+| `trigger`          | `React.ReactNode`                        | —        | The clickable trigger element (header/button).   |
+| `animation`        | `'fade'` \| `'slide'` \| `false`         | `'fade'` | Animation style, or `false` to disable.          |
+| `ariaId`           | `string`                                 | auto     | Custom aria id for accessibility.                |
+| `children`         | `React.ReactNode`                        | —        | The collapsible content.                         |
+| `className`        | `string`                                 | —        | Additional CSS classes.                          |
+| `triggerClassName` | `string`                                 | —        | Additional classes for the trigger wrapper.      |
+| `contentClassName` | `string`                                 | —        | Additional classes for the content wrapper.      |
+| `position`         | `'top'` \| `'bottom'`                    | `'top'`  | Position of the trigger relative to content.     |
+| `bordered`         | `boolean`                                | —        | Adds a border around the collapse.               |
+| ...                | All standard HTML and Bulma helper props |          | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
 
@@ -51,7 +51,12 @@ function example() {
   return (
     <Collapse
       trigger={
-        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+        <Block
+          p="3"
+          bgColor="white-ter"
+          cursor="pointer"
+          style={{ borderRadius: '4px' }}
+        >
           <Strong>Click to expand</Strong>
         </Block>
       }
@@ -79,7 +84,12 @@ function example() {
     <Collapse
       defaultOpen
       trigger={
-        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+        <Block
+          p="3"
+          bgColor="white-ter"
+          cursor="pointer"
+          style={{ borderRadius: '4px' }}
+        >
           <Strong>This starts open</Strong>
         </Block>
       }
@@ -104,7 +114,12 @@ function example() {
     <Collapse
       animation={false}
       trigger={
-        <Block p="3" bgColor="white-ter" cursor="pointer" style={{ borderRadius: '4px' }}>
+        <Block
+          p="3"
+          bgColor="white-ter"
+          cursor="pointer"
+          style={{ borderRadius: '4px' }}
+        >
           <Strong>No animation</Strong>
         </Block>
       }
@@ -133,9 +148,7 @@ function example() {
         <Button color="primary" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? 'Close' : 'Open'} Collapse
         </Button>
-        <Span ml="4">
-          State: {isOpen ? 'Open' : 'Closed'}
-        </Span>
+        <Span ml="4">State: {isOpen ? 'Open' : 'Closed'}</Span>
       </Block>
       <Collapse
         open={isOpen}
@@ -217,7 +230,9 @@ function example() {
         </Block>
       }
     >
-      <Paragraph>This collapse is styled like a card with shadow and padding.</Paragraph>
+      <Paragraph>
+        This collapse is styled like a card with shadow and padding.
+      </Paragraph>
       <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>
     </Collapse>
   );
@@ -251,7 +266,9 @@ function example() {
 
   return (
     <Block>
-      <Title size="5" mb="4">FAQ</Title>
+      <Title size="5" mb="4">
+        FAQ
+      </Title>
       <Block display="flex" flexDirection="column" gap="2">
         {faqs.map((faq, index) => (
           <Collapse
@@ -270,7 +287,9 @@ function example() {
             }
             open={openStates[index]}
           >
-            <Paragraph p="4" textColor="grey-dark">{faq.a}</Paragraph>
+            <Paragraph p="4" textColor="grey-dark">
+              {faq.a}
+            </Paragraph>
           </Collapse>
         ))}
       </Block>

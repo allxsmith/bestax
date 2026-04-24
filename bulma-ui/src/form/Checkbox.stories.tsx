@@ -152,7 +152,14 @@ export const Indeterminate: Story = {
         >
           Select all
         </Checkbox>
-        <div style={{ marginLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div
+          style={{
+            marginLeft: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}
+        >
           {['Item A', 'Item B', 'Item C'].map((label, i) => (
             <Checkbox
               key={label}

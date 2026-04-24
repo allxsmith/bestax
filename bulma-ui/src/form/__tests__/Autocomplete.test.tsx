@@ -24,7 +24,9 @@ describe('Autocomplete', () => {
 
     it('renders with autocomplete class', () => {
       const { container } = render(<Autocomplete data={fruits} />);
-      expect(container.querySelector('.autocomplete')).toHaveClass('autocomplete');
+      expect(container.querySelector('.autocomplete')).toHaveClass(
+        'autocomplete'
+      );
     });
 
     it('does not show dropdown initially', () => {

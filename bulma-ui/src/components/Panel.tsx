@@ -218,9 +218,15 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
  * @param {PanelIconProps} props - Props for the PanelIcon component.
  * @returns {JSX.Element} The rendered panel icon.
  */
-export const PanelIcon: React.FC<PanelIconProps> = ({ className, ...props }) => (
+export const PanelIcon: React.FC<PanelIconProps> = ({
+  className,
+  ...props
+}) => (
   <Icon
-    containerClassName={classNames(usePrefixedClassNames('panel-icon'), className)}
+    containerClassName={classNames(
+      usePrefixedClassNames('panel-icon'),
+      className
+    )}
     {...props}
   />
 );

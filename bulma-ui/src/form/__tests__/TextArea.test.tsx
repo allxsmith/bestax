@@ -7,9 +7,7 @@ import { ConfigProvider } from '../../helpers/Config';
 describe('TextArea', () => {
   describe('rendering', () => {
     it('renders a textarea inside a field', () => {
-      const { container } = render(
-        <TextArea data-testid="textarea" />
-      );
+      const { container } = render(<TextArea data-testid="textarea" />);
       expect(screen.getByTestId('textarea')).toBeInTheDocument();
       expect(container.querySelector('.field')).toBeInTheDocument();
       expect(container.querySelector('.control')).toBeInTheDocument();
@@ -24,9 +22,7 @@ describe('TextArea', () => {
     });
 
     it('renders without label when not provided', () => {
-      const { container } = render(
-        <TextArea data-testid="textarea" />
-      );
+      const { container } = render(<TextArea data-testid="textarea" />);
       expect(container.querySelector('.label')).not.toBeInTheDocument();
     });
   });
@@ -55,9 +51,7 @@ describe('TextArea', () => {
     });
 
     it('does not render help when message is not provided', () => {
-      const { container } = render(
-        <TextArea data-testid="textarea" />
-      );
+      const { container } = render(<TextArea data-testid="textarea" />);
       expect(container.querySelector('.help')).not.toBeInTheDocument();
     });
   });
@@ -100,9 +94,7 @@ describe('TextArea', () => {
 
     it('calls onChange', () => {
       const handleChange = jest.fn();
-      render(
-        <TextArea onChange={handleChange} data-testid="textarea" />
-      );
+      render(<TextArea onChange={handleChange} data-testid="textarea" />);
       fireEvent.change(screen.getByTestId('textarea'), {
         target: { value: 'test' },
       });
@@ -131,30 +123,20 @@ describe('TextArea', () => {
   describe('custom classNames', () => {
     it('applies fieldClassName to field', () => {
       const { container } = render(
-        <TextArea
-          fieldClassName="custom-field"
-          data-testid="textarea"
-        />
+        <TextArea fieldClassName="custom-field" data-testid="textarea" />
       );
       expect(container.querySelector('.field')).toHaveClass('custom-field');
     });
 
     it('applies controlClassName to control', () => {
       const { container } = render(
-        <TextArea
-          controlClassName="custom-control"
-          data-testid="textarea"
-        />
+        <TextArea controlClassName="custom-control" data-testid="textarea" />
       );
-      expect(container.querySelector('.control')).toHaveClass(
-        'custom-control'
-      );
+      expect(container.querySelector('.control')).toHaveClass('custom-control');
     });
 
     it('applies className to textarea', () => {
-      render(
-        <TextArea className="custom-textarea" data-testid="textarea" />
-      );
+      render(<TextArea className="custom-textarea" data-testid="textarea" />);
       expect(screen.getByTestId('textarea')).toHaveClass('custom-textarea');
     });
   });

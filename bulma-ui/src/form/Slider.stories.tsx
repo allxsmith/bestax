@@ -543,7 +543,9 @@ export const TicksFan: Story = {
           marks={marks}
           tooltip="always"
           showOutput
-          formatOutput={v => marks.find(m => m.value === v)?.label as string ?? `${v}`}
+          formatOutput={v =>
+            (marks.find(m => m.value === v)?.label as string) ?? `${v}`
+          }
           color="info"
         />
       </div>
@@ -560,12 +562,7 @@ export const RangeDefault: Story = {
 
     return (
       <div>
-        <Slider
-          range
-          value={value}
-          onChange={setValue}
-          color="primary"
-        />
+        <Slider range value={value} onChange={setValue} color="primary" />
         <p className="mt-4">
           Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
         </p>
@@ -616,7 +613,8 @@ export const RangeMinDistance: Story = {
           color="warning"
         />
         <p className="mt-4">
-          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong> (min distance: 10)
+          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong> (min
+          distance: 10)
         </p>
       </div>
     );
@@ -685,7 +683,14 @@ export const VerticalWithOutput: Story = {
     const [value, setValue] = useState(60);
 
     return (
-      <div style={{ height: '250px', display: 'flex', gap: '3rem', paddingLeft: '1rem' }}>
+      <div
+        style={{
+          height: '250px',
+          display: 'flex',
+          gap: '3rem',
+          paddingLeft: '1rem',
+        }}
+      >
         <Slider
           value={value}
           onChange={setValue}
@@ -725,7 +730,8 @@ export const NonLinearScale: Story = {
           color="warning"
         />
         <p className="mt-4">
-          Raw value: <strong>{value}</strong>, Displayed: <strong>{Math.round(2 ** value)}</strong>
+          Raw value: <strong>{value}</strong>, Displayed:{' '}
+          <strong>{Math.round(2 ** value)}</strong>
         </p>
       </div>
     );
@@ -836,9 +842,7 @@ export const RangeWithNames: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },

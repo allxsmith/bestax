@@ -156,7 +156,9 @@ Renders the message body section.
       This message is built using compound components for maximum flexibility
       and control over each section.
     </Paragraph>
-    <Paragraph>You can include multiple paragraphs and elements in the body.</Paragraph>
+    <Paragraph>
+      You can include multiple paragraphs and elements in the body.
+    </Paragraph>
   </Message.Body>
 </Message>
 ```
@@ -166,7 +168,9 @@ Renders the message body section.
 ```tsx live
 <Message color="success">
   <Message.Body>
-    <Paragraph>A simple message using only the Message.Body compound component.</Paragraph>
+    <Paragraph>
+      A simple message using only the Message.Body compound component.
+    </Paragraph>
   </Message.Body>
 </Message>
 ```
@@ -189,7 +193,9 @@ You can combine the traditional prop-based API with compound components:
 ```tsx live
 <Message color="danger" title="Mixed Approach">
   <Message.Body bgColor="light">
-    <Paragraph>You can mix prop-based and compound component approaches!</Paragraph>
+    <Paragraph>
+      You can mix prop-based and compound component approaches!
+    </Paragraph>
     <Paragraph>
       This message uses the title prop but compound components for the body.
     </Paragraph>

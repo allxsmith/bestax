@@ -178,7 +178,10 @@ describe('Steps', () => {
         <Steps
           value={1}
           items={[
-            { label: 'Step 1', completedIcon: <span data-testid="done">done</span> },
+            {
+              label: 'Step 1',
+              completedIcon: <span data-testid="done">done</span>,
+            },
             { label: 'Step 2' },
           ]}
         />
@@ -275,9 +278,7 @@ describe('Steps', () => {
     });
 
     it('applies is-rounded class by default', () => {
-      const { container } = render(
-        <Steps items={[{ label: 'Step 1' }]} />
-      );
+      const { container } = render(<Steps items={[{ label: 'Step 1' }]} />);
       expect(container.querySelector('.steps')).toHaveClass('is-rounded');
     });
 
@@ -616,7 +617,9 @@ describe('Step subcomponent', () => {
     const { container } = render(
       <Step isCompleted stepNumber={1} label="Test" />
     );
-    expect(container.querySelector('.steps-marker')).toHaveTextContent('\u2713');
+    expect(container.querySelector('.steps-marker')).toHaveTextContent(
+      '\u2713'
+    );
   });
 
   it('calls onClick when clickable and clicked', () => {

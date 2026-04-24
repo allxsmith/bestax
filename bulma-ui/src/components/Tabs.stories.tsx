@@ -112,8 +112,8 @@ export const ExternalNavigation: Story = {
     const tabs = ['Account', 'Security', 'Notifications', 'Billing'];
     const [active, setActive] = useState(0);
 
-    const goPrev = () => setActive((i) => Math.max(0, i - 1));
-    const goNext = () => setActive((i) => Math.min(tabs.length - 1, i + 1));
+    const goPrev = () => setActive(i => Math.max(0, i - 1));
+    const goNext = () => setActive(i => Math.min(tabs.length - 1, i + 1));
 
     return (
       <Block>
@@ -127,10 +127,14 @@ export const ExternalNavigation: Story = {
           </Tabs.List>
           <Tabs.Content>
             <Tabs.Content.Item index={0}>
-              <Paragraph>Manage your account details and display name.</Paragraph>
+              <Paragraph>
+                Manage your account details and display name.
+              </Paragraph>
             </Tabs.Content.Item>
             <Tabs.Content.Item index={1}>
-              <Paragraph>Update your password and two-factor authentication.</Paragraph>
+              <Paragraph>
+                Update your password and two-factor authentication.
+              </Paragraph>
             </Tabs.Content.Item>
             <Tabs.Content.Item index={2}>
               <Paragraph>Choose which notifications you receive.</Paragraph>
@@ -144,7 +148,11 @@ export const ExternalNavigation: Story = {
           <Button onClick={goPrev} isDisabled={active === 0}>
             Previous
           </Button>
-          <Button onClick={goNext} isDisabled={active === tabs.length - 1} color="primary">
+          <Button
+            onClick={goNext}
+            isDisabled={active === tabs.length - 1}
+            color="primary"
+          >
             Next
           </Button>
         </Buttons>

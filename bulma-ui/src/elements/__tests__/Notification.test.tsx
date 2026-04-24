@@ -266,7 +266,11 @@ describe('Notification Programmatic API', () => {
     it('stays open when indefinite', () => {
       render(<NotificationContainer />);
       act(() => {
-        notification.show({ message: 'Stay', indefinite: true, duration: 1000 });
+        notification.show({
+          message: 'Stay',
+          indefinite: true,
+          duration: 1000,
+        });
       });
 
       act(() => {
@@ -338,9 +342,7 @@ describe('Notification Programmatic API', () => {
         notification.show({ message: 'With delete', duration: 0 });
       });
 
-      expect(
-        screen.getByLabelText('Close notification')
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText('Close notification')).toBeInTheDocument();
     });
 
     it('closes when delete button is clicked', () => {
@@ -356,7 +358,11 @@ describe('Notification Programmatic API', () => {
     it('hides delete button when hasDelete is false', () => {
       render(<NotificationContainer />);
       act(() => {
-        notification.show({ message: 'No delete', duration: 0, hasDelete: false });
+        notification.show({
+          message: 'No delete',
+          duration: 0,
+          hasDelete: false,
+        });
       });
 
       expect(

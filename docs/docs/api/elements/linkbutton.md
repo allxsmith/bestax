@@ -32,25 +32,25 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `variant` | `'text' \| 'ghost' \| 'underline'` | `'text'` | Display mode. `text` has no underline; `ghost` uses default text color. |
-| `color` | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black'` | — | Text color override for the button. |
-| `size` | `'small' \| 'normal' \| 'medium' \| 'large'` | — | Size of the button. |
-| `isRounded` | `boolean` | — | Makes the button rounded. |
-| `isLoading` | `boolean` | — | Displays a loading spinner. |
-| `isStatic` | `boolean` | — | Makes the button non-interactive. |
-| `isFullWidth` | `boolean` | — | Makes the button full-width. |
-| `isFocused` | `boolean` | — | Applies focused styling (visual only). |
-| `isActive` | `boolean` | — | Applies active styling (visual only). |
-| `isHovered` | `boolean` | — | Applies hovered styling (visual only). |
-| `isDisabled` | `boolean` | — | Applies disabled styling. |
-| `as` | `'button' \| 'a'` | `'button'` | Render as a `<button>` or `<a>`. |
-| `href` | `string` | — | Href value (if rendering as `<a>`). |
-| `onClick` | `function` | — | Click event handler. |
-| `className` | `string` | — | Custom class name. |
-| `children` | `React.ReactNode` | — | Button content. |
-| ... | All standard `<button>` and Bulma helper props | — | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop          | Type                                                                                                             | Default    | Description                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
+| `variant`     | `'text' \| 'ghost' \| 'underline'`                                                                               | `'text'`   | Display mode. `text` has no underline; `ghost` uses default text color. |
+| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black'` | —          | Text color override for the button.                                     |
+| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                     | —          | Size of the button.                                                     |
+| `isRounded`   | `boolean`                                                                                                        | —          | Makes the button rounded.                                               |
+| `isLoading`   | `boolean`                                                                                                        | —          | Displays a loading spinner.                                             |
+| `isStatic`    | `boolean`                                                                                                        | —          | Makes the button non-interactive.                                       |
+| `isFullWidth` | `boolean`                                                                                                        | —          | Makes the button full-width.                                            |
+| `isFocused`   | `boolean`                                                                                                        | —          | Applies focused styling (visual only).                                  |
+| `isActive`    | `boolean`                                                                                                        | —          | Applies active styling (visual only).                                   |
+| `isHovered`   | `boolean`                                                                                                        | —          | Applies hovered styling (visual only).                                  |
+| `isDisabled`  | `boolean`                                                                                                        | —          | Applies disabled styling.                                               |
+| `as`          | `'button' \| 'a'`                                                                                                | `'button'` | Render as a `<button>` or `<a>`.                                        |
+| `href`        | `string`                                                                                                         | —          | Href value (if rendering as `<a>`).                                     |
+| `onClick`     | `function`                                                                                                       | —          | Click event handler.                                                    |
+| `className`   | `string`                                                                                                         | —          | Custom class name.                                                      |
+| `children`    | `React.ReactNode`                                                                                                | —          | Button content.                                                         |
+| ...           | All standard `<button>` and Bulma helper props                                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                       |
 
 :::note
 The `isOutlined`, `isInverted`, and `isLight` props from Button are not available on LinkButton — they don't apply to link-like buttons.
@@ -89,7 +89,9 @@ Add a `color` prop to set the text color. The hover behavior remains the same.
 Colors work with the ghost variant too.
 
 ```tsx live
-<LinkButton variant="ghost" color="danger">Danger Ghost</LinkButton>
+<LinkButton variant="ghost" color="danger">
+  Danger Ghost
+</LinkButton>
 ```
 
 ### All Colors
@@ -128,11 +130,11 @@ Colors work with the ghost variant too.
 
 ## Visual Behavior
 
-| | Default text color | Hover |
-|---|---|---|
-| **text variant** | `var(--bulma-text)` | Background highlight, no underline |
-| **ghost variant** | `var(--bulma-text)` | Underline appears |
-| **+ color** | Uses specified color | Same hover behavior, color maintained |
+|                   | Default text color   | Hover                                 |
+| ----------------- | -------------------- | ------------------------------------- |
+| **text variant**  | `var(--bulma-text)`  | Background highlight, no underline    |
+| **ghost variant** | `var(--bulma-text)`  | Underline appears                     |
+| **+ color**       | Uses specified color | Same hover behavior, color maintained |
 
 ---
 

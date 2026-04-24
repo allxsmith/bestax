@@ -74,8 +74,12 @@ export const DisabledGroup: Story = {
 export const WithLabel: Story = {
   render: () => (
     <Radios label="Color">
-      <Radio name="color" value="red">Red</Radio>
-      <Radio name="color" value="blue">Blue</Radio>
+      <Radio name="color" value="red">
+        Red
+      </Radio>
+      <Radio name="color" value="blue">
+        Blue
+      </Radio>
     </Radios>
   ),
 };
@@ -90,8 +94,12 @@ export const WithFieldWrapper: Story = {
       <Field.Body>
         <Field>
           <Radios>
-            <Radio name="color" value="red">Red</Radio>
-            <Radio name="color" value="blue">Blue</Radio>
+            <Radio name="color" value="red">
+              Red
+            </Radio>
+            <Radio name="color" value="blue">
+              Blue
+            </Radio>
           </Radios>
         </Field>
       </Field.Body>
@@ -110,8 +118,12 @@ export const WithFieldControlWrapper: Story = {
         <Field>
           <Control>
             <Radios>
-              <Radio name="color" value="red">Red</Radio>
-              <Radio name="color" value="blue">Blue</Radio>
+              <Radio name="color" value="red">
+                Red
+              </Radio>
+              <Radio name="color" value="blue">
+                Blue
+              </Radio>
             </Radios>
           </Control>
         </Field>
@@ -138,7 +150,9 @@ export const WithName: Story = {
         }}
       >
         <Radios name="color">
-          <Radio value="red" defaultChecked>Red</Radio>
+          <Radio value="red" defaultChecked>
+            Red
+          </Radio>
           <Radio value="green">Green</Radio>
           <Radio value="blue">Blue</Radio>
         </Radios>
@@ -147,9 +161,7 @@ export const WithName: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },
@@ -164,7 +176,14 @@ export const WithNameThroughWrappers: Story = {
   render: function RadiosWrappedForm() {
     const [submitted, setSubmitted] = useState<string>('');
     const RadioCard = ({ value, label }: { value: string; label: string }) => (
-      <div style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, marginBottom: '0.5rem' }}>
+      <div
+        style={{
+          padding: '0.5rem',
+          border: '1px solid #ddd',
+          borderRadius: 4,
+          marginBottom: '0.5rem',
+        }}
+      >
         <Radio value={value}>{label}</Radio>
       </div>
     );
@@ -186,9 +205,7 @@ export const WithNameThroughWrappers: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },

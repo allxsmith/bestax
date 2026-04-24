@@ -82,7 +82,9 @@ This renders HTML with prefixed classes:
 ```html title="HTML markup from example above"
 <div class="bestax-box">
   <h1 class="bestax-title">Bestax-Prefixed Components</h1>
-  <button class="bestax-button bestax-is-primary">Bestax-Prefixed Button</button>
+  <button class="bestax-button bestax-is-primary">
+    Bestax-Prefixed Button
+  </button>
 </div>
 ```
 
@@ -281,15 +283,15 @@ This approach allows you to:
 
 ## Choosing the Right Variation
 
-| Use Case                                  | Recommended Variation                            |
-| ----------------------------------------- | ------------------------------------------------ |
-| **New project, full control**             | Complete (`bestax.css`)                          |
-| **Avoid class conflicts (bestax prefix)** | Prefixed (`bestax-prefixed.css`)                 |
-| **Avoid class conflicts (bulma prefix)**  | Bulma-Prefixed (`bestax-bulma-prefixed.css`)     |
-| **Custom styling, minimal CSS**           | No Helpers (`bestax-no-helpers.css`)             |
+| Use Case                                  | Recommended Variation                                   |
+| ----------------------------------------- | ------------------------------------------------------- |
+| **New project, full control**             | Complete (`bestax.css`)                                 |
+| **Avoid class conflicts (bestax prefix)** | Prefixed (`bestax-prefixed.css`)                        |
+| **Avoid class conflicts (bulma prefix)**  | Bulma-Prefixed (`bestax-bulma-prefixed.css`)            |
+| **Custom styling, minimal CSS**           | No Helpers (`bestax-no-helpers.css`)                    |
 | **Minimal CSS + prefixed**                | No Helpers, Prefixed (`bestax-no-helpers-prefixed.css`) |
-| **Light mode only, smaller bundle**       | No Dark Mode (`bestax-no-dark-mode.css`)         |
-| **Enterprise/branded applications**       | Custom Brand (custom SCSS build)                 |
+| **Light mode only, smaller bundle**       | No Dark Mode (`bestax-no-dark-mode.css`)                |
+| **Enterprise/branded applications**       | Custom Brand (custom SCSS build)                        |
 
 ---
 

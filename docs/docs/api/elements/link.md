@@ -100,7 +100,9 @@ A `<Button as="a">` should still navigate to a URL. If the element triggers an a
 :::
 
 ```tsx live
-<Button as="a" href="#" color="primary">Button Link</Button>
+<Button as="a" href="#" color="primary">
+  Button Link
+</Button>
 ```
 
 ### Large Text Link

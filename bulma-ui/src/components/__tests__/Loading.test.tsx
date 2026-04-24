@@ -93,7 +93,14 @@ describe('Loading', () => {
   });
 
   describe('colors', () => {
-    it.each(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const)(
+    it.each([
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ] as const)(
       'applies is-%s class to loading element when color="%s"',
       color => {
         const { container } = render(<Loading active color={color} />);
@@ -318,7 +325,9 @@ describe('Loading', () => {
       const { container } = render(
         <Loading active indicator={<span data-testid="custom-icon">★</span>} />
       );
-      expect(container.querySelector('.loading-icon-custom')).toBeInTheDocument();
+      expect(
+        container.querySelector('.loading-icon-custom')
+      ).toBeInTheDocument();
       expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     });
 
@@ -332,14 +341,20 @@ describe('Loading', () => {
     it('renders default spinner when no indicator', () => {
       const { container } = render(<Loading active />);
       expect(container.querySelector('.loading-icon')).toBeInTheDocument();
-      expect(container.querySelector('.loading-icon-custom')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('.loading-icon-custom')
+      ).not.toBeInTheDocument();
     });
 
     it('renders children alongside custom indicator', () => {
       const { container } = render(
-        <Loading active indicator={<span>★</span>}>Loading text</Loading>
+        <Loading active indicator={<span>★</span>}>
+          Loading text
+        </Loading>
       );
-      expect(container.querySelector('.loading-icon-custom')).toBeInTheDocument();
+      expect(
+        container.querySelector('.loading-icon-custom')
+      ).toBeInTheDocument();
       expect(screen.getByText('Loading text')).toBeInTheDocument();
     });
   });
@@ -349,7 +364,9 @@ describe('Loading', () => {
       'applies is-%s class when overlay="%s"',
       overlay => {
         const { container } = render(<Loading active overlay={overlay} />);
-        expect(container.querySelector('.loading')).toHaveClass(`is-${overlay}`);
+        expect(container.querySelector('.loading')).toHaveClass(
+          `is-${overlay}`
+        );
       }
     );
 
@@ -370,12 +387,16 @@ describe('Loading', () => {
 
     it('does not apply is-cancelable class when canCancel is false', () => {
       const { container } = render(<Loading active canCancel={false} />);
-      expect(container.querySelector('.loading')).not.toHaveClass('is-cancelable');
+      expect(container.querySelector('.loading')).not.toHaveClass(
+        'is-cancelable'
+      );
     });
 
     it('does not apply is-cancelable class by default', () => {
       const { container } = render(<Loading active />);
-      expect(container.querySelector('.loading')).not.toHaveClass('is-cancelable');
+      expect(container.querySelector('.loading')).not.toHaveClass(
+        'is-cancelable'
+      );
     });
   });
 

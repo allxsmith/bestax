@@ -21,15 +21,15 @@ import { Radios, Radio } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                       | Description                                      |
-| -------------- | -------------------------- | ------------------------------------------------ |
-| `name`         | `string`                   | Form field name shared by every Radio in the group (via context). |
-| `value`        | `string`                   | Currently-selected value (controlled mode).      |
-| `defaultValue` | `string`                   | Initial selected value (uncontrolled mode).      |
-| `onChange`     | `(value: string) => void`  | Fires when the selection changes.                |
-| `className`    | `string`                   | Additional CSS classes.                          |
-| `children`     | `React.ReactNode`          | Radio elements to render in the group.           |
-| ...            | All Bulma helper props     | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop           | Type                      | Description                                                       |
+| -------------- | ------------------------- | ----------------------------------------------------------------- |
+| `name`         | `string`                  | Form field name shared by every Radio in the group (via context). |
+| `value`        | `string`                  | Currently-selected value (controlled mode).                       |
+| `defaultValue` | `string`                  | Initial selected value (uncontrolled mode).                       |
+| `onChange`     | `(value: string) => void` | Fires when the selection changes.                                 |
+| `className`    | `string`                  | Additional CSS classes.                                           |
+| `children`     | `React.ReactNode`         | Radio elements to render in the group.                            |
+| ...            | All Bulma helper props    | (See [Helper Props](../helpers/usebulmaclasses))                  |
 
 ---
 
@@ -168,7 +168,11 @@ function UncontrolledRadios() {
         <Radio value="md">Medium</Radio>
         <Radio value="lg">Large</Radio>
       </Radios>
-      {last && <p style={{ marginTop: '1rem' }}>Last selected: <strong>{last}</strong></p>}
+      {last && (
+        <p style={{ marginTop: '1rem' }}>
+          Last selected: <strong>{last}</strong>
+        </p>
+      )}
     </div>
   );
 }
@@ -180,8 +184,8 @@ function UncontrolledRadios() {
 
 `Radios` is HTML-form-compatible. Pass a `name` prop on the group and every child `Radio` inherits it via React context (works at any nesting depth — including custom wrapper components, fragments, and conditionals). The selected value submits as `name=value` in `FormData`, like a native radio group.
 
-| Prop | Description |
-| --- | --- |
+| Prop   | Description                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------- |
 | `name` | Form field name shared by every child Radio. Children with their own `name` prop keep theirs (explicit > implicit). |
 
 ```tsx live
@@ -196,12 +200,16 @@ function RadiosFormDemo() {
       }}
     >
       <Radios name="color">
-        <Radio value="red" defaultChecked>Red</Radio>
+        <Radio value="red" defaultChecked>
+          Red
+        </Radio>
         <Radio value="green">Green</Radio>
         <Radio value="blue">Blue</Radio>
       </Radios>
       <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>
@@ -215,7 +223,14 @@ The same `name` propagation works through any wrapper — useful for layouts lik
 function RadiosWrappedFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
   const RadioCard = ({ value, label }) => (
-    <div style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, marginBottom: '0.5rem' }}>
+    <div
+      style={{
+        padding: '0.5rem',
+        border: '1px solid #ddd',
+        borderRadius: 4,
+        marginBottom: '0.5rem',
+      }}
+    >
       <Radio value={value}>{label}</Radio>
     </div>
   );
@@ -233,7 +248,9 @@ function RadiosWrappedFormDemo() {
         <RadioCard value="enterprise" label="Enterprise — Contact us" />
       </Radios>
       <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>

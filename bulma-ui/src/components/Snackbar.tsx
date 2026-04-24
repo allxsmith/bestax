@@ -1,7 +1,11 @@
 import React, { forwardRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps, validColors } from '../helpers/useBulmaClasses';
+import {
+  useBulmaClasses,
+  BulmaClassesProps,
+  validColors,
+} from '../helpers/useBulmaClasses';
 
 /** Screen positions where snackbars can be displayed. */
 export type SnackbarPosition =
@@ -194,7 +198,9 @@ export const Snackbar = forwardRef<HTMLDivElement, SnackbarProps>(
     const resolveContainer = (): HTMLElement => {
       if (container) {
         if (typeof container === 'string') {
-          return document.querySelector(container) as HTMLElement || document.body;
+          return (
+            (document.querySelector(container) as HTMLElement) || document.body
+          );
         }
         return container;
       }
@@ -217,14 +223,28 @@ export const Snackbar = forwardRef<HTMLDivElement, SnackbarProps>(
           <div className="snackbar-actions">
             {cancelText && (
               <span className="snackbar-cancel">
-                <button type="button" className="button" onClick={(e) => { e.stopPropagation(); handleClose(); }}>
+                <button
+                  type="button"
+                  className="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleClose();
+                  }}
+                >
                   {cancelText}
                 </button>
               </span>
             )}
             {actionText && (
               <span className="snackbar-action">
-                <button type="button" className="button" onClick={(e) => { e.stopPropagation(); handleAction(); }}>
+                <button
+                  type="button"
+                  className="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleAction();
+                  }}
+                >
                   {actionText}
                 </button>
               </span>
@@ -235,7 +255,10 @@ export const Snackbar = forwardRef<HTMLDivElement, SnackbarProps>(
           <button
             type="button"
             className="delete is-small"
-            onClick={(e) => { e.stopPropagation(); handleClose(); }}
+            onClick={e => {
+              e.stopPropagation();
+              handleClose();
+            }}
             aria-label="Close"
           />
         )}
@@ -247,9 +270,7 @@ export const Snackbar = forwardRef<HTMLDivElement, SnackbarProps>(
     }
 
     const snackbarContent = (
-      <div className={containerClasses}>
-        {snackbarElement}
-      </div>
+      <div className={containerClasses}>{snackbarElement}</div>
     );
 
     if (typeof document !== 'undefined') {
@@ -289,8 +310,7 @@ interface SnackbarEntry {
 let snackbarIdCounter = 0;
 let snackbarQueue: SnackbarEntry[] = [];
 let currentSnackbar: SnackbarEntry | null = null;
-const snackbarListeners: Set<(entry: SnackbarEntry | null) => void> =
-  new Set();
+const snackbarListeners: Set<(entry: SnackbarEntry | null) => void> = new Set();
 
 const notifySnackbarListeners = () => {
   snackbarListeners.forEach(listener => listener(currentSnackbar));

@@ -21,49 +21,49 @@ import { Taginput } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop              | Type                                                                                                     | Default          | Description                                      |
-| ----------------- | -------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------ |
-| `value`           | `TaginputTag[]`                                                                                          | —                | The current tags (controlled).                   |
-| `defaultValue`    | `TaginputTag[]`                                                                                          | `[]`             | Default tags (uncontrolled).                     |
-| `data`            | `string[]`                                                                                               | `[]`             | Autocomplete suggestions.                        |
-| `placeholder`     | `string`                                                                                                 | —                | Placeholder text when no tags.                   |
-| `field`           | `string`                                                                                                 | `'label'`        | Object property to use as display field.         |
-| `allowNew`        | `boolean`                                                                                                | `true`           | Allow creating new tags not in suggestions.      |
-| `allowDuplicates` | `boolean`                                                                                                | `false`          | Allow duplicate tags.                            |
-| `openOnFocus`     | `boolean`                                                                                                | `false`          | Open autocomplete dropdown on focus.             |
-| `removeOnKeys`    | `boolean`                                                                                                | `true`           | Remove tag on backspace.                         |
-| `confirmKeys`     | `string[]`                                                                                               | `['Enter', ',']` | Keys to confirm tag creation.                    |
-| `closable`        | `boolean`                                                                                                | `true`           | Show close button on tags.                       |
-| `attached`        | `boolean`                                                                                                | `false`          | Attach tags visually.                            |
-| `maxTags`         | `number`                                                                                                 | —                | Maximum number of tags allowed.                  |
-| `maxlength`       | `number`                                                                                                 | —                | Maximum length of input.                         |
-| `disabled`        | `boolean`                                                                                                | `false`          | Whether the input is disabled.                   |
-| `readonly`        | `boolean`                                                                                                | `false`          | Whether the input is read-only.                  |
-| `color`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                          | —                | Input color variant.                             |
-| `tagColor`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —                | Tag color variant.                               |
-| `size`            | `'small'` \| `'medium'` \| `'large'`                                                                     | —                | Size variant.                                    |
-| `onChange`        | `(tags: TaginputTag[]) => void`                                                                          | —                | Callback when tags change.                       |
-| `onAdd`           | `(tag: TaginputTag) => void`                                                                             | —                | Callback when tag is added.                      |
-| `onRemove`        | `(tag: TaginputTag, index: number) => void`                                                              | —                | Callback when tag is removed.                    |
-| `onTyping`        | `(value: string) => void`                                                                                | —                | Callback when typing in input.                   |
-| `tagTemplate`     | `(tag: TaginputTag) => React.ReactNode`                                                                  | —                | Custom render for tags.                          |
-| `rounded`         | `boolean`                                                                                                | `false`          | Applies rounded corners to the tags.             |
-| `ellipsis`        | `boolean`                                                                                                | `false`          | Truncates long tag text with ellipsis.           |
-| `hasCounter`      | `boolean`                                                                                                | `true`           | Shows a counter of the number of tags.           |
-| `onPasteSeparators` | `string[]`                                                                                             | `[',']`          | Characters that split pasted text into tags.     |
-| `beforeAdding`    | `(tag: string) => boolean`                                                                               | —                | Validation function called before adding a tag.  |
-| `createTag`       | `(input: string) => TaginputTag`                                                                         | —                | Custom function for creating tag objects from input. |
-| `keepFirst`       | `boolean`                                                                                                | `false`          | Keeps the first autocomplete suggestion highlighted. |
-| `keepOpen`        | `boolean`                                                                                                | `true`           | Keeps the autocomplete dropdown open after selection. |
-| `loading`         | `boolean`                                                                                                | `false`          | Shows a loading indicator.                       |
-| `ariaCloseLabel`  | `string`                                                                                                 | —                | ARIA label for tag close buttons.                |
-| `icon`            | `string`                                                                                                 | —                | Icon name for the input.                         |
-| `iconLibrary`     | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`                               | —                | Icon library to use.                             |
-| `iconVariant`     | `string`                                                                                                 | —                | Icon style variant.                              |
-| `iconFeatures`    | `string` \| `string[]`                                                                                   | —                | Additional icon modifiers.                       |
-| `className`       | `string`                                                                                                 | —                | Additional CSS classes.                          |
-| `ref`             | `React.Ref<HTMLElement>`                                                                                 | —                | Ref forwarded to the input element.              |
-| ...               | All standard HTML and Bulma helper props                                                                 |                  | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop                | Type                                                                                                     | Default          | Description                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------- |
+| `value`             | `TaginputTag[]`                                                                                          | —                | The current tags (controlled).                        |
+| `defaultValue`      | `TaginputTag[]`                                                                                          | `[]`             | Default tags (uncontrolled).                          |
+| `data`              | `string[]`                                                                                               | `[]`             | Autocomplete suggestions.                             |
+| `placeholder`       | `string`                                                                                                 | —                | Placeholder text when no tags.                        |
+| `field`             | `string`                                                                                                 | `'label'`        | Object property to use as display field.              |
+| `allowNew`          | `boolean`                                                                                                | `true`           | Allow creating new tags not in suggestions.           |
+| `allowDuplicates`   | `boolean`                                                                                                | `false`          | Allow duplicate tags.                                 |
+| `openOnFocus`       | `boolean`                                                                                                | `false`          | Open autocomplete dropdown on focus.                  |
+| `removeOnKeys`      | `boolean`                                                                                                | `true`           | Remove tag on backspace.                              |
+| `confirmKeys`       | `string[]`                                                                                               | `['Enter', ',']` | Keys to confirm tag creation.                         |
+| `closable`          | `boolean`                                                                                                | `true`           | Show close button on tags.                            |
+| `attached`          | `boolean`                                                                                                | `false`          | Attach tags visually.                                 |
+| `maxTags`           | `number`                                                                                                 | —                | Maximum number of tags allowed.                       |
+| `maxlength`         | `number`                                                                                                 | —                | Maximum length of input.                              |
+| `disabled`          | `boolean`                                                                                                | `false`          | Whether the input is disabled.                        |
+| `readonly`          | `boolean`                                                                                                | `false`          | Whether the input is read-only.                       |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                          | —                | Input color variant.                                  |
+| `tagColor`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —                | Tag color variant.                                    |
+| `size`              | `'small'` \| `'medium'` \| `'large'`                                                                     | —                | Size variant.                                         |
+| `onChange`          | `(tags: TaginputTag[]) => void`                                                                          | —                | Callback when tags change.                            |
+| `onAdd`             | `(tag: TaginputTag) => void`                                                                             | —                | Callback when tag is added.                           |
+| `onRemove`          | `(tag: TaginputTag, index: number) => void`                                                              | —                | Callback when tag is removed.                         |
+| `onTyping`          | `(value: string) => void`                                                                                | —                | Callback when typing in input.                        |
+| `tagTemplate`       | `(tag: TaginputTag) => React.ReactNode`                                                                  | —                | Custom render for tags.                               |
+| `rounded`           | `boolean`                                                                                                | `false`          | Applies rounded corners to the tags.                  |
+| `ellipsis`          | `boolean`                                                                                                | `false`          | Truncates long tag text with ellipsis.                |
+| `hasCounter`        | `boolean`                                                                                                | `true`           | Shows a counter of the number of tags.                |
+| `onPasteSeparators` | `string[]`                                                                                               | `[',']`          | Characters that split pasted text into tags.          |
+| `beforeAdding`      | `(tag: string) => boolean`                                                                               | —                | Validation function called before adding a tag.       |
+| `createTag`         | `(input: string) => TaginputTag`                                                                         | —                | Custom function for creating tag objects from input.  |
+| `keepFirst`         | `boolean`                                                                                                | `false`          | Keeps the first autocomplete suggestion highlighted.  |
+| `keepOpen`          | `boolean`                                                                                                | `true`           | Keeps the autocomplete dropdown open after selection. |
+| `loading`           | `boolean`                                                                                                | `false`          | Shows a loading indicator.                            |
+| `ariaCloseLabel`    | `string`                                                                                                 | —                | ARIA label for tag close buttons.                     |
+| `icon`              | `string`                                                                                                 | —                | Icon name for the input.                              |
+| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`                               | —                | Icon library to use.                                  |
+| `iconVariant`       | `string`                                                                                                 | —                | Icon style variant.                                   |
+| `iconFeatures`      | `string` \| `string[]`                                                                                   | —                | Additional icon modifiers.                            |
+| `className`         | `string`                                                                                                 | —                | Additional CSS classes.                               |
+| `ref`               | `React.Ref<HTMLElement>`                                                                                 | —                | Ref forwarded to the input element.                   |
+| ...                 | All standard HTML and Bulma helper props                                                                 |                  | (See [Helper Props](../helpers/usebulmaclasses))      |
 
 ### TaginputTag
 
@@ -89,7 +89,9 @@ function example() {
   return (
     <Block>
       <Taginput value={tags} onChange={setTags} placeholder="Add a tag..." />
-      <Paragraph mt="2" textColor="grey">Tags: {tags.join(', ')}</Paragraph>
+      <Paragraph mt="2" textColor="grey">
+        Tags: {tags.join(', ')}
+      </Paragraph>
     </Block>
   );
 }
@@ -362,7 +364,12 @@ Taginput does not use ControlContext, so the "With Field and Control Wrappers" e
 The simplest usage — the component automatically renders its own Field wrapper.
 
 ```tsx live
-<Taginput label="Tags" defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+<Taginput
+  label="Tags"
+  defaultValue={['React', 'TypeScript']}
+  placeholder="Add a tag..."
+  tagColor="primary"
+/>
 ```
 
 ---
@@ -377,7 +384,11 @@ function example() {
     <Field horizontal label="Tags">
       <Field.Body>
         <Field>
-          <Taginput defaultValue={['React', 'TypeScript']} placeholder="Add a tag..." tagColor="primary" />
+          <Taginput
+            defaultValue={['React', 'TypeScript']}
+            placeholder="Add a tag..."
+            tagColor="primary"
+          />
         </Field>
       </Field.Body>
     </Field>
@@ -454,10 +465,10 @@ Use `defaultValue` for internal state management:
 
 `Taginput` is an HTML form element. Pass a `name` prop and one hidden `<input>` per tag is rendered, producing standard form-encoded array submission (e.g., `tags=react&tags=vue&tags=angular`). Standard server-side parsers (PHP, Express body-parser, etc.) handle this format natively.
 
-| Prop | Description |
-| --- | --- |
+| Prop   | Description                                                      |
+| ------ | ---------------------------------------------------------------- |
 | `name` | Form field name. When set, one hidden input per tag is rendered. |
-| `form` | Optional id of the form the hidden inputs belong to. |
+| `form` | Optional id of the form the hidden inputs belong to.             |
 
 ```tsx live
 function TaginputFormDemo() {
@@ -476,7 +487,9 @@ function TaginputFormDemo() {
         placeholder="Add a tag…"
       />
       <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>

@@ -21,15 +21,15 @@ import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                       | Description                                      |
-| ----------- | ---------------------------------------------------------- | ------------------------------------------------ |
-| `disabled`  | `boolean`                                                  | Whether the radio is disabled.                   |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | Color of the radio button. |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`        | Size of the radio button.                        |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper. |
-| `className` | `string`                                                   | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                          | Label/content for the radio.                     |
-| ...         | All standard `<input type="radio">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop        | Type                                                                                                                                                                                                                                                                                     | Description                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `disabled`  | `boolean`                                                                                                                                                                                                                                                                                | Whether the radio is disabled.                   |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Color of the radio button.                       |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | Size of the radio button.                        |
+| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper.                               |
+| `className` | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes.                          |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | Label/content for the radio.                     |
+| ...         | All standard `<input type="radio">` and Bulma helper props                                                                                                                                                                                                                               | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
 

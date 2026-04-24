@@ -68,7 +68,10 @@ You can customize the text color using Bulma's color helpers. This example shows
 You can use Bulma spacing helpers like `m` to add margin around the `IconText` component for better layout control.
 
 ```tsx live
-<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }} m="2">
+<IconText
+  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}
+  m="2"
+>
   Star
 </IconText>
 ```
@@ -141,18 +144,36 @@ The `items` prop allows you to render a sequence of icons and optional text, per
       text: 'Paris',
     },
     {
-      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: {
+        library: 'fa',
+        name: 'arrow-right',
+        ariaLabel: 'Arrow right icon',
+      },
       text: 'Budapest',
     },
     {
-      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: {
+        library: 'fa',
+        name: 'arrow-right',
+        ariaLabel: 'Arrow right icon',
+      },
       text: 'Bucharest',
     },
     {
-      iconProps: { library: 'fa', name: 'arrow-right', ariaLabel: 'Arrow right icon' },
+      iconProps: {
+        library: 'fa',
+        name: 'arrow-right',
+        ariaLabel: 'Arrow right icon',
+      },
       text: 'Istanbul',
     },
-    { iconProps: { library: 'fa', name: 'flag-checkered', ariaLabel: 'Finish icon' } },
+    {
+      iconProps: {
+        library: 'fa',
+        name: 'flag-checkered',
+        ariaLabel: 'Finish icon',
+      },
+    },
   ]}
   mx="1"
 />
@@ -196,10 +217,19 @@ This example demonstrates IconText with multiple icon items. For actual star rat
       },
     },
     {
-      iconProps: { library: 'fa', name: 'star-half-alt', ariaLabel: 'Half star icon' },
+      iconProps: {
+        library: 'fa',
+        name: 'star-half-alt',
+        ariaLabel: 'Half star icon',
+      },
     },
     {
-      iconProps: { library: 'fa', name: 'star', variant: 'regular', ariaLabel: 'Empty star icon' },
+      iconProps: {
+        library: 'fa',
+        name: 'star',
+        variant: 'regular',
+        ariaLabel: 'Empty star icon',
+      },
       text: '3.5/5',
     },
   ]}

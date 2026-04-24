@@ -201,17 +201,22 @@ export const Icon: React.FC<IconProps> = ({
     ...restProps,
   });
 
-  // Use containerClassName if provided, otherwise default to 'icon'
+  // Hoisted unconditionally to respect rules-of-hooks; the ternaries below
+  // pick which result to consume.
+  const defaultIconClasses = usePrefixedClassNames('icon', {
+    [`is-${size}`]: size,
+  });
+  const sizeModifierClass = usePrefixedClassNames(
+    size ? `is-${size}` : undefined
+  );
+
   const bulmaClasses = containerClassName
     ? containerClassName
-    : usePrefixedClassNames('icon', {
-        [`is-${size}`]: size,
-      });
+    : defaultIconClasses;
 
   const iconContainerClasses = classNames(
     bulmaClasses,
-    // Only add size class if using default container and size is specified
-    containerClassName && size ? usePrefixedClassNames(`is-${size}`) : undefined,
+    containerClassName && size ? sizeModifierClass : undefined,
     bulmaHelperClasses,
     className
   );

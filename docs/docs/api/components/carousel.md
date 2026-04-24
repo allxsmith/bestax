@@ -23,33 +23,33 @@ import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';
 
 ### Carousel
 
-| Prop                | Type                                                                       | Default    | Description                                      |
-| ------------------- | -------------------------------------------------------------------------- | ---------- | ------------------------------------------------ |
-| `value`             | `number`                                                                   | `0`        | Current active slide index (controlled).         |
-| `autoplay`          | `boolean`                                                                  | `false`    | Enable auto-play.                                |
-| `interval`          | `number`                                                                   | `5000`     | Auto-play interval in milliseconds.              |
-| `pauseOnHover`      | `boolean`                                                                  | `true`     | Pause auto-play on hover.                        |
-| `repeat`            | `boolean`                                                                  | `true`     | Loop back to first slide after last.             |
-| `hasDrag`           | `boolean`                                                                  | `true`     | Enable drag/swipe navigation.                    |
-| `arrow`             | `boolean`                                                                  | `true`     | Show navigation arrows.                          |
-| `arrowHover`        | `boolean`                                                                  | `false`    | Only show arrows on hover.                       |
+| Prop                | Type                                                                       | Default    | Description                                                                             |
+| ------------------- | -------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------- |
+| `value`             | `number`                                                                   | `0`        | Current active slide index (controlled).                                                |
+| `autoplay`          | `boolean`                                                                  | `false`    | Enable auto-play.                                                                       |
+| `interval`          | `number`                                                                   | `5000`     | Auto-play interval in milliseconds.                                                     |
+| `pauseOnHover`      | `boolean`                                                                  | `true`     | Pause auto-play on hover.                                                               |
+| `repeat`            | `boolean`                                                                  | `true`     | Loop back to first slide after last.                                                    |
+| `hasDrag`           | `boolean`                                                                  | `true`     | Enable drag/swipe navigation.                                                           |
+| `arrow`             | `boolean`                                                                  | `true`     | Show navigation arrows.                                                                 |
+| `arrowHover`        | `boolean`                                                                  | `false`    | Only show arrows on hover.                                                              |
 | `arrowBackground`   | `boolean`                                                                  | `true`     | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. |
-| `iconPrev`          | `string`                                                                   | —          | Icon name for the previous arrow button.         |
-| `iconNext`          | `string`                                                                   | —          | Icon name for the next arrow button.             |
-| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —          | Icon library to use.                             |
-| `iconVariant`       | `string`                                                                   | —          | Icon style variant (e.g., 'solid', 'outlined').  |
-| `iconSize`          | `'small'` \| `'medium'` \| `'large'`                                       | —          | Icon size modifier.                              |
-| `iconFeatures`      | `string \| string[]`                                                       | —          | Additional icon modifiers.                       |
-| `indicator`         | `boolean`                                                                  | `true`     | Show slide indicators.                           |
-| `indicatorInside`   | `boolean`                                                                  | `false`    | Position indicators inside carousel.             |
-| `indicatorPosition` | `'bottom'` \| `'top'`                                                      | `'bottom'` | Indicator position.                              |
-| `indicatorStyle`    | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`   | Indicator style.                                 |
-| `onChange`          | `(value: number) => void`                                                  | —          | Callback when slide changes.                     |
-| `children`          | `React.ReactNode`                                                          | —          | CarouselItem children.                           |
-| `className`         | `string`                                                                   | —          | Additional CSS classes.                          |
-| `ref`               | `React.Ref<HTMLElement>`                                                   | —          | Ref forwarded to the carousel element.           |
-| `arrowColor`        | `'light'` \| `'dark'`                                                      | —          | Color theme for navigation arrows.               |
-| ...                 | All standard HTML and Bulma helper props                                   |            | (See [Helper Props](../helpers/usebulmaclasses)) |
+| `iconPrev`          | `string`                                                                   | —          | Icon name for the previous arrow button.                                                |
+| `iconNext`          | `string`                                                                   | —          | Icon name for the next arrow button.                                                    |
+| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —          | Icon library to use.                                                                    |
+| `iconVariant`       | `string`                                                                   | —          | Icon style variant (e.g., 'solid', 'outlined').                                         |
+| `iconSize`          | `'small'` \| `'medium'` \| `'large'`                                       | —          | Icon size modifier.                                                                     |
+| `iconFeatures`      | `string \| string[]`                                                       | —          | Additional icon modifiers.                                                              |
+| `indicator`         | `boolean`                                                                  | `true`     | Show slide indicators.                                                                  |
+| `indicatorInside`   | `boolean`                                                                  | `false`    | Position indicators inside carousel.                                                    |
+| `indicatorPosition` | `'bottom'` \| `'top'`                                                      | `'bottom'` | Indicator position.                                                                     |
+| `indicatorStyle`    | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`   | Indicator style.                                                                        |
+| `onChange`          | `(value: number) => void`                                                  | —          | Callback when slide changes.                                                            |
+| `children`          | `React.ReactNode`                                                          | —          | CarouselItem children.                                                                  |
+| `className`         | `string`                                                                   | —          | Additional CSS classes.                                                                 |
+| `ref`               | `React.Ref<HTMLElement>`                                                   | —          | Ref forwarded to the carousel element.                                                  |
+| `arrowColor`        | `'light'` \| `'dark'`                                                      | —          | Color theme for navigation arrows.                                                      |
+| ...                 | All standard HTML and Bulma helper props                                   |            | (See [Helper Props](../helpers/usebulmaclasses))                                        |
 
 ### CarouselItem
 
@@ -136,10 +136,30 @@ function IndicatorExample() {
   return (
     <Block>
       <Buttons mb="4">
-        <Button onClick={() => setStyle('dots')} color={style === 'dots' ? 'primary' : undefined}>Dots</Button>
-        <Button onClick={() => setStyle('circles')} color={style === 'circles' ? 'primary' : undefined}>Circles</Button>
-        <Button onClick={() => setStyle('lines')} color={style === 'lines' ? 'primary' : undefined}>Lines</Button>
-        <Button onClick={() => setStyle('bars')} color={style === 'bars' ? 'primary' : undefined}>Bars</Button>
+        <Button
+          onClick={() => setStyle('dots')}
+          color={style === 'dots' ? 'primary' : undefined}
+        >
+          Dots
+        </Button>
+        <Button
+          onClick={() => setStyle('circles')}
+          color={style === 'circles' ? 'primary' : undefined}
+        >
+          Circles
+        </Button>
+        <Button
+          onClick={() => setStyle('lines')}
+          color={style === 'lines' ? 'primary' : undefined}
+        >
+          Lines
+        </Button>
+        <Button
+          onClick={() => setStyle('bars')}
+          color={style === 'bars' ? 'primary' : undefined}
+        >
+          Bars
+        </Button>
       </Buttons>
       <Carousel indicatorStyle={style}>
         <CarouselItem>
@@ -332,11 +352,30 @@ function ControlledExample() {
   return (
     <Block>
       <Buttons mb="4">
-        <Button onClick={() => setCurrentSlide(0)} color={currentSlide === 0 ? 'primary' : undefined}>1</Button>
-        <Button onClick={() => setCurrentSlide(1)} color={currentSlide === 1 ? 'primary' : undefined}>2</Button>
-        <Button onClick={() => setCurrentSlide(2)} color={currentSlide === 2 ? 'primary' : undefined}>3</Button>
+        <Button
+          onClick={() => setCurrentSlide(0)}
+          color={currentSlide === 0 ? 'primary' : undefined}
+        >
+          1
+        </Button>
+        <Button
+          onClick={() => setCurrentSlide(1)}
+          color={currentSlide === 1 ? 'primary' : undefined}
+        >
+          2
+        </Button>
+        <Button
+          onClick={() => setCurrentSlide(2)}
+          color={currentSlide === 2 ? 'primary' : undefined}
+        >
+          3
+        </Button>
       </Buttons>
-      <Carousel value={currentSlide} onChange={setCurrentSlide} indicator={false}>
+      <Carousel
+        value={currentSlide}
+        onChange={setCurrentSlide}
+        indicator={false}
+      >
         <CarouselItem>
           <Hero color="primary" size="medium">
             <Hero.Body textAlign="centered">

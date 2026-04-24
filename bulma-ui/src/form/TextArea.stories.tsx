@@ -105,11 +105,23 @@ export const RowCount: Story = {
 export const Colors: Story = {
   render: () => (
     <>
-      <TextArea label="Primary" color="primary" placeholder="Primary textarea" />
+      <TextArea
+        label="Primary"
+        color="primary"
+        placeholder="Primary textarea"
+      />
       <TextArea label="Link" color="link" placeholder="Link textarea" />
       <TextArea label="Info" color="info" placeholder="Info textarea" />
-      <TextArea label="Success" color="success" placeholder="Success textarea" />
-      <TextArea label="Warning" color="warning" placeholder="Warning textarea" />
+      <TextArea
+        label="Success"
+        color="success"
+        placeholder="Success textarea"
+      />
+      <TextArea
+        label="Warning"
+        color="warning"
+        placeholder="Warning textarea"
+      />
       <TextArea label="Danger" color="danger" placeholder="Danger textarea" />
     </>
   ),
@@ -225,9 +237,7 @@ export const Horizontal: Story = {
  * Default (with label) — TextArea renders its own Field+Control wrappers automatically.
  */
 export const WithLabel: Story = {
-  render: () => (
-    <TextArea label="Message" placeholder="Enter your message" />
-  ),
+  render: () => <TextArea label="Message" placeholder="Enter your message" />,
 };
 
 /**

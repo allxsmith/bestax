@@ -65,9 +65,7 @@ describe('Input', () => {
     });
 
     it('passes size to input', () => {
-      const { container } = render(
-        <Input size="large" data-testid="input" />
-      );
+      const { container } = render(<Input size="large" data-testid="input" />);
       expect(screen.getByTestId('input')).toHaveClass('is-large');
     });
 
@@ -119,16 +117,12 @@ describe('Input', () => {
     });
 
     it('applies isLoading to control', () => {
-      const { container } = render(
-        <Input isLoading data-testid="input" />
-      );
+      const { container } = render(<Input isLoading data-testid="input" />);
       expect(container.querySelector('.control')).toHaveClass('is-loading');
     });
 
     it('applies isExpanded to control', () => {
-      const { container } = render(
-        <Input isExpanded data-testid="input" />
-      );
+      const { container } = render(<Input isExpanded data-testid="input" />);
       expect(container.querySelector('.control')).toHaveClass('is-expanded');
     });
   });

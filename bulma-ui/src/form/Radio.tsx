@@ -108,8 +108,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     // Group-managed checked state — only when the group is in
     // controlled/uncontrolled mode (group.value is defined) AND this Radio
     // has a value to compare against. Local `checked` always wins.
-    const groupManaged =
-      group?.value !== undefined && value !== undefined;
+    const groupManaged = group?.value !== undefined && value !== undefined;
     const effectiveChecked =
       checked !== undefined
         ? checked

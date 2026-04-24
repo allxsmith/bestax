@@ -346,7 +346,9 @@ export const FormExample: Story = {
           label="Full Name"
           placeholder="Jane Doe"
           value={profile.name}
-          onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
+          onChange={e =>
+            setProfile(prev => ({ ...prev, name: e.target.value }))
+          }
         />
         <Input
           label="Email"

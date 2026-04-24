@@ -107,12 +107,7 @@ export const Default: Story = {
 
     return (
       <div>
-        <Steps
-          value={step}
-          onStepClick={setStep}
-          hasNavigation
-          items={items}
-        />
+        <Steps value={step} onStepClick={setStep} hasNavigation items={items} />
         <Box>
           <Title size="5">{items[step].label}</Title>
           <Paragraph>{content[step]}</Paragraph>
@@ -131,11 +126,7 @@ export const Positions: Story = {
 
     return (
       <div>
-        <Steps
-          value={step}
-          onStepClick={setStep}
-          items={defaultItems}
-        />
+        <Steps value={step} onStepClick={setStep} items={defaultItems} />
         <Box>
           <Title size="5">
             Step {step + 1}: {defaultItems[step].label}
@@ -205,7 +196,9 @@ export const NoLabels: Story = {
           items={items}
         />
         <Box>
-          <Title size="5">Step {step + 1}: {labels[step]}</Title>
+          <Title size="5">
+            Step {step + 1}: {labels[step]}
+          </Title>
           <Paragraph>{defaultContent[step]}</Paragraph>
         </Box>
       </div>
@@ -238,7 +231,8 @@ export const HighlightedCompleted: Story = {
           <Title size="5">{defaultItems[step].label}</Title>
           <Paragraph>{defaultContent[step]}</Paragraph>
           <Paragraph textColor="grey" textSize="7" mt="2">
-            Completed steps show their number with a colored background instead of a checkmark.
+            Completed steps show their number with a colored background instead
+            of a checkmark.
           </Paragraph>
         </Box>
       </div>
@@ -300,7 +294,8 @@ export const NonClickable: Story = {
           <Title size="5">{items[step].label}</Title>
           <Paragraph>{defaultContent[step]}</Paragraph>
           <Paragraph textColor="grey" textSize="7" mt="2">
-            Step markers are not clickable. Use the Previous/Next buttons to navigate.
+            Step markers are not clickable. Use the Previous/Next buttons to
+            navigate.
           </Paragraph>
         </Box>
       </div>
@@ -391,7 +386,14 @@ export const LabelsLeft: Story = {
  */
 export const Colors: Story = {
   render: function ColorsStory() {
-    const colors = ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const;
+    const colors = [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ] as const;
     const [steps, setSteps] = useState<Record<string, number>>(
       Object.fromEntries(colors.map(c => [c, 1]))
     );
@@ -623,7 +625,7 @@ export const Vertical: Story = {
       'Create your account with an email and password.',
       'Check your inbox and verify your email address.',
       'Fill in your profile details and preferences.',
-      'You\'re all set! Start exploring the app.',
+      "You're all set! Start exploring the app.",
     ];
 
     return (
@@ -641,10 +643,7 @@ export const Vertical: Story = {
           <Title size="4">{items[step].label}</Title>
           <Paragraph mb="4">{content[step]}</Paragraph>
           <Buttons>
-            <Button
-              disabled={step === 0}
-              onClick={() => setStep(s => s - 1)}
-            >
+            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>
               Previous
             </Button>
             <Button
@@ -677,7 +676,7 @@ export const VerticalLabelsRight: Story = {
       'Create your account with an email and password.',
       'Check your inbox and verify your email address.',
       'Fill in your profile details and preferences.',
-      'You\'re all set! Start exploring the app.',
+      "You're all set! Start exploring the app.",
     ];
 
     return (
@@ -696,8 +695,16 @@ export const VerticalLabelsRight: Story = {
           <Title size="4">{items[step].label}</Title>
           <Paragraph mb="4">{content[step]}</Paragraph>
           <Buttons>
-            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>Previous</Button>
-            <Button color="primary" disabled={step === items.length - 1} onClick={() => setStep(s => s + 1)}>Next</Button>
+            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>
+              Previous
+            </Button>
+            <Button
+              color="primary"
+              disabled={step === items.length - 1}
+              onClick={() => setStep(s => s + 1)}
+            >
+              Next
+            </Button>
           </Buttons>
         </Column>
       </Columns>
@@ -721,7 +728,7 @@ export const VerticalLabelsLeft: Story = {
       'Create your account with an email and password.',
       'Check your inbox and verify your email address.',
       'Fill in your profile details and preferences.',
-      'You\'re all set! Start exploring the app.',
+      "You're all set! Start exploring the app.",
     ];
 
     return (
@@ -740,8 +747,16 @@ export const VerticalLabelsLeft: Story = {
           <Title size="4">{items[step].label}</Title>
           <Paragraph mb="4">{content[step]}</Paragraph>
           <Buttons>
-            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>Previous</Button>
-            <Button color="info" disabled={step === items.length - 1} onClick={() => setStep(s => s + 1)}>Next</Button>
+            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>
+              Previous
+            </Button>
+            <Button
+              color="info"
+              disabled={step === items.length - 1}
+              onClick={() => setStep(s => s + 1)}
+            >
+              Next
+            </Button>
           </Buttons>
         </Column>
       </Columns>
@@ -765,7 +780,7 @@ export const VerticalLabelsBottom: Story = {
       'Create your account with an email and password.',
       'Check your inbox and verify your email address.',
       'Fill in your profile details and preferences.',
-      'You\'re all set! Start exploring the app.',
+      "You're all set! Start exploring the app.",
     ];
 
     return (
@@ -784,8 +799,16 @@ export const VerticalLabelsBottom: Story = {
           <Title size="4">{items[step].label}</Title>
           <Paragraph mb="4">{content[step]}</Paragraph>
           <Buttons>
-            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>Previous</Button>
-            <Button color="warning" disabled={step === items.length - 1} onClick={() => setStep(s => s + 1)}>Next</Button>
+            <Button disabled={step === 0} onClick={() => setStep(s => s - 1)}>
+              Previous
+            </Button>
+            <Button
+              color="warning"
+              disabled={step === items.length - 1}
+              onClick={() => setStep(s => s + 1)}
+            >
+              Next
+            </Button>
           </Buttons>
         </Column>
       </Columns>

@@ -597,7 +597,13 @@ describe('Tooltip', () => {
   describe('custom content', () => {
     it('renders ReactNode content when content prop is provided', () => {
       const { container } = render(
-        <Tooltip content={<span data-testid="rich"><strong>Bold</strong> text</span>}>
+        <Tooltip
+          content={
+            <span data-testid="rich">
+              <strong>Bold</strong> text
+            </span>
+          }
+        >
           <button>Hover me</button>
         </Tooltip>
       );
@@ -623,7 +629,9 @@ describe('Tooltip', () => {
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip')).not.toHaveAttribute('data-tooltip');
+      expect(container.querySelector('.tooltip')).not.toHaveAttribute(
+        'data-tooltip'
+      );
     });
 
     it('sets data-tooltip attribute when label is provided alongside content', () => {
@@ -632,7 +640,10 @@ describe('Tooltip', () => {
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(container.querySelector('.tooltip')).toHaveAttribute('data-tooltip', 'Label text');
+      expect(container.querySelector('.tooltip')).toHaveAttribute(
+        'data-tooltip',
+        'Label text'
+      );
     });
   });
 });

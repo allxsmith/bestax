@@ -123,7 +123,12 @@ describe('TextAreaBase', () => {
     it('applies prefix to both main class and helper classes', () => {
       render(
         <ConfigProvider classPrefix="bulma-">
-          <TextAreaBase color="primary" isRounded m="2" data-testid="textarea" />
+          <TextAreaBase
+            color="primary"
+            isRounded
+            m="2"
+            data-testid="textarea"
+          />
         </ConfigProvider>
       );
       const textarea = screen.getByTestId('textarea');
@@ -135,7 +140,12 @@ describe('TextAreaBase', () => {
 
     it('works without prefix', () => {
       render(
-        <TextAreaBase color="danger" hasFixedSize p="3" data-testid="textarea" />
+        <TextAreaBase
+          color="danger"
+          hasFixedSize
+          p="3"
+          data-testid="textarea"
+        />
       );
       const textarea = screen.getByTestId('textarea');
       expect(textarea).toHaveClass('textarea');

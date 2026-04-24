@@ -216,7 +216,9 @@ These elements are invisible or misleading to screen readers because they lack s
   <LinkButton>Text Variant</LinkButton>
   <LinkButton variant="ghost">Ghost Variant</LinkButton>
   <LinkButton color="primary">Primary Text</LinkButton>
-  <LinkButton variant="ghost" color="danger">Danger Ghost</LinkButton>
+  <LinkButton variant="ghost" color="danger">
+    Danger Ghost
+  </LinkButton>
 </Buttons>
 ```
 
@@ -251,11 +253,7 @@ A horizontal arrangement of one or more icons and optional text, ideal for icon-
 A Bulma-styled container for images, iframes, or custom content, supporting sizes, aspect ratios, and more. [View full documentation.](../../../api/elements/image.md)
 
 ```tsx live
-<Image
-  src="/img/react-logo.png"
-  alt="Sample image"
-  size="128x128"
-/>
+<Image src="/img/react-logo.png" alt="Sample image" size="128x128" />
 ```
 
 ---

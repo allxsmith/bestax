@@ -220,8 +220,17 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
     const resolvedLibrary = iconLibraryProp || defaultIconLibrary || 'fa';
-    const pcn = (...args: (string | number | undefined | null | false | Record<string, unknown> | unknown[])[]) =>
-      prefixedClassNames(classPrefix, ...args);
+    const pcn = (
+      ...args: (
+        | string
+        | number
+        | undefined
+        | null
+        | false
+        | Record<string, unknown>
+        | unknown[]
+      )[]
+    ) => prefixedClassNames(classPrefix, ...args);
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -539,11 +548,12 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Counter text
     const showCounter =
       hasCounter && (maxTags !== undefined || maxlength !== undefined);
-    const counterText = maxTags !== undefined
-      ? `${tags.length} / ${maxTags}`
-      : maxlength !== undefined
-        ? `${inputValue.length} / ${maxlength}`
-        : '';
+    const counterText =
+      maxTags !== undefined
+        ? `${tags.length} / ${maxTags}`
+        : maxlength !== undefined
+          ? `${inputValue.length} / ${maxlength}`
+          : '';
 
     const counterClasses = pcn('help', 'counter');
     const tagsClasses = pcn('tags');
@@ -627,7 +637,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
         {isActive && filteredData.length > 0 && (
           <div className={dropdownMenuClasses}>
-            <div ref={dropdownRef} className={dropdownContentClasses} role="listbox">
+            <div
+              ref={dropdownRef}
+              className={dropdownContentClasses}
+              role="listbox"
+            >
               {filteredData.map((item, index) => (
                 <a
                   key={index}
@@ -646,9 +660,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           </div>
         )}
 
-        {showCounter && (
-          <small className={counterClasses}>{counterText}</small>
-        )}
+        {showCounter && <small className={counterClasses}>{counterText}</small>}
 
         {name &&
           tags.map((tag, i) => (

@@ -23,12 +23,27 @@ const meta: Meta<typeof Toast> = {
     },
     type: {
       control: 'select',
-      options: ['default', 'success', 'danger', 'warning', 'info', 'primary', 'link'],
+      options: [
+        'default',
+        'success',
+        'danger',
+        'warning',
+        'info',
+        'primary',
+        'link',
+      ],
       description: 'The type/color of the toast',
     },
     position: {
       control: 'select',
-      options: ['top-right', 'top-left', 'top-center', 'bottom-right', 'bottom-left', 'bottom-center'],
+      options: [
+        'top-right',
+        'top-left',
+        'top-center',
+        'bottom-right',
+        'bottom-left',
+        'bottom-center',
+      ],
       description: 'Position on the screen',
     },
     duration: {
@@ -92,7 +107,14 @@ export const Types: Story = {
   render: function TypesExample() {
     const [active, setActive] = useState<string | null>(null);
 
-    const types = ['success', 'danger', 'warning', 'info', 'primary', 'link'] as const;
+    const types = [
+      'success',
+      'danger',
+      'warning',
+      'info',
+      'primary',
+      'link',
+    ] as const;
 
     return (
       <div style={{ padding: '2rem' }}>
@@ -129,8 +151,12 @@ export const Positions: Story = {
     const [activePosition, setActivePosition] = useState<string | null>(null);
 
     const positions = [
-      'top-left', 'top-center', 'top-right',
-      'bottom-left', 'bottom-center', 'bottom-right',
+      'top-left',
+      'top-center',
+      'top-right',
+      'bottom-left',
+      'bottom-center',
+      'bottom-right',
     ] as const;
 
     return (
@@ -197,7 +223,9 @@ export const Indefinite: Story = {
         <Button color="primary" onClick={() => setShow(true)} disabled={show}>
           Show Indefinite Toast
         </Button>
-        <p className="mt-4 help">This toast stays open until you click the close button or press Escape</p>
+        <p className="mt-4 help">
+          This toast stays open until you click the close button or press Escape
+        </p>
         {show && (
           <Toast
             message="This won't auto-dismiss"
@@ -277,7 +305,10 @@ export const NonDismissible: Story = {
             Close Programmatically
           </Button>
         </div>
-        <p className="mt-4 help">Click the toast — nothing happens. Use the button to close it via <code>toast.close(id)</code>.</p>
+        <p className="mt-4 help">
+          Click the toast — nothing happens. Use the button to close it via{' '}
+          <code>toast.close(id)</code>.
+        </p>
       </div>
     );
   },
@@ -292,16 +323,26 @@ export const ProgrammaticAPI: Story = {
       <div style={{ padding: '2rem' }}>
         <ToastContainer position="top-right" />
         <div className="buttons">
-          <Button onClick={() => toast.show({ message: 'Default toast', duration: 3000 })}>
+          <Button
+            onClick={() =>
+              toast.show({ message: 'Default toast', duration: 3000 })
+            }
+          >
             Default
           </Button>
-          <Button color="success" onClick={() => toast.success('Success toast!')}>
+          <Button
+            color="success"
+            onClick={() => toast.success('Success toast!')}
+          >
             Success
           </Button>
           <Button color="danger" onClick={() => toast.danger('Error toast!')}>
             Danger
           </Button>
-          <Button color="warning" onClick={() => toast.warning('Warning toast!')}>
+          <Button
+            color="warning"
+            onClick={() => toast.warning('Warning toast!')}
+          >
             Warning
           </Button>
           <Button color="info" onClick={() => toast.info('Info toast!')}>
@@ -333,9 +374,23 @@ export const QueuedToasts: Story = {
           <Button
             color="primary"
             onClick={() => {
-              toast.show({ message: 'Queued toast 1 of 3', queue: true, duration: 2000 });
-              toast.show({ message: 'Queued toast 2 of 3', type: 'info', queue: true, duration: 2000 });
-              toast.show({ message: 'Queued toast 3 of 3', type: 'success', queue: true, duration: 2000 });
+              toast.show({
+                message: 'Queued toast 1 of 3',
+                queue: true,
+                duration: 2000,
+              });
+              toast.show({
+                message: 'Queued toast 2 of 3',
+                type: 'info',
+                queue: true,
+                duration: 2000,
+              });
+              toast.show({
+                message: 'Queued toast 3 of 3',
+                type: 'success',
+                queue: true,
+                duration: 2000,
+              });
             }}
           >
             Show 3 Queued Toasts
@@ -354,7 +409,12 @@ export const QueuedToasts: Story = {
           </Button>
           <Button
             color="info"
-            onClick={() => toast.show({ message: 'Non-queued (stacks normally)', duration: 3000 })}
+            onClick={() =>
+              toast.show({
+                message: 'Non-queued (stacks normally)',
+                duration: 3000,
+              })
+            }
           >
             Non-Queued
           </Button>

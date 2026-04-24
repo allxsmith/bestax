@@ -100,12 +100,7 @@ describe('Snackbar', () => {
   describe('Type and Color together', () => {
     it('applies both is-type-* and is-* classes', () => {
       render(
-        <Snackbar
-          message="Test"
-          type="success"
-          color="dark"
-          duration={0}
-        />
+        <Snackbar message="Test" type="success" color="dark" duration={0} />
       );
       const el = screen.getByRole('status');
       expect(el).toHaveClass('is-type-success');
@@ -116,37 +111,49 @@ describe('Snackbar', () => {
   describe('Positions', () => {
     it('applies is-bottom-right position by default', () => {
       render(<Snackbar message="Test" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-bottom-right');
     });
 
     it('applies is-bottom-left position', () => {
       render(<Snackbar message="Test" position="bottom-left" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-bottom-left');
     });
 
     it('applies is-bottom position', () => {
       render(<Snackbar message="Test" position="bottom" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-bottom');
     });
 
     it('applies is-top-right position', () => {
       render(<Snackbar message="Test" position="top-right" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-top-right');
     });
 
     it('applies is-top-left position', () => {
       render(<Snackbar message="Test" position="top-left" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-top-left');
     });
 
     it('applies is-top position', () => {
       render(<Snackbar message="Test" position="top" duration={0} />);
-      const container = screen.getByRole('status').closest('.snackbar-container');
+      const container = screen
+        .getByRole('status')
+        .closest('.snackbar-container');
       expect(container).toHaveClass('is-top');
     });
   });
@@ -154,17 +161,23 @@ describe('Snackbar', () => {
   describe('Dismissible', () => {
     it('does not render close button by default', () => {
       render(<Snackbar message="Test" duration={0} />);
-      expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /close/i })
+      ).not.toBeInTheDocument();
     });
 
     it('renders close button when dismissible is true', () => {
       render(<Snackbar message="Test" duration={0} dismissible />);
-      expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /close/i })
+      ).toBeInTheDocument();
     });
 
     it('close button triggers onClose', () => {
       const onClose = jest.fn();
-      render(<Snackbar message="Test" duration={0} dismissible onClose={onClose} />);
+      render(
+        <Snackbar message="Test" duration={0} dismissible onClose={onClose} />
+      );
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -185,7 +198,9 @@ describe('Snackbar', () => {
   describe('Conditional Actions', () => {
     it('does not render .snackbar-actions when no actionText or cancelText', () => {
       render(<Snackbar message="Test" duration={0} />);
-      expect(document.querySelector('.snackbar-actions')).not.toBeInTheDocument();
+      expect(
+        document.querySelector('.snackbar-actions')
+      ).not.toBeInTheDocument();
     });
 
     it('renders .snackbar-actions when actionText is provided', () => {
@@ -201,10 +216,14 @@ describe('Snackbar', () => {
 
   describe('Inline', () => {
     it('renders without portal when inline is true', () => {
-      const { container } = render(<Snackbar message="Test" duration={0} inline />);
+      const { container } = render(
+        <Snackbar message="Test" duration={0} inline />
+      );
       const snackbarEl = container.querySelector('.snackbar');
       expect(snackbarEl).toBeInTheDocument();
-      expect(snackbarEl?.closest('.snackbar-container')).not.toBeInTheDocument();
+      expect(
+        snackbarEl?.closest('.snackbar-container')
+      ).not.toBeInTheDocument();
     });
 
     it('renders with portal by default', () => {
@@ -262,7 +281,9 @@ describe('Snackbar', () => {
   describe('Cancel Button', () => {
     it('renders cancel button when cancelText is provided', () => {
       render(<Snackbar message="Test" cancelText="Dismiss" duration={0} />);
-      expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Dismiss' })
+      ).toBeInTheDocument();
     });
 
     it('closes snackbar when cancel button is clicked', () => {
@@ -290,7 +311,9 @@ describe('Snackbar', () => {
           duration={0}
         />
       );
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Cancel' })
+      ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument();
     });
   });
@@ -326,12 +349,7 @@ describe('Snackbar', () => {
     it('stays open when indefinite is true regardless of duration', () => {
       const onClose = jest.fn();
       render(
-        <Snackbar
-          message="Test"
-          indefinite
-          duration={2000}
-          onClose={onClose}
-        />
+        <Snackbar message="Test" indefinite duration={2000} onClose={onClose} />
       );
 
       act(() => {
@@ -347,7 +365,12 @@ describe('Snackbar', () => {
     it('pauses timer on mouse enter', () => {
       const onClose = jest.fn();
       render(
-        <Snackbar message="Test" duration={3000} pauseOnHover onClose={onClose} />
+        <Snackbar
+          message="Test"
+          duration={3000}
+          pauseOnHover
+          onClose={onClose}
+        />
       );
 
       const snackbarEl = screen.getByRole('status');
@@ -363,7 +386,12 @@ describe('Snackbar', () => {
     it('resumes timer on mouse leave', () => {
       const onClose = jest.fn();
       render(
-        <Snackbar message="Test" duration={3000} pauseOnHover onClose={onClose} />
+        <Snackbar
+          message="Test"
+          duration={3000}
+          pauseOnHover
+          onClose={onClose}
+        />
       );
 
       const snackbarEl = screen.getByRole('status');
@@ -452,12 +480,7 @@ describe('Snackbar', () => {
     it('dismissible close button click does not double-fire close', () => {
       const onClose = jest.fn();
       render(
-        <Snackbar
-          message="Test"
-          dismissible
-          onClose={onClose}
-          duration={0}
-        />
+        <Snackbar message="Test" dismissible onClose={onClose} duration={0} />
       );
 
       fireEvent.click(screen.getByRole('button', { name: /close/i }));

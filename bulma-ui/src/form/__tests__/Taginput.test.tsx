@@ -571,7 +571,9 @@ describe('Taginput', () => {
 
     it('does not apply is-rounded class when rounded is false', () => {
       const { container } = render(<Taginput defaultValue={['Tag1']} />);
-      expect(container.querySelector('.taginput')).not.toHaveClass('is-rounded');
+      expect(container.querySelector('.taginput')).not.toHaveClass(
+        'is-rounded'
+      );
     });
   });
 
@@ -609,18 +611,14 @@ describe('Taginput', () => {
     });
 
     it('shows counter for maxlength', () => {
-      const { container } = render(
-        <Taginput maxlength={20} hasCounter />
-      );
+      const { container } = render(<Taginput maxlength={20} hasCounter />);
       const counter = container.querySelector('.counter');
       expect(counter).toBeInTheDocument();
       expect(counter).toHaveTextContent('0 / 20');
     });
 
     it('does not show counter when hasCounter is false', () => {
-      const { container } = render(
-        <Taginput maxTags={5} hasCounter={false} />
-      );
+      const { container } = render(<Taginput maxTags={5} hasCounter={false} />);
       const counter = container.querySelector('.counter');
       expect(counter).not.toBeInTheDocument();
     });
@@ -650,9 +648,7 @@ describe('Taginput', () => {
 
     it('splits pasted text by multiple separators', () => {
       const onChange = jest.fn();
-      render(
-        <Taginput onPasteSeparators={[',', ';']} onChange={onChange} />
-      );
+      render(<Taginput onPasteSeparators={[',', ';']} onChange={onChange} />);
       const input = screen.getByRole('textbox');
 
       fireEvent.paste(input, {
@@ -680,10 +676,7 @@ describe('Taginput', () => {
     it('prevents invalid tags from being added', () => {
       const onChange = jest.fn();
       render(
-        <Taginput
-          beforeAdding={(tag) => tag.length >= 3}
-          onChange={onChange}
-        />
+        <Taginput beforeAdding={tag => tag.length >= 3} onChange={onChange} />
       );
       const input = screen.getByRole('textbox');
 
@@ -696,10 +689,7 @@ describe('Taginput', () => {
     it('allows valid tags when beforeAdding returns true', () => {
       const onChange = jest.fn();
       render(
-        <Taginput
-          beforeAdding={(tag) => tag.length >= 3}
-          onChange={onChange}
-        />
+        <Taginput beforeAdding={tag => tag.length >= 3} onChange={onChange} />
       );
       const input = screen.getByRole('textbox');
 
@@ -740,7 +730,9 @@ describe('Taginput', () => {
 
     it('does not render loading spinner when loading is false', () => {
       const { container } = render(<Taginput />);
-      expect(container.querySelector('.loader.is-loading')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('.loader.is-loading')
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -765,12 +757,7 @@ describe('Taginput', () => {
 
   describe('Aria Close Label', () => {
     it('uses ariaCloseLabel for close button aria-label', () => {
-      render(
-        <Taginput
-          defaultValue={['Tag1']}
-          ariaCloseLabel="Delete tag"
-        />
-      );
+      render(<Taginput defaultValue={['Tag1']} ariaCloseLabel="Delete tag" />);
       expect(screen.getByLabelText('Delete tag')).toBeInTheDocument();
     });
 

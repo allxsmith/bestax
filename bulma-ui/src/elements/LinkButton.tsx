@@ -8,11 +8,10 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
  * @property {'text' | 'ghost' | 'underline'} [variant] - Display mode. 'text' renders a minimal button without underline; 'ghost' renders a link-like button with default text color; 'underline' renders a text button that underlines on hover/focus. Defaults to 'text'.
  * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black'} [color] - Text color override.
  */
-export interface LinkButtonProps
-  extends Omit<
-    ButtonProps,
-    'color' | 'isOutlined' | 'isInverted' | 'isLight'
-  > {
+export interface LinkButtonProps extends Omit<
+  ButtonProps,
+  'color' | 'isOutlined' | 'isInverted' | 'isLight'
+> {
   variant?: 'text' | 'ghost' | 'underline';
   color?:
     | 'primary'

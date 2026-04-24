@@ -21,21 +21,21 @@ import { Loading } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop               | Type                                                                      | Default | Description                                      |
-| ------------------ | ------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `active`           | `boolean`                                                                 | `false` | Whether the loading overlay is visible.          |
-| `isFullPage`       | `boolean`                                                                 | `false` | Cover the entire viewport.                       |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                      | —       | Size of the loading spinner.                     |
+| Prop               | Type                                                                            | Default | Description                                           |
+| ------------------ | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible.               |
+| `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport.                            |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                          |
 | `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner. Default is light grey. |
-| `canCancel`        | `boolean`                                                                 | `false` | Show a cancel button and allow closing.          |
-| `onCancel`         | `() => void`                                                              | —       | Callback when cancel is triggered.               |
-| `children`         | `React.ReactNode`                                                         | —       | Content to display below the spinner.            |
-| `className`        | `string`                                                                  | —       | Additional CSS classes.                          |
-| `overlayClassName` | `string`                                                                  | —       | Additional classes for the overlay.              |
-| `iconClassName`    | `string`                                                                  | —       | Additional classes for the spinner icon.         |
-| `indicator`        | `React.ReactNode`                                                         | —       | Custom loading indicator element.                |
-| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                       | —       | Style of the loading overlay.                    |
-| ...                | All standard HTML and Bulma helper props                                  |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+| `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing.               |
+| `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                    |
+| `children`         | `React.ReactNode`                                                               | —       | Content to display below the spinner.                 |
+| `className`        | `string`                                                                        | —       | Additional CSS classes.                               |
+| `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                   |
+| `iconClassName`    | `string`                                                                        | —       | Additional classes for the spinner icon.              |
+| `indicator`        | `React.ReactNode`                                                               | —       | Custom loading indicator element.                     |
+| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                             | —       | Style of the loading overlay.                         |
+| ...                | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses))      |
 
 ---
 
@@ -88,7 +88,9 @@ function example() {
     <Columns>
       <Column>
         <Box relative style={{ height: '200px' }}>
-          <Loading active size="small">Small</Loading>
+          <Loading active size="small">
+            Small
+          </Loading>
         </Box>
       </Column>
       <Column>
@@ -98,12 +100,16 @@ function example() {
       </Column>
       <Column>
         <Box relative style={{ height: '200px' }}>
-          <Loading active size="medium">Medium</Loading>
+          <Loading active size="medium">
+            Medium
+          </Loading>
         </Box>
       </Column>
       <Column>
         <Box relative style={{ height: '200px' }}>
-          <Loading active size="large">Large</Loading>
+          <Loading active size="large">
+            Large
+          </Loading>
         </Box>
       </Column>
     </Columns>
@@ -128,27 +134,37 @@ function example() {
       </Column>
       <Column size="4">
         <Box relative style={{ height: '150px' }}>
-          <Loading active color="primary">Primary</Loading>
+          <Loading active color="primary">
+            Primary
+          </Loading>
         </Box>
       </Column>
       <Column size="4">
         <Box relative style={{ height: '150px' }}>
-          <Loading active color="info">Info</Loading>
+          <Loading active color="info">
+            Info
+          </Loading>
         </Box>
       </Column>
       <Column size="4">
         <Box relative style={{ height: '150px' }}>
-          <Loading active color="success">Success</Loading>
+          <Loading active color="success">
+            Success
+          </Loading>
         </Box>
       </Column>
       <Column size="4">
         <Box relative style={{ height: '150px' }}>
-          <Loading active color="warning">Warning</Loading>
+          <Loading active color="warning">
+            Warning
+          </Loading>
         </Box>
       </Column>
       <Column size="4">
         <Box relative style={{ height: '150px' }}>
-          <Loading active color="danger">Danger</Loading>
+          <Loading active color="danger">
+            Danger
+          </Loading>
         </Box>
       </Column>
     </Columns>
@@ -179,11 +195,7 @@ function example() {
         <Paragraph p="4">Content behind the overlay.</Paragraph>
       </Box>
       {!isLoading && (
-        <Button
-          color="primary"
-          mt="4"
-          onClick={() => setIsLoading(true)}
-        >
+        <Button color="primary" mt="4" onClick={() => setIsLoading(true)}>
           Show Loading
         </Button>
       )}
@@ -244,12 +256,7 @@ function example() {
     <Box relative p="5" style={{ height: '150px' }}>
       <Loading active={isLoading}>Loading data...</Loading>
       <Paragraph>Click the button to see the loading overlay.</Paragraph>
-      <Button
-        color="primary"
-        onClick={handleClick}
-        disabled={isLoading}
-        mt="3"
-      >
+      <Button color="primary" onClick={handleClick} disabled={isLoading} mt="3">
         Load Data
       </Button>
     </Box>

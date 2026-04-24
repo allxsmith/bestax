@@ -9,6 +9,7 @@ sidebar_position: 3
 Start a new project with your framework's own scaffolder (Vite, `create-next-app`, or CRA) and wire bestax-bulma in. Pick this guide if you want full control over your toolchain.
 
 :::tip Looking for the easy path?
+
 - **[Quick Start](/docs/guides/intro)** — run `npm create bestax@latest` and the scaffolder sets up a Vite + React project with bestax-bulma and CSS pre-configured. Done in two minutes.
 - **[Installation](/docs/guides/getting-started/installation)** — adding bestax-bulma to an existing app, or choosing between the combined `bestax.css` bundle, separate CSS, CDN, or a custom SCSS build. Covers icon libraries too.
 

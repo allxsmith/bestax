@@ -31,7 +31,9 @@ describe('Numberinput', () => {
       const { container } = render(
         <Numberinput defaultValue={5} className="custom-class" />
       );
-      expect(container.querySelector('.numberinput')).toHaveClass('custom-class');
+      expect(container.querySelector('.numberinput')).toHaveClass(
+        'custom-class'
+      );
     });
 
     it('applies numberinput and field classes', () => {
@@ -246,14 +248,18 @@ describe('Numberinput', () => {
       const { container } = render(
         <Numberinput defaultValue={5} controlsPosition="left" />
       );
-      expect(container.querySelector('.numberinput')).toHaveClass('controls-left');
+      expect(container.querySelector('.numberinput')).toHaveClass(
+        'controls-left'
+      );
     });
 
     it('applies controls-right class', () => {
       const { container } = render(
         <Numberinput defaultValue={5} controlsPosition="right" />
       );
-      expect(container.querySelector('.numberinput')).toHaveClass('controls-right');
+      expect(container.querySelector('.numberinput')).toHaveClass(
+        'controls-right'
+      );
     });
 
     it('renders both buttons on left when controlsPosition is left', () => {
@@ -310,9 +316,7 @@ describe('Numberinput', () => {
 
   describe('Compact Mode', () => {
     it('applies has-addons and is-compact classes', () => {
-      const { container } = render(
-        <Numberinput defaultValue={5} compact />
-      );
+      const { container } = render(<Numberinput defaultValue={5} compact />);
       const numberinput = container.querySelector('.numberinput');
       expect(numberinput).toHaveClass('has-addons');
       expect(numberinput).toHaveClass('is-compact');
@@ -339,14 +343,8 @@ describe('Numberinput', () => {
         '.numberinput-stepper-button'
       );
       expect(stepperButtons).toHaveLength(2);
-      expect(stepperButtons[0]).toHaveAttribute(
-        'aria-label',
-        'Increase value'
-      );
-      expect(stepperButtons[1]).toHaveAttribute(
-        'aria-label',
-        'Decrease value'
-      );
+      expect(stepperButtons[0]).toHaveAttribute('aria-label', 'Increase value');
+      expect(stepperButtons[1]).toHaveAttribute('aria-label', 'Decrease value');
       // Each button should contain an SVG
       stepperButtons.forEach(btn => {
         expect(btn.querySelector('svg')).toBeInTheDocument();
@@ -434,7 +432,9 @@ describe('Numberinput', () => {
 
     it('applies is-disabled class to container', () => {
       const { container } = render(<Numberinput defaultValue={5} disabled />);
-      expect(container.querySelector('.numberinput')).toHaveClass('is-disabled');
+      expect(container.querySelector('.numberinput')).toHaveClass(
+        'is-disabled'
+      );
     });
 
     it('disables stepper buttons when disabled', () => {
@@ -625,9 +625,7 @@ describe('Numberinput', () => {
   describe('Exponential Step', () => {
     it('uses normal step when exponential is false', async () => {
       const handleChange = jest.fn();
-      render(
-        <Numberinput value={10} step={1} onChange={handleChange} />
-      );
+      render(<Numberinput value={10} step={1} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
       await userEvent.click(incrementBtn);
@@ -638,12 +636,7 @@ describe('Numberinput', () => {
     it('scales step with value magnitude when exponential is true', async () => {
       const handleChange = jest.fn();
       render(
-        <Numberinput
-          value={10}
-          step={1}
-          exponential
-          onChange={handleChange}
-        />
+        <Numberinput value={10} step={1} exponential onChange={handleChange} />
       );
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -656,12 +649,7 @@ describe('Numberinput', () => {
     it('uses minimum step of 1 at value 0 when exponential', async () => {
       const handleChange = jest.fn();
       render(
-        <Numberinput
-          value={0}
-          step={1}
-          exponential
-          onChange={handleChange}
-        />
+        <Numberinput value={0} step={1} exponential onChange={handleChange} />
       );
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -674,12 +662,7 @@ describe('Numberinput', () => {
     it('scales step with negative value magnitude when exponential', async () => {
       const handleChange = jest.fn();
       render(
-        <Numberinput
-          value={-5}
-          step={1}
-          exponential
-          onChange={handleChange}
-        />
+        <Numberinput value={-5} step={1} exponential onChange={handleChange} />
       );
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });

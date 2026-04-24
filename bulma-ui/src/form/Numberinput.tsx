@@ -86,13 +86,29 @@ export interface NumberinputProps
 }
 
 const ArrowDropUp = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
     <path d="M7 14.5l5-5 5 5" />
   </svg>
 );
 
 const ArrowDropDown = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
     <path d="M7 9.5l5 5 5-5" />
   </svg>
 );
@@ -152,7 +168,9 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const insideField = useInsideField();
     const effectiveBare = bare ?? insideField;
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const [internalValue, setInternalValue] = useState<number | undefined>(defaultValue);
+    const [internalValue, setInternalValue] = useState<number | undefined>(
+      defaultValue
+    );
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Determine if controlled
@@ -229,8 +247,10 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     );
 
     // Check if at limits
-    const isAtMin = min !== undefined && currentValue !== undefined && currentValue <= min;
-    const isAtMax = max !== undefined && currentValue !== undefined && currentValue >= max;
+    const isAtMin =
+      min !== undefined && currentValue !== undefined && currentValue <= min;
+    const isAtMax =
+      max !== undefined && currentValue !== undefined && currentValue >= max;
 
     // Generate classes
     const fieldClasses = usePrefixedClassNames('field', {
@@ -243,7 +263,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       'is-stepper': isStepper,
       [`is-${size}`]: !!size,
       'is-disabled': disabled,
-      [`controls-${effectiveControlsPosition}`]: effectiveControlsPosition !== 'both',
+      [`controls-${effectiveControlsPosition}`]:
+        effectiveControlsPosition !== 'both',
     });
 
     const controlClasses = usePrefixedClassNames('control');
@@ -265,7 +286,9 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
 
     const iconClasses = usePrefixedClassNames('icon', 'is-small');
     const stepperClasses = usePrefixedClassNames('numberinput-stepper');
-    const stepperButtonClasses = usePrefixedClassNames('numberinput-stepper-button');
+    const stepperButtonClasses = usePrefixedClassNames(
+      'numberinput-stepper-button'
+    );
 
     const combinedClasses = classNames(
       fieldClasses,
@@ -408,7 +431,11 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
 
     // Bare mode: no outer .field wrapper, for composing inside a parent Field
     if (effectiveBare) {
-      const bareClasses = classNames(numberinputClasses, bulmaHelperClasses, className);
+      const bareClasses = classNames(
+        numberinputClasses,
+        bulmaHelperClasses,
+        className
+      );
 
       if (effectiveControlsPosition === 'left') {
         return (

@@ -22,8 +22,7 @@ import { FormFieldProps } from './fieldProps';
  * @property {React.ReactNode} children - Radio elements to render in the group.
  */
 export interface RadiosProps
-  extends Omit<BulmaClassesProps, 'color'>,
-    FormFieldProps {
+  extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
   className?: string;
   name?: string;
   value?: string;
@@ -123,9 +122,7 @@ export const Radios: React.FC<RadiosProps> = ({
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
       name,
-      ...(groupActive
-        ? { value: currentValue, onChange: handleChange }
-        : {}),
+      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
     }),
     [name, groupActive, currentValue, handleChange]
   );

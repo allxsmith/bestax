@@ -60,7 +60,9 @@ describe('Form submission integration', () => {
       <Radios name="color">
         <Radio value="r">Red</Radio>
         <Radio value="g">Green</Radio>
-        <Radio value="b" name="override">Blue</Radio>
+        <Radio value="b" name="override">
+          Blue
+        </Radio>
       </Radios>
     );
     const radios = container.querySelectorAll('input[type="radio"]');

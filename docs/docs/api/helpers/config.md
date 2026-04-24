@@ -22,11 +22,11 @@ import { ConfigProvider, useConfig } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop          | Type        | Description                                                                                                     |
-| ------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
-| `children`    | `ReactNode` | The child components that will inherit the configuration settings.                                              |
-| `classPrefix` | `string`    | Optional prefix to add to all Bulma CSS classes. Useful for namespacing when integrating with other frameworks. |
-| `iconLibrary` | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | Default icon library for all child components. |
+| Prop          | Type                                                               | Description                                                                                                     |
+| ------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `children`    | `ReactNode`                                                        | The child components that will inherit the configuration settings.                                              |
+| `classPrefix` | `string`                                                           | Optional prefix to add to all Bulma CSS classes. Useful for namespacing when integrating with other frameworks. |
+| `iconLibrary` | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | Default icon library for all child components.                                                                  |
 
 ---
 

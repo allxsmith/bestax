@@ -206,7 +206,11 @@ export const Static: Story = {
 export const WithIcons: Story = {
   render: () => (
     <>
-      <Input iconLeftName="user" iconRightName="check" placeholder="With icons" />
+      <Input
+        iconLeftName="user"
+        iconRightName="check"
+        placeholder="With icons"
+      />
       <Input
         iconLeftName="envelope"
         iconRightName="exclamation-triangle"

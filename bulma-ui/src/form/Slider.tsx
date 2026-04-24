@@ -1,4 +1,11 @@
-import React, { forwardRef, useState, useCallback, useRef, useMemo, useLayoutEffect } from 'react';
+import React, {
+  forwardRef,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useLayoutEffect,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useInsideField, useInsideControl } from './FormContext';
@@ -218,14 +225,15 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const { bulmaHelperClasses, rest } = useBulmaClasses(restProps);
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
-    const tooltipMode: SliderTooltip = tooltip ?? (showOutput ? 'auto' : 'hidden');
+    const tooltipMode: SliderTooltip =
+      tooltip ?? (showOutput ? 'auto' : 'hidden');
 
     // --- Range mode state ---
-    const [internalRange, setInternalRange] = useState<[number, number]>(
-      () => (range ? (defaultValue as [number, number]) ?? [min, max] : [min, min])
+    const [internalRange, setInternalRange] = useState<[number, number]>(() =>
+      range ? ((defaultValue as [number, number]) ?? [min, max]) : [min, min]
     );
-    const [internalSingle, setInternalSingle] = useState<number>(
-      () => (!range ? (defaultValue as number) ?? 0 : 0)
+    const [internalSingle, setInternalSingle] = useState<number>(() =>
+      !range ? ((defaultValue as number) ?? 0) : 0
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);
@@ -244,16 +252,26 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     // Current values
     const currentRange: [number, number] = range
-      ? (isControlled ? (controlledValue as [number, number]) : internalRange)
+      ? isControlled
+        ? (controlledValue as [number, number])
+        : internalRange
       : [0, 0];
     const currentSingle: number = !range
-      ? (isControlled ? (controlledValue as number) : internalSingle)
+      ? isControlled
+        ? (controlledValue as number)
+        : internalSingle
       : 0;
 
     // Progress percentages
-    const progressSingle = !range ? ((currentSingle - min) / (max - min)) * 100 : 0;
-    const progressLow = range ? ((currentRange[0] - min) / (max - min)) * 100 : 0;
-    const progressHigh = range ? ((currentRange[1] - min) / (max - min)) * 100 : 0;
+    const progressSingle = !range
+      ? ((currentSingle - min) / (max - min)) * 100
+      : 0;
+    const progressLow = range
+      ? ((currentRange[0] - min) / (max - min)) * 100
+      : 0;
+    const progressHigh = range
+      ? ((currentRange[1] - min) / (max - min)) * 100
+      : 0;
 
     // Scale helper
     const scaleValue = useCallback(
@@ -334,9 +352,13 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     // Compute corrected thumb position CSS calc expression.
     // The browser insets the range input thumb by half its size from each edge,
     // so the tooltip left must account for this to align with the thumb center.
-    const thumbVarName = size ? `slider-thumb-size-${size}` : 'slider-thumb-size';
+    const thumbVarName = size
+      ? `slider-thumb-size-${size}`
+      : 'slider-thumb-size';
     const thumbCssVar = `var(--bulma-${thumbVarName})`;
-    const effectiveThumbExpr = isCircle ? `(${thumbCssVar} * 1.2)` : thumbCssVar;
+    const effectiveThumbExpr = isCircle
+      ? `(${thumbCssVar} * 1.2)`
+      : thumbCssVar;
 
     const getThumbLeft = (progressPct: number) => {
       const fraction = progressPct / 100;
@@ -356,7 +378,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       if (isNaN(value)) return 0;
       let px: number;
       if (raw.includes('rem')) {
-        const rootFs = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const rootFs =
+          parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
         px = value * rootFs;
       } else {
         px = value;
@@ -387,7 +410,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     // Combined ref for the first (or only) input
     const combinedRef = (node: HTMLInputElement | null) => {
-      (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+      (inputRef as React.MutableRefObject<HTMLInputElement | null>).current =
+        node;
       if (typeof ref === 'function') {
         ref(node);
       } else if (ref) {
@@ -396,8 +420,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     };
 
     // Tooltip show/hide for auto mode
-    const showTipLow = tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltip);
-    const showTipHigh = tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
+    const showTipLow =
+      tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltip);
+    const showTipHigh =
+      tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
 
     // Aria value text
     const getAriaProps = (value: number) => {
@@ -415,12 +441,18 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     // We compute the un-nudged tooltip position from the progress %
     // and wrapper rect to avoid feedback loops.
     const computeNudge = useCallback(
-      (el: HTMLElement, wrapper: HTMLElement, progressPct: number, thumbSizePx: number): number => {
+      (
+        el: HTMLElement,
+        wrapper: HTMLElement,
+        progressPct: number,
+        thumbSizePx: number
+      ): number => {
         const wr = wrapper.getBoundingClientRect();
         const tooltipWidth = el.offsetWidth;
         // Corrected center: accounts for thumb inset from track edges
         const fraction = progressPct / 100;
-        const centerX = wr.left + thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
+        const centerX =
+          wr.left + thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
         const tooltipLeft = centerX - tooltipWidth / 2;
         const tooltipRight = centerX + tooltipWidth / 2;
         if (tooltipLeft < wr.left) {
@@ -472,13 +504,20 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       const thumbPx = getThumbSizePx();
       const gap = 8; // 0.5rem
       // Tooltip right edge if placed to the right of the thumb
-      const tooltipRightEdge = wrapperRect.left + wrapperRect.width / 2 + thumbPx / 2 + gap + tooltipWidth;
+      const tooltipRightEdge =
+        wrapperRect.left +
+        wrapperRect.width / 2 +
+        thumbPx / 2 +
+        gap +
+        tooltipWidth;
       setVerticalFlippedLeft(tooltipRightEdge > window.innerWidth);
     });
 
     // Vertical wrapper style
     const wrapperStyle = isVertical
-      ? { height: 'var(--bulma-slider-vertical-height, 200px)' } as React.CSSProperties
+      ? ({
+          height: 'var(--bulma-slider-vertical-height, 200px)',
+        } as React.CSSProperties)
       : undefined;
 
     // Render ticks
@@ -495,7 +534,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             return (
               <span
                 key={i}
-                className={classNames('slider-tick', { 'is-endpoint': isEndpoint })}
+                className={classNames('slider-tick', {
+                  'is-endpoint': isEndpoint,
+                })}
                 style={posStyle}
               >
                 {tick.label !== undefined && (
@@ -554,15 +595,22 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             })}
             style={
               isVertical
-                ? (verticalFlippedLeft
-                    ? { bottom: getThumbLeft(progressSingle), right: verticalTooltipOffset, left: 'auto' }
-                    : { bottom: getThumbLeft(progressSingle), left: verticalTooltipOffset, right: 'auto' }
-                  ) as React.CSSProperties
-                : {
+                ? ((verticalFlippedLeft
+                    ? {
+                        bottom: getThumbLeft(progressSingle),
+                        right: verticalTooltipOffset,
+                        left: 'auto',
+                      }
+                    : {
+                        bottom: getThumbLeft(progressSingle),
+                        left: verticalTooltipOffset,
+                        right: 'auto',
+                      }) as React.CSSProperties)
+                : ({
                     left: getThumbLeft(progressSingle),
                     transform: `translateX(calc(-50% + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
-                  } as React.CSSProperties
+                  } as React.CSSProperties)
             }
           >
             {formatValue(currentSingle)}
@@ -608,7 +656,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-valuemin={min}
           aria-valuemax={max}
           aria-orientation={isVertical ? 'vertical' : undefined}
-          aria-label={(ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'}
+          aria-label={
+            (ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'
+          }
           {...getAriaProps(currentRange[0])}
           {...rest}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
@@ -632,7 +682,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-valuemin={min}
           aria-valuemax={max}
           aria-orientation={isVertical ? 'vertical' : undefined}
-          aria-label={(ariaLabel as [string, string] | undefined)?.[1] ?? 'Maximum value'}
+          aria-label={
+            (ariaLabel as [string, string] | undefined)?.[1] ?? 'Maximum value'
+          }
           {...getAriaProps(currentRange[1])}
           name={nameHigh}
         />
@@ -647,15 +699,22 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             })}
             style={
               isVertical
-                ? (verticalFlippedLeft
-                    ? { bottom: getThumbLeft(progressLow), right: verticalTooltipOffset, left: 'auto' }
-                    : { bottom: getThumbLeft(progressLow), left: verticalTooltipOffset, right: 'auto' }
-                  ) as React.CSSProperties
-                : {
+                ? ((verticalFlippedLeft
+                    ? {
+                        bottom: getThumbLeft(progressLow),
+                        right: verticalTooltipOffset,
+                        left: 'auto',
+                      }
+                    : {
+                        bottom: getThumbLeft(progressLow),
+                        left: verticalTooltipOffset,
+                        right: 'auto',
+                      }) as React.CSSProperties)
+                : ({
                     left: getThumbLeft(progressLow),
                     transform: `translateX(calc(-50% + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
-                  } as React.CSSProperties
+                  } as React.CSSProperties)
             }
           >
             {formatValue(currentRange[0])}
@@ -672,15 +731,22 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             })}
             style={
               isVertical
-                ? (verticalFlippedLeft
-                    ? { bottom: getThumbLeft(progressHigh), right: verticalTooltipOffset, left: 'auto' }
-                    : { bottom: getThumbLeft(progressHigh), left: verticalTooltipOffset, right: 'auto' }
-                  ) as React.CSSProperties
-                : {
+                ? ((verticalFlippedLeft
+                    ? {
+                        bottom: getThumbLeft(progressHigh),
+                        right: verticalTooltipOffset,
+                        left: 'auto',
+                      }
+                    : {
+                        bottom: getThumbLeft(progressHigh),
+                        left: verticalTooltipOffset,
+                        right: 'auto',
+                      }) as React.CSSProperties)
+                : ({
                     left: getThumbLeft(progressHigh),
                     transform: `translateX(calc(-50% + ${nudgeXHigh}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeXHigh}px)`,
-                  } as React.CSSProperties
+                  } as React.CSSProperties)
             }
           >
             {formatValue(currentRange[1])}
@@ -698,15 +764,25 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     if (!insideField) {
       return (
-        <Field label={label} labelSize={labelSize} labelProps={labelProps}
-               horizontal={horizontal} className={fieldClassName}>
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
           {content}
           {messageEl}
         </Field>
       );
     }
 
-    return <>{content}{messageEl}</>;
+    return (
+      <>
+        {content}
+        {messageEl}
+      </>
+    );
   }
 );
 

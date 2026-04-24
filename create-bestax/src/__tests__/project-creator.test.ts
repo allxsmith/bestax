@@ -442,7 +442,9 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
+      ).mockResolvedValue(
+        `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
+      );
 
       await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
 
@@ -477,7 +479,9 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
+      ).mockResolvedValue(
+        `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
+      );
 
       await projectCreator.setupIconLibrary(targetPath, 'mdi', 'vite-ts');
 
@@ -1362,7 +1366,9 @@ describe('ProjectCreator', () => {
       });
       (
         fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
-      ).mockResolvedValue(`import '@allxsmith/bestax-bulma/bestax.css';` as unknown);
+      ).mockResolvedValue(
+        `import '@allxsmith/bestax-bulma/bestax.css';` as unknown
+      );
 
       await projectCreator.setupIconLibrary(targetPath, 'fontawesome', 'vite');
 

@@ -117,7 +117,8 @@ const meta: Meta<typeof Numberinput> = {
     },
     bare: {
       control: 'boolean',
-      description: 'Bare mode — no outer field wrapper, for composing inside a parent Field',
+      description:
+        'Bare mode — no outer field wrapper, for composing inside a parent Field',
     },
   },
 };
@@ -518,12 +519,7 @@ export const WithAddons: Story = {
         <Control>
           <Button>Button</Button>
         </Control>
-        <Numberinput
-          bare
-          value={value}
-          onChange={setValue}
-          color="primary"
-        />
+        <Numberinput bare value={value} onChange={setValue} color="primary" />
       </Field>
     );
   },
@@ -539,11 +535,7 @@ export const WithAddonsPlaceholder: Story = {
         <Control>
           <Button>Button</Button>
         </Control>
-        <Numberinput
-          bare
-          placeholder="Enter a number"
-          color="primary"
-        />
+        <Numberinput bare placeholder="Enter a number" color="primary" />
       </Field>
     );
   },
@@ -557,12 +549,7 @@ export const WithAddonsRight: Story = {
     const [value, setValue] = useState(5);
     return (
       <Field hasAddons>
-        <Numberinput
-          bare
-          value={value}
-          onChange={setValue}
-          color="primary"
-        />
+        <Numberinput bare value={value} onChange={setValue} color="primary" />
         <Control>
           <Button>Button</Button>
         </Control>
@@ -588,7 +575,13 @@ export const WithAddonsSizes: Story = {
             <Control>
               <Button size="small">Button</Button>
             </Control>
-            <Numberinput bare size="small" value={small} onChange={setSmall} color="primary" />
+            <Numberinput
+              bare
+              size="small"
+              value={small}
+              onChange={setSmall}
+              color="primary"
+            />
           </Field>
         </div>
         <div>
@@ -597,7 +590,12 @@ export const WithAddonsSizes: Story = {
             <Control>
               <Button>Button</Button>
             </Control>
-            <Numberinput bare value={normal} onChange={setNormal} color="primary" />
+            <Numberinput
+              bare
+              value={normal}
+              onChange={setNormal}
+              color="primary"
+            />
           </Field>
         </div>
         <div>
@@ -606,7 +604,13 @@ export const WithAddonsSizes: Story = {
             <Control>
               <Button size="medium">Button</Button>
             </Control>
-            <Numberinput bare size="medium" value={medium} onChange={setMedium} color="primary" />
+            <Numberinput
+              bare
+              size="medium"
+              value={medium}
+              onChange={setMedium}
+              color="primary"
+            />
           </Field>
         </div>
         <div>
@@ -615,7 +619,13 @@ export const WithAddonsSizes: Story = {
             <Control>
               <Button size="large">Button</Button>
             </Control>
-            <Numberinput bare size="large" value={large} onChange={setLarge} color="primary" />
+            <Numberinput
+              bare
+              size="large"
+              value={large}
+              onChange={setLarge}
+              color="primary"
+            />
           </Field>
         </div>
       </div>
@@ -631,12 +641,7 @@ export const ButtonCustomization: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <p className="mb-2">Primary + Rounded</p>
-        <Numberinput
-          defaultValue={5}
-          color="primary"
-          controlsRounded
-          compact
-        />
+        <Numberinput defaultValue={5} color="primary" controlsRounded compact />
       </div>
       <div>
         <p className="mb-2">Danger + Large</p>

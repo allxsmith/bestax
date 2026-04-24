@@ -51,9 +51,9 @@ export interface CheckboxesGroupContextValue {
 const RadiosContext = createContext<RadiosGroupContextValue | undefined>(
   undefined
 );
-const CheckboxesContext = createContext<CheckboxesGroupContextValue | undefined>(
-  undefined
-);
+const CheckboxesContext = createContext<
+  CheckboxesGroupContextValue | undefined
+>(undefined);
 
 /**
  * Hook to read the full surrounding `<Radios>` group context (name + selection).

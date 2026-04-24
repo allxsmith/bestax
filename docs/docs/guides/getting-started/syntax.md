@@ -113,6 +113,7 @@ Or, in this library, as a single React component:
 This React library maps properties to Bulma classes, making it easier and more type-safe to work with Bulma in React applications.
 
 :::tip Why use React props over raw Bulma classes?
+
 - **TypeScript catches typos at compile time.** `color="primery"` fails to build; `class="is-primery"` silently renders a broken button.
 - **IDE autocomplete** for every component, prop, and allowed value — no memorizing Bulma's class vocabulary.
 - **Enumerated values.** `size` only accepts `'small' | 'normal' | 'medium' | 'large'`. Illegal combinations don't type-check.
@@ -128,7 +129,9 @@ Instead of writing class names manually, you use React props.
 Instead of this HTML:
 
 ```html
-<button class="button is-primary is-large is-rounded is-loading">Loading</button>
+<button class="button is-primary is-large is-rounded is-loading">
+  Loading
+</button>
 ```
 
 You write this React:
@@ -475,7 +478,7 @@ For more complex scenarios, you can combine the helper props with your own CSS c
 </Button>
 ```
 
-:::note `className` is for *your* CSS, not Bulma's
+:::note `className` is for _your_ CSS, not Bulma's
 Use `className` for app-specific classes defined in your own stylesheets (like `my-custom-button` above). Don't reach for `className="is-primary"` as an escape hatch for Bulma modifiers — if a Bulma class isn't exposed through a prop, open an issue so we can add it. This keeps your call sites type-safe.
 :::
 

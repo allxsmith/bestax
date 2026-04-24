@@ -119,7 +119,9 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('button', {
-    [`is-${color}`]: color && validButtonColors.includes(color as (typeof validButtonColors)[number]),
+    [`is-${color}`]:
+      color &&
+      validButtonColors.includes(color as (typeof validButtonColors)[number]),
     [`is-${size}`]: size,
     'is-outlined': isOutlined,
     'is-light': isLight,

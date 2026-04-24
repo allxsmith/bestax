@@ -420,7 +420,9 @@ describe('Rate', () => {
     });
 
     it('customIcon takes priority over iconName', () => {
-      const customIcon = jest.fn(() => <span data-testid="custom">custom</span>);
+      const customIcon = jest.fn(() => (
+        <span data-testid="custom">custom</span>
+      ));
       render(
         <Rate
           defaultValue={2}
@@ -438,9 +440,16 @@ describe('Rate', () => {
 
   describe('Color Support', () => {
     it('applies is-{color} class for each color', () => {
-      const colors = ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const;
+      const colors = [
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ] as const;
 
-      colors.forEach((color) => {
+      colors.forEach(color => {
         const { container, unmount } = render(<Rate color={color} />);
         expect(container.querySelector('.rate')).toHaveClass(`is-${color}`);
         unmount();
@@ -450,11 +459,15 @@ describe('Rate', () => {
     it('does not apply color class when prop omitted', () => {
       const { container } = render(<Rate />);
       const element = container.querySelector('.rate') as HTMLElement;
-      expect(element.className).not.toMatch(/is-(primary|link|info|success|warning|danger)/);
+      expect(element.className).not.toMatch(
+        /is-(primary|link|info|success|warning|danger)/
+      );
     });
 
     it('combines color with other classes', () => {
-      const { container } = render(<Rate color="danger" size="large" disabled />);
+      const { container } = render(
+        <Rate color="danger" size="large" disabled />
+      );
       expect(container.querySelector('.rate')).toHaveClass('is-danger');
       expect(container.querySelector('.rate')).toHaveClass('is-large');
       expect(container.querySelector('.rate')).toHaveClass('is-disabled');
@@ -464,7 +477,12 @@ describe('Rate', () => {
   describe('Icon Library', () => {
     it('renders Icon component when iconName provided', () => {
       const { container } = render(
-        <Rate defaultValue={2} iconName="star" iconLibrary="fa" iconVariant="solid" />
+        <Rate
+          defaultValue={2}
+          iconName="star"
+          iconLibrary="fa"
+          iconVariant="solid"
+        />
       );
       // Icon renders a <span class="icon"> with <i> inside
       const iconSpans = container.querySelectorAll('.icon');
@@ -509,14 +527,14 @@ describe('Rate', () => {
     });
 
     it('score shows decimal format for fractional values', () => {
-      render(<Rate value={3.5} onChange={() => {}} precision={0.5} showScore />);
+      render(
+        <Rate value={3.5} onChange={() => {}} precision={0.5} showScore />
+      );
       expect(screen.getByText('3.5')).toBeInTheDocument();
     });
 
     it('partial fill applied for fractional icon', () => {
-      const { container } = render(
-        <Rate defaultValue={3.5} precision={0.5} />
-      );
+      const { container } = render(<Rate defaultValue={3.5} precision={0.5} />);
       // The 4th star (index 3) should have a partial fill SVG with a clipPath
       const clipPaths = container.querySelectorAll('clipPath');
       expect(clipPaths.length).toBeGreaterThan(0);
@@ -534,7 +552,9 @@ describe('Rate', () => {
 
     it('End key works with precision', () => {
       const handleChange = jest.fn();
-      render(<Rate value={3.5} onChange={handleChange} precision={0.5} max={5} />);
+      render(
+        <Rate value={3.5} onChange={handleChange} precision={0.5} max={5} />
+      );
 
       const container = screen.getByRole('radiogroup');
       fireEvent.keyDown(container, { key: 'End' });
@@ -559,14 +579,7 @@ describe('Rate', () => {
   describe('Interactive Feedback', () => {
     it('text shows "+" suffix for fractional hover values', () => {
       const texts = ['Bad', 'Poor', 'Normal', 'Good', 'Super'];
-      render(
-        <Rate
-          defaultValue={0}
-          precision={0.5}
-          showText
-          texts={texts}
-        />
-      );
+      render(<Rate defaultValue={0} precision={0.5} showText texts={texts} />);
 
       const stars = screen.getAllByRole('radio');
       // Hover over 3rd star to trigger hoverValue of 3
@@ -578,13 +591,7 @@ describe('Rate', () => {
 
     it('text updates on hover', () => {
       const texts = ['Bad', 'Poor', 'Normal', 'Good', 'Super'];
-      render(
-        <Rate
-          defaultValue={0}
-          showText
-          texts={texts}
-        />
-      );
+      render(<Rate defaultValue={0} showText texts={texts} />);
 
       const stars = screen.getAllByRole('radio');
       fireEvent.mouseEnter(stars[4]);

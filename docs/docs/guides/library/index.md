@@ -15,8 +15,12 @@ sidebar_position: 1
       <Icon name="cube" size="large" textColor="primary" ariaLabel="library" />
     </Column>
     <Column>
-      <Title size="4" mb="1">80 typed components</Title>
-      <SubTitle size="6" textColor="grey">Elements, Components, Form, Layout — all in one package.</SubTitle>
+      <Title size="4" mb="1">
+        80 typed components
+      </Title>
+      <SubTitle size="6" textColor="grey">
+        Elements, Components, Form, Layout — all in one package.
+      </SubTitle>
     </Column>
     <Column isNarrow>
       <Tags>
@@ -39,50 +43,110 @@ Bulma organises its styles into a clear hierarchy, and bestax-bulma mirrors it e
 <Grid isFixed fixedCols={3} gap={4}>
   <Cell>
     <Notification color="primary" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Elements</Title>
-      <Tag color="dark" isRounded>30</Tag>
-      <Paragraph mt="2" textColor="black">Foundational atoms — buttons, tags, icons, typography</Paragraph>
-      <a href="/docs/guides/library/elements" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Elements
+      </Title>
+      <Tag color="dark" isRounded>
+        30
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Foundational atoms — buttons, tags, icons, typography
+      </Paragraph>
+      <a
+        href="/docs/guides/library/elements"
+        style={{ color: '#000', fontWeight: 'bold' }}
+      >
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
   <Cell>
     <Notification color="link" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Components</Title>
-      <Tag color="dark" isRounded>19</Tag>
-      <Paragraph mt="2" textColor="black">Composed patterns — modals, navbars, cards, tabs</Paragraph>
-      <a href="/docs/guides/library/components" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Components
+      </Title>
+      <Tag color="dark" isRounded>
+        19
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Composed patterns — modals, navbars, cards, tabs
+      </Paragraph>
+      <a
+        href="/docs/guides/library/components"
+        style={{ color: '#000', fontWeight: 'bold' }}
+      >
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
   <Cell>
     <Notification color="success" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Form</Title>
-      <Tag color="dark" isRounded>16</Tag>
-      <Paragraph mt="2" textColor="black">Input controls — text fields, selects, checkboxes</Paragraph>
-      <a href="/docs/guides/library/form" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Form
+      </Title>
+      <Tag color="dark" isRounded>
+        16
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Input controls — text fields, selects, checkboxes
+      </Paragraph>
+      <a
+        href="/docs/guides/library/form"
+        style={{ color: '#000', fontWeight: 'bold' }}
+      >
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
   <Cell>
     <Notification color="info" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Columns</Title>
-      <Tag color="dark" isRounded>2</Tag>
-      <Paragraph mt="2" textColor="black">Classic 12-column flexbox grid</Paragraph>
-      <a href="/docs/api/columns" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Columns
+      </Title>
+      <Tag color="dark" isRounded>
+        2
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Classic 12-column flexbox grid
+      </Paragraph>
+      <a href="/docs/api/columns" style={{ color: '#000', fontWeight: 'bold' }}>
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
   <Cell>
     <Notification color="warning" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Grid</Title>
-      <Tag color="dark" isRounded>2</Tag>
-      <Paragraph mt="2" textColor="black">Bulma v1 CSS-grid layout</Paragraph>
-      <a href="/docs/api/grid" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Grid
+      </Title>
+      <Tag color="dark" isRounded>
+        2
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Bulma v1 CSS-grid layout
+      </Paragraph>
+      <a href="/docs/api/grid" style={{ color: '#000', fontWeight: 'bold' }}>
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
   <Cell>
     <Notification color="danger" textColor="black" fullHeight>
-      <Title size="5" textColor="black">Layout</Title>
-      <Tag color="dark" isRounded>6</Tag>
-      <Paragraph mt="2" textColor="black">Page-level containers — hero, footer, section</Paragraph>
-      <a href="/docs/api/layout/container" style={{color:'#000',fontWeight:'bold'}}>See more &rarr;</a>
+      <Title size="5" textColor="black">
+        Layout
+      </Title>
+      <Tag color="dark" isRounded>
+        6
+      </Tag>
+      <Paragraph mt="2" textColor="black">
+        Page-level containers — hero, footer, section
+      </Paragraph>
+      <a
+        href="/docs/api/layout/container"
+        style={{ color: '#000', fontWeight: 'bold' }}
+      >
+        See more &rarr;
+      </a>
     </Notification>
   </Cell>
 </Grid>
@@ -102,8 +166,12 @@ Foundational building blocks: typography, buttons, media, lists, data display, a
 <div>
   <Buttons>
     <Button color="primary">Primary</Button>
-    <Button color="info" isOutlined>Info</Button>
-    <Button color="success" isLight>Success</Button>
+    <Button color="info" isOutlined>
+      Info
+    </Button>
+    <Button color="success" isLight>
+      Success
+    </Button>
   </Buttons>
   <Progress value={65} max={100} color="primary" />
   <Tags mt="3">
@@ -131,7 +199,9 @@ Higher-level composed UI patterns: navigation, overlays, feedback, and interacti
     <Card>
       <Card.Content>
         <Title size="5">Dashboard</Title>
-        <SubTitle size="6" textColor="grey">Analytics overview</SubTitle>
+        <SubTitle size="6" textColor="grey">
+          Analytics overview
+        </SubTitle>
         <Progress value={72} max={100} color="info" />
       </Card.Content>
     </Card>
@@ -140,7 +210,9 @@ Higher-level composed UI patterns: navigation, overlays, feedback, and interacti
     <Card>
       <Card.Content>
         <Title size="5">Users</Title>
-        <SubTitle size="6" textColor="grey">Manage accounts</SubTitle>
+        <SubTitle size="6" textColor="grey">
+          Manage accounts
+        </SubTitle>
         <Progress value={45} max={100} color="success" />
       </Card.Content>
     </Card>
@@ -211,13 +283,19 @@ function FormShowcase() {
 ```tsx live
 <Columns>
   <Column size="one-quarter">
-    <Notification color="primary" textAlign="centered">1/4</Notification>
+    <Notification color="primary" textAlign="centered">
+      1/4
+    </Notification>
   </Column>
   <Column>
-    <Notification color="link" textAlign="centered">Auto</Notification>
+    <Notification color="link" textAlign="centered">
+      Auto
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary" textAlign="centered">1/4</Notification>
+    <Notification color="primary" textAlign="centered">
+      1/4
+    </Notification>
   </Column>
 </Columns>
 ```
@@ -227,19 +305,29 @@ function FormShowcase() {
 ```tsx live
 <Grid minCol={8} gap={3}>
   <Cell>
-    <Notification color="success" textAlign="centered">1</Notification>
+    <Notification color="success" textAlign="centered">
+      1
+    </Notification>
   </Cell>
   <Cell colSpan={2}>
-    <Notification color="warning" textAlign="centered">span 2</Notification>
+    <Notification color="warning" textAlign="centered">
+      span 2
+    </Notification>
   </Cell>
   <Cell>
-    <Notification color="success" textAlign="centered">3</Notification>
+    <Notification color="success" textAlign="centered">
+      3
+    </Notification>
   </Cell>
   <Cell>
-    <Notification color="info" textAlign="centered">4</Notification>
+    <Notification color="info" textAlign="centered">
+      4
+    </Notification>
   </Cell>
   <Cell>
-    <Notification color="info" textAlign="centered">5</Notification>
+    <Notification color="info" textAlign="centered">
+      5
+    </Notification>
   </Cell>
 </Grid>
 ```
@@ -288,10 +376,10 @@ Every component in this library — including all extras — is free and always 
 
 Beyond the core Bulma wrappers, bestax-bulma ships additional components that fill gaps where Bulma doesn't provide a built-in solution:
 
-| Category | Extras |
-|----------|--------|
+| Category       | Extras                                                                        |
+| -------------- | ----------------------------------------------------------------------------- |
 | **Components** | Carousel, Steps, Dialog, Toast, Snackbar, Sidebar, Loading, Tooltip, Collapse |
-| **Form** | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput |
-| **Elements** | LinkButton |
+| **Form**       | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput                     |
+| **Elements**   | LinkButton                                                                    |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

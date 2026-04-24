@@ -21,15 +21,15 @@ import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                          | Description                                      |
-| -------------- | ----------------------------- | ------------------------------------------------ |
-| `name`         | `string`                      | Form field name shared by every Checkbox in the group (via context). |
-| `value`        | `string[]`                    | Currently-selected values (controlled mode).     |
-| `defaultValue` | `string[]`                    | Initial selected values (uncontrolled mode).     |
-| `onChange`     | `(values: string[]) => void`  | Fires when the selection changes; receives the new array. |
-| `className`    | `string`                      | Additional CSS classes.                          |
-| `children`     | `React.ReactNode`             | Checkbox elements to render in the group.        |
-| ...            | All Bulma helper props        | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop           | Type                         | Description                                                          |
+| -------------- | ---------------------------- | -------------------------------------------------------------------- |
+| `name`         | `string`                     | Form field name shared by every Checkbox in the group (via context). |
+| `value`        | `string[]`                   | Currently-selected values (controlled mode).                         |
+| `defaultValue` | `string[]`                   | Initial selected values (uncontrolled mode).                         |
+| `onChange`     | `(values: string[]) => void` | Fires when the selection changes; receives the new array.            |
+| `className`    | `string`                     | Additional CSS classes.                                              |
+| `children`     | `React.ReactNode`            | Checkbox elements to render in the group.                            |
+| ...            | All Bulma helper props       | (See [Helper Props](../helpers/usebulmaclasses))                     |
 
 ---
 
@@ -162,13 +162,19 @@ function UncontrolledCheckboxes() {
   const [latest, setLatest] = React.useState([]);
   return (
     <div>
-      <Checkboxes name="features" defaultValue={['darkmode']} onChange={setLatest}>
+      <Checkboxes
+        name="features"
+        defaultValue={['darkmode']}
+        onChange={setLatest}
+      >
         <Checkbox value="darkmode">Dark mode</Checkbox>
         <Checkbox value="notifications">Notifications</Checkbox>
         <Checkbox value="analytics">Analytics</Checkbox>
       </Checkboxes>
       {latest.length > 0 && (
-        <p style={{ marginTop: '1rem' }}>Latest: <strong>{latest.join(', ')}</strong></p>
+        <p style={{ marginTop: '1rem' }}>
+          Latest: <strong>{latest.join(', ')}</strong>
+        </p>
       )}
     </div>
   );
@@ -181,8 +187,8 @@ function UncontrolledCheckboxes() {
 
 `Checkboxes` is HTML-form-compatible. Pass a `name` prop on the group and every child `Checkbox` inherits it via React context (works at any nesting depth). Each checked box submits as `name=value`, producing a standard form-encoded array (e.g., `tags=react&tags=vue`) that server-side parsers handle natively.
 
-| Prop | Description |
-| --- | --- |
+| Prop   | Description                                                                                                            |
+| ------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `name` | Form field name shared by every child Checkbox. Children with their own `name` prop keep theirs (explicit > implicit). |
 
 ```tsx live
@@ -197,13 +203,19 @@ function CheckboxesFormDemo() {
       }}
     >
       <Checkboxes name="tags">
-        <Checkbox value="react" defaultChecked>React</Checkbox>
-        <Checkbox value="vue" defaultChecked>Vue</Checkbox>
+        <Checkbox value="react" defaultChecked>
+          React
+        </Checkbox>
+        <Checkbox value="vue" defaultChecked>
+          Vue
+        </Checkbox>
         <Checkbox value="angular">Angular</Checkbox>
         <Checkbox value="svelte">Svelte</Checkbox>
       </Checkboxes>
       <div style={{ marginTop: '1rem' }}>
-        <button type="submit" className="button is-primary">Submit</button>
+        <button type="submit" className="button is-primary">
+          Submit
+        </button>
       </div>
       {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
     </form>

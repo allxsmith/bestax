@@ -21,24 +21,24 @@ import { Tooltip } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop               | Type                                                                                                     | Default  | Description                                      |
-| ------------------ | -------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------ |
-| `label`            | `string`                                                                                                 | —        | The tooltip text content.                        |
-| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'`  | Position of the tooltip.                         |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —        | Color variant.                                   |
-| `active`           | `boolean`                                                                                                | `false`  | Force tooltip to be always visible.              |
-| `multiline`        | `boolean`                                                                                                | `false`  | Allow tooltip to wrap to multiple lines.         |
-| `animated`         | `boolean`                                                                                                | `true`   | Enable fade animation.                           |
-| `square`           | `boolean`                                                                                                | `false`  | Use square corners instead of rounded.           |
-| `dashed`           | `boolean`                                                                                                | `false`  | Show dashed underline on trigger.                |
-| `delay`            | `number`                                                                                                 | `0`      | Delay before showing tooltip (ms).               |
-| `children`         | `React.ReactNode`                                                                                        | —        | The element that triggers the tooltip.           |
-| `className`        | `string`                                                                                                 | —        | Additional CSS classes.                          |
-| `tooltipClassName` | `string`                                                                                                 | —        | Additional classes for the tooltip element.      |
-| `content`          | `React.ReactNode`                                                                                        | —        | Rich tooltip content (alternative to `label`).   |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —        | Size of the tooltip.                             |
-| `closeDelay`       | `number`                                                                                                 | `0`      | Delay in ms before hiding the tooltip.           |
-| ...                | All standard HTML and Bulma helper props                                                                 |          | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop               | Type                                                                                                     | Default | Description                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `label`            | `string`                                                                                                 | —       | The tooltip text content.                        |
+| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip.                         |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant.                                   |
+| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.              |
+| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.         |
+| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation.                           |
+| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.           |
+| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                |
+| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).               |
+| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.           |
+| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                          |
+| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.      |
+| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`).   |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                             |
+| `closeDelay`       | `number`                                                                                                 | `0`     | Delay in ms before hiding the tooltip.           |
+| ...                | All standard HTML and Bulma helper props                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses)) |
 
 ---
 

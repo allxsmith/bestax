@@ -25,31 +25,31 @@ import { Button } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop          | Type                                                                  | Description                                       |
-| ------------- | --------------------------------------------------------------------- | ------------------------------------------------- |
+| Prop          | Type                                                                                                                                  | Description                                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black' \| 'text' \| 'ghost'` | Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. |
-| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                          | Size of the button.                               |
-| `isLight`     | `boolean`                                                             | Applies a lighter color variant.                  |
-| `isRounded`   | `boolean`                                                             | Makes the button rounded.                         |
-| `isLoading`   | `boolean`                                                             | Displays a loading spinner.                       |
-| `isStatic`    | `boolean`                                                             | Makes the button non-interactive.                 |
-| `isFullWidth` | `boolean`                                                             | Makes the button full-width.                      |
-| `isOutlined`  | `boolean`                                                             | Applies outlined styling (requires color).        |
-| `isInverted`  | `boolean`                                                             | Applies inverted styling (requires color).        |
-| `isFocused`   | `boolean`                                                             | Applies focused styling (visual only).            |
-| `isActive`    | `boolean`                                                             | Applies active styling (visual only).             |
-| `isHovered`   | `boolean`                                                             | Applies hovered styling (visual only).            |
-| `isDisabled`  | `boolean`                                                             | Applies disabled styling.                         |
-| `as`          | `'button' \| 'a'`                                                     | Render as a `<button>` or `<a>`.                  |
-| `href`        | `string`                                                              | Href value (if rendering as `<a>`).               |
-| `onClick`     | `function`                                                            | Click event handler.                              |
-| `target`      | `string`                                                              | Anchor tag target.                                |
-| `rel`         | `string`                                                              | Anchor tag rel.                                   |
-| `textColor`   | `'primary'` \| ... (see docs)                                         | Text color helper.                                |
-| `bgColor`     | `'primary'` \| ... (see docs)                                         | Background color helper.                          |
-| `className`   | `string`                                                              | Custom class name.                                |
-| `children`    | `React.ReactNode`                                                     | Button content.                                   |
-| ...           | All standard `<button>` and Bulma helper props                        | See [Helper Props](../helpers/usebulmaclasses.md) |
+| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                                          | Size of the button.                                                                                                |
+| `isLight`     | `boolean`                                                                                                                             | Applies a lighter color variant.                                                                                   |
+| `isRounded`   | `boolean`                                                                                                                             | Makes the button rounded.                                                                                          |
+| `isLoading`   | `boolean`                                                                                                                             | Displays a loading spinner.                                                                                        |
+| `isStatic`    | `boolean`                                                                                                                             | Makes the button non-interactive.                                                                                  |
+| `isFullWidth` | `boolean`                                                                                                                             | Makes the button full-width.                                                                                       |
+| `isOutlined`  | `boolean`                                                                                                                             | Applies outlined styling (requires color).                                                                         |
+| `isInverted`  | `boolean`                                                                                                                             | Applies inverted styling (requires color).                                                                         |
+| `isFocused`   | `boolean`                                                                                                                             | Applies focused styling (visual only).                                                                             |
+| `isActive`    | `boolean`                                                                                                                             | Applies active styling (visual only).                                                                              |
+| `isHovered`   | `boolean`                                                                                                                             | Applies hovered styling (visual only).                                                                             |
+| `isDisabled`  | `boolean`                                                                                                                             | Applies disabled styling.                                                                                          |
+| `as`          | `'button' \| 'a'`                                                                                                                     | Render as a `<button>` or `<a>`.                                                                                   |
+| `href`        | `string`                                                                                                                              | Href value (if rendering as `<a>`).                                                                                |
+| `onClick`     | `function`                                                                                                                            | Click event handler.                                                                                               |
+| `target`      | `string`                                                                                                                              | Anchor tag target.                                                                                                 |
+| `rel`         | `string`                                                                                                                              | Anchor tag rel.                                                                                                    |
+| `textColor`   | `'primary'` \| ... (see docs)                                                                                                         | Text color helper.                                                                                                 |
+| `bgColor`     | `'primary'` \| ... (see docs)                                                                                                         | Background color helper.                                                                                           |
+| `className`   | `string`                                                                                                                              | Custom class name.                                                                                                 |
+| `children`    | `React.ReactNode`                                                                                                                     | Button content.                                                                                                    |
+| ...           | All standard `<button>` and Bulma helper props                                                                                        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                  |
 
 ---
 

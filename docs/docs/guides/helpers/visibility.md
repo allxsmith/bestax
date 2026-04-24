@@ -615,13 +615,13 @@ Additional visibility utilities for specific use cases.
 
 Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to a specific breakpoint using these viewport-specific props. Unlike the generic `visibility` + `viewport` pair, these can be combined on a single element to describe different behavior per viewport.
 
-| Property               | Bulma Class Pattern       | Target Viewport  |
-| ---------------------- | ------------------------- | ---------------- |
-| `visibilityMobile`     | `is-{value}-mobile`       | Up to 768px      |
-| `visibilityTablet`     | `is-{value}-tablet`       | 769px – 1023px   |
-| `visibilityDesktop`    | `is-{value}-desktop`      | 1024px – 1215px  |
-| `visibilityWidescreen` | `is-{value}-widescreen`   | 1216px – 1407px  |
-| `visibilityFullhd`     | `is-{value}-fullhd`       | 1408px and above |
+| Property               | Bulma Class Pattern     | Target Viewport  |
+| ---------------------- | ----------------------- | ---------------- |
+| `visibilityMobile`     | `is-{value}-mobile`     | Up to 768px      |
+| `visibilityTablet`     | `is-{value}-tablet`     | 769px – 1023px   |
+| `visibilityDesktop`    | `is-{value}-desktop`    | 1024px – 1215px  |
+| `visibilityWidescreen` | `is-{value}-widescreen` | 1216px – 1407px  |
+| `visibilityFullhd`     | `is-{value}-fullhd`     | 1408px and above |
 
 **Example:** `visibilityMobile="hidden"` generates `is-hidden-mobile`; `visibilityDesktop="invisible"` generates `is-invisible-desktop`.
 

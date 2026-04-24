@@ -34,7 +34,9 @@ describe('Toast', () => {
 
     it('does not render a close button', () => {
       render(<Toast message="Test" duration={0} />);
-      expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /close/i })
+      ).not.toBeInTheDocument();
     });
 
     it('applies rounded class', () => {
@@ -148,7 +150,9 @@ describe('Toast', () => {
 
     it('stays open when indefinite is true', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" indefinite duration={2000} onClose={onClose} />);
+      render(
+        <Toast message="Test" indefinite duration={2000} onClose={onClose} />
+      );
 
       act(() => {
         jest.advanceTimersByTime(10000);
@@ -162,7 +166,9 @@ describe('Toast', () => {
   describe('Pause on Hover', () => {
     it('pauses timer on mouse enter', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />);
+      render(
+        <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
+      );
 
       const toastEl = screen.getByRole('alert');
       fireEvent.mouseEnter(toastEl);
@@ -176,7 +182,9 @@ describe('Toast', () => {
 
     it('resumes timer on mouse leave', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />);
+      render(
+        <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
+      );
 
       const toastEl = screen.getByRole('alert');
       fireEvent.mouseEnter(toastEl);
@@ -221,7 +229,14 @@ describe('Toast', () => {
 
     it('does not close when clicked if dismissible is false', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" duration={0} dismissible={false} onClose={onClose} />);
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible={false}
+          onClose={onClose}
+        />
+      );
 
       fireEvent.click(screen.getByRole('alert'));
 
@@ -244,7 +259,14 @@ describe('Toast', () => {
 
     it('does not close when clicking outside if dismissible is false', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" duration={0} dismissible={false} onClose={onClose} />);
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible={false}
+          onClose={onClose}
+        />
+      );
 
       act(() => {
         jest.runAllTimers();
@@ -268,7 +290,14 @@ describe('Toast', () => {
 
     it('does not close on Escape when cancelable is false', () => {
       const onClose = jest.fn();
-      render(<Toast message="Test" duration={0} cancelable={false} onClose={onClose} />);
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          cancelable={false}
+          onClose={onClose}
+        />
+      );
 
       fireEvent.keyDown(document, { key: 'Escape' });
 

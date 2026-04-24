@@ -25,13 +25,13 @@ import { Skeleton } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                     | Default   | Description                                        |
-| ----------- | ---------------------------------------- | --------- | -------------------------------------------------- |
-| `className` | `string`                                 | —         | Additional CSS classes.                            |
-| `variant`   | `'block' \| 'lines'`                     | `'block'` | Skeleton variant: block (single block) or lines.   |
-| `lines`     | `number`                                 | `3`       | Number of lines (only for `lines` variant).        |
-| `children`  | `React.ReactNode`                        | —         | Content inside the block (only for block variant). |
-| ...         | All standard `<div>` HTML attributes     |           | Passed through to the root element.                |
+| Prop        | Type                                 | Default   | Description                                        |
+| ----------- | ------------------------------------ | --------- | -------------------------------------------------- |
+| `className` | `string`                             | —         | Additional CSS classes.                            |
+| `variant`   | `'block' \| 'lines'`                 | `'block'` | Skeleton variant: block (single block) or lines.   |
+| `lines`     | `number`                             | `3`       | Number of lines (only for `lines` variant).        |
+| `children`  | `React.ReactNode`                    | —         | Content inside the block (only for block variant). |
+| ...         | All standard `<div>` HTML attributes |           | Passed through to the root element.                |
 
 ---
 
@@ -92,9 +92,15 @@ A group of buttons with skeleton loaders, ideal for simulating multiple actions 
 
 ```tsx live
 <Buttons>
-  <Button skeleton color="dark">Skeleton</Button>
-  <Button skeleton color="dark">Skeleton</Button>
-  <Button skeleton color="dark">Skeleton</Button>
+  <Button skeleton color="dark">
+    Skeleton
+  </Button>
+  <Button skeleton color="dark">
+    Skeleton
+  </Button>
+  <Button skeleton color="dark">
+    Skeleton
+  </Button>
 </Buttons>
 ```
 
@@ -103,12 +109,7 @@ A group of buttons with skeleton loaders, ideal for simulating multiple actions 
 An icon with a skeleton loader, perfect for indicating an icon's action is loading.
 
 ```tsx live
-<Icon
-  name="star"
-  skeleton
-  ariaLabel="Star icon skeleton"
-  size="medium"
-/>
+<Icon name="star" skeleton ariaLabel="Star icon skeleton" size="medium" />
 ```
 
 #### Skeleton Image
@@ -116,12 +117,7 @@ An icon with a skeleton loader, perfect for indicating an icon's action is loadi
 An image with a skeleton loader, great for simulating image loading.
 
 ```tsx live
-<Image
-  skeleton
-  src="/img/react-logo.png"
-  alt="Skeleton image"
-  size="128x128"
-/>
+<Image skeleton src="/img/react-logo.png" alt="Skeleton image" size="128x128" />
 ```
 
 #### Skeleton Media
@@ -156,9 +152,7 @@ Media object with a skeleton loader, useful for indicating media content is load
 A notification with a skeleton loader, ideal for indicating a message or alert is loading.
 
 ```tsx live
-<Notification skeleton>
-  Skeleton notification message.
-</Notification>
+<Notification skeleton>Skeleton notification message.</Notification>
 ```
 
 #### Skeleton Tag
@@ -204,11 +198,7 @@ An input field with a skeleton loader, ideal for indicating form input is loadin
 A textarea with a skeleton loader, useful for simulating multi-line text input loading.
 
 ```tsx live
-<TextArea
-  skeleton
-  placeholder="Skeleton TextArea"
-  rows={3}
-/>
+<TextArea skeleton placeholder="Skeleton TextArea" rows={3} />
 ```
 
 ---

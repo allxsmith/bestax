@@ -1,4 +1,10 @@
-import React, { forwardRef, useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -156,7 +162,9 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const resolveContainer = (): HTMLElement => {
       if (container) {
         if (typeof container === 'string') {
-          return document.querySelector(container) as HTMLElement || document.body;
+          return (
+            (document.querySelector(container) as HTMLElement) || document.body
+          );
         }
         return container;
       }
@@ -166,10 +174,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastContent = (
       <div className={containerClasses}>
         <Snackbar
-          ref={(node) => {
+          ref={node => {
             toastRef.current = node;
             if (typeof ref === 'function') ref(node);
-            else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+            else if (ref)
+              (ref as React.MutableRefObject<HTMLDivElement | null>).current =
+                node;
           }}
           inline
           message={message}

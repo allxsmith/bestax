@@ -21,23 +21,23 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop             | Type                                                      | Description                                      |
-| ---------------- | --------------------------------------------------------- | ------------------------------------------------ |
-| `color`          | `'primary' \| 'link' \| ... \| 'white'`                   | Bulma color modifier for the file input.         |
-| `size`           | `'small' \| 'medium' \| 'large'`                          | Size modifier for the file input.                |
-| `isBoxed`        | `boolean`                                                 | Boxed file input.                                |
-| `isFullwidth`    | `boolean`                                                 | File input expands to full width.                |
-| `isRight`        | `boolean`                                                 | Position the CTA on the right (with `hasName`).  |
-| `isCentered`     | `boolean`                                                 | Center the file input within its container.      |
-| `hasName`        | `boolean`                                                 | Show a file name indicator.                      |
+| Prop             | Type                                                      | Description                                                 |
+| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| `color`          | `'primary' \| 'link' \| ... \| 'white'`                   | Bulma color modifier for the file input.                    |
+| `size`           | `'small' \| 'medium' \| 'large'`                          | Size modifier for the file input.                           |
+| `isBoxed`        | `boolean`                                                 | Boxed file input.                                           |
+| `isFullwidth`    | `boolean`                                                 | File input expands to full width.                           |
+| `isRight`        | `boolean`                                                 | Position the CTA on the right (with `hasName`).             |
+| `isCentered`     | `boolean`                                                 | Center the file input within its container.                 |
+| `hasName`        | `boolean`                                                 | Show a file name indicator.                                 |
 | `buttonLabel`    | `React.ReactNode`                                         | Text on the file CTA button (defaults to "Choose a file…"). |
-| `label`          | `React.ReactNode`                                         | Field label rendered above the widget.           |
-| `iconLeft`       | `React.ReactNode`                                         | Left icon element.                               |
-| `iconRight`      | `React.ReactNode`                                         | Right icon element.                              |
-| `className`      | `string`                                                  | Additional CSS classes.                          |
-| `inputClassName` | `string`                                                  | Additional CSS classes for the `<input>`.        |
-| `fileName`       | `string`                                                  | File name to display.                            |
-| ...              | All standard `<input type="file">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+| `label`          | `React.ReactNode`                                         | Field label rendered above the widget.                      |
+| `iconLeft`       | `React.ReactNode`                                         | Left icon element.                                          |
+| `iconRight`      | `React.ReactNode`                                         | Right icon element.                                         |
+| `className`      | `string`                                                  | Additional CSS classes.                                     |
+| `inputClassName` | `string`                                                  | Additional CSS classes for the `<input>`.                   |
+| `fileName`       | `string`                                                  | File name to display.                                       |
+| ...              | All standard `<input type="file">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses))            |
 
 ---
 
@@ -242,7 +242,11 @@ Combine `size` with `isBoxed` for boxed file inputs at every size.
     buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
-  <File isBoxed buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+  <File
+    isBoxed
+    buttonLabel="Choose a file…"
+    iconLeft={<Icon name="upload" />}
+  />
   <File
     size="medium"
     isBoxed
@@ -350,7 +354,11 @@ File does not consume the Control context (it is its own self-contained widget).
 The simplest usage — `label` adds a Field label above the widget.
 
 ```tsx live
-<File label="Document" buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+<File
+  label="Document"
+  buttonLabel="Choose a file…"
+  iconLeft={<Icon name="upload" />}
+/>
 ```
 
 ---
@@ -365,7 +373,10 @@ function example() {
     <Field horizontal label="Document">
       <Field.Body>
         <Field>
-          <File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+          <File
+            buttonLabel="Choose a file…"
+            iconLeft={<Icon name="upload" />}
+          />
         </Field>
       </Field.Body>
     </Field>
@@ -386,7 +397,10 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="paperclip">
-            <File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
+            <File
+              buttonLabel="Choose a file…"
+              iconLeft={<Icon name="upload" />}
+            />
           </Control>
         </Field>
       </Field.Body>

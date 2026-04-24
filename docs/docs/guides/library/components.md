@@ -222,7 +222,12 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
       <img
         src="/img/carousel/carousel-banner-1.jpg"
         alt="Vibrant galaxy with purple and gold tones"
-        style={{ width: '100%', height: '320px', objectFit: 'cover', display: 'block' }}
+        style={{
+          width: '100%',
+          height: '320px',
+          objectFit: 'cover',
+          display: 'block',
+        }}
       />
       <div
         style={{
@@ -245,7 +250,12 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
       <img
         src="/img/carousel/carousel-banner-2.jpg"
         alt="Milky Way over silhouetted mountains"
-        style={{ width: '100%', height: '320px', objectFit: 'cover', display: 'block' }}
+        style={{
+          width: '100%',
+          height: '320px',
+          objectFit: 'cover',
+          display: 'block',
+        }}
       />
       <div
         style={{
@@ -268,7 +278,12 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
       <img
         src="/img/carousel/carousel-banner-3.jpg"
         alt="Starry night sky over mountain silhouettes"
-        style={{ width: '100%', height: '320px', objectFit: 'cover', display: 'block' }}
+        style={{
+          width: '100%',
+          height: '320px',
+          objectFit: 'cover',
+          display: 'block',
+        }}
       />
       <div
         style={{
@@ -382,8 +397,15 @@ function SidebarExample() {
   const [isOpen, setIsOpen] = React.useState(false);
   return (
     <div style={{ position: 'relative', height: 280, overflow: 'hidden' }}>
-      <Button color="primary" onClick={() => setIsOpen(true)}>Open Sidebar</Button>
-      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)} style={{ position: 'absolute' }}>
+      <Button color="primary" onClick={() => setIsOpen(true)}>
+        Open Sidebar
+      </Button>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        style={{ position: 'absolute' }}
+      >
         <Sidebar.Header>
           <Sidebar.Title>Navigation</Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
@@ -400,7 +422,9 @@ function SidebarExample() {
           </Menu>
         </Sidebar.Body>
         <Sidebar.Footer>
-          <Paragraph textSize="7" textColor="grey">© 2026 Company Name</Paragraph>
+          <Paragraph textSize="7" textColor="grey">
+            © 2026 Company Name
+          </Paragraph>
         </Sidebar.Footer>
       </Sidebar>
     </div>

@@ -23,17 +23,42 @@ const meta: Meta<typeof Snackbar> = {
     },
     type: {
       control: 'select',
-      options: ['default', 'primary', 'link', 'info', 'success', 'warning', 'danger'],
+      options: [
+        'default',
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
       description: 'Colors the action BUTTON',
     },
     color: {
       control: 'select',
-      options: [undefined, 'primary', 'link', 'info', 'success', 'warning', 'danger', 'dark', 'light'],
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+        'dark',
+        'light',
+      ],
       description: 'Colors the snackbar BACKGROUND',
     },
     position: {
       control: 'select',
-      options: ['top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'],
+      options: [
+        'top-left',
+        'top',
+        'top-right',
+        'bottom-left',
+        'bottom',
+        'bottom-right',
+      ],
       description: 'Position on screen (default: bottom-right)',
     },
     duration: {
@@ -98,8 +123,12 @@ export const Positions: Story = {
     const [position, setPosition] = useState<string | null>(null);
 
     const positions = [
-      'top-left', 'top', 'top-right',
-      'bottom-left', 'bottom', 'bottom-right',
+      'top-left',
+      'top',
+      'top-right',
+      'bottom-left',
+      'bottom',
+      'bottom-right',
     ] as const;
 
     return (
@@ -137,11 +166,20 @@ export const TypeColorsActionButton: Story = {
   render: function TypeExample() {
     const [current, setCurrent] = useState<string | null>(null);
 
-    const types = ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const;
+    const types = [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ] as const;
 
     return (
       <div style={{ padding: '2rem' }}>
-        <p className="mb-4">The <code>type</code> prop colors the <strong>action button</strong>:</p>
+        <p className="mb-4">
+          The <code>type</code> prop colors the <strong>action button</strong>:
+        </p>
         <div className="buttons">
           {types.map(type => (
             <Button
@@ -176,11 +214,21 @@ export const ColorColorsBackground: Story = {
   render: function ColorExample() {
     const [current, setCurrent] = useState<string | null>(null);
 
-    const colors = ['primary', 'link', 'info', 'success', 'warning', 'danger', 'dark'] as const;
+    const colors = [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+      'dark',
+    ] as const;
 
     return (
       <div style={{ padding: '2rem' }}>
-        <p className="mb-4">The <code>color</code> prop colors the <strong>background</strong>:</p>
+        <p className="mb-4">
+          The <code>color</code> prop colors the <strong>background</strong>:
+        </p>
         <div className="buttons">
           {colors.map(color => (
             <Button
@@ -300,7 +348,9 @@ export const Indefinite: Story = {
         <Button color="primary" onClick={() => setShow(true)} disabled={show}>
           Show Indefinite Snackbar
         </Button>
-        <p className="mt-4 help">This snackbar stays open until you click the action or press Escape</p>
+        <p className="mt-4 help">
+          This snackbar stays open until you click the action or press Escape
+        </p>
         {show && (
           <Snackbar
             message="This won't auto-dismiss"
@@ -354,31 +404,41 @@ export const ProgrammaticAPI: Story = {
         <SnackbarContainer />
         <div className="buttons">
           <Button
-            onClick={() => snackbar.show({ message: 'Default snackbar', actionText: 'OK' })}
+            onClick={() =>
+              snackbar.show({ message: 'Default snackbar', actionText: 'OK' })
+            }
           >
             Default
           </Button>
           <Button
             color="success"
-            onClick={() => snackbar.success('Changes saved!', { actionText: 'View' })}
+            onClick={() =>
+              snackbar.success('Changes saved!', { actionText: 'View' })
+            }
           >
             Success
           </Button>
           <Button
             color="danger"
-            onClick={() => snackbar.danger('Failed to save', { actionText: 'Retry' })}
+            onClick={() =>
+              snackbar.danger('Failed to save', { actionText: 'Retry' })
+            }
           >
             Danger
           </Button>
           <Button
             color="warning"
-            onClick={() => snackbar.warning('Check your input', { actionText: 'Review' })}
+            onClick={() =>
+              snackbar.warning('Check your input', { actionText: 'Review' })
+            }
           >
             Warning
           </Button>
           <Button
             color="info"
-            onClick={() => snackbar.info('New update available', { actionText: 'Update' })}
+            onClick={() =>
+              snackbar.info('New update available', { actionText: 'Update' })
+            }
           >
             Info
           </Button>

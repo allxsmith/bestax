@@ -277,9 +277,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         >
           {title && (
             <div className={headerClass}>
-              {displayIcon && (
-                <span className={iconClass}>{displayIcon}</span>
-              )}
+              {displayIcon && <span className={iconClass}>{displayIcon}</span>}
               <h3 id="dialog-title" className={titleClass}>
                 {title}
               </h3>

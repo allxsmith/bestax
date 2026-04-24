@@ -1,6 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Tabs, { TabList, Tab, TabItem, TabsContent, TabContentItem } from '../Tabs';
+import Tabs, {
+  TabList,
+  Tab,
+  TabItem,
+  TabsContent,
+  TabContentItem,
+} from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tabs', () => {
@@ -135,7 +141,9 @@ describe('Tabs', () => {
         </Tabs>
       );
       expect(screen.getByText('First').closest('li')).toHaveClass('is-active');
-      expect(screen.getByText('Second').closest('li')).not.toHaveClass('is-active');
+      expect(screen.getByText('Second').closest('li')).not.toHaveClass(
+        'is-active'
+      );
     });
 
     it('respects defaultValue', () => {
@@ -151,7 +159,9 @@ describe('Tabs', () => {
           </Tabs.Content>
         </Tabs>
       );
-      expect(screen.getByText('First').closest('li')).not.toHaveClass('is-active');
+      expect(screen.getByText('First').closest('li')).not.toHaveClass(
+        'is-active'
+      );
       expect(screen.getByText('Second').closest('li')).toHaveClass('is-active');
     });
 
@@ -172,7 +182,9 @@ describe('Tabs', () => {
       // Click the <a> inside the second tab
       fireEvent.click(screen.getByText('Second').closest('a')!);
 
-      expect(screen.getByText('First').closest('li')).not.toHaveClass('is-active');
+      expect(screen.getByText('First').closest('li')).not.toHaveClass(
+        'is-active'
+      );
       expect(screen.getByText('Second').closest('li')).toHaveClass('is-active');
     });
 
@@ -191,14 +203,22 @@ describe('Tabs', () => {
       );
 
       // Content 1 should be visible, Content 2 hidden
-      expect(screen.getByText('Content 1').closest('.tabs-content-item')).toHaveClass('is-active');
-      expect(screen.getByText('Content 2').closest('.tabs-content-item')).not.toHaveClass('is-active');
+      expect(
+        screen.getByText('Content 1').closest('.tabs-content-item')
+      ).toHaveClass('is-active');
+      expect(
+        screen.getByText('Content 2').closest('.tabs-content-item')
+      ).not.toHaveClass('is-active');
 
       // Switch to tab 2
       fireEvent.click(screen.getByText('Second').closest('a')!);
 
-      expect(screen.getByText('Content 1').closest('.tabs-content-item')).not.toHaveClass('is-active');
-      expect(screen.getByText('Content 2').closest('.tabs-content-item')).toHaveClass('is-active');
+      expect(
+        screen.getByText('Content 1').closest('.tabs-content-item')
+      ).not.toHaveClass('is-active');
+      expect(
+        screen.getByText('Content 2').closest('.tabs-content-item')
+      ).toHaveClass('is-active');
     });
   });
 
@@ -212,7 +232,9 @@ describe('Tabs', () => {
           </Tabs.List>
         </Tabs>
       );
-      expect(screen.getByText('First').closest('li')).not.toHaveClass('is-active');
+      expect(screen.getByText('First').closest('li')).not.toHaveClass(
+        'is-active'
+      );
       expect(screen.getByText('Second').closest('li')).toHaveClass('is-active');
     });
 
@@ -246,7 +268,9 @@ describe('Tabs', () => {
 
       // Still tab 0 because value prop hasn't changed
       expect(screen.getByText('First').closest('li')).toHaveClass('is-active');
-      expect(screen.getByText('Second').closest('li')).not.toHaveClass('is-active');
+      expect(screen.getByText('Second').closest('li')).not.toHaveClass(
+        'is-active'
+      );
     });
   });
 
@@ -281,7 +305,9 @@ describe('Tabs', () => {
       render(
         <Tabs>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="tab">Label</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="tab">
+              Label
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
@@ -294,30 +320,42 @@ describe('Tabs', () => {
       render(
         <Tabs defaultValue={0}>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="tab">Label</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="tab">
+              Label
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
-      expect(screen.getByTestId('tab')).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByTestId('tab')).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
     });
 
     it('has aria-selected false when inactive', () => {
       render(
         <Tabs defaultValue={1}>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="tab">Label</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="tab">
+              Label
+            </Tabs.Tab>
             <Tabs.Tab index={1}>Other</Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
-      expect(screen.getByTestId('tab')).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getByTestId('tab')).toHaveAttribute(
+        'aria-selected',
+        'false'
+      );
     });
 
     it('applies is-active class when active', () => {
       render(
         <Tabs defaultValue={0}>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="tab">Label</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="tab">
+              Label
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
@@ -328,7 +366,9 @@ describe('Tabs', () => {
       render(
         <Tabs>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="tab">Label</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="tab">
+              Label
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
@@ -534,7 +574,10 @@ describe('Tabs', () => {
           </Tabs.Content>
         </Tabs>
       );
-      expect(screen.getByTestId('panel')).toHaveAttribute('aria-hidden', 'false');
+      expect(screen.getByTestId('panel')).toHaveAttribute(
+        'aria-hidden',
+        'false'
+      );
     });
 
     it('has aria-hidden true when inactive', () => {
@@ -552,7 +595,10 @@ describe('Tabs', () => {
           </Tabs.Content>
         </Tabs>
       );
-      expect(screen.getByTestId('panel')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByTestId('panel')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
     });
 
     it('accepts custom className', () => {
@@ -562,7 +608,11 @@ describe('Tabs', () => {
             <Tabs.Tab index={0}>Tab</Tabs.Tab>
           </Tabs.List>
           <Tabs.Content>
-            <Tabs.Content.Item index={0} className="custom-panel" data-testid="panel">
+            <Tabs.Content.Item
+              index={0}
+              className="custom-panel"
+              data-testid="panel"
+            >
               Panel
             </Tabs.Content.Item>
           </Tabs.Content>
@@ -644,7 +694,9 @@ describe('Tabs', () => {
       );
       expect(screen.getByTestId('tabs')).toHaveClass('tabs-root');
       // Inner .tabs div should exist
-      expect(screen.getByTestId('tabs').querySelector('.tabs')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('tabs').querySelector('.tabs')
+      ).toBeInTheDocument();
     });
 
     it('renders single .tabs div when no Tabs.Content (backward compat)', () => {
@@ -678,14 +730,24 @@ describe('Tabs', () => {
       render(
         <Tabs defaultValue={0}>
           <Tabs.List>
-            <Tabs.Tab index={0} data-testid="active-tab">Active</Tabs.Tab>
-            <Tabs.Tab index={1} data-testid="inactive-tab">Inactive</Tabs.Tab>
+            <Tabs.Tab index={0} data-testid="active-tab">
+              Active
+            </Tabs.Tab>
+            <Tabs.Tab index={1} data-testid="inactive-tab">
+              Inactive
+            </Tabs.Tab>
           </Tabs.List>
         </Tabs>
       );
       expect(screen.getByTestId('active-tab')).toHaveAttribute('role', 'tab');
-      expect(screen.getByTestId('active-tab')).toHaveAttribute('aria-selected', 'true');
-      expect(screen.getByTestId('inactive-tab')).toHaveAttribute('aria-selected', 'false');
+      expect(screen.getByTestId('active-tab')).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      expect(screen.getByTestId('inactive-tab')).toHaveAttribute(
+        'aria-selected',
+        'false'
+      );
     });
 
     it('Content.Item has role="tabpanel" and aria-hidden', () => {
@@ -696,15 +758,31 @@ describe('Tabs', () => {
             <Tabs.Tab index={1}>Tab 2</Tabs.Tab>
           </Tabs.List>
           <Tabs.Content>
-            <Tabs.Content.Item index={0} data-testid="active-panel">Panel 1</Tabs.Content.Item>
-            <Tabs.Content.Item index={1} data-testid="hidden-panel">Panel 2</Tabs.Content.Item>
+            <Tabs.Content.Item index={0} data-testid="active-panel">
+              Panel 1
+            </Tabs.Content.Item>
+            <Tabs.Content.Item index={1} data-testid="hidden-panel">
+              Panel 2
+            </Tabs.Content.Item>
           </Tabs.Content>
         </Tabs>
       );
-      expect(screen.getByTestId('active-panel')).toHaveAttribute('role', 'tabpanel');
-      expect(screen.getByTestId('active-panel')).toHaveAttribute('aria-hidden', 'false');
-      expect(screen.getByTestId('hidden-panel')).toHaveAttribute('role', 'tabpanel');
-      expect(screen.getByTestId('hidden-panel')).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByTestId('active-panel')).toHaveAttribute(
+        'role',
+        'tabpanel'
+      );
+      expect(screen.getByTestId('active-panel')).toHaveAttribute(
+        'aria-hidden',
+        'false'
+      );
+      expect(screen.getByTestId('hidden-panel')).toHaveAttribute(
+        'role',
+        'tabpanel'
+      );
+      expect(screen.getByTestId('hidden-panel')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      );
     });
   });
 });

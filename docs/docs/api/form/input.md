@@ -441,12 +441,7 @@ Place a `color="danger"` Input and a danger help message inside the horizontal f
   <Field.Body>
     <Field>
       <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
-        <Input
-          type="email"
-          color="danger"
-          value="hello@"
-          onChange={() => {}}
-        />
+        <Input type="email" color="danger" value="hello@" onChange={() => {}} />
       </Control>
       <p className="help is-danger">This email is invalid</p>
     </Field>

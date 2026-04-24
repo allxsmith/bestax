@@ -174,11 +174,16 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
   textAlign="centered"
   hasShadow
   footer={[
-    <Button key="upgrade" color="success">Upgrade Now</Button>,
-    <Button key="learn" color="info" isOutlined>Learn More</Button>,
+    <Button key="upgrade" color="success">
+      Upgrade Now
+    </Button>,
+    <Button key="learn" color="info" isOutlined>
+      Learn More
+    </Button>,
   ]}
 >
-  Unlock advanced analytics, priority support, and unlimited exports for your team.
+  Unlock advanced analytics, priority support, and unlimited exports for your
+  team.
 </Card>
 ```
 
@@ -343,7 +348,9 @@ You can combine the traditional prop-based API with compound components:
 ```tsx live
 <Card header="Prop-based header" textColor="primary" m="3">
   <Card.Content bgColor="light">
-    <Paragraph>You can mix prop-based and compound component approaches!</Paragraph>
+    <Paragraph>
+      You can mix prop-based and compound component approaches!
+    </Paragraph>
   </Card.Content>
   <Card.Footer>
     <Card.FooterItem>Mixed approach example</Card.FooterItem>

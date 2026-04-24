@@ -32,9 +32,7 @@ describe('Select', () => {
     });
 
     it('renders without label when not provided', () => {
-      const { container } = render(
-        <Select>{renderOptions()}</Select>
-      );
+      const { container } = render(<Select>{renderOptions()}</Select>);
       expect(container.querySelector('.label')).not.toBeInTheDocument();
     });
   });
@@ -61,9 +59,7 @@ describe('Select', () => {
     });
 
     it('does not render help when message is not provided', () => {
-      const { container } = render(
-        <Select>{renderOptions()}</Select>
-      );
+      const { container } = render(<Select>{renderOptions()}</Select>);
       expect(container.querySelector('.help')).not.toBeInTheDocument();
     });
   });

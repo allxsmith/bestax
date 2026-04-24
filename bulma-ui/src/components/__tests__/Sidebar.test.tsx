@@ -101,7 +101,9 @@ describe('Sidebar', () => {
         </Sidebar>
       );
       const sidebar = screen.getByRole('dialog');
-      expect(sidebar.style.getPropertyValue('--bulma-sidebar-width')).toBe('400px');
+      expect(sidebar.style.getPropertyValue('--bulma-sidebar-width')).toBe(
+        '400px'
+      );
     });
 
     it('applies is-fullwidth class when fullWidth is true', () => {

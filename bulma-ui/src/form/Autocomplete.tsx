@@ -482,9 +482,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
               role="listbox"
               onScroll={handleDropdownScroll}
             >
-              {header && (
-                <div className={dropdownHeaderClass}>{header}</div>
-              )}
+              {header && <div className={dropdownHeaderClass}>{header}</div>}
 
               {filteredData.length > 0 ? (
                 filteredData.map((item, index) => {
@@ -523,9 +521,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                 <div className={emptyItemClasses}>{empty}</div>
               )}
 
-              {footer && (
-                <div className={dropdownFooterClass}>{footer}</div>
-              )}
+              {footer && <div className={dropdownFooterClass}>{footer}</div>}
             </div>
           </div>
         )}

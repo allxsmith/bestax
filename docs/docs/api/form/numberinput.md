@@ -21,29 +21,29 @@ import { Numberinput } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop               | Type                                                                            | Default  | Description                                      |
-| ------------------ | ------------------------------------------------------------------------------- | -------- | ------------------------------------------------ |
-| `value`            | `number`                                                                        | —        | Controlled value.                                |
-| `defaultValue`     | `number`                                                                        | —        | Default value for uncontrolled usage.            |
-| `min`              | `number`                                                                        | —        | Minimum allowed value.                           |
-| `max`              | `number`                                                                        | —        | Maximum allowed value.                           |
-| `step`             | `number`                                                                        | `1`      | Step increment.                                  |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —        | Size variant.                                    |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'light'` \| `'dark'` | —        | Color variant for buttons.                       |
-| `controlsPosition` | `'left'` \| `'right'` \| `'both'`                                               | `'both'` | Position of +/- buttons.                         |
-| `controlsRounded`  | `boolean`                                                                       | `false`  | Use rounded buttons.                             |
-| `disabled`         | `boolean`                                                                       | `false`  | Whether the input is disabled.                   |
-| `editable`         | `boolean`                                                                       | `true`   | Whether the input can be typed in.               |
-| `onChange`         | `(value: number) => void`                                                       | —        | Callback when value changes.                     |
-| `inputColor`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —        | Color of the input field itself.                 |
-| `compact`          | `boolean`                                                                       | `false`  | Uses compact button spacing.                     |
-| `bare`             | `boolean`                                                                       | `false`  | Removes button borders and background.           |
-| `variant`          | `'plusminus'` \| `'stepper'`                                                    | `'plusminus'` | Style variant for the control buttons.      |
-| `isLoading`        | `boolean`                                                                       | `false`  | Shows a loading state.                           |
-| `exponential`      | `boolean`                                                                       | `false`  | Enables exponential step increments when holding buttons. |
-| `className`        | `string`                                                                        | —        | Additional CSS classes.                          |
-| `ref`              | `React.Ref<HTMLElement>`                                                        | —        | Ref forwarded to the input element.              |
-| ...                | All standard HTML and Bulma helper props                                        |          | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop               | Type                                                                                                     | Default       | Description                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------- |
+| `value`            | `number`                                                                                                 | —             | Controlled value.                                         |
+| `defaultValue`     | `number`                                                                                                 | —             | Default value for uncontrolled usage.                     |
+| `min`              | `number`                                                                                                 | —             | Minimum allowed value.                                    |
+| `max`              | `number`                                                                                                 | —             | Maximum allowed value.                                    |
+| `step`             | `number`                                                                                                 | `1`           | Step increment.                                           |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —             | Size variant.                                             |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'light'` \| `'dark'` | —             | Color variant for buttons.                                |
+| `controlsPosition` | `'left'` \| `'right'` \| `'both'`                                                                        | `'both'`      | Position of +/- buttons.                                  |
+| `controlsRounded`  | `boolean`                                                                                                | `false`       | Use rounded buttons.                                      |
+| `disabled`         | `boolean`                                                                                                | `false`       | Whether the input is disabled.                            |
+| `editable`         | `boolean`                                                                                                | `true`        | Whether the input can be typed in.                        |
+| `onChange`         | `(value: number) => void`                                                                                | —             | Callback when value changes.                              |
+| `inputColor`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                          | —             | Color of the input field itself.                          |
+| `compact`          | `boolean`                                                                                                | `false`       | Uses compact button spacing.                              |
+| `bare`             | `boolean`                                                                                                | `false`       | Removes button borders and background.                    |
+| `variant`          | `'plusminus'` \| `'stepper'`                                                                             | `'plusminus'` | Style variant for the control buttons.                    |
+| `isLoading`        | `boolean`                                                                                                | `false`       | Shows a loading state.                                    |
+| `exponential`      | `boolean`                                                                                                | `false`       | Enables exponential step increments when holding buttons. |
+| `className`        | `string`                                                                                                 | —             | Additional CSS classes.                                   |
+| `ref`              | `React.Ref<HTMLElement>`                                                                                 | —             | Ref forwarded to the input element.                       |
+| ...                | All standard HTML and Bulma helper props                                                                 |               | (See [Helper Props](../helpers/usebulmaclasses))          |
 
 ---
 
@@ -214,7 +214,13 @@ Numberinput does not use ControlContext, so the "With Field and Control Wrappers
 The simplest usage — the component automatically renders its own Field wrapper.
 
 ```tsx live
-<Numberinput label="Quantity" defaultValue={1} min={1} max={10} color="primary" />
+<Numberinput
+  label="Quantity"
+  defaultValue={1}
+  min={1}
+  max={10}
+  color="primary"
+/>
 ```
 
 ---

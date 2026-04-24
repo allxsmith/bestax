@@ -14,7 +14,9 @@ describe('Radios group state', () => {
         <Radio value="blue">Blue</Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     expect(radios[0].checked).toBe(false);
     expect(radios[1].checked).toBe(true); // green
     expect(radios[2].checked).toBe(false);
@@ -28,7 +30,9 @@ describe('Radios group state', () => {
         <Radio value="green">Green</Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     fireEvent.click(radios[1]);
     expect(handleChange).toHaveBeenCalledWith('green');
     expect(radios[1].checked).toBe(true);
@@ -42,7 +46,9 @@ describe('Radios group state', () => {
         <Radio value="blue">Blue</Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     expect(radios[0].checked).toBe(false);
     expect(radios[1].checked).toBe(true);
   });
@@ -62,7 +68,9 @@ describe('Radios group state', () => {
     };
     const { container } = render(<Wrapper />);
     expect(screen.getByTestId('val').textContent).toBe('red');
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     fireEvent.click(radios[1]);
     expect(screen.getByTestId('val').textContent).toBe('green');
     expect(radios[1].checked).toBe(true);
@@ -72,10 +80,14 @@ describe('Radios group state', () => {
     const { container } = render(
       <Radios name="color" value="red" onChange={() => {}}>
         <Radio value="red">Red</Radio>
-        <Radio value="green" checked={true} onChange={() => {}}>Green</Radio>
+        <Radio value="green" checked={true} onChange={() => {}}>
+          Green
+        </Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     // Group says red is selected, but green has its own checked={true}
     expect(radios[0].checked).toBe(true);
     expect(radios[1].checked).toBe(true);
@@ -84,11 +96,15 @@ describe('Radios group state', () => {
   it('name-only mode (Stage 1): group does NOT control checked', () => {
     const { container } = render(
       <Radios name="color">
-        <Radio value="red" defaultChecked>Red</Radio>
+        <Radio value="red" defaultChecked>
+          Red
+        </Radio>
         <Radio value="green">Green</Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     // Children manage their own state via defaultChecked.
     expect(radios[0].checked).toBe(true);
     expect(radios[1].checked).toBe(false);
@@ -103,10 +119,14 @@ describe('Radios group state', () => {
     const { container } = render(
       <Radios name="color" defaultValue="red" onChange={groupHandler}>
         <Radio value="red">Red</Radio>
-        <Radio value="green" onChange={localHandler}>Green</Radio>
+        <Radio value="green" onChange={localHandler}>
+          Green
+        </Radio>
       </Radios>
     );
-    const radios = container.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    const radios = container.querySelectorAll<HTMLInputElement>(
+      'input[type="radio"]'
+    );
     fireEvent.click(radios[1]);
     expect(localHandler).toHaveBeenCalled();
     expect(groupHandler).toHaveBeenCalledWith('green');
@@ -122,7 +142,9 @@ describe('Checkboxes group state', () => {
         <Checkbox value="angular">Angular</Checkbox>
       </Checkboxes>
     );
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     expect(checks[0].checked).toBe(true); // react
     expect(checks[1].checked).toBe(true); // vue
     expect(checks[2].checked).toBe(false);
@@ -136,7 +158,9 @@ describe('Checkboxes group state', () => {
         <Checkbox value="vue">Vue</Checkbox>
       </Checkboxes>
     );
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     // Toggle vue on
     fireEvent.click(checks[1]);
     expect(handleChange).toHaveBeenLastCalledWith(['react', 'vue']);
@@ -155,7 +179,9 @@ describe('Checkboxes group state', () => {
         <Checkbox value="angular">Angular</Checkbox>
       </Checkboxes>
     );
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     expect(checks[0].checked).toBe(false);
     expect(checks[1].checked).toBe(true);
     expect(checks[2].checked).toBe(true);
@@ -176,7 +202,9 @@ describe('Checkboxes group state', () => {
     };
     const { container } = render(<Wrapper />);
     expect(screen.getByTestId('val').textContent).toBe('react');
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     fireEvent.click(checks[1]);
     expect(screen.getByTestId('val').textContent).toBe('react,vue');
     fireEvent.click(checks[0]);
@@ -186,11 +214,15 @@ describe('Checkboxes group state', () => {
   it('name-only mode (Stage 1): group does NOT control checked', () => {
     const { container } = render(
       <Checkboxes name="tags">
-        <Checkbox value="react" defaultChecked>React</Checkbox>
+        <Checkbox value="react" defaultChecked>
+          React
+        </Checkbox>
         <Checkbox value="vue">Vue</Checkbox>
       </Checkboxes>
     );
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     expect(checks[0].checked).toBe(true);
     expect(checks[1].checked).toBe(false);
     expect(checks[0].getAttribute('name')).toBe('tags');
@@ -198,7 +230,13 @@ describe('Checkboxes group state', () => {
   });
 
   it('group state propagates through wrapper components', () => {
-    const CheckboxCard = ({ value, label }: { value: string; label: string }) => (
+    const CheckboxCard = ({
+      value,
+      label,
+    }: {
+      value: string;
+      label: string;
+    }) => (
       <div className="card">
         <Checkbox value={value}>{label}</Checkbox>
       </div>
@@ -210,7 +248,9 @@ describe('Checkboxes group state', () => {
         <CheckboxCard value="angular" label="Angular" />
       </Checkboxes>
     );
-    const checks = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    const checks = container.querySelectorAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    );
     expect(checks[0].checked).toBe(true); // react
     expect(checks[1].checked).toBe(false); // vue
     expect(checks[2].checked).toBe(true); // angular

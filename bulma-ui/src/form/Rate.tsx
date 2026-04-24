@@ -11,7 +11,13 @@ import { FormFieldProps } from './fieldProps';
 /** Available size modifiers for the Rate component. */
 export type RateSize = 'small' | 'medium' | 'large';
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
-type BulmaColor = 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+type BulmaColor =
+  | 'primary'
+  | 'link'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 /**
  * Props for individual rate icons.
@@ -338,7 +344,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     );
 
     // Render a single icon based on priority: customIcon > iconName > default SVG
-    const renderIcon = (iconIndex: number, isActive: boolean, fillPercent: number) => {
+    const renderIcon = (
+      iconIndex: number,
+      isActive: boolean,
+      fillPercent: number
+    ) => {
       const iconProps: RateIconProps = {
         index: iconIndex,
         isActive,
@@ -381,12 +391,29 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
       if (iconName) {
         return (
-          <span className="rate-icon-partial" style={{ '--rate-fill-percent': `${fillPercent}%` } as React.CSSProperties}>
+          <span
+            className="rate-icon-partial"
+            style={
+              {
+                '--rate-fill-percent': `${fillPercent}%`,
+              } as React.CSSProperties
+            }
+          >
             <span className="rate-icon-bg">
-              <Icon name={iconName} library={resolvedLibrary} variant={iconVariant} features={iconFeatures} />
+              <Icon
+                name={iconName}
+                library={resolvedLibrary}
+                variant={iconVariant}
+                features={iconFeatures}
+              />
             </span>
             <span className="rate-icon-fg">
-              <Icon name={iconName} library={resolvedLibrary} variant={iconVariant} features={iconFeatures} />
+              <Icon
+                name={iconName}
+                library={resolvedLibrary}
+                variant={iconVariant}
+                features={iconFeatures}
+              />
             </span>
           </span>
         );
@@ -402,7 +429,12 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         >
           <defs>
             <clipPath id={clipId}>
-              <rect x="0" y="0" width={`${(fillPercent / 100) * 24}`} height="24" />
+              <rect
+                x="0"
+                y="0"
+                width={`${(fillPercent / 100) * 24}`}
+                height="24"
+              />
             </clipPath>
           </defs>
           {/* Background: empty star */}
@@ -446,12 +478,17 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
               'is-active': isActive,
               'is-hovered': isHovered,
             })}
-            onClick={(e) => handleClick(iconIndex, e)}
+            onClick={e => handleClick(iconIndex, e)}
             onMouseEnter={() => handleMouseEnter(iconIndex)}
-            onMouseMove={(e) => handleMouseMove(iconIndex, e)}
+            onMouseMove={e => handleMouseMove(iconIndex, e)}
             onMouseLeave={handleMouseLeave}
             role="radio"
-            aria-checked={currentValue === iconIndex + 1 || (precision < 1 && currentValue > iconIndex && currentValue <= iconIndex + 1)}
+            aria-checked={
+              currentValue === iconIndex + 1 ||
+              (precision < 1 &&
+                currentValue > iconIndex &&
+                currentValue <= iconIndex + 1)
+            }
             aria-label={`${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`}
             tabIndex={-1}
           >
@@ -464,9 +501,10 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     };
 
     const text = getText();
-    const ariaValueText = precision < 1 && currentValue % 1 !== 0
-      ? `${currentValue.toFixed(1)} out of ${max} stars`
-      : undefined;
+    const ariaValueText =
+      precision < 1 && currentValue % 1 !== 0
+        ? `${currentValue.toFixed(1)} out of ${max} stars`
+        : undefined;
 
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -505,15 +543,25 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     if (!insideField) {
       return (
-        <Field label={label} labelSize={labelSize} labelProps={labelProps}
-               horizontal={horizontal} className={fieldClassName}>
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
           {content}
           {messageEl}
         </Field>
       );
     }
 
-    return <>{content}{messageEl}</>;
+    return (
+      <>
+        {content}
+        {messageEl}
+      </>
+    );
   }
 );
 

@@ -159,8 +159,13 @@ export const Step: React.FC<StepProps> = ({
     }
   };
 
-  const resolvedCompletedIcon = completedIcon === undefined ? '\u2713' : completedIcon;
-  const markerContent = icon || (isCompleted && resolvedCompletedIcon ? resolvedCompletedIcon : stepNumber ?? null);
+  const resolvedCompletedIcon =
+    completedIcon === undefined ? '\u2713' : completedIcon;
+  const markerContent =
+    icon ||
+    (isCompleted && resolvedCompletedIcon
+      ? resolvedCompletedIcon
+      : (stepNumber ?? null));
 
   return (
     <li
@@ -250,7 +255,8 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
     'is-animated': animated,
     'is-rounded': rounded,
     'is-vertical': vertical,
-    [`has-label-${labelPosition}`]: labelPosition && (labelPosition !== 'bottom' || vertical),
+    [`has-label-${labelPosition}`]:
+      labelPosition && (labelPosition !== 'bottom' || vertical),
     [`is-${mobileMode}`]: mobileMode,
   });
 
@@ -266,9 +272,7 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
   });
 
   // Count total steps for navigation
-  const totalSteps = items
-    ? items.length
-    : React.Children.count(children);
+  const totalSteps = items ? items.length : React.Children.count(children);
 
   // Render items if provided
   const renderSteps = () => {
@@ -314,9 +318,7 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
 
   return (
     <div className={combinedClasses} {...rest}>
-      <ul className={listClasses}>
-        {renderSteps()}
-      </ul>
+      <ul className={listClasses}>{renderSteps()}</ul>
       {hasNavigation && (
         <div className="steps-navigation">
           <button

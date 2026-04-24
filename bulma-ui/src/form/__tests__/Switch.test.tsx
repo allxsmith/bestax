@@ -210,10 +210,15 @@ describe('Switch', () => {
       'success',
       'warning',
       'danger',
-    ] as const)('applies is-%s-passive class when passiveType="%s"', passiveType => {
-      const { container } = render(<Switch passiveType={passiveType} />);
-      expect(container.querySelector('label')).toHaveClass(`is-${passiveType}-passive`);
-    });
+    ] as const)(
+      'applies is-%s-passive class when passiveType="%s"',
+      passiveType => {
+        const { container } = render(<Switch passiveType={passiveType} />);
+        expect(container.querySelector('label')).toHaveClass(
+          `is-${passiveType}-passive`
+        );
+      }
+    );
 
     it('does not apply passive class when passiveType is not set', () => {
       const { container } = render(<Switch />);
@@ -222,7 +227,9 @@ describe('Switch', () => {
     });
 
     it('applies both color and passiveType classes', () => {
-      const { container } = render(<Switch color="success" passiveType="danger" />);
+      const { container } = render(
+        <Switch color="success" passiveType="danger" />
+      );
       const label = container.querySelector('label');
       expect(label).toHaveClass('is-success');
       expect(label).toHaveClass('is-danger-passive');
@@ -233,7 +240,13 @@ describe('Switch', () => {
         <Switch color="primary" passiveType="warning" isRounded isOutlined />
       );
       const label = container.querySelector('label');
-      expect(label).toHaveClass('switch', 'is-primary', 'is-warning-passive', 'is-rounded', 'is-outlined');
+      expect(label).toHaveClass(
+        'switch',
+        'is-primary',
+        'is-warning-passive',
+        'is-rounded',
+        'is-outlined'
+      );
     });
   });
 

@@ -232,15 +232,15 @@ export const Limits: Story = {
         style={{ gap: '1.5rem', maxWidth: '500px' }}
       >
         <div>
-          <p className="mb-2 has-text-weight-semibold">Max 3 tags with counter</p>
-          <Taginput
-            maxTags={3}
-            hasCounter
-            placeholder="Add up to 3 tags..."
-          />
+          <p className="mb-2 has-text-weight-semibold">
+            Max 3 tags with counter
+          </p>
+          <Taginput maxTags={3} hasCounter placeholder="Add up to 3 tags..." />
         </div>
         <div>
-          <p className="mb-2 has-text-weight-semibold">Max 20 character input</p>
+          <p className="mb-2 has-text-weight-semibold">
+            Max 20 character input
+          </p>
           <Taginput
             maxlength={20}
             hasCounter
@@ -291,7 +291,9 @@ export const Ellipsis: Story = {
   render: function EllipsisExample() {
     return (
       <div style={{ maxWidth: '500px' }}>
-        <p className="mb-4 help">Long tag text is truncated with ellipsis. Hover to see the full text.</p>
+        <p className="mb-4 help">
+          Long tag text is truncated with ellipsis. Hover to see the full text.
+        </p>
         <Taginput
           defaultValue={[
             'A very long tag name that should be truncated',
@@ -497,7 +499,8 @@ export const PasteSeparators: Story = {
     return (
       <div style={{ maxWidth: '500px' }}>
         <p className="mb-4 help">
-          Paste comma or semicolon-separated text (e.g. &ldquo;React, Vue, Angular&rdquo;)
+          Paste comma or semicolon-separated text (e.g. &ldquo;React, Vue,
+          Angular&rdquo;)
         </p>
         <Taginput
           onPasteSeparators={[',', ';']}
@@ -527,7 +530,7 @@ export const BeforeAdding: Story = {
           Only tags with 3+ characters and no numbers are accepted
         </p>
         <Taginput
-          beforeAdding={(tag) => {
+          beforeAdding={tag => {
             if (tag.length < 3) {
               setError('Tag must be at least 3 characters');
               return false;
@@ -557,11 +560,7 @@ export const KeepFirst: Story = {
         <p className="mb-4 help">
           First suggestion is auto-highlighted. Press Enter to select it.
         </p>
-        <Taginput
-          data={frameworks}
-          keepFirst
-          placeholder="Type to search..."
-        />
+        <Taginput data={frameworks} keepFirst placeholder="Type to search..." />
       </div>
     );
   },
@@ -819,9 +818,7 @@ export const WithName: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },

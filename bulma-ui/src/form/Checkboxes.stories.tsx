@@ -128,8 +128,12 @@ export const WithName: Story = {
         }}
       >
         <Checkboxes name="tags">
-          <Checkbox value="react" defaultChecked>React</Checkbox>
-          <Checkbox value="vue" defaultChecked>Vue</Checkbox>
+          <Checkbox value="react" defaultChecked>
+            React
+          </Checkbox>
+          <Checkbox value="vue" defaultChecked>
+            Vue
+          </Checkbox>
           <Checkbox value="angular">Angular</Checkbox>
           <Checkbox value="svelte">Svelte</Checkbox>
         </Checkboxes>
@@ -138,9 +142,7 @@ export const WithName: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },
@@ -154,8 +156,21 @@ export const WithName: Story = {
 export const WithNameThroughWrappers: Story = {
   render: function CheckboxesWrappedForm() {
     const [submitted, setSubmitted] = useState<string>('');
-    const CheckboxCard = ({ value, label }: { value: string; label: string }) => (
-      <div style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: 4, marginBottom: '0.5rem' }}>
+    const CheckboxCard = ({
+      value,
+      label,
+    }: {
+      value: string;
+      label: string;
+    }) => (
+      <div
+        style={{
+          padding: '0.5rem',
+          border: '1px solid #ddd',
+          borderRadius: 4,
+          marginBottom: '0.5rem',
+        }}
+      >
         <Checkbox value={value}>{label}</Checkbox>
       </div>
     );
@@ -177,9 +192,7 @@ export const WithNameThroughWrappers: Story = {
             Submit
           </button>
         </div>
-        {submitted && (
-          <pre style={{ marginTop: '1rem' }}>{submitted}</pre>
-        )}
+        {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
     );
   },
@@ -220,7 +233,11 @@ export const UncontrolledGroup: Story = {
     const [latest, setLatest] = useState<string[]>([]);
     return (
       <div>
-        <Checkboxes name="features" defaultValue={['darkmode']} onChange={setLatest}>
+        <Checkboxes
+          name="features"
+          defaultValue={['darkmode']}
+          onChange={setLatest}
+        >
           <Checkbox value="darkmode">Dark mode</Checkbox>
           <Checkbox value="notifications">Notifications</Checkbox>
           <Checkbox value="analytics">Analytics</Checkbox>

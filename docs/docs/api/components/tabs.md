@@ -28,7 +28,7 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 | Prop           | Type                                                | Default | Description                                             |
 | -------------- | --------------------------------------------------- | ------- | ------------------------------------------------------- |
 | `value`        | `number`                                            | —       | Controlled active tab index.                            |
-| `defaultValue` | `number`                                            | `0`    | Initial active tab index (uncontrolled).                |
+| `defaultValue` | `number`                                            | `0`     | Initial active tab index (uncontrolled).                |
 | `onChange`     | `(index: number) => void`                           | —       | Callback when active tab changes.                       |
 | `align`        | `'centered'` \| `'right'` \| `'left'`               | —       | Tab alignment.                                          |
 | `size`         | `'small'` \| `'medium'` \| `'large'`                | —       | Tab size.                                               |
@@ -51,16 +51,16 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ### Tabs.Tab
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `index` | `number` | — | **Required.** Tab index for matching with content. |
-| `disabled` | `boolean` | — | Disables the tab. |
-| `icon` | `string` | — | Icon name for the tab. |
-| `iconLibrary` | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | — | Icon library to use. |
-| `iconVariant` | `string` | — | Icon style variant. |
-| `iconSize` | `'small' \| 'medium' \| 'large'` | `'small'` | Size of the tab icon. |
-| `iconFeatures` | `string \| string[]` | — | Additional icon modifiers. |
-| `children` | `React.ReactNode` | — | Tab label content. |
+| Prop           | Type                                                               | Default   | Description                                        |
+| -------------- | ------------------------------------------------------------------ | --------- | -------------------------------------------------- |
+| `index`        | `number`                                                           | —         | **Required.** Tab index for matching with content. |
+| `disabled`     | `boolean`                                                          | —         | Disables the tab.                                  |
+| `icon`         | `string`                                                           | —         | Icon name for the tab.                             |
+| `iconLibrary`  | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | —         | Icon library to use.                               |
+| `iconVariant`  | `string`                                                           | —         | Icon style variant.                                |
+| `iconSize`     | `'small' \| 'medium' \| 'large'`                                   | `'small'` | Size of the tab icon.                              |
+| `iconFeatures` | `string \| string[]`                                               | —         | Additional icon modifiers.                         |
+| `children`     | `React.ReactNode`                                                  | —         | Tab label content.                                 |
 
 ### Tabs.Content
 
@@ -68,10 +68,10 @@ Container for tab content panels. No custom props beyond `children` and standard
 
 ### Tabs.Content.Item
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `index` | `number` | — | **Required.** Content index matching the corresponding `Tabs.Tab` index. |
-| `children` | `React.ReactNode` | — | Content for this tab panel. |
+| Prop       | Type              | Default | Description                                                              |
+| ---------- | ----------------- | ------- | ------------------------------------------------------------------------ |
+| `index`    | `number`          | —       | **Required.** Content index matching the corresponding `Tabs.Tab` index. |
+| `children` | `React.ReactNode` | —       | Content for this tab panel.                                              |
 
 ---
 

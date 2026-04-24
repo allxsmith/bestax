@@ -1,7 +1,7 @@
 # React Logo — License
 
-| File | Source | License |
-|---|---|---|
+| File           | Source                                                                                                             | License                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
 | react-logo.png | [reactjs/react.dev](https://github.com/reactjs/react.dev) (`public/images/brand/logo_light.svg`, converted to PNG) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 
 ## Attribution

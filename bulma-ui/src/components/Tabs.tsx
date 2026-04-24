@@ -149,17 +149,19 @@ export const Tabs: React.FC<TabsProps> & {
   // Check if children include TabsContent
   const childArray = React.Children.toArray(children);
   const hasContent = childArray.some(
-    (child) => React.isValidElement(child) && child.type === TabsContent
+    child => React.isValidElement(child) && child.type === TabsContent
   );
 
-  if (hasContent && vertical) {
-    // Vertical layout with content: wrap in .tabs-root
-    const rootClasses = usePrefixedClassNames('tabs-root', {
-      'is-vertical': true,
-      'is-right': side === 'right',
-      'is-expanded': expanded,
-    });
+  // Hoisted unconditionally to respect rules-of-hooks. Modifiers gate themselves
+  // via their truthy values — `tabs-root` is always prefixed, modifiers only
+  // apply in the vertical-with-content branch.
+  const rootClasses = usePrefixedClassNames('tabs-root', {
+    'is-vertical': hasContent && vertical,
+    'is-right': hasContent && vertical && side === 'right',
+    'is-expanded': hasContent && vertical && expanded,
+  });
 
+  if (hasContent && vertical) {
     const combinedRootClasses = classNames(
       rootClasses,
       bulmaHelperClasses,
@@ -169,7 +171,7 @@ export const Tabs: React.FC<TabsProps> & {
     // Split children into list-like and content children
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
-    childArray.forEach((child) => {
+    childArray.forEach(child => {
       if (React.isValidElement(child) && child.type === TabsContent) {
         contentChildren.push(child);
       } else {
@@ -188,8 +190,6 @@ export const Tabs: React.FC<TabsProps> & {
   }
 
   if (hasContent) {
-    // Horizontal with content: wrap in .tabs-root
-    const rootClasses = usePrefixedClassNames('tabs-root');
     const combinedRootClasses = classNames(
       rootClasses,
       bulmaHelperClasses,
@@ -198,7 +198,7 @@ export const Tabs: React.FC<TabsProps> & {
 
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
-    childArray.forEach((child) => {
+    childArray.forEach(child => {
       if (React.isValidElement(child) && child.type === TabsContent) {
         contentChildren.push(child);
       } else {
@@ -217,7 +217,11 @@ export const Tabs: React.FC<TabsProps> & {
   }
 
   // No content children — backward compatible single .tabs div
-  const combinedClasses = classNames(tabsClasses, bulmaHelperClasses, className);
+  const combinedClasses = classNames(
+    tabsClasses,
+    bulmaHelperClasses,
+    className
+  );
 
   return (
     <TabsContext.Provider value={contextValue}>
@@ -279,7 +283,10 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
  * @property {string} [className] - Additional CSS classes.
  * @property {React.ReactNode} [children] - Tab label content.
  */
-export interface TabProps extends Omit<React.LiHTMLAttributes<HTMLLIElement>, 'onClick'> {
+export interface TabProps extends Omit<
+  React.LiHTMLAttributes<HTMLLIElement>,
+  'onClick'
+> {
   index: number;
   disabled?: boolean;
   icon?: string;
