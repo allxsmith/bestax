@@ -1,0 +1,9 @@
+{
+  "label": "Migration",
+  "position": 7,
+  "link": {
+    "type": "doc",
+    "id": "guides/getting-started/migration/index"
+  },
+  "collapsed": true
+}

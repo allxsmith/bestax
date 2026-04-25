@@ -61,7 +61,10 @@ $link-button-ghost-hover-color: cv.getVar("text-strong") !default;
   }
 
   // Color variants — override text color for all variants
-  @each $name in (primary, link, info, success, warning, danger, white, light, dark, black) {
+  @each $name
+    in ("primary", "link", "info", "success", "warning", "danger", "white",
+      "light", "dark", "black")
+  {
     &.#{iv.$class-prefix}link-button-#{$name} {
       color: cv.getVar("#{$name}");
 

@@ -4,17 +4,17 @@ import resolve from '@rollup/plugin-node-resolve';
 import { visualizer } from 'rollup-plugin-visualizer';
 import scss from 'rollup-plugin-scss';
 
+const scssBase = {
+  outputStyle: 'compressed',
+  includePaths: ['src/scss', '../node_modules'],
+  sourceMap: true,
+  silenceDeprecations: ['import', 'global-builtin', 'if-function'],
+};
+
 const variationBuild = name => ({
   input: `src/scss/versions/${name}.scss`,
   output: { file: `dist/versions/${name}.js`, format: 'es' },
-  plugins: [
-    scss({
-      fileName: `${name}.css`,
-      outputStyle: 'compressed',
-      includePaths: ['src/scss', '../node_modules'],
-      sourceMap: true,
-    }),
-  ],
+  plugins: [scss({ ...scssBase, fileName: `${name}.css` })],
   onwarn(warning, warn) {
     if (warning.code === 'EMPTY_BUNDLE') return;
     warn(warning);
@@ -69,14 +69,7 @@ export default commandLineArgs => {
         file: 'dist/extras.js',
         format: 'es',
       },
-      plugins: [
-        scss({
-          fileName: 'extras.css',
-          outputStyle: 'compressed',
-          includePaths: ['src/scss', '../node_modules'],
-          sourceMap: true,
-        }),
-      ],
+      plugins: [scss({ ...scssBase, fileName: 'extras.css' })],
       onwarn(warning, warn) {
         // Suppress empty bundle warning for SCSS-only build
         if (warning.code === 'EMPTY_BUNDLE') return;
@@ -90,14 +83,7 @@ export default commandLineArgs => {
         file: 'dist/bestax.js',
         format: 'es',
       },
-      plugins: [
-        scss({
-          fileName: 'bestax.css',
-          outputStyle: 'compressed',
-          includePaths: ['src/scss', '../node_modules'],
-          sourceMap: true,
-        }),
-      ],
+      plugins: [scss({ ...scssBase, fileName: 'bestax.css' })],
       onwarn(warning, warn) {
         if (warning.code === 'EMPTY_BUNDLE') return;
         warn(warning);
