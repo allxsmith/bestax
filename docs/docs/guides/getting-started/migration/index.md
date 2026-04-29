@@ -14,7 +14,10 @@ Pick whichever applies to your situation:
 
 ## [Upgrading bestax-bulma 2.x → 3.x](./bulma-ui-2-to-3.md)
 
-The 3.x release is **mostly additive** — about 30 new components plus quality-of-life prop additions. The one architectural change worth knowing is that `<Input>`, `<Select>`, `<TextArea>`, and `<File>` now compose themselves with `<Field>` and `<Control>` automatically. This affects standalone usage; if you already wrap inputs in `<Field><Control>`, nothing changes. New `InputBase` / `SelectBase` / `TextAreaBase` exports preserve the bare-element behavior for the rest.
+The 3.x release is **mostly additive** — about 30 new components plus quality-of-life prop additions. Two changes need active attention:
+
+- **Form input auto-wrap**: `<Input>`, `<Select>`, `<TextArea>`, and `<File>` now compose themselves with `<Field>` and `<Control>` automatically. If you already wrap inputs in `<Field><Control>`, nothing changes; new `InputBase` / `SelectBase` / `TextAreaBase` exports preserve the bare-element behavior for the rest.
+- **Themed `<Radio>` and `<Checkbox>`** now use a custom-styled indicator that requires the new bestax extras CSS to render visibly. Import `dist/extras.css` or `dist/bestax.css`.
 
 Also notable but not breaking: new optional context-driven APIs in `<Tabs>`, `<Checkboxes>`, and `<Radios>`; a new programmatic singleton API in `<Notification>`; and `bulma` moves from `peerDependencies` to `dependencies`.
 

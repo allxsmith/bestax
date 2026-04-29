@@ -11,19 +11,20 @@ This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from
 ## TL;DR
 
 :::tip Mostly additive
-3.x ships about 30 new components and several quality-of-life prop additions. There's **one** architectural change worth knowing — form input auto-wrapping — and a handful of subtle, opt-in context behaviors. Everything else is backward compatible.
+3.x ships about 30 new components and several quality-of-life prop additions. The two changes that need active attention are **form input auto-wrapping** (Input/Select/TextArea/File) and **themed Radio/Checkbox** which now require the new extras CSS. Everything else is backward compatible or opt-in.
 :::
 
-| Area                  | What changed                                                                  | Action                                                                       |
-| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Form inputs           | `<Input>`, `<Select>`, `<TextArea>`, `<File>` auto-wrap in `<Field><Control>` | Use `InputBase` / `SelectBase` / `TextAreaBase` if you need the bare element |
-| `<Tabs>`              | New context + opt-in `<Tabs.Tab>` API                                         | None — old `<Tabs.Item>` is preserved                                        |
-| `<Field>`             | `labelSize` defaults to `'normal'` for horizontal layouts                     | None unless you customised label baseline alignment                          |
-| `<Checkboxes>`        | Now an optional state container (additive)                                    | None — pass `value`/`onChange` only if you want group state                  |
-| `<Radios>`            | Now an optional state container (additive)                                    | None — pass `value`/`onChange` only if you want group state                  |
-| `<Notification>`      | New programmatic singleton API (additive)                                     | None — JSX usage unchanged                                                   |
-| Subcomponent prop API | Many subcomponents now extend `HTMLAttributes` (superset)                     | None                                                                         |
-| `bulma` package       | Moved from `peerDependencies` to `dependencies`                               | Optional cleanup of your own peerDeps                                        |
+| Area                     | What changed                                                                               | Action                                                                       |
+| ------------------------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Form inputs              | `<Input>`, `<Select>`, `<TextArea>`, `<File>` auto-wrap in `<Field><Control>`              | Use `InputBase` / `SelectBase` / `TextAreaBase` if you need the bare element |
+| `<Radio>` / `<Checkbox>` | Custom-styled with hidden native input — **requires the new extras CSS to render visibly** | Import `@allxsmith/bestax-bulma/dist/extras.css` (or `bestax.css`)           |
+| `<Tabs>`                 | New context + opt-in `<Tabs.Tab>` API                                                      | None — old `<Tabs.Item>` is preserved                                        |
+| `<Field>`                | `labelSize` defaults to `'normal'` for horizontal layouts                                  | None unless you customised label baseline alignment                          |
+| `<Checkboxes>`           | Now an optional state container (additive)                                                 | None — pass `value`/`onChange` only if you want group state                  |
+| `<Radios>`               | Now an optional state container (additive)                                                 | None — pass `value`/`onChange` only if you want group state                  |
+| `<Notification>`         | New programmatic singleton API (additive)                                                  | None — JSX usage unchanged                                                   |
+| Subcomponent prop API    | Many subcomponents now extend `HTMLAttributes` (superset)                                  | None                                                                         |
+| `bulma` package          | Moved from `peerDependencies` to `dependencies`                                            | Optional cleanup of your own peerDeps                                        |
 
 ## Form components: auto-wrap in Field & Control
 
@@ -65,7 +66,7 @@ You'll need to take action if your code does any of the following:
 
 **Option A — adopt the new convenience props** (preferred for typical forms):
 
-```jsx
+```tsx live
 <Input
   label="Email"
   type="email"
@@ -85,38 +86,169 @@ import { InputBase, SelectBase, TextAreaBase } from '@allxsmith/bestax-bulma';
 
 The same pattern applies to `<Select>` (use `SelectBase`), `<TextArea>` (use `TextAreaBase`). For `<File>`, render it inside an explicit `<Control>` to skip the auto-wrap.
 
+## `<Radio>` and `<Checkbox>` — themed styling requires extras CSS
+
+In 2.x, `<Radio>` and `<Checkbox>` rendered as plain native inputs styled by Bulma's stock CSS:
+
+```html
+<!-- 2.x output -->
+<label class="radio"> <input type="radio" name="answer" /> Yes </label>
+```
+
+In 3.x they render with a hidden native input and a custom indicator span:
+
+```html
+<!-- 3.x output -->
+<label class="styled-radio radio">
+  <input type="radio" name="answer" />
+  <!-- visually hidden -->
+  <span class="check"></span>
+  <!-- the visible dot/checkmark -->
+  <span class="control-label">Yes</span>
+</label>
+```
+
+The custom indicator (`<span class="check">`) needs the new bestax extras stylesheet to be visible. If you upgrade to 3.x without importing it, the radio/checkbox will appear as an invisible click target with only the label text showing.
+
+:::caution Required CSS import — switch to `bestax.css`
+The recommended approach in 3.x is to **replace your `bulma.css` import with `bestax.css`**. It's a drop-in superset: Bulma + every bestax extra (themed Radio/Checkbox, Tooltip, Sidebar, Snackbar, etc.) in one file.
+
+```jsx
+// Recommended: one stylesheet, includes Bulma
+import '@allxsmith/bestax-bulma/dist/bestax.css';
+```
+
+If you were doing this before:
+
+```jsx
+import 'bulma/css/bulma.min.css'; // ← remove this
+```
+
+…you can drop the `bulma/css/...` line and let `bestax.css` cover both layers.
+
+<details>
+<summary>Alternative: keep your own Bulma import</summary>
+
+If you have a customised Bulma build, a Bulma CDN link, or a non-standard Sass pipeline you don't want to disturb, import `extras.css` alongside your existing Bulma stylesheet — it ships only the bestax overrides:
+
+```jsx
+import 'bulma/css/bulma.min.css'; // your existing Bulma
+import '@allxsmith/bestax-bulma/dist/extras.css'; // bestax overrides
+```
+
+</details>
+
+See [Optional new SCSS](#optional-new-scss) below for prefixed and no-helpers variants.
+:::
+
+**Why this changed:** the themed look gives you color/size variants (`<Radio color="primary" size="large">`) and consistent visual treatment that's hard to achieve with the native form controls.
+
+### Live examples
+
+The examples below assume the extras CSS is loaded.
+
+#### Standalone Radio
+
+```tsx live
+<Radios name="answer1">
+  <Radio defaultChecked>Yes</Radio>
+  <Radio>No</Radio>
+  <Radio disabled>Maybe</Radio>
+</Radios>
+```
+
+#### Standalone Checkbox
+
+```tsx live
+<Checkboxes>
+  <Checkbox defaultChecked>I agree to the terms</Checkbox>
+  <Checkbox color="primary">Subscribe to newsletter</Checkbox>
+  <Checkbox disabled>Disabled option</Checkbox>
+</Checkboxes>
+```
+
+#### Radios as a controlled group
+
+```tsx live
+function example() {
+  const [color, setColor] = useState('red');
+  return (
+    <Block>
+      <Radios name="color" value={color} onChange={setColor}>
+        <Radio value="red">Red</Radio>
+        <Radio value="blue">Blue</Radio>
+        <Radio value="green">Green</Radio>
+      </Radios>
+      <Paragraph mt="2">Selected: {color}</Paragraph>
+    </Block>
+  );
+}
+```
+
+#### Checkboxes as a controlled group
+
+```tsx live
+function example() {
+  const [tags, setTags] = useState(['react']);
+  return (
+    <Block>
+      <Checkboxes name="tags" value={tags} onChange={setTags}>
+        <Checkbox value="react">React</Checkbox>
+        <Checkbox value="vue">Vue</Checkbox>
+        <Checkbox value="svelte">Svelte</Checkbox>
+      </Checkboxes>
+      <Paragraph mt="2">Selected: {tags.join(', ') || '(none)'}</Paragraph>
+    </Block>
+  );
+}
+```
+
 ## `<Tabs>` — new context, but legacy API preserved
 
 `<Tabs>` now provides a `TabsContext` to descendants. The legacy `<Tabs.Item>` (`TabItem`) **does not consume this context** and continues to behave exactly as it did in 2.x — driven by your `active` and `onClick` props:
 
-```jsx
-// 2.x and 3.x — identical behavior
-<Tabs>
-  <Tabs.List>
-    <Tabs.Item active={i === 0} onClick={() => setI(0)}>
-      One
-    </Tabs.Item>
-    <Tabs.Item active={i === 1} onClick={() => setI(1)}>
-      Two
-    </Tabs.Item>
-  </Tabs.List>
-</Tabs>
+```tsx live
+function example() {
+  // 2.x and 3.x — identical behavior
+  const [i, setI] = useState(0);
+  return (
+    <Tabs>
+      <Tabs.List>
+        <Tabs.Item active={i === 0} onClick={() => setI(0)}>
+          <a>One</a>
+        </Tabs.Item>
+        <Tabs.Item active={i === 1} onClick={() => setI(1)}>
+          <a>Two</a>
+        </Tabs.Item>
+      </Tabs.List>
+    </Tabs>
+  );
+}
 ```
+
+:::note Wrap children in `<a>`
+The legacy `<Tabs.Item>` renders a `<li>` only — Bulma's tab CSS expects an `<a>` link inside it for the click target styling. The new `<Tabs.Tab>` component below does this for you.
+:::
 
 A new opt-in `<Tabs.Tab index={n}>` component DOES consume the context and lets you control active state via `<Tabs value={n} onChange={...}>` or uncontrolled via `<Tabs defaultValue={n}>`:
 
-```jsx
-// 3.x opt-in — controlled tabs without per-item handlers
-<Tabs value={tab} onChange={setTab}>
-  <Tabs.List>
-    <Tabs.Tab index={0}>One</Tabs.Tab>
-    <Tabs.Tab index={1}>Two</Tabs.Tab>
-  </Tabs.List>
-  <Tabs.Content>
-    <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
-    <Tabs.Content.Item index={1}>Two panel</Tabs.Content.Item>
-  </Tabs.Content>
-</Tabs>
+```tsx live
+function example() {
+  // 3.x opt-in — controlled tabs without per-item handlers
+  const [tab, setTab] = useState(0);
+  return (
+    <Tabs value={tab} onChange={setTab}>
+      <Tabs.List>
+        <Tabs.Tab index={0}>One</Tabs.Tab>
+        <Tabs.Tab index={1}>Two</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content>
+        <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+        <Tabs.Content.Item index={1}>Two panel</Tabs.Content.Item>
+      </Tabs.Content>
+    </Tabs>
+  );
+}
 ```
 
 :::note No migration required
@@ -134,9 +266,11 @@ New additive props on `<Field>`: `narrow?: boolean` and `hasAddons` widened to `
 
 ## `<Checkboxes>` and `<Radios>` — optional state container
 
-In 2.x these were dumb wrapper divs with no state.
+In 2.x these were plain wrapper divs with no state.
 
-In 3.x they're stateful group containers _when you opt in_. If you were using them purely as visual wrappers and managing each `<Checkbox>` / `<Radio>` individually, your code keeps working — the new `name`, `value`, `defaultValue`, `onChange` props are all optional, and individual `<Checkbox checked=... onChange=...>` props always take precedence over the group context.
+In 3.x they're stateful group containers _when you opt in_. If you were using them purely as visual wrappers and managing each `<Checkbox>` / `<Radio>` individually, your existing JSX keeps working — the new `name`, `value`, `defaultValue`, `onChange` props are all optional, and individual `<Checkbox checked=... onChange=...>` props always take precedence over the group context.
+
+(Note: their child `<Checkbox>` / `<Radio>` elements still need the new extras CSS to render correctly — see [the section above](#radio-and-checkbox--themed-styling-requires-extras-css).)
 
 The new modes:
 
@@ -227,17 +361,17 @@ See the component reference for full docs.
 
 ## Optional new SCSS
 
-:::info Opt-in only
-None of these stylesheets are auto-imported. Existing 2.x consumers see zero visual change unless they explicitly import one of the files below.
+:::caution Required for some components, optional for the rest
+None of these stylesheets are auto-imported, but `<Radio>`, `<Checkbox>`, and the new components shipped in 3.x (Tooltip, Dialog, Sidebar, Snackbar, Steps, Toast, Carousel, Slider, Numberinput, Rate, Autocomplete, Taginput, etc.) **require** one of these files to render correctly. If your 2.x app only used components without custom theming (Button, Card, Modal, Field, Input, etc.) and you don't adopt any of the new components, you can keep your existing CSS setup.
 :::
 
-3.x introduces an optional `extras.css` stylesheet with overrides for the new components and a few existing ones (e.g. themed `Checkbox` / `Radio`):
+3.x introduces an `extras.css` stylesheet with the styling for the themed and new components:
 
 ```jsx
 import '@allxsmith/bestax-bulma/dist/extras.css';
 ```
 
-This is opt-in — if you don't import it, nothing changes visually for any 2.x component. There are also pre-built variations:
+There are also pre-built variations:
 
 - `bestax.css` — Bulma + extras bundled
 - `bestax-prefixed.css` — all classes prefixed with `bulma-`
@@ -275,8 +409,8 @@ For reference, here's the per-component status. Any component not listed had no 
 - `Input`, `Select`, `TextArea`, `File` — **BREAKING.** Auto-wrap in `<Field><Control>` when not detected via context. Use `InputBase` / `SelectBase` / `TextAreaBase` (or render `<File>` inside an explicit Control) to opt out. See the section above.
 - `Field` — **Notable.** New `narrow` prop, `hasAddons` widened to `boolean | 'centered' | 'right'`, `labelSize` default for horizontal changed from `undefined → no class` to `'normal'`. Now wraps content in `<FieldProvider value={true}>` (the context the form components above read).
 - `Control` — **No breaking changes.** New `iconLeftName` / `iconRightName` shortcut props.
-- `Checkbox`, `Radio` — **Notable, not breaking.** Now read from `useCheckboxesGroup()` / `useRadiosGroup()` context when present, with "local props always win." Standalone usage is unchanged.
-- `Checkboxes`, `Radios` — **Notable, not breaking.** Now optional state containers via new `value` / `defaultValue` / `onChange` props. Without those props, behavior is identical to 2.x.
+- `Checkbox`, `Radio` — **BREAKING (visual).** Now render with a hidden native input plus a custom indicator span. Requires the new extras CSS (`dist/extras.css` or `dist/bestax.css`) to render visibly. Also additively read from `useCheckboxesGroup()` / `useRadiosGroup()` context when present (with "local props always win").
+- `Checkboxes`, `Radios` — **Notable, not breaking** (their JSX is the same, their child Checkbox/Radio elements still need extras CSS — see Checkbox/Radio above). Now optional state containers via new `value` / `defaultValue` / `onChange` props.
 - `Autocomplete`, `FormContext`, `InputBase`, `Numberinput`, `Rate`, `SelectBase`, `Slider`, `Switch`, `Taginput`, `TextAreaBase`, `fieldProps` — **NEW.**
 
 ### helpers/

@@ -81,105 +81,73 @@ This means you can customize Bulma at **runtime** without needing Sass compilati
 
 Bulma v1 introduces **themes** — collections of CSS variables that can be applied to different contexts. bestax-bulma exposes a `<Theme>` component for this:
 
-```tsx
-import { Theme, Button, Box } from '@allxsmith/bestax-bulma';
-
-function ThemedSection() {
-  return (
-    <Theme primaryH="270" primaryS="100%" primaryL="50%">
-      <Box p="4">
-        <Button color="primary">Purple themed button</Button>
-      </Box>
-    </Theme>
-  );
-}
+```tsx live
+<Theme primaryH="270" primaryS="100%" primaryL="50%">
+  <Box p="4">
+    <Button color="primary">Purple themed button</Button>
+  </Box>
+</Theme>
 ```
 
 Learn more in our [Theme documentation](../../../api/helpers/theme.md).
 
 ### Dark mode
 
-```tsx
-import { Theme, Card, Box, Title } from '@allxsmith/bestax-bulma';
-
-function DarkModeExample() {
-  return (
-    <Theme
-      bulmaVars={{ '--bulma-scheme-invert-ter': 'var(--bulma-scheme-main)' }}
-    >
-      <Card>
-        <Box p="5">
-          <Title>Dark mode content</Title>
-        </Box>
-      </Card>
-    </Theme>
-  );
-}
+```tsx live
+<Theme bulmaVars={{ '--bulma-scheme-invert-ter': 'var(--bulma-scheme-main)' }}>
+  <Card>
+    <Box p="5">
+      <Title>Dark mode content</Title>
+    </Box>
+  </Card>
+</Theme>
 ```
 
 ### Color palettes
 
 Each of the 7 primary colors now has a complete palette with shades:
 
-```tsx
-import { Button, Buttons } from '@allxsmith/bestax-bulma';
-
-function ColorPaletteExample() {
-  return (
-    <Buttons>
-      <Button color="primary" colorShade="10">
-        Primary Light
-      </Button>
-      <Button color="primary" colorShade="30">
-        Primary Medium
-      </Button>
-      <Button color="primary" colorShade="60">
-        Primary Dark
-      </Button>
-      <Button color="primary" colorShade="90">
-        Primary Darker
-      </Button>
-    </Buttons>
-  );
-}
+```tsx live
+<Buttons>
+  <Button color="primary" colorShade="10">
+    Primary Light
+  </Button>
+  <Button color="primary" colorShade="30">
+    Primary Medium
+  </Button>
+  <Button color="primary" colorShade="60">
+    Primary Dark
+  </Button>
+  <Button color="primary" colorShade="90">
+    Primary Darker
+  </Button>
+</Buttons>
 ```
 
 ### Skeleton loaders
 
-```tsx
-import { Button, Card, Box, Title, Icon } from '@allxsmith/bestax-bulma';
-
-function SkeletonExample() {
-  return (
-    <Card>
-      <Box p="4">
-        <Title skeleton>Loading title…</Title>
-        <Button skeleton>Loading button</Button>
-        <Icon name="star" skeleton ariaLabel="Loading icon" />
-      </Box>
-    </Card>
-  );
-}
+```tsx live
+<Card>
+  <Box p="4">
+    <Title skeleton>Loading title…</Title>
+    <Button skeleton>Loading button</Button>
+    <Icon name="star" skeleton ariaLabel="Loading icon" />
+  </Box>
+</Card>
 ```
 
 ### CSS Grid support
 
 Bulma v1 introduces true CSS Grid (not flexbox-based "grids"):
 
-```tsx
-import { Grid, Cell, Notification } from '@allxsmith/bestax-bulma';
-
-function GridExample() {
-  return (
-    <Grid minCol={3} gap={2}>
-      {[...Array(9)].map((_, i) => (
-        <Cell key={i}>
-          <Notification color="primary">Cell {i + 1}</Notification>
-        </Cell>
-      ))}
-    </Grid>
-  );
-}
+```tsx live
+<Grid minCol={3} gap={2}>
+  {[...Array(9)].map((_, i) => (
+    <Cell key={i}>
+      <Notification color="primary">Cell {i + 1}</Notification>
+    </Cell>
+  ))}
+</Grid>
 ```
 
 Learn more in our [Grid documentation](../../../api/grid/grid.md).
@@ -192,15 +160,19 @@ Learn more in our [Grid documentation](../../../api/grid/grid.md).
 The Tile system is deprecated in Bulma v1. Migrate to the new CSS Grid system below — it's more powerful and uses real CSS Grid under the hood.
 :::
 
+❌ Old (deprecated):
+
 ```tsx
-// ❌ Old: Tiles (deprecated)
 <div className="tile is-ancestor">
   <div className="tile is-4 is-vertical is-parent">
     <div className="tile is-child">Content</div>
   </div>
 </div>
+```
 
-// ✅ New: CSS Grid
+✅ New:
+
+```tsx live
 <Grid isFixed fixedCols={3}>
   <Cell>
     <Box>Content</Box>
@@ -223,16 +195,11 @@ Unlike Bulma v0.9.x, which required Sass compilation for customization, v1 allow
 
 Or programmatically with the `<Theme>` component:
 
-```tsx
-import { Theme, Container, Button } from '@allxsmith/bestax-bulma';
-import { useState } from 'react';
-
-function CustomTheme() {
+```tsx live
+function example() {
   const [isDark, setIsDark] = useState(false);
-
   return (
     <Theme
-      isRoot
       schemeH={isDark ? '220' : '0'}
       lightL={isDark ? '15%' : '96%'}
       darkL={isDark ? '85%' : '4%'}
