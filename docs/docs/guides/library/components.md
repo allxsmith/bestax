@@ -524,10 +524,10 @@ A Bulma-styled message box for feedback, alerts, or notifications. [View full do
 
 ### Toast
 
-Brief notification messages that appear and disappear automatically. Supports multiple positions, colors, and programmatic API. [View full documentation.](../../api/components/toast.md)
+Brief notification messages with optional action and cancel buttons. Supports multiple positions, colors, an explicit close button, and a programmatic API. [View full documentation.](../../api/components/toast.md)
 
 :::note
-Toast, Snackbar, and Dialog provide programmatic APIs for showing notifications from anywhere in your app. Add the container component once at your app root, then call `toast.success()`, `snackbar.show()`, or `dialog.confirm()` from any component.
+Toast and Dialog provide programmatic APIs for showing notifications from anywhere in your app. Add the container component once at your app root, then call `toast.success()` or `dialog.confirm()` from any component.
 :::
 
 :::tip Live Preview Only
@@ -539,48 +539,17 @@ function ToastExample() {
   const [showToast, setShowToast] = React.useState(false);
   return (
     <div>
-      <Button color="success" onClick={() => setShowToast(true)}>
+      <Button color="info" onClick={() => setShowToast(true)}>
         Show Toast
       </Button>
       {showToast && (
         <Toast
           inline
-          position="bottom-center"
-          message="Operation completed successfully!"
-          type="success"
-          onClose={() => setShowToast(false)}
-        />
-      )}
-    </div>
-  );
-}
-```
-
----
-
-### Snackbar
-
-Bottom-aligned notifications with optional action buttons. Ideal for user feedback after actions. [View full documentation.](../../api/components/snackbar.md)
-
-:::tip Live Preview Only
-The `inline` prop is only needed to display this component within the docs preview. **Do not copy it** — in your app, `Snackbar` renders via a portal automatically.
-:::
-
-```tsx live
-function SnackbarExample() {
-  const [showSnackbar, setShowSnackbar] = React.useState(false);
-  return (
-    <div>
-      <Button color="info" onClick={() => setShowSnackbar(true)}>
-        Show Snackbar
-      </Button>
-      {showSnackbar && (
-        <Snackbar
-          inline
           message="Item deleted"
           actionText="Undo"
+          actionType="info"
           onAction={() => console.log('Undo clicked')}
-          onClose={() => setShowSnackbar(false)}
+          onClose={() => setShowToast(false)}
         />
       )}
     </div>

@@ -61,7 +61,7 @@ import {
 ```
 
 :::info Full export list
-The categories above are illustrative, not exhaustive. See the [Elements](/docs/category/elements), [Components](/docs/category/components), [Form](/docs/category/form), [Layout](/docs/category/layout), [Columns](/docs/api/columns), and [Grid](/docs/api/grid) API sections for the complete list, including newer additions like `Dialog`, `Carousel`, `Tooltip`, `Steps`, `Sidebar`, `Toast`, `Snackbar`, `Loading`, `Collapse`, `Autocomplete`, `Taginput`, `Rate`, `Slider`, `NumberInput`, `Switch`, `Checkboxes`, and `Radios`.
+The categories above are illustrative, not exhaustive. See the [Elements](/docs/category/elements), [Components](/docs/category/components), [Form](/docs/category/form), [Layout](/docs/category/layout), [Columns](/docs/api/columns), and [Grid](/docs/api/grid) API sections for the complete list, including newer additions like `Dialog`, `Carousel`, `Tooltip`, `Steps`, `Sidebar`, `Toast`, `Loading`, `Collapse`, `Autocomplete`, `Taginput`, `Rate`, `Slider`, `NumberInput`, `Switch`, `Checkboxes`, and `Radios`.
 :::
 
 ## CSS: three ways to load styles
@@ -170,7 +170,6 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/loading';
 @use '@allxsmith/bestax-bulma/scss/components/collapse';
 @use '@allxsmith/bestax-bulma/scss/components/sidebar';
-@use '@allxsmith/bestax-bulma/scss/components/snackbar';
 @use '@allxsmith/bestax-bulma/scss/components/toast';
 @use '@allxsmith/bestax-bulma/scss/components/steps';
 @use '@allxsmith/bestax-bulma/scss/components/tabs';

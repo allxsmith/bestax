@@ -17,7 +17,7 @@ const meta: Meta<typeof Toast> = {
     docs: {
       description: {
         component:
-          'A toast notification for displaying brief messages. Wraps Snackbar with a simplified API — just a message, optional close button, no action buttons. Supports auto-dismiss, custom positioning, and programmatic API.',
+          'A toast notification with optional action and cancel buttons. Supports 6 positions, `type` (colors background), `actionType` (colors action button), pause-on-hover, indefinite mode, click-to-dismiss, an explicit close button via `closable`, and a programmatic API.',
       },
     },
   },
@@ -31,46 +31,71 @@ const meta: Meta<typeof Toast> = {
       control: 'select',
       options: [
         'default',
-        'success',
-        'danger',
-        'warning',
-        'info',
         'primary',
         'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
       ],
-      description: 'The type/color of the toast',
+      description: 'Colors the toast BACKGROUND',
+    },
+    actionType: {
+      control: 'select',
+      options: [
+        undefined,
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ],
+      description: 'Colors the action BUTTON text',
     },
     position: {
       control: 'select',
       options: [
-        'top-right',
         'top-left',
         'top-center',
-        'bottom-right',
+        'top-right',
         'bottom-left',
         'bottom-center',
+        'bottom-right',
       ],
-      description: 'Position on the screen',
+      description: 'Position on screen (default: top-right)',
     },
     duration: {
       control: 'number',
       description: 'Duration in ms before auto-close (0 = no auto-close)',
     },
-    dismissible: {
+    indefinite: {
       control: 'boolean',
-      description: 'Whether clicking the toast dismisses it',
-    },
-    rounded: {
-      control: 'boolean',
-      description: 'Pill-shaped toast',
+      description: 'Stay open until dismissed',
     },
     pauseOnHover: {
       control: 'boolean',
       description: 'Pause auto-close timer on hover',
     },
-    indefinite: {
+    dismissible: {
       control: 'boolean',
-      description: 'Stay open until dismissed',
+      description: 'Whether clicking the toast dismisses it',
+    },
+    closable: {
+      control: 'boolean',
+      description: 'Show an explicit close (X) button',
+    },
+    rounded: {
+      control: 'boolean',
+      description: 'Pill-shaped toast',
+    },
+    actionText: {
+      control: 'text',
+      description: 'Text for action button',
+    },
+    cancelText: {
+      control: 'text',
+      description: 'Text for cancel button',
     },
     cancelable: {
       control: 'boolean',
@@ -107,7 +132,7 @@ export const Default: Story = {
 };
 
 /**
- * All toast type variants.
+ * `type` colors the toast background.
  */
 export const Types: Story = {
   render: function TypesExample() {
@@ -192,6 +217,108 @@ export const Positions: Story = {
 };
 
 /**
+ * Toast with an action button. `actionType` colors the action button text.
+ */
+export const WithActionButton: Story = {
+  render: function ActionExample() {
+    const [current, setCurrent] = useState<string | null>(null);
+
+    const types = [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+    ] as const;
+
+    return (
+      <div style={{ padding: '2rem' }}>
+        <p className="mb-4">
+          The <code>actionType</code> prop colors the{' '}
+          <strong>action button</strong>:
+        </p>
+        <div className="buttons">
+          {types.map(t => (
+            <Button
+              key={t}
+              color={t}
+              onClick={() => setCurrent(t)}
+              disabled={current !== null}
+            >
+              actionType=&quot;{t}&quot;
+            </Button>
+          ))}
+        </div>
+        {current && (
+          <Toast
+            message={`Action button is ${current}-colored`}
+            actionType={current as ToastType}
+            actionText="Action"
+            onAction={() => {}}
+            duration={3000}
+            onClose={() => setCurrent(null)}
+          />
+        )}
+      </div>
+    );
+  },
+};
+
+/**
+ * Toast with both cancel and action buttons.
+ */
+export const WithCancelButton: Story = {
+  render: function CancelExample() {
+    const [show, setShow] = useState(false);
+
+    return (
+      <div style={{ padding: '2rem' }}>
+        <Button color="primary" onClick={() => setShow(true)} disabled={show}>
+          Show Toast with Cancel
+        </Button>
+        {show && (
+          <Toast
+            message="Are you sure you want to proceed?"
+            cancelText="Cancel"
+            actionText="Confirm"
+            actionType="danger"
+            duration={0}
+            onAction={() => {}}
+            onClose={() => setShow(false)}
+          />
+        )}
+      </div>
+    );
+  },
+};
+
+/**
+ * Toast with an explicit close (X) button.
+ */
+export const Closable: Story = {
+  render: function ClosableExample() {
+    const [show, setShow] = useState(false);
+
+    return (
+      <div style={{ padding: '2rem' }}>
+        <Button color="primary" onClick={() => setShow(true)} disabled={show}>
+          Show Closable Toast
+        </Button>
+        {show && (
+          <Toast
+            message="This toast has a close button"
+            closable
+            duration={0}
+            onClose={() => setShow(false)}
+          />
+        )}
+      </div>
+    );
+  },
+};
+
+/**
  * Pill-shaped toast.
  */
 export const Rounded: Story = {
@@ -230,7 +357,7 @@ export const Indefinite: Story = {
           Show Indefinite Toast
         </Button>
         <p className="mt-4 help">
-          This toast stays open until you click the close button or press Escape
+          This toast stays open until you click it or press Escape
         </p>
         {show && (
           <Toast
@@ -353,6 +480,18 @@ export const ProgrammaticAPI: Story = {
           </Button>
           <Button color="info" onClick={() => toast.info('Info toast!')}>
             Info
+          </Button>
+          <Button
+            onClick={() =>
+              toast.show({
+                message: 'File moved to trash',
+                actionText: 'Undo',
+                actionType: 'info',
+                onAction: () => toast.success('File restored'),
+              })
+            }
+          >
+            With Action
           </Button>
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All

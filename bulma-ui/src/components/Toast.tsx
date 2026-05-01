@@ -8,41 +8,46 @@ import React, {
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Snackbar } from './Snackbar';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
   | 'default'
-  | 'success'
-  | 'danger'
-  | 'warning'
-  | 'info'
   | 'primary'
-  | 'link';
+  | 'link'
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'danger';
 
 /** Screen positions where toasts can be displayed. */
 export type ToastPosition =
-  | 'top-right'
   | 'top-left'
   | 'top-center'
-  | 'bottom-right'
+  | 'top-right'
   | 'bottom-left'
-  | 'bottom-center';
+  | 'bottom-center'
+  | 'bottom-right';
 
 /**
  * Props for the Toast component.
  *
  * @property {string} message - The message to display.
- * @property {ToastType} [type] - The type/color of the toast. Default: 'default'.
+ * @property {ToastType} [type] - Colors the toast background. Default: 'default'.
+ * @property {ToastType} [actionType] - Colors the action button text.
  * @property {ToastPosition} [position] - Position on the screen. Default: 'top-right'.
- * @property {number} [duration] - Duration in ms before auto-close. Default: 2000.
+ * @property {number} [duration] - Duration in ms before auto-close (0 disables). Default: 2000.
  * @property {boolean} [indefinite] - Stay open until dismissed. Default: false.
- * @property {boolean} [dismissible] - Whether clicking the toast dismisses it. Default: true.
+ * @property {boolean} [dismissible] - Click toast (or outside) to dismiss. Default: true.
+ * @property {boolean} [closable] - Show an explicit close (X) button. Default: false.
  * @property {boolean} [rounded] - Pill-shaped toast. Default: false.
- * @property {() => void} [onClose] - Callback when toast closes.
  * @property {boolean} [pauseOnHover] - Pause auto-close timer on hover. Default: false.
  * @property {boolean} [cancelable] - Whether the toast can be dismissed with Escape. Default: true.
+ * @property {string} [actionText] - Text for action button.
+ * @property {string} [cancelText] - Text for cancel button.
+ * @property {() => void} [onAction] - Callback when action button is clicked.
+ * @property {() => void} [onClose] - Callback when toast closes.
  * @property {string | HTMLElement} [container] - Custom mount target (CSS selector string or HTMLElement).
+ * @property {boolean} [inline] - Render only the .toast element without portal/container wrapper. Default: false.
  */
 export interface ToastProps
   extends
@@ -50,31 +55,28 @@ export interface ToastProps
     Omit<BulmaClassesProps, 'color'> {
   message: string;
   type?: ToastType;
+  actionType?: ToastType;
   position?: ToastPosition;
-  /** Duration in ms before auto-close. Default 2000. */
   duration?: number;
-  /** Stay open until dismissed. */
   indefinite?: boolean;
-  /** Whether clicking the toast dismisses it. Default true. */
   dismissible?: boolean;
-  /** Pill-shaped toast. Default false. */
+  closable?: boolean;
   rounded?: boolean;
-  onClose?: () => void;
-  /** Pause auto-close timer on hover. Default false. */
   pauseOnHover?: boolean;
-  /** Whether the toast can be dismissed with Escape. Default true. */
   cancelable?: boolean;
-  /** Custom mount target (CSS selector string or HTMLElement). */
+  actionText?: string;
+  cancelText?: string;
+  onAction?: () => void;
+  onClose?: () => void;
   container?: string | HTMLElement;
-  /** Render without portal/container wrapper. Default false. */
   inline?: boolean;
 }
 
 /**
- * Toast component for displaying brief notification messages.
+ * Toast component for displaying brief notification messages with optional action buttons.
  *
- * Wraps Snackbar with a simplified API — just a message, no action buttons.
- * Dismisses by clicking the toast body or via auto-close timer.
+ * Appears at a configurable screen position with auto-close, pause-on-hover,
+ * keyboard dismiss, action/cancel buttons, and an optional explicit close button.
  *
  * @function
  * @param {ToastProps} props - Props for the Toast component.
@@ -86,22 +88,27 @@ export interface ToastProps
  * <Toast message="Operation successful!" type="success" />
  *
  * @example
- * // Indefinite toast
- * <Toast message="Processing..." indefinite onClose={handleDone} />
+ * // Toast with action button
+ * <Toast message="Item deleted" actionText="Undo" onAction={handleUndo} />
  */
 export const Toast = forwardRef<HTMLDivElement, ToastProps>(
   (
     {
       message,
       type = 'default',
+      actionType,
       position = 'top-right',
       duration = 2000,
       indefinite = false,
       dismissible = true,
+      closable = false,
       rounded = false,
-      onClose,
       pauseOnHover = false,
       cancelable = true,
+      actionText,
+      cancelText,
+      onAction,
+      onClose,
       container,
       inline = false,
       className,
@@ -111,6 +118,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const [isVisible, setIsVisible] = useState(true);
+    const [isPaused, setIsPaused] = useState(false);
     const toastRef = useRef<HTMLDivElement | null>(null);
 
     const handleClose = useCallback(() => {
@@ -118,8 +126,35 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       onClose?.();
     }, [onClose]);
 
-    // Click outside to dismiss — deferred so the triggering click doesn't
-    // immediately dismiss the toast before it's even visible.
+    const handleAction = useCallback(() => {
+      onAction?.();
+      handleClose();
+    }, [onAction, handleClose]);
+
+    useEffect(() => {
+      if (indefinite || duration === 0 || isPaused) return undefined;
+
+      const timer = setTimeout(() => {
+        handleClose();
+      }, duration);
+
+      return () => clearTimeout(timer);
+    }, [duration, indefinite, isPaused, handleClose]);
+
+    const handleMouseEnter = useCallback(() => {
+      if (pauseOnHover) {
+        setIsPaused(true);
+      }
+    }, [pauseOnHover]);
+
+    const handleMouseLeave = useCallback(() => {
+      if (pauseOnHover) {
+        setIsPaused(false);
+      }
+    }, [pauseOnHover]);
+
+    // Click-outside dismiss — deferred so the click that spawned the toast
+    // doesn't immediately dismiss it before it's even visible.
     useEffect(() => {
       if (!dismissible || !isVisible) return undefined;
 
@@ -129,7 +164,6 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         }
       };
 
-      // Defer listener so the click that spawned the toast doesn't dismiss it
       const raf = requestAnimationFrame(() => {
         document.addEventListener('click', handleDocumentClick);
       });
@@ -140,12 +174,27 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       };
     }, [dismissible, isVisible, handleClose]);
 
-    const toastClasses = usePrefixedClassNames('toast', {
-      [`is-${type}`]: type && type !== 'default',
-    });
+    useEffect(() => {
+      if (!cancelable) return undefined;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleClose();
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [cancelable, handleClose]);
 
     const containerClasses = usePrefixedClassNames('toast-container', {
       [`is-${position}`]: true,
+    });
+
+    const toastClasses = usePrefixedClassNames('toast', {
+      [`is-${type}`]: type !== 'default',
+      [`is-action-${actionType}`]: !!actionType && actionType !== 'default',
+      'is-rounded': rounded,
     });
 
     const combinedClasses = classNames(
@@ -158,7 +207,6 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       return null;
     }
 
-    // Resolve container target
     const resolveContainer = (): HTMLElement => {
       if (container) {
         if (typeof container === 'string') {
@@ -171,36 +219,78 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       return document.body;
     };
 
-    const toastContent = (
-      <div className={containerClasses}>
-        <Snackbar
-          ref={node => {
-            toastRef.current = node;
-            if (typeof ref === 'function') ref(node);
-            else if (ref)
-              (ref as React.MutableRefObject<HTMLDivElement | null>).current =
-                node;
-          }}
-          inline
-          message={message}
-          type={type}
-          duration={duration}
-          indefinite={indefinite}
-          rounded={rounded}
-          onClose={handleClose}
-          pauseOnHover={pauseOnHover}
-          cancelable={cancelable}
-          className={combinedClasses}
-          role="alert"
-          onClick={dismissible ? handleClose : undefined}
-          {...rest}
-        />
+    const setRef = (node: HTMLDivElement | null) => {
+      toastRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }
+    };
+
+    const toastElement = (
+      <div
+        ref={setRef}
+        className={combinedClasses}
+        role="alert"
+        aria-live="polite"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={dismissible ? handleClose : undefined}
+        {...rest}
+      >
+        <span className="toast-message">{message}</span>
+        {(cancelText || actionText) && (
+          <div className="toast-actions">
+            {cancelText && (
+              <span className="toast-cancel">
+                <button
+                  type="button"
+                  className="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleClose();
+                  }}
+                >
+                  {cancelText}
+                </button>
+              </span>
+            )}
+            {actionText && (
+              <span className="toast-action">
+                <button
+                  type="button"
+                  className="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleAction();
+                  }}
+                >
+                  {actionText}
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+        {closable && (
+          <button
+            type="button"
+            className="delete is-small"
+            onClick={e => {
+              e.stopPropagation();
+              handleClose();
+            }}
+            aria-label="Close"
+          />
+        )}
       </div>
     );
 
     if (inline) {
-      return toastContent;
+      return toastElement;
     }
+
+    const toastContent = <div className={containerClasses}>{toastElement}</div>;
 
     if (typeof document !== 'undefined') {
       return createPortal(toastContent, resolveContainer());
@@ -264,7 +354,7 @@ const processQueuedToast = () => {
  *
  * @example
  * toast.success('Saved!');
- * toast.show({ message: 'Hello', type: 'info', duration: 3000 });
+ * toast.show({ message: 'Item deleted', actionText: 'Undo', onAction: handleUndo });
  */
 export const toast = {
   /**
@@ -332,14 +422,11 @@ export const toast = {
    * @param {string} id - The toast ID to close.
    */
   close: (id: string): void => {
-    // Check if it's the current queued toast
     if (currentQueuedToast && currentQueuedToast.id === id) {
       currentQueuedToast = null;
       processQueuedToast();
     } else {
-      // Remove from queued waiting list
       queuedToasts = queuedToasts.filter(t => t.id !== id);
-      // Remove from non-queued toasts
       toasts = toasts.filter(t => t.id !== id);
     }
     notifyListeners();

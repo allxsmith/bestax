@@ -17,7 +17,6 @@ export * from './components/Tooltip';
 export * from './components/Steps';
 export * from './components/Sidebar';
 export * from './components/Toast';
-export * from './components/Snackbar';
 export * from './components/Dialog';
 export * from './components/Carousel';
 

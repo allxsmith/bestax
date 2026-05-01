@@ -11,19 +11,18 @@ We're excited to announce a major addition to bestax-bulma: **Extra Components**
 
 ## What's New
 
-### UI Components (9)
+### UI Components (8)
 
-| Component    | Description                                          |
-| ------------ | ---------------------------------------------------- |
-| **Loading**  | Full-page or container loading overlay with spinner  |
-| **Collapse** | Expandable/collapsible content panels with animation |
-| **Tooltip**  | Hover tooltips for displaying helpful information    |
-| **Steps**    | Multi-step progress indicator for wizard flows       |
-| **Sidebar**  | Slide-out navigation panel from left or right        |
-| **Toast**    | Brief notification messages with auto-dismiss        |
-| **Snackbar** | Bottom-aligned notifications with action buttons     |
-| **Dialog**   | Confirmation and alert dialogs                       |
-| **Carousel** | Image/content slider with navigation                 |
+| Component    | Description                                                        |
+| ------------ | ------------------------------------------------------------------ |
+| **Loading**  | Full-page or container loading overlay with spinner                |
+| **Collapse** | Expandable/collapsible content panels with animation               |
+| **Tooltip**  | Hover tooltips for displaying helpful information                  |
+| **Steps**    | Multi-step progress indicator for wizard flows                     |
+| **Sidebar**  | Slide-out navigation panel from left or right                      |
+| **Toast**    | Brief notification messages with auto-dismiss and action buttons   |
+| **Dialog**   | Confirmation and alert dialogs                                     |
+| **Carousel** | Image/content slider with navigation                               |
 
 ### Form Components (6)
 
@@ -65,18 +64,19 @@ import { Switch, Slider, Toast, Steps } from '@allxsmith/bestax-bulma';
 
 ### Programmatic Notifications
 
-Toast, Snackbar, and Dialog provide programmatic APIs for triggering notifications from anywhere:
+Toast and Dialog provide programmatic APIs for triggering notifications from anywhere:
 
 ```jsx
-import { toast, snackbar, dialog } from '@allxsmith/bestax-bulma';
+import { toast, dialog } from '@allxsmith/bestax-bulma';
 
 // Success toast
 toast.success('Changes saved!');
 
-// Snackbar with undo action
-snackbar.show({
+// Toast with undo action
+toast.show({
   message: 'Item deleted',
   actionText: 'Undo',
+  actionType: 'info',
   onAction: () => restoreItem(),
 });
 

@@ -111,7 +111,7 @@ In 3.x they render with a hidden native input and a custom indicator span:
 The custom indicator (`<span class="check">`) needs the new bestax extras stylesheet to be visible. If you upgrade to 3.x without importing it, the radio/checkbox will appear as an invisible click target with only the label text showing.
 
 :::caution Required CSS import — switch to `bestax.css`
-The recommended approach in 3.x is to **replace your `bulma.css` import with `bestax.css`**. It's a drop-in superset: Bulma + every bestax extra (themed Radio/Checkbox, Tooltip, Sidebar, Snackbar, etc.) in one file.
+The recommended approach in 3.x is to **replace your `bulma.css` import with `bestax.css`**. It's a drop-in superset: Bulma + every bestax extra (themed Radio/Checkbox, Tooltip, Sidebar, Toast, etc.) in one file.
 
 ```jsx
 // Recommended: one stylesheet, includes Bulma
@@ -345,7 +345,7 @@ These only matter if you happened to spread the omitted native HTML attribute di
 | `<Dialog>`               | Modal dialogs with `confirm` / `alert` / `prompt` API  |
 | `<Loading>`              | Overlay spinner for any container                      |
 | `<Sidebar>`              | Slide-out side panel with overlay or inline modes      |
-| `<Snackbar>` / `<Toast>` | Toast-style notifications with positions and queues    |
+| `<Toast>`                | Toast notifications with positions, queues, and action/cancel buttons |
 | `<Steps>`                | Multi-step wizard navigation                           |
 | `<LinkButton>`           | Link-styled button (text / ghost / underline variants) |
 | `<Switch>`               | Bulma switch toggle                                    |
@@ -362,7 +362,7 @@ See the component reference for full docs.
 ## Optional new SCSS
 
 :::caution Required for some components, optional for the rest
-None of these stylesheets are auto-imported, but `<Radio>`, `<Checkbox>`, and the new components shipped in 3.x (Tooltip, Dialog, Sidebar, Snackbar, Steps, Toast, Carousel, Slider, Numberinput, Rate, Autocomplete, Taginput, etc.) **require** one of these files to render correctly. If your 2.x app only used components without custom theming (Button, Card, Modal, Field, Input, etc.) and you don't adopt any of the new components, you can keep your existing CSS setup.
+None of these stylesheets are auto-imported, but `<Radio>`, `<Checkbox>`, and the new components shipped in 3.x (Tooltip, Dialog, Sidebar, Steps, Toast, Carousel, Slider, Numberinput, Rate, Autocomplete, Taginput, etc.) **require** one of these files to render correctly. If your 2.x app only used components without custom theming (Button, Card, Modal, Field, Input, etc.) and you don't adopt any of the new components, you can keep your existing CSS setup.
 :::
 
 3.x introduces an `extras.css` stylesheet with the styling for the themed and new components:
@@ -394,7 +394,7 @@ For reference, here's the per-component status. Any component not listed had no 
 - `Breadcrumb`, `Card`, `Dropdown`, `Menu`, `Message`, `Modal`, `Navbar`, `Pagination`, `Panel` — **No breaking changes.** All subcomponent prop interfaces now extend `React.HTMLAttributes<...>` (a superset — accepts more native HTML attrs).
 - `Card` — additionally accepts an array `footer` prop (renders multiple `card-footer-item` divs).
 - `Tabs` — **Notable, not breaking.** Adds `TabsContext.Provider`, but `<Tabs.Item>` (legacy) does not consume context. New opt-in `<Tabs.Tab>` and `<Tabs.Content>` / `<Tabs.Content.Item>` for controlled/uncontrolled active state. New optional `value`, `defaultValue`, `onChange`, `vertical`, `side`, `expanded` props on `<Tabs>`.
-- `Carousel`, `Collapse`, `Dialog`, `Loading`, `Sidebar`, `Snackbar`, `Steps`, `Toast`, `Tooltip` — **NEW.**
+- `Carousel`, `Collapse`, `Dialog`, `Loading`, `Sidebar`, `Steps`, `Toast`, `Tooltip` — **NEW.** `Toast` includes optional action/cancel buttons (`actionText`, `cancelText`, `onAction`, `actionType`) and an explicit close button (`closable`) — features previously split into a separate `Snackbar` component.
 
 ### elements/
 

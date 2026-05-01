@@ -1,43 +1,62 @@
 // Toast component styles
-// Toast wraps Snackbar — these styles override snackbar defaults for toast-specific appearance.
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
 @use '../variables' as *;
 @use '../mixins' as *;
 
 // Toast-specific SCSS variables
-// Container uses same padding as snackbar for consistent edge spacing.
+$toast-background: hsl(0, 0%, 21%) !default;
+$toast-color: hsl(0, 0%, 96%) !default;
+$toast-radius: cv.getVar("radius") !default;
+$toast-shadow: 0 4px 12px hsla(0, 0%, 0%, 0.2) !default;
+$toast-padding: 0.875rem 1.25rem !default;
+$toast-min-width: 288px !default;
+$toast-max-width: 568px !default;
+$toast-gap: 1rem !default;
+$toast-message-size: 0.95rem !default;
 $toast-container-padding: 2rem !default;
 $toast-container-z-index: $extras-z-index-toast !default;
 $toast-container-gap: 0.75rem !default;
 $toast-animation-duration: 0.3s !default;
+$toast-action-weight: cv.getVar("weight-semibold") !default;
+$toast-action-radius: cv.getVar("radius") !default;
+$toast-action-hover-opacity: 0.1 !default;
 
-// Register CSS variables on .toast
+// Register CSS variables on .toast (cascade down to children)
 .#{iv.$class-prefix}toast {
   @include cv.register-vars(
     (
-      "toast-container-padding": #{$toast-container-padding},
-      "toast-container-z-index": #{$toast-container-z-index},
-      "toast-container-gap": #{$toast-container-gap},
+      "toast-background": #{$toast-background},
+      "toast-color": #{$toast-color},
+      "toast-radius": #{$toast-radius},
+      "toast-shadow": #{$toast-shadow},
+      "toast-padding": #{$toast-padding},
+      "toast-min-width": #{$toast-min-width},
+      "toast-max-width": #{$toast-max-width},
+      "toast-gap": #{$toast-gap},
+      "toast-message-size": #{$toast-message-size},
       "toast-animation-duration": #{$toast-animation-duration},
+      "toast-action-weight": #{$toast-action-weight},
+      "toast-action-radius": #{$toast-action-radius},
+      "toast-action-hover-opacity": #{$toast-action-hover-opacity},
     )
   );
 }
 
-// Toast container — positions toasts on screen
-// Uses SCSS variables directly since container is a parent of .toast
-// (CSS vars registered on .toast don't cascade up)
+// Toast container — positions toasts on screen and stacks multiples vertically.
+// Uses SCSS variables directly since the container is a parent of .toast
+// (CSS vars registered on .toast don't cascade up).
 .#{iv.$class-prefix}toast-container {
   position: fixed;
   z-index: #{$toast-container-z-index};
   display: flex;
   flex-direction: column;
   gap: #{$toast-container-gap};
+  padding: #{$toast-container-padding};
   pointer-events: none;
   max-width: 100%;
-  padding: #{$toast-container-padding};
 
-  // Position variants
+  // Top positions
   &.#{iv.$class-prefix}is-top-right {
     top: 0;
     right: 0;
@@ -57,6 +76,7 @@ $toast-animation-duration: 0.3s !default;
     align-items: center;
   }
 
+  // Bottom positions — column-reverse so newer toasts appear nearest the edge
   &.#{iv.$class-prefix}is-bottom-right {
     bottom: 0;
     right: 0;
@@ -80,26 +100,135 @@ $toast-animation-duration: 0.3s !default;
   }
 }
 
-// Toast element — click-to-dismiss cursor and type variants
-// Inherits size, padding, radius, shadow from snackbar base styles.
+// Toast element
 .#{iv.$class-prefix}toast {
+  display: flex;
+  align-items: center;
   cursor: pointer;
-  animation: extras-toast-slide-in cv.getVar("toast-animation-duration") ease;
+  gap: cv.getVar("toast-gap");
+  padding: cv.getVar("toast-padding");
+  border-radius: cv.getVar("toast-radius");
+  background-color: cv.getVar("toast-background");
+  color: cv.getVar("toast-color");
+  box-shadow: cv.getVar("toast-shadow");
+  pointer-events: auto;
+  min-width: cv.getVar("toast-min-width");
+  max-width: cv.getVar("toast-max-width");
+  animation: extras-toast-slide-up cv.getVar("toast-animation-duration") ease;
 
-  // Type variants — color the BACKGROUND (snackbar type colors the action button)
+  // Type variants — color the BACKGROUND.
+  // Uses Bulma's -invert-l pattern for text contrast (same approach as buttons).
   @each $name in "primary", "link", "info", "success", "warning", "danger" {
     &.#{iv.$class-prefix}is-#{$name} {
       background-color: cv.getVar($name);
       color: hsl(cv.getVar($name, "", "-h"), cv.getVar($name, "", "-s"), cv.getVar($name, "", "-invert-l"));
     }
   }
+
+  &.#{iv.$class-prefix}is-dark {
+    background-color: cv.getVar("dark");
+    color: cv.getVar("light");
+  }
+
+  &.#{iv.$class-prefix}is-light {
+    background-color: cv.getVar("light");
+    color: cv.getVar("dark");
+  }
+
+  // Action-type variants — color the ACTION BUTTON (triggered by `actionType` prop).
+  // Uses `is-action-*` prefix to avoid collision with `is-*` background classes.
+  @each $name in "primary", "link", "info", "success", "warning", "danger" {
+    &.#{iv.$class-prefix}is-action-#{$name} .#{iv.$class-prefix}toast-action .#{iv.$class-prefix}button {
+      color: cv.getVar($name);
+    }
+  }
+
+  // Rounded (pill shape)
+  &.#{iv.$class-prefix}is-rounded {
+    border-radius: 9999px;
+  }
+
+  // Top positions use slide-down animation
+  .#{iv.$class-prefix}toast-container.#{iv.$class-prefix}is-top &,
+  .#{iv.$class-prefix}toast-container.#{iv.$class-prefix}is-top-left &,
+  .#{iv.$class-prefix}toast-container.#{iv.$class-prefix}is-top-center &,
+  .#{iv.$class-prefix}toast-container.#{iv.$class-prefix}is-top-right & {
+    animation-name: extras-toast-slide-down;
+  }
 }
 
-// Toast animation
-@keyframes extras-toast-slide-in {
+// Toast message
+.#{iv.$class-prefix}toast-message {
+  flex: 1;
+  font-size: cv.getVar("toast-message-size");
+}
+
+// Toast actions wrapper
+.#{iv.$class-prefix}toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Toast action button
+.#{iv.$class-prefix}toast-action {
+  flex-shrink: 0;
+
+  .#{iv.$class-prefix}button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-weight: cv.getVar("toast-action-weight");
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    padding: 0.25rem 0.5rem;
+    border-radius: cv.getVar("toast-action-radius");
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: hsla(0, 0%, 100%, cv.getVar("toast-action-hover-opacity"));
+    }
+  }
+}
+
+// Toast cancel button
+.#{iv.$class-prefix}toast-cancel {
+  flex-shrink: 0;
+
+  .#{iv.$class-prefix}button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: cv.getVar("toast-action-radius");
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// Animations
+@keyframes extras-toast-slide-up {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes extras-toast-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
   }
   to {
     opacity: 1;

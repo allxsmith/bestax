@@ -27,12 +27,13 @@ describe('Toast', () => {
       expect(screen.getByRole('alert')).toHaveClass('toast');
     });
 
-    it('also has snackbar class (wraps Snackbar)', () => {
-      render(<Toast message="Test" duration={0} />);
-      expect(screen.getByRole('alert')).toHaveClass('snackbar');
+    it('renders message in .toast-message', () => {
+      render(<Toast message="Test message" duration={0} />);
+      const messageEl = screen.getByText('Test message');
+      expect(messageEl).toHaveClass('toast-message');
     });
 
-    it('does not render a close button', () => {
+    it('does not render a close button by default', () => {
       render(<Toast message="Test" duration={0} />);
       expect(
         screen.queryByRole('button', { name: /close/i })
@@ -45,7 +46,7 @@ describe('Toast', () => {
     });
   });
 
-  describe('Types', () => {
+  describe('Type (colors background)', () => {
     it('applies is-success type class', () => {
       render(<Toast message="Test" type="success" duration={0} />);
       expect(screen.getByRole('alert')).toHaveClass('is-success');
@@ -84,6 +85,68 @@ describe('Toast', () => {
     });
   });
 
+  describe('ActionType (colors action button)', () => {
+    it('applies is-action-success class', () => {
+      render(
+        <Toast
+          message="Test"
+          actionType="success"
+          actionText="OK"
+          duration={0}
+        />
+      );
+      expect(screen.getByRole('alert')).toHaveClass('is-action-success');
+    });
+
+    it('applies is-action-danger class', () => {
+      render(
+        <Toast
+          message="Test"
+          actionType="danger"
+          actionText="OK"
+          duration={0}
+        />
+      );
+      expect(screen.getByRole('alert')).toHaveClass('is-action-danger');
+    });
+
+    it('does not apply is-action class when actionType is omitted', () => {
+      render(<Toast message="Test" actionText="OK" duration={0} />);
+      const el = screen.getByRole('alert');
+      expect(el.className).not.toMatch(/is-action-/);
+    });
+
+    it('does not apply is-action class for default actionType', () => {
+      render(
+        <Toast
+          message="Test"
+          actionType="default"
+          actionText="OK"
+          duration={0}
+        />
+      );
+      const el = screen.getByRole('alert');
+      expect(el).not.toHaveClass('is-action-default');
+    });
+  });
+
+  describe('Type and ActionType together', () => {
+    it('applies both is-{type} and is-action-{actionType} classes', () => {
+      render(
+        <Toast
+          message="Test"
+          type="success"
+          actionType="warning"
+          actionText="OK"
+          duration={0}
+        />
+      );
+      const el = screen.getByRole('alert');
+      expect(el).toHaveClass('is-success');
+      expect(el).toHaveClass('is-action-warning');
+    });
+  });
+
   describe('Positions', () => {
     it('applies top-right position on container', () => {
       render(<Toast message="Test" position="top-right" duration={0} />);
@@ -119,6 +182,199 @@ describe('Toast', () => {
       render(<Toast message="Test" position="bottom-center" duration={0} />);
       const container = screen.getByRole('alert').closest('.toast-container');
       expect(container).toHaveClass('is-bottom-center');
+    });
+  });
+
+  describe('Closable', () => {
+    it('does not render close button by default', () => {
+      render(<Toast message="Test" duration={0} />);
+      expect(
+        screen.queryByRole('button', { name: /close/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders close button when closable is true', () => {
+      render(<Toast message="Test" duration={0} closable />);
+      expect(
+        screen.getByRole('button', { name: /close/i })
+      ).toBeInTheDocument();
+    });
+
+    it('close button triggers onClose', () => {
+      const onClose = jest.fn();
+      render(<Toast message="Test" duration={0} closable onClose={onClose} />);
+      fireEvent.click(screen.getByRole('button', { name: /close/i }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('close button click does not double-fire close', () => {
+      const onClose = jest.fn();
+      render(<Toast message="Test" duration={0} closable onClose={onClose} />);
+      fireEvent.click(screen.getByRole('button', { name: /close/i }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Action Button', () => {
+    it('renders action button when actionText is provided', () => {
+      render(<Toast message="Test" actionText="Undo" duration={0} />);
+      expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    });
+
+    it('does not render action button by default', () => {
+      render(<Toast message="Test" duration={0} />);
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+
+    it('calls onAction when action button is clicked', () => {
+      const onAction = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          actionText="Undo"
+          onAction={onAction}
+          duration={0}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      expect(onAction).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes toast after action click', () => {
+      const onClose = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          actionText="Undo"
+          onAction={() => {}}
+          onClose={onClose}
+          duration={0}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles action click without throwing when onAction is omitted', () => {
+      const onClose = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          actionText="Undo"
+          onClose={onClose}
+          duration={0}
+        />
+      );
+      expect(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      }).not.toThrow();
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('action button click does not double-fire close', () => {
+      const onClose = jest.fn();
+      const onAction = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          actionText="Undo"
+          onAction={onAction}
+          onClose={onClose}
+          duration={0}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      expect(onAction).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Cancel Button', () => {
+    it('renders cancel button when cancelText is provided', () => {
+      render(<Toast message="Test" cancelText="Dismiss" duration={0} />);
+      expect(
+        screen.getByRole('button', { name: 'Dismiss' })
+      ).toBeInTheDocument();
+    });
+
+    it('closes toast when cancel button is clicked', () => {
+      const onClose = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          cancelText="Dismiss"
+          onClose={onClose}
+          duration={0}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancel button click does not double-fire close', () => {
+      const onClose = jest.fn();
+      render(
+        <Toast
+          message="Test"
+          cancelText="Cancel"
+          onClose={onClose}
+          duration={0}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders both cancel and action buttons', () => {
+      render(
+        <Toast
+          message="Test"
+          cancelText="Cancel"
+          actionText="OK"
+          duration={0}
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Cancel' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'OK' })).toBeInTheDocument();
+    });
+  });
+
+  describe('Conditional Actions', () => {
+    it('does not render .toast-actions when no actionText or cancelText', () => {
+      render(<Toast message="Test" duration={0} />);
+      expect(document.querySelector('.toast-actions')).not.toBeInTheDocument();
+    });
+
+    it('renders .toast-actions when actionText is provided', () => {
+      render(<Toast message="Test" duration={0} actionText="OK" />);
+      expect(document.querySelector('.toast-actions')).toBeInTheDocument();
+    });
+
+    it('renders .toast-actions when cancelText is provided', () => {
+      render(<Toast message="Test" duration={0} cancelText="Cancel" />);
+      expect(document.querySelector('.toast-actions')).toBeInTheDocument();
+    });
+  });
+
+  describe('Action/Cancel button isolation', () => {
+    it('renders only the action button when only actionText is provided', () => {
+      render(<Toast message="Test" duration={0} actionText="OK" />);
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0]).toHaveTextContent('OK');
+      expect(document.querySelector('.toast-action')).toBeInTheDocument();
+      expect(document.querySelector('.toast-cancel')).not.toBeInTheDocument();
+    });
+
+    it('renders only the cancel button when only cancelText is provided', () => {
+      render(<Toast message="Test" duration={0} cancelText="Cancel" />);
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0]).toHaveTextContent('Cancel');
+      expect(document.querySelector('.toast-cancel')).toBeInTheDocument();
+      expect(document.querySelector('.toast-action')).not.toBeInTheDocument();
     });
   });
 
@@ -215,6 +471,12 @@ describe('Toast', () => {
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+
+    it('mouseLeave is a no-op when pauseOnHover is false (covers if-false branch)', () => {
+      render(<Toast message="Test" duration={3000} pauseOnHover={false} />);
+      const toastEl = screen.getByRole('alert');
+      expect(() => fireEvent.mouseLeave(toastEl)).not.toThrow();
+    });
   });
 
   describe('Click to Dismiss', () => {
@@ -303,11 +565,19 @@ describe('Toast', () => {
 
       expect(onClose).not.toHaveBeenCalled();
     });
+
+    it('non-Escape key with cancelable does not close (covers if-false branch)', () => {
+      const onClose = jest.fn();
+      render(
+        <Toast message="Test" duration={0} cancelable onClose={onClose} />
+      );
+      fireEvent.keyDown(document, { key: 'a' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 
   describe('Branch coverage', () => {
     it('handles close without onClose handler (covers `onClose?.` falsy branch)', () => {
-      // No onClose prop -> handleClose hits the falsy `?.` branch.
       render(<Toast message="Test" duration={0} />);
       expect(() => fireEvent.click(screen.getByRole('alert'))).not.toThrow();
     });
@@ -316,19 +586,11 @@ describe('Toast', () => {
       const onClose = jest.fn();
       render(<Toast message="Hello" duration={0} onClose={onClose} />);
 
-      // Flush deferred listener attach.
       act(() => {
         jest.runAllTimers();
       });
 
-      // Click on the toast itself -> contains() returns true -> false branch
-      // of `!toastRef.current.contains(target)`. Inner click also calls handleClose
-      // via the alert's onClick, but the document click listener should be a no-op.
-      const alert = screen.getByRole('alert');
-      // Use mouseDown then click; we want to verify the document listener
-      // doesn't fire when click target is inside.
-      fireEvent.click(alert);
-      // The click handler on the toast itself fires onClose once.
+      fireEvent.click(screen.getByRole('alert'));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
@@ -351,14 +613,16 @@ describe('Toast', () => {
       target.id = 'toast-target';
       document.body.appendChild(target);
 
-      render(
-        <Toast message="In selector" duration={0} container="#toast-target" />
-      );
+      try {
+        render(
+          <Toast message="In selector" duration={0} container="#toast-target" />
+        );
 
-      const toastEl = screen.getByRole('alert');
-      expect(target.contains(toastEl)).toBe(true);
-
-      document.body.removeChild(target);
+        const toastEl = screen.getByRole('alert');
+        expect(target.contains(toastEl)).toBe(true);
+      } finally {
+        document.body.removeChild(target);
+      }
     });
 
     it('falls back to document.body when string selector matches nothing', () => {
@@ -373,7 +637,6 @@ describe('Toast', () => {
       const toastEl = screen.getByRole('alert');
       const containerEl = toastEl.closest('.toast-container');
       expect(containerEl).not.toBeNull();
-      // When no selector matches, the toast-container is rendered directly under <body>
       expect(containerEl?.parentElement).toBe(document.body);
     });
 
@@ -381,14 +644,16 @@ describe('Toast', () => {
       const target = document.createElement('div');
       document.body.appendChild(target);
 
-      render(
-        <Toast message="Element target" duration={0} container={target} />
-      );
+      try {
+        render(
+          <Toast message="Element target" duration={0} container={target} />
+        );
 
-      const toastEl = screen.getByRole('alert');
-      expect(target.contains(toastEl)).toBe(true);
-
-      document.body.removeChild(target);
+        const toastEl = screen.getByRole('alert');
+        expect(target.contains(toastEl)).toBe(true);
+      } finally {
+        document.body.removeChild(target);
+      }
     });
   });
 
@@ -399,9 +664,14 @@ describe('Toast', () => {
       );
 
       const toastEl = screen.getByRole('alert');
-      // Inline render: the toast lives inside the test renderer's container,
-      // not portaled into document.body directly.
       expect(rtlContainer.contains(toastEl)).toBe(true);
+      expect(toastEl.closest('.toast-container')).not.toBeInTheDocument();
+    });
+
+    it('renders with portal by default', () => {
+      render(<Toast message="Test" duration={0} />);
+      const toastEl = screen.getByRole('alert');
+      expect(toastEl.closest('.toast-container')).toBeInTheDocument();
     });
   });
 
@@ -419,7 +689,6 @@ describe('Toast', () => {
       render(<Toast message="Fn ref test" duration={0} ref={fnRef} />);
 
       expect(fnRef).toHaveBeenCalled();
-      // Last call should be with the toast HTMLElement
       const lastArg = fnRef.mock.calls[fnRef.mock.calls.length - 1][0];
       expect(lastArg).toBe(screen.getByRole('alert'));
     });
@@ -446,6 +715,7 @@ describe('Toast Programmatic API', () => {
         toast.success('Success message');
       });
       expect(screen.getByText('Success message')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveClass('is-success');
     });
   });
 
@@ -456,6 +726,7 @@ describe('Toast Programmatic API', () => {
         toast.danger('Error message');
       });
       expect(screen.getByText('Error message')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveClass('is-danger');
     });
   });
 
@@ -466,6 +737,7 @@ describe('Toast Programmatic API', () => {
         toast.warning('Warning message');
       });
       expect(screen.getByText('Warning message')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveClass('is-warning');
     });
   });
 
@@ -476,6 +748,7 @@ describe('Toast Programmatic API', () => {
         toast.info('Info message');
       });
       expect(screen.getByText('Info message')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveClass('is-info');
     });
   });
 
@@ -579,9 +852,6 @@ describe('ToastContainer', () => {
 
     expect(screen.getByText('Auto-removed')).toBeInTheDocument();
 
-    // Click the toast — Toast's dismissible=true triggers handleClose, which
-    // calls the onClose wired up by ToastContainer (line 397) to remove the
-    // toast from the container's list.
     act(() => {
       fireEvent.click(screen.getByText('Auto-removed'));
     });

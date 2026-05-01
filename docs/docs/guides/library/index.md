@@ -187,11 +187,11 @@ Foundational building blocks: typography, buttons, media, lists, data display, a
 
 ---
 
-## Components (19)
+## Components (18)
 
 Higher-level composed UI patterns: navigation, overlays, feedback, and interactive controls.
 
-[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [Sidebar](/docs/api/components/sidebar), [Snackbar](/docs/api/components/snackbar), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip)
+[Breadcrumb](/docs/api/components/breadcrumb), [Card](/docs/api/components/card), [Carousel](/docs/api/components/carousel), [Collapse](/docs/api/components/collapse), [Dialog](/docs/api/components/dialog), [Dropdown](/docs/api/components/dropdown), [Loading](/docs/api/components/loading), [Menu](/docs/api/components/menu), [Message](/docs/api/components/message), [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Pagination](/docs/api/components/pagination), [Panel](/docs/api/components/panel), [Sidebar](/docs/api/components/sidebar), [Steps](/docs/api/components/steps), [Tabs](/docs/api/components/tabs), [Toast](/docs/api/components/toast), [Tooltip](/docs/api/components/tooltip)
 
 ```tsx live
 <Columns>
@@ -378,7 +378,7 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 
 | Category       | Extras                                                                        |
 | -------------- | ----------------------------------------------------------------------------- |
-| **Components** | Carousel, Steps, Dialog, Toast, Snackbar, Sidebar, Loading, Tooltip, Collapse |
+| **Components** | Carousel, Steps, Dialog, Toast, Sidebar, Loading, Tooltip, Collapse           |
 | **Form**       | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput                     |
 | **Elements**   | LinkButton                                                                    |
 

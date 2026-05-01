@@ -340,8 +340,7 @@ function example() {
 
 ## Related Components
 
-- [Toast](./toast.md) - For non-blocking notifications
-- [Snackbar](./snackbar.md) - For bottom notifications with actions
+- [Toast](./toast.md) - For non-blocking notifications with optional action buttons
 - [Modal](./modal.md) - For custom modal dialogs
 
 ---

@@ -23,7 +23,7 @@ Most React Bulma packages on npm still target Bulma v0.9.4. That means no CSS va
 | **Skeleton Loading**        | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                          |
 | **Class Prefixing**         | ❌ No support            | ✅ `ConfigProvider` support                                                                 |
 | **Dark Mode**               | ❌ Manual implementation | ✅ Built-in theme support                                                                   |
-| **Components beyond Bulma** | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, Switch |
+| **Components beyond Bulma** | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Sidebar, Switch           |
 
 ## New Features in Bulma V1
 
@@ -277,8 +277,7 @@ Bulma is a CSS framework — it doesn't ship carousels, dialogs, autocompletes, 
 | **Dialog**   | Modal dialog with confirm/cancel callbacks                  |
 | **Collapse** | Expandable content region with animation                    |
 | **Sidebar**  | Slide-in navigation panel                                   |
-| **Toast**    | Transient notification stack                                |
-| **Snackbar** | Bottom-anchored single-line notification                    |
+| **Toast**    | Transient notification stack with optional action buttons   |
 | **Loading**  | Full-page or in-box loading overlay                         |
 | **Tooltip**  | Hover-triggered label with configurable delay               |
 
@@ -388,4 +387,4 @@ This example uses class prefixing (`ConfigProvider`), runtime theming (`Theme`),
 - **TypeScript-first** — complete, accurate prop types for every component.
 - **Tree-shakeable** — import only the components you use.
 - **One dependency** — Bulma. bestax bundles it for you.
-- **Extends, doesn't wrap** — Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Snackbar, Sidebar, and more are included alongside the full Bulma component set.
+- **Extends, doesn't wrap** — Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Sidebar, and more are included alongside the full Bulma component set.
