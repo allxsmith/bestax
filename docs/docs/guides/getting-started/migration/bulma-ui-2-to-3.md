@@ -337,23 +337,23 @@ These only matter if you happened to spread the omitted native HTML attribute di
 
 3.x ships ~30 new components. Highlights:
 
-| Component                | Description                                            |
-| ------------------------ | ------------------------------------------------------ |
-| `<Tooltip>`              | Auto-positioned floating tooltip                       |
-| `<Carousel>`             | Slide carousel with dragging, indicators, keyboard nav |
-| `<Collapse>`             | Animated collapse / expand sections                    |
-| `<Dialog>`               | Modal dialogs with `confirm` / `alert` / `prompt` API  |
-| `<Loading>`              | Overlay spinner for any container                      |
-| `<Sidebar>`              | Slide-out side panel with overlay or inline modes      |
-| `<Toast>`                | Toast notifications with positions, queues, and action/cancel buttons |
-| `<Steps>`                | Multi-step wizard navigation                           |
-| `<LinkButton>`           | Link-styled button (text / ghost / underline variants) |
-| `<Switch>`               | Bulma switch toggle                                    |
-| `<Slider>`               | Range slider with dual-thumb mode and ticks            |
-| `<Numberinput>`          | Number input with `+/–` steppers                       |
-| `<Rate>`                 | Star rating with half-star precision                   |
-| `<Autocomplete>`         | Filterable suggest input                               |
-| `<Taginput>`             | Multi-tag input with autocomplete                      |
+| Component        | Description                                                           |
+| ---------------- | --------------------------------------------------------------------- |
+| `<Tooltip>`      | Auto-positioned floating tooltip                                      |
+| `<Carousel>`     | Slide carousel with dragging, indicators, keyboard nav                |
+| `<Collapse>`     | Animated collapse / expand sections                                   |
+| `<Dialog>`       | Modal dialogs with `confirm` / `alert` / `prompt` API                 |
+| `<Loading>`      | Overlay spinner for any container                                     |
+| `<Sidebar>`      | Slide-out side panel with overlay or inline modes                     |
+| `<Toast>`        | Toast notifications with positions, queues, and action/cancel buttons |
+| `<Steps>`        | Multi-step wizard navigation                                          |
+| `<LinkButton>`   | Link-styled button (text / ghost / underline variants)                |
+| `<Switch>`       | Bulma switch toggle                                                   |
+| `<Slider>`       | Range slider with dual-thumb mode and ticks                           |
+| `<Numberinput>`  | Number input with `+/–` steppers                                      |
+| `<Rate>`         | Star rating with half-star precision                                  |
+| `<Autocomplete>` | Filterable suggest input                                              |
+| `<Taginput>`     | Multi-tag input with autocomplete                                     |
 
 Plus text and list elements: `Code`, `Divider`, `Emphasis`, `Figure`, `Link`, `ListItem`, `OrderedList`, `Paragraph`, `Pre`, `Span`, `Strong`, `UnorderedList`.
 

@@ -376,10 +376,10 @@ Every component in this library — including all extras — is free and always 
 
 Beyond the core Bulma wrappers, bestax-bulma ships additional components that fill gaps where Bulma doesn't provide a built-in solution:
 
-| Category       | Extras                                                                        |
-| -------------- | ----------------------------------------------------------------------------- |
-| **Components** | Carousel, Steps, Dialog, Toast, Sidebar, Loading, Tooltip, Collapse           |
-| **Form**       | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput                     |
-| **Elements**   | LinkButton                                                                    |
+| Category       | Extras                                                              |
+| -------------- | ------------------------------------------------------------------- |
+| **Components** | Carousel, Steps, Dialog, Toast, Sidebar, Loading, Tooltip, Collapse |
+| **Form**       | Autocomplete, Switch, Slider, Numberinput, Rate, Taginput           |
+| **Elements**   | LinkButton                                                          |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

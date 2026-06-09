@@ -13,16 +13,16 @@ We're excited to announce a major addition to bestax-bulma: **Extra Components**
 
 ### UI Components (8)
 
-| Component    | Description                                                        |
-| ------------ | ------------------------------------------------------------------ |
-| **Loading**  | Full-page or container loading overlay with spinner                |
-| **Collapse** | Expandable/collapsible content panels with animation               |
-| **Tooltip**  | Hover tooltips for displaying helpful information                  |
-| **Steps**    | Multi-step progress indicator for wizard flows                     |
-| **Sidebar**  | Slide-out navigation panel from left or right                      |
-| **Toast**    | Brief notification messages with auto-dismiss and action buttons   |
-| **Dialog**   | Confirmation and alert dialogs                                     |
-| **Carousel** | Image/content slider with navigation                               |
+| Component    | Description                                                      |
+| ------------ | ---------------------------------------------------------------- |
+| **Loading**  | Full-page or container loading overlay with spinner              |
+| **Collapse** | Expandable/collapsible content panels with animation             |
+| **Tooltip**  | Hover tooltips for displaying helpful information                |
+| **Steps**    | Multi-step progress indicator for wizard flows                   |
+| **Sidebar**  | Slide-out navigation panel from left or right                    |
+| **Toast**    | Brief notification messages with auto-dismiss and action buttons |
+| **Dialog**   | Confirmation and alert dialogs                                   |
+| **Carousel** | Image/content slider with navigation                             |
 
 ### Form Components (6)
 

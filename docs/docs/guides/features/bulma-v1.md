@@ -14,16 +14,16 @@ Most React Bulma packages on npm still target Bulma v0.9.4. That means no CSS va
 
 ### Library Comparison
 
-| Feature                     | Other Libraries          | bestax-bulma                                                                                |
-| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------------- |
-| **Bulma Version**           | v0.9.4 or older          | v1.0+ (latest)                                                                              |
-| **CSS Variables**           | ❌ Not supported         | ✅ Full support (500+ variables)                                                            |
-| **Runtime Theming**         | ❌ Limited               | ✅ Complete `Theme` component                                                               |
-| **CSS Grid**                | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                                        |
-| **Skeleton Loading**        | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                          |
-| **Class Prefixing**         | ❌ No support            | ✅ `ConfigProvider` support                                                                 |
-| **Dark Mode**               | ❌ Manual implementation | ✅ Built-in theme support                                                                   |
-| **Components beyond Bulma** | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Sidebar, Switch           |
+| Feature                     | Other Libraries          | bestax-bulma                                                                      |
+| --------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
+| **Bulma Version**           | v0.9.4 or older          | v1.0+ (latest)                                                                    |
+| **CSS Variables**           | ❌ Not supported         | ✅ Full support (500+ variables)                                                  |
+| **Runtime Theming**         | ❌ Limited               | ✅ Complete `Theme` component                                                     |
+| **CSS Grid**                | ❌ Missing               | ✅ True CSS Grid via `Grid` / `Cell`                                              |
+| **Skeleton Loading**        | ❌ Not available         | ✅ Universal `skeleton` helper prop + dedicated `Skeleton` element                |
+| **Class Prefixing**         | ❌ No support            | ✅ `ConfigProvider` support                                                       |
+| **Dark Mode**               | ❌ Manual implementation | ✅ Built-in theme support                                                         |
+| **Components beyond Bulma** | ❌ None                  | ✅ Carousel, Dialog, Autocomplete, Rate, Slider, Taginput, Toast, Sidebar, Switch |
 
 ## New Features in Bulma V1
 

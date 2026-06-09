@@ -21,28 +21,28 @@ import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                                                                                                        | Default       | Description                                                  |
-| -------------- | ----------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------ |
-| `message`      | `string`                                                                                                    | —             | The message to display (required).                           |
-| `type`         | `'default'` \| `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`              | `'default'`   | Color variant — colors the toast **background**.             |
-| `actionType`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                             | —             | Color variant — colors the **action button** text.           |
-| `position`     | `'top-right'` \| `'top-left'` \| `'top-center'` \| `'bottom-right'` \| `'bottom-left'` \| `'bottom-center'` | `'top-right'` | Position on the screen.                                      |
-| `duration`     | `number`                                                                                                    | `2000`        | Duration in ms before auto-close. `0` disables auto-close.   |
-| `indefinite`   | `boolean`                                                                                                   | `false`       | Keeps the toast visible until dismissed.                     |
-| `dismissible`  | `boolean`                                                                                                   | `true`        | Whether clicking the toast (or outside it) dismisses it.     |
-| `closable`     | `boolean`                                                                                                   | `false`       | Show an explicit close (X) button.                           |
-| `pauseOnHover` | `boolean`                                                                                                   | `false`       | Pause auto-close timer on hover.                             |
-| `cancelable`   | `boolean`                                                                                                   | `true`        | Whether the toast can be dismissed with Escape.              |
-| `actionText`   | `string`                                                                                                    | —             | Text for an action button (e.g. "Undo").                     |
-| `cancelText`   | `string`                                                                                                    | —             | Text for a cancel button.                                    |
-| `onAction`     | `() => void`                                                                                                | —             | Callback when the action button is clicked.                  |
-| `onClose`      | `() => void`                                                                                                | —             | Callback when toast closes.                                  |
-| `rounded`      | `boolean`                                                                                                   | `false`       | Pill-shaped (rounded corners).                               |
-| `container`    | `string \| HTMLElement`                                                                                     | —             | CSS selector or DOM node to mount the toast into.            |
-| `inline`       | `boolean`                                                                                                   | `false`       | Renders inline instead of using a portal.                    |
-| `className`    | `string`                                                                                                    | —             | Additional CSS classes.                                      |
-| `ref`          | `React.Ref<HTMLDivElement>`                                                                                 | —             | Ref forwarded to the toast element.                          |
-| ...            | All standard HTML and Bulma helper props                                                                    |               | (See [Helper Props](../helpers/usebulmaclasses))             |
+| Prop           | Type                                                                                                        | Default       | Description                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------------------------- |
+| `message`      | `string`                                                                                                    | —             | The message to display (required).                         |
+| `type`         | `'default'` \| `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`              | `'default'`   | Color variant — colors the toast **background**.           |
+| `actionType`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                             | —             | Color variant — colors the **action button** text.         |
+| `position`     | `'top-right'` \| `'top-left'` \| `'top-center'` \| `'bottom-right'` \| `'bottom-left'` \| `'bottom-center'` | `'top-right'` | Position on the screen.                                    |
+| `duration`     | `number`                                                                                                    | `2000`        | Duration in ms before auto-close. `0` disables auto-close. |
+| `indefinite`   | `boolean`                                                                                                   | `false`       | Keeps the toast visible until dismissed.                   |
+| `dismissible`  | `boolean`                                                                                                   | `true`        | Whether clicking the toast (or outside it) dismisses it.   |
+| `closable`     | `boolean`                                                                                                   | `false`       | Show an explicit close (X) button.                         |
+| `pauseOnHover` | `boolean`                                                                                                   | `false`       | Pause auto-close timer on hover.                           |
+| `cancelable`   | `boolean`                                                                                                   | `true`        | Whether the toast can be dismissed with Escape.            |
+| `actionText`   | `string`                                                                                                    | —             | Text for an action button (e.g. "Undo").                   |
+| `cancelText`   | `string`                                                                                                    | —             | Text for a cancel button.                                  |
+| `onAction`     | `() => void`                                                                                                | —             | Callback when the action button is clicked.                |
+| `onClose`      | `() => void`                                                                                                | —             | Callback when toast closes.                                |
+| `rounded`      | `boolean`                                                                                                   | `false`       | Pill-shaped (rounded corners).                             |
+| `container`    | `string \| HTMLElement`                                                                                     | —             | CSS selector or DOM node to mount the toast into.          |
+| `inline`       | `boolean`                                                                                                   | `false`       | Renders inline instead of using a portal.                  |
+| `className`    | `string`                                                                                                    | —             | Additional CSS classes.                                    |
+| `ref`          | `React.Ref<HTMLDivElement>`                                                                                 | —             | Ref forwarded to the toast element.                        |
+| ...            | All standard HTML and Bulma helper props                                                                    |               | (See [Helper Props](../helpers/usebulmaclasses))           |
 
 ---
 
