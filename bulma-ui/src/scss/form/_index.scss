@@ -10,11 +10,7 @@
 @use 'rate';
 @use 'autocomplete';
 @use 'taginput';
-
-// To be added:
-// @use 'clockpicker';
-// @use 'colorpicker';
-// @use 'datepicker';
-// @use 'rate';
-// @use 'taginput';
-// @use 'timepicker';
+@use 'picker-popover';
+@use 'datepicker';
+@use 'timepicker';
+@use 'datetimepicker';
