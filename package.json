@@ -22,7 +22,8 @@
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-bulma",
     "docs": "turbo run docs --filter=@allxsmith/bestax-docs",
     "release": "turbo run release",
-    "deploy": "turbo run deploy"
+    "deploy": "turbo run deploy",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -52,11 +53,6 @@
     "typescript",
     "components"
   ],
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/allxsmith/bestax.git"
