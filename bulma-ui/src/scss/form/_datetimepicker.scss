@@ -7,6 +7,16 @@ $datetimepicker-time-card-border-color: cv.getVar('border') !default;
 $datetimepicker-time-card-radius: cv.getVar('radius-large') !default;
 $datetimepicker-time-card-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.18) !default;
 $datetimepicker-time-card-padding: 0.5rem 0.75rem !default;
+// Frosted scrim over the calendar while the time wheels are open. Built from
+// the scheme HSL components so it dims toward the panel background in both
+// light and dark themes (same technique as Bulma's modal background).
+$datetimepicker-time-overlay-background: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-main-l')},
+  0.55
+) !default;
+$datetimepicker-time-overlay-blur: 3px !default;
 
 .#{iv.$class-prefix}datetimepicker {
   @include cv.register-vars(
@@ -19,6 +29,9 @@ $datetimepicker-time-card-padding: 0.5rem 0.75rem !default;
       'datetimepicker-time-card-radius': #{$datetimepicker-time-card-radius},
       'datetimepicker-time-card-shadow': #{$datetimepicker-time-card-shadow},
       'datetimepicker-time-card-padding': #{$datetimepicker-time-card-padding},
+      'datetimepicker-time-overlay-background':
+        #{$datetimepicker-time-overlay-background},
+      'datetimepicker-time-overlay-blur': #{$datetimepicker-time-overlay-blur},
     )
   );
 }
@@ -33,8 +46,10 @@ $datetimepicker-time-card-padding: 0.5rem 0.75rem !default;
   position: relative;
 }
 
-// Transparent click-catcher covering the calendar while the wheels are open;
-// clicking it (not the card) collapses the wheels, like the native picker.
+// Frosted click-catcher covering the calendar while the wheels are open; it
+// dims and blurs the calendar so the wheel card reads as the focused layer,
+// and clicking it (not the card) collapses the wheels, like the native picker.
+// The footer is a sibling of the calendar wrap, so it stays uncovered.
 .#{iv.$class-prefix}datetimepicker-time-overlay {
   position: absolute;
   inset: 0;
@@ -42,6 +57,15 @@ $datetimepicker-time-card-padding: 0.5rem 0.75rem !default;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: cv.getVar('datetimepicker-time-overlay-background');
+  backdrop-filter: blur(cv.getVar('datetimepicker-time-overlay-blur'));
+  animation: #{iv.$class-prefix}datetimepicker-overlay-in 0.12s ease-out;
+}
+
+@keyframes #{iv.$class-prefix}datetimepicker-overlay-in {
+  from {
+    opacity: 0;
+  }
 }
 
 // Floating wheel card — visually a small popover over the calendar, so
