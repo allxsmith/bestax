@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { Timepicker } from '../Timepicker';
+import { Field } from '../Field';
+import { TimepickerBase } from '../TimepickerBase';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 
 beforeAll(() => {
@@ -33,6 +35,19 @@ describe('Timepicker', () => {
   it('renders an input with role=combobox', () => {
     const { getByRole } = render(<Timepicker label="Time" />);
     expect(getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('inside an existing Field renders bare content with the help message', () => {
+    const { container, getByText } = render(
+      <Field label="When">
+        <Timepicker message="Required" messageColor="danger" />
+      </Field>
+    );
+    // No nested Field wrapper: exactly one field element.
+    expect(container.querySelectorAll('.field').length).toBe(1);
+    const help = getByText('Required');
+    expect(help.className).toContain('help');
+    expect(help.className).toContain('is-danger');
   });
 
   it('formats default 24h value into the input', () => {
@@ -1116,5 +1131,246 @@ describe('Timepicker mobile footer', () => {
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByLabelText('Done'));
     expect(queryByRole('dialog')).toBeNull();
+  });
+});
+
+// -------------------------------------------------------------------------
+// Remaining TimepickerBase branches: controlled values, min/max clamping of
+// wheel changes, the noon base for segmented entry on an empty field,
+// free-form blur parsing, inline hidden inputs, and the bare base component.
+// -------------------------------------------------------------------------
+
+describe('TimepickerBase remaining branches', () => {
+  it('bare TimepickerBase renders the default launcher and opens/closes without callbacks', () => {
+    const { getByRole, getByLabelText, queryByRole } = render(
+      <TimepickerBase />
+    );
+    expect(getByLabelText('Choose time').tagName).toBe('BUTTON');
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
+  it('controlled value drives the text; value={null} renders empty', () => {
+    const { getByRole, rerender } = render(
+      <TimepickerBase value={at(13, 45)} />
+    );
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('13:45');
+    rerender(<TimepickerBase value={null} />);
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
+  });
+
+  it('controlled: a wheel change reports through onChange without internal state', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <TimepickerBase value={at(10, 0)} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.click(input);
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    expect((handler.mock.calls[0][0] as Date).getHours()).toBe(11);
+    // The parent did not update `value`, so the text stays at 10:00.
+    expect(input.value).toBe('10:00');
+  });
+
+  it('derives the popover id from the id prop', () => {
+    const { getByRole } = render(<TimepickerBase id="shift-start" />);
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
+      'shift-start-popover'
+    );
+  });
+
+  it('fires onOpen once even when an open request repeats, and onClose on close', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole } = render(
+      <TimepickerBase onOpen={onOpen} onClose={onClose} />
+    );
+    const input = getByRole('combobox');
+    fireEvent.click(input);
+    fireEvent.click(input); // already open — no duplicate onOpen
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('wheels start at 00:00 when there is no value and spin from today', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Timepicker onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(1);
+    expect(arg.getMinutes()).toBe(0);
+  });
+
+  it('seconds wheel defaults to 00 when there is no value', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Timepicker enableSeconds onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels.length).toBe(3);
+    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getSeconds()).toBe(1);
+    expect(arg.getHours()).toBe(0);
+  });
+
+  it('rejects a wheel change that falls outside min/max', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Timepicker
+        defaultValue={at(10, 0)}
+        min={at(10, 0)}
+        max={at(10, 30)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    // ArrowUp decrements to 09:00, which is below min — change is dropped.
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    expect(handler).not.toHaveBeenCalled();
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('10:00');
+  });
+
+  it('segmented entry on an empty field seeds from a noon base', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Timepicker openOnFocus={false} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // The editable base is noon, so the hour calculation is unambiguous.
+    expect(input.value).toBe('12:00');
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(13);
+    expect(arg.getMinutes()).toBe(0);
+    expect(input.value).toBe('13:00');
+  });
+
+  it('free-form text parses on blur with the default format', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Timepicker openOnFocus={false} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '09:30' } });
+    fireEvent.blur(input);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(9);
+    expect(arg.getMinutes()).toBe(30);
+  });
+
+  it('free-form text parses on blur with an explicit format string', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Timepicker openOnFocus={false} format="h:mm A" onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '9:30 PM' } });
+    fireEvent.blur(input);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(21);
+    expect(arg.getMinutes()).toBe(30);
+  });
+
+  it('Intl-options formats fall back to the 24h default format for blur parsing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Timepicker
+        openOnFocus={false}
+        format={{ hour: '2-digit', minute: '2-digit' }}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '08:45' } });
+    fireEvent.blur(input);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(8);
+    expect(arg.getMinutes()).toBe(45);
+  });
+
+  it('whitespace-only text reverts on blur without committing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Timepicker
+        defaultValue={at(13, 45)}
+        openOnFocus={false}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+  });
+
+  it('a malformed native value commits null (invalid-format guard)', () => {
+    // jsdom sanitizes bad values to '' before React sees them, so force the
+    // value getter to surface a malformed string to the change handler.
+    const handler = jest.fn();
+    const { container } = render(
+      <Timepicker mobileNative={true} onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="time"]'
+    ) as HTMLInputElement;
+    Object.defineProperty(native, 'value', {
+      configurable: true,
+      get: () => 'not-a-time',
+      set: () => {},
+    });
+    fireEvent.change(native);
+    expect(handler).toHaveBeenCalledWith(null);
+  });
+
+  it('supports a callback ref', () => {
+    const refFn = jest.fn();
+    render(<Timepicker ref={refFn} />);
+    expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
+  });
+
+  it('inline renders the wheels without a popover and emits a hidden input for name', () => {
+    const { container, queryByRole, getAllByRole } = render(
+      <Timepicker inline name="start" defaultValue={at(13, 45)} />
+    );
+    expect(queryByRole('dialog')).toBeNull();
+    expect(getAllByRole('spinbutton').length).toBe(2);
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden.value).toBe('13:45');
+  });
+
+  it('inline with name but no value emits an empty hidden input', () => {
+    const { container } = render(<Timepicker inline name="start" />);
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden).not.toBeNull();
+    expect(hidden.value).toBe('');
+  });
+
+  it('inline without a name emits no hidden input', () => {
+    const { container } = render(
+      <Timepicker inline defaultValue={at(13, 45)} />
+    );
+    expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
 });

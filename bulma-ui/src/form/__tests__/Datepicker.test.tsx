@@ -32,6 +32,19 @@ describe('Datepicker', () => {
       expect(getByRole('combobox')).toBeInTheDocument();
     });
 
+    it('inside an existing Field renders bare content with the help message', () => {
+      const { container, getByText } = render(
+        <Field label="When">
+          <Datepicker message="Required" messageColor="danger" />
+        </Field>
+      );
+      // No nested Field wrapper: exactly one field element.
+      expect(container.querySelectorAll('.field').length).toBe(1);
+      const help = getByText('Required');
+      expect(help.className).toContain('help');
+      expect(help.className).toContain('is-danger');
+    });
+
     it('renders a decorative left icon and a clickable right launcher by default', () => {
       const { getByLabelText, container } = render(<Datepicker label="Date" />);
       // Decorative left icon shows by default.
@@ -735,5 +748,152 @@ describe('Datepicker launcher icon', () => {
     );
     expect(container.querySelector('[class*="is-left"]')).not.toBeNull();
     expect(getByLabelText('Choose date').tagName).toBe('BUTTON');
+  });
+});
+
+describe('Datepicker native input value handling', () => {
+  it('renders the value as an ISO string and round-trips changes', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <Datepicker
+        mobileNative={true}
+        defaultValue={new Date(2024, 5, 7)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    expect(native.value).toBe('2024-06-07');
+    fireEvent.change(native, { target: { value: '2026-06-09' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect(committed.getFullYear()).toBe(2026);
+    expect(committed.getMonth()).toBe(5);
+    expect(committed.getDate()).toBe(9);
+  });
+
+  it('clearing the native input commits null', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <Datepicker
+        mobileNative={true}
+        defaultValue={new Date(2024, 5, 7)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    fireEvent.change(native, { target: { value: '' } });
+    expect(handler).toHaveBeenLastCalledWith(null);
+  });
+
+  it('a malformed native value commits null (invalid-format guard)', () => {
+    // jsdom sanitizes bad values to '' before React sees them, so force the
+    // value getter to surface a malformed string to the change handler.
+    const handler = jest.fn();
+    const { container } = render(
+      <Datepicker mobileNative={true} onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    Object.defineProperty(native, 'value', {
+      configurable: true,
+      get: () => 'not-a-date',
+      set: () => {},
+    });
+    fireEvent.change(native);
+    expect(handler).toHaveBeenCalledWith(null);
+  });
+});
+
+describe('DatepickerBase remaining branches', () => {
+  it('controlled value={null} renders an empty input', () => {
+    const { getByRole } = render(<DatepickerBase value={null} />);
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
+  });
+
+  it('controlled: selecting a date reports through onChange without internal state', () => {
+    const handler = jest.fn();
+    const { getByRole, container } = render(
+      <DatepickerBase value={new Date(2024, 5, 15)} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.click(input);
+    const target = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).find(
+      c => c.textContent === '20' && !c.className.includes('is-other-month')
+    );
+    fireEvent.click(target!);
+    expect((handler.mock.calls[0][0] as Date).getDate()).toBe(20);
+    // The parent did not update `value`, so the text stays on the 15th.
+    expect(input.value).toBe('2024-06-15');
+  });
+
+  it('derives the popover id from the id prop', () => {
+    const { getByRole } = render(<DatepickerBase id="dob" />);
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog').id).toBe('dob-popover');
+    expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
+      'dob-popover'
+    );
+  });
+
+  it('fires onOpen once even when an open request repeats, and onClose on close', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole } = render(
+      <DatepickerBase onOpen={onOpen} onClose={onClose} />
+    );
+    const input = getByRole('combobox');
+    fireEvent.click(input);
+    // Clicking the already-open input requests open again; no duplicate event.
+    fireEvent.click(input);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('supports a callback ref', () => {
+    const refFn = jest.fn();
+    render(<DatepickerBase ref={refFn} />);
+    expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
+  });
+
+  it('whitespace-only text reverts on blur without committing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DatepickerBase
+        defaultValue={new Date(2024, 5, 7)}
+        openOnFocus={false}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-07');
+  });
+
+  it('inline with name but no value emits an empty hidden input', () => {
+    const { container } = render(<DatepickerBase inline name="dob" />);
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden).not.toBeNull();
+    expect(hidden.value).toBe('');
+  });
+
+  it('inline without a name emits no hidden input', () => {
+    const { container } = render(
+      <DatepickerBase inline defaultValue={new Date(2024, 5, 7)} />
+    );
+    expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
 });

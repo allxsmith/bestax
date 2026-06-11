@@ -141,6 +141,35 @@ describe('audioTick', () => {
     expect(() => playAudioTick()).not.toThrow();
   });
 
+  it('does not resume an already-running context', () => {
+    mockCtx.state = 'running';
+    unlockAudioTick();
+    expect(mockCtx.resume).not.toHaveBeenCalled();
+  });
+
+  it('swallows a rejected resume promise (no user gesture in progress)', async () => {
+    mockCtx.state = 'suspended';
+    mockCtx.resume = jest.fn().mockRejectedValue(new Error('NotAllowedError'));
+    expect(() => unlockAudioTick()).not.toThrow();
+    expect(mockCtx.resume).toHaveBeenCalledTimes(1);
+    // Flush the microtask queue so the .catch handler runs; an unhandled
+    // rejection here would fail the test run.
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  it('no-ops when the AudioContext constructor throws', () => {
+    __resetAudioTickForTest();
+    (window as unknown as { AudioContext: jest.Mock }).AudioContext = jest.fn(
+      () => {
+        throw new Error('hardware unavailable');
+      }
+    );
+    expect(() => playAudioTick()).not.toThrow();
+    expect(() => unlockAudioTick()).not.toThrow();
+    expect(mockCtx.createOscillator).not.toHaveBeenCalled();
+  });
+
   it('reuses the same AudioContext across calls', () => {
     playAudioTick();
     playAudioTick();

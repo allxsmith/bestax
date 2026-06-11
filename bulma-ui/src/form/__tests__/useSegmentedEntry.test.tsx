@@ -30,6 +30,8 @@ interface HarnessProps {
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
   withSibling?: boolean;
+  min?: Date;
+  max?: Date;
 }
 
 // Minimal picker that exercises the hook against a real <input>. State is
@@ -49,6 +51,8 @@ const Harness: React.FC<HarnessProps> = ({
   onKeyDown,
   onBlur,
   withSibling,
+  min,
+  max,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +94,8 @@ const Harness: React.FC<HarnessProps> = ({
     text,
     setText,
     makeBaseDate,
+    min,
+    max,
     disabled,
     readOnly,
     editable,
@@ -342,5 +348,208 @@ describe('useSegmentedEntry', () => {
     // Blur into a sibling within the same container — segment state persists.
     fireEvent.blur(input, { relatedTarget: sibling });
     expect(input.dataset.active).toBe('0');
+  });
+
+  it('forwards onBlur when focus stays inside the picker', () => {
+    const onBlur = jest.fn();
+    const { getByTestId } = render(
+      <Harness initial={at(13, 45)} withSibling onBlur={onBlur} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    const sibling = getByTestId('sibling');
+    focusSeg(input);
+    fireEvent.blur(input, { relatedTarget: sibling });
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    expect(input.dataset.active).toBe('0');
+  });
+
+  it('ArrowUp on an empty picker commits from the makeBaseDate seed', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(<Harness onChange={handler} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input); // seeds 12:00 (noon) without committing
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // hours 12 → 13
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect((handler.mock.calls[0][0] as Date).getHours()).toBe(13);
+    expect(input.value).toBe('13:00');
+  });
+
+  it('rejects segment edits that land outside min/max', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness initial={at(13, 45)} min={at(13, 0)} onChange={handler} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // Hours 13 → 12 would fall below min (13:00); the edit is dropped.
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+  });
+
+  it('survives a format change that removes the active segment', () => {
+    const { getByTestId, rerender } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes (index 2)
+    expect(input.dataset.active).toBe('2');
+    // 'HH' has a single segment — index 2 no longer exists. The selection
+    // effect must bail out without crashing.
+    rerender(<Harness initial={at(13, 45)} format="HH" />);
+    expect(input.dataset.active).toBe('2');
+  });
+
+  it('ignores segment moves when the active index maps to a literal after a format change', () => {
+    const { getByTestId, rerender } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes (index 2)
+    expect(input.dataset.active).toBe('2');
+    // In 'hhmm A' index 2 is the space literal — not an editable segment.
+    rerender(<Harness initial={at(13, 45)} format="hhmm A" />);
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    expect(input.dataset.active).toBe('2'); // move is a no-op
+  });
+
+  it('clears the text on blur when input is unparseable and there is no value', () => {
+    // 'H:mm' has no segment map → free-form path.
+    const { getByTestId } = render(<Harness format="H:mm" />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'garbage' } });
+    fireEvent.blur(input);
+    expect(input.value).toBe('');
+  });
+
+  it('treats a null selectionStart as caret position 0 on click', () => {
+    const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes
+    expect(input.dataset.active).toBe('2');
+    Object.defineProperty(input, 'selectionStart', {
+      configurable: true,
+      get: () => null,
+    });
+    fireEvent.click(input);
+    // Caret 0 falls in the hours segment.
+    expect(input.dataset.active).toBe('0');
+  });
+
+  it('Escape is a no-op in segment mode when the popover is closed', () => {
+    const { getByTestId } = render(
+      <Harness initial={at(13, 45)} openOnFocus={false} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input); // segment mode without opening the popover
+    expect(input.dataset.active).toBe('0');
+    expect(input.dataset.open).toBe('false');
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(input.dataset.open).toBe('false');
+    expect(input.dataset.active).toBe('0');
+  });
+
+  it('Enter keeps the popover open in segment mode without closeOnSelect', () => {
+    const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input); // openOnFocus default → popover opens
+    expect(input.dataset.open).toBe('true');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(input.dataset.open).toBe('true');
+  });
+
+  it('sets the meridiem with a/p keys on the AM/PM segment', () => {
+    const { getByTestId } = render(
+      <Harness format="hh:mm A" initial={at(9, 30)} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // AM/PM
+    expect(input.dataset.active).toBe('4');
+    fireEvent.keyDown(input, { key: 'p' });
+    expect(input.value).toBe('09:30 PM');
+    // The hook advances past the last segment only if one exists; re-select.
+    fireEvent.keyDown(input, { key: 'a' });
+    expect(input.value).toBe('09:30 AM');
+    fireEvent.keyDown(input, { key: 'P' });
+    expect(input.value).toBe('09:30 PM');
+    fireEvent.keyDown(input, { key: 'A' });
+    expect(input.value).toBe('09:30 AM');
+  });
+
+  it('ignores digits typed on the AM/PM segment', () => {
+    const { getByTestId } = render(
+      <Harness format="hh:mm A" initial={at(9, 30)} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // AM/PM
+    fireEvent.keyDown(input, { key: '5' });
+    expect(input.value).toBe('09:30 AM');
+    expect(input.dataset.active).toBe('4');
+  });
+
+  it('free-form Enter with unparseable text does not commit', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness format="H:mm" onChange={handler} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'garbage' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('ignores browser input events while in segment mode', () => {
+    const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    expect(input.dataset.active).toBe('0');
+    // A browser-issued change must not clobber the programmatic text.
+    fireEvent.change(input, { target: { value: 'clobbered' } });
+    expect(input.value).toBe('13:45');
+  });
+
+  it('does not open the popover on click when openOnFocus is false', () => {
+    const { getByTestId } = render(
+      <Harness initial={at(13, 45)} openOnFocus={false} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.click(input);
+    expect(input.dataset.open).toBe('false');
+  });
+
+  it('Backspace with an empty buffer moves to the previous segment', () => {
+    const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // minutes
+    expect(input.dataset.active).toBe('2');
+    fireEvent.keyDown(input, { key: 'Backspace' }); // nothing typed yet
+    expect(input.dataset.active).toBe('0'); // back on hours
+    expect(input.value).toBe('13:45'); // value untouched
+  });
+
+  it('auto-advances to the next segment when a digit forecloses completion', () => {
+    const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // '5' cannot start a valid 2-digit 24h hour (50+), so it commits and
+    // advances straight to minutes.
+    fireEvent.keyDown(input, { key: '5' });
+    expect(input.value).toBe('05:45');
+    expect(input.dataset.active).toBe('2');
+  });
+
+  it('ArrowDown opens the popover in picker-only mode', () => {
+    const { getByTestId } = render(
+      <Harness initial={at(13, 45)} editable={false} openOnFocus={false} />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    expect(input.dataset.open).toBe('false');
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input.dataset.open).toBe('true');
   });
 });

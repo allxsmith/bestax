@@ -143,6 +143,13 @@ describe('dateUtils', () => {
       expect(d.getSeconds()).toBe(5);
     });
 
+    it('setTimeOfDay leaves hours unchanged when only minutes are given', () => {
+      const d = setTimeOfDay(new Date(2024, 0, 1, 5, 5, 5), { minutes: 30 });
+      expect(d.getHours()).toBe(5);
+      expect(d.getMinutes()).toBe(30);
+      expect(d.getSeconds()).toBe(5);
+    });
+
     it('getTimeOfDay returns hours/minutes/seconds', () => {
       const t = getTimeOfDay(new Date(2024, 0, 1, 13, 45, 30));
       expect(t).toEqual({ hours: 13, minutes: 45, seconds: 30 });
@@ -187,6 +194,13 @@ describe('dateUtils', () => {
     it('respects firstDayOfWeek=1 (Monday)', () => {
       const grid = buildMonthGrid(new Date(2024, 5, 15), 1);
       expect(grid[0].date.getDay()).toBe(1);
+    });
+
+    it('defaults firstDayOfWeek to Sunday when omitted', () => {
+      const grid = buildMonthGrid(new Date(2024, 5, 15));
+      expect(grid[0].date.getDay()).toBe(0);
+      expect(grid[0].date.getMonth()).toBe(4); // May 26
+      expect(grid[0].date.getDate()).toBe(26);
     });
 
     it('marks inCurrentMonth correctly', () => {
@@ -262,6 +276,13 @@ describe('dateUtils', () => {
       const r = snapTimeToIncrement(input, { incrementMinutes: 15 });
       expect(r).not.toBe(input);
       expect(input.getMinutes()).toBe(42);
+    });
+
+    it('defaults to step-1 grids with zeroed seconds when called without options', () => {
+      const r = snapTimeToIncrement(new Date(2026, 0, 1, 13, 42, 37));
+      expect(r.getHours()).toBe(13);
+      expect(r.getMinutes()).toBe(42);
+      expect(r.getSeconds()).toBe(0);
     });
   });
 });

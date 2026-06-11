@@ -176,6 +176,16 @@ describe('incrementSegmentValue', () => {
     expect(next.getHours()).toBe(13);
   });
 
+  it('increments 12h hours within 1..12 and preserves AM', () => {
+    const map = buildSegmentMap('hh:mm A')!;
+    // 9 AM; +1 → 10 AM.
+    const next = incrementSegmentValue(map.segments[0], at(9, 0), 1, false);
+    expect(next.getHours()).toBe(10);
+    // 11 AM; +1 → 12 AM → 0.
+    const next2 = incrementSegmentValue(map.segments[0], at(11, 0), 1, false);
+    expect(next2.getHours()).toBe(0);
+  });
+
   it('wraps minutes 59 → 0', () => {
     const map = buildSegmentMap('HH:mm')!;
     const next = incrementSegmentValue(map.segments[2], at(10, 59), 1, false);
@@ -358,6 +368,22 @@ describe('setSegmentValue', () => {
     expect(r.date.getMinutes()).toBe(30);
     expect(r.advance).toBe(false);
   });
+
+  it('returns the date unchanged for an empty digit buffer', () => {
+    const map = buildSegmentMap('HH:mm')!;
+    const start = at(10, 30);
+    const r = setSegmentValue(map.segments[0], start, '', false);
+    expect(r.date).toBe(start);
+    expect(r.advance).toBe(false);
+  });
+
+  it('returns the date unchanged for a non-numeric buffer', () => {
+    const map = buildSegmentMap('HH:mm')!;
+    const start = at(10, 30);
+    const r = setSegmentValue(map.segments[0], start, 'xy', false);
+    expect(r.date).toBe(start);
+    expect(r.advance).toBe(false);
+  });
 });
 
 describe('setSegmentValue (date segments)', () => {
@@ -495,6 +521,16 @@ describe('segmentIndexAtCaret', () => {
     const map = buildSegmentMap('HH::mm')!; // two-char "::" literal
     // Caret 3 is inside the "::" gap — not within any editable [start,end].
     expect([0, 2]).toContain(segmentIndexAtCaret(map, 3));
+  });
+
+  it('returns null for a map with no editable segments', () => {
+    // buildSegmentMap never produces this shape (it returns null instead), but
+    // segmentIndexAtCaret guards against it independently.
+    const map = {
+      segments: [{ kind: 'literal' as const, token: '--', start: 0, end: 2 }],
+      editable: [],
+    };
+    expect(segmentIndexAtCaret(map, 1)).toBeNull();
   });
 
   it('maps caret positions across a combined YYYY-MM-DD HH:mm format', () => {

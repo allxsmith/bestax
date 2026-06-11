@@ -998,4 +998,34 @@ describe('Tooltip', () => {
       );
     });
   });
+
+  describe('measurement frame after unmount', () => {
+    const originalRAF = window.requestAnimationFrame;
+
+    afterEach(() => {
+      window.requestAnimationFrame = originalRAF;
+    });
+
+    it('skips the overflow-correction frame when the tooltip unmounted first', () => {
+      // Capture rAF callbacks instead of running them so the measurement
+      // frame can be flushed after the tooltip is gone.
+      const frames: FrameRequestCallback[] = [];
+      window.requestAnimationFrame = (cb: FrameRequestCallback) => {
+        frames.push(cb);
+        return frames.length;
+      };
+
+      const { unmount } = render(
+        <Tooltip label="Test" position="top" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(frames.length).toBeGreaterThan(0);
+
+      unmount();
+      // The content ref is detached now; the queued frame must bail out
+      // without touching state or throwing.
+      expect(() => frames.forEach(cb => cb(0))).not.toThrow();
+    });
+  });
 });

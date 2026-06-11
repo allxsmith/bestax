@@ -908,6 +908,35 @@ describe('Toast Queue', () => {
     expect(screen.getByText('Queued 1')).toBeInTheDocument();
   });
 
+  it('removes a waiting toast from the queue when closed by id', () => {
+    render(<ToastContainer />);
+    let id1: string;
+    let id2: string;
+    act(() => {
+      id1 = toast.show({ message: 'Queued 1', duration: 0, queue: true });
+      id2 = toast.show({ message: 'Queued 2', duration: 0, queue: true });
+      toast.show({ message: 'Queued 3', duration: 0, queue: true });
+    });
+
+    expect(screen.getByText('Queued 1')).toBeInTheDocument();
+
+    // Close the second toast while it is still waiting in the queue (it is
+    // not the currently-displayed toast).
+    act(() => {
+      toast.close(id2!);
+    });
+
+    // The current toast is untouched...
+    expect(screen.getByText('Queued 1')).toBeInTheDocument();
+
+    // ...and when it closes, the already-closed toast is skipped entirely.
+    act(() => {
+      toast.close(id1!);
+    });
+    expect(screen.queryByText('Queued 2')).not.toBeInTheDocument();
+    expect(screen.getByText('Queued 3')).toBeInTheDocument();
+  });
+
   it('closeAll clears queued toasts too', () => {
     render(<ToastContainer />);
     act(() => {

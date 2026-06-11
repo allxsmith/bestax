@@ -584,6 +584,28 @@ describe('Carousel', () => {
       fireEvent.transitionEnd(slidesContainer);
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it('does not snap when navigation moves off the clone before the wrap transition ends', () => {
+      const onChange = jest.fn();
+      render(<TestCarousel value={2} onChange={onChange} />);
+
+      // Start a wrap-around: animating toward the clone of the first slide.
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      // Before the wrap transition completes, navigate backward — the display
+      // index moves to a real slide while the wrapping flag is still set.
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).toHaveBeenCalledWith(1);
+
+      const slidesContainer = document.querySelector('.carousel-slides')!;
+      fireEvent.transitionEnd(slidesContainer);
+
+      // Neither clone snap ran: no extra onChange beyond the explicit prev.
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.runAllTimers();
+      });
+    });
   });
 
   describe('Single-slide repeat edge cases', () => {

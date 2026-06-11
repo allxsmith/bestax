@@ -94,6 +94,19 @@ describe('Taginput', () => {
 
       expect(onChange).toHaveBeenCalledWith(['NewTag']);
     });
+
+    it('does not add an empty suggestion selected from the dropdown', () => {
+      const onChange = jest.fn();
+      render(<Taginput data={['', 'Vue']} openOnFocus onChange={onChange} />);
+      const input = screen.getByRole('textbox');
+      fireEvent.focus(input);
+
+      const options = screen.getAllByRole('option');
+      expect(options).toHaveLength(2);
+      // The first suggestion is the empty string — selecting it is a no-op.
+      fireEvent.click(options[0]);
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('Removing Tags', () => {
@@ -198,6 +211,31 @@ describe('Taginput', () => {
     it('hides input when maxTags is reached', () => {
       render(<Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />);
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('ignores dropdown selections made after maxTags is reached', () => {
+      const onChange = jest.fn();
+      // keepOpen (the default) leaves the dropdown active after a selection,
+      // so a second item can still be clicked once the input is gone.
+      render(
+        <Taginput
+          defaultValue={['Tag1']}
+          data={['Vue', 'React']}
+          maxTags={2}
+          openOnFocus
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('textbox');
+      fireEvent.focus(input);
+
+      fireEvent.click(screen.getByText('Vue'));
+      expect(onChange).toHaveBeenLastCalledWith(['Tag1', 'Vue']);
+
+      // Max reached: the input is unmounted but the dropdown is still open.
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText('React'));
+      expect(onChange).toHaveBeenCalledTimes(1);
     });
   });
 

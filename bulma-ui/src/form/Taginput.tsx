@@ -342,6 +342,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Remove tag
     const removeTag = useCallback(
       (index: number) => {
+        /* istanbul ignore next: both triggers (delete button click, Backspace handler) are already gated on disabled/readonly */
         if (disabled || readonly) return;
 
         const removedTag = tags[index];

@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { Datetimepicker } from '../Datetimepicker';
+import { Field } from '../Field';
+import { DatetimepickerBase } from '../DatetimepickerBase';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -26,6 +28,19 @@ describe('Datetimepicker', () => {
   it('renders combobox input', () => {
     const { getByRole } = render(<Datetimepicker label="When" />);
     expect(getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('inside an existing Field renders bare content with the help message', () => {
+    const { container, getByText } = render(
+      <Field label="When">
+        <Datetimepicker message="Required" messageColor="danger" />
+      </Field>
+    );
+    // No nested Field wrapper: exactly one field element.
+    expect(container.querySelectorAll('.field').length).toBe(1);
+    const help = getByText('Required');
+    expect(help.className).toContain('help');
+    expect(help.className).toContain('is-danger');
   });
 
   it('formats default value with date and time', () => {
@@ -607,5 +622,414 @@ describe('Datetimepicker launcher icon', () => {
     );
     fireEvent.click(getByLabelText('Choose date and time'));
     expect(getByRole('dialog')).toBeInTheDocument();
+  });
+});
+
+// -------------------------------------------------------------------------
+// Remaining DatetimepickerBase branches: min/max clamping of date and time
+// edits, controlled values, empty-value wheels, blur parsing, inline hidden
+// inputs, seconds handling, and the bare base component.
+// -------------------------------------------------------------------------
+
+describe('DatetimepickerBase remaining branches', () => {
+  const dt = () => new Date(2024, 5, 7, 13, 45);
+
+  it('bare DatetimepickerBase renders the default launcher and opens/closes without callbacks', () => {
+    const { getByRole, getByLabelText, queryByRole } = render(
+      <DatetimepickerBase />
+    );
+    expect(getByLabelText('Choose date and time').tagName).toBe('BUTTON');
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
+  it('controlled value drives the text; value={null} renders empty', () => {
+    const { getByRole, rerender } = render(<DatetimepickerBase value={dt()} />);
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe(
+      '2024-06-07 13:45'
+    );
+    rerender(<DatetimepickerBase value={null} />);
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
+  });
+
+  it('derives the popover id from the id prop', () => {
+    const { getByRole } = render(<DatetimepickerBase id="appt" />);
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog').id).toBe('appt-popover');
+  });
+
+  it('controlled: a wheel change reports through onChange without internal state', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DatetimepickerBase value={dt()} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.click(input);
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
+    // The parent did not update `value`, so the text stays at 13:45.
+    expect(input.value).toBe('2024-06-07 13:45');
+  });
+
+  it('clicking inside the time card does not collapse the wheels', () => {
+    const { getByRole, getAllByRole, container } = render(
+      <Datetimepicker defaultValue={dt()} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const card = container.querySelector(
+      '.datetimepicker-time-card'
+    ) as HTMLElement;
+    fireEvent.click(card);
+    expect(getAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('fires onOpen once even when an open request repeats, and onClose on close', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole } = render(
+      <DatetimepickerBase onOpen={onOpen} onClose={onClose} />
+    );
+    const input = getByRole('combobox');
+    fireEvent.click(input);
+    fireEvent.click(input); // already open — no duplicate onOpen
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Escape' });
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a time-wheel change that falls outside min/max', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Datetimepicker
+        defaultValue={new Date(2024, 5, 7, 10, 0)}
+        min={new Date(2024, 5, 7, 10, 0)}
+        max={new Date(2024, 5, 7, 10, 30)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    // ArrowUp decrements to 09:00, which is below min — change is dropped.
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    expect(handler).not.toHaveBeenCalled();
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe(
+      '2024-06-07 10:00'
+    );
+  });
+
+  it('rejects a date selection whose merged date-time falls outside max', () => {
+    // The cell for the 20th is selectable day-wise (midnight ≤ max), but the
+    // carried-over time of day (13:45) pushes the merged value past max.
+    const handler = jest.fn();
+    const { getByRole, container } = render(
+      <Datetimepicker
+        defaultValue={dt()}
+        max={new Date(2024, 5, 20, 10, 0)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const cell = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).find(
+      c => c.textContent === '20' && !c.className.includes('is-other-month')
+    ) as HTMLButtonElement;
+    expect(cell.disabled).toBe(false);
+    fireEvent.click(cell);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('selecting a date with no value commits midnight', () => {
+    const handler = jest.fn();
+    const { getByRole, container } = render(
+      <Datetimepicker onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const cell = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).find(
+      c => c.textContent === '20' && !c.className.includes('is-other-month')
+    );
+    fireEvent.click(cell!);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getDate()).toBe(20);
+    expect(arg.getHours()).toBe(0);
+    expect(arg.getMinutes()).toBe(0);
+  });
+
+  it('enableSeconds: 12h formatting, seconds pill, four wheels, and seconds preserved on date select', () => {
+    const handler = jest.fn();
+    const { getByRole, getByText, getAllByRole, container } = render(
+      <Datetimepicker
+        defaultValue={new Date(2024, 5, 7, 13, 45, 20)}
+        hourFormat="12"
+        enableSeconds
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    expect(input.value).toBe('2024-06-07 01:45:20 PM');
+    fireEvent.click(input);
+    // Footer pill shows the seconds in 12-hour form.
+    expect(getByText('1:45:20 PM')).toBeInTheDocument();
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    // hours + minutes + seconds + AM/PM = 4 wheels.
+    expect(getAllByRole('spinbutton').length).toBe(4);
+    // Selecting another date carries the full time including seconds.
+    const cell = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).find(
+      c => c.textContent === '20' && !c.className.includes('is-other-month')
+    );
+    fireEvent.click(cell!);
+    const arg = handler.mock.calls[handler.mock.calls.length - 1][0] as Date;
+    expect(arg.getDate()).toBe(20);
+    expect(arg.getSeconds()).toBe(20);
+  });
+
+  it('enableSeconds with no value: wheels start at 00:00:00 and spin sets seconds', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Datetimepicker enableSeconds onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels.length).toBe(3);
+    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getSeconds()).toBe(1);
+    expect(arg.getHours()).toBe(0);
+  });
+
+  it('enableSeconds with no value: selecting a date commits zeroed seconds', () => {
+    const handler = jest.fn();
+    const { getByRole, container } = render(
+      <Datetimepicker enableSeconds onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const cell = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).find(
+      c => c.textContent === '20' && !c.className.includes('is-other-month')
+    );
+    fireEvent.click(cell!);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(0);
+    expect(arg.getSeconds()).toBe(0);
+  });
+
+  it('Enter on a time wheel commits and closes the popover', () => {
+    const { getByRole, getAllByRole, queryByRole } = render(
+      <Datetimepicker defaultValue={dt()} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'Enter' });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
+  it('haptics opt-in still routes wheel changes through onChange', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <Datetimepicker defaultValue={dt()} haptics onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    expect(handler).toHaveBeenCalled();
+    expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
+  });
+
+  it('free-form text parses on blur with the default format', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Datetimepicker openOnFocus={false} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2024-12-25 08:30' } });
+    fireEvent.blur(input);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getFullYear()).toBe(2024);
+    expect(arg.getMonth()).toBe(11);
+    expect(arg.getDate()).toBe(25);
+    expect(arg.getHours()).toBe(8);
+    expect(arg.getMinutes()).toBe(30);
+  });
+
+  it('custom parse is invoked on blur', () => {
+    const parse = jest.fn(() => new Date(2030, 0, 15, 10, 30));
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Datetimepicker openOnFocus={false} parse={parse} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'next quarter' } });
+    fireEvent.blur(input);
+    expect(parse).toHaveBeenCalledWith('next quarter');
+    expect((handler.mock.calls[0][0] as Date).getFullYear()).toBe(2030);
+  });
+
+  it('Intl-options formats fall back to the default token format for blur parsing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Datetimepicker
+        openOnFocus={false}
+        format={{ dateStyle: 'short', timeStyle: 'short' }}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2024-12-25 08:30' } });
+    fireEvent.blur(input);
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getDate()).toBe(25);
+    expect(arg.getHours()).toBe(8);
+  });
+
+  it('whitespace-only text reverts on blur without committing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <Datetimepicker
+        defaultValue={dt()}
+        openOnFocus={false}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '   ' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-07 13:45');
+  });
+
+  it('segmented entry on an empty field seeds from the current date-time', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 5, 9, 10, 30));
+    try {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <Datetimepicker openOnFocus={false} onChange={handler} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      act(() => {
+        input.focus();
+      });
+      expect(input.value).toBe('2026-06-09 10:30');
+      fireEvent.keyDown(input, { key: 'ArrowUp' }); // year segment
+      const arg = handler.mock.calls[0][0] as Date;
+      expect(arg.getFullYear()).toBe(2027);
+      expect(input.value).toBe('2027-06-09 10:30');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('a malformed native value commits null (invalid-format guard)', () => {
+    // jsdom sanitizes bad values to '' before React sees them, so force the
+    // value getter to surface a malformed string to the change handler.
+    const handler = jest.fn();
+    const { container } = render(
+      <Datetimepicker mobileNative={true} onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    Object.defineProperty(native, 'value', {
+      configurable: true,
+      get: () => 'not-a-datetime',
+      set: () => {},
+    });
+    fireEvent.change(native);
+    expect(handler).toHaveBeenCalledWith(null);
+  });
+
+  it('supports a callback ref', () => {
+    const refFn = jest.fn();
+    render(<Datetimepicker ref={refFn} />);
+    expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
+  });
+
+  it('inline renders the panel without a popover and emits a hidden input for name', () => {
+    const { container, queryByRole } = render(
+      <Datetimepicker inline name="appt" defaultValue={dt()} />
+    );
+    expect(queryByRole('dialog')).toBeNull();
+    expect(container.querySelector('[role="grid"]')).not.toBeNull();
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden.value).toBe('2024-06-07T13:45');
+  });
+
+  it('inline with name but no value emits an empty hidden input', () => {
+    const { container } = render(<Datetimepicker inline name="appt" />);
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden).not.toBeNull();
+    expect(hidden.value).toBe('');
+  });
+
+  it('inline without a name emits no hidden input', () => {
+    const { container } = render(<Datetimepicker inline defaultValue={dt()} />);
+    expect(container.querySelector('input[type="hidden"]')).toBeNull();
+  });
+});
+
+// -------------------------------------------------------------------------
+// Small-viewport panel: with the custom popover forced (mobileNative={false})
+// on a small viewport, the time wheels grow to the 40px touch item height.
+// -------------------------------------------------------------------------
+
+describe('Datetimepicker small viewport', () => {
+  let originalMatchMedia: typeof window.matchMedia | undefined;
+
+  beforeEach(() => {
+    originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: (query: string) =>
+        ({
+          matches: query.includes('max-width'),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          addListener: () => {},
+          removeListener: () => {},
+          dispatchEvent: () => true,
+          onchange: null,
+        }) as unknown as MediaQueryList,
+    });
+  });
+
+  afterEach(() => {
+    if (originalMatchMedia) {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
+  it('uses the taller 40px wheel items on small viewports', () => {
+    const { getByRole, getAllByRole } = render(
+      <Datetimepicker
+        mobileNative={false}
+        defaultValue={new Date(2024, 5, 7, 13, 45)}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    expect(getAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
+    const option = getAllByRole('option')[0] as HTMLElement;
+    expect(option.style.height).toBe('40px');
   });
 });

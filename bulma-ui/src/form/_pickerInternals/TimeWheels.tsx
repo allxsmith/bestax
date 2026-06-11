@@ -228,6 +228,7 @@ const WheelInner = <T,>(
     );
   }, []);
   const tickFeedback = useCallback(() => {
+    /* istanbul ignore next: the sync flag is only true synchronously inside the prop-sync effect, which sets position directly and never routes through commitPosition */
     if (isSyncingRef.current) return;
     fireTickHaptic();
     if (audioTickEnabledRef.current) playAudioTick();
@@ -276,6 +277,7 @@ const WheelInner = <T,>(
     () => ({
       focus: () => rootRef.current?.focus(),
       startDrag: (pointerId: number, clientY: number) => {
+        /* istanbul ignore next: the empty-space forwarder (sole caller) already returns on the same disabled prop */
         if (disabled) return;
         cancelRaf();
         if (audioTickEnabledRef.current) unlockAudioTick();
@@ -949,6 +951,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
     // handler takes over — don't double-dispatch.
     if ((e.target as HTMLElement).closest(`.${wheelSingleClass}`)) return;
     const container = wheelsContainerRef.current;
+    /* istanbul ignore next: the handler is attached to the very element this ref points to, so it can't be null while events fire */
     if (!container) return;
     const wheels = container.querySelectorAll<HTMLElement>(
       `.${wheelSingleClass}`

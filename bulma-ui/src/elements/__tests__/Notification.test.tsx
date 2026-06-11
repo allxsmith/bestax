@@ -307,6 +307,33 @@ describe('Notification Programmatic API', () => {
       expect(screen.queryByText('Q1')).not.toBeInTheDocument();
       expect(screen.getByText('Q2')).toBeInTheDocument();
     });
+
+    it('removes a waiting notification from the queue when closed by id', () => {
+      render(<NotificationContainer />);
+      let id1: string;
+      let id2: string;
+      act(() => {
+        id1 = notification.show({ message: 'Q1', duration: 0, queue: true });
+        id2 = notification.show({ message: 'Q2', duration: 0, queue: true });
+        notification.show({ message: 'Q3', duration: 0, queue: true });
+      });
+
+      expect(screen.getByText('Q1')).toBeInTheDocument();
+
+      // Close the second notification while it is still waiting in the queue
+      // (it is not the currently-displayed one).
+      act(() => {
+        notification.close(id2!);
+      });
+      expect(screen.getByText('Q1')).toBeInTheDocument();
+
+      // When the current one closes, the already-closed entry is skipped.
+      act(() => {
+        notification.close(id1!);
+      });
+      expect(screen.queryByText('Q2')).not.toBeInTheDocument();
+      expect(screen.getByText('Q3')).toBeInTheDocument();
+    });
   });
 
   describe('subscribe', () => {
