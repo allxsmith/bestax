@@ -9,6 +9,9 @@ const scssBase = {
   includePaths: ['src/scss', '../node_modules'],
   sourceMap: true,
   silenceDeprecations: ['import', 'global-builtin', 'if-function'],
+  // The plugin doesn't track @use'd partials, so without this `rollup --watch`
+  // never rebuilds the CSS bundles when a partial changes.
+  watch: 'src/scss',
 };
 
 const variationBuild = name => ({
