@@ -465,6 +465,169 @@ export const ManualEntryDisabledDates: Story = {
   },
 };
 
+export const ManualEntryLocale: Story = {
+  render: () => (
+    <Block>
+      <DateInput
+        label="ja-JP"
+        locale="ja-JP"
+        defaultValue={new Date()}
+        openOnFocus={false}
+      />
+      <DateInput
+        label="fr-FR"
+        locale="fr-FR"
+        defaultValue={new Date()}
+        openOnFocus={false}
+      />
+      <DateInput
+        label="de-DE"
+        locale="de-DE"
+        defaultValue={new Date()}
+        openOnFocus={false}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same locales, typing-first — `openOnFocus={false}` keeps the calendar closed until you use the launcher icon or `↓`, so each field takes segmented entry directly.',
+      },
+    },
+  },
+};
+
+export const ManualEntryFirstDayOfWeek: Story = {
+  args: {
+    label: 'Week starts on Monday',
+    firstDayOfWeek: 1,
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `openOnFocus={false}` the Monday-first calendar only opens from the launcher icon or `↓` — focusing the field starts segmented typing instead.',
+      },
+    },
+  },
+};
+
+export const ManualEntryLauncherIcon: Story = {
+  args: {
+    label: 'Custom launcher glyph',
+    triggerIconName: 'calendar-day',
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `↓`) is the only way to open the calendar — clicking into the field just starts typing.',
+      },
+    },
+  },
+};
+
+export const ManualEntrySizes: Story = {
+  render: () => (
+    <Block>
+      <DateInput
+        label="Small"
+        controlSize="small"
+        size="small"
+        openOnFocus={false}
+      />
+      <DateInput label="Default" openOnFocus={false} />
+      <DateInput
+        label="Medium"
+        controlSize="medium"
+        size="medium"
+        openOnFocus={false}
+      />
+      <DateInput
+        label="Large"
+        controlSize="large"
+        size="large"
+        openOnFocus={false}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the calendar waits for the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryColors: Story = {
+  render: () => (
+    <Block>
+      <DateInput label="Primary" color="primary" openOnFocus={false} />
+      <DateInput label="Info" color="info" openOnFocus={false} />
+      <DateInput label="Success" color="success" openOnFocus={false} />
+      <DateInput label="Warning" color="warning" openOnFocus={false} />
+      <DateInput label="Danger" color="danger" openOnFocus={false} />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every color with `openOnFocus={false}` — type into each field directly; the calendar only opens from the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryHorizontalField: Story = {
+  args: {
+    label: 'Date of birth',
+    horizontal: true,
+    placeholder: 'YYYY-MM-DD',
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The horizontal layout with `openOnFocus={false}` — focus drops you straight into segmented typing, and the calendar stays behind the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryCustomParse: Story = {
+  render: () => {
+    const fmt = { year: 'numeric', month: 'long', day: 'numeric' } as const;
+    const parse = (s: string): Date | null => {
+      const t = Date.parse(s);
+      return Number.isNaN(t) ? null : new Date(t);
+    };
+    return (
+      <DateInput
+        label="Intl long + custom parse"
+        format={fmt}
+        parse={parse}
+        defaultValue={new Date(2026, 4, 30)}
+        openOnFocus={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'An `Intl` format has no segments, so typing is free-form and the `parse` callback turns the text back into a `Date` on Enter or blur. `openOnFocus={false}` keeps the calendar behind the launcher icon or `↓` while you type.',
+      },
+    },
+  },
+};
+
 export const PickerOnly: Story = {
   args: {
     label: 'Picker only (no typing)',

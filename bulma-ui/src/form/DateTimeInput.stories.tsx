@@ -511,6 +511,162 @@ export const ManualEntryUnselectableTimes: Story = {
   },
 };
 
+export const ManualEntryFormats: Story = {
+  render: () => {
+    const v = new Date(2026, 4, 30, 13, 45);
+    return (
+      <Block display="flex" flexDirection="column" gap="4">
+        <DateTimeInput
+          label="YYYY-MM-DD HH:mm (default)"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <DateTimeInput
+          label="MM/DD/YYYY hh:mm A"
+          format="MM/DD/YYYY hh:mm A"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <DateTimeInput
+          label="DD.MM.YYYY HH:mm"
+          format="DD.MM.YYYY HH:mm"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <DateTimeInput
+          label="Intl — display only"
+          format={{ dateStyle: 'medium', timeStyle: 'short' }}
+          editable={false}
+          defaultValue={v}
+          openOnFocus={false}
+        />
+      </Block>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same formats, typing-first — `openOnFocus={false}` on each field keeps the popover behind the launcher icon or `↓` while the token formats take segmented typing across the whole field.',
+      },
+    },
+  },
+};
+
+export const ManualEntryLauncherIcon: Story = {
+  args: {
+    label: 'Custom launcher glyph',
+    triggerIconName: 'calendar-check',
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `↓`) is the only way to open the popover — clicking into the field just starts typing.',
+      },
+    },
+  },
+};
+
+export const ManualEntryFirstDayOfWeek: Story = {
+  args: {
+    label: 'Monday-first',
+    firstDayOfWeek: 1,
+    defaultValue: new Date(),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `openOnFocus={false}` the Monday-first calendar only opens from the launcher icon or `↓` — focusing the field starts segmented typing instead.',
+      },
+    },
+  },
+};
+
+export const ManualEntryLocale: Story = {
+  render: () => (
+    <Block>
+      <DateTimeInput
+        label="ja-JP"
+        locale="ja-JP"
+        defaultValue={new Date()}
+        openOnFocus={false}
+      />
+      <DateTimeInput
+        label="fr-FR"
+        locale="fr-FR"
+        defaultValue={new Date()}
+        openOnFocus={false}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same locales, typing-first — `openOnFocus={false}` keeps the popover closed until you use the launcher icon or `↓`, so each field takes segmented entry directly.',
+      },
+    },
+  },
+};
+
+export const ManualEntrySizes: Story = {
+  render: () => (
+    <Block>
+      <DateTimeInput
+        label="Small"
+        controlSize="small"
+        size="small"
+        openOnFocus={false}
+      />
+      <DateTimeInput label="Default" openOnFocus={false} />
+      <DateTimeInput
+        label="Medium"
+        controlSize="medium"
+        size="medium"
+        openOnFocus={false}
+      />
+      <DateTimeInput
+        label="Large"
+        controlSize="large"
+        size="large"
+        openOnFocus={false}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the popover waits for the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryColors: Story = {
+  render: () => (
+    <Block>
+      <DateTimeInput label="Primary" color="primary" openOnFocus={false} />
+      <DateTimeInput label="Info" color="info" openOnFocus={false} />
+      <DateTimeInput label="Success" color="success" openOnFocus={false} />
+      <DateTimeInput label="Warning" color="warning" openOnFocus={false} />
+      <DateTimeInput label="Danger" color="danger" openOnFocus={false} />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every color with `openOnFocus={false}` — type into each field directly; the popover only opens from the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
 export const PickerOnly: Story = {
   args: {
     label: 'Picker only (no typing)',

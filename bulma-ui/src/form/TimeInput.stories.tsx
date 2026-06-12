@@ -332,6 +332,193 @@ export const ManualEntryUnselectableTimes: Story = {
   },
 };
 
+export const ManualEntry24h: Story = {
+  args: {
+    label: '24-hour format',
+    hourFormat: '24',
+    defaultValue: today(13, 45),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '24-hour segmented entry with `openOnFocus={false}` — the hours segment accepts `00`–`23` directly, and the wheel popover only opens from the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryIncrementSteps: Story = {
+  args: {
+    label: 'Minute step = 5',
+    incrementMinutes: 5,
+    defaultValue: today(9, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Increments steer the wheels, not the keyboard — typed minutes stay free-grained, so `09:32` goes in even with a step of 5. With `openOnFocus={false}` the stepped wheels only appear from the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryFormats: Story = {
+  render: () => {
+    const v = today(13, 45, 30);
+    return (
+      <Block display="flex" flexDirection="column" gap="4">
+        <TimeInput
+          label="HH:mm (24h, default)"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <TimeInput
+          label="hh:mm A (12h)"
+          format="hh:mm A"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <TimeInput
+          label="hh:mm a (lowercase)"
+          format="hh:mm a"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <TimeInput
+          label="HH:mm:ss (with seconds)"
+          format="HH:mm:ss"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+        <TimeInput
+          label="hh:mm:ss A"
+          format="hh:mm:ss A"
+          defaultValue={v}
+          openOnFocus={false}
+        />
+      </Block>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same token formats, typing-first — `openOnFocus={false}` on each field keeps the wheels behind the launcher icon or `↓` while you type through the segments.',
+      },
+    },
+  },
+};
+
+export const ManualEntryLauncherIcon: Story = {
+  args: {
+    label: 'Custom launcher glyph',
+    triggerIconName: 'hourglass',
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `↓`) is the only way to open the spinner — clicking into the field just starts typing.',
+      },
+    },
+  },
+};
+
+export const ManualEntrySizes: Story = {
+  render: () => (
+    <Block>
+      <TimeInput
+        label="Small"
+        controlSize="small"
+        size="small"
+        openOnFocus={false}
+      />
+      <TimeInput label="Default" openOnFocus={false} />
+      <TimeInput
+        label="Medium"
+        controlSize="medium"
+        size="medium"
+        openOnFocus={false}
+      />
+      <TimeInput
+        label="Large"
+        controlSize="large"
+        size="large"
+        openOnFocus={false}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the spinner waits for the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryColors: Story = {
+  render: () => (
+    <Block>
+      <TimeInput label="Primary" color="primary" openOnFocus={false} />
+      <TimeInput label="Info" color="info" openOnFocus={false} />
+      <TimeInput label="Success" color="success" openOnFocus={false} />
+      <TimeInput label="Warning" color="warning" openOnFocus={false} />
+      <TimeInput label="Danger" color="danger" openOnFocus={false} />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Every color with `openOnFocus={false}` — type into each field directly; the wheels only open from the launcher icon or `↓`.',
+      },
+    },
+  },
+};
+
+export const ManualEntryAudioTick: Story = {
+  args: {
+    label: 'Audio thunk + band pulse',
+    audioTick: true,
+    mobileNative: false,
+    defaultValue: today(9, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same audio-thunk feedback with `openOnFocus={false}` — typing into the field is silent; the tick fires when you open the wheels via the launcher icon (or `↓`) and scroll them.',
+      },
+    },
+  },
+};
+
+export const ManualEntryHaptics: Story = {
+  args: {
+    label: 'Auto-routed haptics',
+    haptics: true,
+    mobileNative: false,
+    defaultValue: today(9, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Auto-routed haptics with `openOnFocus={false}` — the per-platform feedback fires when the wheels opened via the launcher icon (or `↓`) are scrolled, while typed entry stays feedback-free.',
+      },
+    },
+  },
+};
+
 export const Haptics: Story = {
   args: {
     label: 'Auto-routed haptics',
