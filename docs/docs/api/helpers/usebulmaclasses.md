@@ -369,6 +369,10 @@ export interface BulmaOtherProps {
 
 ## Usage
 
+:::info Container components pad themselves
+Container components like `Box`, `Notification`, `Message`, and `Card` ship with Bulma's standard, pleasant padding and stack with sensible default spacing. The examples below only add margin or padding props when spacing itself is what's being demonstrated.
+:::
+
 ### Basic Example
 
 ```tsx live
@@ -502,7 +506,7 @@ function example() {
   }
 
   return (
-    <MyColumns isGapless m="2">
+    <MyColumns isGapless>
       <div className="column">
         <Notification color="primary">Left</Notification>
       </div>
@@ -983,9 +987,9 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 ```tsx live
 <>
-  <Box mb="4">
+  <Box>
     <Title size="6">Without clearfix (container collapses)</Title>
-    <Notification color="danger" p="3" mb="0">
+    <Notification color="danger">
       <Button float="left" color="primary">
         Left
       </Button>
@@ -997,7 +1001,7 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
   <Box>
     <Title size="6">With clearfix (container wraps its floats)</Title>
-    <Notification color="success" p="3" mb="0" clearfix>
+    <Notification color="success" clearfix>
       <Button float="left" color="primary">
         Left
       </Button>
@@ -1016,7 +1020,7 @@ Show a container with relative positioning that provides context for absolutely 
 Bulma only ships an `is-relative` helper — absolute positioning itself has no helper class, so the child keeps a minimal `position/top/right` inline style while everything visual comes from props:
 
 ```tsx live
-<Notification relative p="4" pb="6" color="info">
+<Notification relative pb="6" color="info">
   <Span>This container has position: relative</Span>
   <Tag
     color="primary"
