@@ -379,6 +379,138 @@ export const ManualEntryControlled: Story = {
   },
 };
 
+export const ManualEntryCustomFormat: Story = {
+  args: {
+    label: 'DD.MM.YYYY HH:mm with dot separators',
+    format: 'DD.MM.YYYY HH:mm',
+    defaultValue: new Date(2024, 5, 7, 13, 45),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Segments follow the format order — day first here. Typing `.`, space, or `:` jumps to the next segment, so `25.12.2026 09:30` flows straight through.',
+      },
+    },
+  },
+};
+
+export const ManualEntryWithSeconds: Story = {
+  args: {
+    label: 'With a seconds segment',
+    enableSeconds: true,
+    defaultValue: new Date(2024, 5, 7, 13, 45, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `enableSeconds` the walk gains a seconds segment: year → month → day → hours → minutes → seconds.',
+      },
+    },
+  },
+};
+
+export const ManualEntry12hWithSeconds: Story = {
+  args: {
+    label: '12-hour with seconds and AM/PM',
+    hourFormat: '12',
+    enableSeconds: true,
+    defaultValue: new Date(2024, 5, 7, 13, 45, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The full segment set — date, hh, mm, ss, and a trailing meridiem. Move to the AM/PM segment and press `a` / `p` to toggle it.',
+      },
+    },
+  },
+};
+
+export const ManualEntryFreeForm: Story = {
+  args: {
+    label: 'Free-form (Intl format)',
+    format: { dateStyle: 'medium', timeStyle: 'short' },
+    defaultValue: new Date(2024, 5, 7, 13, 45),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'An `Intl.DateTimeFormatOptions` format has no segment map, so entry is free-form — focusing does not highlight a segment and the text parses on Enter or blur instead.',
+      },
+    },
+  },
+};
+
+export const ManualEntryMinMax: Story = {
+  render: function Render() {
+    const now = new Date();
+    const min = new Date(now);
+    min.setHours(9, 0, 0, 0);
+    const max = new Date(now);
+    max.setHours(17, 0, 0, 0);
+    const noon = new Date(now);
+    noon.setHours(12, 0, 0, 0);
+    return (
+      <DateTimeInput
+        label="Office hours today only — typed entry too"
+        min={min}
+        max={max}
+        defaultValue={noon}
+        openOnFocus={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Typed values outside the `min`/`max` range are rejected — keystrokes and ↑/↓ arrows never produce a value before 09:00 or after 17:00 today.',
+      },
+    },
+  },
+};
+
+export const ManualEntryDisabledDates: Story = {
+  args: {
+    label: 'Weekends rejected while typing',
+    shouldDisableDate: (d: Date) => d.getDay() === 0 || d.getDay() === 6,
+    defaultValue: new Date(2024, 5, 7, 13, 45),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Blocked days can't be typed in either — a keystroke or arrow that lands on a weekend is rejected, matching the disabled cells in the calendar.",
+      },
+    },
+  },
+};
+
+export const ManualEntryUnselectableTimes: Story = {
+  args: {
+    label: 'Lunch hour rejected while typing',
+    unselectableTimes: (d: Date) => d.getHours() === 12,
+    defaultValue: new Date(2024, 5, 7, 11, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Blocked times are rejected when typed — setting the hour segment to 12 is vetoed by the `unselectableTimes` predicate, just as the wheels skip it.',
+      },
+    },
+  },
+};
+
 export const PickerOnly: Story = {
   args: {
     label: 'Picker only (no typing)',

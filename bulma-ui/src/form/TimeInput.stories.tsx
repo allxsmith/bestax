@@ -279,6 +279,59 @@ export const ManualEntryFreeForm: Story = {
   },
 };
 
+export const ManualEntry12hWithSeconds: Story = {
+  args: {
+    label: 'Segmented entry · 12-hour with seconds',
+    hourFormat: '12',
+    enableSeconds: true,
+    defaultValue: today(13, 45, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The full segment walk: hh → mm → ss → AM/PM. →/← move through all four, digits overwrite with auto-advance, and `a` / `p` toggle the meridiem.',
+      },
+    },
+  },
+};
+
+export const ManualEntryMinMax: Story = {
+  args: {
+    label: 'Typed entry clamped to 09:00 — 17:00',
+    min: today(9, 0),
+    max: today(17, 0),
+    defaultValue: today(12, 0),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `min`/`max` set, keystrokes and ↑/↓ arrows that would land outside the window are rejected — the value never leaves 09:00 – 17:00, matching the wheel popover.',
+      },
+    },
+  },
+};
+
+export const ManualEntryUnselectableTimes: Story = {
+  args: {
+    label: 'Lunch hour rejected while typing',
+    unselectableTimes: (d: Date) => d.getHours() === 12,
+    defaultValue: today(11, 30),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Typing or arrowing into a blocked time is rejected — the `unselectableTimes` predicate vetoes the candidate, the same way the wheels skip the lunch hour.',
+      },
+    },
+  },
+};
+
 export const Haptics: Story = {
   args: {
     label: 'Auto-routed haptics',

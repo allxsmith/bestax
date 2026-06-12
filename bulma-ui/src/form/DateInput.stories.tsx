@@ -420,6 +420,51 @@ export const ManualEntryFreeForm: Story = {
   },
 };
 
+export const ManualEntryMinMax: Story = {
+  render: function Render() {
+    const now = new Date();
+    const min = new Date(now.getFullYear(), now.getMonth(), 1);
+    const max = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return (
+      <DateInput
+        label={`Clamped to ${min.toDateString()} – ${max.toDateString()}`}
+        min={min}
+        max={max}
+        defaultValue={new Date(now.getFullYear(), now.getMonth(), 15)}
+        openOnFocus={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'With `min`/`max` set, every keystroke and ↑/↓ arrow is clamped to the bounds — an out-of-range candidate is silently rejected, the same as the calendar disabling it.',
+      },
+    },
+  },
+};
+
+export const ManualEntryDisabledDates: Story = {
+  args: {
+    label: 'Weekends rejected while typing',
+    shouldDisableDate: (d: Date) => {
+      const day = d.getDay();
+      return day === 0 || day === 6;
+    },
+    defaultValue: new Date(2024, 5, 7),
+    openOnFocus: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The `shouldDisableDate` predicate also vetoes manual entry — typing or arrowing to a weekend is rejected, and the calendar shows those days disabled.',
+      },
+    },
+  },
+};
+
 export const PickerOnly: Story = {
   args: {
     label: 'Picker only (no typing)',
