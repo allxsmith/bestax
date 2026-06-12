@@ -81,6 +81,20 @@ function example() {
 }
 ```
 
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+
+```tsx live
+function example() {
+  return (
+    <DateInput
+      label="Type a date"
+      placeholder="YYYY-MM-DD"
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Controlled
@@ -93,6 +107,27 @@ function example() {
   return (
     <Block>
       <DateInput label="Date" value={value} onChange={setValue} />
+      <Paragraph mt="2">
+        Selected: {value ? value.toDateString() : '—'}
+      </Paragraph>
+    </Block>
+  );
+}
+```
+
+**Typing-first** — identical, but with `openOnFocus={false}` so focusing just lets you type; the calendar waits behind the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  const [value, setValue] = useState(new Date());
+  return (
+    <Block>
+      <DateInput
+        label="Date"
+        value={value}
+        onChange={setValue}
+        openOnFocus={false}
+      />
       <Paragraph mt="2">
         Selected: {value ? value.toDateString() : '—'}
       </Paragraph>
@@ -137,6 +172,25 @@ function example() {
 On iOS Safari the calendar lets the user pick any date; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
+**Typing-first** — the same bounds with `openOnFocus={false}`: every keystroke and `↑` / `↓` arrow is clamped to the range (out-of-range candidates are silently rejected), and the launcher icon (or `↓`) opens the calendar.
+
+```tsx live
+function example() {
+  const now = new Date();
+  const min = new Date(now.getFullYear(), now.getMonth(), 1);
+  const max = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return (
+    <DateInput
+      label="Typing is clamped to this month"
+      min={min}
+      max={max}
+      defaultValue={new Date(now.getFullYear(), now.getMonth(), 15)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Disabled Dates
@@ -154,6 +208,22 @@ Disable specific dates with `shouldDisableDate` (predicate) or `unselectableDate
 :::note Forced to the custom calendar
 HTML has no equivalent to `shouldDisableDate` or `unselectableDates`, so the OS-native pickers can't block any dates. This example forces `mobileNative={false}` so the rule works on touch devices too; in your app, keep the default `mobileNative="auto"` and also validate in `onChange`.
 :::
+
+**Typing-first** — with `openOnFocus={false}` the predicate also vetoes manual entry: typing or arrowing to a weekend is rejected, and the calendar stays tucked behind the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  return (
+    <DateInput
+      label="Weekends rejected while typing"
+      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
+      defaultValue={new Date(2024, 5, 7)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -173,6 +243,22 @@ Use an alternative token format. Supported tokens: `YYYY YY MM M DD D HH H hh h 
 :::note Forced to the custom calendar
 The OS-native pickers use the device's locale format and don't render `placeholder` text. This example forces `mobileNative={false}` so the format/placeholder show on touch devices too.
 :::
+
+**Typing-first** — the same format with `openOnFocus={false}`: type day-first (typing `/` jumps to the next segment) and reach for the launcher icon (or `↓`) when you want the calendar.
+
+```tsx live
+function example() {
+  return (
+    <DateInput
+      label="DD/MM/YYYY"
+      format="DD/MM/YYYY"
+      defaultValue={new Date(2024, 5, 7)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -236,6 +322,27 @@ function example() {
 }
 ```
 
+**Typing-first** — adding `openOnFocus={false}` here shows free-form entry: Intl formats have no segments, so typed text is committed on Enter or blur, and the calendar opens only via the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  const parse = s => {
+    const t = Date.parse(s);
+    return isNaN(t) ? null : new Date(t);
+  };
+  return (
+    <DateInput
+      label="Intl long + custom parse — typing-first"
+      format={{ year: 'numeric', month: 'long', day: 'numeric' }}
+      parse={parse}
+      defaultValue={new Date(2026, 4, 30)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Launcher Icon
@@ -248,6 +355,28 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
   <DateInput label="Custom launcher glyph" triggerIconName="calendar-day" />
   <DateInput label="No launcher" triggerIcon={false} />
   <DateInput label="Left icon hidden" iconLeftName="" />
+</Block>
+```
+
+**Typing-first** — the same group with `openOnFocus={false}`, where the launcher icon earns its keep; note that the `triggerIcon={false}` instance has no launcher, so its popover is keyboard-only (`↓`).
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateInput
+    label="Default (left icon + right launcher)"
+    openOnFocus={false}
+  />
+  <DateInput
+    label="Custom launcher glyph"
+    triggerIconName="calendar-day"
+    openOnFocus={false}
+  />
+  <DateInput
+    label="No launcher — popover via ↓ only"
+    triggerIcon={false}
+    openOnFocus={false}
+  />
+  <DateInput label="Left icon hidden" iconLeftName="" openOnFocus={false} />
 </Block>
 ```
 
@@ -270,25 +399,6 @@ function example() {
   return (
     <DateInput
       label="Click in, then arrow or type"
-      defaultValue={new Date(2024, 5, 7)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Custom Format
-
-Type day-first with slash separators. Typing `/` jumps to the next segment.
-
-```tsx live
-function example() {
-  return (
-    <DateInput
-      label="DD/MM/YYYY"
-      format="DD/MM/YYYY"
       defaultValue={new Date(2024, 5, 7)}
       openOnFocus={false}
     />
@@ -347,48 +457,6 @@ function example() {
     <DateInput
       label="Free-form (Intl format)"
       format={{ year: 'numeric', month: 'long', day: 'numeric' }}
-      defaultValue={new Date(2024, 5, 7)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Min and max while typing
-
-With `min`/`max` set, every keystroke and `↑` / `↓` arrow is clamped to the bounds — an out-of-range candidate is silently rejected, the same as the calendar disabling it.
-
-```tsx live
-function example() {
-  const now = new Date();
-  const min = new Date(now.getFullYear(), now.getMonth(), 1);
-  const max = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return (
-    <DateInput
-      label="Typing is clamped to this month"
-      min={min}
-      max={max}
-      defaultValue={new Date(now.getFullYear(), now.getMonth(), 15)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Disabled dates while typing
-
-The `shouldDisableDate` predicate (and `unselectableDates`) also vetoes manual entry — typing or arrowing to a blocked date is rejected, and the calendar shows those days disabled.
-
-```tsx live
-function example() {
-  return (
-    <DateInput
-      label="Weekends rejected while typing"
-      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
       defaultValue={new Date(2024, 5, 7)}
       openOnFocus={false}
     />
@@ -458,6 +526,34 @@ Day and month names follow the supplied BCP-47 locale via `Intl.DateTimeFormat`.
 The OS-native pickers always use the device's system locale, so these examples set `mobileNative={false}` to show the per-input `locale` on touch devices too.
 :::
 
+**Typing-first** — the same locales with `openOnFocus={false}` added: type straight into each field, then compare the localized calendars via the launcher icon (or `↓`).
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateInput
+    label="ja-JP"
+    locale="ja-JP"
+    defaultValue={new Date()}
+    mobileNative={false}
+    openOnFocus={false}
+  />
+  <DateInput
+    label="fr-FR"
+    locale="fr-FR"
+    defaultValue={new Date()}
+    mobileNative={false}
+    openOnFocus={false}
+  />
+  <DateInput
+    label="de-DE"
+    locale="de-DE"
+    defaultValue={new Date()}
+    mobileNative={false}
+    openOnFocus={false}
+  />
+</Block>
+```
+
 ---
 
 ### First Day of Week
@@ -475,6 +571,17 @@ Set `firstDayOfWeek` to align the grid to Monday-first locales.
 :::note Forced to the custom calendar
 The OS-native calendars use the device locale for the week start, so `firstDayOfWeek` (and `dayNames`/`monthNames`/`nearbyMonthDays`) are ignored there. This example forces `mobileNative={false}` so the Monday-first grid shows on touch devices too.
 :::
+
+**Typing-first** — the same example with `openOnFocus={false}`: type freely, then open the Monday-first grid with the launcher icon (or `↓`).
+
+```tsx live
+<DateInput
+  label="Week starts Monday — typing-first"
+  firstDayOfWeek={1}
+  mobileNative={false}
+  openOnFocus={false}
+/>
+```
 
 ---
 
@@ -516,6 +623,32 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 </Block>
 ```
 
+**Typing-first** — every size with `openOnFocus={false}` so focusing just lets you type; the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateInput
+    label="Small"
+    controlSize="small"
+    size="small"
+    openOnFocus={false}
+  />
+  <DateInput label="Default" openOnFocus={false} />
+  <DateInput
+    label="Medium"
+    controlSize="medium"
+    size="medium"
+    openOnFocus={false}
+  />
+  <DateInput
+    label="Large"
+    controlSize="large"
+    size="large"
+    openOnFocus={false}
+  />
+</Block>
+```
+
 ---
 
 ### Colors
@@ -527,6 +660,18 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
   <DateInput label="Success" color="success" />
   <DateInput label="Warning" color="warning" />
   <DateInput label="Danger" color="danger" />
+</Block>
+```
+
+**Typing-first** — the same palette with `openOnFocus={false}`: click in to type, and use the launcher icon (or `↓`) for the calendar.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateInput label="Primary" color="primary" openOnFocus={false} />
+  <DateInput label="Info" color="info" openOnFocus={false} />
+  <DateInput label="Success" color="success" openOnFocus={false} />
+  <DateInput label="Warning" color="warning" openOnFocus={false} />
+  <DateInput label="Danger" color="danger" openOnFocus={false} />
 </Block>
 ```
 
@@ -548,6 +693,17 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 
 ```tsx live
 <DateInput label="Date of birth" horizontal placeholder="YYYY-MM-DD" />
+```
+
+**Typing-first** — the horizontal layout with `openOnFocus={false}`: focusing lets you type straight away, and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+<DateInput
+  label="Date of birth"
+  horizontal
+  placeholder="YYYY-MM-DD"
+  openOnFocus={false}
+/>
 ```
 
 ---

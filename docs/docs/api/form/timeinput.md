@@ -83,6 +83,12 @@ When you pass an explicit token `format`, **that format is the source of truth f
 <TimeInput label="Time" placeholder="HH:MM" />
 ```
 
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+
+```tsx live
+<TimeInput label="Time" placeholder="HH:MM" openOnFocus={false} />
+```
+
 ---
 
 ### Controlled
@@ -97,6 +103,29 @@ function example() {
   return (
     <Block>
       <TimeInput label="Departure" value={v} onChange={setV} />
+      <Paragraph mt="2">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>
+    </Block>
+  );
+}
+```
+
+**Typing-first** — the same controlled example with `openOnFocus={false}`: focus and type freely; the launcher icon on the right (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  const [v, setV] = useState(() => {
+    const d = new Date();
+    d.setHours(13, 45, 0, 0);
+    return d;
+  });
+  return (
+    <Block>
+      <TimeInput
+        label="Departure"
+        value={v}
+        onChange={setV}
+        openOnFocus={false}
+      />
       <Paragraph mt="2">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>
     </Block>
   );
@@ -128,6 +157,24 @@ function example() {
 The OS-native pickers use the device's clock setting (12h/24h), so `hourFormat` is ignored there. This example forces `mobileNative={false}` so the 12-hour format shows on touch devices too.
 :::
 
+**Typing-first** — identical, but with `openOnFocus={false}` so focusing lets you type (press `a` / `p` on the AM/PM segment); the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(13, 45, 0, 0);
+  return (
+    <TimeInput
+      label="Press a / A / p / P on AM-PM"
+      hourFormat="12"
+      defaultValue={v}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### 24-hour Format
@@ -152,6 +199,24 @@ function example() {
 :::note Forced to the custom wheel
 Same as above — the OS-native pickers follow the device clock setting. This example forces `mobileNative={false}` to show 24-hour on touch devices.
 :::
+
+**Typing-first** — the same 24-hour example with `openOnFocus={false}`: click in and type the time; the launcher icon (or `↓`) brings up the popover.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(13, 45, 0, 0);
+  return (
+    <TimeInput
+      label="24-hour"
+      hourFormat="24"
+      defaultValue={v}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -179,6 +244,24 @@ This example forces `mobileNative={false}` so the seconds wheel shows on every d
 **Android Chrome** renders a seconds spinner in its native time picker when `step < 60` (which our component sets when `enableSeconds` is true). **iOS Safari** has no seconds wheel under any circumstances — Apple's native picker UI is hard-locked to hour/minute spinners regardless of `step`. The input value can carry seconds entered programmatically, but iOS users can't pick them in the wheel. If you need a seconds wheel on iOS, pass `mobileNative={false}` to force the custom wheel popover. See [Mobile Native](#mobile-native) below for the full iOS-vs-Android picker support matrix.
 :::
 
+**Typing-first** — the same example plus `openOnFocus={false}`: type across the hours / minutes / seconds segments, and open the popover with the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(10, 20, 30, 0);
+  return (
+    <TimeInput
+      label="Tab through hours / minutes / seconds"
+      enableSeconds
+      defaultValue={v}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Increment Steps
@@ -203,6 +286,24 @@ function example() {
 :::note Forced to the custom wheel
 iOS Safari shows every minute regardless of `step`. This example forces `mobileNative={false}` so the 15-minute stepping is enforced on every device.
 :::
+
+**Typing-first** — the same example with `openOnFocus={false}`: increments only step the wheels, not typing — typed values are free-grained — so open the stepped wheels with the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(9, 30, 0, 0);
+  return (
+    <TimeInput
+      label="15-minute wheels — typing is free-grained"
+      incrementMinutes={15}
+      defaultValue={v}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -234,6 +335,27 @@ function example() {
 On iOS Safari the picker UI lets the user spin to any time; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
+**Typing-first** — the same bounds with `openOnFocus={false}`: typed entry is clamped to the window just like the wheels; open the popover with the launcher icon (or `↓`).
+
+```tsx live
+function example() {
+  const at = (h, m) => {
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  };
+  return (
+    <TimeInput
+      label="Typed entry clamped to 09:00 – 17:00"
+      min={at(9, 0)}
+      max={at(17, 0)}
+      defaultValue={at(12, 0)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Unselectable Times
@@ -259,6 +381,24 @@ function example() {
 HTML has no predicate equivalent, so the OS-native pickers can't block any times. This example forces `mobileNative={false}` so the rule works on touch devices; in your app keep `mobileNative="auto"` and also validate in `onChange`.
 :::
 
+**Typing-first** — the same predicate with `openOnFocus={false}`: typing or arrowing into a blocked time is rejected just like in the wheels, and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(11, 30, 0, 0);
+  return (
+    <TimeInput
+      label="Lunch hour rejected while typing"
+      unselectableTimes={d => d.getHours() === 12}
+      defaultValue={v}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Manual Keyboard Entry
@@ -282,48 +422,6 @@ function example() {
   return (
     <TimeInput
       label="Click in, then use arrow keys"
-      defaultValue={v}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### With AM/PM
-
-Move to the meridiem segment with `→` (or click it). Press `a` to set AM, `p` to set PM — the segment auto-advances afterward.
-
-```tsx live
-function example() {
-  const v = new Date();
-  v.setHours(13, 45, 0, 0);
-  return (
-    <TimeInput
-      label="Press a / A / p / P on AM-PM"
-      hourFormat="12"
-      defaultValue={v}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### With Seconds
-
-Three editable segments (hours, minutes, seconds). `→` cycles through them in order.
-
-```tsx live
-function example() {
-  const v = new Date();
-  v.setHours(10, 20, 30, 0);
-  return (
-    <TimeInput
-      label="Tab through hours / minutes / seconds"
-      enableSeconds
       defaultValue={v}
       openOnFocus={false}
     />
@@ -423,52 +521,6 @@ function example() {
 
 ---
 
-#### Min and max while typing
-
-With `min`/`max` set, keystrokes and `↑` / `↓` arrows that would land outside the window are rejected — the value never leaves the bounds, matching the wheel popover.
-
-```tsx live
-function example() {
-  const at = (h, m) => {
-    const d = new Date();
-    d.setHours(h, m, 0, 0);
-    return d;
-  };
-  return (
-    <TimeInput
-      label="Typed entry clamped to 09:00 – 17:00"
-      min={at(9, 0)}
-      max={at(17, 0)}
-      defaultValue={at(12, 0)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Unselectable times while typing
-
-Typing or arrowing into a blocked time is rejected — the `unselectableTimes` predicate vetoes the candidate, the same way the wheels skip it.
-
-```tsx live
-function example() {
-  const v = new Date();
-  v.setHours(11, 30, 0, 0);
-  return (
-    <TimeInput
-      label="Lunch hour rejected while typing"
-      unselectableTimes={d => d.getHours() === 12}
-      defaultValue={v}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
 ### Haptic-feel Feedback (audio tick + band pulse)
 
 The custom-wheel popover fires three kinds of feedback per item crossing to make the picker feel tactile across platforms:
@@ -492,6 +544,24 @@ function example() {
 }
 ```
 
+**Typing-first** — the same example with `openOnFocus={false}`: typing stays silent — the audio thunk and band pulse fire once you open the wheels via the launcher icon (or `↓`) and scroll them.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(9, 30, 0, 0);
+  return (
+    <TimeInput
+      label="Audio thunk + band pulse"
+      audioTick
+      mobileNative={false}
+      defaultValue={v}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 For a single switch that picks the right feedback per platform automatically — vibrate on Android, audio thunk on iOS — use `haptics` instead of `audioTick`:
 
 ```tsx live
@@ -504,6 +574,24 @@ function example() {
       haptics
       mobileNative={false}
       defaultValue={v}
+    />
+  );
+}
+```
+
+**Typing-first** — the same auto-routed feedback with `openOnFocus={false}`: the vibrate/thunk fires when you open the wheels with the launcher icon (or `↓`) and scroll them, not while typing.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(9, 30, 0, 0);
+  return (
+    <TimeInput
+      label="Auto-routed haptics"
+      haptics
+      mobileNative={false}
+      defaultValue={v}
+      openOnFocus={false}
     />
   );
 }
@@ -600,6 +688,48 @@ function example() {
 }
 ```
 
+**Typing-first** — the same token formats with `openOnFocus={false}` on every instance: type into the segments each format defines; the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(13, 45, 30, 0);
+  return (
+    <Block display="flex" flexDirection="column" gap="4">
+      <TimeInput
+        label="HH:mm (24h, default)"
+        defaultValue={v}
+        openOnFocus={false}
+      />
+      <TimeInput
+        label="hh:mm A (12h)"
+        format="hh:mm A"
+        defaultValue={v}
+        openOnFocus={false}
+      />
+      <TimeInput
+        label="hh:mm a (lowercase)"
+        format="hh:mm a"
+        defaultValue={v}
+        openOnFocus={false}
+      />
+      <TimeInput
+        label="HH:mm:ss"
+        format="HH:mm:ss"
+        defaultValue={v}
+        openOnFocus={false}
+      />
+      <TimeInput
+        label="hh:mm:ss A"
+        format="hh:mm:ss A"
+        defaultValue={v}
+        openOnFocus={false}
+      />
+    </Block>
+  );
+}
+```
+
 Padded token formats support segmented typing; the meridiem (`A`/`a`) and seconds (`ss`) segments appear when the format includes them. Token formats render the same regardless of `locale`; pass an `Intl.DateTimeFormatOptions` object for locale-aware output (display-only unless you add a custom `parse`).
 
 ```tsx live
@@ -638,6 +768,25 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
+**Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `↓`) the way into the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <TimeInput label="Default (left icon + right launcher)" openOnFocus={false} />
+  <TimeInput
+    label="Custom launcher glyph"
+    triggerIconName="hourglass"
+    openOnFocus={false}
+  />
+  <TimeInput
+    label="No launcher (press ↓ to open)"
+    triggerIcon={false}
+    openOnFocus={false}
+  />
+  <TimeInput label="Left icon hidden" iconLeftName="" openOnFocus={false} />
+</Block>
+```
+
 ---
 
 ### Sizes
@@ -648,6 +797,32 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
   <TimeInput label="Default" />
   <TimeInput label="Medium" controlSize="medium" size="medium" />
   <TimeInput label="Large" controlSize="large" size="large" />
+</Block>
+```
+
+**Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <TimeInput
+    label="Small"
+    controlSize="small"
+    size="small"
+    openOnFocus={false}
+  />
+  <TimeInput label="Default" openOnFocus={false} />
+  <TimeInput
+    label="Medium"
+    controlSize="medium"
+    size="medium"
+    openOnFocus={false}
+  />
+  <TimeInput
+    label="Large"
+    controlSize="large"
+    size="large"
+    openOnFocus={false}
+  />
 </Block>
 ```
 
@@ -662,6 +837,18 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
   <TimeInput label="Success" color="success" />
   <TimeInput label="Warning" color="warning" />
   <TimeInput label="Danger" color="danger" />
+</Block>
+```
+
+**Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `↓`) to open the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <TimeInput label="Primary" color="primary" openOnFocus={false} />
+  <TimeInput label="Info" color="info" openOnFocus={false} />
+  <TimeInput label="Success" color="success" openOnFocus={false} />
+  <TimeInput label="Warning" color="warning" openOnFocus={false} />
+  <TimeInput label="Danger" color="danger" openOnFocus={false} />
 </Block>
 ```
 

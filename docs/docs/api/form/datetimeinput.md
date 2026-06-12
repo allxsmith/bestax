@@ -61,6 +61,16 @@ The popover opens to the calendar with an iOS-style footer — the selected time
 <DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+
+```tsx live
+<DateTimeInput
+  label="Appointment"
+  placeholder="YYYY-MM-DD HH:MM"
+  openOnFocus={false}
+/>
+```
+
 ---
 
 ### Controlled
@@ -71,6 +81,25 @@ function example() {
   return (
     <Block>
       <DateTimeInput label="Meeting" value={v} onChange={setV} />
+      <Paragraph mt="2">Selected: {v ? v.toString() : '—'}</Paragraph>
+    </Block>
+  );
+}
+```
+
+**Typing-first** — the same controlled example with `openOnFocus={false}` added: click in and type freely, and reach for the launcher icon (or `↓`) when you want the popover.
+
+```tsx live
+function example() {
+  const [v, setV] = useState(new Date());
+  return (
+    <Block>
+      <DateTimeInput
+        label="Meeting"
+        value={v}
+        onChange={setV}
+        openOnFocus={false}
+      />
       <Paragraph mt="2">Selected: {v ? v.toString() : '—'}</Paragraph>
     </Block>
   );
@@ -94,6 +123,22 @@ function example() {
 The OS-native pickers use the device clock setting, so `hourFormat` is ignored there. This example forces `mobileNative={false}` so the 12-hour format shows on touch devices too.
 :::
 
+**Typing-first** — the same 12-hour field with `openOnFocus={false}`: type across the segments (press `a` / `p` on the trailing meridiem) and open the popover with the launcher icon or `↓`.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="12-hour entry"
+      hourFormat="12"
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### With Seconds
@@ -111,6 +156,22 @@ The OS-native pickers use the device clock setting, so `hourFormat` is ignored t
 This example forces `mobileNative={false}` so the seconds wheel shows on every device.
 **Android Chrome** generally renders a seconds component in its native datetime-local picker when `step < 60` (with [some long-standing quirks](https://bugs.chromium.org/p/chromium/issues/detail?id=461718) — exact seconds-spinner behavior varies by Android version). **iOS Safari** has no seconds wheel under any circumstances. If you need a guaranteed seconds wheel, pass `mobileNative={false}` to force the custom wheel popover. See [Mobile Native](#mobile-native) below for the full iOS-vs-Android picker support matrix.
 :::
+
+**Typing-first** — the same seconds-enabled field with `openOnFocus={false}`: the typed walk gains a seconds segment (year → month → day → hours → minutes → seconds), and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="With a seconds segment"
+      enableSeconds
+      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -131,6 +192,23 @@ Combine `hourFormat="12"` with `enableSeconds` for an `hh:mm:ss A` field — the
 :::note Forced to the custom popover
 The OS-native pickers honor neither half: `hourFormat` follows the device clock setting, and iOS Safari has no seconds wheel at all. This example forces `mobileNative={false}` so the 12-hour seconds wheel shows on every device.
 :::
+
+**Typing-first** — the full segment set with `openOnFocus={false}`: type through date, `hh`, `mm`, `ss`, toggle the trailing meridiem with `a` / `p`, and open the popover via the launcher icon or `↓`.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="12-hour with seconds and AM/PM"
+      hourFormat="12"
+      enableSeconds
+      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -171,6 +249,22 @@ The `format` prop takes a token string or `Intl.DateTimeFormatOptions` spanning 
 `format` is ignored by the OS-native pickers (they use the device locale), so these examples set `mobileNative={false}` to show the formats on touch devices too.
 :::
 
+**Typing-first** — a custom `DD.MM.YYYY HH:mm` format with `openOnFocus={false}`: segments follow the format order (day first) and typing `.`, space, or `:` jumps the separators — so `25.12.2026 09:30` flows straight through — with the launcher icon (or `↓`) opening the popover.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="DD.MM.YYYY HH:mm with dot separators"
+      format="DD.MM.YYYY HH:mm"
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Launcher Icon
@@ -186,6 +280,28 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
   />
   <DateTimeInput label="No launcher" triggerIcon={false} />
   <DateTimeInput label="Left icon hidden" iconLeftName="" />
+</Block>
+```
+
+**Typing-first** — the same group with `openOnFocus={false}` on every instance, so clicking a field just lets you type and the launcher icon opens the popover; note the `triggerIcon={false}` instance has no launcher, leaving its popover keyboard-only via `↓`.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateTimeInput
+    label="Default (left icon + right launcher)"
+    openOnFocus={false}
+  />
+  <DateTimeInput
+    label="Custom launcher glyph"
+    triggerIconName="calendar-check"
+    openOnFocus={false}
+  />
+  <DateTimeInput
+    label="No launcher (popover via ↓ only)"
+    triggerIcon={false}
+    openOnFocus={false}
+  />
+  <DateTimeInput label="Left icon hidden" iconLeftName="" openOnFocus={false} />
 </Block>
 ```
 
@@ -210,6 +326,29 @@ function example() {
 On iOS Safari the picker UI lets the user pick any value; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
+**Typing-first** — the same bounds with `openOnFocus={false}`: keystrokes and `↑` / `↓` arrows never produce a value outside `min`/`max`, and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  const now = new Date();
+  const min = new Date(now);
+  min.setHours(9, 0, 0, 0);
+  const max = new Date(now);
+  max.setHours(17, 0, 0, 0);
+  const noon = new Date(now);
+  noon.setHours(12, 0, 0, 0);
+  return (
+    <DateTimeInput
+      label="Office hours today only — typed entry too"
+      min={min}
+      max={max}
+      defaultValue={noon}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
 ---
 
 ### Disabled Dates
@@ -227,6 +366,22 @@ Blocked dates are disabled in the calendar and rejected during manual typing, th
 :::note Forced to the custom popover
 HTML has no predicate equivalent, so the OS-native pickers can't block any dates. This example forces `mobileNative={false}` so the rule works on touch devices; in your app keep `mobileNative="auto"` and also validate in `onChange`.
 :::
+
+**Typing-first** — the same predicate with `openOnFocus={false}`: a keystroke or arrow that lands on a blocked date is rejected (matching the disabled calendar cells), and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="Weekends rejected while typing"
+      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -246,6 +401,22 @@ Blocked times are skipped by the wheels and rejected during manual typing.
 :::note Forced to the custom popover
 Same as Disabled Dates — the OS-native pickers can't evaluate predicates. This example forces `mobileNative={false}` so the blocked hour works on touch devices too.
 :::
+
+**Typing-first** — the same blocked hour with `openOnFocus={false}`: setting the hour segment to a blocked hour is vetoed by the `unselectableTimes` predicate (just as the wheels skip it), and the launcher icon (or `↓`) opens the popover.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="Lunch hour rejected while typing"
+      unselectableTimes={d => d.getHours() === 12}
+      defaultValue={new Date(2024, 5, 7, 11, 30)}
+      mobileNative={false}
+      openOnFocus={false}
+    />
+  );
+}
+```
 
 ---
 
@@ -271,6 +442,18 @@ Same as Disabled Dates — the OS-native pickers can't evaluate predicates. This
 :::note Forced to the custom popover
 The OS-native calendars use the device locale for the week start, so `firstDayOfWeek` is ignored there. This example forces `mobileNative={false}` so the Monday-first grid shows on touch devices too.
 :::
+
+**Typing-first** — the same Monday-first example with `openOnFocus={false}`: type in the field directly and bring up the popover with the launcher icon (or `↓`) to see the week start.
+
+```tsx live
+<DateTimeInput
+  label="Monday-first"
+  firstDayOfWeek={1}
+  defaultValue={new Date()}
+  mobileNative={false}
+  openOnFocus={false}
+/>
+```
 
 ---
 
@@ -327,6 +510,27 @@ If any of these matter, pass `mobileNative={false}` to force the custom popover 
 The OS-native pickers always use the device's system locale, so these examples set `mobileNative={false}` to show the per-input `locale` on touch devices too.
 :::
 
+**Typing-first** — the same locales with `openOnFocus={false}` on each instance: focus to type the localized value, and use the launcher icon (or `↓`) to open the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateTimeInput
+    label="ja-JP"
+    locale="ja-JP"
+    defaultValue={new Date()}
+    mobileNative={false}
+    openOnFocus={false}
+  />
+  <DateTimeInput
+    label="fr-FR"
+    locale="fr-FR"
+    defaultValue={new Date()}
+    mobileNative={false}
+    openOnFocus={false}
+  />
+</Block>
+```
+
 ---
 
 ### Sizes
@@ -337,6 +541,32 @@ The OS-native pickers always use the device's system locale, so these examples s
   <DateTimeInput label="Default" />
   <DateTimeInput label="Medium" controlSize="medium" size="medium" />
   <DateTimeInput label="Large" controlSize="large" size="large" />
+</Block>
+```
+
+**Typing-first** — every size with `openOnFocus={false}`: clicking any field lets you type straight away, with the launcher icon (or `↓`) opening the popover.
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateTimeInput
+    label="Small"
+    controlSize="small"
+    size="small"
+    openOnFocus={false}
+  />
+  <DateTimeInput label="Default" openOnFocus={false} />
+  <DateTimeInput
+    label="Medium"
+    controlSize="medium"
+    size="medium"
+    openOnFocus={false}
+  />
+  <DateTimeInput
+    label="Large"
+    controlSize="large"
+    size="large"
+    openOnFocus={false}
+  />
 </Block>
 ```
 
@@ -351,6 +581,18 @@ The OS-native pickers always use the device's system locale, so these examples s
   <DateTimeInput label="Success" color="success" />
   <DateTimeInput label="Warning" color="warning" />
   <DateTimeInput label="Danger" color="danger" />
+</Block>
+```
+
+**Typing-first** — the same colors with `openOnFocus={false}` on every instance: type directly in any field and open the popover with the launcher icon (or `↓`).
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="4">
+  <DateTimeInput label="Primary" color="primary" openOnFocus={false} />
+  <DateTimeInput label="Info" color="info" openOnFocus={false} />
+  <DateTimeInput label="Success" color="success" openOnFocus={false} />
+  <DateTimeInput label="Warning" color="warning" openOnFocus={false} />
+  <DateTimeInput label="Danger" color="danger" openOnFocus={false} />
 </Block>
 ```
 
@@ -442,25 +684,6 @@ function example() {
 
 ---
 
-#### 12-hour with AM/PM
-
-Move to the trailing meridiem segment and press `a` / `p`.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="12-hour entry"
-      hourFormat="12"
-      defaultValue={new Date(2024, 5, 7, 13, 45)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
 #### Controlled with live value
 
 ```tsx live
@@ -482,64 +705,6 @@ function example() {
 
 ---
 
-#### Custom Format
-
-Segments follow the format order — day first here. Typing `.`, space, or `:` jumps to the next segment, so `25.12.2026 09:30` flows straight through.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="DD.MM.YYYY HH:mm with dot separators"
-      format="DD.MM.YYYY HH:mm"
-      defaultValue={new Date(2024, 5, 7, 13, 45)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### With seconds
-
-With `enableSeconds` the walk gains a seconds segment: year → month → day → hours → minutes → seconds.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="With a seconds segment"
-      enableSeconds
-      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### 12-hour with seconds
-
-The full segment set — date, `hh`, `mm`, `ss`, and a trailing meridiem. Move to the AM/PM segment and press `a` / `p` to toggle it.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="12-hour with seconds and AM/PM"
-      hourFormat="12"
-      enableSeconds
-      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
 #### Free-form fallback
 
 An `Intl.DateTimeFormatOptions` format has no segment map, so entry is free-form — focusing does not highlight a segment and the text parses on Enter or blur instead.
@@ -551,71 +716,6 @@ function example() {
       label="Free-form (Intl format)"
       format={{ dateStyle: 'medium', timeStyle: 'short' }}
       defaultValue={new Date(2024, 5, 7, 13, 45)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Min and max while typing
-
-Typed values outside the `min`/`max` range are rejected — keystrokes and `↑` / `↓` arrows never produce a value outside the bounds.
-
-```tsx live
-function example() {
-  const now = new Date();
-  const min = new Date(now);
-  min.setHours(9, 0, 0, 0);
-  const max = new Date(now);
-  max.setHours(17, 0, 0, 0);
-  const noon = new Date(now);
-  noon.setHours(12, 0, 0, 0);
-  return (
-    <DateTimeInput
-      label="Office hours today only — typed entry too"
-      min={min}
-      max={max}
-      defaultValue={noon}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Disabled dates while typing
-
-Blocked days can't be typed in either — a keystroke or arrow that lands on a blocked date is rejected, matching the disabled cells in the calendar.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="Weekends rejected while typing"
-      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
-      defaultValue={new Date(2024, 5, 7, 13, 45)}
-      openOnFocus={false}
-    />
-  );
-}
-```
-
----
-
-#### Unselectable times while typing
-
-Blocked times are rejected when typed — setting the hour segment to a blocked hour is vetoed by the `unselectableTimes` predicate, just as the wheels skip it.
-
-```tsx live
-function example() {
-  return (
-    <DateTimeInput
-      label="Lunch hour rejected while typing"
-      unselectableTimes={d => d.getHours() === 12}
-      defaultValue={new Date(2024, 5, 7, 11, 30)}
       openOnFocus={false}
     />
   );
