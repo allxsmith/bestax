@@ -325,7 +325,7 @@ A list item (`<li>`) wrapper for use inside UnorderedList or OrderedList. [View 
 
 ### Table
 
-A highly composable, Bulma-styled table system with full support for Bulma's table features. [View full documentation.](../../../api/elements/table.md)
+A highly composable, Bulma-styled table system with full support for Bulma's table features. Compose it with the `Thead`, `Tbody`, `Tfoot`, `Tr`, `Th`, and `Td` sub-components, all covered on the Table page. [View full documentation.](../../../api/elements/table.md)
 
 ```tsx live
 <Table>

@@ -93,7 +93,7 @@ Now that you have bestax-bulma running:
 
 → [Browse all components](/docs/category/elements)
 
-- 60+ React components
+- 80+ React components
 - Full Bulma v1 support
 - Live examples and API docs
 
@@ -113,11 +113,11 @@ Structure your app with [Container](/docs/api/layout/container), [Section](/docs
 
 ### 🟧 [Components](/docs/category/components)
 
-Advanced UI components like [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Card](/docs/api/components/card), and [Dropdown](/docs/api/components/dropdown).
+Advanced UI components like [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Carousel](/docs/api/components/carousel), and [Dialog](/docs/api/components/dialog).
 
 ### 🟪 [Form](/docs/category/form)
 
-Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Checkbox](/docs/api/form/checkbox), and [Field](/docs/api/form/field).
+Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Autocomplete](/docs/api/form/autocomplete), and [Datepicker](/docs/api/form/datepicker).
 
 ### 🟩 [Grid & Columns](/docs/category/grid)
 

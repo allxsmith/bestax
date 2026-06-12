@@ -50,6 +50,10 @@ A Bulma-styled multi-line text input. Supports color, size, rounded, static/read
 
 [View full documentation.](../../api/form/textarea)
 
+:::tip Escape hatch
+For complex layouts, use `TextAreaBase` with an explicit `Field` + `Control` wrapper.
+:::
+
 ---
 
 ### Autocomplete
@@ -156,6 +160,10 @@ A Bulma-styled dropdown for single or multiple selections. Supports color, size,
 ```
 
 [View full documentation.](../../api/form/select)
+
+:::tip Escape hatch
+For complex layouts, use `SelectBase` with an explicit `Field` + `Control` wrapper.
+:::
 
 ---
 
@@ -266,6 +274,71 @@ function RateExample() {
 ```
 
 [View full documentation.](../../api/form/rate)
+
+---
+
+## Date & Time
+
+### Datepicker
+
+A date input that opens a popover calendar, with segmented keyboard entry directly in the field. Built on native `Date` and `Intl` only — supports min/max bounds, disabled-date predicates, custom formats, locales, an inline mode, and a native fallback on touch devices.
+
+```tsx live
+function DatepickerExample() {
+  const [date, setDate] = React.useState(null);
+  return (
+    <div>
+      <Datepicker
+        label="Date"
+        placeholder="YYYY-MM-DD"
+        value={date}
+        onChange={setDate}
+      />
+      <p className="mt-2">Selected: {date ? date.toDateString() : '—'}</p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/datepicker)
+
+---
+
+### Timepicker
+
+A time-of-day input that opens a popover wheel spinner, with segmented keyboard entry directly in the field. Supports 12/24-hour formats, optional seconds, custom increments, min/max bounds, and a native fallback on touch devices.
+
+```tsx live
+function TimepickerExample() {
+  const [time, setTime] = React.useState(null);
+  return (
+    <div>
+      <Timepicker
+        label="Time"
+        placeholder="HH:MM AM"
+        hourFormat="12"
+        value={time}
+        onChange={setTime}
+      />
+      <p className="mt-2">Selected: {time ? time.toLocaleTimeString() : '—'}</p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/timepicker)
+
+---
+
+### Datetimepicker
+
+Combines the calendar and time wheels in a single popover with an iOS-style footer — the selected time, a Reset button, and a ✓ confirm button. Click the time to float the wheel spinner over the calendar. Supports the full prop surface of both `Datepicker` and `Timepicker`.
+
+```tsx live
+<Datetimepicker label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
+```
+
+[View full documentation.](../../api/form/datetimepicker)
 
 ---
 

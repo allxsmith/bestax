@@ -35,6 +35,11 @@ const categories = [
         desc: 'A container for grouping buttons.',
       },
       {
+        name: 'Code',
+        link: '/docs/api/elements/code',
+        desc: 'Inline code wrapper for short code snippets.',
+      },
+      {
         name: 'Content',
         link: '/docs/api/elements/content',
         desc: 'Container for html content, great for content from services and editors.',
@@ -45,9 +50,29 @@ const categories = [
         desc: 'Signify delete or close. Useful in tons of situations.',
       },
       {
+        name: 'Divider',
+        link: '/docs/api/elements/divider',
+        desc: 'A horizontal rule for visually separating content sections.',
+      },
+      {
+        name: 'Emphasis',
+        link: '/docs/api/elements/emphasis',
+        desc: 'Semantically emphasized italic text.',
+      },
+      {
+        name: 'Figure',
+        link: '/docs/api/elements/figure',
+        desc: 'Figure wrapper for grouping content with an optional caption.',
+      },
+      {
         name: 'Icon',
         link: '/docs/api/elements/icon',
         desc: 'Standardized icon wrapper for Bulma/Font Awesome.',
+      },
+      {
+        name: 'IconText',
+        link: '/docs/api/elements/icontext',
+        desc: 'Icons and text together, ideal for icon-and-label patterns.',
       },
       {
         name: 'Image',
@@ -55,9 +80,39 @@ const categories = [
         desc: 'Container for images, fixed and responsive.',
       },
       {
+        name: 'Link',
+        link: '/docs/api/elements/link',
+        desc: 'Styled anchor for navigation links with Bulma helper support.',
+      },
+      {
+        name: 'LinkButton',
+        link: '/docs/api/elements/linkbutton',
+        desc: 'A button that looks like text or a link.',
+      },
+      {
+        name: 'ListItem',
+        link: '/docs/api/elements/listitem',
+        desc: 'List item for use inside UnorderedList or OrderedList.',
+      },
+      {
         name: 'Notification',
         link: '/docs/api/elements/notification',
         desc: 'A colored block to notify.',
+      },
+      {
+        name: 'OrderedList',
+        link: '/docs/api/elements/orderedlist',
+        desc: 'Ordered list supporting numbering types and Bulma helpers.',
+      },
+      {
+        name: 'Paragraph',
+        link: '/docs/api/elements/paragraph',
+        desc: 'Paragraph wrapper with typography and spacing helpers.',
+      },
+      {
+        name: 'Pre',
+        link: '/docs/api/elements/pre',
+        desc: 'Preformatted text wrapper for code blocks.',
       },
       {
         name: 'Progress',
@@ -68,6 +123,16 @@ const categories = [
         name: 'Skeleton',
         link: '/docs/api/elements/skeleton',
         desc: 'Bulma-styled skeleton loader for indicating loading state.',
+      },
+      {
+        name: 'Span',
+        link: '/docs/api/elements/span',
+        desc: 'Inline wrapper for styling text without semantic meaning.',
+      },
+      {
+        name: 'Strong',
+        link: '/docs/api/elements/strong',
+        desc: 'Semantically important bold text.',
       },
       {
         name: 'Table',
@@ -94,6 +159,11 @@ const categories = [
         link: '/docs/api/elements/subtitle',
         desc: 'A styled SubTitle, goes well under a Title.',
       },
+      {
+        name: 'UnorderedList',
+        link: '/docs/api/elements/unorderedlist',
+        desc: 'Unordered list with Bulma helper support.',
+      },
     ],
   },
   {
@@ -112,9 +182,29 @@ const categories = [
         desc: 'Content card with header, image, content, and footer.',
       },
       {
+        name: 'Carousel',
+        link: '/docs/api/components/carousel',
+        desc: 'Image/content slider with arrows, indicators, and auto-play.',
+      },
+      {
+        name: 'Collapse',
+        link: '/docs/api/components/collapse',
+        desc: 'Expandable/collapsible content panels with smooth animation.',
+      },
+      {
+        name: 'Dialog',
+        link: '/docs/api/components/dialog',
+        desc: 'Confirmation and alert dialogs with customizable actions.',
+      },
+      {
         name: 'Dropdown',
         link: '/docs/api/components/dropdown',
         desc: 'A dropdown menu, kinda like select, but not a select.',
+      },
+      {
+        name: 'Loading',
+        link: '/docs/api/components/loading',
+        desc: 'Full-page or container loading overlay with spinner.',
       },
       {
         name: 'Menu',
@@ -147,9 +237,29 @@ const categories = [
         desc: 'Sidebar menu/panel with subcomponents (tabs, blocks, icons).',
       },
       {
+        name: 'Sidebar',
+        link: '/docs/api/components/sidebar',
+        desc: 'Slide-out navigation panel from left or right.',
+      },
+      {
+        name: 'Steps',
+        link: '/docs/api/components/steps',
+        desc: 'Multi-step progress indicator for wizard flows.',
+      },
+      {
         name: 'Tabs/Tab',
         link: '/docs/api/components/tabs',
         desc: 'Tab navigation with tab list and tab item.',
+      },
+      {
+        name: 'Toast',
+        link: '/docs/api/components/toast',
+        desc: 'Brief notifications with positions, colors, and a programmatic API.',
+      },
+      {
+        name: 'Tooltip',
+        link: '/docs/api/components/tooltip',
+        desc: 'Hover tooltips with multiple positions and colors.',
       },
     ],
   },
@@ -174,9 +284,59 @@ const categories = [
         desc: 'Styled input field.',
       },
       {
+        name: 'TextArea',
+        link: '/docs/api/form/textarea',
+        desc: 'Styled textarea field.',
+      },
+      {
+        name: 'Autocomplete',
+        link: '/docs/api/form/autocomplete',
+        desc: 'Input with dropdown suggestions and keyboard navigation.',
+      },
+      {
         name: 'Select',
         link: '/docs/api/form/select',
         desc: 'Styled select dropdown.',
+      },
+      {
+        name: 'Switch',
+        link: '/docs/api/form/switch',
+        desc: 'Toggle switch for on/off settings.',
+      },
+      {
+        name: 'Numberinput',
+        link: '/docs/api/form/numberinput',
+        desc: 'Number input with increment/decrement buttons.',
+      },
+      {
+        name: 'Slider',
+        link: '/docs/api/form/slider',
+        desc: 'Range slider for selecting values.',
+      },
+      {
+        name: 'Rate',
+        link: '/docs/api/form/rate',
+        desc: 'Star/icon-based rating input.',
+      },
+      {
+        name: 'Taginput',
+        link: '/docs/api/form/taginput',
+        desc: 'Tag/chip input with autocomplete suggestions.',
+      },
+      {
+        name: 'Datepicker',
+        link: '/docs/api/form/datepicker',
+        desc: 'Date input with a popover calendar.',
+      },
+      {
+        name: 'Timepicker',
+        link: '/docs/api/form/timepicker',
+        desc: 'Time input with a popover wheel spinner.',
+      },
+      {
+        name: 'Datetimepicker',
+        link: '/docs/api/form/datetimepicker',
+        desc: 'Combined calendar and time wheel in one popover.',
       },
       { name: 'File', link: '/docs/api/form/file', desc: 'File input.' },
       {
@@ -188,11 +348,6 @@ const categories = [
         name: 'Checkbox & Checkboxes',
         link: '/docs/api/form/checkbox',
         desc: 'Checkbox and grouped checkboxes.',
-      },
-      {
-        name: 'TextArea',
-        link: '/docs/api/form/textarea',
-        desc: 'Styled textarea field.',
       },
     ],
   },
@@ -263,6 +418,16 @@ const categories = [
         name: 'classNames',
         link: '/docs/api/helpers/classnames',
         desc: 'Our internal class name generator.',
+      },
+      {
+        name: 'ConfigProvider',
+        link: '/docs/api/helpers/config',
+        desc: 'Global configuration context, including Bulma class prefixing.',
+      },
+      {
+        name: 'Theme',
+        link: '/docs/api/helpers/theme',
+        desc: 'Customize Bulma design tokens with CSS variables, globally or locally.',
       },
       {
         name: 'useBulmaClasses',
