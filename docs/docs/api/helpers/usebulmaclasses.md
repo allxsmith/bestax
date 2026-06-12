@@ -58,8 +58,18 @@ Here is a small custom component that only needs color and spacing helpers:
 
 ```tsx live
 function example() {
-  function PriceTag({ color, colorShade, m, children }) {
-    const colorClasses = useColorClasses({ color, colorShade });
+  function PriceTag({
+    color,
+    backgroundColor,
+    backgroundColorShade,
+    m,
+    children,
+  }) {
+    const colorClasses = useColorClasses({
+      color,
+      backgroundColor,
+      backgroundColorShade,
+    });
     const spacingClasses = useSpacingClasses({ m });
     return (
       <span className={classNames('tag', colorClasses, spacingClasses)}>
@@ -70,10 +80,15 @@ function example() {
 
   return (
     <div>
-      <PriceTag color="success" m="2">
+      <PriceTag color="white" backgroundColor="success" m="2">
         $19.99
       </PriceTag>
-      <PriceTag color="danger" colorShade="dark" m="2">
+      <PriceTag
+        color="white"
+        backgroundColor="danger"
+        backgroundColorShade="dark"
+        m="2"
+      >
         $49.99
       </PriceTag>
     </div>
@@ -487,6 +502,10 @@ Example with flex items:
 
 ### Using with Components
 
+:::note These are illustrations, not replacements
+The snippets below rebuild simplified components by hand purely to show how `useBulmaClasses` fits inside one. In a real app, use the library's own [Columns / Column](../columns/columns.md) and [Card](../components/card.md) components — they already wire up `useBulmaClasses` (plus prefixes, modifiers, and more) for you.
+:::
+
 #### Columns
 
 ```tsx live
@@ -545,31 +564,6 @@ function example() {
       {children}
     </div>
   );
-}
-```
-
-#### Dropdown
-
-```tsx live
-function example() {
-  const props = {};
-  const active = true;
-  const right = true;
-  const className = 'custom-dropdown';
-
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const dropdownClasses = classNames(
-    'dropdown',
-    bulmaHelperClasses,
-    {
-      'is-active': active,
-      'is-right': right,
-      // ...
-    },
-    className
-  );
-
-  return <code>{dropdownClasses}</code>;
 }
 ```
 
