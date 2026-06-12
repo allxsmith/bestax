@@ -39,8 +39,8 @@ The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [Time
 | `triggerIconName`   | `string`                                 | `'chevron-down'`     | Glyph for the right launcher button.                                                                                                                          |
 | `mobileNative`      | `boolean \| 'auto'`                      | `'auto'`             | Use `<input type="datetime-local">` on coarse-pointer devices.                                                                                                |
 | `min` / `max`       | `Date`                                   | —                    | Bounds enforced across both date and time.                                                                                                                    |
-| `shouldDisableDate` | `(d: Date) => boolean`                   | —                    | Disable specific dates.                                                                                                                                       |
-| `unselectableTimes` | `(d: Date) => boolean`                   | —                    | Block specific times.                                                                                                                                         |
+| `shouldDisableDate` | `(d: Date) => boolean`                   | —                    | Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). |
+| `unselectableTimes` | `(d: Date) => boolean`                   | —                    | Block specific times. Blocked times are also rejected during manual typing.                                                                                   |
 | `firstDayOfWeek`    | `0..6`                                   | `0`                  | Calendar week start.                                                                                                                                          |
 | `hourFormat`        | `'12' \| '24'`                           | `'24'`               | Time format.                                                                                                                                                  |
 | `enableSeconds`     | `boolean`                                | `false`              | Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. |
@@ -214,6 +214,8 @@ On iOS Safari the picker UI lets the user pick any value; `min`/`max` only fire 
 
 ### Disabled Dates
 
+Blocked dates are disabled in the calendar and rejected during manual typing, the same way `min`/`max` are enforced.
+
 ```tsx live
 <DateTimeInput
   label="No weekend appointments"
@@ -229,6 +231,8 @@ HTML has no predicate equivalent, so the OS-native pickers can't block any dates
 ---
 
 ### Unselectable Times
+
+Blocked times are skipped by the wheels and rejected during manual typing.
 
 ```tsx live
 <DateTimeInput
@@ -472,6 +476,148 @@ function example() {
       />
       <Paragraph mt="2">Selected: {v ? v.toString() : '—'}</Paragraph>
     </Block>
+  );
+}
+```
+
+---
+
+#### Custom Format
+
+Segments follow the format order — day first here. Typing `.`, space, or `:` jumps to the next segment, so `25.12.2026 09:30` flows straight through.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="DD.MM.YYYY HH:mm with dot separators"
+      format="DD.MM.YYYY HH:mm"
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### With seconds
+
+With `enableSeconds` the walk gains a seconds segment: year → month → day → hours → minutes → seconds.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="With a seconds segment"
+      enableSeconds
+      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### 12-hour with seconds
+
+The full segment set — date, `hh`, `mm`, `ss`, and a trailing meridiem. Move to the AM/PM segment and press `a` / `p` to toggle it.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="12-hour with seconds and AM/PM"
+      hourFormat="12"
+      enableSeconds
+      defaultValue={new Date(2024, 5, 7, 13, 45, 30)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Free-form fallback
+
+An `Intl.DateTimeFormatOptions` format has no segment map, so entry is free-form — focusing does not highlight a segment and the text parses on Enter or blur instead.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="Free-form (Intl format)"
+      format={{ dateStyle: 'medium', timeStyle: 'short' }}
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Min and max while typing
+
+Typed values outside the `min`/`max` range are rejected — keystrokes and `↑` / `↓` arrows never produce a value outside the bounds.
+
+```tsx live
+function example() {
+  const now = new Date();
+  const min = new Date(now);
+  min.setHours(9, 0, 0, 0);
+  const max = new Date(now);
+  max.setHours(17, 0, 0, 0);
+  const noon = new Date(now);
+  noon.setHours(12, 0, 0, 0);
+  return (
+    <DateTimeInput
+      label="Office hours today only — typed entry too"
+      min={min}
+      max={max}
+      defaultValue={noon}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Disabled dates while typing
+
+Blocked days can't be typed in either — a keystroke or arrow that lands on a blocked date is rejected, matching the disabled cells in the calendar.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="Weekends rejected while typing"
+      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
+      defaultValue={new Date(2024, 5, 7, 13, 45)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Unselectable times while typing
+
+Blocked times are rejected when typed — setting the hour segment to a blocked hour is vetoed by the `unselectableTimes` predicate, just as the wheels skip it.
+
+```tsx live
+function example() {
+  return (
+    <DateTimeInput
+      label="Lunch hour rejected while typing"
+      unselectableTimes={d => d.getHours() === 12}
+      defaultValue={new Date(2024, 5, 7, 11, 30)}
+      openOnFocus={false}
+    />
   );
 }
 ```

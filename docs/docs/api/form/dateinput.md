@@ -30,8 +30,8 @@ import { DateInput } from '@allxsmith/bestax-bulma';
 | `onClose`           | `() => void`                                                             | —                | Fired when the popover closes.                                                                                                              |
 | `min`               | `Date`                                                                   | —                | Earliest selectable date.                                                                                                                   |
 | `max`               | `Date`                                                                   | —                | Latest selectable date.                                                                                                                     |
-| `shouldDisableDate` | `(d: Date) => boolean`                                                   | —                | Predicate to disable specific dates (e.g. weekends).                                                                                        |
-| `unselectableDates` | `Date[]`                                                                 | —                | Convenience array of disabled dates; merged with `shouldDisableDate`.                                                                       |
+| `shouldDisableDate` | `(d: Date) => boolean`                                                   | —                | Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing.                                  |
+| `unselectableDates` | `Date[]`                                                                 | —                | Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing.       |
 | `firstDayOfWeek`    | `0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6`                                        | `0`              | Day the week starts on (0 = Sunday).                                                                                                        |
 | `dayNames`          | `string[]`                                                               | —                | Override the 7 day-name labels (in calendar order, post-rotation).                                                                          |
 | `monthNames`        | `string[]`                                                               | —                | Override the 12 month-name labels.                                                                                                          |
@@ -141,7 +141,7 @@ On iOS Safari the calendar lets the user pick any date; `min`/`max` only fire at
 
 ### Disabled Dates
 
-Disable specific dates with `shouldDisableDate` (predicate) or `unselectableDates` (array).
+Disable specific dates with `shouldDisableDate` (predicate) or `unselectableDates` (array). Blocked dates are disabled in the calendar and rejected during manual typing, the same way `min`/`max` are enforced.
 
 ```tsx live
 <DateInput
@@ -347,6 +347,48 @@ function example() {
     <DateInput
       label="Free-form (Intl format)"
       format={{ year: 'numeric', month: 'long', day: 'numeric' }}
+      defaultValue={new Date(2024, 5, 7)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Min and max while typing
+
+With `min`/`max` set, every keystroke and `↑` / `↓` arrow is clamped to the bounds — an out-of-range candidate is silently rejected, the same as the calendar disabling it.
+
+```tsx live
+function example() {
+  const now = new Date();
+  const min = new Date(now.getFullYear(), now.getMonth(), 1);
+  const max = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return (
+    <DateInput
+      label="Typing is clamped to this month"
+      min={min}
+      max={max}
+      defaultValue={new Date(now.getFullYear(), now.getMonth(), 15)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Disabled dates while typing
+
+The `shouldDisableDate` predicate (and `unselectableDates`) also vetoes manual entry — typing or arrowing to a blocked date is rejected, and the calendar shows those days disabled.
+
+```tsx live
+function example() {
+  return (
+    <DateInput
+      label="Weekends rejected while typing"
+      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
       defaultValue={new Date(2024, 5, 7)}
       openOnFocus={false}
     />

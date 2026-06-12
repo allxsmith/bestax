@@ -35,7 +35,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 | `incrementHours`    | `number`                                                                 | `1`              | Hour step for the spinner.                                                                                                                                                                                                         |
 | `incrementMinutes`  | `number`                                                                 | `1`              | Minute step. Combine with `min`/`max` for slot-style pickers.                                                                                                                                                                      |
 | `incrementSeconds`  | `number`                                                                 | `1`              | Second step.                                                                                                                                                                                                                       |
-| `unselectableTimes` | `(d: Date) => boolean`                                                   | —                | Predicate returning `true` for times that should be skipped.                                                                                                                                                                       |
+| `unselectableTimes` | `(d: Date) => boolean`                                                   | —                | Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.                                                                                                                 |
 | `placeholder`       | `string`                                                                 | —                | Placeholder text for the input.                                                                                                                                                                                                    |
 | `format`            | `string \| Intl.DateTimeFormatOptions`                                   | (see below)      | Token format string or `Intl.DateTimeFormat` options.                                                                                                                                                                              |
 | `parse`             | `(s: string) => Date \| null`                                            | —                | Custom parser.                                                                                                                                                                                                                     |
@@ -238,7 +238,7 @@ On iOS Safari the picker UI lets the user spin to any time; `min`/`max` only fir
 
 ### Unselectable Times
 
-Skip times that match a predicate. Blocked values render dimmed in the wheel so the constraint is visible, the per-item button gets the `disabled` attribute (so clicks no-op), and keyboard / wheel scrolling automatically advances past them via the `nextValid` lookahead. The disabled state is dynamic — it's evaluated against the _other_ columns' current values, so e.g. a predicate that blocks only `12:00–12:59` leaves all minutes enabled once the user moves the hour off 12.
+Skip times that match a predicate. Blocked values render dimmed in the wheel so the constraint is visible, the per-item button gets the `disabled` attribute (so clicks no-op), and keyboard / wheel scrolling automatically advances past them via the `nextValid` lookahead. The disabled state is dynamic — it's evaluated against the _other_ columns' current values, so e.g. a predicate that blocks only `12:00–12:59` leaves all minutes enabled once the user moves the hour off 12. Manual typing also rejects blocked times, the same way `min`/`max` are enforced.
 
 ```tsx live
 function example() {
@@ -392,6 +392,74 @@ function example() {
     <TimeInput
       label="Free-form (Intl format)"
       format={{ hour: '2-digit', minute: '2-digit' }}
+      defaultValue={v}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### 12-hour with seconds
+
+The full segment walk: `hh` → `mm` → `ss` → AM/PM. `→` / `←` move through all four segments, digits overwrite with auto-advance, and `a` / `p` toggle the meridiem.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(13, 45, 30, 0);
+  return (
+    <TimeInput
+      label="hh:mm:ss + AM/PM"
+      hourFormat="12"
+      enableSeconds
+      defaultValue={v}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Min and max while typing
+
+With `min`/`max` set, keystrokes and `↑` / `↓` arrows that would land outside the window are rejected — the value never leaves the bounds, matching the wheel popover.
+
+```tsx live
+function example() {
+  const at = (h, m) => {
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  };
+  return (
+    <TimeInput
+      label="Typed entry clamped to 09:00 – 17:00"
+      min={at(9, 0)}
+      max={at(17, 0)}
+      defaultValue={at(12, 0)}
+      openOnFocus={false}
+    />
+  );
+}
+```
+
+---
+
+#### Unselectable times while typing
+
+Typing or arrowing into a blocked time is rejected — the `unselectableTimes` predicate vetoes the candidate, the same way the wheels skip it.
+
+```tsx live
+function example() {
+  const v = new Date();
+  v.setHours(11, 30, 0, 0);
+  return (
+    <TimeInput
+      label="Lunch hour rejected while typing"
+      unselectableTimes={d => d.getHours() === 12}
       defaultValue={v}
       openOnFocus={false}
     />
