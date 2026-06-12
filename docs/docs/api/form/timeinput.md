@@ -1,20 +1,20 @@
 ---
-title: Timepicker
-sidebar_label: Timepicker
+title: TimeInput
+sidebar_label: TimeInput
 ---
 
-# Timepicker
+# TimeInput
 
 ## Overview
 
-The `Timepicker` component is a form input that opens a popover spinner for time-of-day selection. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It supports 12-hour and 24-hour formats, optional seconds, custom hour/minute/second increments, min/max bounds, an unselectable-times predicate, and a native `<input type="time">` fallback for touch devices.
+The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It supports 12-hour and 24-hour formats, optional seconds, custom hour/minute/second increments, min/max bounds, an unselectable-times predicate, and a native `<input type="time">` fallback for touch devices.
 
 ---
 
 ## Import
 
 ```tsx
-import { Timepicker } from '@allxsmith/bestax-bulma';
+import { TimeInput } from '@allxsmith/bestax-bulma';
 ```
 
 ---
@@ -77,10 +77,10 @@ When you pass an explicit token `format`, **that format is the source of truth f
 
 ## Usage
 
-### Basic Timepicker
+### Basic TimeInput
 
 ```tsx live
-<Timepicker label="Time" placeholder="HH:MM" />
+<TimeInput label="Time" placeholder="HH:MM" />
 ```
 
 ---
@@ -96,7 +96,7 @@ function example() {
   });
   return (
     <Block>
-      <Timepicker label="Departure" value={v} onChange={setV} />
+      <TimeInput label="Departure" value={v} onChange={setV} />
       <Paragraph mt="2">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>
     </Block>
   );
@@ -114,7 +114,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="12-hour"
       hourFormat="12"
       defaultValue={v}
@@ -139,7 +139,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="24-hour"
       hourFormat="24"
       defaultValue={v}
@@ -164,7 +164,7 @@ function example() {
   const v = new Date();
   v.setHours(10, 20, 30, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="With seconds"
       enableSeconds
       defaultValue={v}
@@ -190,7 +190,7 @@ function example() {
   const v = new Date();
   v.setHours(9, 30, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="15-minute slots"
       incrementMinutes={15}
       defaultValue={v}
@@ -220,7 +220,7 @@ function example() {
   const dv = new Date(today);
   dv.setHours(12, 0, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Office hours: 09:00 — 17:00"
       min={min}
       max={max}
@@ -245,7 +245,7 @@ function example() {
   const v = new Date();
   v.setHours(11, 30, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Lunch hour blocked"
       unselectableTimes={d => d.getHours() === 12}
       defaultValue={v}
@@ -280,7 +280,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Click in, then use arrow keys"
       defaultValue={v}
       openOnFocus={false}
@@ -300,7 +300,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Press a / A / p / P on AM-PM"
       hourFormat="12"
       defaultValue={v}
@@ -321,7 +321,7 @@ function example() {
   const v = new Date();
   v.setHours(10, 20, 30, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Tab through hours / minutes / seconds"
       enableSeconds
       defaultValue={v}
@@ -342,7 +342,7 @@ function example() {
   const v = new Date();
   v.setHours(9, 0, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Type digits — auto-advance after each segment"
       defaultValue={v}
       openOnFocus={false}
@@ -366,7 +366,7 @@ function example() {
   });
   return (
     <Block>
-      <Timepicker
+      <TimeInput
         label="Arrow or type — value updates live"
         value={v}
         onChange={setV}
@@ -389,7 +389,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Free-form (Intl format)"
       format={{ hour: '2-digit', minute: '2-digit' }}
       defaultValue={v}
@@ -414,7 +414,7 @@ function example() {
   const v = new Date();
   v.setHours(9, 30, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Audio thunk + band pulse"
       audioTick
       mobileNative={false}
@@ -431,7 +431,7 @@ function example() {
   const v = new Date();
   v.setHours(9, 30, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Auto-routed haptics"
       haptics
       mobileNative={false}
@@ -463,7 +463,7 @@ Render the spinner directly without a popover.
 function example() {
   const v = new Date();
   v.setHours(8, 30, 0, 0);
-  return <Timepicker label="Inline" inline defaultValue={v} />;
+  return <TimeInput label="Inline" inline defaultValue={v} />;
 }
 ```
 
@@ -495,7 +495,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom wheel po
 #### Force native
 
 ```tsx live
-<Timepicker label="Always native" mobileNative={true} />
+<TimeInput label="Always native" mobileNative={true} />
 ```
 
 #### Force the custom wheel (even on mobile)
@@ -503,7 +503,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom wheel po
 Useful when you want the same wheel UI everywhere — for example, if your app already provides a touch-friendly viewport-sized picker.
 
 ```tsx live
-<Timepicker label="Always custom wheel" mobileNative={false} />
+<TimeInput label="Always custom wheel" mobileNative={false} />
 ```
 
 ---
@@ -518,15 +518,15 @@ function example() {
   v.setHours(13, 45, 30, 0);
   return (
     <Block display="flex" flexDirection="column" gap="4">
-      <Timepicker label="HH:mm (24h, default)" defaultValue={v} />
-      <Timepicker label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
-      <Timepicker
+      <TimeInput label="HH:mm (24h, default)" defaultValue={v} />
+      <TimeInput label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
+      <TimeInput
         label="hh:mm a (lowercase)"
         format="hh:mm a"
         defaultValue={v}
       />
-      <Timepicker label="HH:mm:ss" format="HH:mm:ss" defaultValue={v} />
-      <Timepicker label="hh:mm:ss A" format="hh:mm:ss A" defaultValue={v} />
+      <TimeInput label="HH:mm:ss" format="HH:mm:ss" defaultValue={v} />
+      <TimeInput label="hh:mm:ss A" format="hh:mm:ss A" defaultValue={v} />
     </Block>
   );
 }
@@ -539,7 +539,7 @@ function example() {
   const v = new Date();
   v.setHours(13, 45, 0, 0);
   return (
-    <Timepicker
+    <TimeInput
       label="Intl, fr-FR (display only)"
       format={{ hour: '2-digit', minute: '2-digit' }}
       locale="fr-FR"
@@ -563,10 +563,10 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Timepicker label="Default (left icon + right launcher)" />
-  <Timepicker label="Custom launcher glyph" triggerIconName="hourglass" />
-  <Timepicker label="No launcher" triggerIcon={false} />
-  <Timepicker label="Left icon hidden" iconLeftName="" />
+  <TimeInput label="Default (left icon + right launcher)" />
+  <TimeInput label="Custom launcher glyph" triggerIconName="hourglass" />
+  <TimeInput label="No launcher" triggerIcon={false} />
+  <TimeInput label="Left icon hidden" iconLeftName="" />
 </Block>
 ```
 
@@ -576,10 +576,10 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Timepicker label="Small" controlSize="small" size="small" />
-  <Timepicker label="Default" />
-  <Timepicker label="Medium" controlSize="medium" size="medium" />
-  <Timepicker label="Large" controlSize="large" size="large" />
+  <TimeInput label="Small" controlSize="small" size="small" />
+  <TimeInput label="Default" />
+  <TimeInput label="Medium" controlSize="medium" size="medium" />
+  <TimeInput label="Large" controlSize="large" size="large" />
 </Block>
 ```
 
@@ -589,11 +589,11 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Timepicker label="Primary" color="primary" />
-  <Timepicker label="Info" color="info" />
-  <Timepicker label="Success" color="success" />
-  <Timepicker label="Warning" color="warning" />
-  <Timepicker label="Danger" color="danger" />
+  <TimeInput label="Primary" color="primary" />
+  <TimeInput label="Info" color="info" />
+  <TimeInput label="Success" color="success" />
+  <TimeInput label="Warning" color="warning" />
+  <TimeInput label="Danger" color="danger" />
 </Block>
 ```
 
@@ -603,9 +603,9 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Timepicker label="Disabled" disabled />
-  <Timepicker label="Read only" readOnly defaultValue={new Date()} />
-  <Timepicker label="Loading" isLoading />
+  <TimeInput label="Disabled" disabled />
+  <TimeInput label="Read only" readOnly defaultValue={new Date()} />
+  <TimeInput label="Loading" isLoading />
 </Block>
 ```
 
@@ -613,12 +613,12 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ### Context-Aware Rendering
 
-The `Timepicker` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly.
+The `TimeInput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly.
 
 #### Default (with label)
 
 ```tsx live
-<Timepicker label="Time" placeholder="HH:MM" />
+<TimeInput label="Time" placeholder="HH:MM" />
 ```
 
 ---
@@ -631,7 +631,7 @@ function example() {
     <Field horizontal label="Time">
       <Field.Body>
         <Field>
-          <Timepicker placeholder="HH:MM" />
+          <TimeInput placeholder="HH:MM" />
         </Field>
       </Field.Body>
     </Field>
@@ -650,7 +650,7 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="clock">
-            <Timepicker placeholder="HH:MM" />
+            <TimeInput placeholder="HH:MM" />
           </Control>
         </Field>
       </Field.Body>
@@ -691,7 +691,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 
 ## Form Submission
 
-`Timepicker` participates in HTML form submission. Pass a `name` and the value is forwarded as `HH:MM` (or `HH:MM:SS` if `enableSeconds`).
+`TimeInput` participates in HTML form submission. Pass a `name` and the value is forwarded as `HH:MM` (or `HH:MM:SS` if `enableSeconds`).
 
 | Prop       | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -700,7 +700,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `required` | Marks the field as required for native HTML form validation. |
 
 ```tsx live
-function TimepickerFormDemo() {
+function TimeInputFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
   return (
     <form
@@ -710,7 +710,7 @@ function TimepickerFormDemo() {
         setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
       }}
     >
-      <Timepicker name="appointment" label="Appointment time" required />
+      <TimeInput name="appointment" label="Appointment time" required />
       <div style={{ marginTop: '1rem' }}>
         <button type="submit" className="button is-primary">
           Submit
@@ -736,15 +736,15 @@ function TimepickerFormDemo() {
 
 ## Related Components
 
-- [Datepicker](./datepicker.md) - Date-only picker with a calendar popover.
-- [Datetimepicker](./datetimepicker.md) - Combined date + time picker.
+- [DateInput](./dateinput.md) - Date-only picker with a calendar popover.
+- [DateTimeInput](./datetimeinput.md) - Combined date + time picker.
 - [Input](./input.md) - For basic text input.
 
 ---
 
 ## Additional Resources
 
-- [Storybook: Timepicker Stories](https://bestax.io/storybook/?path=/story/form-timepicker)
+- [Storybook: TimeInput Stories](https://bestax.io/storybook/?path=/story/form-timeinput)
 
 :::tip Pro Tip
 Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a tight slot picker — the spinner will only land on valid slots.

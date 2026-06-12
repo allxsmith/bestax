@@ -279,16 +279,16 @@ function RateExample() {
 
 ## Date & Time
 
-### Datepicker
+### DateInput
 
 A date input that opens a popover calendar, with segmented keyboard entry directly in the field. Built on native `Date` and `Intl` only — supports min/max bounds, disabled-date predicates, custom formats, locales, an inline mode, and a native fallback on touch devices.
 
 ```tsx live
-function DatepickerExample() {
+function DateInputExample() {
   const [date, setDate] = React.useState(null);
   return (
     <div>
-      <Datepicker
+      <DateInput
         label="Date"
         placeholder="YYYY-MM-DD"
         value={date}
@@ -300,20 +300,20 @@ function DatepickerExample() {
 }
 ```
 
-[View full documentation.](../../api/form/datepicker)
+[View full documentation.](../../api/form/dateinput)
 
 ---
 
-### Timepicker
+### TimeInput
 
 A time-of-day input that opens a popover wheel spinner, with segmented keyboard entry directly in the field. Supports 12/24-hour formats, optional seconds, custom increments, min/max bounds, and a native fallback on touch devices.
 
 ```tsx live
-function TimepickerExample() {
+function TimeInputExample() {
   const [time, setTime] = React.useState(null);
   return (
     <div>
-      <Timepicker
+      <TimeInput
         label="Time"
         placeholder="HH:MM AM"
         hourFormat="12"
@@ -326,19 +326,19 @@ function TimepickerExample() {
 }
 ```
 
-[View full documentation.](../../api/form/timepicker)
+[View full documentation.](../../api/form/timeinput)
 
 ---
 
-### Datetimepicker
+### DateTimeInput
 
-Combines the calendar and time wheels in a single popover with an iOS-style footer — the selected time, a Reset button, and a ✓ confirm button. Click the time to float the wheel spinner over the calendar. Supports the full prop surface of both `Datepicker` and `Timepicker`.
+Combines the calendar and time wheels in a single popover with an iOS-style footer — the selected time, a Reset button, and a ✓ confirm button. Click the time to float the wheel spinner over the calendar. Supports the full prop surface of both `DateInput` and `TimeInput`.
 
 ```tsx live
-<Datetimepicker label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
+<DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
-[View full documentation.](../../api/form/datetimepicker)
+[View full documentation.](../../api/form/datetimeinput)
 
 ---
 

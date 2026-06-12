@@ -196,8 +196,8 @@ For complete documentation and more examples:
 
 We're continuing to expand bestax-bulma with more components and features. Coming soon:
 
-- Datepicker - Calendar date selection
-- Timepicker - Time selection dropdown
+- DateInput - Calendar date selection
+- TimeInput - Time selection dropdown
 - Colorpicker - Color selection with presets
 
 Stay tuned for more updates!

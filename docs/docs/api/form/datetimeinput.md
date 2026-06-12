@@ -1,27 +1,27 @@
 ---
-title: Datetimepicker
-sidebar_label: Datetimepicker
+title: DateTimeInput
+sidebar_label: DateTimeInput
 ---
 
-# Datetimepicker
+# DateTimeInput
 
 ## Overview
 
-The `Datetimepicker` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout. The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `Timepicker` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `Datepicker` and `Timepicker`, plus a native `<input type="datetime-local">` fallback for touch devices. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry.
+The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout. The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `TimeInput` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `DateInput` and `TimeInput`, plus a native `<input type="datetime-local">` fallback for touch devices. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry.
 
 ---
 
 ## Import
 
 ```tsx
-import { Datetimepicker } from '@allxsmith/bestax-bulma';
+import { DateTimeInput } from '@allxsmith/bestax-bulma';
 ```
 
 ---
 
 ## Props
 
-The Datetimepicker prop set is the union of [Datepicker](./datepicker.md) and [Timepicker](./timepicker.md) props. Notable additions and overrides:
+The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [TimeInput](./timeinput.md) props. Notable additions and overrides:
 
 | Prop                | Type                                     | Default              | Description                                                                                                                                                   |
 | ------------------- | ---------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -44,7 +44,7 @@ The Datetimepicker prop set is the union of [Datepicker](./datepicker.md) and [T
 | `firstDayOfWeek`    | `0..6`                                   | `0`                  | Calendar week start.                                                                                                                                          |
 | `hourFormat`        | `'12' \| '24'`                           | `'24'`               | Time format.                                                                                                                                                  |
 | `enableSeconds`     | `boolean`                                | `false`              | Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. |
-| ...                 | All Datepicker + Timepicker props        |                      | See those pages for the full list.                                                                                                                            |
+| ...                 | All DateInput + TimeInput props        |                      | See those pages for the full list.                                                                                                                            |
 | ...                 | All standard HTML and Bulma helper props |                      | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                              |
 
 When you pass an explicit token `format`, **that format is the source of truth for the time wheels and the footer time pill**: a 12-hour format (`h`/`hh` with `A`/`a`) drives a 12-hour wheel with an AM/PM column, and a 24-hour format (`H`/`HH`) drives a 24-hour wheel — regardless of `hourFormat`. So `hourFormat` only applies when you don't pass a `format`. (If `format` is an `Intl.DateTimeFormat` options object rather than a token string, the cycle can't be read from it and the wheel/pill fall back to `hourFormat`.)
@@ -53,12 +53,12 @@ When you pass an explicit token `format`, **that format is the source of truth f
 
 ## Usage
 
-### Basic Datetimepicker
+### Basic DateTimeInput
 
 The popover opens to the calendar with an iOS-style footer — the selected time, a **Reset** button, and a circular **✓** to confirm. Click the time value to float the wheel spinner over the calendar.
 
 ```tsx live
-<Datetimepicker label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
+<DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
 ---
@@ -70,7 +70,7 @@ function example() {
   const [v, setV] = useState(new Date());
   return (
     <Block>
-      <Datetimepicker label="Meeting" value={v} onChange={setV} />
+      <DateTimeInput label="Meeting" value={v} onChange={setV} />
       <Paragraph mt="2">Selected: {v ? v.toString() : '—'}</Paragraph>
     </Block>
   );
@@ -82,7 +82,7 @@ function example() {
 ### 12-hour Format
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="12-hour"
   hourFormat="12"
   defaultValue={new Date()}
@@ -99,7 +99,7 @@ The OS-native pickers use the device clock setting, so `hourFormat` is ignored t
 ### With Seconds
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="With seconds"
   enableSeconds
   defaultValue={new Date()}
@@ -119,7 +119,7 @@ This example forces `mobileNative={false}` so the seconds wheel shows on every d
 Combine `hourFormat="12"` with `enableSeconds` for an `hh:mm:ss A` field — the wheel gains hours, minutes, seconds, and AM/PM columns.
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="12-hour with seconds"
   hourFormat="12"
   enableSeconds
@@ -140,24 +140,24 @@ The `format` prop takes a token string or `Intl.DateTimeFormatOptions` spanning 
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker
+  <DateTimeInput
     label="YYYY-MM-DD HH:mm (default)"
     defaultValue={new Date(2026, 4, 30, 13, 45)}
     mobileNative={false}
   />
-  <Datetimepicker
+  <DateTimeInput
     label="MM/DD/YYYY hh:mm A"
     format="MM/DD/YYYY hh:mm A"
     defaultValue={new Date(2026, 4, 30, 13, 45)}
     mobileNative={false}
   />
-  <Datetimepicker
+  <DateTimeInput
     label="DD.MM.YYYY HH:mm"
     format="DD.MM.YYYY HH:mm"
     defaultValue={new Date(2026, 4, 30, 13, 45)}
     mobileNative={false}
   />
-  <Datetimepicker
+  <DateTimeInput
     label="Intl — display only"
     format={{ dateStyle: 'medium', timeStyle: 'short' }}
     editable={false}
@@ -179,13 +179,13 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker label="Default (left icon + right launcher)" />
-  <Datetimepicker
+  <DateTimeInput label="Default (left icon + right launcher)" />
+  <DateTimeInput
     label="Custom launcher glyph"
     triggerIconName="calendar-check"
   />
-  <Datetimepicker label="No launcher" triggerIcon={false} />
-  <Datetimepicker label="Left icon hidden" iconLeftName="" />
+  <DateTimeInput label="No launcher" triggerIcon={false} />
+  <DateTimeInput label="Left icon hidden" iconLeftName="" />
 </Block>
 ```
 
@@ -202,7 +202,7 @@ function example() {
   min.setHours(9, 0, 0, 0);
   const max = new Date(today);
   max.setHours(17, 0, 0, 0);
-  return <Datetimepicker label="Office hours today" min={min} max={max} />;
+  return <DateTimeInput label="Office hours today" min={min} max={max} />;
 }
 ```
 
@@ -215,7 +215,7 @@ On iOS Safari the picker UI lets the user pick any value; `min`/`max` only fire 
 ### Disabled Dates
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="No weekend appointments"
   shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
   mobileNative={false}
@@ -231,7 +231,7 @@ HTML has no predicate equivalent, so the OS-native pickers can't block any dates
 ### Unselectable Times
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="Lunch hour blocked"
   unselectableTimes={d => d.getHours() === 12}
   defaultValue={new Date()}
@@ -248,7 +248,7 @@ Same as Disabled Dates — the OS-native pickers can't evaluate predicates. This
 ### Inline
 
 ```tsx live
-<Datetimepicker label="Inline" inline defaultValue={new Date()} />
+<DateTimeInput label="Inline" inline defaultValue={new Date()} />
 ```
 
 ---
@@ -256,7 +256,7 @@ Same as Disabled Dates — the OS-native pickers can't evaluate predicates. This
 ### First Day of Week
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="Monday-first"
   firstDayOfWeek={1}
   defaultValue={new Date()}
@@ -275,7 +275,7 @@ The OS-native calendars use the device locale for the week start, so `firstDayOf
 By default `mobileNative='auto'`: on touch devices with a small viewport (`(pointer: coarse)` and `(max-width: 768px)`) the input swaps to a plain `<input type="datetime-local">` so the OS-native picker handles the interaction. Pass `true` or `false` to override.
 
 ```tsx live
-<Datetimepicker label="Native datetime-local" mobileNative={true} />
+<DateTimeInput label="Native datetime-local" mobileNative={true} />
 ```
 
 :::caution Native picker support varies — iOS lags Android
@@ -304,13 +304,13 @@ If any of these matter, pass `mobileNative={false}` to force the custom popover 
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker
+  <DateTimeInput
     label="ja-JP"
     locale="ja-JP"
     defaultValue={new Date()}
     mobileNative={false}
   />
-  <Datetimepicker
+  <DateTimeInput
     label="fr-FR"
     locale="fr-FR"
     defaultValue={new Date()}
@@ -329,10 +329,10 @@ The OS-native pickers always use the device's system locale, so these examples s
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker label="Small" controlSize="small" size="small" />
-  <Datetimepicker label="Default" />
-  <Datetimepicker label="Medium" controlSize="medium" size="medium" />
-  <Datetimepicker label="Large" controlSize="large" size="large" />
+  <DateTimeInput label="Small" controlSize="small" size="small" />
+  <DateTimeInput label="Default" />
+  <DateTimeInput label="Medium" controlSize="medium" size="medium" />
+  <DateTimeInput label="Large" controlSize="large" size="large" />
 </Block>
 ```
 
@@ -342,11 +342,11 @@ The OS-native pickers always use the device's system locale, so these examples s
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker label="Primary" color="primary" />
-  <Datetimepicker label="Info" color="info" />
-  <Datetimepicker label="Success" color="success" />
-  <Datetimepicker label="Warning" color="warning" />
-  <Datetimepicker label="Danger" color="danger" />
+  <DateTimeInput label="Primary" color="primary" />
+  <DateTimeInput label="Info" color="info" />
+  <DateTimeInput label="Success" color="success" />
+  <DateTimeInput label="Warning" color="warning" />
+  <DateTimeInput label="Danger" color="danger" />
 </Block>
 ```
 
@@ -356,9 +356,9 @@ The OS-native pickers always use the device's system locale, so these examples s
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datetimepicker label="Disabled" disabled />
-  <Datetimepicker label="Read only" readOnly defaultValue={new Date()} />
-  <Datetimepicker label="Loading" isLoading />
+  <DateTimeInput label="Disabled" disabled />
+  <DateTimeInput label="Read only" readOnly defaultValue={new Date()} />
+  <DateTimeInput label="Loading" isLoading />
 </Block>
 ```
 
@@ -369,7 +369,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 #### Default (with label)
 
 ```tsx live
-<Datetimepicker label="When" placeholder="YYYY-MM-DD HH:MM" />
+<DateTimeInput label="When" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
 ---
@@ -382,7 +382,7 @@ function example() {
     <Field horizontal label="When">
       <Field.Body>
         <Field>
-          <Datetimepicker placeholder="YYYY-MM-DD HH:MM" />
+          <DateTimeInput placeholder="YYYY-MM-DD HH:MM" />
         </Field>
       </Field.Body>
     </Field>
@@ -401,7 +401,7 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="calendar-alt">
-            <Datetimepicker placeholder="YYYY-MM-DD HH:MM" />
+            <DateTimeInput placeholder="YYYY-MM-DD HH:MM" />
           </Control>
         </Field>
       </Field.Body>
@@ -427,7 +427,7 @@ With `openOnFocus={false}` (used here), **clicking the field just lets you type*
 ```tsx live
 function example() {
   return (
-    <Datetimepicker
+    <DateTimeInput
       label="Type across date and time"
       defaultValue={new Date(2024, 5, 7, 13, 45)}
       openOnFocus={false}
@@ -445,7 +445,7 @@ Move to the trailing meridiem segment and press `a` / `p`.
 ```tsx live
 function example() {
   return (
-    <Datetimepicker
+    <DateTimeInput
       label="12-hour entry"
       hourFormat="12"
       defaultValue={new Date(2024, 5, 7, 13, 45)}
@@ -464,7 +464,7 @@ function example() {
   const [v, setV] = useState(() => new Date(2024, 5, 7, 13, 45));
   return (
     <Block>
-      <Datetimepicker
+      <DateTimeInput
         label="Arrow or type — value updates live"
         value={v}
         onChange={setV}
@@ -492,7 +492,7 @@ function example() {
 #### Picker only
 
 ```tsx live
-<Datetimepicker
+<DateTimeInput
   label="Picker only"
   editable={false}
   defaultValue={new Date()}
@@ -502,7 +502,7 @@ function example() {
 #### Input only
 
 ```tsx live
-<Datetimepicker label="Input only" popover={false} defaultValue={new Date()} />
+<DateTimeInput label="Input only" popover={false} defaultValue={new Date()} />
 ```
 
 ---
@@ -551,7 +551,7 @@ Activate the footer **time** button (`Enter` / `Space`) to float the wheels over
 | `required` | Marks the field as required for native HTML form validation. |
 
 ```tsx live
-function DatetimepickerFormDemo() {
+function DateTimeInputFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
   return (
     <form
@@ -561,7 +561,7 @@ function DatetimepickerFormDemo() {
         setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
       }}
     >
-      <Datetimepicker name="when" label="When" required />
+      <DateTimeInput name="when" label="When" required />
       <div style={{ marginTop: '1rem' }}>
         <button type="submit" className="button is-primary">
           Submit
@@ -588,16 +588,16 @@ function DatetimepickerFormDemo() {
 
 ## Related Components
 
-- [Datepicker](./datepicker.md) - Date-only picker.
-- [Timepicker](./timepicker.md) - Time-only picker.
+- [DateInput](./dateinput.md) - Date-only picker.
+- [TimeInput](./timeinput.md) - Time-only picker.
 - [Input](./input.md) - For basic text input.
 
 ---
 
 ## Additional Resources
 
-- [Storybook: Datetimepicker Stories](https://bestax.io/storybook/?path=/story/form-datetimepicker)
+- [Storybook: DateTimeInput Stories](https://bestax.io/storybook/?path=/story/form-datetimeinput)
 
 :::tip Pro Tip
-Pair `Datetimepicker` with `closeOnSelect={false}` (the default) so users can tweak both date and time before committing via OK — closing on the first date click would surprise them.
+Pair `DateTimeInput` with `closeOnSelect={false}` (the default) so users can tweak both date and time before committing via OK — closing on the first date click would surprise them.
 :::

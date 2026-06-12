@@ -1,20 +1,20 @@
 ---
-title: Datepicker
-sidebar_label: Datepicker
+title: DateInput
+sidebar_label: DateInput
 ---
 
-# Datepicker
+# DateInput
 
 ## Overview
 
-The `Datepicker` component is a form input that opens a popover calendar for date selection. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It uses native `Date` and `Intl` only (no extra dependencies), supports min/max bounds, disabled-date predicates, custom token formats or `Intl.DateTimeFormatOptions`, locale-aware day/month names, an inline mode, and a native `<input type="date">` fallback for touch devices.
+The `DateInput` component is a form input that opens a popover calendar for date selection. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry. It uses native `Date` and `Intl` only (no extra dependencies), supports min/max bounds, disabled-date predicates, custom token formats or `Intl.DateTimeFormatOptions`, locale-aware day/month names, an inline mode, and a native `<input type="date">` fallback for touch devices.
 
 ---
 
 ## Import
 
 ```tsx
-import { Datepicker } from '@allxsmith/bestax-bulma';
+import { DateInput } from '@allxsmith/bestax-bulma';
 ```
 
 ---
@@ -71,13 +71,13 @@ import { Datepicker } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
-### Basic Datepicker
+### Basic DateInput
 
 A simple date picker with a popover calendar.
 
 ```tsx live
 function example() {
-  return <Datepicker label="Pick a date" placeholder="YYYY-MM-DD" />;
+  return <DateInput label="Pick a date" placeholder="YYYY-MM-DD" />;
 }
 ```
 
@@ -92,7 +92,7 @@ function example() {
   const [value, setValue] = useState(new Date());
   return (
     <Block>
-      <Datepicker label="Date" value={value} onChange={setValue} />
+      <DateInput label="Date" value={value} onChange={setValue} />
       <Paragraph mt="2">
         Selected: {value ? value.toDateString() : '—'}
       </Paragraph>
@@ -108,7 +108,7 @@ function example() {
 Skip the popover and render the calendar inline.
 
 ```tsx live
-<Datepicker label="Inline calendar" inline defaultValue={new Date()} />
+<DateInput label="Inline calendar" inline defaultValue={new Date()} />
 ```
 
 ---
@@ -123,7 +123,7 @@ function example() {
   const min = new Date(today.getFullYear(), today.getMonth(), 1);
   const max = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   return (
-    <Datepicker
+    <DateInput
       label="This month only"
       min={min}
       max={max}
@@ -144,7 +144,7 @@ On iOS Safari the calendar lets the user pick any date; `min`/`max` only fire at
 Disable specific dates with `shouldDisableDate` (predicate) or `unselectableDates` (array).
 
 ```tsx live
-<Datepicker
+<DateInput
   label="No weekends"
   shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
   mobileNative={false}
@@ -162,7 +162,7 @@ HTML has no equivalent to `shouldDisableDate` or `unselectableDates`, so the OS-
 Use an alternative token format. Supported tokens: `YYYY YY MM M DD D HH H hh h mm m ss s A a`.
 
 ```tsx live
-<Datepicker
+<DateInput
   label="Date of birth"
   format="DD/MM/YYYY"
   placeholder="DD/MM/YYYY"
@@ -182,27 +182,27 @@ The `format` prop takes a token string or `Intl.DateTimeFormatOptions`. Padded t
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker
+  <DateInput
     label="YYYY-MM-DD (default)"
     defaultValue={new Date(2026, 4, 30)}
     openOnFocus={false}
     mobileNative={false}
   />
-  <Datepicker
+  <DateInput
     label="DD/MM/YYYY"
     format="DD/MM/YYYY"
     defaultValue={new Date(2026, 4, 30)}
     openOnFocus={false}
     mobileNative={false}
   />
-  <Datepicker
+  <DateInput
     label="MM-DD-YYYY"
     format="MM-DD-YYYY"
     defaultValue={new Date(2026, 4, 30)}
     openOnFocus={false}
     mobileNative={false}
   />
-  <Datepicker
+  <DateInput
     label="DD.MM.YY"
     format="DD.MM.YY"
     defaultValue={new Date(2026, 4, 30)}
@@ -225,7 +225,7 @@ function example() {
     return isNaN(t) ? null : new Date(t);
   };
   return (
-    <Datepicker
+    <DateInput
       label="Intl long + custom parse"
       format={{ year: 'numeric', month: 'long', day: 'numeric' }}
       parse={parse}
@@ -244,10 +244,10 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker label="Default (left icon + right launcher)" />
-  <Datepicker label="Custom launcher glyph" triggerIconName="calendar-day" />
-  <Datepicker label="No launcher" triggerIcon={false} />
-  <Datepicker label="Left icon hidden" iconLeftName="" />
+  <DateInput label="Default (left icon + right launcher)" />
+  <DateInput label="Custom launcher glyph" triggerIconName="calendar-day" />
+  <DateInput label="No launcher" triggerIcon={false} />
+  <DateInput label="Left icon hidden" iconLeftName="" />
 </Block>
 ```
 
@@ -268,7 +268,7 @@ With `openOnFocus={false}` (used here), **clicking the field just lets you type*
 ```tsx live
 function example() {
   return (
-    <Datepicker
+    <DateInput
       label="Click in, then arrow or type"
       defaultValue={new Date(2024, 5, 7)}
       openOnFocus={false}
@@ -286,7 +286,7 @@ Type day-first with slash separators. Typing `/` jumps to the next segment.
 ```tsx live
 function example() {
   return (
-    <Datepicker
+    <DateInput
       label="DD/MM/YYYY"
       format="DD/MM/YYYY"
       defaultValue={new Date(2024, 5, 7)}
@@ -305,7 +305,7 @@ Type digits to overwrite the active segment. Auto-advance honors each segment's 
 ```tsx live
 function example() {
   return (
-    <Datepicker
+    <DateInput
       label="Type digits — auto-advance across segments"
       defaultValue={new Date(2024, 5, 7)}
       openOnFocus={false}
@@ -323,7 +323,7 @@ function example() {
   const [v, setV] = useState(() => new Date(2024, 5, 7));
   return (
     <Block>
-      <Datepicker
+      <DateInput
         label="Arrow or type — value updates live"
         value={v}
         onChange={setV}
@@ -344,7 +344,7 @@ When `format` is an `Intl.DateTimeFormatOptions` object (or uses single-char tok
 ```tsx live
 function example() {
   return (
-    <Datepicker
+    <DateInput
       label="Free-form (Intl format)"
       format={{ year: 'numeric', month: 'long', day: 'numeric' }}
       defaultValue={new Date(2024, 5, 7)}
@@ -372,7 +372,7 @@ Two booleans choose how the field behaves. `editable` controls whether segmented
 Typing is disabled; the calendar still opens on click or focus.
 
 ```tsx live
-<Datepicker label="Picker only" editable={false} defaultValue={new Date()} />
+<DateInput label="Picker only" editable={false} defaultValue={new Date()} />
 ```
 
 #### Input only
@@ -380,7 +380,7 @@ Typing is disabled; the calendar still opens on click or focus.
 Segmented typing with no calendar — handy in dense forms.
 
 ```tsx live
-<Datepicker label="Input only" popover={false} defaultValue={new Date()} />
+<DateInput label="Input only" popover={false} defaultValue={new Date()} />
 ```
 
 ---
@@ -391,19 +391,19 @@ Day and month names follow the supplied BCP-47 locale via `Intl.DateTimeFormat`.
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker
+  <DateInput
     label="ja-JP"
     locale="ja-JP"
     defaultValue={new Date()}
     mobileNative={false}
   />
-  <Datepicker
+  <DateInput
     label="fr-FR"
     locale="fr-FR"
     defaultValue={new Date()}
     mobileNative={false}
   />
-  <Datepicker
+  <DateInput
     label="de-DE"
     locale="de-DE"
     defaultValue={new Date()}
@@ -423,7 +423,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 Set `firstDayOfWeek` to align the grid to Monday-first locales.
 
 ```tsx live
-<Datepicker
+<DateInput
   label="Week starts Monday"
   firstDayOfWeek={1}
   mobileNative={false}
@@ -441,7 +441,7 @@ The OS-native calendars use the device locale for the week start, so `firstDayOf
 Force the native `<input type="date">` (auto-detected on coarse-pointer + small-viewport devices by default).
 
 ```tsx live
-<Datepicker label="Native picker" mobileNative={true} />
+<DateInput label="Native picker" mobileNative={true} />
 ```
 
 :::caution Native picker support varies — iOS lags Android
@@ -467,10 +467,10 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker label="Small" controlSize="small" size="small" />
-  <Datepicker label="Default" />
-  <Datepicker label="Medium" controlSize="medium" size="medium" />
-  <Datepicker label="Large" controlSize="large" size="large" />
+  <DateInput label="Small" controlSize="small" size="small" />
+  <DateInput label="Default" />
+  <DateInput label="Medium" controlSize="medium" size="medium" />
+  <DateInput label="Large" controlSize="large" size="large" />
 </Block>
 ```
 
@@ -480,11 +480,11 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker label="Primary" color="primary" />
-  <Datepicker label="Info" color="info" />
-  <Datepicker label="Success" color="success" />
-  <Datepicker label="Warning" color="warning" />
-  <Datepicker label="Danger" color="danger" />
+  <DateInput label="Primary" color="primary" />
+  <DateInput label="Info" color="info" />
+  <DateInput label="Success" color="success" />
+  <DateInput label="Warning" color="warning" />
+  <DateInput label="Danger" color="danger" />
 </Block>
 ```
 
@@ -494,9 +494,9 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <Datepicker label="Disabled" disabled />
-  <Datepicker label="Read only" readOnly defaultValue={new Date()} />
-  <Datepicker label="Loading" isLoading />
+  <DateInput label="Disabled" disabled />
+  <DateInput label="Read only" readOnly defaultValue={new Date()} />
+  <DateInput label="Loading" isLoading />
 </Block>
 ```
 
@@ -505,21 +505,21 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 ### Horizontal Field
 
 ```tsx live
-<Datepicker label="Date of birth" horizontal placeholder="YYYY-MM-DD" />
+<DateInput label="Date of birth" horizontal placeholder="YYYY-MM-DD" />
 ```
 
 ---
 
 ### Context-Aware Rendering
 
-The `Datepicker` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. You can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` / `Control` (it skips rendering its own).
+The `DateInput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. You can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` / `Control` (it skips rendering its own).
 
 #### Default (with label)
 
 The simplest usage — the component automatically renders its own Field wrapper.
 
 ```tsx live
-<Datepicker label="Date" placeholder="YYYY-MM-DD" />
+<DateInput label="Date" placeholder="YYYY-MM-DD" />
 ```
 
 ---
@@ -534,7 +534,7 @@ function example() {
     <Field horizontal label="Date">
       <Field.Body>
         <Field>
-          <Datepicker placeholder="YYYY-MM-DD" />
+          <DateInput placeholder="YYYY-MM-DD" />
         </Field>
       </Field.Body>
     </Field>
@@ -555,7 +555,7 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="calendar-alt">
-            <Datepicker placeholder="YYYY-MM-DD" />
+            <DateInput placeholder="YYYY-MM-DD" />
           </Control>
         </Field>
       </Field.Body>
@@ -604,7 +604,7 @@ Digit auto-advance honors each segment's range: the month advances after a first
 
 ## Form Submission
 
-`Datepicker` participates in HTML form submission. Pass a `name` and the value is forwarded to a hidden `<input>` formatted as `YYYY-MM-DD`.
+`DateInput` participates in HTML form submission. Pass a `name` and the value is forwarded to a hidden `<input>` formatted as `YYYY-MM-DD`.
 
 | Prop       | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -613,7 +613,7 @@ Digit auto-advance honors each segment's range: the month advances after a first
 | `required` | Marks the field as required for native HTML form validation. |
 
 ```tsx live
-function DatepickerFormDemo() {
+function DateInputFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
   return (
     <form
@@ -623,7 +623,7 @@ function DatepickerFormDemo() {
         setSubmitted(JSON.stringify(Array.from(fd.entries()), null, 2));
       }}
     >
-      <Datepicker
+      <DateInput
         name="booking"
         label="Booking date"
         defaultValue={new Date()}
@@ -655,15 +655,15 @@ function DatepickerFormDemo() {
 
 ## Related Components
 
-- [Timepicker](./timepicker.md) - Time-of-day picker with a spinner.
-- [Datetimepicker](./datetimepicker.md) - Combined date + time picker.
+- [TimeInput](./timeinput.md) - Time-of-day picker with a spinner.
+- [DateTimeInput](./datetimeinput.md) - Combined date + time picker.
 - [Input](./input.md) - For basic text input.
 
 ---
 
 ## Additional Resources
 
-- [Storybook: Datepicker Stories](https://bestax.io/storybook/?path=/story/form-datepicker)
+- [Storybook: DateInput Stories](https://bestax.io/storybook/?path=/story/form-dateinput)
 
 :::tip Pro Tip
 Use `inline` instead of the popover when you have vertical room to spare — booking grids and dashboards feel more direct without the open/close ceremony.
