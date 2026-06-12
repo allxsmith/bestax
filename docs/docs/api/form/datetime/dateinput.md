@@ -65,7 +65,7 @@ import { DateInput } from '@allxsmith/bestax-bulma';
 | `messageColor`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`    | —                | Color modifier for the help message.                                                                                                        |
 | `className`         | `string`                                                                 | —                | Additional CSS classes for the input.                                                                                                       |
 | `ref`               | `React.Ref<HTMLInputElement>`                                            | —                | Forwarded to the underlying `<input>`.                                                                                                      |
-| ...                 | All standard HTML and Bulma helper props                                 |                  | (See [Helper Props](../helpers/usebulmaclasses))                                                                                            |
+| ...                 | All standard HTML and Bulma helper props                                 |                  | (See [Helper Props](../../helpers/usebulmaclasses))                                                                                         |
 
 ---
 
@@ -362,10 +362,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 
 ```tsx live
 <Block display="flex" flexDirection="column" gap="4">
-  <DateInput
-    label="Default (left icon + right launcher)"
-    openOnFocus={false}
-  />
+  <DateInput label="Default (left icon + right launcher)" openOnFocus={false} />
   <DateInput
     label="Custom launcher glyph"
     triggerIconName="calendar-day"
@@ -561,11 +558,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 Set `firstDayOfWeek` to align the grid to Monday-first locales.
 
 ```tsx live
-<DateInput
-  label="Week starts Monday"
-  firstDayOfWeek={1}
-  mobileNative={false}
-/>
+<DateInput label="Week starts Monday" firstDayOfWeek={1} mobileNative={false} />
 ```
 
 :::note Forced to the custom calendar
@@ -855,7 +848,7 @@ function DateInputFormDemo() {
 
 - [TimeInput](./timeinput.md) - Time-of-day picker with a spinner.
 - [DateTimeInput](./datetimeinput.md) - Combined date + time picker.
-- [Input](./input.md) - For basic text input.
+- [Input](../input.md) - For basic text input.
 
 ---
 

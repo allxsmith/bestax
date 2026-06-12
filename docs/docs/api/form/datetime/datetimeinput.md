@@ -44,8 +44,8 @@ The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [Time
 | `firstDayOfWeek`    | `0..6`                                   | `0`                  | Calendar week start.                                                                                                                                          |
 | `hourFormat`        | `'12' \| '24'`                           | `'24'`               | Time format.                                                                                                                                                  |
 | `enableSeconds`     | `boolean`                                | `false`              | Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. |
-| ...                 | All DateInput + TimeInput props        |                      | See those pages for the full list.                                                                                                                            |
-| ...                 | All standard HTML and Bulma helper props |                      | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                              |
+| ...                 | All DateInput + TimeInput props          |                      | See those pages for the full list.                                                                                                                            |
+| ...                 | All standard HTML and Bulma helper props |                      | (See [Helper Props](../../helpers/usebulmaclasses))                                                                                                           |
 
 When you pass an explicit token `format`, **that format is the source of truth for the time wheels and the footer time pill**: a 12-hour format (`h`/`hh` with `A`/`a`) drives a 12-hour wheel with an AM/PM column, and a 24-hour format (`H`/`HH`) drives a 24-hour wheel — regardless of `hourFormat`. So `hourFormat` only applies when you don't pass a `format`. (If `format` is an `Intl.DateTimeFormat` options object rather than a token string, the cycle can't be read from it and the wheel/pill fall back to `hourFormat`.)
 
@@ -738,11 +738,7 @@ function example() {
 #### Picker only
 
 ```tsx live
-<DateTimeInput
-  label="Picker only"
-  editable={false}
-  defaultValue={new Date()}
-/>
+<DateTimeInput label="Picker only" editable={false} defaultValue={new Date()} />
 ```
 
 #### Input only
@@ -836,7 +832,7 @@ function DateTimeInputFormDemo() {
 
 - [DateInput](./dateinput.md) - Date-only picker.
 - [TimeInput](./timeinput.md) - Time-only picker.
-- [Input](./input.md) - For basic text input.
+- [Input](../input.md) - For basic text input.
 
 ---
 

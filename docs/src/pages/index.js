@@ -325,17 +325,17 @@ const categories = [
       },
       {
         name: 'DateInput',
-        link: '/docs/api/form/dateinput',
+        link: '/docs/api/form/datetime/dateinput',
         desc: 'Date input with a popover calendar.',
       },
       {
         name: 'TimeInput',
-        link: '/docs/api/form/timeinput',
+        link: '/docs/api/form/datetime/timeinput',
         desc: 'Time input with a popover wheel spinner.',
       },
       {
         name: 'DateTimeInput',
-        link: '/docs/api/form/datetimeinput',
+        link: '/docs/api/form/datetime/datetimeinput',
         desc: 'Combined calendar and time wheel in one popover.',
       },
       { name: 'File', link: '/docs/api/form/file', desc: 'File input.' },

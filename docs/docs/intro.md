@@ -117,7 +117,7 @@ Advanced UI components like [Modal](/docs/api/components/modal), [Navbar](/docs/
 
 ### 🟪 [Form](/docs/category/form)
 
-Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Autocomplete](/docs/api/form/autocomplete), and [DateInput](/docs/api/form/dateinput).
+Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Autocomplete](/docs/api/form/autocomplete), and [DateInput](/docs/api/form/datetime/dateinput).
 
 ### 🟩 [Grid & Columns](/docs/category/grid)
 

@@ -67,7 +67,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 | `messageColor`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`    | —                | Color modifier for the help message.                                                                                                                                                                                               |
 | `className`         | `string`                                                                 | —                | Additional CSS classes for the input.                                                                                                                                                                                              |
 | `ref`               | `React.Ref<HTMLInputElement>`                                            | —                | Forwarded to the underlying `<input>`.                                                                                                                                                                                             |
-| ...                 | All standard HTML and Bulma helper props                                 |                  | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                                                                                   |
+| ...                 | All standard HTML and Bulma helper props                                 |                  | (See [Helper Props](../../helpers/usebulmaclasses))                                                                                                                                                                                |
 
 The default `format` depends on `hourFormat` and `enableSeconds`: `'HH:mm'`, `'HH:mm:ss'`, `'hh:mm A'`, or `'hh:mm:ss A'`.
 
@@ -993,7 +993,7 @@ function TimeInputFormDemo() {
 
 - [DateInput](./dateinput.md) - Date-only picker with a calendar popover.
 - [DateTimeInput](./datetimeinput.md) - Combined date + time picker.
-- [Input](./input.md) - For basic text input.
+- [Input](../input.md) - For basic text input.
 
 ---
 

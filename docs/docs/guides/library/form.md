@@ -300,7 +300,7 @@ function DateInputExample() {
 }
 ```
 
-[View full documentation.](../../api/form/dateinput)
+[View full documentation.](../../api/form/datetime/dateinput)
 
 ---
 
@@ -326,7 +326,7 @@ function TimeInputExample() {
 }
 ```
 
-[View full documentation.](../../api/form/timeinput)
+[View full documentation.](../../api/form/datetime/timeinput)
 
 ---
 
@@ -338,7 +338,7 @@ Combines the calendar and time wheels in a single popover with an iOS-style foot
 <DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
-[View full documentation.](../../api/form/datetimeinput)
+[View full documentation.](../../api/form/datetime/datetimeinput)
 
 ---
 
