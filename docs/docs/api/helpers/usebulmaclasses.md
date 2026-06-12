@@ -487,24 +487,31 @@ Example with flex items:
 
 ```tsx live
 function example() {
-  const props = {
-    isGapless = true,
-  };
+  function MyColumns({ isGapless, children, ...props }) {
+    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const columnsClasses = classNames(
+      'columns',
+      { 'is-gapless': isGapless },
+      bulmaHelperClasses
+    );
+    return (
+      <div className={columnsClasses} {...rest}>
+        {children}
+      </div>
+    );
+  }
 
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const columnsClasses = classNames(
-    'columns',
-    { 'is-gapless': isGapless },
-    bulmaHelperClasses
-  );
   return (
-    <div className={columnsClasses} {...rest}>
-      {children}
-    </div>
+    <MyColumns isGapless m="2">
+      <div className="column">
+        <Notification color="primary">Left</Notification>
+      </div>
+      <div className="column">
+        <Notification color="info">Right</Notification>
+      </div>
+    </MyColumns>
   );
 }
-
-// Inside Columns.tsx
 ```
 
 #### Card
@@ -558,7 +565,7 @@ function example() {
     className
   );
 
-  return dropdownClasses;
+  return <code>{dropdownClasses}</code>;
 }
 ```
 
@@ -583,93 +590,126 @@ Use the `color` prop to apply Bulma color classes. Here, each button demonstrate
 
 ### Background Color
 
-Use the `backgroundColor` prop to set the background color. Here, each Box demonstrates a different background color:
+Use the `backgroundColor` prop to set the background color. Pair it with a text color that keeps the label readable on each background:
 
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary">Primary</Box>
+    <Box backgroundColor="primary" textColor="white">
+      Primary
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="link">Link</Box>
+    <Box backgroundColor="link" textColor="white">
+      Link
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="info">Info</Box>
+    <Box backgroundColor="info" textColor="white">
+      Info
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="success">Success</Box>
+    <Box backgroundColor="success" textColor="white">
+      Success
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="warning">Warning</Box>
+    <Box backgroundColor="warning" textColor="black">
+      Warning
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="danger">Danger</Box>
+    <Box backgroundColor="danger" textColor="white">
+      Danger
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="black">Black</Box>
+    <Box backgroundColor="black" textColor="white">
+      Black
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="white">White</Box>
+    <Box backgroundColor="white" textColor="black">
+      White
+    </Box>
   </Column>
 </Columns>
 ```
 
 ### Color Shade
 
-Use the `color` and `colorShade` props to apply color shades. Here, each button demonstrates a different shade:
+`colorShade` refines the **text color** — it pairs with the hook's `color` prop (exposed as `textColor` on components, where `color` is the component's own modifier). Here, each line steps through the primary palette:
 
 ```tsx live
-<Buttons>
-  <Button color="primary" colorShade="10">
+<>
+  <Paragraph textColor="primary" colorShade="10" textWeight="semibold">
     Primary 10
-  </Button>
-  <Button color="primary" colorShade="30">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="30" textWeight="semibold">
     Primary 30
-  </Button>
-  <Button color="primary" colorShade="60">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="60" textWeight="semibold">
     Primary 60
-  </Button>
-  <Button color="primary" colorShade="90">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="90" textWeight="semibold">
     Primary 90
-  </Button>
-  <Button color="primary" colorShade="invert">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="invert" textWeight="semibold">
     Primary Invert
-  </Button>
-</Buttons>
+  </Paragraph>
+</>
 ```
 
 ### Background Color Shade
 
-Use the `backgroundColor` and `colorShade` props to apply background color shades. Here, each Box demonstrates a different shade:
+Background shades use their own prop: `backgroundColorShade` pairs with `backgroundColor`, independently of `colorShade` (which pairs with the text color). Low shade numbers are dark and high numbers are light, so dark shades get light text and light shades get dark text to keep each label readable:
 
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="10">
+    <Box backgroundColor="primary" backgroundColorShade="10" textColor="white">
       Primary 10
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="30">
+    <Box backgroundColor="primary" backgroundColorShade="30" textColor="white">
       Primary 30
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="60">
+    <Box backgroundColor="primary" backgroundColorShade="60" textColor="black">
       Primary 60
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="90">
+    <Box backgroundColor="primary" backgroundColorShade="90" textColor="black">
       Primary 90
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="invert">
+    <Box
+      backgroundColor="primary"
+      backgroundColorShade="invert"
+      textColor="white"
+    >
       Primary Invert
     </Box>
   </Column>
 </Columns>
+```
+
+Because the two shade props are independent, you can shade the text and the background at the same time — a dark background shade with a light text shade of the same color reads well in both themes:
+
+```tsx live
+<Box
+  backgroundColor="primary"
+  backgroundColorShade="15"
+  textColor="primary"
+  colorShade="85"
+>
+  Primary text shade 85 on a primary background shade 15
+</Box>
 ```
 
 ### Margin
@@ -944,31 +984,27 @@ Show containers with and without clearfix to demonstrate the importance of clear
 ```tsx live
 <>
   <Box mb="4">
-    <h4>Without Clearfix (Container Collapse)</h4>
-    <Box p="3" style={{ background: '#ffebee', border: '2px solid #f44336' }}>
+    <Title size="6">Without clearfix (container collapses)</Title>
+    <Notification color="danger" p="3" mb="0">
       <Button float="left" color="primary">
         Left
       </Button>
       <Button float="right" color="danger">
         Right
       </Button>
-    </Box>
+    </Notification>
   </Box>
 
   <Box>
-    <h4>With Clearfix (Proper Container)</h4>
-    <Box
-      p="3"
-      clearfix
-      style={{ background: '#e8f5e8', border: '2px solid #4caf50' }}
-    >
+    <Title size="6">With clearfix (container wraps its floats)</Title>
+    <Notification color="success" p="3" mb="0" clearfix>
       <Button float="left" color="primary">
         Left
       </Button>
       <Button float="right" color="danger">
         Right
       </Button>
-    </Box>
+    </Notification>
   </Box>
 </>
 ```
@@ -977,27 +1013,19 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 Show a container with relative positioning that provides context for absolutely positioned children:
 
+Bulma only ships an `is-relative` helper — absolute positioning itself has no helper class, so the child keeps a minimal `position/top/right` inline style while everything visual comes from props:
+
 ```tsx live
-<Box
-  relative
-  p="4"
-  style={{ background: '#f5f5f5', border: '2px solid #333', height: '150px' }}
->
-  <span>This container has position: relative</span>
-  <Box
-    style={{
-      position: 'absolute',
-      top: '20px',
-      right: '20px',
-      background: '#ff5722',
-      color: 'white',
-      padding: '0.5rem 1rem',
-      borderRadius: '4px',
-    }}
+<Notification relative p="4" pb="6" color="info">
+  <Span>This container has position: relative</Span>
+  <Tag
+    color="primary"
+    size="medium"
+    style={{ position: 'absolute', top: '1rem', right: '1rem' }}
   >
     Absolutely positioned child
-  </Box>
-</Box>
+  </Tag>
+</Notification>
 ```
 
 ---
