@@ -42,7 +42,7 @@ export interface PickerLabels {
   reset?: string;
   /** Mobile footer: aria-label for the circular checkmark commit button. */
   done?: string;
-  /** Datetimepicker footer: label preceding the selected-time display. */
+  /** DateTimeInput footer: label preceding the selected-time display. */
   time?: string;
 }
 

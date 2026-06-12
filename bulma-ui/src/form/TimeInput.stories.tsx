@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState } from 'react';
-import { Timepicker } from './Timepicker';
+import { TimeInput } from './TimeInput';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
 
-const meta: Meta<typeof Timepicker> = {
-  title: 'Form/Timepicker',
-  component: Timepicker,
+const meta: Meta<typeof TimeInput> = {
+  title: 'Form/TimeInput',
+  component: TimeInput,
   parameters: {
     layout: 'padded',
     docs: {
@@ -46,7 +46,7 @@ const meta: Meta<typeof Timepicker> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Timepicker>;
+type Story = StoryObj<typeof TimeInput>;
 
 const today = (h: number, m: number, s = 0) => {
   const d = new Date();
@@ -63,7 +63,7 @@ export const Controlled: Story = {
     const [value, setValue] = useState<Date | null>(today(13, 45));
     return (
       <Block>
-        <Timepicker label="Departure" value={value} onChange={setValue} />
+        <TimeInput label="Departure" value={value} onChange={setValue} />
         <Paragraph>
           Selected: {value ? value.toLocaleTimeString() : '—'}
         </Paragraph>
@@ -75,10 +75,10 @@ export const Controlled: Story = {
 export const Sizes: Story = {
   render: () => (
     <Block>
-      <Timepicker label="Small" controlSize="small" size="small" />
-      <Timepicker label="Default" />
-      <Timepicker label="Medium" controlSize="medium" size="medium" />
-      <Timepicker label="Large" controlSize="large" size="large" />
+      <TimeInput label="Small" controlSize="small" size="small" />
+      <TimeInput label="Default" />
+      <TimeInput label="Medium" controlSize="medium" size="medium" />
+      <TimeInput label="Large" controlSize="large" size="large" />
     </Block>
   ),
 };
@@ -240,7 +240,7 @@ export const ManualEntryControlled: Story = {
     const [value, setValue] = useState<Date | null>(today(13, 45));
     return (
       <Block>
-        <Timepicker
+        <TimeInput
           label="Arrow or type — value updates live"
           value={value}
           onChange={setValue}
@@ -334,19 +334,19 @@ export const Formats: Story = {
     const v = today(13, 45, 30);
     return (
       <Block display="flex" flexDirection="column" gap="4">
-        <Timepicker label="HH:mm (24h, default)" defaultValue={v} />
-        <Timepicker label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
-        <Timepicker
+        <TimeInput label="HH:mm (24h, default)" defaultValue={v} />
+        <TimeInput label="hh:mm A (12h)" format="hh:mm A" defaultValue={v} />
+        <TimeInput
           label="hh:mm a (lowercase)"
           format="hh:mm a"
           defaultValue={v}
         />
-        <Timepicker
+        <TimeInput
           label="HH:mm:ss (with seconds)"
           format="HH:mm:ss"
           defaultValue={v}
         />
-        <Timepicker label="hh:mm:ss A" format="hh:mm:ss A" defaultValue={v} />
+        <TimeInput label="hh:mm:ss A" format="hh:mm:ss A" defaultValue={v} />
       </Block>
     );
   },
@@ -363,13 +363,13 @@ export const Formats: Story = {
 export const Locale: Story = {
   render: () => (
     <Block display="flex" flexDirection="column" gap="4">
-      <Timepicker
+      <TimeInput
         label="en-US (hh:mm A)"
         format="hh:mm A"
         locale="en-US"
         defaultValue={today(13, 45)}
       />
-      <Timepicker
+      <TimeInput
         label="Intl, fr-FR"
         format={{ hour: '2-digit', minute: '2-digit' }}
         locale="fr-FR"
@@ -391,11 +391,11 @@ export const Locale: Story = {
 export const Colors: Story = {
   render: () => (
     <Block>
-      <Timepicker label="Primary" color="primary" />
-      <Timepicker label="Info" color="info" />
-      <Timepicker label="Success" color="success" />
-      <Timepicker label="Warning" color="warning" />
-      <Timepicker label="Danger" color="danger" />
+      <TimeInput label="Primary" color="primary" />
+      <TimeInput label="Info" color="info" />
+      <TimeInput label="Success" color="success" />
+      <TimeInput label="Warning" color="warning" />
+      <TimeInput label="Danger" color="danger" />
     </Block>
   ),
 };
@@ -403,9 +403,9 @@ export const Colors: Story = {
 export const States: Story = {
   render: () => (
     <Block>
-      <Timepicker label="Disabled" disabled />
-      <Timepicker label="Read only" readOnly defaultValue={today(13, 45)} />
-      <Timepicker label="Loading" isLoading />
+      <TimeInput label="Disabled" disabled />
+      <TimeInput label="Read only" readOnly defaultValue={today(13, 45)} />
+      <TimeInput label="Loading" isLoading />
     </Block>
   ),
 };
@@ -446,9 +446,9 @@ export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (
     <Block display="flex" flexDirection="column" gap="4">
-      <Timepicker label="Default left icon + right launcher" />
-      <Timepicker label="Custom left glyph" iconLeftName="history" />
-      <Timepicker label="Left icon hidden" iconLeftName="" />
+      <TimeInput label="Default left icon + right launcher" />
+      <TimeInput label="Custom left glyph" iconLeftName="history" />
+      <TimeInput label="Left icon hidden" iconLeftName="" />
     </Block>
   ),
   parameters: {

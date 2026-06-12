@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
-import { Timepicker } from '../Timepicker';
+import { TimeInput } from '../TimeInput';
 import { Field } from '../Field';
-import { TimepickerBase } from '../TimepickerBase';
+import { TimeInputBase } from '../TimeInputBase';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 
 beforeAll(() => {
@@ -31,16 +31,16 @@ const at = (h: number, m: number, s = 0) => {
   return d;
 };
 
-describe('Timepicker', () => {
+describe('TimeInput', () => {
   it('renders an input with role=combobox', () => {
-    const { getByRole } = render(<Timepicker label="Time" />);
+    const { getByRole } = render(<TimeInput label="Time" />);
     expect(getByRole('combobox')).toBeInTheDocument();
   });
 
   it('inside an existing Field renders bare content with the help message', () => {
     const { container, getByText } = render(
       <Field label="When">
-        <Timepicker message="Required" messageColor="danger" />
+        <TimeInput message="Required" messageColor="danger" />
       </Field>
     );
     // No nested Field wrapper: exactly one field element.
@@ -51,20 +51,20 @@ describe('Timepicker', () => {
   });
 
   it('formats default 24h value into the input', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('13:45');
   });
 
   it('formats 12h with AM/PM when hourFormat="12"', () => {
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} hourFormat="12" />
+      <TimeInput defaultValue={at(13, 45)} hourFormat="12" />
     );
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('01:45 PM');
   });
 
   it('renders three wheels when enableSeconds=true', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 20, 30)} enableSeconds />
+      <TimeInput defaultValue={at(10, 20, 30)} enableSeconds />
     );
     fireEvent.click(getByRole('combobox'));
     // hours + minutes + seconds = 3 spinbuttons (no AM/PM column in 24h)
@@ -73,7 +73,7 @@ describe('Timepicker', () => {
 
   it('renders four wheels when hourFormat=12 + enableSeconds', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(13, 20, 30)} hourFormat="12" enableSeconds />
+      <TimeInput defaultValue={at(13, 20, 30)} hourFormat="12" enableSeconds />
     );
     fireEvent.click(getByRole('combobox'));
     expect(getAllByRole('spinbutton').length).toBe(4);
@@ -84,7 +84,7 @@ describe('Timepicker', () => {
     // so the wheels must too (hours + minutes + AM/PM = 3 spinbuttons), despite
     // hourFormat defaulting to '24'.
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} format="hh:mm A" />
+      <TimeInput defaultValue={at(13, 45)} format="hh:mm A" />
     );
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('01:45 PM');
     fireEvent.click(getByRole('combobox'));
@@ -93,7 +93,7 @@ describe('Timepicker', () => {
 
   it('a 12h format string with seconds drives a 12h + seconds wheel', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(13, 20, 30)}
         format="hh:mm:ss A"
         enableSeconds
@@ -108,7 +108,7 @@ describe('Timepicker', () => {
     // Inverse desync: the input renders 24h, so the wheels follow (no AM/PM
     // column → 2 spinbuttons), even though hourFormat="12" was passed.
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} format="HH:mm" hourFormat="12" />
+      <TimeInput defaultValue={at(13, 45)} format="HH:mm" hourFormat="12" />
     );
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('13:45');
     fireEvent.click(getByRole('combobox'));
@@ -118,7 +118,7 @@ describe('Timepicker', () => {
   it('ArrowDown on hours wheel increments the hour', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -131,7 +131,7 @@ describe('Timepicker', () => {
   it('ArrowUp on hours wheel decrements the hour', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
@@ -141,7 +141,7 @@ describe('Timepicker', () => {
 
   it('ArrowRight moves focus from hours wheel to minutes wheel', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     const wheels = getAllByRole('spinbutton');
@@ -153,7 +153,7 @@ describe('Timepicker', () => {
 
   it('ArrowLeft moves focus from minutes wheel to hours wheel', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     const wheels = getAllByRole('spinbutton');
@@ -165,7 +165,7 @@ describe('Timepicker', () => {
   it('clicking a non-centred item shifts the wheel to that item', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -182,7 +182,7 @@ describe('Timepicker', () => {
 
   it('hour wheel wraps past 23 to 0, showing both above the centre', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(23, 0)} />
+      <TimeInput defaultValue={at(23, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -197,7 +197,7 @@ describe('Timepicker', () => {
 
   it('hour wheel wraps past 0 to 23, showing 23 / 22 above the centre', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(0, 0)} />
+      <TimeInput defaultValue={at(0, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -213,7 +213,7 @@ describe('Timepicker', () => {
     const v = new Date();
     v.setHours(12, 0, 0, 0); // displays as 12 PM
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={v} hourFormat="12" />
+      <TimeInput defaultValue={v} hourFormat="12" />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -228,7 +228,7 @@ describe('Timepicker', () => {
   it('ArrowDown on AM/PM wheel toggles to PM in 12h mode', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
+      <TimeInput defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const wheels = getAllByRole('spinbutton');
@@ -240,13 +240,13 @@ describe('Timepicker', () => {
   });
 
   it('ArrowDown opens the popover', () => {
-    const { getByRole } = render(<Timepicker openOnFocus={false} />);
+    const { getByRole } = render(<TimeInput openOnFocus={false} />);
     fireEvent.keyDown(getByRole('combobox'), { key: 'ArrowDown' });
     expect(getByRole('dialog')).toBeInTheDocument();
   });
 
   it('Escape closes the popover', () => {
-    const { getByRole, queryByRole } = render(<Timepicker />);
+    const { getByRole, queryByRole } = render(<TimeInput />);
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('dialog')).toBeInTheDocument();
     act(() => {
@@ -256,14 +256,14 @@ describe('Timepicker', () => {
   });
 
   it('renders <input type="time"> when mobileNative=true', () => {
-    const { container } = render(<Timepicker mobileNative={true} />);
+    const { container } = render(<TimeInput mobileNative={true} />);
     const native = container.querySelector('input[type="time"]');
     expect(native).not.toBeNull();
   });
 
   it('forwards step=1 when enableSeconds and mobileNative', () => {
     const { container } = render(
-      <Timepicker mobileNative={true} enableSeconds />
+      <TimeInput mobileNative={true} enableSeconds />
     );
     const native = container.querySelector(
       'input[type="time"]'
@@ -273,7 +273,7 @@ describe('Timepicker', () => {
 
   it('forwards step from incrementMinutes on the native input', () => {
     const { container } = render(
-      <Timepicker mobileNative={true} incrementMinutes={15} />
+      <TimeInput mobileNative={true} incrementMinutes={15} />
     );
     const native = container.querySelector(
       'input[type="time"]'
@@ -283,7 +283,7 @@ describe('Timepicker', () => {
 
   it('forwards step from incrementSeconds when enableSeconds', () => {
     const { container } = render(
-      <Timepicker mobileNative={true} enableSeconds incrementSeconds={10} />
+      <TimeInput mobileNative={true} enableSeconds incrementSeconds={10} />
     );
     const native = container.querySelector(
       'input[type="time"]'
@@ -293,7 +293,7 @@ describe('Timepicker', () => {
 
   it('forwards min and max to the native input', () => {
     const { container } = render(
-      <Timepicker mobileNative={true} min={at(9, 0)} max={at(17, 30)} />
+      <TimeInput mobileNative={true} min={at(9, 0)} max={at(17, 30)} />
     );
     const native = container.querySelector(
       'input[type="time"]'
@@ -304,7 +304,7 @@ describe('Timepicker', () => {
 
   it('includes seconds in min/max when enableSeconds', () => {
     const { container } = render(
-      <Timepicker
+      <TimeInput
         mobileNative={true}
         enableSeconds
         min={at(9, 0, 15)}
@@ -321,7 +321,7 @@ describe('Timepicker', () => {
   it('native input renders the value and round-trips changes through onChange', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Timepicker
+      <TimeInput
         mobileNative={true}
         defaultValue={at(13, 45)}
         onChange={handler}
@@ -343,7 +343,7 @@ describe('Timepicker', () => {
   it('native input round-trips seconds when enableSeconds', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Timepicker
+      <TimeInput
         mobileNative={true}
         enableSeconds
         defaultValue={at(13, 45, 20)}
@@ -364,7 +364,7 @@ describe('Timepicker', () => {
   it('Now button sets the value to current time and closes', () => {
     const handler = jest.fn();
     const { getByText, getByLabelText, queryByRole } = render(
-      <Timepicker openOnFocus={false} onChange={handler} />
+      <TimeInput openOnFocus={false} onChange={handler} />
     );
     fireEvent.click(getByLabelText('Choose time')); // launcher opens the popover
     fireEvent.click(getByText('Now'));
@@ -379,7 +379,7 @@ describe('Timepicker', () => {
     try {
       const handler = jest.fn();
       const { getByText, getByLabelText } = render(
-        <Timepicker
+        <TimeInput
           incrementMinutes={15}
           openOnFocus={false}
           onChange={handler}
@@ -400,14 +400,14 @@ describe('Timepicker', () => {
 
   it('forwards ref to the input element', () => {
     const ref = React.createRef<HTMLInputElement>();
-    render(<Timepicker ref={ref} />);
+    render(<TimeInput ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });
 
   it('Cancel button reverts to value at open time', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole, getByText } = render(
-      <Timepicker defaultValue={at(10, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -418,17 +418,17 @@ describe('Timepicker', () => {
     expect(last.getHours()).toBe(10);
   });
 
-  it('OK button carries the timepicker-footer-ok marker class for the :has() primed style', () => {
+  it('OK button carries the timeinput-footer-ok marker class for the :has() primed style', () => {
     const { getByRole, getByText } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
-    expect(getByText('OK').className).toMatch(/timepicker-footer-ok/);
+    expect(getByText('OK').className).toMatch(/timeinput-footer-ok/);
   });
 
   it('clicking a wheel item moves focus to the wheel root so :focus emphasis applies', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
@@ -440,7 +440,7 @@ describe('Timepicker', () => {
 
   it('Enter on a wheel closes the popover (commits the live value)', () => {
     const { getByRole, getAllByRole, queryByRole } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('dialog')).toBeInTheDocument();
@@ -450,7 +450,7 @@ describe('Timepicker', () => {
 
   it('OK button closes without reverting', () => {
     const { getByRole, getAllByRole, queryByRole, getByText } = render(
-      <Timepicker defaultValue={at(10, 0)} />
+      <TimeInput defaultValue={at(10, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
@@ -460,7 +460,7 @@ describe('Timepicker', () => {
 
   it('unselectableTimes renders matching items with the disabled attribute', () => {
     const { getByRole, getAllByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(11, 30)}
         unselectableTimes={d => d.getHours() === 12}
       />
@@ -487,7 +487,7 @@ describe('Timepicker', () => {
   it('unselectableTimes skip-ahead lands on the next valid hour', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(11, 0)}
         unselectableTimes={d => d.getHours() === 12}
         onChange={handler}
@@ -503,7 +503,7 @@ describe('Timepicker', () => {
     const parse = jest.fn(() => at(8, 15));
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker openOnFocus={false} parse={parse} onChange={handler} />
+      <TimeInput openOnFocus={false} parse={parse} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'morning' } });
@@ -514,7 +514,7 @@ describe('Timepicker', () => {
 
   it('uses custom labels for footer buttons', () => {
     const { getByRole, getByText } = render(
-      <Timepicker
+      <TimeInput
         labels={{ now: 'Maintenant', cancel: 'Annuler', ok: 'Valider' }}
       />
     );
@@ -527,7 +527,7 @@ describe('Timepicker', () => {
   it('PageDown advances the hour wheel by 5', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(2, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(2, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'PageDown' });
@@ -538,7 +538,7 @@ describe('Timepicker', () => {
   it('Home jumps to the first hour value', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(15, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(15, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'Home' });
@@ -549,7 +549,7 @@ describe('Timepicker', () => {
   it('End jumps to the last hour value', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(2, 0)} onChange={handler} />
+      <TimeInput defaultValue={at(2, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'End' });
@@ -568,7 +568,7 @@ describe('Timepicker', () => {
 // `window.matchMedia` is mocked separately per test to flip reduced-motion.
 // -------------------------------------------------------------------------
 
-describe('Timepicker band pulse', () => {
+describe('TimeInput band pulse', () => {
   let originalAnimate: typeof HTMLElement.prototype.animate | undefined;
   let originalMatchMedia: typeof window.matchMedia | undefined;
   let animateSpy: jest.Mock;
@@ -614,7 +614,7 @@ describe('Timepicker band pulse', () => {
   it('animates the band on each wheel tick (arrow-down)', () => {
     setReducedMotion(false);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} />
+      <TimeInput defaultValue={at(12, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     animateSpy.mockClear();
@@ -630,7 +630,7 @@ describe('Timepicker band pulse', () => {
   it('suppresses the pulse when prefers-reduced-motion is set', () => {
     setReducedMotion(true);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} />
+      <TimeInput defaultValue={at(12, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     animateSpy.mockClear();
@@ -642,7 +642,7 @@ describe('Timepicker band pulse', () => {
     setReducedMotion(false);
     delete (HTMLElement.prototype as unknown as { animate?: unknown }).animate;
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} />
+      <TimeInput defaultValue={at(12, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     expect(() =>
@@ -660,7 +660,7 @@ describe('Timepicker band pulse', () => {
 // actually fires its oscillator.
 // -------------------------------------------------------------------------
 
-describe('Timepicker haptics prop', () => {
+describe('TimeInput haptics prop', () => {
   let originalVibrate: typeof navigator.vibrate | undefined;
   let originalAudioContext: typeof window.AudioContext | undefined;
   let audioCtorSpy: jest.Mock;
@@ -735,7 +735,7 @@ describe('Timepicker haptics prop', () => {
   it('on iOS-like (no navigator.vibrate), haptics={true} enables audio thunk', () => {
     setVibrateAvailable(false);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} haptics />
+      <TimeInput defaultValue={at(12, 0)} haptics />
     );
     fireEvent.click(getByRole('combobox'));
     // Trigger a wheel tick — this calls commitPosition → tickFeedback →
@@ -747,7 +747,7 @@ describe('Timepicker haptics prop', () => {
   it('on Android-like (navigator.vibrate present), haptics={true} does NOT enable audio', () => {
     setVibrateAvailable(true);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} haptics />
+      <TimeInput defaultValue={at(12, 0)} haptics />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
@@ -758,7 +758,7 @@ describe('Timepicker haptics prop', () => {
   it('audioTick={true} always wins, regardless of haptics or platform', () => {
     setVibrateAvailable(true);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} audioTick />
+      <TimeInput defaultValue={at(12, 0)} audioTick />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
@@ -768,7 +768,7 @@ describe('Timepicker haptics prop', () => {
   it('haptics={false} (default) does not enable audio even without vibrate', () => {
     setVibrateAvailable(false);
     const { getByRole, getAllByRole } = render(
-      <Timepicker defaultValue={at(12, 0)} />
+      <TimeInput defaultValue={at(12, 0)} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
@@ -782,9 +782,9 @@ describe('Timepicker haptics prop', () => {
 // with auto-advance; a/p toggle AM/PM.
 // -------------------------------------------------------------------------
 
-describe('Timepicker segmented input entry', () => {
+describe('TimeInput segmented input entry', () => {
   it('selects the hours segment on focus (24h format)', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -796,7 +796,7 @@ describe('Timepicker segmented input entry', () => {
   it('ArrowUp on the focused input increments the hours segment', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} onChange={handler} />
+      <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -811,7 +811,7 @@ describe('Timepicker segmented input entry', () => {
   it('ArrowDown on the focused input decrements the hours segment', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} onChange={handler} />
+      <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -823,7 +823,7 @@ describe('Timepicker segmented input entry', () => {
   });
 
   it('ArrowRight moves selection to the minutes segment', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -834,7 +834,7 @@ describe('Timepicker segmented input entry', () => {
   });
 
   it('ArrowLeft from minutes moves back to hours', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -848,7 +848,7 @@ describe('Timepicker segmented input entry', () => {
   it('digit entry overwrites the active segment and waits for a second digit when more are valid', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} onChange={handler} />
+      <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -863,7 +863,7 @@ describe('Timepicker segmented input entry', () => {
   });
 
   it('auto-advances to minutes after a digit that completes the hours segment', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -877,7 +877,7 @@ describe('Timepicker segmented input entry', () => {
   it('typing two digits fills hours and advances to minutes', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} onChange={handler} />
+      <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -894,7 +894,7 @@ describe('Timepicker segmented input entry', () => {
   it('p / a toggle AM/PM on the meridiem segment in 12h mode', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
+      <TimeInput defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -915,7 +915,7 @@ describe('Timepicker segmented input entry', () => {
     // openOnFocus=false avoids the focus-trap loop where closing the popover
     // returns focus to the input, which would otherwise reopen on focus.
     const { getByRole, getByLabelText, queryByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} closeOnSelect openOnFocus={false} />
+      <TimeInput defaultValue={at(13, 45)} closeOnSelect openOnFocus={false} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -928,7 +928,7 @@ describe('Timepicker segmented input entry', () => {
   });
 
   it('Tab clears segment selection so focus can move out naturally', () => {
-    const { getByRole } = render(<Timepicker defaultValue={at(13, 45)} />);
+    const { getByRole } = render(<TimeInput defaultValue={at(13, 45)} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -944,7 +944,7 @@ describe('Timepicker segmented input entry', () => {
   it('falls back to free-form text entry when format uses Intl options', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(13, 45)}
         format={{ hour: '2-digit', minute: '2-digit' }}
         onChange={handler}
@@ -963,11 +963,11 @@ describe('Timepicker segmented input entry', () => {
   });
 });
 
-describe('Timepicker editable / popover modes', () => {
+describe('TimeInput editable / popover modes', () => {
   it('editable={false}: typing / arrows do not change the value', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(13, 45)}
         editable={false}
         onChange={handler}
@@ -986,7 +986,7 @@ describe('Timepicker editable / popover modes', () => {
 
   it('editable={false}: the popover still opens on click', () => {
     const { getByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} editable={false} />
+      <TimeInput defaultValue={at(13, 45)} editable={false} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
@@ -995,7 +995,7 @@ describe('Timepicker editable / popover modes', () => {
 
   it('popover={false}: focus / click / ArrowDown do not open a dialog', () => {
     const { getByRole, queryByRole } = render(
-      <Timepicker defaultValue={at(13, 45)} popover={false} />
+      <TimeInput defaultValue={at(13, 45)} popover={false} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.focus(input);
@@ -1007,7 +1007,7 @@ describe('Timepicker editable / popover modes', () => {
   it('popover={false}: still supports segmented typing (input-only)', () => {
     const handler = jest.fn();
     const { getByRole, queryByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(13, 45)}
         popover={false}
         onChange={handler}
@@ -1023,10 +1023,10 @@ describe('Timepicker editable / popover modes', () => {
   });
 });
 
-describe('Timepicker launcher icon', () => {
+describe('TimeInput launcher icon', () => {
   it('opens the popover when the launcher is clicked, and toggles it closed', () => {
     const { getByLabelText, queryByRole } = render(
-      <Timepicker openOnFocus={false} />
+      <TimeInput openOnFocus={false} />
     );
     const trigger = getByLabelText('Choose time');
     expect(queryByRole('dialog')).toBeNull();
@@ -1037,22 +1037,22 @@ describe('Timepicker launcher icon', () => {
   });
 
   it('triggerIcon={false} renders no launcher', () => {
-    const { queryByLabelText } = render(<Timepicker triggerIcon={false} />);
+    const { queryByLabelText } = render(<TimeInput triggerIcon={false} />);
     expect(queryByLabelText('Choose time')).toBeNull();
   });
 
   it('renders no launcher when popover={false} or inline', () => {
     const { queryByLabelText, rerender } = render(
-      <Timepicker popover={false} />
+      <TimeInput popover={false} />
     );
     expect(queryByLabelText('Choose time')).toBeNull();
-    rerender(<Timepicker inline />);
+    rerender(<TimeInput inline />);
     expect(queryByLabelText('Choose time')).toBeNull();
   });
 
   it('disables the launcher when readOnly', () => {
     const { getByLabelText, queryByRole } = render(
-      <Timepicker readOnly defaultValue={at(13, 45)} />
+      <TimeInput readOnly defaultValue={at(13, 45)} />
     );
     const trigger = getByLabelText('Choose time') as HTMLButtonElement;
     expect(trigger.disabled).toBe(true);
@@ -1062,7 +1062,7 @@ describe('Timepicker launcher icon', () => {
 
   it('editable={false} keeps the launcher working (picker-only)', () => {
     const { getByLabelText, getByRole } = render(
-      <Timepicker editable={false} openOnFocus={false} />
+      <TimeInput editable={false} openOnFocus={false} />
     );
     fireEvent.click(getByLabelText('Choose time'));
     expect(getByRole('dialog')).toBeInTheDocument();
@@ -1075,7 +1075,7 @@ describe('Timepicker launcher icon', () => {
 // Reset / ✓ footer instead of the desktop OK / Now / Cancel buttons.
 // -------------------------------------------------------------------------
 
-describe('Timepicker mobile footer', () => {
+describe('TimeInput mobile footer', () => {
   let originalMatchMedia: typeof window.matchMedia | undefined;
 
   beforeEach(() => {
@@ -1106,7 +1106,7 @@ describe('Timepicker mobile footer', () => {
   it('Reset reverts to the value at open and closes', () => {
     const handler = jest.fn();
     const { getByRole, getByText, getAllByRole, queryByRole } = render(
-      <Timepicker
+      <TimeInput
         mobileNative={false}
         defaultValue={at(13, 45)}
         onChange={handler}
@@ -1126,7 +1126,7 @@ describe('Timepicker mobile footer', () => {
 
   it('the ✓ button closes the popover', () => {
     const { getByRole, getByLabelText, queryByRole } = render(
-      <Timepicker mobileNative={false} defaultValue={at(13, 45)} />
+      <TimeInput mobileNative={false} defaultValue={at(13, 45)} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByLabelText('Done'));
@@ -1135,15 +1135,15 @@ describe('Timepicker mobile footer', () => {
 });
 
 // -------------------------------------------------------------------------
-// Remaining TimepickerBase branches: controlled values, min/max clamping of
+// Remaining TimeInputBase branches: controlled values, min/max clamping of
 // wheel changes, the noon base for segmented entry on an empty field,
 // free-form blur parsing, inline hidden inputs, and the bare base component.
 // -------------------------------------------------------------------------
 
-describe('TimepickerBase remaining branches', () => {
-  it('bare TimepickerBase renders the default launcher and opens/closes without callbacks', () => {
+describe('TimeInputBase remaining branches', () => {
+  it('bare TimeInputBase renders the default launcher and opens/closes without callbacks', () => {
     const { getByRole, getByLabelText, queryByRole } = render(
-      <TimepickerBase />
+      <TimeInputBase />
     );
     expect(getByLabelText('Choose time').tagName).toBe('BUTTON');
     fireEvent.click(getByRole('combobox'));
@@ -1156,17 +1156,17 @@ describe('TimepickerBase remaining branches', () => {
 
   it('controlled value drives the text; value={null} renders empty', () => {
     const { getByRole, rerender } = render(
-      <TimepickerBase value={at(13, 45)} />
+      <TimeInputBase value={at(13, 45)} />
     );
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('13:45');
-    rerender(<TimepickerBase value={null} />);
+    rerender(<TimeInputBase value={null} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
   });
 
   it('controlled: a wheel change reports through onChange without internal state', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <TimepickerBase value={at(10, 0)} onChange={handler} />
+      <TimeInputBase value={at(10, 0)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
@@ -1177,7 +1177,7 @@ describe('TimepickerBase remaining branches', () => {
   });
 
   it('derives the popover id from the id prop', () => {
-    const { getByRole } = render(<TimepickerBase id="shift-start" />);
+    const { getByRole } = render(<TimeInputBase id="shift-start" />);
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
       'shift-start-popover'
@@ -1188,7 +1188,7 @@ describe('TimepickerBase remaining branches', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
     const { getByRole } = render(
-      <TimepickerBase onOpen={onOpen} onClose={onClose} />
+      <TimeInputBase onOpen={onOpen} onClose={onClose} />
     );
     const input = getByRole('combobox');
     fireEvent.click(input);
@@ -1204,7 +1204,7 @@ describe('TimepickerBase remaining branches', () => {
   it('wheels start at 00:00 when there is no value and spin from today', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker onChange={handler} />
+      <TimeInput onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
@@ -1216,7 +1216,7 @@ describe('TimepickerBase remaining branches', () => {
   it('seconds wheel defaults to 00 when there is no value', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker enableSeconds onChange={handler} />
+      <TimeInput enableSeconds onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const wheels = getAllByRole('spinbutton');
@@ -1230,7 +1230,7 @@ describe('TimepickerBase remaining branches', () => {
   it('rejects a wheel change that falls outside min/max', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         min={at(10, 0)}
         max={at(10, 30)}
@@ -1247,7 +1247,7 @@ describe('TimepickerBase remaining branches', () => {
   it('segmented entry on an empty field seeds from a noon base', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker openOnFocus={false} onChange={handler} />
+      <TimeInput openOnFocus={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -1265,7 +1265,7 @@ describe('TimepickerBase remaining branches', () => {
   it('free-form text parses on blur with the default format', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker openOnFocus={false} onChange={handler} />
+      <TimeInput openOnFocus={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '09:30' } });
@@ -1278,7 +1278,7 @@ describe('TimepickerBase remaining branches', () => {
   it('free-form text parses on blur with an explicit format string', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker openOnFocus={false} format="h:mm A" onChange={handler} />
+      <TimeInput openOnFocus={false} format="h:mm A" onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '9:30 PM' } });
@@ -1291,7 +1291,7 @@ describe('TimepickerBase remaining branches', () => {
   it('Intl-options formats fall back to the 24h default format for blur parsing', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker
+      <TimeInput
         openOnFocus={false}
         format={{ hour: '2-digit', minute: '2-digit' }}
         onChange={handler}
@@ -1308,7 +1308,7 @@ describe('TimepickerBase remaining branches', () => {
   it('whitespace-only text reverts on blur without committing', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Timepicker
+      <TimeInput
         defaultValue={at(13, 45)}
         openOnFocus={false}
         onChange={handler}
@@ -1326,7 +1326,7 @@ describe('TimepickerBase remaining branches', () => {
     // value getter to surface a malformed string to the change handler.
     const handler = jest.fn();
     const { container } = render(
-      <Timepicker mobileNative={true} onChange={handler} />
+      <TimeInput mobileNative={true} onChange={handler} />
     );
     const native = container.querySelector(
       'input[type="time"]'
@@ -1342,13 +1342,13 @@ describe('TimepickerBase remaining branches', () => {
 
   it('supports a callback ref', () => {
     const refFn = jest.fn();
-    render(<Timepicker ref={refFn} />);
+    render(<TimeInput ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
 
   it('inline renders the wheels without a popover and emits a hidden input for name', () => {
     const { container, queryByRole, getAllByRole } = render(
-      <Timepicker inline name="start" defaultValue={at(13, 45)} />
+      <TimeInput inline name="start" defaultValue={at(13, 45)} />
     );
     expect(queryByRole('dialog')).toBeNull();
     expect(getAllByRole('spinbutton').length).toBe(2);
@@ -1359,7 +1359,7 @@ describe('TimepickerBase remaining branches', () => {
   });
 
   it('inline with name but no value emits an empty hidden input', () => {
-    const { container } = render(<Timepicker inline name="start" />);
+    const { container } = render(<TimeInput inline name="start" />);
     const hidden = container.querySelector(
       'input[type="hidden"]'
     ) as HTMLInputElement;
@@ -1369,7 +1369,7 @@ describe('TimepickerBase remaining branches', () => {
 
   it('inline without a name emits no hidden input', () => {
     const { container } = render(
-      <Timepicker inline defaultValue={at(13, 45)} />
+      <TimeInput inline defaultValue={at(13, 45)} />
     );
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });

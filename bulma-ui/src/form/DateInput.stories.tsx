@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState } from 'react';
-import { Datepicker } from './Datepicker';
-import { DatepickerBase } from './DatepickerBase';
+import { DateInput } from './DateInput';
+import { DateInputBase } from './DateInputBase';
 import { Field } from './Field';
 import { Control } from './Control';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
 
-const meta: Meta<typeof Datepicker> = {
-  title: 'Form/Datepicker',
-  component: Datepicker,
+const meta: Meta<typeof DateInput> = {
+  title: 'Form/DateInput',
+  component: DateInput,
   parameters: {
     layout: 'padded',
     docs: {
@@ -51,7 +51,7 @@ const meta: Meta<typeof Datepicker> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Datepicker>;
+type Story = StoryObj<typeof DateInput>;
 
 export const Default: Story = {
   args: {
@@ -65,7 +65,7 @@ export const Controlled: Story = {
     const [value, setValue] = useState<Date | null>(new Date());
     return (
       <Block>
-        <Datepicker label="Controlled date" value={value} onChange={setValue} />
+        <DateInput label="Controlled date" value={value} onChange={setValue} />
         <Paragraph>Selected: {value ? value.toDateString() : '—'}</Paragraph>
       </Block>
     );
@@ -75,10 +75,10 @@ export const Controlled: Story = {
 export const Sizes: Story = {
   render: () => (
     <Block>
-      <Datepicker label="Small" controlSize="small" size="small" />
-      <Datepicker label="Default" />
-      <Datepicker label="Medium" controlSize="medium" size="medium" />
-      <Datepicker label="Large" controlSize="large" size="large" />
+      <DateInput label="Small" controlSize="small" size="small" />
+      <DateInput label="Default" />
+      <DateInput label="Medium" controlSize="medium" size="medium" />
+      <DateInput label="Large" controlSize="large" size="large" />
     </Block>
   ),
 };
@@ -86,11 +86,11 @@ export const Sizes: Story = {
 export const Colors: Story = {
   render: () => (
     <Block>
-      <Datepicker label="Primary" color="primary" />
-      <Datepicker label="Info" color="info" />
-      <Datepicker label="Success" color="success" />
-      <Datepicker label="Warning" color="warning" />
-      <Datepicker label="Danger" color="danger" />
+      <DateInput label="Primary" color="primary" />
+      <DateInput label="Info" color="info" />
+      <DateInput label="Success" color="success" />
+      <DateInput label="Warning" color="warning" />
+      <DateInput label="Danger" color="danger" />
     </Block>
   ),
 };
@@ -98,9 +98,9 @@ export const Colors: Story = {
 export const States: Story = {
   render: () => (
     <Block>
-      <Datepicker label="Disabled" disabled />
-      <Datepicker label="Read only" readOnly defaultValue={new Date()} />
-      <Datepicker label="Loading" isLoading />
+      <DateInput label="Disabled" disabled />
+      <DateInput label="Read only" readOnly defaultValue={new Date()} />
+      <DateInput label="Loading" isLoading />
     </Block>
   ),
 };
@@ -119,7 +119,7 @@ export const MinMax: Story = {
     const min = new Date(today.getFullYear(), today.getMonth(), 1);
     const max = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     return (
-      <Datepicker
+      <DateInput
         label={`Limited to ${min.toDateString()} – ${max.toDateString()}`}
         min={min}
         max={max}
@@ -172,9 +172,9 @@ export const FirstDayOfWeek: Story = {
 export const Locale: Story = {
   render: () => (
     <Block>
-      <Datepicker label="ja-JP" locale="ja-JP" defaultValue={new Date()} />
-      <Datepicker label="fr-FR" locale="fr-FR" defaultValue={new Date()} />
-      <Datepicker label="de-DE" locale="de-DE" defaultValue={new Date()} />
+      <DateInput label="ja-JP" locale="ja-JP" defaultValue={new Date()} />
+      <DateInput label="fr-FR" locale="fr-FR" defaultValue={new Date()} />
+      <DateInput label="de-DE" locale="de-DE" defaultValue={new Date()} />
     </Block>
   ),
   parameters: {
@@ -209,30 +209,30 @@ export const Formats: Story = {
     const d = new Date(2026, 4, 30);
     return (
       <Block display="flex" flexDirection="column" gap="4">
-        <Datepicker
+        <DateInput
           label="YYYY-MM-DD (default)"
           defaultValue={d}
           openOnFocus={false}
         />
-        <Datepicker
+        <DateInput
           label="DD/MM/YYYY"
           format="DD/MM/YYYY"
           defaultValue={d}
           openOnFocus={false}
         />
-        <Datepicker
+        <DateInput
           label="MM-DD-YYYY"
           format="MM-DD-YYYY"
           defaultValue={d}
           openOnFocus={false}
         />
-        <Datepicker
+        <DateInput
           label="DD.MM.YY"
           format="DD.MM.YY"
           defaultValue={d}
           openOnFocus={false}
         />
-        <Datepicker
+        <DateInput
           label="Intl long — display only"
           format={{ year: 'numeric', month: 'long', day: 'numeric' }}
           defaultValue={d}
@@ -261,7 +261,7 @@ export const CustomParse: Story = {
       return Number.isNaN(t) ? null : new Date(t);
     };
     return (
-      <Datepicker
+      <DateInput
         label="Intl long + custom parse"
         format={fmt}
         parse={parse}
@@ -338,9 +338,9 @@ export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (
     <Block display="flex" flexDirection="column" gap="4">
-      <Datepicker label="Default left icon + right launcher" />
-      <Datepicker label="Custom left glyph" iconLeftName="calendar-alt" />
-      <Datepicker label="Left icon hidden" iconLeftName="" />
+      <DateInput label="Default left icon + right launcher" />
+      <DateInput label="Custom left glyph" iconLeftName="calendar-alt" />
+      <DateInput label="Left icon hidden" iconLeftName="" />
     </Block>
   ),
   parameters: {
@@ -391,7 +391,7 @@ export const ManualEntryControlled: Story = {
     const [value, setValue] = useState<Date | null>(new Date(2024, 5, 7));
     return (
       <Block>
-        <Datepicker
+        <DateInput
           label="Arrow or type — value updates live"
           value={value}
           onChange={setValue}
@@ -456,7 +456,7 @@ export const Composed: Story = {
   render: () => (
     <Field label="Manually composed">
       <Control iconLeftName="calendar">
-        <DatepickerBase placeholder="YYYY-MM-DD" />
+        <DateInputBase placeholder="YYYY-MM-DD" />
       </Control>
     </Field>
   ),
@@ -473,7 +473,7 @@ export const InForm: Story = {
           setSubmitted(String(fd.get('booking') ?? ''));
         }}
       >
-        <Datepicker
+        <DateInput
           label="Booking date"
           name="booking"
           required

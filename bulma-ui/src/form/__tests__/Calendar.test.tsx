@@ -36,7 +36,7 @@ describe('Calendar', () => {
     const { container } = render(<Harness />);
     expect(
       container.querySelectorAll(
-        '[class*="datepicker-day-name"]:not([class*="datepicker-day-names"])'
+        '[class*="dateinput-day-name"]:not([class*="dateinput-day-names"])'
       ).length
     ).toBe(7);
   });
@@ -207,7 +207,7 @@ describe('Calendar', () => {
   it('first day name reflects firstDayOfWeek=1 (Monday)', () => {
     const { container } = render(<Harness firstDayOfWeek={1} locale="en-US" />);
     const firstName = container.querySelectorAll(
-      '[class*="datepicker-day-name"]'
+      '[class*="dateinput-day-name"]'
     )[0];
     expect(firstName.textContent).toMatch(/Mon/);
   });
@@ -441,7 +441,7 @@ describe('Calendar', () => {
     );
     expect(getByText('M6 2024')).toBeInTheDocument();
     const firstName = container.querySelectorAll(
-      '[class*="datepicker-day-name"]:not([class*="datepicker-day-names"])'
+      '[class*="dateinput-day-name"]:not([class*="dateinput-day-names"])'
     )[0];
     expect(firstName.textContent).toBe('D1');
   });

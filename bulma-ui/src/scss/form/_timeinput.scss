@@ -1,54 +1,54 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 
-$timepicker-wheel-width: 3rem !default;
-$timepicker-wheel-item-height: 2rem !default;
-$timepicker-wheel-gap: 0.4rem !default;
-$timepicker-wheel-bg: cv.getVar('scheme-main') !default;
-$timepicker-wheel-color: cv.getVar('text') !default;
-$timepicker-wheel-dim-color: cv.getVar('text-weak') !default;
-$timepicker-wheel-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
-$timepicker-wheel-selected-bg: cv.getVar('primary') !default;
-$timepicker-wheel-selected-color: cv.getVar('primary-invert') !default;
-$timepicker-wheel-radius: cv.getVar('radius') !default;
+$timeinput-wheel-width: 3rem !default;
+$timeinput-wheel-item-height: 2rem !default;
+$timeinput-wheel-gap: 0.4rem !default;
+$timeinput-wheel-bg: cv.getVar('scheme-main') !default;
+$timeinput-wheel-color: cv.getVar('text') !default;
+$timeinput-wheel-dim-color: cv.getVar('text-weak') !default;
+$timeinput-wheel-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
+$timeinput-wheel-selected-bg: cv.getVar('primary') !default;
+$timeinput-wheel-selected-color: cv.getVar('primary-invert') !default;
+$timeinput-wheel-radius: cv.getVar('radius') !default;
 // The per-item depth fade applied inline in TimeWheels.tsx now does the heavy
 // lifting of dimming away-from-centre values. The mask just trims the very
 // edges so partial items at the top/bottom don't get a hard cut-off — keep
 // the transparent band thin so the fade and the mask don't compound and make
 // near-edge items vanish before they reach the edge.
-$timepicker-wheel-mask: linear-gradient(
+$timeinput-wheel-mask: linear-gradient(
   180deg,
   transparent 0,
   black 18%,
   black 82%,
   transparent 100%
 ) !default;
-$timepicker-separator-color: cv.getVar('text-weak') !default;
-$timepicker-separator-size: cv.getVar('size-5') !default;
-$timepicker-footer-padding: 0.5rem 0 0 !default;
+$timeinput-separator-color: cv.getVar('text-weak') !default;
+$timeinput-separator-size: cv.getVar('size-5') !default;
+$timeinput-footer-padding: 0.5rem 0 0 !default;
 
-.#{iv.$class-prefix}timepicker {
+.#{iv.$class-prefix}timeinput {
   @include cv.register-vars(
     (
-      'timepicker-wheel-width': #{$timepicker-wheel-width},
-      'timepicker-wheel-item-height': #{$timepicker-wheel-item-height},
-      'timepicker-wheel-gap': #{$timepicker-wheel-gap},
-      'timepicker-wheel-bg': #{$timepicker-wheel-bg},
-      'timepicker-wheel-color': #{$timepicker-wheel-color},
-      'timepicker-wheel-dim-color': #{$timepicker-wheel-dim-color},
-      'timepicker-wheel-hover-bg': #{$timepicker-wheel-hover-bg},
-      'timepicker-wheel-selected-bg': #{$timepicker-wheel-selected-bg},
-      'timepicker-wheel-selected-color': #{$timepicker-wheel-selected-color},
-      'timepicker-wheel-radius': #{$timepicker-wheel-radius},
-      'timepicker-wheel-mask': #{$timepicker-wheel-mask},
-      'timepicker-separator-color': #{$timepicker-separator-color},
-      'timepicker-separator-size': #{$timepicker-separator-size},
-      'timepicker-footer-padding': #{$timepicker-footer-padding},
+      'timeinput-wheel-width': #{$timeinput-wheel-width},
+      'timeinput-wheel-item-height': #{$timeinput-wheel-item-height},
+      'timeinput-wheel-gap': #{$timeinput-wheel-gap},
+      'timeinput-wheel-bg': #{$timeinput-wheel-bg},
+      'timeinput-wheel-color': #{$timeinput-wheel-color},
+      'timeinput-wheel-dim-color': #{$timeinput-wheel-dim-color},
+      'timeinput-wheel-hover-bg': #{$timeinput-wheel-hover-bg},
+      'timeinput-wheel-selected-bg': #{$timeinput-wheel-selected-bg},
+      'timeinput-wheel-selected-color': #{$timeinput-wheel-selected-color},
+      'timeinput-wheel-radius': #{$timeinput-wheel-radius},
+      'timeinput-wheel-mask': #{$timeinput-wheel-mask},
+      'timeinput-separator-color': #{$timeinput-separator-color},
+      'timeinput-separator-size': #{$timeinput-separator-size},
+      'timeinput-footer-padding': #{$timeinput-footer-padding},
     )
   );
 }
 
-.#{iv.$class-prefix}timepicker {
+.#{iv.$class-prefix}timeinput {
   display: inline-block;
 }
 
@@ -56,8 +56,8 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
 // (no popover wrapper), give it a subtle frame so the wheels don't look
 // orphaned on the page. Mirrors the popover's visual weight without the
 // drop-shadow / animation.
-.#{iv.$class-prefix}timepicker-container
-  > .#{iv.$class-prefix}timepicker-panel {
+.#{iv.$class-prefix}timeinput-container
+  > .#{iv.$class-prefix}timeinput-panel {
   display: inline-block;
   background-color: cv.getVar('scheme-main');
   border: 1px solid cv.getVar('border');
@@ -65,10 +65,10 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   padding: 0.75rem;
 }
 
-.#{iv.$class-prefix}timepicker-wheels {
+.#{iv.$class-prefix}timeinput-wheels {
   display: flex;
   align-items: center;
-  gap: cv.getVar('timepicker-wheel-gap');
+  gap: cv.getVar('timeinput-wheel-gap');
   // Stop the browser from interpreting touches on the empty space inside
   // this row (left/right of the wheels, between columns) as page-scroll
   // gestures. The parent component routes those drags to the nearest
@@ -77,15 +77,15 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   touch-action: none;
 }
 
-.#{iv.$class-prefix}timepicker-wheel {
+.#{iv.$class-prefix}timeinput-wheel {
   position: relative;
-  width: cv.getVar('timepicker-wheel-width');
+  width: cv.getVar('timeinput-wheel-width');
   outline: none;
   overflow: hidden;
   touch-action: none;
   user-select: none;
-  -webkit-mask-image: cv.getVar('timepicker-wheel-mask');
-  mask-image: cv.getVar('timepicker-wheel-mask');
+  -webkit-mask-image: cv.getVar('timeinput-wheel-mask');
+  mask-image: cv.getVar('timeinput-wheel-mask');
 
   // Soft cylinder vignette: the wheel surface stays clean in the middle
   // and gradually darkens toward the top and bottom, suggesting depth like
@@ -116,10 +116,10 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   &:focus-visible {
     outline: 2px solid cv.getVar('primary');
     outline-offset: 2px;
-    border-radius: cv.getVar('timepicker-wheel-radius');
+    border-radius: cv.getVar('timeinput-wheel-radius');
   }
 
-  &.#{iv.$class-prefix}is-dragging .#{iv.$class-prefix}timepicker-wheel-item {
+  &.#{iv.$class-prefix}is-dragging .#{iv.$class-prefix}timeinput-wheel-item {
     transition: none;
   }
 
@@ -129,20 +129,20 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   }
 }
 
-.#{iv.$class-prefix}timepicker-wheel-item {
+.#{iv.$class-prefix}timeinput-wheel-item {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: cv.getVar('timepicker-wheel-dim-color');
+  color: cv.getVar('timeinput-wheel-dim-color');
   font: inherit;
   font-variant-numeric: tabular-nums;
   font-weight: cv.getVar('weight-medium');
   cursor: pointer;
   padding: 0;
-  border-radius: cv.getVar('timepicker-wheel-radius');
+  border-radius: cv.getVar('timeinput-wheel-radius');
   // Items render ABOVE the stationary band so the band tints them.
   z-index: 1;
   transition:
@@ -150,14 +150,14 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
     font-weight 0.1s ease;
 
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
-    color: cv.getVar('timepicker-wheel-color');
+    color: cv.getVar('timeinput-wheel-color');
   }
 
   // The selected item (whichever is currently centred over the band) is
   // emphasised by colour + weight only — the green fill belongs to the
   // band beneath it now, so it doesn't visibly slide with the finger.
   &.#{iv.$class-prefix}is-selected {
-    color: cv.getVar('timepicker-wheel-selected-color');
+    color: cv.getVar('timeinput-wheel-selected-color');
     font-weight: cv.getVar('weight-semibold');
   }
 
@@ -174,9 +174,9 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
 // does NOT move while items slide through it (iOS-native picker feel). The
 // vertical position and height are set inline by the JSX, so CSS only
 // provides the visual treatment.
-.#{iv.$class-prefix}timepicker-wheel-band {
-  background-color: cv.getVar('timepicker-wheel-selected-bg');
-  border-radius: cv.getVar('timepicker-wheel-radius');
+.#{iv.$class-prefix}timeinput-wheel-band {
+  background-color: cv.getVar('timeinput-wheel-selected-bg');
+  border-radius: cv.getVar('timeinput-wheel-radius');
   z-index: 0;
   // Explicit centre origin so the per-tick pulse animation (driven via WAI
   // in TimeWheels.tsx) scales symmetrically rather than from a default
@@ -185,18 +185,18 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   transform-origin: center;
 }
 
-.#{iv.$class-prefix}timepicker-separator {
-  font-size: cv.getVar('timepicker-separator-size');
+.#{iv.$class-prefix}timeinput-separator {
+  font-size: cv.getVar('timeinput-separator-size');
   font-weight: cv.getVar('weight-bold');
-  color: cv.getVar('timepicker-separator-color');
+  color: cv.getVar('timeinput-separator-color');
   line-height: 1;
   align-self: center;
   padding: 0 0.1rem;
 }
 
-.#{iv.$class-prefix}timepicker-footer {
+.#{iv.$class-prefix}timeinput-footer {
   display: flex;
-  padding: cv.getVar('timepicker-footer-padding');
+  padding: cv.getVar('timeinput-footer-padding');
 
   // Make the segmented button group span the full popover width: each
   // child claims an equal share, so OK / Now / Cancel sit side-by-side
@@ -211,43 +211,43 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
 // Enter on a wheel will activate OK. Deliberately subtle — just a faint
 // neutral background tint. Real focus on OK uses Bulma's default focus ring
 // (same as Now / Cancel) so the three buttons stay visually consistent.
-.#{iv.$class-prefix}timepicker-panel:has(
-    .#{iv.$class-prefix}timepicker-wheel:focus
+.#{iv.$class-prefix}timeinput-panel:has(
+    .#{iv.$class-prefix}timeinput-wheel:focus
   )
-  .#{iv.$class-prefix}timepicker-footer-ok:not(:focus-visible) {
+  .#{iv.$class-prefix}timeinput-footer-ok:not(:focus-visible) {
   background-color: hsla(0, 0%, 50%, 0.12);
 }
 
 // Sizes scale the item height + wheel width.
-.#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-small {
+.#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-small {
   width: 2.5rem;
 }
-.#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-medium {
+.#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-medium {
   width: 3.5rem;
 }
-.#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-large {
+.#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-large {
   width: 4.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .#{iv.$class-prefix}timepicker-wheel-list {
+  .#{iv.$class-prefix}timeinput-wheel-list {
     transition: none;
   }
 }
 
 // Mobile (small viewport): bigger touch targets, larger numbers, more iOS-native
 // feel. Item *height* is set inline by JS and bumped from 40px to 48px on small
-// viewports by TimepickerBase; the rules below adjust everything that's CSS-only
+// viewports by TimeInputBase; the rules below adjust everything that's CSS-only
 // (font size, wheel width, gap, separator, mask intensity).
 @media (max-width: 768px) {
-  .#{iv.$class-prefix}timepicker {
-    --bestax-timepicker-wheel-width: 4rem;
-    --bestax-timepicker-wheel-gap: 0.5rem;
+  .#{iv.$class-prefix}timeinput {
+    --bestax-timeinput-wheel-width: 4rem;
+    --bestax-timeinput-wheel-gap: 0.5rem;
     // Mobile mask: with the per-item depth fade already pulling brightness
     // down toward the edges, the mask only needs to handle the final crop.
     // Slightly tighter than desktop because mobile items are bigger and the
     // edge taper benefits from a touch more softening.
-    --bestax-timepicker-wheel-mask: linear-gradient(
+    --bestax-timeinput-wheel-mask: linear-gradient(
       180deg,
       transparent 0,
       black 28%,
@@ -256,11 +256,11 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
     );
   }
 
-  .#{iv.$class-prefix}timepicker-wheel-item {
+  .#{iv.$class-prefix}timeinput-wheel-item {
     font-size: 1.1rem;
   }
 
-  .#{iv.$class-prefix}timepicker-separator {
+  .#{iv.$class-prefix}timeinput-separator {
     font-size: 1.4rem;
     padding: 0 0.25rem;
   }
@@ -268,36 +268,36 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
   // The wheel widths from .is-small / .is-medium / .is-large would otherwise
   // override the mobile bump above. Re-apply the larger mobile widths so the
   // size variants still scale around the iOS-native baseline.
-  .#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-small {
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-small {
     width: 3.25rem;
   }
-  .#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-medium {
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-medium {
     width: 4.5rem;
   }
-  .#{iv.$class-prefix}timepicker-wheel.#{iv.$class-prefix}is-large {
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-large {
     width: 5.25rem;
   }
 
   // On mobile, the popover is wide and the panel is a column flex container
-  // (see below), so the timepicker root becomes a stretched flex item. For
+  // (see below), so the timeinput root becomes a stretched flex item. For
   // the wheels row to actually expose empty space on the sides (where we
   // forward drag gestures to the nearest wheel), it has to span the full
   // panel width — otherwise `display: flex` shrinks it to its content and
   // `justify-content: center` has nothing to centre.
-  .#{iv.$class-prefix}timepicker {
+  .#{iv.$class-prefix}timeinput {
     display: block;
     width: 100%;
   }
-  .#{iv.$class-prefix}timepicker-wheels {
+  .#{iv.$class-prefix}timeinput-wheels {
     width: 100%;
     justify-content: center;
   }
 
-  // Wide bottom-anchored popover when it contains a Timepicker panel — the
+  // Wide bottom-anchored popover when it contains a TimeInput panel — the
   // OS-native picker on iOS occupies almost the full screen width with the
   // wheels centred, so we mirror that. `:has()` is supported on iOS 15.4+,
   // Safari 15.4+, and all current Chromium / Firefox.
-  .#{iv.$class-prefix}picker-popover:has(.#{iv.$class-prefix}timepicker-panel) {
+  .#{iv.$class-prefix}picker-popover:has(.#{iv.$class-prefix}timeinput-panel) {
     // Override the popover's registered radius var so border-radius (which
     // already references `cv.getVar('picker-popover-radius')`) updates
     // automatically. We use Bulma's `radius-large` scaled by 4 for an
@@ -311,7 +311,7 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
     width: auto;
     max-width: none;
   }
-  .#{iv.$class-prefix}timepicker-panel {
+  .#{iv.$class-prefix}timeinput-panel {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -324,14 +324,14 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
 
   // iOS-style mobile footer: "Reset" text link on the left, blue circular
   // checkmark on the right.
-  .#{iv.$class-prefix}timepicker-footer-mobile {
+  .#{iv.$class-prefix}timeinput-footer-mobile {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 0.25rem 0;
   }
 
-  .#{iv.$class-prefix}timepicker-footer-reset {
+  .#{iv.$class-prefix}timeinput-footer-reset {
     appearance: none;
     background: transparent;
     border: 0;
@@ -347,7 +347,7 @@ $timepicker-footer-padding: 0.5rem 0 0 !default;
     }
   }
 
-  .#{iv.$class-prefix}timepicker-footer-done {
+  .#{iv.$class-prefix}timeinput-footer-done {
     appearance: none;
     border: 0;
     padding: 0;

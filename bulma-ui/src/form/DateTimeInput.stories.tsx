@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React, { useState } from 'react';
-import { Datetimepicker } from './Datetimepicker';
+import { DateTimeInput } from './DateTimeInput';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
 
-const meta: Meta<typeof Datetimepicker> = {
-  title: 'Form/Datetimepicker',
-  component: Datetimepicker,
+const meta: Meta<typeof DateTimeInput> = {
+  title: 'Form/DateTimeInput',
+  component: DateTimeInput,
   parameters: {
     layout: 'padded',
     docs: {
@@ -44,7 +44,7 @@ const meta: Meta<typeof Datetimepicker> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Datetimepicker>;
+type Story = StoryObj<typeof DateTimeInput>;
 
 export const Default: Story = {
   args: {
@@ -58,7 +58,7 @@ export const Controlled: Story = {
     const [value, setValue] = useState<Date | null>(new Date());
     return (
       <Block>
-        <Datetimepicker label="Meeting" value={value} onChange={setValue} />
+        <DateTimeInput label="Meeting" value={value} onChange={setValue} />
         <Paragraph>Selected: {value ? value.toString() : '—'}</Paragraph>
       </Block>
     );
@@ -121,18 +121,18 @@ export const Formats: Story = {
     const v = new Date(2026, 4, 30, 13, 45);
     return (
       <Block display="flex" flexDirection="column" gap="4">
-        <Datetimepicker label="YYYY-MM-DD HH:mm (default)" defaultValue={v} />
-        <Datetimepicker
+        <DateTimeInput label="YYYY-MM-DD HH:mm (default)" defaultValue={v} />
+        <DateTimeInput
           label="MM/DD/YYYY hh:mm A"
           format="MM/DD/YYYY hh:mm A"
           defaultValue={v}
         />
-        <Datetimepicker
+        <DateTimeInput
           label="DD.MM.YYYY HH:mm"
           format="DD.MM.YYYY HH:mm"
           defaultValue={v}
         />
-        <Datetimepicker
+        <DateTimeInput
           label="Intl — display only"
           format={{ dateStyle: 'medium', timeStyle: 'short' }}
           editable={false}
@@ -159,7 +159,7 @@ export const MinMax: Story = {
     const max = new Date(today);
     max.setHours(17, 0, 0, 0);
     return (
-      <Datetimepicker label="Office hours today only" min={min} max={max} />
+      <DateTimeInput label="Office hours today only" min={min} max={max} />
     );
   },
   parameters: {
@@ -213,8 +213,8 @@ export const MobileNative: Story = {
 export const Locale: Story = {
   render: () => (
     <Block>
-      <Datetimepicker label="ja-JP" locale="ja-JP" defaultValue={new Date()} />
-      <Datetimepicker label="fr-FR" locale="fr-FR" defaultValue={new Date()} />
+      <DateTimeInput label="ja-JP" locale="ja-JP" defaultValue={new Date()} />
+      <DateTimeInput label="fr-FR" locale="fr-FR" defaultValue={new Date()} />
     </Block>
   ),
   parameters: {
@@ -230,10 +230,10 @@ export const Locale: Story = {
 export const Sizes: Story = {
   render: () => (
     <Block>
-      <Datetimepicker label="Small" controlSize="small" size="small" />
-      <Datetimepicker label="Default" />
-      <Datetimepicker label="Medium" controlSize="medium" size="medium" />
-      <Datetimepicker label="Large" controlSize="large" size="large" />
+      <DateTimeInput label="Small" controlSize="small" size="small" />
+      <DateTimeInput label="Default" />
+      <DateTimeInput label="Medium" controlSize="medium" size="medium" />
+      <DateTimeInput label="Large" controlSize="large" size="large" />
     </Block>
   ),
 };
@@ -241,11 +241,11 @@ export const Sizes: Story = {
 export const Colors: Story = {
   render: () => (
     <Block>
-      <Datetimepicker label="Primary" color="primary" />
-      <Datetimepicker label="Info" color="info" />
-      <Datetimepicker label="Success" color="success" />
-      <Datetimepicker label="Warning" color="warning" />
-      <Datetimepicker label="Danger" color="danger" />
+      <DateTimeInput label="Primary" color="primary" />
+      <DateTimeInput label="Info" color="info" />
+      <DateTimeInput label="Success" color="success" />
+      <DateTimeInput label="Warning" color="warning" />
+      <DateTimeInput label="Danger" color="danger" />
     </Block>
   ),
 };
@@ -253,9 +253,9 @@ export const Colors: Story = {
 export const States: Story = {
   render: () => (
     <Block>
-      <Datetimepicker label="Disabled" disabled />
-      <Datetimepicker label="Read only" readOnly defaultValue={new Date()} />
-      <Datetimepicker label="Loading" isLoading />
+      <DateTimeInput label="Disabled" disabled />
+      <DateTimeInput label="Read only" readOnly defaultValue={new Date()} />
+      <DateTimeInput label="Loading" isLoading />
     </Block>
   ),
 };
@@ -312,9 +312,9 @@ export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (
     <Block display="flex" flexDirection="column" gap="4">
-      <Datetimepicker label="Default left icon + right launcher" />
-      <Datetimepicker label="Custom left glyph" iconLeftName="calendar-day" />
-      <Datetimepicker label="Left icon hidden" iconLeftName="" />
+      <DateTimeInput label="Default left icon + right launcher" />
+      <DateTimeInput label="Custom left glyph" iconLeftName="calendar-day" />
+      <DateTimeInput label="Left icon hidden" iconLeftName="" />
     </Block>
   ),
   parameters: {
@@ -367,7 +367,7 @@ export const ManualEntryControlled: Story = {
     );
     return (
       <Block>
-        <Datetimepicker
+        <DateTimeInput
           label="Arrow or type — value updates live"
           value={value}
           onChange={setValue}

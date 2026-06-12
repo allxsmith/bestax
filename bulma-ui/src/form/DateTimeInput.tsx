@@ -2,12 +2,15 @@ import React, { forwardRef } from 'react';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
-import { TimepickerBase, TimepickerBaseProps } from './TimepickerBase';
+import {
+  DateTimeInputBase,
+  DateTimeInputBaseProps,
+} from './DateTimeInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
 
 /**
- * Props for the Timepicker convenience wrapper. Extends `TimepickerBaseProps`
- * with Field-level (label, horizontal) and Control-level (icons, loading) props.
+ * Props for the DateTimeInput convenience wrapper. Extends
+ * `DateTimeInputBaseProps` with Field-level and Control-level props.
  *
  * @property {React.ReactNode} [label] - Field label.
  * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
@@ -28,7 +31,7 @@ import { useInsideField, useInsideControl } from './FormContext';
  * @property {string} [fieldClassName] - Additional CSS classes for the Field wrapper.
  * @property {string} [controlClassName] - Additional CSS classes for the Control wrapper.
  */
-export interface TimepickerProps extends TimepickerBaseProps {
+export interface DateTimeInputProps extends DateTimeInputBaseProps {
   label?: React.ReactNode;
   labelSize?: FieldProps['labelSize'];
   labelProps?: FieldProps['labelProps'];
@@ -50,22 +53,25 @@ export interface TimepickerProps extends TimepickerBaseProps {
 }
 
 /**
- * Timepicker is a form input that opens a popover spinner for time-of-day
- * selection. Supports 12h/24h, optional seconds, custom step increments,
- * min/max bounds, an unselectable-times predicate, and a native
- * `<input type="time">` fallback for touch devices.
+ * DateTimeInput is a form input that opens a popover combining a calendar
+ * (above) and a time spinner (below). Footer offers Today / Now / Clear / OK.
+ * Includes a native `<input type="datetime-local">` fallback for touch devices.
  *
  * @function
- * @param {TimepickerProps} props
+ * @param {DateTimeInputProps} props
  * @returns {JSX.Element}
  *
  * @example
- * <Timepicker label="Departure" defaultValue={new Date()} />
+ * <DateTimeInput label="Appointment" defaultValue={new Date()} />
  *
  * @example
- * <Timepicker label="Slot" hourFormat="12" incrementMinutes={15} />
+ * <DateTimeInput
+ *   label="When"
+ *   hourFormat="12"
+ *   shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
+ * />
  */
-export const Timepicker = forwardRef<HTMLInputElement, TimepickerProps>(
+export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
   (
     {
       label,
@@ -74,7 +80,7 @@ export const Timepicker = forwardRef<HTMLInputElement, TimepickerProps>(
       horizontal,
       iconLeft,
       iconRight,
-      iconLeftName = 'clock',
+      iconLeftName = 'calendar-alt',
       iconRightName,
       iconLeftSize,
       iconRightSize,
@@ -100,14 +106,14 @@ export const Timepicker = forwardRef<HTMLInputElement, TimepickerProps>(
     // The right-side launcher is on by default; suppress it while the Control
     // shows its loading spinner (also on the right) unless explicitly set.
     let content: React.ReactNode = (
-      <TimepickerBase
+      <DateTimeInputBase
         ref={ref}
         {...baseProps}
         triggerIcon={baseProps.triggerIcon ?? !isLoading}
       />
     );
 
-    // Inline mode renders a bare panel with no input, so the Control's
+    // Inline mode renders a bare picker with no input, so the Control's
     // icon-left container has nothing to anchor to. Skip the Control wrap.
     if (!insideControl && !baseProps.inline) {
       content = (
@@ -156,6 +162,6 @@ export const Timepicker = forwardRef<HTMLInputElement, TimepickerProps>(
   }
 );
 
-Timepicker.displayName = 'Timepicker';
+DateTimeInput.displayName = 'DateTimeInput';
 
-export default Timepicker;
+export default DateTimeInput;

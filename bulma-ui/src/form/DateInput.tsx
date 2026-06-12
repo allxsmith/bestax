@@ -2,11 +2,11 @@ import React, { forwardRef } from 'react';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
-import { DatepickerBase, DatepickerBaseProps } from './DatepickerBase';
+import { DateInputBase, DateInputBaseProps } from './DateInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
 
 /**
- * Props for the Datepicker convenience wrapper. Extends `DatepickerBaseProps`
+ * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
  *
  * @property {React.ReactNode} [label] - Field label.
@@ -28,7 +28,7 @@ import { useInsideField, useInsideControl } from './FormContext';
  * @property {string} [fieldClassName] - Additional CSS classes for the Field wrapper.
  * @property {string} [controlClassName] - Additional CSS classes for the Control wrapper.
  */
-export interface DatepickerProps extends DatepickerBaseProps {
+export interface DateInputProps extends DateInputBaseProps {
   label?: React.ReactNode;
   labelSize?: FieldProps['labelSize'];
   labelProps?: FieldProps['labelProps'];
@@ -50,27 +50,27 @@ export interface DatepickerProps extends DatepickerBaseProps {
 }
 
 /**
- * Datepicker is a form input that opens a popover calendar for date selection.
+ * DateInput is a form input that opens a popover calendar for date selection.
  * Uses native `Date` and `Intl` only (no extra dependencies). Supports min/max
  * bounds, disabled-date predicates, custom formats, locale-aware day/month
  * names, an inline mode, and a native `<input type="date">` fallback for touch
  * devices.
  *
  * @function
- * @param {DatepickerProps} props - Props for the Datepicker.
+ * @param {DateInputProps} props - Props for the DateInput.
  * @returns {JSX.Element}
  *
  * @example
- * <Datepicker label="Date of birth" defaultValue={new Date(1990, 0, 1)} />
+ * <DateInput label="Date of birth" defaultValue={new Date(1990, 0, 1)} />
  *
  * @example
- * <Datepicker
+ * <DateInput
  *   label="Booking"
  *   min={new Date()}
  *   shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}
  * />
  */
-export const Datepicker = forwardRef<HTMLInputElement, DatepickerProps>(
+export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
   (
     {
       label,
@@ -105,7 +105,7 @@ export const Datepicker = forwardRef<HTMLInputElement, DatepickerProps>(
     // The right-side launcher is on by default; suppress it while the Control
     // shows its loading spinner (also on the right) unless explicitly set.
     let content: React.ReactNode = (
-      <DatepickerBase
+      <DateInputBase
         ref={ref}
         {...baseProps}
         triggerIcon={baseProps.triggerIcon ?? !isLoading}
@@ -161,6 +161,6 @@ export const Datepicker = forwardRef<HTMLInputElement, DatepickerProps>(
   }
 );
 
-Datepicker.displayName = 'Datepicker';
+DateInput.displayName = 'DateInput';
 
-export default Datepicker;
+export default DateInput;

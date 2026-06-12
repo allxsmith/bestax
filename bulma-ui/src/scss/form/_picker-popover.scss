@@ -85,9 +85,9 @@ $picker-trigger-hover-color: cv.getVar('text-strong') !default;
 // vertically off-center inside a sized control. Restore the cascade by
 // matching the icon as a sibling of the picker container instead.
 $picker-containers: (
-  '#{iv.$class-prefix}datepicker-container',
-  '#{iv.$class-prefix}timepicker-container',
-  '#{iv.$class-prefix}datetimepicker-container'
+  '#{iv.$class-prefix}dateinput-container',
+  '#{iv.$class-prefix}timeinput-container',
+  '#{iv.$class-prefix}datetimeinput-container'
 );
 @each $container in $picker-containers {
   .#{iv.$class-prefix}control.#{iv.$class-prefix}is-small
@@ -113,11 +113,11 @@ $picker-containers: (
 // popover and is keyboard-focusable. Sizing mirrors Bulma's 2.5em icon slot
 // and tracks the input's size modifier via the sibling selector.
 $picker-trigger-pairs: (
-  ('#{iv.$class-prefix}datepicker-container' '#{iv.$class-prefix}datepicker-trigger'),
-  ('#{iv.$class-prefix}timepicker-container' '#{iv.$class-prefix}timepicker-trigger'),
+  ('#{iv.$class-prefix}dateinput-container' '#{iv.$class-prefix}dateinput-trigger'),
+  ('#{iv.$class-prefix}timeinput-container' '#{iv.$class-prefix}timeinput-trigger'),
   (
-    '#{iv.$class-prefix}datetimepicker-container'
-      '#{iv.$class-prefix}datetimepicker-trigger'
+    '#{iv.$class-prefix}datetimeinput-container'
+      '#{iv.$class-prefix}datetimeinput-trigger'
   )
 );
 

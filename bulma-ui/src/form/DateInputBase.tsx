@@ -38,8 +38,8 @@ const fromIsoDate = (s: string): Date | null => {
 };
 
 /**
- * Props for the raw Datepicker base. Use the higher-level `Datepicker` for
- * Field/Control composition; `DatepickerBase` is the input + popover only.
+ * Props for the raw DateInput base. Use the higher-level `DateInput` for
+ * Field/Control composition; `DateInputBase` is the input + popover only.
  *
  * @property {Date | null} [value] - Controlled selected date.
  * @property {Date | null} [defaultValue] - Initial date for uncontrolled usage.
@@ -75,7 +75,7 @@ const fromIsoDate = (s: string): Date | null => {
  * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
  * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
  */
-export interface DatepickerBaseProps
+export interface DateInputBaseProps
   extends
     Omit<
       React.InputHTMLAttributes<HTMLInputElement>,
@@ -128,14 +128,14 @@ export interface DatepickerBaseProps
 }
 
 /**
- * Raw Datepicker — input + popover calendar without Field/Control wrapping.
- * Use `Datepicker` for the convenience wrapper.
+ * Raw DateInput — input + popover calendar without Field/Control wrapping.
+ * Use `DateInput` for the convenience wrapper.
  *
  * @function
- * @param {DatepickerBaseProps} props
+ * @param {DateInputBaseProps} props
  * @returns {JSX.Element}
  */
-export const DatepickerBase = forwardRef<HTMLInputElement, DatepickerBaseProps>(
+export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
   (props, ref) => {
     const {
       value: controlledValue,
@@ -226,8 +226,8 @@ export const DatepickerBase = forwardRef<HTMLInputElement, DatepickerBaseProps>(
       [`is-${size}`]: !!size,
       'is-rounded': isRounded,
     });
-    const containerClass = usePrefixedClassNames('datepicker-container');
-    const triggerClass = usePrefixedClassNames('datepicker-trigger');
+    const containerClass = usePrefixedClassNames('dateinput-container');
+    const triggerClass = usePrefixedClassNames('dateinput-trigger');
 
     const setOpen = useCallback(
       (next: boolean) => {
@@ -461,6 +461,6 @@ export const DatepickerBase = forwardRef<HTMLInputElement, DatepickerBaseProps>(
   }
 );
 
-DatepickerBase.displayName = 'DatepickerBase';
+DateInputBase.displayName = 'DateInputBase';
 
-export default DatepickerBase;
+export default DateInputBase;

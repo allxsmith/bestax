@@ -187,23 +187,23 @@ export const Calendar: React.FC<CalendarProps> = ({
     [focusedDate, firstDayOfWeek, isDateUnselectable, moveFocus, onSelect]
   );
 
-  const calendarClass = usePrefixedClassNames('datepicker', {
+  const calendarClass = usePrefixedClassNames('dateinput', {
     [`is-${color}`]: !!color,
     [`is-${size}`]: !!size,
   });
-  const headerClass = usePrefixedClassNames('datepicker-header');
-  const monthTriggerClass = usePrefixedClassNames('datepicker-month-trigger', {
+  const headerClass = usePrefixedClassNames('dateinput-header');
+  const monthTriggerClass = usePrefixedClassNames('dateinput-month-trigger', {
     'is-active': view === 'years',
   });
-  const monthCaretClass = usePrefixedClassNames('datepicker-month-caret');
-  const navGroupClass = usePrefixedClassNames('datepicker-nav-group');
-  const navPrevClass = usePrefixedClassNames('datepicker-nav-prev');
-  const navNextClass = usePrefixedClassNames('datepicker-nav-next');
-  const monthLabelClass = usePrefixedClassNames('datepicker-month-label');
-  const dayNamesRowClass = usePrefixedClassNames('datepicker-day-names');
-  const dayNameClass = usePrefixedClassNames('datepicker-day-name');
-  const gridClass = usePrefixedClassNames('datepicker-grid');
-  const yearsGridClass = usePrefixedClassNames('datepicker-years-grid');
+  const monthCaretClass = usePrefixedClassNames('dateinput-month-caret');
+  const navGroupClass = usePrefixedClassNames('dateinput-nav-group');
+  const navPrevClass = usePrefixedClassNames('dateinput-nav-prev');
+  const navNextClass = usePrefixedClassNames('dateinput-nav-next');
+  const monthLabelClass = usePrefixedClassNames('dateinput-month-label');
+  const dayNamesRowClass = usePrefixedClassNames('dateinput-day-names');
+  const dayNameClass = usePrefixedClassNames('dateinput-day-name');
+  const gridClass = usePrefixedClassNames('dateinput-grid');
+  const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
 
   const prevMonthAnchor = addMonths(focusedDate, -1);
   const nextMonthAnchor = addMonths(focusedDate, 1);
@@ -359,7 +359,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               const otherMonth = !cell.inCurrentMonth;
               const cellClass = prefixedClassNames(
                 classPrefix,
-                'datepicker-cell',
+                'dateinput-cell',
                 {
                   'is-selected': isSelected,
                   'is-today': cell.isToday,
@@ -411,7 +411,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             const isToday = year === todayYear;
             const cellCls = prefixedClassNames(
               classPrefix,
-              'datepicker-year-cell',
+              'dateinput-year-cell',
               {
                 'is-selected': isFocused,
                 'is-today': isToday,

@@ -60,8 +60,8 @@ const fromIsoTime = (s: string): Date | null => {
 };
 
 /**
- * Props for the raw Timepicker base. Use the higher-level `Timepicker` for
- * Field/Control composition; `TimepickerBase` is the input + popover only.
+ * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
+ * Field/Control composition; `TimeInputBase` is the input + popover only.
  *
  * @property {Date | null} [value] - Controlled selected time.
  * @property {Date | null} [defaultValue] - Initial value for uncontrolled usage.
@@ -99,7 +99,7 @@ const fromIsoTime = (s: string): Date | null => {
  * @property {boolean} [audioTick] - Play a short audible tick on each wheel-item crossing. Useful as a substitute for haptic feedback on iOS Safari, which has no web-accessible haptic API. Off by default.
  * @property {boolean} [haptics] - Auto-route platform-appropriate tactile feedback per wheel tick: real vibration on Android (via `navigator.vibrate`) and an audible thunk on iOS (where no haptic API exists). Adds the audio thunk only when vibrate is unavailable, so Android devices aren't subjected to extra sound. The visual band pulse fires regardless. Off by default for backward compat.
  */
-export interface TimepickerBaseProps
+export interface TimeInputBaseProps
   extends
     Omit<
       React.InputHTMLAttributes<HTMLInputElement>,
@@ -177,14 +177,14 @@ export interface TimepickerBaseProps
 }
 
 /**
- * Raw Timepicker — input + popover spinner without Field/Control wrapping.
- * Use `Timepicker` for the convenience wrapper.
+ * Raw TimeInput — input + popover spinner without Field/Control wrapping.
+ * Use `TimeInput` for the convenience wrapper.
  *
  * @function
- * @param {TimepickerBaseProps} props
+ * @param {TimeInputBaseProps} props
  * @returns {JSX.Element}
  */
-export const TimepickerBase = forwardRef<HTMLInputElement, TimepickerBaseProps>(
+export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
   (props, ref) => {
     const {
       value: controlledValue,
@@ -296,22 +296,22 @@ export const TimepickerBase = forwardRef<HTMLInputElement, TimepickerBaseProps>(
       [`is-${size}`]: !!size,
       'is-rounded': isRounded,
     });
-    const containerClass = usePrefixedClassNames('timepicker-container');
-    const triggerClass = usePrefixedClassNames('timepicker-trigger');
-    const panelClass = usePrefixedClassNames('timepicker-panel');
-    const footerClass = usePrefixedClassNames('timepicker-footer');
+    const containerClass = usePrefixedClassNames('timeinput-container');
+    const triggerClass = usePrefixedClassNames('timeinput-trigger');
+    const panelClass = usePrefixedClassNames('timeinput-panel');
+    const footerClass = usePrefixedClassNames('timeinput-footer');
     const footerButton = usePrefixedClassNames('button', 'is-small');
     const footerOkClass = usePrefixedClassNames(
       'button',
       'is-small',
-      'timepicker-footer-ok'
+      'timeinput-footer-ok'
     );
-    const mobileFooterClass = usePrefixedClassNames('timepicker-footer-mobile');
+    const mobileFooterClass = usePrefixedClassNames('timeinput-footer-mobile');
     const mobileFooterResetClass = usePrefixedClassNames(
-      'timepicker-footer-reset'
+      'timeinput-footer-reset'
     );
     const mobileFooterDoneClass = usePrefixedClassNames(
-      'timepicker-footer-done'
+      'timeinput-footer-done'
     );
 
     const setOpen = useCallback(
@@ -638,6 +638,6 @@ export const TimepickerBase = forwardRef<HTMLInputElement, TimepickerBaseProps>(
   }
 );
 
-TimepickerBase.displayName = 'TimepickerBase';
+TimeInputBase.displayName = 'TimeInputBase';
 
-export default TimepickerBase;
+export default TimeInputBase;

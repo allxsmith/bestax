@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
-import { Datetimepicker } from '../Datetimepicker';
+import { DateTimeInput } from '../DateTimeInput';
 import { Field } from '../Field';
-import { DatetimepickerBase } from '../DatetimepickerBase';
+import { DateTimeInputBase } from '../DateTimeInputBase';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -24,16 +24,16 @@ beforeAll(() => {
   }
 });
 
-describe('Datetimepicker', () => {
+describe('DateTimeInput', () => {
   it('renders combobox input', () => {
-    const { getByRole } = render(<Datetimepicker label="When" />);
+    const { getByRole } = render(<DateTimeInput label="When" />);
     expect(getByRole('combobox')).toBeInTheDocument();
   });
 
   it('inside an existing Field renders bare content with the help message', () => {
     const { container, getByText } = render(
       <Field label="When">
-        <Datetimepicker message="Required" messageColor="danger" />
+        <DateTimeInput message="Required" messageColor="danger" />
       </Field>
     );
     // No nested Field wrapper: exactly one field element.
@@ -45,7 +45,7 @@ describe('Datetimepicker', () => {
 
   it('formats default value with date and time', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const { getByRole } = render(<Datetimepicker defaultValue={v} />);
+    const { getByRole } = render(<DateTimeInput defaultValue={v} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe(
       '2024-06-07 13:45'
     );
@@ -54,7 +54,7 @@ describe('Datetimepicker', () => {
   it('opens with the calendar; the time wheels appear after clicking the time', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, container, queryAllByRole, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} />
+      <DateTimeInput defaultValue={v} />
     );
     fireEvent.click(getByRole('combobox'));
     expect(container.querySelector('[role="grid"]')).not.toBeNull();
@@ -68,7 +68,7 @@ describe('Datetimepicker', () => {
   it('clicking the time again collapses the wheels', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, queryAllByRole } = render(
-      <Datetimepicker defaultValue={v} />
+      <DateTimeInput defaultValue={v} />
     );
     fireEvent.click(getByRole('combobox'));
     const timeBtn = getByRole('button', { name: /Time/ });
@@ -82,13 +82,13 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const handler = jest.fn();
     const { getByRole, queryAllByRole, queryByRole, container } = render(
-      <Datetimepicker defaultValue={v} onChange={handler} />
+      <DateTimeInput defaultValue={v} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     expect(queryAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
     const overlay = container.querySelector(
-      '.datetimepicker-time-overlay'
+      '.datetimeinput-time-overlay'
     ) as HTMLElement;
     expect(overlay).not.toBeNull();
     fireEvent.click(overlay);
@@ -100,7 +100,7 @@ describe('Datetimepicker', () => {
   it('Escape collapses the wheels first, then closes the popover', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, queryAllByRole, queryByRole, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} />
+      <DateTimeInput defaultValue={v} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -116,7 +116,7 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker defaultValue={v} onChange={handler} />
+      <DateTimeInput defaultValue={v} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const cells = container.querySelectorAll('[role="gridcell"]');
@@ -135,7 +135,7 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 10, 0);
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} onChange={handler} />
+      <DateTimeInput defaultValue={v} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -150,7 +150,7 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 10, 0);
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} onChange={handler} />
+      <DateTimeInput defaultValue={v} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -165,7 +165,7 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const handler = jest.fn();
     const { getByRole, getByText, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} onChange={handler} />
+      <DateTimeInput defaultValue={v} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     // Reveal the wheels and change the hour (13 -> 14).
@@ -182,7 +182,7 @@ describe('Datetimepicker', () => {
   it('Reset reverts to empty when the popover opened with no value', () => {
     const handler = jest.fn();
     const { getByRole, getByText, getAllByRole } = render(
-      <Datetimepicker onChange={handler} />
+      <DateTimeInput onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     // Reveal the wheels and spin one to set a value from empty.
@@ -198,7 +198,7 @@ describe('Datetimepicker', () => {
   it('the Done (check) button closes the popover', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, getByLabelText, queryByRole } = render(
-      <Datetimepicker defaultValue={v} />
+      <DateTimeInput defaultValue={v} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByLabelText('Done'));
@@ -206,14 +206,14 @@ describe('Datetimepicker', () => {
   });
 
   it('renders <input type="datetime-local"> when mobileNative=true', () => {
-    const { container } = render(<Datetimepicker mobileNative={true} />);
+    const { container } = render(<DateTimeInput mobileNative={true} />);
     const native = container.querySelector('input[type="datetime-local"]');
     expect(native).not.toBeNull();
   });
 
   it('forwards step from incrementMinutes on the native input', () => {
     const { container } = render(
-      <Datetimepicker mobileNative={true} incrementMinutes={15} />
+      <DateTimeInput mobileNative={true} incrementMinutes={15} />
     );
     const native = container.querySelector(
       'input[type="datetime-local"]'
@@ -223,7 +223,7 @@ describe('Datetimepicker', () => {
 
   it('forwards step from incrementSeconds when enableSeconds', () => {
     const { container } = render(
-      <Datetimepicker mobileNative={true} enableSeconds incrementSeconds={10} />
+      <DateTimeInput mobileNative={true} enableSeconds incrementSeconds={10} />
     );
     const native = container.querySelector(
       'input[type="datetime-local"]'
@@ -234,7 +234,7 @@ describe('Datetimepicker', () => {
   it('native input renders the value and round-trips changes through onChange', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Datetimepicker
+      <DateTimeInput
         mobileNative={true}
         defaultValue={new Date(2024, 5, 7, 13, 45)}
         onChange={handler}
@@ -257,7 +257,7 @@ describe('Datetimepicker', () => {
   it('native input round-trips seconds when enableSeconds', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Datetimepicker
+      <DateTimeInput
         mobileNative={true}
         enableSeconds
         defaultValue={new Date(2024, 5, 7, 13, 45, 20)}
@@ -276,7 +276,7 @@ describe('Datetimepicker', () => {
 
   it('forwards min and max to the native input', () => {
     const { container } = render(
-      <Datetimepicker
+      <DateTimeInput
         mobileNative={true}
         min={new Date(2024, 5, 1, 9, 0)}
         max={new Date(2024, 5, 30, 17, 30)}
@@ -292,7 +292,7 @@ describe('Datetimepicker', () => {
   it('Layout: calendar appears before the time wheels in DOM order', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, container } = render(
-      <Datetimepicker defaultValue={v} />
+      <DateTimeInput defaultValue={v} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -306,7 +306,7 @@ describe('Datetimepicker', () => {
 
   it('forwards ref to the input', () => {
     const ref = React.createRef<HTMLInputElement>();
-    render(<Datetimepicker ref={ref} />);
+    render(<DateTimeInput ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });
 
@@ -314,7 +314,7 @@ describe('Datetimepicker', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={v}
         shouldDisableDate={d => d.getDate() === 8}
         onChange={handler}
@@ -332,7 +332,7 @@ describe('Datetimepicker', () => {
 
   it('uses custom labels for the footer', () => {
     const { getByRole, getByText, getByLabelText } = render(
-      <Datetimepicker
+      <DateTimeInput
         labels={{ reset: 'Effacer', done: 'Valider', time: 'Heure' }}
       />
     );
@@ -345,14 +345,14 @@ describe('Datetimepicker', () => {
   it('footer shows the selected time (12-hour)', () => {
     const v = new Date(2024, 5, 7, 17, 7);
     const { getByRole, getByText } = render(
-      <Datetimepicker defaultValue={v} hourFormat="12" />
+      <DateTimeInput defaultValue={v} hourFormat="12" />
     );
     fireEvent.click(getByRole('combobox'));
     expect(getByText('5:07 PM')).toBeInTheDocument();
   });
 
   it('footer shows a dash when there is no value', () => {
-    const { getByRole, getByText } = render(<Datetimepicker />);
+    const { getByRole, getByText } = render(<DateTimeInput />);
     fireEvent.click(getByRole('combobox'));
     expect(getByText('—')).toBeInTheDocument();
   });
@@ -363,7 +363,7 @@ describe('Datetimepicker', () => {
     // hourFormat defaulting to '24'.
     const v = new Date(2024, 5, 7, 17, 7);
     const { getByRole, getByText, getAllByRole } = render(
-      <Datetimepicker defaultValue={v} format="YYYY-MM-DD hh:mm A" />
+      <DateTimeInput defaultValue={v} format="YYYY-MM-DD hh:mm A" />
     );
     fireEvent.click(getByRole('combobox'));
     // Footer pill renders the 12h meridiem form, not 24h '17:07'.
@@ -376,7 +376,7 @@ describe('Datetimepicker', () => {
   it('an explicit 24h format string wins over hourFormat="12" for the pill and wheels', () => {
     const v = new Date(2024, 5, 7, 17, 7);
     const { getByRole, getByText, getAllByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={v}
         format="YYYY-MM-DD HH:mm"
         hourFormat="12"
@@ -395,11 +395,11 @@ describe('Datetimepicker', () => {
 // Segmented manual entry across the combined date + time field.
 // -------------------------------------------------------------------------
 
-describe('Datetimepicker segmented input entry', () => {
+describe('DateTimeInput segmented input entry', () => {
   const dt = () => new Date(2024, 5, 7, 13, 45);
 
   it('selects the year segment on focus', () => {
-    const { getByRole } = render(<Datetimepicker defaultValue={dt()} />);
+    const { getByRole } = render(<DateTimeInput defaultValue={dt()} />);
     const input = getByRole('combobox') as HTMLInputElement;
     expect(input.value).toBe('2024-06-07 13:45');
     act(() => {
@@ -409,7 +409,7 @@ describe('Datetimepicker segmented input entry', () => {
   });
 
   it('ArrowRight walks year → month → day → hours → minutes', () => {
-    const { getByRole } = render(<Datetimepicker defaultValue={dt()} />);
+    const { getByRole } = render(<DateTimeInput defaultValue={dt()} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -427,7 +427,7 @@ describe('Datetimepicker segmented input entry', () => {
   it('ArrowUp on the hours segment increments hours while preserving the date', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker defaultValue={dt()} onChange={handler} />
+      <DateTimeInput defaultValue={dt()} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -447,7 +447,7 @@ describe('Datetimepicker segmented input entry', () => {
   it('digit entry on the day segment updates the day, keeping the time', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker defaultValue={dt()} onChange={handler} />
+      <DateTimeInput defaultValue={dt()} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -466,7 +466,7 @@ describe('Datetimepicker segmented input entry', () => {
   it('honors a/p on the meridiem segment in 12h mode', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker defaultValue={dt()} hourFormat="12" onChange={handler} />
+      <DateTimeInput defaultValue={dt()} hourFormat="12" onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     expect(input.value).toBe('2024-06-07 01:45 PM');
@@ -486,7 +486,7 @@ describe('Datetimepicker segmented input entry', () => {
   });
 
   it('separators jump across both date and time segments', () => {
-    const { getByRole } = render(<Datetimepicker defaultValue={dt()} />);
+    const { getByRole } = render(<DateTimeInput defaultValue={dt()} />);
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
       input.focus();
@@ -502,7 +502,7 @@ describe('Datetimepicker segmented input entry', () => {
   it('falls back to free-form text entry for Intl-options formats', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={dt()}
         format={{ dateStyle: 'short', timeStyle: 'short' }}
         onChange={handler}
@@ -518,13 +518,13 @@ describe('Datetimepicker segmented input entry', () => {
   });
 });
 
-describe('Datetimepicker editable / popover modes', () => {
+describe('DateTimeInput editable / popover modes', () => {
   const dt = () => new Date(2024, 5, 7, 13, 45);
 
   it('editable={false}: typing / arrows do not change the value', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker defaultValue={dt()} editable={false} onChange={handler} />
+      <DateTimeInput defaultValue={dt()} editable={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     expect(input.readOnly).toBe(true);
@@ -539,7 +539,7 @@ describe('Datetimepicker editable / popover modes', () => {
   it('editable={false}: the popover still opens and date selection works', () => {
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker defaultValue={dt()} editable={false} onChange={handler} />
+      <DateTimeInput defaultValue={dt()} editable={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
@@ -553,7 +553,7 @@ describe('Datetimepicker editable / popover modes', () => {
 
   it('popover={false}: focus / click / ArrowDown do not open a dialog', () => {
     const { getByRole, queryByRole } = render(
-      <Datetimepicker defaultValue={dt()} popover={false} />
+      <DateTimeInput defaultValue={dt()} popover={false} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.focus(input);
@@ -565,7 +565,7 @@ describe('Datetimepicker editable / popover modes', () => {
   it('popover={false}: still supports segmented typing (input-only)', () => {
     const handler = jest.fn();
     const { getByRole, queryByRole } = render(
-      <Datetimepicker defaultValue={dt()} popover={false} onChange={handler} />
+      <DateTimeInput defaultValue={dt()} popover={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -577,12 +577,12 @@ describe('Datetimepicker editable / popover modes', () => {
   });
 });
 
-describe('Datetimepicker launcher icon', () => {
+describe('DateTimeInput launcher icon', () => {
   const dtv = () => new Date(2024, 5, 7, 13, 45);
 
   it('opens the popover when the launcher is clicked, and toggles it closed', () => {
     const { getByLabelText, queryByRole } = render(
-      <Datetimepicker openOnFocus={false} />
+      <DateTimeInput openOnFocus={false} />
     );
     const trigger = getByLabelText('Choose date and time');
     expect(queryByRole('dialog')).toBeNull();
@@ -593,22 +593,22 @@ describe('Datetimepicker launcher icon', () => {
   });
 
   it('triggerIcon={false} renders no launcher', () => {
-    const { queryByLabelText } = render(<Datetimepicker triggerIcon={false} />);
+    const { queryByLabelText } = render(<DateTimeInput triggerIcon={false} />);
     expect(queryByLabelText('Choose date and time')).toBeNull();
   });
 
   it('renders no launcher when popover={false} or inline', () => {
     const { queryByLabelText, rerender } = render(
-      <Datetimepicker popover={false} />
+      <DateTimeInput popover={false} />
     );
     expect(queryByLabelText('Choose date and time')).toBeNull();
-    rerender(<Datetimepicker inline />);
+    rerender(<DateTimeInput inline />);
     expect(queryByLabelText('Choose date and time')).toBeNull();
   });
 
   it('disables the launcher when readOnly', () => {
     const { getByLabelText, queryByRole } = render(
-      <Datetimepicker readOnly defaultValue={dtv()} />
+      <DateTimeInput readOnly defaultValue={dtv()} />
     );
     const trigger = getByLabelText('Choose date and time') as HTMLButtonElement;
     expect(trigger.disabled).toBe(true);
@@ -618,7 +618,7 @@ describe('Datetimepicker launcher icon', () => {
 
   it('editable={false} keeps the launcher working (picker-only)', () => {
     const { getByLabelText, getByRole } = render(
-      <Datetimepicker editable={false} openOnFocus={false} />
+      <DateTimeInput editable={false} openOnFocus={false} />
     );
     fireEvent.click(getByLabelText('Choose date and time'));
     expect(getByRole('dialog')).toBeInTheDocument();
@@ -626,17 +626,17 @@ describe('Datetimepicker launcher icon', () => {
 });
 
 // -------------------------------------------------------------------------
-// Remaining DatetimepickerBase branches: min/max clamping of date and time
+// Remaining DateTimeInputBase branches: min/max clamping of date and time
 // edits, controlled values, empty-value wheels, blur parsing, inline hidden
 // inputs, seconds handling, and the bare base component.
 // -------------------------------------------------------------------------
 
-describe('DatetimepickerBase remaining branches', () => {
+describe('DateTimeInputBase remaining branches', () => {
   const dt = () => new Date(2024, 5, 7, 13, 45);
 
-  it('bare DatetimepickerBase renders the default launcher and opens/closes without callbacks', () => {
+  it('bare DateTimeInputBase renders the default launcher and opens/closes without callbacks', () => {
     const { getByRole, getByLabelText, queryByRole } = render(
-      <DatetimepickerBase />
+      <DateTimeInputBase />
     );
     expect(getByLabelText('Choose date and time').tagName).toBe('BUTTON');
     fireEvent.click(getByRole('combobox'));
@@ -648,16 +648,16 @@ describe('DatetimepickerBase remaining branches', () => {
   });
 
   it('controlled value drives the text; value={null} renders empty', () => {
-    const { getByRole, rerender } = render(<DatetimepickerBase value={dt()} />);
+    const { getByRole, rerender } = render(<DateTimeInputBase value={dt()} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe(
       '2024-06-07 13:45'
     );
-    rerender(<DatetimepickerBase value={null} />);
+    rerender(<DateTimeInputBase value={null} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
   });
 
   it('derives the popover id from the id prop', () => {
-    const { getByRole } = render(<DatetimepickerBase id="appt" />);
+    const { getByRole } = render(<DateTimeInputBase id="appt" />);
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('dialog').id).toBe('appt-popover');
   });
@@ -665,7 +665,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('controlled: a wheel change reports through onChange without internal state', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <DatetimepickerBase value={dt()} onChange={handler} />
+      <DateTimeInputBase value={dt()} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
@@ -678,12 +678,12 @@ describe('DatetimepickerBase remaining branches', () => {
 
   it('clicking inside the time card does not collapse the wheels', () => {
     const { getByRole, getAllByRole, container } = render(
-      <Datetimepicker defaultValue={dt()} />
+      <DateTimeInput defaultValue={dt()} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     const card = container.querySelector(
-      '.datetimepicker-time-card'
+      '.datetimeinput-time-card'
     ) as HTMLElement;
     fireEvent.click(card);
     expect(getAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
@@ -693,7 +693,7 @@ describe('DatetimepickerBase remaining branches', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
     const { getByRole } = render(
-      <DatetimepickerBase onOpen={onOpen} onClose={onClose} />
+      <DateTimeInputBase onOpen={onOpen} onClose={onClose} />
     );
     const input = getByRole('combobox');
     fireEvent.click(input);
@@ -709,7 +709,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('rejects a time-wheel change that falls outside min/max', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={new Date(2024, 5, 7, 10, 0)}
         min={new Date(2024, 5, 7, 10, 0)}
         max={new Date(2024, 5, 7, 10, 30)}
@@ -731,7 +731,7 @@ describe('DatetimepickerBase remaining branches', () => {
     // carried-over time of day (13:45) pushes the merged value past max.
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={dt()}
         max={new Date(2024, 5, 20, 10, 0)}
         onChange={handler}
@@ -751,7 +751,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('selecting a date with no value commits midnight', () => {
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker onChange={handler} />
+      <DateTimeInput onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const cell = Array.from(
@@ -769,7 +769,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('enableSeconds: 12h formatting, seconds pill, four wheels, and seconds preserved on date select', () => {
     const handler = jest.fn();
     const { getByRole, getByText, getAllByRole, container } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={new Date(2024, 5, 7, 13, 45, 20)}
         hourFormat="12"
         enableSeconds
@@ -799,7 +799,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('enableSeconds with no value: wheels start at 00:00:00 and spin sets seconds', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker enableSeconds onChange={handler} />
+      <DateTimeInput enableSeconds onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -814,7 +814,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('enableSeconds with no value: selecting a date commits zeroed seconds', () => {
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datetimepicker enableSeconds onChange={handler} />
+      <DateTimeInput enableSeconds onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const cell = Array.from(
@@ -830,7 +830,7 @@ describe('DatetimepickerBase remaining branches', () => {
 
   it('Enter on a time wheel commits and closes the popover', () => {
     const { getByRole, getAllByRole, queryByRole } = render(
-      <Datetimepicker defaultValue={dt()} />
+      <DateTimeInput defaultValue={dt()} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -841,7 +841,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('haptics opt-in still routes wheel changes through onChange', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker defaultValue={dt()} haptics onChange={handler} />
+      <DateTimeInput defaultValue={dt()} haptics onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
@@ -853,7 +853,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('free-form text parses on blur with the default format', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker openOnFocus={false} onChange={handler} />
+      <DateTimeInput openOnFocus={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '2024-12-25 08:30' } });
@@ -870,7 +870,7 @@ describe('DatetimepickerBase remaining branches', () => {
     const parse = jest.fn(() => new Date(2030, 0, 15, 10, 30));
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker openOnFocus={false} parse={parse} onChange={handler} />
+      <DateTimeInput openOnFocus={false} parse={parse} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'next quarter' } });
@@ -882,7 +882,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('Intl-options formats fall back to the default token format for blur parsing', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         openOnFocus={false}
         format={{ dateStyle: 'short', timeStyle: 'short' }}
         onChange={handler}
@@ -899,7 +899,7 @@ describe('DatetimepickerBase remaining branches', () => {
   it('whitespace-only text reverts on blur without committing', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         defaultValue={dt()}
         openOnFocus={false}
         onChange={handler}
@@ -918,7 +918,7 @@ describe('DatetimepickerBase remaining branches', () => {
     try {
       const handler = jest.fn();
       const { getByRole } = render(
-        <Datetimepicker openOnFocus={false} onChange={handler} />
+        <DateTimeInput openOnFocus={false} onChange={handler} />
       );
       const input = getByRole('combobox') as HTMLInputElement;
       act(() => {
@@ -939,7 +939,7 @@ describe('DatetimepickerBase remaining branches', () => {
     // value getter to surface a malformed string to the change handler.
     const handler = jest.fn();
     const { container } = render(
-      <Datetimepicker mobileNative={true} onChange={handler} />
+      <DateTimeInput mobileNative={true} onChange={handler} />
     );
     const native = container.querySelector(
       'input[type="datetime-local"]'
@@ -955,13 +955,13 @@ describe('DatetimepickerBase remaining branches', () => {
 
   it('supports a callback ref', () => {
     const refFn = jest.fn();
-    render(<Datetimepicker ref={refFn} />);
+    render(<DateTimeInput ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
 
   it('inline renders the panel without a popover and emits a hidden input for name', () => {
     const { container, queryByRole } = render(
-      <Datetimepicker inline name="appt" defaultValue={dt()} />
+      <DateTimeInput inline name="appt" defaultValue={dt()} />
     );
     expect(queryByRole('dialog')).toBeNull();
     expect(container.querySelector('[role="grid"]')).not.toBeNull();
@@ -972,7 +972,7 @@ describe('DatetimepickerBase remaining branches', () => {
   });
 
   it('inline with name but no value emits an empty hidden input', () => {
-    const { container } = render(<Datetimepicker inline name="appt" />);
+    const { container } = render(<DateTimeInput inline name="appt" />);
     const hidden = container.querySelector(
       'input[type="hidden"]'
     ) as HTMLInputElement;
@@ -981,7 +981,7 @@ describe('DatetimepickerBase remaining branches', () => {
   });
 
   it('inline without a name emits no hidden input', () => {
-    const { container } = render(<Datetimepicker inline defaultValue={dt()} />);
+    const { container } = render(<DateTimeInput inline defaultValue={dt()} />);
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
 });
@@ -991,7 +991,7 @@ describe('DatetimepickerBase remaining branches', () => {
 // on a small viewport, the time wheels grow to the 40px touch item height.
 // -------------------------------------------------------------------------
 
-describe('Datetimepicker small viewport', () => {
+describe('DateTimeInput small viewport', () => {
   let originalMatchMedia: typeof window.matchMedia | undefined;
 
   beforeEach(() => {
@@ -1021,7 +1021,7 @@ describe('Datetimepicker small viewport', () => {
 
   it('uses the taller 40px wheel items on small viewports', () => {
     const { getByRole, getAllByRole } = render(
-      <Datetimepicker
+      <DateTimeInput
         mobileNative={false}
         defaultValue={new Date(2024, 5, 7, 13, 45)}
       />

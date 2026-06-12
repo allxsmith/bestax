@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
-import { Timepicker } from '../Timepicker';
+import { TimeInput } from '../TimeInput';
 import { TimeWheels } from '../_pickerInternals/TimeWheels';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 
@@ -166,7 +166,7 @@ describe('TimeWheels pointer drag', () => {
   it('ignores movement below the 4px drag threshold', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -186,7 +186,7 @@ describe('TimeWheels pointer drag', () => {
   it('tracks the finger 1 item per 32px, trims old velocity samples, and snaps on release', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -221,7 +221,7 @@ describe('TimeWheels pointer drag', () => {
   it('snaps (no momentum) when the velocity samples have zero time spread', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -242,7 +242,7 @@ describe('TimeWheels pointer drag', () => {
   it('ignores pointermove / pointerup from a different pointerId', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -261,7 +261,7 @@ describe('TimeWheels pointer drag', () => {
   it('a fast upward fling starts momentum, caps the velocity, and settles on an item', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -296,7 +296,7 @@ describe('TimeWheels pointer drag', () => {
   it('a fast downward fling coasts toward earlier values (negative cap branch)', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 30)}
         mobileNative={false}
         onChange={handler}
@@ -322,7 +322,7 @@ describe('TimeWheels pointer drag', () => {
   it('momentum clamps at the top boundary of the non-wrapping AM/PM wheel', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(9, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -350,7 +350,7 @@ describe('TimeWheels pointer drag', () => {
   it('momentum clamps at the bottom boundary of the AM/PM wheel', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(21, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -376,7 +376,7 @@ describe('TimeWheels pointer drag', () => {
   it('a gentle fling on the AM/PM wheel coasts through the interior before clamping', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(9, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -402,7 +402,7 @@ describe('TimeWheels pointer drag', () => {
   it('cancels the in-flight animation frame on unmount', () => {
     const handler = jest.fn();
     const { wheels, unmount } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -426,7 +426,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   it('forwards a pointerdown on the separator to the nearest wheel by X distance', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -436,7 +436,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     jest
       .spyOn(wheels[1], 'getBoundingClientRect')
       .mockReturnValue(rect(60, 110));
-    const sep = document.querySelector('.timepicker-separator')!;
+    const sep = document.querySelector('.timeinput-separator')!;
     // clientX 84 is nearest the minutes wheel (centre 85) vs hours (centre 25).
     firePointer(sep, 'pointerdown', {
       pointerId: 5,
@@ -457,7 +457,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
   it('forwards to the hours wheel when the pointer is nearest it, and a no-move release just snaps', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -467,7 +467,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     jest
       .spyOn(wheels[1], 'getBoundingClientRect')
       .mockReturnValue(rect(60, 110));
-    const sep = document.querySelector('.timepicker-separator')!;
+    const sep = document.querySelector('.timeinput-separator')!;
     firePointer(sep, 'pointerdown', {
       pointerId: 5,
       clientX: 20,
@@ -493,7 +493,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     try {
       const handler = jest.fn();
       const { wheels } = openPicker(
-        <Timepicker
+        <TimeInput
           defaultValue={at(10, 0)}
           mobileNative={false}
           onChange={handler}
@@ -505,7 +505,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
       jest
         .spyOn(wheels[1], 'getBoundingClientRect')
         .mockReturnValue(rect(60, 110));
-      const sep = document.querySelector('.timepicker-separator')!;
+      const sep = document.querySelector('.timeinput-separator')!;
       firePointer(sep, 'pointerdown', {
         pointerId: 9,
         clientX: 84,
@@ -527,7 +527,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     // (here: an injected stray element), the forwarder must no-op, not crash.
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -535,14 +535,14 @@ describe('TimeWheels empty-space drag forwarder', () => {
     );
     const row = wheels[0].parentElement!;
     const stray = document.createElement('div');
-    stray.className = 'timepicker-wheel';
+    stray.className = 'timeinput-wheel';
     row.appendChild(stray);
     jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
     jest
       .spyOn(wheels[1], 'getBoundingClientRect')
       .mockReturnValue(rect(60, 110));
     jest.spyOn(stray, 'getBoundingClientRect').mockReturnValue(rect(120, 170));
-    const sep = document.querySelector('.timepicker-separator')!;
+    const sep = document.querySelector('.timeinput-separator')!;
     expect(() =>
       firePointer(sep, 'pointerdown', {
         pointerId: 4,
@@ -559,14 +559,14 @@ describe('TimeWheels empty-space drag forwarder', () => {
     // empty — the forwarder must bail without touching anything.
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
       />
     );
-    wheels.forEach(w => w.classList.remove('timepicker-wheel'));
-    const sep = document.querySelector('.timepicker-separator')!;
+    wheels.forEach(w => w.classList.remove('timeinput-wheel'));
+    const sep = document.querySelector('.timeinput-separator')!;
     expect(() =>
       firePointer(sep, 'pointerdown', {
         pointerId: 6,
@@ -591,7 +591,7 @@ describe('TimeWheels empty-space drag forwarder', () => {
     fireEvent.keyDown(wheels[0], { key: 'End' });
     fireEvent.keyDown(wheels[0], { key: 'ArrowDown' });
     fireEvent.wheel(wheels[0], { deltaY: 200 });
-    const sep = container.querySelector('.timepicker-separator')!;
+    const sep = container.querySelector('.timeinput-separator')!;
     firePointer(sep, 'pointerdown', { pointerId: 2, clientX: 0, clientY: 0 });
     wheels.forEach(w => expect(w.className).not.toContain('is-dragging'));
     expect(fn).not.toHaveBeenCalled();
@@ -602,7 +602,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   it('steps once per 60px of accumulated deltaY, including multiple steps per event', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -621,7 +621,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   it('scrolls to earlier values on negative deltaY', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -634,7 +634,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
   it('resets the accumulator when the scroll direction flips mid-gesture', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -660,7 +660,7 @@ describe('TimeWheels trackpad wheel accumulation', () => {
     try {
       const handler = jest.fn();
       const { wheels } = openPicker(
-        <Timepicker
+        <TimeInput
           defaultValue={at(10, 0)}
           mobileNative={false}
           onChange={handler}
@@ -686,7 +686,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('PageUp moves the hours wheel back by 5', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         onChange={handler}
@@ -699,7 +699,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('maps 12 PM ± 1 on the 12h hours wheel back into 24h (PM branch)', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(12, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -713,7 +713,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('maps 12 AM ± 1 on the 12h hours wheel back into 24h (AM branch)', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(0, 30)}
         hourFormat="12"
         mobileNative={false}
@@ -728,7 +728,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('ArrowDown on the seconds wheel advances the seconds', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
@@ -761,7 +761,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('does not commit when every candidate value is unselectable (nextValid exhaustion)', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0)}
         mobileNative={false}
         unselectableTimes={d => d.getHours() === 10}
@@ -776,7 +776,7 @@ describe('TimeWheels keyboard and value mapping', () => {
 
   it('disables 12h hour items whose mapped 24h value is unselectable', () => {
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(14, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -796,7 +796,7 @@ describe('TimeWheels keyboard and value mapping', () => {
 
   it('disables 12h hour items in the AM half too', () => {
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(2, 0)}
         hourFormat="12"
         mobileNative={false}
@@ -816,7 +816,7 @@ describe('TimeWheels keyboard and value mapping', () => {
 
   it('ArrowLeft on the first wheel keeps focus where it is', () => {
     const { wheels } = openPicker(
-      <Timepicker defaultValue={at(10, 0)} mobileNative={false} />
+      <TimeInput defaultValue={at(10, 0)} mobileNative={false} />
     );
     wheels[0].focus();
     fireEvent.keyDown(wheels[0], { key: 'ArrowLeft' });
@@ -825,7 +825,7 @@ describe('TimeWheels keyboard and value mapping', () => {
 
   it('Enter on the seconds wheel does not close the popover (no commit wired)', () => {
     const { wheels, getByRole } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
@@ -838,7 +838,7 @@ describe('TimeWheels keyboard and value mapping', () => {
   it('hour and minute changes preserve the seconds part; ArrowUp steps seconds back', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 30, 30)}
         enableSeconds
         mobileNative={false}
@@ -873,7 +873,7 @@ describe('TimeWheels keyboard and value mapping', () => {
 
   it('disables second items blocked by unselectableTimes', () => {
     const { wheels } = openPicker(
-      <Timepicker
+      <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
@@ -944,7 +944,7 @@ describe('TimeWheels environment fallbacks', () => {
     try {
       const handler = jest.fn();
       const { wheels } = openPicker(
-        <Timepicker
+        <TimeInput
           defaultValue={at(10, 0)}
           mobileNative={false}
           onChange={handler}
@@ -980,7 +980,7 @@ describe('TimeWheels environment fallbacks', () => {
       jest
         .spyOn(minutes, 'getBoundingClientRect')
         .mockReturnValue(rect(60, 110));
-      const sep = document.querySelector('.timepicker-separator')!;
+      const sep = document.querySelector('.timeinput-separator')!;
       nowMs = 7000;
       firePointer(sep, 'pointerdown', {
         pointerId: 3,
@@ -1036,7 +1036,7 @@ describe('TimeWheels audio unlock on drag', () => {
 
   it('pointerdown on a wheel unlocks the suspended audio context when audioTick is on', () => {
     const { wheels } = openPicker(
-      <Timepicker defaultValue={at(10, 0)} mobileNative={false} audioTick />
+      <TimeInput defaultValue={at(10, 0)} mobileNative={false} audioTick />
     );
     firePointer(wheels[0], 'pointerdown', { pointerId: 1, clientY: 200 });
     expect(audioCtorSpy).toHaveBeenCalled();
@@ -1046,13 +1046,13 @@ describe('TimeWheels audio unlock on drag', () => {
 
   it('a forwarded empty-space drag also unlocks the audio context', () => {
     const { wheels } = openPicker(
-      <Timepicker defaultValue={at(10, 0)} mobileNative={false} audioTick />
+      <TimeInput defaultValue={at(10, 0)} mobileNative={false} audioTick />
     );
     jest.spyOn(wheels[0], 'getBoundingClientRect').mockReturnValue(rect(0, 50));
     jest
       .spyOn(wheels[1], 'getBoundingClientRect')
       .mockReturnValue(rect(60, 110));
-    const sep = document.querySelector('.timepicker-separator')!;
+    const sep = document.querySelector('.timeinput-separator')!;
     firePointer(sep, 'pointerdown', {
       pointerId: 3,
       clientX: 20,

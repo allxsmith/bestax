@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Datepicker } from '../Datepicker';
-import { DatepickerBase } from '../DatepickerBase';
+import { DateInput } from '../DateInput';
+import { DateInputBase } from '../DateInputBase';
 import { Field } from '../Field';
 
 beforeAll(() => {
@@ -25,17 +25,17 @@ beforeAll(() => {
   }
 });
 
-describe('Datepicker', () => {
+describe('DateInput', () => {
   describe('Rendering', () => {
     it('renders an input with role=combobox', () => {
-      const { getByRole } = render(<Datepicker label="Date" />);
+      const { getByRole } = render(<DateInput label="Date" />);
       expect(getByRole('combobox')).toBeInTheDocument();
     });
 
     it('inside an existing Field renders bare content with the help message', () => {
       const { container, getByText } = render(
         <Field label="When">
-          <Datepicker message="Required" messageColor="danger" />
+          <DateInput message="Required" messageColor="danger" />
         </Field>
       );
       // No nested Field wrapper: exactly one field element.
@@ -46,7 +46,7 @@ describe('Datepicker', () => {
     });
 
     it('renders a decorative left icon and a clickable right launcher by default', () => {
-      const { getByLabelText, container } = render(<Datepicker label="Date" />);
+      const { getByLabelText, container } = render(<DateInput label="Date" />);
       // Decorative left icon shows by default.
       expect(container.querySelector('[class*="is-left"]')).not.toBeNull();
       // The launcher is a real button on the right.
@@ -54,7 +54,7 @@ describe('Datepicker', () => {
     });
 
     it('hides the left icon when iconLeftName is empty', () => {
-      const { container } = render(<Datepicker label="Date" iconLeftName="" />);
+      const { container } = render(<DateInput label="Date" iconLeftName="" />);
       expect(container.querySelector('[class*="is-left"]')).toBeNull();
     });
   });
@@ -62,7 +62,7 @@ describe('Datepicker', () => {
   describe('Value handling', () => {
     it('uncontrolled: defaultValue formats into the input', () => {
       const { getByRole } = render(
-        <Datepicker defaultValue={new Date(2024, 5, 7)} />
+        <DateInput defaultValue={new Date(2024, 5, 7)} />
       );
       expect((getByRole('combobox') as HTMLInputElement).value).toBe(
         '2024-06-07'
@@ -71,12 +71,12 @@ describe('Datepicker', () => {
 
     it('controlled: value drives the displayed text', () => {
       const { getByRole, rerender } = render(
-        <Datepicker value={new Date(2024, 5, 7)} />
+        <DateInput value={new Date(2024, 5, 7)} />
       );
       expect((getByRole('combobox') as HTMLInputElement).value).toBe(
         '2024-06-07'
       );
-      rerender(<Datepicker value={new Date(2024, 11, 25)} />);
+      rerender(<DateInput value={new Date(2024, 11, 25)} />);
       expect((getByRole('combobox') as HTMLInputElement).value).toBe(
         '2024-12-25'
       );
@@ -85,7 +85,7 @@ describe('Datepicker', () => {
     it('onChange fires when a date is selected', () => {
       const handler = jest.fn();
       const { getByRole, container } = render(
-        <Datepicker defaultValue={new Date(2024, 5, 15)} onChange={handler} />
+        <DateInput defaultValue={new Date(2024, 5, 15)} onChange={handler} />
       );
       fireEvent.click(getByRole('combobox'));
       const cells = container.querySelectorAll('[role="gridcell"]');
@@ -101,7 +101,7 @@ describe('Datepicker', () => {
 
   describe('Open/close transitions', () => {
     it('opens on focus when openOnFocus=true', () => {
-      const { getByRole } = render(<Datepicker openOnFocus />);
+      const { getByRole } = render(<DateInput openOnFocus />);
       const input = getByRole('combobox');
       fireEvent.focus(input);
       expect(getByRole('dialog')).toBeInTheDocument();
@@ -109,14 +109,14 @@ describe('Datepicker', () => {
 
     it('does not open on focus when openOnFocus=false', () => {
       const { getByRole, queryByRole } = render(
-        <Datepicker openOnFocus={false} />
+        <DateInput openOnFocus={false} />
       );
       fireEvent.focus(getByRole('combobox'));
       expect(queryByRole('dialog')).toBeNull();
     });
 
     it('opens on input click when openOnFocus=true (default)', () => {
-      const { getByRole, queryByRole } = render(<Datepicker />);
+      const { getByRole, queryByRole } = render(<DateInput />);
       expect(queryByRole('dialog')).toBeNull();
       fireEvent.click(getByRole('combobox'));
       expect(getByRole('dialog')).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('Datepicker', () => {
 
     it('input click does NOT open when openOnFocus=false; the launcher does', () => {
       const { getByRole, getByLabelText, queryByRole } = render(
-        <Datepicker openOnFocus={false} />
+        <DateInput openOnFocus={false} />
       );
       // Manual-entry mode: clicking the field lets you type, not open.
       fireEvent.click(getByRole('combobox'));
@@ -135,13 +135,13 @@ describe('Datepicker', () => {
     });
 
     it('opens on ArrowDown', () => {
-      const { getByRole } = render(<Datepicker openOnFocus={false} />);
+      const { getByRole } = render(<DateInput openOnFocus={false} />);
       fireEvent.keyDown(getByRole('combobox'), { key: 'ArrowDown' });
       expect(getByRole('dialog')).toBeInTheDocument();
     });
 
     it('closes on Escape', () => {
-      const { getByRole, queryByRole } = render(<Datepicker />);
+      const { getByRole, queryByRole } = render(<DateInput />);
       fireEvent.click(getByRole('combobox'));
       expect(getByRole('dialog')).toBeInTheDocument();
       act(() => {
@@ -152,7 +152,7 @@ describe('Datepicker', () => {
 
     it('closes after selection when closeOnSelect=true (default)', () => {
       const { getByRole, queryByRole, container } = render(
-        <Datepicker defaultValue={new Date(2024, 5, 15)} />
+        <DateInput defaultValue={new Date(2024, 5, 15)} />
       );
       fireEvent.click(getByRole('combobox'));
       const target = Array.from(
@@ -164,7 +164,7 @@ describe('Datepicker', () => {
 
     it('keeps open after selection when closeOnSelect=false', () => {
       const { getByRole, container } = render(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           closeOnSelect={false}
         />
@@ -182,7 +182,7 @@ describe('Datepicker', () => {
     it('reverts text on blur if input is unparseable', async () => {
       const user = userEvent.setup();
       const { getByRole } = render(
-        <Datepicker defaultValue={new Date(2024, 5, 7)} openOnFocus={false} />
+        <DateInput defaultValue={new Date(2024, 5, 7)} openOnFocus={false} />
       );
       const input = getByRole('combobox') as HTMLInputElement;
       await user.clear(input);
@@ -194,7 +194,7 @@ describe('Datepicker', () => {
     it('parses typed text on blur into a Date', () => {
       const handler = jest.fn();
       const { getByRole } = render(
-        <Datepicker
+        <DateInput
           openOnFocus={false}
           onChange={handler}
           format="DD/MM/YYYY"
@@ -212,7 +212,7 @@ describe('Datepicker', () => {
 
   describe('Inline mode', () => {
     it('renders calendar without popover', () => {
-      const { container, queryByRole } = render(<Datepicker inline />);
+      const { container, queryByRole } = render(<DateInput inline />);
       expect(queryByRole('combobox')).toBeNull();
       expect(queryByRole('dialog')).toBeNull();
       expect(container.querySelectorAll('[role="gridcell"]').length).toBe(42);
@@ -220,7 +220,7 @@ describe('Datepicker', () => {
 
     it('inline emits hidden input when name is provided', () => {
       const { container } = render(
-        <Datepicker inline name="dob" defaultValue={new Date(2024, 5, 7)} />
+        <DateInput inline name="dob" defaultValue={new Date(2024, 5, 7)} />
       );
       const hidden = container.querySelector('input[type="hidden"]');
       expect(hidden).not.toBeNull();
@@ -230,14 +230,14 @@ describe('Datepicker', () => {
 
   describe('Mobile native fallback', () => {
     it('renders <input type="date"> when mobileNative=true', () => {
-      const { container } = render(<Datepicker mobileNative={true} />);
+      const { container } = render(<DateInput mobileNative={true} />);
       const native = container.querySelector('input[type="date"]');
       expect(native).not.toBeNull();
     });
 
     it('forwards min/max as ISO strings', () => {
       const { container } = render(
-        <Datepicker
+        <DateInput
           mobileNative={true}
           min={new Date(2024, 0, 1)}
           max={new Date(2024, 11, 31)}
@@ -255,7 +255,7 @@ describe('Datepicker', () => {
     it('skips wrapping its own Field when inside one', () => {
       const { container } = render(
         <Field label="Outer">
-          <Datepicker />
+          <DateInput />
         </Field>
       );
       const fields = container.querySelectorAll('[class*="field"]');
@@ -270,14 +270,14 @@ describe('Datepicker', () => {
   describe('Ref forwarding', () => {
     it('forwards ref to the input element', () => {
       const ref = React.createRef<HTMLInputElement>();
-      render(<Datepicker ref={ref} />);
+      render(<DateInput ref={ref} />);
       expect(ref.current).toBeInstanceOf(HTMLInputElement);
     });
   });
 
-  describe('DatepickerBase', () => {
+  describe('DateInputBase', () => {
     it('renders without Field/Control wrappers', () => {
-      const { getByRole } = render(<DatepickerBase />);
+      const { getByRole } = render(<DateInputBase />);
       expect(getByRole('combobox')).toBeInTheDocument();
     });
   });
@@ -285,7 +285,7 @@ describe('Datepicker', () => {
   describe('Min/Max handling', () => {
     it('disables previous-month button when at min boundary', () => {
       const { getByRole, getByLabelText } = render(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           min={new Date(2024, 5, 1)}
         />
@@ -298,7 +298,7 @@ describe('Datepicker', () => {
 
     it('disables out-of-range cells', () => {
       const { getByRole, container } = render(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           min={new Date(2024, 5, 10)}
           max={new Date(2024, 5, 20)}
@@ -318,7 +318,7 @@ describe('Datepicker', () => {
       const parse = jest.fn(() => new Date(2030, 0, 15));
       const handler = jest.fn();
       const { getByRole } = render(
-        <Datepicker openOnFocus={false} parse={parse} onChange={handler} />
+        <DateInput openOnFocus={false} parse={parse} onChange={handler} />
       );
       const input = getByRole('combobox') as HTMLInputElement;
       fireEvent.change(input, { target: { value: 'tomorrow' } });
@@ -332,7 +332,7 @@ describe('Datepicker', () => {
     it('shouldDisableDate prevents click selection', () => {
       const handler = jest.fn();
       const { getByRole, container } = render(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           shouldDisableDate={d => d.getDate() === 16}
           onChange={handler}
@@ -351,7 +351,7 @@ describe('Datepicker', () => {
     it('unselectableDates array disables matching cells', () => {
       const blocked = new Date(2024, 5, 17);
       const { getByRole, container } = render(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           unselectableDates={[blocked]}
         />
@@ -369,7 +369,7 @@ describe('Datepicker', () => {
   describe('focusedDate re-clamping', () => {
     it('clamps focusedDate when min changes after mount', () => {
       const { getByRole, rerender, container } = render(
-        <Datepicker defaultValue={new Date(2024, 5, 15)} />
+        <DateInput defaultValue={new Date(2024, 5, 15)} />
       );
       fireEvent.click(getByRole('combobox'));
       // Before re-clamp, focused date is 15.
@@ -378,7 +378,7 @@ describe('Datepicker', () => {
       ).toBe('15');
       // Bump min to a date after 15 — focusedDate should clamp forward.
       rerender(
-        <Datepicker
+        <DateInput
           defaultValue={new Date(2024, 5, 15)}
           min={new Date(2024, 5, 20)}
         />
@@ -391,7 +391,7 @@ describe('Datepicker', () => {
   describe('Labels override', () => {
     it('uses custom prevMonth / nextMonth labels', () => {
       const { getByRole, getByLabelText } = render(
-        <Datepicker labels={{ prevMonth: 'Avant', nextMonth: 'Après' }} />
+        <DateInput labels={{ prevMonth: 'Avant', nextMonth: 'Après' }} />
       );
       fireEvent.click(getByRole('combobox'));
       expect(getByLabelText('Avant')).toBeInTheDocument();
@@ -400,7 +400,7 @@ describe('Datepicker', () => {
 
     it('uses custom chooseDate label on the popover dialog', () => {
       const { getByRole } = render(
-        <Datepicker labels={{ chooseDate: 'Choisir la date' }} />
+        <DateInput labels={{ chooseDate: 'Choisir la date' }} />
       );
       fireEvent.click(getByRole('combobox'));
       expect(getByRole('dialog').getAttribute('aria-label')).toBe(
@@ -416,10 +416,10 @@ describe('Datepicker', () => {
 // auto-advance; separators jump to the next segment.
 // -------------------------------------------------------------------------
 
-describe('Datepicker segmented input entry', () => {
+describe('DateInput segmented input entry', () => {
   it('selects the year segment on focus (width 4)', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -432,7 +432,7 @@ describe('Datepicker segmented input entry', () => {
   it('ArrowUp increments the year, ArrowDown decrements it', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} onChange={handler} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -452,7 +452,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('ArrowRight walks year → month → day, ArrowLeft walks back', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -469,7 +469,7 @@ describe('Datepicker segmented input entry', () => {
   it('ArrowUp on the month segment increments the month in place', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} onChange={handler} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -483,7 +483,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('month digit 1 waits, digit >= 2 auto-advances to the day', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -499,7 +499,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('typing a four-digit year advances to the month', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -516,7 +516,7 @@ describe('Datepicker segmented input entry', () => {
   it('day digit >= 4 auto-advances (stays on last segment)', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} onChange={handler} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -532,7 +532,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('Backspace clears the digit buffer, then moves to the previous segment', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -548,7 +548,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('typing a separator jumps to the next segment without inserting it', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -561,7 +561,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('honors a custom DD/MM/YYYY format with slash separators', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} format="DD/MM/YYYY" />
+      <DateInput defaultValue={new Date(2024, 5, 7)} format="DD/MM/YYYY" />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     expect(input.value).toBe('07/06/2024');
@@ -575,7 +575,7 @@ describe('Datepicker segmented input entry', () => {
 
   it('Tab clears segment selection so focus can move out', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -588,7 +588,7 @@ describe('Datepicker segmented input entry', () => {
   it('falls back to free-form text entry for Intl-options formats', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datepicker
+      <DateInput
         defaultValue={new Date(2024, 5, 7)}
         format={{ year: 'numeric', month: '2-digit', day: '2-digit' }}
         onChange={handler}
@@ -604,10 +604,10 @@ describe('Datepicker segmented input entry', () => {
   });
 });
 
-describe('Datepicker editable / popover modes', () => {
+describe('DateInput editable / popover modes', () => {
   it('editable defaults to true: focus engages segment mode', () => {
     const { getByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -619,7 +619,7 @@ describe('Datepicker editable / popover modes', () => {
   it('editable={false}: typing / arrows do not change the value', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <Datepicker
+      <DateInput
         defaultValue={new Date(2024, 5, 7)}
         editable={false}
         onChange={handler}
@@ -639,7 +639,7 @@ describe('Datepicker editable / popover modes', () => {
   it('editable={false}: the popover still opens and selection works', () => {
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <Datepicker
+      <DateInput
         defaultValue={new Date(2024, 5, 15)}
         editable={false}
         onChange={handler}
@@ -657,7 +657,7 @@ describe('Datepicker editable / popover modes', () => {
 
   it('popover={false}: focus / click / ArrowDown do not open a dialog', () => {
     const { getByRole, queryByRole } = render(
-      <Datepicker defaultValue={new Date(2024, 5, 7)} popover={false} />
+      <DateInput defaultValue={new Date(2024, 5, 7)} popover={false} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.focus(input);
@@ -671,7 +671,7 @@ describe('Datepicker editable / popover modes', () => {
   it('popover={false}: still supports segmented typing (input-only)', () => {
     const handler = jest.fn();
     const { getByRole, queryByRole } = render(
-      <Datepicker
+      <DateInput
         defaultValue={new Date(2024, 5, 7)}
         popover={false}
         onChange={handler}
@@ -687,10 +687,10 @@ describe('Datepicker editable / popover modes', () => {
   });
 });
 
-describe('Datepicker launcher icon', () => {
+describe('DateInput launcher icon', () => {
   it('opens the popover when the launcher is clicked, and toggles it closed', () => {
     const { getByLabelText, queryByRole } = render(
-      <Datepicker openOnFocus={false} />
+      <DateInput openOnFocus={false} />
     );
     const trigger = getByLabelText('Choose date');
     expect(queryByRole('dialog')).toBeNull();
@@ -701,22 +701,22 @@ describe('Datepicker launcher icon', () => {
   });
 
   it('triggerIcon={false} renders no launcher', () => {
-    const { queryByLabelText } = render(<Datepicker triggerIcon={false} />);
+    const { queryByLabelText } = render(<DateInput triggerIcon={false} />);
     expect(queryByLabelText('Choose date')).toBeNull();
   });
 
   it('renders no launcher when popover={false} or inline', () => {
     const { queryByLabelText, rerender } = render(
-      <Datepicker popover={false} />
+      <DateInput popover={false} />
     );
     expect(queryByLabelText('Choose date')).toBeNull();
-    rerender(<Datepicker inline />);
+    rerender(<DateInput inline />);
     expect(queryByLabelText('Choose date')).toBeNull();
   });
 
   it('disables the launcher when readOnly', () => {
     const { getByLabelText, queryByRole } = render(
-      <Datepicker readOnly defaultValue={new Date(2024, 5, 7)} />
+      <DateInput readOnly defaultValue={new Date(2024, 5, 7)} />
     );
     const trigger = getByLabelText('Choose date') as HTMLButtonElement;
     expect(trigger.disabled).toBe(true);
@@ -726,7 +726,7 @@ describe('Datepicker launcher icon', () => {
 
   it('editable={false} keeps the launcher working (picker-only)', () => {
     const { getByLabelText, getByRole } = render(
-      <Datepicker editable={false} openOnFocus={false} />
+      <DateInput editable={false} openOnFocus={false} />
     );
     fireEvent.click(getByLabelText('Choose date'));
     expect(getByRole('dialog')).toBeInTheDocument();
@@ -734,7 +734,7 @@ describe('Datepicker launcher icon', () => {
 
   it('uses a custom triggerIconName and still opens', () => {
     const { getByLabelText, container, getByRole } = render(
-      <Datepicker triggerIconName="calendar-day" openOnFocus={false} />
+      <DateInput triggerIconName="calendar-day" openOnFocus={false} />
     );
     // Font Awesome renders fa-calendar-day inside the launcher button.
     expect(container.querySelector('.fa-calendar-day')).not.toBeNull();
@@ -744,18 +744,18 @@ describe('Datepicker launcher icon', () => {
 
   it('still shows an opt-in left icon alongside the launcher', () => {
     const { container, getByLabelText } = render(
-      <Datepicker iconLeftName="calendar" />
+      <DateInput iconLeftName="calendar" />
     );
     expect(container.querySelector('[class*="is-left"]')).not.toBeNull();
     expect(getByLabelText('Choose date').tagName).toBe('BUTTON');
   });
 });
 
-describe('Datepicker native input value handling', () => {
+describe('DateInput native input value handling', () => {
   it('renders the value as an ISO string and round-trips changes', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Datepicker
+      <DateInput
         mobileNative={true}
         defaultValue={new Date(2024, 5, 7)}
         onChange={handler}
@@ -775,7 +775,7 @@ describe('Datepicker native input value handling', () => {
   it('clearing the native input commits null', () => {
     const handler = jest.fn();
     const { container } = render(
-      <Datepicker
+      <DateInput
         mobileNative={true}
         defaultValue={new Date(2024, 5, 7)}
         onChange={handler}
@@ -793,7 +793,7 @@ describe('Datepicker native input value handling', () => {
     // value getter to surface a malformed string to the change handler.
     const handler = jest.fn();
     const { container } = render(
-      <Datepicker mobileNative={true} onChange={handler} />
+      <DateInput mobileNative={true} onChange={handler} />
     );
     const native = container.querySelector(
       'input[type="date"]'
@@ -808,16 +808,16 @@ describe('Datepicker native input value handling', () => {
   });
 });
 
-describe('DatepickerBase remaining branches', () => {
+describe('DateInputBase remaining branches', () => {
   it('controlled value={null} renders an empty input', () => {
-    const { getByRole } = render(<DatepickerBase value={null} />);
+    const { getByRole } = render(<DateInputBase value={null} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
   });
 
   it('controlled: selecting a date reports through onChange without internal state', () => {
     const handler = jest.fn();
     const { getByRole, container } = render(
-      <DatepickerBase value={new Date(2024, 5, 15)} onChange={handler} />
+      <DateInputBase value={new Date(2024, 5, 15)} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
@@ -833,7 +833,7 @@ describe('DatepickerBase remaining branches', () => {
   });
 
   it('derives the popover id from the id prop', () => {
-    const { getByRole } = render(<DatepickerBase id="dob" />);
+    const { getByRole } = render(<DateInputBase id="dob" />);
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('dialog').id).toBe('dob-popover');
     expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
@@ -845,7 +845,7 @@ describe('DatepickerBase remaining branches', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
     const { getByRole } = render(
-      <DatepickerBase onOpen={onOpen} onClose={onClose} />
+      <DateInputBase onOpen={onOpen} onClose={onClose} />
     );
     const input = getByRole('combobox');
     fireEvent.click(input);
@@ -861,14 +861,14 @@ describe('DatepickerBase remaining branches', () => {
 
   it('supports a callback ref', () => {
     const refFn = jest.fn();
-    render(<DatepickerBase ref={refFn} />);
+    render(<DateInputBase ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
 
   it('whitespace-only text reverts on blur without committing', () => {
     const handler = jest.fn();
     const { getByRole } = render(
-      <DatepickerBase
+      <DateInputBase
         defaultValue={new Date(2024, 5, 7)}
         openOnFocus={false}
         onChange={handler}
@@ -882,7 +882,7 @@ describe('DatepickerBase remaining branches', () => {
   });
 
   it('inline with name but no value emits an empty hidden input', () => {
-    const { container } = render(<DatepickerBase inline name="dob" />);
+    const { container } = render(<DateInputBase inline name="dob" />);
     const hidden = container.querySelector(
       'input[type="hidden"]'
     ) as HTMLInputElement;
@@ -892,7 +892,7 @@ describe('DatepickerBase remaining branches', () => {
 
   it('inline without a name emits no hidden input', () => {
     const { container } = render(
-      <DatepickerBase inline defaultValue={new Date(2024, 5, 7)} />
+      <DateInputBase inline defaultValue={new Date(2024, 5, 7)} />
     );
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });

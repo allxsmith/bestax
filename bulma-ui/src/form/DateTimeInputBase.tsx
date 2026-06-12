@@ -68,9 +68,9 @@ const fromIsoDateTime = (s: string): Date | null => {
 };
 
 /**
- * Props for the raw Datetimepicker base. Use the higher-level `Datetimepicker`
- * for Field/Control composition. Combines the prop set of `DatepickerBaseProps`
- * and `TimepickerBaseProps`.
+ * Props for the raw DateTimeInput base. Use the higher-level `DateTimeInput`
+ * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
+ * and `TimeInputBaseProps`.
  *
  * @property {Date | null} [value] - Controlled selected date-time.
  * @property {Date | null} [defaultValue] - Initial value for uncontrolled usage.
@@ -114,7 +114,7 @@ const fromIsoDateTime = (s: string): Date | null => {
  * @property {boolean} [audioTick] - Play a short audible tick on each time-wheel crossing. Default `false`.
  * @property {boolean} [haptics] - Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`.
  */
-export interface DatetimepickerBaseProps
+export interface DateTimeInputBaseProps
   extends
     Omit<
       React.InputHTMLAttributes<HTMLInputElement>,
@@ -177,16 +177,16 @@ export interface DatetimepickerBaseProps
 }
 
 /**
- * Raw Datetimepicker — combined input + calendar + time spinner without
- * Field/Control wrapping. Use `Datetimepicker` for the convenience wrapper.
+ * Raw DateTimeInput — combined input + calendar + time spinner without
+ * Field/Control wrapping. Use `DateTimeInput` for the convenience wrapper.
  *
  * @function
- * @param {DatetimepickerBaseProps} props
+ * @param {DateTimeInputBaseProps} props
  * @returns {JSX.Element}
  */
-export const DatetimepickerBase = forwardRef<
+export const DateTimeInputBase = forwardRef<
   HTMLInputElement,
-  DatetimepickerBaseProps
+  DateTimeInputBaseProps
 >((props, ref) => {
   const {
     value: controlledValue,
@@ -324,23 +324,23 @@ export const DatetimepickerBase = forwardRef<
     [`is-${size}`]: !!size,
     'is-rounded': isRounded,
   });
-  const containerClass = usePrefixedClassNames('datetimepicker-container');
-  const triggerClass = usePrefixedClassNames('datetimepicker-trigger');
-  const panelClass = usePrefixedClassNames('datetimepicker');
+  const containerClass = usePrefixedClassNames('datetimeinput-container');
+  const triggerClass = usePrefixedClassNames('datetimeinput-trigger');
+  const panelClass = usePrefixedClassNames('datetimeinput');
   const calendarWrapClass = usePrefixedClassNames(
-    'datetimepicker-calendar-wrap'
+    'datetimeinput-calendar-wrap'
   );
-  const timeOverlayClass = usePrefixedClassNames('datetimepicker-time-overlay');
-  const timeCardClass = usePrefixedClassNames('datetimepicker-time-card');
-  const footerClass = usePrefixedClassNames('datetimepicker-footer');
-  const footerTimeClass = usePrefixedClassNames('datetimepicker-footer-time');
+  const timeOverlayClass = usePrefixedClassNames('datetimeinput-time-overlay');
+  const timeCardClass = usePrefixedClassNames('datetimeinput-time-card');
+  const footerClass = usePrefixedClassNames('datetimeinput-footer');
+  const footerTimeClass = usePrefixedClassNames('datetimeinput-footer-time');
   const footerActionsClass = usePrefixedClassNames(
-    'datetimepicker-footer-actions'
+    'datetimeinput-footer-actions'
   );
-  const footerResetClass = usePrefixedClassNames('datetimepicker-footer-reset');
-  const footerDoneClass = usePrefixedClassNames('datetimepicker-footer-done');
+  const footerResetClass = usePrefixedClassNames('datetimeinput-footer-reset');
+  const footerDoneClass = usePrefixedClassNames('datetimeinput-footer-done');
   const footerTimePillClass = usePrefixedClassNames(
-    'datetimepicker-footer-time-pill'
+    'datetimeinput-footer-time-pill'
   );
 
   const setOpen = useCallback(
@@ -682,6 +682,6 @@ export const DatetimepickerBase = forwardRef<
   );
 });
 
-DatetimepickerBase.displayName = 'DatetimepickerBase';
+DateTimeInputBase.displayName = 'DateTimeInputBase';
 
-export default DatetimepickerBase;
+export default DateTimeInputBase;

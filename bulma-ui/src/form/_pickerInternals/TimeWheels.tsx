@@ -634,18 +634,18 @@ const WheelInner = <T,>(
     setIsDragging(false);
   };
 
-  const rootClass = prefixedClassNames(classPrefix, 'timepicker-wheel', {
+  const rootClass = prefixedClassNames(classPrefix, 'timeinput-wheel', {
     [`is-${color}`]: !!color,
     [`is-${size}`]: !!size,
     'is-disabled': disabled,
     'is-dragging': isDragging,
   });
   const itemClass = (selected: boolean) =>
-    prefixedClassNames(classPrefix, 'timepicker-wheel-item', {
+    prefixedClassNames(classPrefix, 'timeinput-wheel-item', {
       'is-selected': selected,
       [`is-${color}`]: selected && !!color,
     });
-  const bandClass = prefixedClassNames(classPrefix, 'timepicker-wheel-band', {
+  const bandClass = prefixedClassNames(classPrefix, 'timeinput-wheel-band', {
     [`is-${color}`]: !!color,
   });
 
@@ -764,20 +764,20 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
 }) => {
   const t = mergeLabels(labels);
 
-  const rootClass = usePrefixedClassNames('timepicker', {
+  const rootClass = usePrefixedClassNames('timeinput', {
     [`is-${color}`]: !!color,
     [`is-${size}`]: !!size,
     'is-disabled': disabled,
   });
-  const wheelsClass = usePrefixedClassNames('timepicker-wheels');
-  const sepClass = usePrefixedClassNames('timepicker-separator');
+  const wheelsClass = usePrefixedClassNames('timeinput-wheels');
+  const sepClass = usePrefixedClassNames('timeinput-separator');
   // Use the prefixed class through the same helper the wheels themselves do,
   // so the selector matches the actual rendered class regardless of whether
   // the consumer configured `classPrefix` via ConfigProvider. Building the
-  // selector with `${classPrefix}timepicker-wheel` is wrong when classPrefix
+  // selector with `${classPrefix}timeinput-wheel` is wrong when classPrefix
   // is undefined (defaults to the empty prefix) — it would stringify to
-  // "undefinedtimepicker-wheel".
-  const wheelSingleClass = usePrefixedClassNames('timepicker-wheel');
+  // "undefinedtimeinput-wheel".
+  const wheelSingleClass = usePrefixedClassNames('timeinput-wheel');
   const wheelsContainerRef = useRef<HTMLDivElement>(null);
 
   const isPm = value.hours >= 12;

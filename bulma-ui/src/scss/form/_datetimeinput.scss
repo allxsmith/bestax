@@ -1,48 +1,48 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 
-$datetimepicker-gap: 0.75rem !default;
-$datetimepicker-time-card-background: cv.getVar('scheme-main') !default;
-$datetimepicker-time-card-border-color: cv.getVar('border') !default;
-$datetimepicker-time-card-radius: cv.getVar('radius-large') !default;
-$datetimepicker-time-card-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.18) !default;
-$datetimepicker-time-card-padding: 0.5rem 0.75rem !default;
+$datetimeinput-gap: 0.75rem !default;
+$datetimeinput-time-card-background: cv.getVar('scheme-main') !default;
+$datetimeinput-time-card-border-color: cv.getVar('border') !default;
+$datetimeinput-time-card-radius: cv.getVar('radius-large') !default;
+$datetimeinput-time-card-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.18) !default;
+$datetimeinput-time-card-padding: 0.5rem 0.75rem !default;
 // Frosted scrim over the calendar while the time wheels are open. Built from
 // the scheme HSL components so it dims toward the panel background in both
 // light and dark themes (same technique as Bulma's modal background).
-$datetimepicker-time-overlay-background: hsla(
+$datetimeinput-time-overlay-background: hsla(
   #{cv.getVar('scheme-h')},
   #{cv.getVar('scheme-s')},
   #{cv.getVar('scheme-main-l')},
   0.55
 ) !default;
-$datetimepicker-time-overlay-blur: 3px !default;
+$datetimeinput-time-overlay-blur: 3px !default;
 
-.#{iv.$class-prefix}datetimepicker {
+.#{iv.$class-prefix}datetimeinput {
   @include cv.register-vars(
     (
-      'datetimepicker-gap': #{$datetimepicker-gap},
-      'datetimepicker-time-card-background':
-        #{$datetimepicker-time-card-background},
-      'datetimepicker-time-card-border-color':
-        #{$datetimepicker-time-card-border-color},
-      'datetimepicker-time-card-radius': #{$datetimepicker-time-card-radius},
-      'datetimepicker-time-card-shadow': #{$datetimepicker-time-card-shadow},
-      'datetimepicker-time-card-padding': #{$datetimepicker-time-card-padding},
-      'datetimepicker-time-overlay-background':
-        #{$datetimepicker-time-overlay-background},
-      'datetimepicker-time-overlay-blur': #{$datetimepicker-time-overlay-blur},
+      'datetimeinput-gap': #{$datetimeinput-gap},
+      'datetimeinput-time-card-background':
+        #{$datetimeinput-time-card-background},
+      'datetimeinput-time-card-border-color':
+        #{$datetimeinput-time-card-border-color},
+      'datetimeinput-time-card-radius': #{$datetimeinput-time-card-radius},
+      'datetimeinput-time-card-shadow': #{$datetimeinput-time-card-shadow},
+      'datetimeinput-time-card-padding': #{$datetimeinput-time-card-padding},
+      'datetimeinput-time-overlay-background':
+        #{$datetimeinput-time-overlay-background},
+      'datetimeinput-time-overlay-blur': #{$datetimeinput-time-overlay-blur},
     )
   );
 }
 
-.#{iv.$class-prefix}datetimepicker {
+.#{iv.$class-prefix}datetimeinput {
   display: flex;
   flex-direction: column;
-  gap: cv.getVar('datetimepicker-gap');
+  gap: cv.getVar('datetimeinput-gap');
 }
 
-.#{iv.$class-prefix}datetimepicker-calendar-wrap {
+.#{iv.$class-prefix}datetimeinput-calendar-wrap {
   position: relative;
 }
 
@@ -50,19 +50,19 @@ $datetimepicker-time-overlay-blur: 3px !default;
 // dims and blurs the calendar so the wheel card reads as the focused layer,
 // and clicking it (not the card) collapses the wheels, like the native picker.
 // The footer is a sibling of the calendar wrap, so it stays uncovered.
-.#{iv.$class-prefix}datetimepicker-time-overlay {
+.#{iv.$class-prefix}datetimeinput-time-overlay {
   position: absolute;
   inset: 0;
   z-index: 5;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: cv.getVar('datetimepicker-time-overlay-background');
-  backdrop-filter: blur(cv.getVar('datetimepicker-time-overlay-blur'));
-  animation: #{iv.$class-prefix}datetimepicker-overlay-in 0.12s ease-out;
+  background-color: cv.getVar('datetimeinput-time-overlay-background');
+  backdrop-filter: blur(cv.getVar('datetimeinput-time-overlay-blur'));
+  animation: #{iv.$class-prefix}datetimeinput-overlay-in 0.12s ease-out;
 }
 
-@keyframes #{iv.$class-prefix}datetimepicker-overlay-in {
+@keyframes #{iv.$class-prefix}datetimeinput-overlay-in {
   from {
     opacity: 0;
   }
@@ -70,24 +70,24 @@ $datetimepicker-time-overlay-blur: 3px !default;
 
 // Floating wheel card — visually a small popover over the calendar, so
 // revealing the wheels never grows the panel or forces scrolling.
-.#{iv.$class-prefix}datetimepicker-time-card {
-  background-color: cv.getVar('datetimepicker-time-card-background');
-  border: 1px solid cv.getVar('datetimepicker-time-card-border-color');
-  border-radius: cv.getVar('datetimepicker-time-card-radius');
-  box-shadow: cv.getVar('datetimepicker-time-card-shadow');
-  padding: cv.getVar('datetimepicker-time-card-padding');
+.#{iv.$class-prefix}datetimeinput-time-card {
+  background-color: cv.getVar('datetimeinput-time-card-background');
+  border: 1px solid cv.getVar('datetimeinput-time-card-border-color');
+  border-radius: cv.getVar('datetimeinput-time-card-radius');
+  box-shadow: cv.getVar('datetimeinput-time-card-shadow');
+  padding: cv.getVar('datetimeinput-time-card-padding');
   max-width: 100%;
 }
-.#{iv.$class-prefix}datetimepicker-time-card .#{iv.$class-prefix}timepicker {
+.#{iv.$class-prefix}datetimeinput-time-card .#{iv.$class-prefix}timeinput {
   display: block;
 }
-.#{iv.$class-prefix}datetimepicker-time-card
-  .#{iv.$class-prefix}timepicker-wheels {
+.#{iv.$class-prefix}datetimeinput-time-card
+  .#{iv.$class-prefix}timeinput-wheels {
   justify-content: center;
 }
 
 // iOS-style footer: a "Time  5:07 PM" display row over a "Reset … (✓)" row.
-.#{iv.$class-prefix}datetimepicker-footer {
+.#{iv.$class-prefix}datetimeinput-footer {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -97,7 +97,7 @@ $datetimepicker-time-overlay-blur: 3px !default;
 // The time row is a button: click it to reveal / hide the time wheels
 // (iOS-style). The value renders as a pill that fills with the primary color
 // while the wheels are open.
-.#{iv.$class-prefix}datetimepicker-footer-time {
+.#{iv.$class-prefix}datetimeinput-footer-time {
   appearance: none;
   border: 0;
   background: transparent;
@@ -126,7 +126,7 @@ $datetimepicker-time-overlay-blur: 3px !default;
   }
 }
 
-.#{iv.$class-prefix}datetimepicker-footer-time-pill {
+.#{iv.$class-prefix}datetimeinput-footer-time-pill {
   color: cv.getVar('primary');
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -137,19 +137,19 @@ $datetimepicker-time-overlay-blur: 3px !default;
     color 0.12s ease;
 }
 
-.#{iv.$class-prefix}datetimepicker-footer-time[aria-expanded='true']
-  .#{iv.$class-prefix}datetimepicker-footer-time-pill {
+.#{iv.$class-prefix}datetimeinput-footer-time[aria-expanded='true']
+  .#{iv.$class-prefix}datetimeinput-footer-time-pill {
   background-color: cv.getVar('primary');
   color: cv.getVar('primary-invert');
 }
 
-.#{iv.$class-prefix}datetimepicker-footer-actions {
+.#{iv.$class-prefix}datetimeinput-footer-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.#{iv.$class-prefix}datetimepicker-footer-reset {
+.#{iv.$class-prefix}datetimeinput-footer-reset {
   appearance: none;
   background: transparent;
   border: 0;
@@ -165,7 +165,7 @@ $datetimepicker-time-overlay-blur: 3px !default;
   }
 }
 
-.#{iv.$class-prefix}datetimepicker-footer-done {
+.#{iv.$class-prefix}datetimeinput-footer-done {
   appearance: none;
   border: 0;
   padding: 0;

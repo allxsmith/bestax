@@ -1,45 +1,45 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 
-$datepicker-min-width: 16rem !default;
-$datepicker-cell-size: 2.25rem !default;
-$datepicker-cell-radius: cv.getVar('radius-small') !default;
-$datepicker-cell-color: cv.getVar('text') !default;
-$datepicker-cell-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
-$datepicker-cell-selected-bg: cv.getVar('primary') !default;
-$datepicker-cell-selected-color: cv.getVar('primary-invert') !default;
-$datepicker-cell-today-color: cv.getVar('primary') !default;
-$datepicker-cell-disabled-color: cv.getVar('text-weak') !default;
-$datepicker-cell-other-month-color: cv.getVar('text-weak') !default;
-$datepicker-header-padding: 0.5rem 0 !default;
-$datepicker-day-name-color: cv.getVar('text-weak') !default;
-$datepicker-day-name-size: cv.getVar('size-7') !default;
-$datepicker-nav-button-size: 1.75rem !default;
+$dateinput-min-width: 16rem !default;
+$dateinput-cell-size: 2.25rem !default;
+$dateinput-cell-radius: cv.getVar('radius-small') !default;
+$dateinput-cell-color: cv.getVar('text') !default;
+$dateinput-cell-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
+$dateinput-cell-selected-bg: cv.getVar('primary') !default;
+$dateinput-cell-selected-color: cv.getVar('primary-invert') !default;
+$dateinput-cell-today-color: cv.getVar('primary') !default;
+$dateinput-cell-disabled-color: cv.getVar('text-weak') !default;
+$dateinput-cell-other-month-color: cv.getVar('text-weak') !default;
+$dateinput-header-padding: 0.5rem 0 !default;
+$dateinput-day-name-color: cv.getVar('text-weak') !default;
+$dateinput-day-name-size: cv.getVar('size-7') !default;
+$dateinput-nav-button-size: 1.75rem !default;
 
-.#{iv.$class-prefix}datepicker {
+.#{iv.$class-prefix}dateinput {
   @include cv.register-vars(
     (
-      'datepicker-min-width': #{$datepicker-min-width},
-      'datepicker-cell-size': #{$datepicker-cell-size},
-      'datepicker-cell-radius': #{$datepicker-cell-radius},
-      'datepicker-cell-color': #{$datepicker-cell-color},
-      'datepicker-cell-hover-bg': #{$datepicker-cell-hover-bg},
-      'datepicker-cell-selected-bg': #{$datepicker-cell-selected-bg},
-      'datepicker-cell-selected-color': #{$datepicker-cell-selected-color},
-      'datepicker-cell-today-color': #{$datepicker-cell-today-color},
-      'datepicker-cell-disabled-color': #{$datepicker-cell-disabled-color},
-      'datepicker-cell-other-month-color': #{$datepicker-cell-other-month-color},
-      'datepicker-header-padding': #{$datepicker-header-padding},
-      'datepicker-day-name-color': #{$datepicker-day-name-color},
-      'datepicker-day-name-size': #{$datepicker-day-name-size},
-      'datepicker-nav-button-size': #{$datepicker-nav-button-size},
+      'dateinput-min-width': #{$dateinput-min-width},
+      'dateinput-cell-size': #{$dateinput-cell-size},
+      'dateinput-cell-radius': #{$dateinput-cell-radius},
+      'dateinput-cell-color': #{$dateinput-cell-color},
+      'dateinput-cell-hover-bg': #{$dateinput-cell-hover-bg},
+      'dateinput-cell-selected-bg': #{$dateinput-cell-selected-bg},
+      'dateinput-cell-selected-color': #{$dateinput-cell-selected-color},
+      'dateinput-cell-today-color': #{$dateinput-cell-today-color},
+      'dateinput-cell-disabled-color': #{$dateinput-cell-disabled-color},
+      'dateinput-cell-other-month-color': #{$dateinput-cell-other-month-color},
+      'dateinput-header-padding': #{$dateinput-header-padding},
+      'dateinput-day-name-color': #{$dateinput-day-name-color},
+      'dateinput-day-name-size': #{$dateinput-day-name-size},
+      'dateinput-nav-button-size': #{$dateinput-nav-button-size},
     )
   );
 }
 
-.#{iv.$class-prefix}datepicker {
+.#{iv.$class-prefix}dateinput {
   display: inline-block;
-  min-width: cv.getVar('datepicker-min-width');
+  min-width: cv.getVar('dateinput-min-width');
   font-family: cv.getVar('family-primary');
   color: cv.getVar('text');
 }
@@ -48,23 +48,23 @@ $datepicker-nav-button-size: 1.75rem !default;
 // (no popover wrapper), give it a subtle frame so the grid doesn't look
 // orphaned on the page. Mirrors the popover's visual weight without the
 // drop-shadow / animation.
-.#{iv.$class-prefix}datepicker-container
-  > .#{iv.$class-prefix}datepicker {
+.#{iv.$class-prefix}dateinput-container
+  > .#{iv.$class-prefix}dateinput {
   background-color: cv.getVar('scheme-main');
   border: 1px solid cv.getVar('border');
   border-radius: cv.getVar('radius');
   padding: 0.75rem;
 }
 
-.#{iv.$class-prefix}datepicker-header {
+.#{iv.$class-prefix}dateinput-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: cv.getVar('datepicker-header-padding');
+  padding: cv.getVar('dateinput-header-padding');
   gap: 0.5rem;
 }
 
-.#{iv.$class-prefix}datepicker-month-trigger {
+.#{iv.$class-prefix}dateinput-month-trigger {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -74,10 +74,10 @@ $datepicker-nav-button-size: 1.75rem !default;
   color: inherit;
   font: inherit;
   cursor: pointer;
-  border-radius: cv.getVar('datepicker-cell-radius');
+  border-radius: cv.getVar('dateinput-cell-radius');
 
   &:hover:not(:disabled) {
-    background-color: cv.getVar('datepicker-cell-hover-bg');
+    background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   &:focus-visible {
     outline: 2px solid cv.getVar('primary');
@@ -85,40 +85,40 @@ $datepicker-nav-button-size: 1.75rem !default;
   }
 }
 
-.#{iv.$class-prefix}datepicker-month-caret {
+.#{iv.$class-prefix}dateinput-month-caret {
   transition: transform 0.15s ease;
 }
-.#{iv.$class-prefix}datepicker-month-trigger.#{iv.$class-prefix}is-active
-  .#{iv.$class-prefix}datepicker-month-caret {
+.#{iv.$class-prefix}dateinput-month-trigger.#{iv.$class-prefix}is-active
+  .#{iv.$class-prefix}dateinput-month-caret {
   transform: rotate(180deg);
 }
 
-.#{iv.$class-prefix}datepicker-month-label {
+.#{iv.$class-prefix}dateinput-month-label {
   font-weight: cv.getVar('weight-semibold');
 }
 
-.#{iv.$class-prefix}datepicker-nav-group {
+.#{iv.$class-prefix}dateinput-nav-group {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.#{iv.$class-prefix}datepicker-nav-prev,
-.#{iv.$class-prefix}datepicker-nav-next {
+.#{iv.$class-prefix}dateinput-nav-prev,
+.#{iv.$class-prefix}dateinput-nav-next {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: cv.getVar('datepicker-nav-button-size');
-  height: cv.getVar('datepicker-nav-button-size');
+  width: cv.getVar('dateinput-nav-button-size');
+  height: cv.getVar('dateinput-nav-button-size');
   padding: 0;
   background: transparent;
   border: 0;
   color: inherit;
   cursor: pointer;
-  border-radius: cv.getVar('datepicker-cell-radius');
+  border-radius: cv.getVar('dateinput-cell-radius');
 
   &:hover:not(:disabled) {
-    background-color: cv.getVar('datepicker-cell-hover-bg');
+    background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   &:focus-visible {
     outline: 2px solid cv.getVar('primary');
@@ -130,33 +130,33 @@ $datepicker-nav-button-size: 1.75rem !default;
   }
 }
 
-.#{iv.$class-prefix}datepicker-day-names,
-.#{iv.$class-prefix}datepicker-grid {
+.#{iv.$class-prefix}dateinput-day-names,
+.#{iv.$class-prefix}dateinput-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
 }
 
-.#{iv.$class-prefix}datepicker-day-name {
+.#{iv.$class-prefix}dateinput-day-name {
   text-align: center;
-  font-size: cv.getVar('datepicker-day-name-size');
-  color: cv.getVar('datepicker-day-name-color');
+  font-size: cv.getVar('dateinput-day-name-size');
+  color: cv.getVar('dateinput-day-name-color');
   padding: 0.25rem 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.#{iv.$class-prefix}datepicker-cell {
+.#{iv.$class-prefix}dateinput-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: cv.getVar('datepicker-cell-size');
-  height: cv.getVar('datepicker-cell-size');
+  width: cv.getVar('dateinput-cell-size');
+  height: cv.getVar('dateinput-cell-size');
   margin: 0 auto;
-  border-radius: cv.getVar('datepicker-cell-radius');
+  border-radius: cv.getVar('dateinput-cell-radius');
   border: 1px solid transparent;
   background: transparent;
-  color: cv.getVar('datepicker-cell-color');
+  color: cv.getVar('dateinput-cell-color');
   cursor: pointer;
   font: inherit;
   padding: 0;
@@ -170,7 +170,7 @@ $datepicker-nav-button-size: 1.75rem !default;
 
   // Hover for non-selected cells: a subtle grey overlay.
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
-    background-color: cv.getVar('datepicker-cell-hover-bg');
+    background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   // Hover for the selected cell: darken the primary fill rather than
   // replacing it, so the selection stays visible under the cursor while
@@ -178,7 +178,7 @@ $datepicker-nav-button-size: 1.75rem !default;
   &.#{iv.$class-prefix}is-selected:hover:not(:disabled) {
     background-color: color-mix(
       in srgb,
-      cv.getVar('datepicker-cell-selected-bg'),
+      cv.getVar('dateinput-cell-selected-bg'),
       black 15%
     );
   }
@@ -192,12 +192,12 @@ $datepicker-nav-button-size: 1.75rem !default;
   // Today: tinted bold text (no ring), so it doesn't collide visually with
   // the keyboard focus outline. Selected wins via later cascade.
   &.#{iv.$class-prefix}is-today {
-    color: cv.getVar('datepicker-cell-today-color');
+    color: cv.getVar('dateinput-cell-today-color');
     font-weight: cv.getVar('weight-semibold');
   }
   &.#{iv.$class-prefix}is-selected {
-    background-color: cv.getVar('datepicker-cell-selected-bg');
-    color: cv.getVar('datepicker-cell-selected-color');
+    background-color: cv.getVar('dateinput-cell-selected-bg');
+    color: cv.getVar('dateinput-cell-selected-color');
   }
   // When focus lands on the selected cell, swap the ring to scheme-main so
   // it stays visible against the primary-colored fill.
@@ -205,34 +205,34 @@ $datepicker-nav-button-size: 1.75rem !default;
     outline-color: cv.getVar('scheme-main');
   }
   &.#{iv.$class-prefix}is-other-month {
-    color: cv.getVar('datepicker-cell-other-month-color');
+    color: cv.getVar('dateinput-cell-other-month-color');
   }
   &.#{iv.$class-prefix}is-disabled,
   &:disabled {
-    color: cv.getVar('datepicker-cell-disabled-color');
+    color: cv.getVar('dateinput-cell-disabled-color');
     cursor: not-allowed;
     opacity: 0.55;
   }
 }
 
-.#{iv.$class-prefix}datepicker-years-grid {
+.#{iv.$class-prefix}dateinput-years-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.4rem;
-  max-height: calc(cv.getVar('datepicker-cell-size') * 6);
+  max-height: calc(cv.getVar('dateinput-cell-size') * 6);
   overflow-y: auto;
   padding: 0.25rem 0;
 }
 
-.#{iv.$class-prefix}datepicker-year-cell {
+.#{iv.$class-prefix}dateinput-year-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: cv.getVar('datepicker-cell-size');
+  height: cv.getVar('dateinput-cell-size');
   border: 1px solid transparent;
-  border-radius: cv.getVar('datepicker-cell-radius');
+  border-radius: cv.getVar('dateinput-cell-radius');
   background: transparent;
-  color: cv.getVar('datepicker-cell-color');
+  color: cv.getVar('dateinput-cell-color');
   cursor: pointer;
   font: inherit;
   font-variant-numeric: tabular-nums;
@@ -240,12 +240,12 @@ $datepicker-nav-button-size: 1.75rem !default;
   transition-property: none;
 
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
-    background-color: cv.getVar('datepicker-cell-hover-bg');
+    background-color: cv.getVar('dateinput-cell-hover-bg');
   }
   &.#{iv.$class-prefix}is-selected:hover:not(:disabled) {
     background-color: color-mix(
       in srgb,
-      cv.getVar('datepicker-cell-selected-bg'),
+      cv.getVar('dateinput-cell-selected-bg'),
       black 15%
     );
   }
@@ -254,38 +254,38 @@ $datepicker-nav-button-size: 1.75rem !default;
     outline-offset: -2px;
   }
   &.#{iv.$class-prefix}is-today {
-    color: cv.getVar('datepicker-cell-today-color');
+    color: cv.getVar('dateinput-cell-today-color');
     font-weight: cv.getVar('weight-semibold');
   }
   &.#{iv.$class-prefix}is-selected {
-    background-color: cv.getVar('datepicker-cell-selected-bg');
-    color: cv.getVar('datepicker-cell-selected-color');
+    background-color: cv.getVar('dateinput-cell-selected-bg');
+    color: cv.getVar('dateinput-cell-selected-color');
   }
   &.#{iv.$class-prefix}is-selected:focus-visible {
     outline-color: cv.getVar('scheme-main');
   }
   &:disabled {
-    color: cv.getVar('datepicker-cell-disabled-color');
+    color: cv.getVar('dateinput-cell-disabled-color');
     cursor: not-allowed;
     opacity: 0.55;
   }
 }
 
-.#{iv.$class-prefix}datepicker.#{iv.$class-prefix}is-small
-  .#{iv.$class-prefix}datepicker-cell {
+.#{iv.$class-prefix}dateinput.#{iv.$class-prefix}is-small
+  .#{iv.$class-prefix}dateinput-cell {
   width: 1.75rem;
   height: 1.75rem;
   font-size: cv.getVar('size-7');
 }
 
-.#{iv.$class-prefix}datepicker.#{iv.$class-prefix}is-medium
-  .#{iv.$class-prefix}datepicker-cell {
+.#{iv.$class-prefix}dateinput.#{iv.$class-prefix}is-medium
+  .#{iv.$class-prefix}dateinput-cell {
   width: 2.5rem;
   height: 2.5rem;
 }
 
-.#{iv.$class-prefix}datepicker.#{iv.$class-prefix}is-large
-  .#{iv.$class-prefix}datepicker-cell {
+.#{iv.$class-prefix}dateinput.#{iv.$class-prefix}is-large
+  .#{iv.$class-prefix}dateinput-cell {
   width: 2.875rem;
   height: 2.875rem;
   font-size: cv.getVar('size-5');
