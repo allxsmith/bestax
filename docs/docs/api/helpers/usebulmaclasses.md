@@ -508,26 +508,21 @@ The snippets below rebuild simplified components by hand purely to show how `use
 
 #### Columns
 
-`MyColumns` handles its own `isGapless` modifier and forwards every other prop to `useBulmaClasses` — so the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize would come back in `rest` and land on the `<div>`:
+`MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
 function example() {
-  function MyColumns({ isGapless, children, ...props }) {
+  function MyColumns({ children, ...props }) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const columnsClasses = classNames(
-      'columns',
-      { 'is-gapless': isGapless },
-      bulmaHelperClasses
-    );
     return (
-      <div className={columnsClasses} {...rest}>
+      <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
         {children}
       </div>
     );
   }
 
   return (
-    <MyColumns isGapless textAlign="centered" textTransform="uppercase">
+    <MyColumns textAlign="centered" textTransform="uppercase">
       <div className="column">
         <Notification color="primary">Left</Notification>
       </div>
