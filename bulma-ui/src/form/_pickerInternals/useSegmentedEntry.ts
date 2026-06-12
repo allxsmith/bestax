@@ -50,6 +50,12 @@ export interface UseSegmentedEntryParams {
   locale?: string;
   min?: Date;
   max?: Date;
+  /**
+   * Host-supplied blocking predicate (composed from shouldDisableDate /
+   * unselectableDates / unselectableTimes). Checked alongside min/max on
+   * every manual-entry commit; return true to reject the candidate value.
+   */
+  isBlocked?: (d: Date) => boolean;
   disabled?: boolean;
   readOnly?: boolean;
   /** Allow segmented typing. When false, segment mode never engages. */
@@ -110,6 +116,7 @@ export function useSegmentedEntry(
     locale,
     min,
     max,
+    isBlocked,
     disabled,
     readOnly,
     editable = true,
@@ -146,16 +153,23 @@ export function useSegmentedEntry(
     [value, makeBaseDate]
   );
 
+  // Single gate for every manual-entry commit: min/max bounds plus the
+  // host's blocking predicate.
+  const isAllowed = useCallback(
+    (d: Date) => isWithin(d, min, max) && !isBlocked?.(d),
+    [min, max, isBlocked]
+  );
+
   // Apply a segment-driven date update: commit through the host pipeline (so
   // onChange / controlled mode keep working) and re-render the text so the
   // active selection range stays valid.
   const applyDateFromSegment = useCallback(
     (next: Date) => {
-      if (!isWithin(next, min, max)) return;
+      if (!isAllowed(next)) return;
       commitValue(next);
       setText(formatFn(next, format, locale));
     },
-    [commitValue, min, max, formatFn, format, locale, setText]
+    [commitValue, isAllowed, formatFn, format, locale, setText]
   );
 
   // After every segment-driven change, restore the system selection on the
@@ -223,7 +237,7 @@ export function useSegmentedEntry(
       setActiveSegmentIdx(null);
       typedDigitsRef.current = '';
       const parsed = tryParse(text);
-      if (parsed && isWithin(parsed, min, max)) {
+      if (parsed && isAllowed(parsed)) {
         commitValue(parsed);
       } else {
         setText(value ? formatFn(value, format, locale) : '');
@@ -234,8 +248,7 @@ export function useSegmentedEntry(
       containerRef,
       tryParse,
       text,
-      min,
-      max,
+      isAllowed,
       commitValue,
       value,
       formatFn,
@@ -423,7 +436,7 @@ export function useSegmentedEntry(
       if (e.key === 'Enter') {
         e.preventDefault();
         const parsed = tryParse(text);
-        if (parsed && isWithin(parsed, min, max)) {
+        if (parsed && isAllowed(parsed)) {
           commitValue(parsed);
           if (closeOnSelect) setOpen(false);
         }
@@ -443,8 +456,7 @@ export function useSegmentedEntry(
       popover,
       tryParse,
       text,
-      min,
-      max,
+      isAllowed,
       commitValue,
       onKeyDown,
     ]

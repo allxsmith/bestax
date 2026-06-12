@@ -2,10 +2,7 @@ import React, { forwardRef } from 'react';
 import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
-import {
-  DateTimeInputBase,
-  DateTimeInputBaseProps,
-} from './DateTimeInputBase';
+import { DateTimeInputBase, DateTimeInputBaseProps } from './DateTimeInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
 
 /**

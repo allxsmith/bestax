@@ -291,9 +291,7 @@ describe('DateTimeInput', () => {
 
   it('Layout: calendar appears before the time wheels in DOM order', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const { getByRole, container } = render(
-      <DateTimeInput defaultValue={v} />
-    );
+    const { getByRole, container } = render(<DateTimeInput defaultValue={v} />);
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     const grid = container.querySelector('[role="grid"]')!;
@@ -515,6 +513,97 @@ describe('DateTimeInput segmented input entry', () => {
     });
     fireEvent.keyDown(input, { key: 'ArrowUp' });
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('rejects an hour edit blocked by unselectableTimes', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput
+        defaultValue={new Date(2024, 5, 7, 11, 0)}
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // year → month → day → hours
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 11 → 12 is blocked
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-07 11:00');
+  });
+
+  it('rejects a day edit blocked by shouldDisableDate', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput
+        defaultValue={dt()}
+        shouldDisableDate={d => d.getDate() === 8}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // year → month → day
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 7 → 8 is blocked
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-07 13:45');
+  });
+
+  it('unselectableDates blocks by calendar day regardless of the time of day', () => {
+    // The unselectable entry is midnight on the 16th; the candidate carries
+    // 10:00 — the day-based isSameDay composition must still reject it.
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput
+        defaultValue={new Date(2024, 5, 15, 10, 0)}
+        unselectableDates={[new Date(2024, 5, 16)]}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // year → month → day
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 15 → 16 is blocked
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-15 10:00');
+  });
+
+  it('still commits unblocked edits when blocking predicates are set', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput
+        defaultValue={new Date(2024, 5, 15, 10, 0)}
+        shouldDisableDate={d => d.getDate() === 16}
+        unselectableDates={[new Date(2024, 5, 16)]}
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // year → month → day
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // 15 → 14 is allowed
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getDate()).toBe(14);
+    expect(arg.getHours()).toBe(10);
+    expect(input.value).toBe('2024-06-14 10:00');
   });
 });
 
@@ -894,6 +983,26 @@ describe('DateTimeInputBase remaining branches', () => {
     const arg = handler.mock.calls[0][0] as Date;
     expect(arg.getDate()).toBe(25);
     expect(arg.getHours()).toBe(8);
+  });
+
+  it('free-form Enter with a blocked value does not commit, and blur reverts', () => {
+    // 'H' is a variable-width token → no segment map → free-form path.
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput
+        openOnFocus={false}
+        format="YYYY-MM-DD H:mm"
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2024-06-16 10:00' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(handler).not.toHaveBeenCalled();
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
   });
 
   it('whitespace-only text reverts on blur without committing', () => {

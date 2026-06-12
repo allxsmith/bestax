@@ -92,7 +92,7 @@ const fromIsoTime = (s: string): Date | null => {
  * @property {number} [incrementHours] - Hour step. Default `1`.
  * @property {number} [incrementMinutes] - Minute step. Default `1`.
  * @property {number} [incrementSeconds] - Second step. Default `1`.
- * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times (the spinner skips ahead).
+ * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times (the spinner skips ahead; manual typing rejects them).
  * @property {string} [iconLeftName] - Decorative left icon glyph for the wrapping Control (shown by default; set to '' to hide).
  * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
  * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
@@ -393,6 +393,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       locale,
       min,
       max,
+      isBlocked: unselectableTimes,
       disabled,
       readOnly,
       editable,

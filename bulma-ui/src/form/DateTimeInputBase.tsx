@@ -28,6 +28,7 @@ import {
   isWithin,
   setTimeOfDay,
   clampDate,
+  isSameDay,
 } from './_pickerInternals/dateUtils';
 import { Calendar } from './_pickerInternals/Calendar';
 import { TimeWheels } from './_pickerInternals/TimeWheels';
@@ -96,8 +97,8 @@ const fromIsoDateTime = (s: string): Date | null => {
  * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
  * @property {'small'|'medium'|'large'} [size] - Size variant.
  * @property {boolean} [isRounded] - Rounded input corners.
- * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate for disabled dates.
- * @property {Date[]} [unselectableDates] - Convenience array of disabled dates.
+ * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate for disabled dates. Blocked dates can't be picked in the calendar and are rejected by manual typing; during entry the predicate receives the full candidate date-time, so prefer day-based checks.
+ * @property {Date[]} [unselectableDates] - Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.
  * @property {DayOfWeek} [firstDayOfWeek] - Day the calendar week starts on.
  * @property {string[]} [dayNames] - Override the 7 day-name labels.
  * @property {string[]} [monthNames] - Override the 12 month-name labels.
@@ -107,7 +108,7 @@ const fromIsoDateTime = (s: string): Date | null => {
  * @property {number} [incrementHours] - Hour step.
  * @property {number} [incrementMinutes] - Minute step.
  * @property {number} [incrementSeconds] - Second step.
- * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times.
+ * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times (the wheels skip ahead; manual typing rejects them).
  * @property {string} [iconLeftName] - Decorative left icon glyph for the wrapping Control (shown by default; set to '' to hide).
  * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
  * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
@@ -419,6 +420,19 @@ export const DateTimeInputBase = forwardRef<
   const inputReadOnlyAttr = !!readOnly || !editable;
   const canOpen = !!popover && !disabled && !readOnly;
 
+  // Blocking predicate for manual entry, combining the calendar's
+  // disabled-day logic with the wheels' unselectable-times predicate. The
+  // candidate passed in carries the full date-time, so date predicates
+  // should use day-based checks.
+  const isBlocked = useMemo(() => {
+    if (!shouldDisableDate && !unselectableDates?.length && !unselectableTimes)
+      return undefined;
+    return (d: Date) =>
+      !!shouldDisableDate?.(d) ||
+      !!unselectableDates?.some(u => isSameDay(u, d)) ||
+      !!unselectableTimes?.(d);
+  }, [shouldDisableDate, unselectableDates, unselectableTimes]);
+
   const { inputHandlers } = useSegmentedEntry({
     format: defaultFormat,
     value,
@@ -431,6 +445,7 @@ export const DateTimeInputBase = forwardRef<
     locale,
     min,
     max,
+    isBlocked,
     disabled,
     readOnly,
     editable,

@@ -21,7 +21,7 @@ import {
   DateFormatOption,
   DEFAULT_DATE_FORMAT,
 } from './_pickerInternals/formatters';
-import { isWithin, clampDate } from './_pickerInternals/dateUtils';
+import { isWithin, clampDate, isSameDay } from './_pickerInternals/dateUtils';
 import { Calendar } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
@@ -65,8 +65,8 @@ const fromIsoDate = (s: string): Date | null => {
  * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
  * @property {'small'|'medium'|'large'} [size] - Size variant.
  * @property {boolean} [isRounded] - Render the input with rounded corners.
- * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate to disable specific dates.
- * @property {Date[]} [unselectableDates] - Convenience array of disabled dates.
+ * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate to disable specific dates. Blocked dates can't be selected in the calendar and are rejected by manual typing (segmented and free-form).
+ * @property {Date[]} [unselectableDates] - Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.
  * @property {DayOfWeek} [firstDayOfWeek] - Day the week starts on (0 = Sunday).
  * @property {string[]} [dayNames] - Override the 7 day-name labels.
  * @property {string[]} [monthNames] - Override the 12 month-name labels.
@@ -289,6 +289,15 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const inputReadOnlyAttr = !!readOnly || !editable;
     const canOpen = !!popover && !disabled && !readOnly;
 
+    // Blocking predicate for manual entry, matching the calendar's
+    // disabled-cell logic (shouldDisableDate + unselectableDates by day).
+    const isBlocked = useMemo(() => {
+      if (!shouldDisableDate && !unselectableDates?.length) return undefined;
+      return (d: Date) =>
+        !!shouldDisableDate?.(d) ||
+        !!unselectableDates?.some(u => isSameDay(u, d));
+    }, [shouldDisableDate, unselectableDates]);
+
     const { inputHandlers } = useSegmentedEntry({
       format: format ?? DEFAULT_DATE_FORMAT,
       value,
@@ -301,6 +310,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       locale,
       min,
       max,
+      isBlocked,
       disabled,
       readOnly,
       editable,

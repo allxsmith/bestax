@@ -32,6 +32,7 @@ interface HarnessProps {
   withSibling?: boolean;
   min?: Date;
   max?: Date;
+  isBlocked?: (d: Date) => boolean;
 }
 
 // Minimal picker that exercises the hook against a real <input>. State is
@@ -53,6 +54,7 @@ const Harness: React.FC<HarnessProps> = ({
   withSibling,
   min,
   max,
+  isBlocked,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +98,7 @@ const Harness: React.FC<HarnessProps> = ({
     makeBaseDate,
     min,
     max,
+    isBlocked,
     disabled,
     readOnly,
     editable,
@@ -385,6 +388,59 @@ describe('useSegmentedEntry', () => {
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     expect(handler).not.toHaveBeenCalled();
     expect(input.value).toBe('13:45');
+  });
+
+  it('rejects segment edits that land on a value blocked by isBlocked', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness
+        initial={at(13, 45)}
+        isBlocked={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // Hours 13 → 12 is blocked by the predicate; the edit is dropped.
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+  });
+
+  it('reverts free-form text on blur when the parsed value is blocked', () => {
+    // 'H:mm' has a variable-width token → no segment map → free-form path.
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness
+        format="H:mm"
+        initial={at(13, 45)}
+        isBlocked={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '12:30' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+  });
+
+  it('still commits unblocked values when an isBlocked predicate is present', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness
+        initial={at(13, 45)}
+        isBlocked={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // Hours 13 → 14 is not blocked; the edit commits as usual.
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
+    expect(input.value).toBe('14:45');
   });
 
   it('survives a format change that removes the active segment', () => {

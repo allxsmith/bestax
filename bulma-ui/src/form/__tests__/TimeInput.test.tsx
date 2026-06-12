@@ -961,6 +961,68 @@ describe('TimeInput segmented input entry', () => {
     // onChange should not fire from arrow keys in free-form mode.
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it('rejects an ArrowUp that lands on an unselectable hour', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <TimeInput
+        defaultValue={at(11, 45)}
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // Hours segment is selected on focus; 11 → 12 is blocked.
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('11:45');
+  });
+
+  it('rejects digit entry that completes to a blocked hour', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <TimeInput
+        defaultValue={at(11, 45)}
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: '1' });
+    fireEvent.keyDown(input, { key: '2' });
+    // No commit may carry the blocked hour, and the text never shows it.
+    for (const call of handler.mock.calls) {
+      expect((call[0] as Date).getHours()).not.toBe(12);
+    }
+    expect(input.value).not.toBe('12:45');
+  });
+
+  it('still commits unblocked edits when an unselectableTimes predicate is set', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <TimeInput
+        defaultValue={at(11, 45)}
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    // 11 → 10 is not blocked, so the edit goes through.
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const arg = handler.mock.calls[0][0] as Date;
+    expect(arg.getHours()).toBe(10);
+    expect(arg.getMinutes()).toBe(45);
+    expect(input.value).toBe('10:45');
+  });
 });
 
 describe('TimeInput editable / popover modes', () => {
@@ -1007,11 +1069,7 @@ describe('TimeInput editable / popover modes', () => {
   it('popover={false}: still supports segmented typing (input-only)', () => {
     const handler = jest.fn();
     const { getByRole, queryByRole } = render(
-      <TimeInput
-        defaultValue={at(13, 45)}
-        popover={false}
-        onChange={handler}
-      />
+      <TimeInput defaultValue={at(13, 45)} popover={false} onChange={handler} />
     );
     const input = getByRole('combobox') as HTMLInputElement;
     act(() => {
@@ -1303,6 +1361,24 @@ describe('TimeInputBase remaining branches', () => {
     const arg = handler.mock.calls[0][0] as Date;
     expect(arg.getHours()).toBe(8);
     expect(arg.getMinutes()).toBe(45);
+  });
+
+  it('free-form blur with a blocked time reverts without committing', () => {
+    // 'H:mm' has a variable-width token → no segment map → free-form path.
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <TimeInput
+        openOnFocus={false}
+        format="H:mm"
+        unselectableTimes={d => d.getHours() === 12}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '12:30' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
   });
 
   it('whitespace-only text reverts on blur without committing', () => {

@@ -164,10 +164,7 @@ describe('DateInput', () => {
 
     it('keeps open after selection when closeOnSelect=false', () => {
       const { getByRole, container } = render(
-        <DateInput
-          defaultValue={new Date(2024, 5, 15)}
-          closeOnSelect={false}
-        />
+        <DateInput defaultValue={new Date(2024, 5, 15)} closeOnSelect={false} />
       );
       fireEvent.click(getByRole('combobox'));
       const target = Array.from(
@@ -194,11 +191,7 @@ describe('DateInput', () => {
     it('parses typed text on blur into a Date', () => {
       const handler = jest.fn();
       const { getByRole } = render(
-        <DateInput
-          openOnFocus={false}
-          onChange={handler}
-          format="DD/MM/YYYY"
-        />
+        <DateInput openOnFocus={false} onChange={handler} format="DD/MM/YYYY" />
       );
       const input = getByRole('combobox') as HTMLInputElement;
       fireEvent.change(input, { target: { value: '25/12/2024' } });
@@ -602,6 +595,112 @@ describe('DateInput segmented input entry', () => {
     fireEvent.keyDown(input, { key: 'ArrowUp' });
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it('rejects ArrowUp on the day segment when shouldDisableDate blocks the result', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2024, 5, 15)}
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // → day
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-15');
+  });
+
+  it('rejects ArrowUp on the day segment when unselectableDates blocks the result', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2024, 5, 15)}
+        unselectableDates={[new Date(2024, 5, 16)]}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // → day
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-15');
+  });
+
+  it('rejects typed digits that complete to a blocked day', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2024, 5, 15)}
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // → day
+    // The intermediate '1' may commit day 1 if unblocked — same contract as
+    // min/max. Only the blocked completion ('16') must never go through.
+    fireEvent.keyDown(input, { key: '1' });
+    fireEvent.keyDown(input, { key: '6' });
+    expect(input.value).not.toBe('2024-06-16');
+    for (const call of handler.mock.calls) {
+      expect((call[0] as Date).getDate()).not.toBe(16);
+    }
+  });
+
+  it('still commits unblocked values when a predicate is present', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2024, 5, 14)}
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // → day
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect((handler.mock.calls[0][0] as Date).getDate()).toBe(15);
+    expect(input.value).toBe('2024-06-15');
+  });
+
+  it('min still rejects segmented edits when a blocking predicate is also present', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2024, 5, 10)}
+        min={new Date(2024, 5, 10)}
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // → day
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // June 9 — below min
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-10');
+  });
 });
 
 describe('DateInput editable / popover modes', () => {
@@ -879,6 +978,40 @@ describe('DateInputBase remaining branches', () => {
     fireEvent.blur(input);
     expect(handler).not.toHaveBeenCalled();
     expect(input.value).toBe('2024-06-07');
+  });
+
+  it('free-form blur with a blocked date reverts without committing', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInputBase
+        openOnFocus={false}
+        shouldDisableDate={d => d.getDate() === 16}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2024-06-16' } });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
+  });
+
+  it('focusing an empty input does not commit a blocked today seed on blur', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInputBase
+        popover={false}
+        shouldDisableDate={() => true}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('');
   });
 
   it('inline with name but no value emits an empty hidden input', () => {
