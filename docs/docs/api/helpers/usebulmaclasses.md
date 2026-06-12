@@ -31,6 +31,64 @@ const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
 ---
 
+## Composable Mini-Hooks
+
+`useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of six composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string, which you can combine with the [`classNames`](./classnames.md) utility.
+
+| Hook                   | Props Covered                                                                                                                                  | Returns                                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                               | Text and background color classes, including palette shades                                                                                                                             |
+| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                               | Margin and padding classes                                                                                                                                                              |
+| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}` | Typography classes, including responsive size/alignment variants                                                                                                                        |
+| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile..Fullhd}`, `visibility{Mobile..Fullhd}`                                              | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
+| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                             | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
+| `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`    | Miscellaneous utility classes                                                                                                                                                           |
+
+All six hooks (and `classNames`) are exported from the package root:
+
+```tsx
+import {
+  useColorClasses,
+  useSpacingClasses,
+  classNames,
+} from '@allxsmith/bestax-bulma';
+```
+
+Here is a small custom component that only needs color and spacing helpers:
+
+```tsx live
+function example() {
+  function PriceTag({ color, colorShade, m, children }) {
+    const colorClasses = useColorClasses({ color, colorShade });
+    const spacingClasses = useSpacingClasses({ m });
+    return (
+      <span className={classNames('tag', colorClasses, spacingClasses)}>
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <div>
+      <PriceTag color="success" m="2">
+        $19.99
+      </PriceTag>
+      <PriceTag color="danger" colorShade="dark" m="2">
+        $49.99
+      </PriceTag>
+    </div>
+  );
+}
+```
+
+:::note useFlexboxClasses and display
+
+`useFlexboxClasses` only emits container classes (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`) when a `display` or `display{Viewport}` prop is `flex` or `inline-flex` — it reads those display props for gating but never emits the display class itself. Pair it with `useVisibilityClasses` (which owns display emission), or just use `useBulmaClasses`.
+
+:::
+
+---
+
 ## Supported Props
 
 Below is the full list of supported props, derived from the `BulmaClassesProps` TypeScript definition:
@@ -119,29 +177,35 @@ The following properties allow you to set different values for each viewport bre
 
 ### Full TypeScript Definition
 
+`BulmaClassesProps` is composed from the six group interfaces, each of which is also exported (along with the shared `BulmaViewportProps` and `BulmaDisplayProps` types) and accepted by the corresponding [mini hook](#composable-mini-hooks):
+
 ```ts
-export interface BulmaClassesProps {
+export interface BulmaClassesProps
+  extends
+    BulmaColorProps,
+    BulmaSpacingProps,
+    BulmaTypographyProps,
+    BulmaVisibilityProps,
+    BulmaFlexboxProps,
+    BulmaOtherProps {}
+
+export type BulmaViewportProps =
+  | 'mobile'
+  | 'tablet'
+  | 'desktop'
+  | 'widescreen'
+  | 'fullhd';
+
+export type BulmaDisplayProps =
+  | 'block'
+  | 'flex'
+  | 'inline'
+  | 'inline-block'
+  | 'inline-flex'
+  | 'none';
+
+export interface BulmaColorProps {
   color?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger'
-    | 'black'
-    | 'black-bis'
-    | 'black-ter'
-    | 'grey-darker'
-    | 'grey-dark'
-    | 'grey'
-    | 'grey-light'
-    | 'grey-lighter'
-    | 'white'
-    | 'light'
-    | 'dark'
-    | 'inherit'
-    | 'current';
-  backgroundColor?:
     | 'primary'
     | 'link'
     | 'info'
@@ -188,6 +252,11 @@ export interface BulmaClassesProps {
     | 'soft'
     | 'bold'
     | 'on-scheme';
+  backgroundColor?: BulmaColorProps['color'];
+  backgroundColorShade?: BulmaColorProps['colorShade'];
+}
+
+export interface BulmaSpacingProps {
   m?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   mt?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   mr?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
@@ -202,19 +271,44 @@ export interface BulmaClassesProps {
   pl?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   px?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   py?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
+}
+
+export interface BulmaTypographyProps {
   textSize?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textAlign?: 'centered' | 'justified' | 'left' | 'right';
   textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
-  display?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
+  viewport?: BulmaViewportProps;
+  textSizeMobile?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeTablet?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeDesktop?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeWidescreen?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeFullhd?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textAlignMobile?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignTablet?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignDesktop?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignWidescreen?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignFullhd?: 'centered' | 'justified' | 'left' | 'right';
+}
+
+export interface BulmaVisibilityProps {
+  display?: BulmaDisplayProps;
   visibility?: 'hidden' | 'sr-only' | 'invisible';
+  viewport?: BulmaViewportProps;
+  displayMobile?: BulmaDisplayProps;
+  displayTablet?: BulmaDisplayProps;
+  displayDesktop?: BulmaDisplayProps;
+  displayWidescreen?: BulmaDisplayProps;
+  displayFullhd?: BulmaDisplayProps;
+  visibilityMobile?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityTablet?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityDesktop?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityWidescreen?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityFullhd?: 'hidden' | 'sr-only' | 'invisible';
+}
+
+export interface BulmaFlexboxProps {
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   justifyContent?:
@@ -253,6 +347,9 @@ export interface BulmaClassesProps {
     | 'stretch';
   flexGrow?: '0' | '1' | '2' | '3' | '4' | '5';
   flexShrink?: '0' | '1' | '2' | '3' | '4' | '5';
+}
+
+export interface BulmaOtherProps {
   float?: 'left' | 'right';
   overflow?: 'clipped';
   overlay?: boolean;
@@ -261,62 +358,10 @@ export interface BulmaClassesProps {
   radius?: 'radiusless';
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
-  viewport?: 'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
   skeleton?: boolean;
   clearfix?: boolean;
   relative?: boolean;
   fullHeight?: boolean;
-  displayMobile?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
-  displayTablet?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
-  displayDesktop?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
-  displayWidescreen?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
-  displayFullhd?:
-    | 'block'
-    | 'flex'
-    | 'inline'
-    | 'inline-block'
-    | 'inline-flex'
-    | 'none';
-  textSizeMobile?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  textSizeTablet?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  textSizeDesktop?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  textSizeWidescreen?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  textSizeFullhd?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
-  textAlignMobile?: 'centered' | 'justified' | 'left' | 'right';
-  textAlignTablet?: 'centered' | 'justified' | 'left' | 'right';
-  textAlignDesktop?: 'centered' | 'justified' | 'left' | 'right';
-  textAlignWidescreen?: 'centered' | 'justified' | 'left' | 'right';
-  textAlignFullhd?: 'centered' | 'justified' | 'left' | 'right';
-  visibilityMobile?: 'hidden' | 'sr-only' | 'invisible';
-  visibilityTablet?: 'hidden' | 'sr-only' | 'invisible';
-  visibilityDesktop?: 'hidden' | 'sr-only' | 'invisible';
-  visibilityWidescreen?: 'hidden' | 'sr-only' | 'invisible';
-  visibilityFullhd?: 'hidden' | 'sr-only' | 'invisible';
-  className?: string;
 }
 ```
 

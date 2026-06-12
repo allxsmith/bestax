@@ -8,6 +8,12 @@ sidebar_position: 1
 
 Bulma provides a comprehensive set of color helpers for text and background colors. These helpers allow you to quickly apply consistent coloring throughout your application without writing custom CSS.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useColorClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's color helpers. For the underlying CSS utilities, see the [official Bulma color helpers](https://bulma.io/documentation/helpers/color-helpers/).

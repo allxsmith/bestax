@@ -8,6 +8,12 @@ sidebar_position: 7
 
 Bulma provides a collection of additional utility helpers that solve common CSS challenges and provide convenient styling shortcuts. These miscellaneous helpers are essential for fine-tuning layouts and addressing specific design requirements.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useOtherClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's other helpers. For the underlying CSS utilities, see the [official Bulma other helpers](https://bulma.io/documentation/helpers/other-helpers/).

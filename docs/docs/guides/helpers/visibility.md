@@ -8,6 +8,12 @@ sidebar_position: 5
 
 Bulma provides comprehensive visibility helpers to control how elements are displayed and hidden across different screen sizes and contexts. These utilities are essential for responsive design and accessibility.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useVisibilityClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's visibility helpers. For the underlying CSS utilities, see the [official Bulma visibility helpers](https://bulma.io/documentation/helpers/visibility-helpers/).

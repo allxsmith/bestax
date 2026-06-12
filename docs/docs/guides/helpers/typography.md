@@ -8,6 +8,12 @@ sidebar_position: 4
 
 Bulma provides comprehensive typography helpers to control text size, alignment, transformation, weight, and font family. These utilities ensure consistent typography throughout your application.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useTypographyClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's typography helpers. For the underlying CSS utilities, see the [official Bulma typography helpers](https://bulma.io/documentation/helpers/typography-helpers/).

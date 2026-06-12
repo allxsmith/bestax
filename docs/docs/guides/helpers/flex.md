@@ -8,6 +8,12 @@ sidebar_position: 6
 
 Bulma provides comprehensive flexbox helpers that give you full control over flex container and flex item behavior. Combined with `display="flex"`, all of the flexbox CSS properties are available as helper classes in bestax-bulma.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useFlexboxClasses` hook (container classes only emit when a `display` prop is `flex` or `inline-flex`) — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's flexbox helpers. For the underlying CSS utilities, see the [official Bulma flexbox helpers](https://bulma.io/documentation/helpers/flexbox-helpers/).

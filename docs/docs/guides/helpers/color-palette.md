@@ -10,6 +10,12 @@ Bulma v1 introduces an extended color palette system that provides semantic colo
 
 Bestax-bulma refers to the color palette as **Color Shades** `colorShades`.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useColorClasses` hook (the same hook covers both colors and shades) — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
 :::info Reference
 
 This page documents the bestax-bulma prop API for Bulma's palette helpers. For the underlying CSS utilities, see the [official Bulma palette helpers](https://bulma.io/documentation/helpers/palette-helpers/).
