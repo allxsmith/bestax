@@ -74,7 +74,14 @@
   font-size: 4rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(90deg, #08519c 0%, #3182bd 25%, #6baed6 50%, #3182bd 75%, #08519c 100%);
+  background: linear-gradient(
+    90deg,
+    #08519c 0%,
+    #3182bd 25%,
+    #6baed6 50%,
+    #3182bd 75%,
+    #08519c 100%
+  );
   background-size: 200% 100%;
   background-position: 0% 0%;
   -webkit-background-clip: text;
@@ -96,7 +103,14 @@
 }
 
 [data-theme='dark'] .heroTitle {
-  background: linear-gradient(90deg, #6baed6 0%, #9ecae1 25%, #bdd7e7 50%, #9ecae1 75%, #6baed6 100%);
+  background: linear-gradient(
+    90deg,
+    #6baed6 0%,
+    #9ecae1 25%,
+    #bdd7e7 50%,
+    #9ecae1 75%,
+    #6baed6 100%
+  );
   background-size: 200% 100%;
   background-position: 0% 0%;
   -webkit-background-clip: text;
@@ -282,34 +296,12 @@
   color: var(--ifm-color-emphasis-900);
 }
 
-/* V1 Component List Section */
-.v1ListSection {
-  padding: 2rem 0;
-  background: var(--ifm-color-emphasis-100);
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme='dark'] .v1ListSection {
-  background: #1e2936;
-}
-
-/* Existing Features Section */
-.existingFeaturesSection {
-  padding: 2rem 0;
-  background: transparent;
-}
-
 /* Pronunciation Section */
 .pronunciationSection {
   padding: 2rem 0;
-  background: var(--ifm-color-emphasis-100);
+  background: transparent;
   position: relative;
   overflow: hidden;
-}
-
-[data-theme='dark'] .pronunciationSection {
-  background: #1e2936;
 }
 
 .pronunciationCard {
