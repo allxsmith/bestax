@@ -5,7 +5,7 @@
 //
 // Excludes helper classes and prefixes all CSS classes with "bestax-"
 
-@use "bulma/sass/utilities" with ($class-prefix: "bestax-");
+@use "bulma/sass/utilities" with ($class-prefix: "bestax-", $primary: #1e6b99);
 @forward "bulma/sass/themes";
 @forward "bulma/sass/base";
 @forward "bulma/sass/elements";

@@ -5,6 +5,7 @@
 //
 // Excludes Bulma helper classes (spacing, typography, color utilities, etc.)
 
+@use "bulma/sass/utilities" with ($primary: #1e6b99);
 @forward "bulma/sass/utilities";
 @forward "bulma/sass/themes";
 @forward "bulma/sass/base";

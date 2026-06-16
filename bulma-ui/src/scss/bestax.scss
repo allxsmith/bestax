@@ -6,8 +6,8 @@
 // Usage (SCSS source):
 //   @use '@allxsmith/bestax-bulma/scss/bestax';
 
-// Include all of Bulma
-@use 'bulma/sass';
+// Include all of Bulma (primary overridden to bestax blue)
+@use 'bulma/sass' with ($primary: #1e6b99);
 
 // Include bestax extras
 @use 'variables';

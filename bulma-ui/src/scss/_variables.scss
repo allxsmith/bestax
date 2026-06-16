@@ -5,10 +5,10 @@
 $extras-scheme-h: var(--bulma-scheme-h, 221);
 $extras-scheme-s: var(--bulma-scheme-s, 14%);
 
-// Primary color references
-$extras-primary-h: var(--bulma-primary-h, 171);
-$extras-primary-s: var(--bulma-primary-s, 100%);
-$extras-primary-l: var(--bulma-primary-l, 41%);
+// Primary color references (fallbacks track bestax primary #1e6b99)
+$extras-primary-h: var(--bulma-primary-h, 202);
+$extras-primary-s: var(--bulma-primary-s, 67%);
+$extras-primary-l: var(--bulma-primary-l, 36%);
 $extras-primary: hsl($extras-primary-h, $extras-primary-s, $extras-primary-l);
 
 // Link color references

@@ -5,6 +5,8 @@
 //
 // Includes only the light theme, reducing CSS bundle size
 
+// Configure utilities (primary override) before themes load it transitively
+@use "bulma/sass/utilities" with ($primary: #1e6b99);
 @use "bulma/sass/themes/light";
 @use "bulma/sass/themes/setup";
 @use '../variables';

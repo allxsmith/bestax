@@ -5,7 +5,7 @@
 //
 // All CSS classes will be prefixed with "bulma-", e.g. "bulma-button", "bulma-is-primary"
 
-@use 'bulma/sass' with ($class-prefix: "bulma-");
+@use 'bulma/sass' with ($class-prefix: "bulma-", $primary: #1e6b99);
 
 @use '../variables';
 @use '../mixins';
