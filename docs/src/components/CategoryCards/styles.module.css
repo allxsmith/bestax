@@ -36,22 +36,29 @@
   background: var(--ifm-color-emphasis-100);
 }
 
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
 .iconChip {
-  width: 48px;
-  height: 48px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--ifm-color-primary);
   color: #fff;
-  margin-bottom: 1rem;
 }
 
 .cardHeading {
   font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .cardBlurb {

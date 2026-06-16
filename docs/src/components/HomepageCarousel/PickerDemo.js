@@ -7,10 +7,6 @@ import { dispatchKey, dispatchClick } from './demoEvents';
 const DEMO_CSS = `
   .picker-demo {
     position: relative;
-    min-height: 430px;
-    max-width: 22rem;
-    margin: 0 auto;
-    padding-top: 0.5rem;
   }
 `;
 
@@ -23,13 +19,12 @@ const TYPE_KEYS = {
   datetime: ['2', '0', '2', '6', '0', '6', '1', '5'],
 };
 
-function findDayCell(rootEl) {
-  const cells = rootEl.querySelectorAll(
-    '.dateinput-cell:not([disabled]):not(.is-other-month)'
-  );
-  if (!cells.length) return null;
-  // A day in the third week, away from the typed selection
-  return cells[Math.min(17, cells.length - 1)];
+function dayCells(rootEl) {
+  return [
+    ...rootEl.querySelectorAll(
+      '.dateinput-cell:not([disabled]):not(.is-other-month)'
+    ),
+  ];
 }
 
 function findWheelItem(rootEl) {
@@ -48,19 +43,19 @@ function findWheelItem(rootEl) {
 }
 
 /**
- * Wraps a date/time picker with a scripted, looping demo: the input gets
- * focused, a value is typed into the segments, the popover opens, and a
- * date/time gets clicked — no cursor, just the actions. Pauses while the
- * visitor hovers so the real picker stays usable.
- * `kind`: 'date' | 'time' | 'datetime'.
+ * Wraps a date/time picker with a scripted, looping demo. In popover mode the
+ * input gets focused, a value is typed in, and a date/time gets clicked. In
+ * `inline` mode the calendar/wheels are always visible and the demo just
+ * selects values on a loop. Pauses on hover so the real picker stays usable.
+ * `kind`: 'date' | 'time' | 'datetime'. `label` renders it as a form field.
  */
-export default function PickerDemo({ kind, active }) {
+export default function PickerDemo({ kind, active, label, inline = false }) {
   const wrapperRef = useRef(null);
   const [value, setValue] = useState(null);
   const valueRef = useRef(setValue);
   valueRef.current = setValue;
 
-  // Don't stay frozen mid-script when the carousel moves on
+  // Don't stay frozen mid-script when the picker is deselected / scrolled away
   useEffect(() => {
     if (!active) {
       setValue(null);
@@ -74,11 +69,35 @@ export default function PickerDemo({ kind, active }) {
 
   const run = useCallback(
     async ({ sleep }) => {
-      // Let the slide transition settle before the show starts
-      await sleep(900);
-
       const wrapper = wrapperRef.current;
       if (!wrapper) throw CANCELLED;
+
+      // Inline mode: calendar/wheels are always shown — just pick values.
+      if (inline) {
+        await sleep(1000);
+        const pickDay = idx => {
+          const cells = dayCells(wrapper);
+          const cell = cells[Math.min(idx, cells.length - 1)];
+          if (cell) dispatchClick(cell);
+        };
+        const pickTime = () => {
+          const item = findWheelItem(wrapper);
+          if (item) dispatchClick(item);
+        };
+
+        if (kind === 'date' || kind === 'datetime') pickDay(13);
+        if (kind === 'time' || kind === 'datetime') pickTime();
+        await sleep(1700);
+        if (kind === 'date' || kind === 'datetime') pickDay(20);
+        if (kind === 'time' || kind === 'datetime') pickTime();
+        await sleep(2000);
+        valueRef.current(null);
+        await sleep(900);
+        return;
+      }
+
+      // Popover mode: focus, type, open, click.
+      await sleep(900);
       const input = wrapper.querySelector('input');
       if (!input) throw CANCELLED;
 
@@ -88,37 +107,48 @@ export default function PickerDemo({ kind, active }) {
         await sleep(300);
       };
 
-      // "Click" the input (real focus opens the popover)
       await clickOn(input);
       input.focus({ preventScroll: true });
       await sleep(500);
 
-      // Type the value digit by digit
       for (const key of TYPE_KEYS[kind]) {
         dispatchKey(input, key);
         await sleep(KEY_MS);
       }
       await sleep(700);
 
-      // Click inside the popover: a calendar day and/or a wheel value
+      // Pick a calendar day (date + datetime).
       if (kind === 'date' || kind === 'datetime') {
-        const day = findDayCell(wrapper);
+        const cells = dayCells(wrapper);
+        const day = cells[Math.min(17, cells.length - 1)];
         if (day) await clickOn(day);
       }
+      // The datetime popover keeps its time behind a "Time" footer button —
+      // open the wheel overlay before picking.
+      if (kind === 'datetime') {
+        const timeBtn = wrapper.querySelector('.datetimeinput-footer-time');
+        if (timeBtn) await clickOn(timeBtn);
+      }
+      // Pick a time on the wheels (time + datetime).
       if (kind === 'time' || kind === 'datetime') {
-        await sleep(400);
+        await sleep(200);
         const item = findWheelItem(wrapper);
         if (item) await clickOn(item);
       }
 
-      // Admire the result, then reset and replay
-      await sleep(1800);
-      dispatchKey(input, 'Escape');
+      // Admire, then close the popover and reset.
+      await sleep(1600);
+      const done = wrapper.querySelector('.datetimeinput-footer-done');
+      if (kind === 'datetime' && done) {
+        dispatchClick(done);
+      } else {
+        dispatchKey(input, 'Escape');
+      }
       input.blur();
       valueRef.current(null);
-      await sleep(1200);
+      await sleep(1400);
     },
-    [kind]
+    [kind, inline]
   );
 
   const { reducedMotion, hoverProps } = useDemoLoop({
@@ -131,7 +161,10 @@ export default function PickerDemo({ kind, active }) {
     color: 'primary',
     value,
     onChange: setValue,
-    ...(reducedMotion ? { inline: true } : {}),
+    // Always demo the custom bestax picker, not the native touch-device one.
+    mobileNative: false,
+    ...(label ? { label } : {}),
+    ...(inline || reducedMotion ? { inline: true } : {}),
   };
 
   return (

@@ -196,13 +196,19 @@
   margin-top: 2rem;
 }
 
-/* GitHub Buttons Container */
-.githubButtonsRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
+/* Hero "Get Started" button — explicitly bound to the bestax Bulma primary */
+.heroPrimaryButton,
+.heroPrimaryButton:visited {
+  background-color: var(--bestax-primary);
+  border-color: var(--bestax-primary);
+  color: #fff;
+}
+
+.heroPrimaryButton:hover,
+.heroPrimaryButton:focus {
+  background-color: color-mix(in srgb, var(--bestax-primary) 85%, #000);
+  border-color: color-mix(in srgb, var(--bestax-primary) 85%, #000);
+  color: #fff;
 }
 
 @media screen and (max-width: 767px) {
@@ -214,62 +220,40 @@
   .buttons > * {
     width: 100%;
   }
-
-  .githubButtonsRow {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .githubButtonWrapper {
-    width: 100%;
-  }
-
-  .githubButton {
-    width: 100%;
-  }
 }
 
-/* GitHub Button Wrapper (button + count tag) */
-.githubButtonWrapper {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* GitHub Button */
-.githubButton {
+/* Hero "GitHub" button — Mantine-style secondary action next to Get Started */
+.heroGithubButton,
+.heroGithubButton:visited {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--ifm-color-emphasis-0);
-  border: 1px solid var(--ifm-color-emphasis-300);
-  border-radius: 6px;
-  color: var(--ifm-color-emphasis-900);
+  gap: 0.6rem;
+  background-color: #24292f;
+  border-color: #24292f;
+  color: #fff;
+}
+
+.heroGithubButton:hover,
+.heroGithubButton:focus {
+  background-color: #1b1f24;
+  border-color: #1b1f24;
+  color: #fff;
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
 }
 
-.githubButton:hover {
-  background: var(--ifm-color-emphasis-100);
-  border-color: var(--ifm-color-primary);
-  text-decoration: none;
-  color: var(--ifm-color-emphasis-900);
+[data-theme='dark'] .heroGithubButton,
+[data-theme='dark'] .heroGithubButton:visited {
+  background-color: #f6f8fa;
+  border-color: #f6f8fa;
+  color: #1c2128;
 }
 
-[data-theme='dark'] .githubButton {
-  background: var(--ifm-color-emphasis-200);
-  border-color: var(--ifm-color-emphasis-400);
-  color: var(--ifm-color-emphasis-900);
-}
-
-[data-theme='dark'] .githubButton:hover {
-  background: var(--ifm-color-emphasis-300);
-  border-color: var(--ifm-color-primary);
-  color: var(--ifm-color-emphasis-1000);
+[data-theme='dark'] .heroGithubButton:hover,
+[data-theme='dark'] .heroGithubButton:focus {
+  background-color: #e6e9ec;
+  border-color: #e6e9ec;
+  color: #1c2128;
 }
 
 /* GitHub Icon */
@@ -277,23 +261,6 @@
   width: 20px;
   height: 20px;
   fill: currentColor;
-}
-
-/* GitHub Count Tag */
-.githubCountTag {
-  background: var(--ifm-color-emphasis-0);
-  border: 1px solid var(--ifm-color-emphasis-300);
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--ifm-color-emphasis-900);
-}
-
-[data-theme='dark'] .githubCountTag {
-  background: var(--ifm-color-emphasis-200);
-  border-color: var(--ifm-color-emphasis-400);
-  color: var(--ifm-color-emphasis-900);
 }
 
 /* Pronunciation Section */

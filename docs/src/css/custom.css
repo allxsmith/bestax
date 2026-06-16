@@ -6,6 +6,8 @@
 
 /* You can override the default Infima variables here. */
 :root {
+  /* bestax Bulma primary color — single source of truth for docs accents */
+  --bestax-primary: #1e6b99;
   --ifm-color-primary: #1e6b99;
   --ifm-color-primary-dark: #1a5d87;
   --ifm-color-primary-darker: #185681;

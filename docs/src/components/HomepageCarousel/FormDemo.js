@@ -14,7 +14,7 @@ import { dispatchClick, dispatchNativeInput } from './demoEvents';
 // Rendered inside the shadow root, so its styles ship with it.
 const DEMO_CSS = `
   .form-demo {
-    min-height: 360px;
+    min-height: 280px;
     max-width: 24rem;
     margin: 0 auto;
     padding-top: 1.5rem;

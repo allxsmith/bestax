@@ -49,12 +49,14 @@ export default function CategoryCards() {
           return (
             <FadeInCard key={cat.heading} index={i}>
               <div className={styles.card}>
-                <div className={styles.iconChip}>
-                  <Icon />
+                <div className={styles.cardHeader}>
+                  <div className={styles.iconChip}>
+                    <Icon />
+                  </div>
+                  <Heading as="h3" className={styles.cardHeading}>
+                    {cat.heading}
+                  </Heading>
                 </div>
-                <Heading as="h3" className={styles.cardHeading}>
-                  {cat.heading}
-                </Heading>
                 <p className={styles.cardBlurb}>{cat.blurb}</p>
                 <div className={styles.pillRow}>
                   {cat.items.map(item => (

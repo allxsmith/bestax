@@ -1,20 +1,13 @@
 .section {
   padding: 3rem 0;
+}
+
+.alt {
   background: var(--ifm-color-emphasis-100);
 }
 
-[data-theme='dark'] .section {
+[data-theme='dark'] .alt {
   background: #1e2936;
-}
-
-.eyebrow {
-  text-align: center;
-  color: var(--ifm-color-primary);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
 }
 
 .heading {
@@ -23,73 +16,64 @@
   margin-bottom: 0.75rem;
 }
 
-.subtitle {
+.intro {
   text-align: center;
   color: var(--ifm-color-emphasis-700);
   max-width: 700px;
   margin: 0 auto 2.5rem;
 }
 
-.grid {
+.layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  max-width: 1100px;
-  margin: 0 auto;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
 }
 
-.fadeIn {
-  opacity: 0;
-  transform: translateY(30px);
-  transition:
-    opacity 0.6s ease-out,
-    transform 0.6s ease-out;
-  height: 100%;
+/* Left half — selector tiles, stacked */
+.tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.fadeIn.visible {
-  opacity: 1;
-  transform: none;
-}
-
-.card {
-  display: block;
-  height: 100%;
-  padding: 1.75rem;
+.tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+  text-align: left;
+  padding: 1.25rem;
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 16px;
   background: var(--ifm-background-surface-color);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  color: inherit;
-  text-decoration: none;
+  cursor: pointer;
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.card:hover {
+.tile:hover {
   border-color: var(--ifm-color-primary);
-  color: inherit;
-  text-decoration: none;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-[data-theme='dark'] .card {
+.tileActive {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary-contrast-background);
+}
+
+[data-theme='dark'] .tile {
   border-color: var(--ifm-color-emphasis-300);
   background: var(--ifm-color-emphasis-100);
 }
 
-[data-theme='dark'] .card:hover {
+[data-theme='dark'] .tileActive {
   border-color: var(--ifm-color-primary);
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  margin-bottom: 1rem;
+  background: rgba(72, 95, 199, 0.18);
 }
 
 .iconChip {
@@ -104,21 +88,43 @@
   color: #fff;
 }
 
-.cardTitle {
-  font-size: 1.2rem;
+.tileBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tileTitle {
+  font-size: 1.1rem;
   font-weight: 700;
-  margin: 0;
+  color: var(--ifm-heading-color);
 }
 
-.cardDesc {
+.tileDesc {
+  font-size: 0.9rem;
   color: var(--ifm-color-emphasis-700);
-  font-size: 0.95rem;
-  margin: 0;
 }
 
-@media screen and (max-width: 996px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+.docsLink {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+/* Right half — booking form, fills its column */
+.formPanel {
+  width: 100%;
+}
+
+.fallback {
+  min-height: 420px;
+  width: 100%;
+}
+
+@media screen and (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 
@@ -129,9 +135,5 @@
 
   .heading {
     font-size: 1.5rem;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
   }
 }

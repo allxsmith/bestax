@@ -5,10 +5,12 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import HomepageCarousel from '@site/src/components/HomepageCarousel';
-import PickerDemo from '@site/src/components/HomepageCarousel/PickerDemo';
 import FormDemo from '@site/src/components/HomepageCarousel/FormDemo';
 import CategoryCards from '@site/src/components/CategoryCards';
+import GapElements from '@site/src/components/GapElements';
 import EnhancedAddons from '@site/src/components/EnhancedAddons';
+import PickerShowcase from '@site/src/components/PickerShowcase';
+import AiReady from '@site/src/components/AiReady';
 import Heading from '@theme/Heading';
 import {
   Skeleton,
@@ -165,54 +167,9 @@ const formSlides = [
   },
 ];
 
-const pickerSlides = [
-  {
-    key: 'dateinput',
-    title: 'DateInput',
-    description:
-      'A calendar picker with min/max bounds, disabled-date rules, locale-aware month and day names, and a native fallback on touch devices. Watch it fill in — then hover to try it yourself.',
-    link: '/docs/api/form/datetime/dateinput',
-    linkLabel: 'DateInput Docs',
-    demo: ({ active }) => <PickerDemo kind="date" active={active} />,
-  },
-  {
-    key: 'timeinput',
-    title: 'TimeInput',
-    description:
-      'Pick a time with smooth scrolling wheels for hours, minutes, and seconds. Choose a 12- or 24-hour clock, set minute steps, and keep full keyboard support.',
-    link: '/docs/api/form/datetime/timeinput',
-    linkLabel: 'TimeInput Docs',
-    demo: ({ active }) => <PickerDemo kind="time" active={active} />,
-  },
-  {
-    key: 'datetimeinput',
-    title: 'DateTimeInput',
-    description:
-      'Calendar and time wheels combined in a single control — pick a date and a time in one place, with all the bounds and locale options of its siblings.',
-    link: '/docs/api/form/datetime/datetimeinput',
-    linkLabel: 'DateTimeInput Docs',
-    demo: ({ active }) => <PickerDemo kind="datetime" active={active} />,
-  },
-];
-
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
-  const [githubStars, setGithubStars] = React.useState(null);
-  const [githubForks, setGithubForks] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
-
-  React.useEffect(() => {
-    // Fetch GitHub stats
-    fetch('https://api.github.com/repos/allxsmith/bestax')
-      .then(res => res.json())
-      .then(data => {
-        setGithubStars(data.stargazers_count);
-        setGithubForks(data.forks_count);
-      })
-      .catch(() => {
-        // Silently fail if API is unavailable
-      });
-  }, []);
 
   const handleCopyNpm = () => {
     navigator.clipboard.writeText('npm install @allxsmith/bestax-bulma');
@@ -281,43 +238,23 @@ function HomepageHeader() {
           </div>
           <div className={styles.buttons}>
             <Link
-              className="button button--primary button--lg"
+              className={clsx(
+                'button button--primary button--lg',
+                styles.heroPrimaryButton
+              )}
               to="/docs/guides/intro"
             >
               Get Started
             </Link>
-            <Link
-              className="button button--secondary button--lg"
-              to="/docs/api/elements/block"
-            >
-              Components
-            </Link>
-          </div>
-          <div className={styles.githubButtonsRow}>
             <a
+              className={clsx('button button--lg', styles.heroGithubButton)}
               href="https://github.com/allxsmith/bestax"
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.githubButton}
             >
               <GitHubIcon />
-              <span>Star</span>
+              <span>GitHub</span>
             </a>
-            {/* {githubStars !== null && (
-              <span className={styles.githubCountTag}>{githubStars}</span>
-            )} */}
-            <a
-              href="https://github.com/allxsmith/bestax/fork"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.githubButton}
-            >
-              <GitHubIcon />
-              <span>Fork</span>
-            </a>
-            {/* {githubForks !== null && (
-              <span className={styles.githubCountTag}>{githubForks}</span>
-            )} */}
           </div>
         </div>
       </div>
@@ -361,6 +298,7 @@ export default function Home() {
     >
       <HomepageHeader />
       <main>
+        <AiReady />
         <HomepageFeatures />
         <HomepageCarousel
           heading="New in Bulma v1"
@@ -369,6 +307,7 @@ export default function Home() {
           alt
         />
         <CategoryCards />
+        <GapElements />
         <EnhancedAddons />
         <HomepageCarousel
           heading="Advanced Form Controls"
@@ -376,15 +315,10 @@ export default function Home() {
           slides={formSlides}
           interval={10000}
           hasDrag={false}
+          arrow
+          slideMinHeight="280px"
         />
-        <HomepageCarousel
-          heading="Date & Time Pickers"
-          intro="Date and time selection styled to match the rest of Bulma — watch the pickers in action, then try them yourself."
-          slides={pickerSlides}
-          interval={12000}
-          hasDrag={false}
-          alt
-        />
+        <PickerShowcase />
         <PronunciationSection />
       </main>
     </Layout>

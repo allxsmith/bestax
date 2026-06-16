@@ -111,12 +111,14 @@ export default function EnhancedAddons() {
             return (
               <FadeIn key={addon.name} index={i}>
                 <Link to={addon.link} className={styles.card}>
-                  <div className={styles.iconChip}>
-                    <Icon />
+                  <div className={styles.cardHeader}>
+                    <div className={styles.iconChip}>
+                      <Icon />
+                    </div>
+                    <Heading as="h3" className={styles.cardTitle}>
+                      {addon.name}
+                    </Heading>
                   </div>
-                  <Heading as="h3" className={styles.cardTitle}>
-                    {addon.name}
-                  </Heading>
                   <p className={styles.cardDesc}>{addon.desc}</p>
                 </Link>
               </FadeIn>

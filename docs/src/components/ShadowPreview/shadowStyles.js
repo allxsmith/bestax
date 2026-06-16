@@ -60,6 +60,23 @@ export const colorModeStyles = `
     --bulma-border: hsl(221, 14%, 86%) !important;
     --bulma-border-weak: hsl(221, 14%, 93%) !important;
   }
+
+  /* bestax primary override (#1e6b99) — the previews load stock Bulma
+     (turquoise), so re-point the primary CSS variables to match the library.
+     Bulma emits the full palette under :root (-> :host) AND the inner
+     .theme-light / .theme-dark / [data-theme] wrapper, so override all of
+     them. The h/s/l-derived light/dark/soft variants cascade automatically. */
+  :host(.dark), :host(.light), :host,
+  .theme-light, .theme-dark,
+  [data-theme='light'], [data-theme='dark'] {
+    --bulma-primary-h: 202deg !important;
+    --bulma-primary-s: 67% !important;
+    --bulma-primary-l: 36% !important;
+    --bulma-primary-rgb: 30, 107, 153 !important;
+    /* Stock Bulma bakes a dark invert-l for turquoise; the new darker blue
+       needs a light foreground, matching the rebuilt library's value. */
+    --bulma-primary-invert-l: var(--bulma-primary-100-l) !important;
+  }
 `;
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
