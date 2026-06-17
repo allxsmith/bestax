@@ -134,6 +134,19 @@ We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publ
 - The PR title and commit messages should reflect the type of release (fix, feat, BREAKING CHANGE, etc.).
 - Only the `main` branch is published.
 
+### npm authentication (OIDC trusted publishing)
+
+Publishing authenticates with npm via [OIDC trusted publishing](https://docs.npmjs.com/trusted-publishers) — there is **no long-lived `NPM_TOKEN`**. This avoids the `EOTP` (one-time password) failures that 2FA-protected accounts hit when publishing with a token.
+
+For this to work, each published package must have a trusted publisher configured **once** on npmjs.com (Package → Settings → Trusted Publisher):
+
+- Packages: `@allxsmith/bestax-bulma` and `create-bestax`
+- Provider: **GitHub Actions**
+- Repository: `allxsmith/bestax`
+- Workflow: `ci.yml`
+
+The CI `publish` job grants `id-token: write` and upgrades npm to a version that supports OIDC.
+
 ---
 
 ## Code Quality Standards
