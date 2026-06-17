@@ -22,6 +22,11 @@ export default {
       },
     },
   ],
+  // semantic-release's @semantic-release/git makes a "chore(release): <version>
+  // [skip ci]" commit whose body is the full changelog (long lines, URLs). That
+  // machine commit must not be linted — otherwise the husky commit-msg hook
+  // (installed in CI by `npm ci`) fails the release on body/footer-max-line-length.
+  ignores: [message => message.startsWith('chore(release):')],
   rules: {
     'release-scope-required': [2, 'always'],
   },
