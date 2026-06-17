@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-bulma",
-  "version": "2.6.2",
+  "version": "3.0.0",
   "description": "A fully-typed React component library for the Bulma CSS framework. Build modern UIs quickly with reusable, accessible, and customizable Bulma-based React components.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -86,11 +86,21 @@
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "@fortawesome/fontawesome-free": { "optional": true },
-    "@mdi/font": { "optional": true },
-    "ionicons": { "optional": true },
-    "material-icons": { "optional": true },
-    "material-symbols": { "optional": true }
+    "@fortawesome/fontawesome-free": {
+      "optional": true
+    },
+    "@mdi/font": {
+      "optional": true
+    },
+    "ionicons": {
+      "optional": true
+    },
+    "material-icons": {
+      "optional": true
+    },
+    "material-symbols": {
+      "optional": true
+    }
   },
   "keywords": [
     "react",
@@ -122,16 +132,36 @@
     "./dist/bestax.min.css": {
       "default": "./dist/bestax.css"
     },
-    "./versions/bestax-prefixed.css": { "default": "./dist/versions/bestax-prefixed.css" },
-    "./dist/versions/bestax-prefixed.css": { "default": "./dist/versions/bestax-prefixed.css" },
-    "./versions/bestax-bulma-prefixed.css": { "default": "./dist/versions/bestax-bulma-prefixed.css" },
-    "./dist/versions/bestax-bulma-prefixed.css": { "default": "./dist/versions/bestax-bulma-prefixed.css" },
-    "./versions/bestax-no-helpers.css": { "default": "./dist/versions/bestax-no-helpers.css" },
-    "./dist/versions/bestax-no-helpers.css": { "default": "./dist/versions/bestax-no-helpers.css" },
-    "./versions/bestax-no-helpers-prefixed.css": { "default": "./dist/versions/bestax-no-helpers-prefixed.css" },
-    "./dist/versions/bestax-no-helpers-prefixed.css": { "default": "./dist/versions/bestax-no-helpers-prefixed.css" },
-    "./versions/bestax-no-dark-mode.css": { "default": "./dist/versions/bestax-no-dark-mode.css" },
-    "./dist/versions/bestax-no-dark-mode.css": { "default": "./dist/versions/bestax-no-dark-mode.css" },
+    "./versions/bestax-prefixed.css": {
+      "default": "./dist/versions/bestax-prefixed.css"
+    },
+    "./dist/versions/bestax-prefixed.css": {
+      "default": "./dist/versions/bestax-prefixed.css"
+    },
+    "./versions/bestax-bulma-prefixed.css": {
+      "default": "./dist/versions/bestax-bulma-prefixed.css"
+    },
+    "./dist/versions/bestax-bulma-prefixed.css": {
+      "default": "./dist/versions/bestax-bulma-prefixed.css"
+    },
+    "./versions/bestax-no-helpers.css": {
+      "default": "./dist/versions/bestax-no-helpers.css"
+    },
+    "./dist/versions/bestax-no-helpers.css": {
+      "default": "./dist/versions/bestax-no-helpers.css"
+    },
+    "./versions/bestax-no-helpers-prefixed.css": {
+      "default": "./dist/versions/bestax-no-helpers-prefixed.css"
+    },
+    "./dist/versions/bestax-no-helpers-prefixed.css": {
+      "default": "./dist/versions/bestax-no-helpers-prefixed.css"
+    },
+    "./versions/bestax-no-dark-mode.css": {
+      "default": "./dist/versions/bestax-no-dark-mode.css"
+    },
+    "./dist/versions/bestax-no-dark-mode.css": {
+      "default": "./dist/versions/bestax-no-dark-mode.css"
+    },
     "./scss": {
       "default": "./src/scss/extras.scss"
     },

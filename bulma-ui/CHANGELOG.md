@@ -1,3 +1,46 @@
+# [3.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.2...@allxsmith/bestax-bulma@3.0.0) (2026-06-17)
+
+
+* feat(create-bestax)!: require Node.js 18+ and align with bestax-bulma v2 ([#118](https://github.com/allxsmith/bestax/issues/118)) ([b22f183](https://github.com/allxsmith/bestax/commit/b22f183acfa2f0fa6e50b9cd399ca7cd9ac67f94))
+
+
+### Bug Fixes
+
+* add comprehensive rules to prevent bulma-ui versioning on non-bulma-ui commits ([#122](https://github.com/allxsmith/bestax/issues/122)) ([525ccfa](https://github.com/allxsmith/bestax/commit/525ccfa7beff0e46fdbc5c2e25603e562baabd67)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+* **bulma-ui:** a11y + case-insensitive Taginput matching from PR review ([d576829](https://github.com/allxsmith/bestax/commit/d57682926f510d029839e79d6ba05bd62cc20323))
+* **bulma-ui:** migrate ionicons to v8 to unblock publish and Storybook ([927a55b](https://github.com/allxsmith/bestax/commit/927a55b024db8d2c9da7448a958d2a51daef3cca)), closes [#142](https://github.com/allxsmith/bestax/issues/142)
+* **bulma-ui:** reject predicate-blocked values during manual entry ([a8f6e28](https://github.com/allxsmith/bestax/commit/a8f6e28b92b997f0cdbb25feed0e039ecc1503b5))
+* **bulma-ui:** resolve security vulnerabilities and update dependencies ([#128](https://github.com/allxsmith/bestax/issues/128)) ([112f6e4](https://github.com/allxsmith/bestax/commit/112f6e4841fa9ea9c4ba49200984e413c1bc5f22)), closes [#127](https://github.com/allxsmith/bestax/issues/127)
+* **bulma-ui:** use createRequire for ESM compatibility in Storybook 10 ([#130](https://github.com/allxsmith/bestax/issues/130)) ([b27e60e](https://github.com/allxsmith/bestax/commit/b27e60e074dda007e76ad38d867573539b8bcb41)), closes [#129](https://github.com/allxsmith/bestax/issues/129)
+* **docs:** correct Content Signals syntax in robots.txt ([#134](https://github.com/allxsmith/bestax/issues/134)) ([85dd9de](https://github.com/allxsmith/bestax/commit/85dd9de7c147b06f43b9e6a51c6c304a9530b121))
+* prevent bulma-ui from versioning on create-bestax commits ([#120](https://github.com/allxsmith/bestax/issues/120)) ([4dfaf9c](https://github.com/allxsmith/bestax/commit/4dfaf9ca2a9f440625827dfb4e11fc2a709561dd)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+
+
+### Features
+
+* **bulma-ui:** add cursor helper, closeDelay prop, and polish Tooltip stories ([37945b5](https://github.com/allxsmith/bestax/commit/37945b59bb055671d392b72a06023587fd0c73fb))
+* **bulma-ui:** add extra components, form elements, and SCSS styles ([59daf28](https://github.com/allxsmith/bestax/commit/59daf2826e99b2150b1c4529a6cadc8b69620998))
+* **bulma-ui:** add HTML element wrapper components ([#135](https://github.com/allxsmith/bestax/issues/135)) ([#136](https://github.com/allxsmith/bestax/issues/136)) ([20fb16d](https://github.com/allxsmith/bestax/commit/20fb16dc69592e89ac7924d7b0e1e9cd1048fec8))
+* **bulma-ui:** add manual-entry stories for format, bounds, and blocked-value variations ([e93d51c](https://github.com/allxsmith/bestax/commit/e93d51c8f6521fdd011717c1f48264cbd6ce4c4f))
+* **bulma-ui:** add themed Checkbox/Radio, convenience Field components, and Autocomplete cleanup ([3c57a5a](https://github.com/allxsmith/bestax/commit/3c57a5ae57276f7c50dd169b8357aceddd499f2e))
+* **bulma-ui:** add typing-first story variants for all picker property variations ([078433f](https://github.com/allxsmith/bestax/commit/078433f056d0c8cde20ae1a0a9ede50989125a45))
+* **bulma-ui:** change the default primary color to [#1](https://github.com/allxsmith/bestax/issues/1)e6b99 ([8872620](https://github.com/allxsmith/bestax/commit/8872620365809d7f00960fe57a8c9b10c27ac6c5)), closes [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99) [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99)
+* **bulma-ui:** dim and blur the calendar behind the Datetimepicker time wheels ([3d90619](https://github.com/allxsmith/bestax/commit/3d90619f07cbd7030d559d8b36eef8d1093a2dac))
+* **bulma-ui:** finalize the 3.0 component set ([87ccc0e](https://github.com/allxsmith/bestax/commit/87ccc0e5b4fed5ab58d8cb076ead7c0b5de284b7))
+* **docs:** migrate from GitHub Pages to Cloudflare Pages ([#132](https://github.com/allxsmith/bestax/issues/132)) ([2154672](https://github.com/allxsmith/bestax/commit/21546721dbc0eaa175820166f2b2b630a0516334)), closes [#131](https://github.com/allxsmith/bestax/issues/131)
+* **form:** add Datepicker, Timepicker, and Datetimepicker components ([c6684e6](https://github.com/allxsmith/bestax/commit/c6684e6d4f94326bc0ea0bd0f7b022de9af81074))
+
+
+### BREAKING CHANGES
+
+* **bulma-ui:** Snackbar has been removed and merged into Toast; use Toast
+with its positioning and queue props instead.
+* **bulma-ui:** form controls now auto-wrap in Field/Control, and Checkbox
+and Radio ship new themed visuals. See the 2.x -> 3.x migration guide.
+* This version requires Node.js 18.0.0 or higher. The CLI now enforces this requirement and will exit with an error message if running on older Node.js versions. This aligns create-bestax with the bestax-bulma v2.x ecosystem.
+
+* fix(create-bestax): correct Prettier formatting in index.ts
+
 ## [2.6.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.1...@allxsmith/bestax-bulma@2.6.2) (2025-10-19)
 
 ### Bug Fixes
