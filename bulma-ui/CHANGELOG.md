@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.0...@allxsmith/bestax-bulma@3.0.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** trigger release to publish via OIDC trusted publishing ([e2d09c5](https://github.com/allxsmith/bestax/commit/e2d09c5e312df3788aa140f0e5e86370a545a989))
+
 # [3.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@2.6.2...@allxsmith/bestax-bulma@3.0.0) (2026-06-17)
 
 
