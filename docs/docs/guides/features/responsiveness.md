@@ -1,12 +1,12 @@
 ---
 title: Responsiveness
 sidebar_label: Responsiveness
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # Responsiveness
 
-This guide covers how these React components handle responsive design and how to work with Bulma's breakpoint system.
+This guide covers how Bestax components handle responsive design. Bestax extends Bulma with React components and additional UI on top of Bulma's CSS, so the responsive props and breakpoints you'll see here inherit directly from Bulma — you just drive them through Bestax's typed React API.
 
 :::tip Test Responsive Behavior
 
@@ -16,7 +16,7 @@ Try resizing your browser window or using the responsive design mode in your bro
 
 ## Component Display Behavior
 
-Many Bulma components are inherently vertical or block-level on mobile devices to ensure content remains accessible and readable on smaller screens.
+Many Bestax components inherit Bulma's mobile-first behavior, stacking vertically or going block-level by default on smaller screens so content stays accessible and readable.
 
 ### Vertical Components
 
@@ -79,9 +79,9 @@ Use the `isMobile` property to maintain horizontal layout even on mobile devices
 </>
 ```
 
-## Bulma Breakpoints
+## Breakpoints
 
-Bulma has 4 breakpoints which define 5 screen sizes:
+Bestax uses Bulma's 4 breakpoints to define 5 screen sizes:
 
 | Size           | Range       | CSS Variable         |
 | -------------- | ----------- | -------------------- |
@@ -91,7 +91,7 @@ Bulma has 4 breakpoints which define 5 screen sizes:
 | **widescreen** | from 1216px | --fullhd: 1408px     |
 | **fullhd**     | from 1408px | (no upper limit)     |
 
-These breakpoints are used throughout Bulma for responsive utilities and component behavior.
+These breakpoints drive every responsive prop and helper class across Bestax.
 
 ## Container Responsiveness
 
@@ -191,7 +191,7 @@ Control when containers become constrained:
 
 ## Responsive Helper Classes
 
-Use the `viewport` prop to apply styles at specific breakpoints:
+The `viewport` prop scopes a helper to a single breakpoint. It applies to typography and display helpers (`textAlign`, `textSize`, `display`, `visibility`); Bestax's spacing helpers (`m`, `p`, …) mirror Bulma's and don't have responsive variants, so `viewport` is a no-op on them.
 
 ### Text Alignment
 
@@ -210,15 +210,13 @@ Use the `viewport` prop to apply styles at specific breakpoints:
 
 ### Spacing
 
+Bestax inherits Bulma's spacing system, which applies uniformly across breakpoints — there are no `mTablet` / `pDesktop` variants. To vary whitespace responsively, wrap content in breakpoint-aware containers or toggle `display` / `visibility` per viewport.
+
 ```tsx live
 <>
-  <p>Responsive margins</p>
-  <Box m="2" viewport="mobile">
-    Small margin on mobile
-  </Box>
-
-  <Box m="4" viewport="desktop">
-    Larger margin on desktop
+  <p>Uniform padding and margin at every breakpoint</p>
+  <Box m="4" p="5">
+    Same spacing on mobile, tablet, desktop, widescreen, and fullhd
   </Box>
 </>
 ```
@@ -242,16 +240,18 @@ Use the `viewport` prop to apply styles at specific breakpoints:
 
 ### Typography
 
+Text size and alignment have dedicated per-viewport props — combine a base value with any `*Mobile` / `*Tablet` / `*Desktop` / `*Widescreen` / `*Fullhd` override.
+
 ```tsx live
 <>
   <p>Responsive text sizes</p>
-  <Title textSize="6" viewport="mobile">
-    Mobile Title
+  <Title textSize="6" textSizeDesktop="3">
+    Grows on desktop
   </Title>
 
-  <Title textSize="3" viewport="desktop">
-    Desktop Title
-  </Title>
+  <Box textAlign="centered" textAlignDesktop="left">
+    Centered on mobile/tablet, left-aligned on desktop
+  </Box>
 </>
 ```
 
@@ -295,8 +295,8 @@ The column system is highly responsive with size controls per breakpoint:
 ```tsx live
 <Columns>
   <Column
-    narrow // Content-sized on all
-    narrowTablet={false} // Full-width on tablet
+    isNarrow // Content-sized on all
+    isNarrowTablet={false} // Full-width on tablet
   >
     <Notification color="success">Conditionally narrow</Notification>
   </Column>
@@ -337,9 +337,7 @@ The CSS Grid system provides modern responsive layout:
   <Grid minCol={4}>
     {[...Array(20)].map((_, i) => (
       <Cell key={i}>
-        <Box p="3">
-          <Button>Item {i + 1}</Button>
-        </Box>
+        <Notification>{i + 1}</Notification>
       </Cell>
     ))}
   </Grid>
@@ -356,9 +354,7 @@ Always design for mobile first, then enhance for larger screens:
 <>
   <p>Good: Mobile-first responsive design</p>
   <Box
-    p="3" // Small padding on mobile
-    pTablet="4" // Medium padding on tablet
-    pDesktop="5" // Large padding on desktop
+    p="3"
     textAlign="centered" // Centered on mobile
     textAlignDesktop="left" // Left-aligned on desktop
   >
@@ -368,12 +364,7 @@ Always design for mobile first, then enhance for larger screens:
     >
       Responsive Title
     </Title>
-    <Button
-      size="small" // Small on mobile
-      sizeTablet="normal" // Normal on tablet+
-    >
-      Responsive Button
-    </Button>
+    <Button size="small">Small Button</Button>
   </Box>
 </>
 ```
@@ -398,14 +389,14 @@ Combine different responsive approaches for complex layouts:
 <Container breakpoint="desktop" isMax>
   <Columns isMobile>
     <Column isNarrow isNarrowTablet={false} display="flex">
-      <Box p="3" pTablet="4" textAlign="centered" textAlignTablet="left">
+      <Box p="3" textAlign="centered" textAlignTablet="left">
         <Title textSize="5" textSizeTablet="4">
           Sidebar
         </Title>
       </Box>
     </Column>
     <Column>
-      <Grid gap={2} gapTablet={3}>
+      <Grid gap={2}>
         {[...Array(9)].map((_, i) => (
           <Cell key={i}>
             <Notification>Card {i + 1}</Notification>

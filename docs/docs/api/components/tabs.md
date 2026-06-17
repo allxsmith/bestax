@@ -25,23 +25,53 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                | Default | Description                                             |
-| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `align`     | `'centered'` \| `'right'` \| `'left'`               | —       | Tab alignment.                                          |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Tab size.                                               |
-| `fullwidth` | `boolean`                                           | `false` | Tabs expand to fill the horizontal space.               |
-| `boxed`     | `boolean`                                           | `false` | Tabs use the boxed style.                               |
-| `toggle`    | `boolean`                                           | `false` | Tabs use the toggle style.                              |
-| `rounded`   | `boolean`                                           | `false` | Tabs use the rounded toggle style (only with `toggle`). |
-| `color`     | Bulma color (`'primary'`, `'link'`, `'info'`, etc.) | —       | Bulma color for tab underlines and active state.        |
-| `className` | `string`                                            | —       | Additional CSS classes.                                 |
-| `children`  | `React.ReactNode`                                   | —       | Tab list and tab items.                                 |
-| ...         | All standard HTML and Bulma helper props            |         | (See [Helper Props](../helpers/usebulmaclasses))        |
+| Prop           | Type                                                | Default | Description                                             |
+| -------------- | --------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `value`        | `number`                                            | —       | Controlled active tab index.                            |
+| `defaultValue` | `number`                                            | `0`     | Initial active tab index (uncontrolled).                |
+| `onChange`     | `(index: number) => void`                           | —       | Callback when active tab changes.                       |
+| `align`        | `'centered'` \| `'right'` \| `'left'`               | —       | Tab alignment.                                          |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                | —       | Tab size.                                               |
+| `fullwidth`    | `boolean`                                           | `false` | Tabs expand to fill the horizontal space.               |
+| `expanded`     | `boolean`                                           | —       | Makes tabs take up the full width equally.              |
+| `boxed`        | `boolean`                                           | `false` | Tabs use the boxed style.                               |
+| `toggle`       | `boolean`                                           | `false` | Tabs use the toggle style.                              |
+| `rounded`      | `boolean`                                           | `false` | Tabs use the rounded toggle style (only with `toggle`). |
+| `vertical`     | `boolean`                                           | —       | Renders tabs vertically.                                |
+| `side`         | `'left'` \| `'right'`                               | —       | Side placement when `vertical` is true.                 |
+| `color`        | Bulma color (`'primary'`, `'link'`, `'info'`, etc.) | —       | Bulma color for tab underlines and active state.        |
+| `className`    | `string`                                            | —       | Additional CSS classes.                                 |
+| `children`     | `React.ReactNode`                                   | —       | Tab list and tab items.                                 |
+| ...            | All standard HTML and Bulma helper props            |         | (See [Helper Props](../helpers/usebulmaclasses))        |
 
 **Subcomponents:**
 
 - `Tabs.List`: The `<ul>` container for tab items.
 - `Tabs.Item`: Each tab; accepts `active`, `onClick`, etc.
+
+### Tabs.Tab
+
+| Prop           | Type                                                               | Default   | Description                                        |
+| -------------- | ------------------------------------------------------------------ | --------- | -------------------------------------------------- |
+| `index`        | `number`                                                           | —         | **Required.** Tab index for matching with content. |
+| `disabled`     | `boolean`                                                          | —         | Disables the tab.                                  |
+| `icon`         | `string`                                                           | —         | Icon name for the tab.                             |
+| `iconLibrary`  | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | —         | Icon library to use.                               |
+| `iconVariant`  | `string`                                                           | —         | Icon style variant.                                |
+| `iconSize`     | `'small' \| 'medium' \| 'large'`                                   | `'small'` | Size of the tab icon.                              |
+| `iconFeatures` | `string \| string[]`                                               | —         | Additional icon modifiers.                         |
+| `children`     | `React.ReactNode`                                                  | —         | Tab label content.                                 |
+
+### Tabs.Content
+
+Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes.
+
+### Tabs.Content.Item
+
+| Prop       | Type              | Default | Description                                                              |
+| ---------- | ----------------- | ------- | ------------------------------------------------------------------------ |
+| `index`    | `number`          | —       | **Required.** Content index matching the corresponding `Tabs.Tab` index. |
+| `children` | `React.ReactNode` | —       | Content for this tab panel.                                              |
 
 ---
 

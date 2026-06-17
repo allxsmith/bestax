@@ -1,0 +1,176 @@
+// Numberinput Component Styles
+// A number input with increment/decrement buttons
+// Follows Bulma v1 CSS variable convention (see _dialog.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Numberinput-specific SCSS variables
+$numberinput-stepper-width: 2.5em !default;
+$numberinput-stepper-border-color: cv.getVar("border") !default;
+$numberinput-stepper-button-color: cv.getVar("text-weak") !default;
+$numberinput-stepper-button-hover-color: cv.getVar("text-strong") !default;
+$numberinput-stepper-button-hover-bg: cv.getVar("background") !default;
+$numberinput-disabled-opacity: 0.5 !default;
+$numberinput-rounded-button-size: 2.5em !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}numberinput {
+  @include cv.register-vars(
+    (
+      "numberinput-stepper-width": #{$numberinput-stepper-width},
+      "numberinput-stepper-border-color": #{$numberinput-stepper-border-color},
+      "numberinput-stepper-button-color": #{$numberinput-stepper-button-color},
+      "numberinput-stepper-button-hover-color": #{$numberinput-stepper-button-hover-color},
+      "numberinput-stepper-button-hover-bg": #{$numberinput-stepper-button-hover-bg},
+      "numberinput-disabled-opacity": #{$numberinput-disabled-opacity},
+      "numberinput-rounded-button-size": #{$numberinput-rounded-button-size},
+    )
+  );
+}
+
+// Base numberinput styles
+.#{iv.$class-prefix}numberinput {
+  // Input: center text, remove native number spinners
+  .#{iv.$class-prefix}input {
+    text-align: center;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
+  // Focus z-index so focused input overlays adjacent borders
+  .#{iv.$class-prefix}input:focus {
+    z-index: 1;
+    position: relative;
+  }
+
+  // Button hover z-index
+  .#{iv.$class-prefix}button:hover:not(:disabled) {
+    z-index: 1;
+    position: relative;
+  }
+
+  // Button press effect
+  .#{iv.$class-prefix}button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  // Spaced rounded: force square buttons so is-rounded makes circles
+  &.#{iv.$class-prefix}is-grouped .#{iv.$class-prefix}button.#{iv.$class-prefix}is-rounded {
+    width: calc(cv.getVar("numberinput-rounded-button-size") - 1px);
+    height: calc(cv.getVar("numberinput-rounded-button-size") - 1px);
+    padding: 0;
+  }
+
+  // Compact rounded: reduce horizontal padding so buttons aren't too wide
+  &.#{iv.$class-prefix}has-addons .#{iv.$class-prefix}button.#{iv.$class-prefix}is-rounded {
+    padding-inline: 1em;
+  }
+
+  // Disabled state
+  &.#{iv.$class-prefix}is-disabled {
+    opacity: cv.getVar("numberinput-disabled-opacity");
+    pointer-events: none;
+  }
+}
+
+// Stepper variant
+.#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-stepper {
+  // Left-align text in stepper (not centered)
+  .#{iv.$class-prefix}input {
+    text-align: left;
+  }
+
+  .#{iv.$class-prefix}numberinput-stepper {
+    display: flex;
+    flex-direction: column;
+    height: 2.5em;
+    width: cv.getVar("numberinput-stepper-width");
+    border: 1px solid cv.getVar("numberinput-stepper-border-color");
+    border-left: 1px solid cv.getVar("numberinput-stepper-border-color");
+    border-top-right-radius: cv.getVar("radius");
+    border-bottom-right-radius: cv.getVar("radius");
+    overflow: hidden;
+  }
+
+  .#{iv.$class-prefix}numberinput-stepper-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: cv.getVar("numberinput-stepper-button-color");
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      background-color: cv.getVar("numberinput-stepper-button-hover-bg");
+      color: cv.getVar("numberinput-stepper-button-hover-color");
+    }
+
+    &:disabled {
+      opacity: cv.getVar("numberinput-disabled-opacity");
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: 0.75em;
+      height: 0.75em;
+    }
+  }
+}
+
+// Stepper: ensure control stretches to match input height
+.#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-stepper {
+  > .#{iv.$class-prefix}control:last-child {
+    display: flex;
+    align-items: stretch;
+    font-size: inherit;
+  }
+}
+
+// Bare mode inside has-addons: fix border-radius for controls
+// whose :first-child/:last-child is relative to .numberinput, not .has-addons
+.#{iv.$class-prefix}has-addons > .#{iv.$class-prefix}numberinput {
+  // When numberinput is not the first child, strip left radius from its first control
+  &:not(:first-child) > .#{iv.$class-prefix}control:first-child {
+    .#{iv.$class-prefix}button,
+    .#{iv.$class-prefix}input {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+  }
+
+  // When numberinput is not the last child, strip right radius from its last control
+  &:not(:last-child) > .#{iv.$class-prefix}control:last-child {
+    margin-inline-end: -1px;
+
+    .#{iv.$class-prefix}button,
+    .#{iv.$class-prefix}input {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+  }
+}
+
+// Size variants — font-size on container so em-based values scale
+.#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-small {
+  @include cv.register-vars(("numberinput-rounded-button-size": 2em));
+  font-size: cv.getVar("size-small");
+}
+
+.#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-medium {
+  @include cv.register-vars(("numberinput-rounded-button-size": 3em));
+  font-size: cv.getVar("size-medium");
+}
+
+.#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-large {
+  @include cv.register-vars(("numberinput-rounded-button-size": 3.5em));
+  font-size: cv.getVar("size-large");
+}

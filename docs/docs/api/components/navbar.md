@@ -44,6 +44,7 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 - `Navbar.Start`: Left-aligned menu area
 - `Navbar.End`: Right-aligned menu area
 - `Navbar.Item`: Navigation links, buttons, or custom content
+- `Navbar.Link`: Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
 - `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
 - `Navbar.DropdownMenu`: Dropdown menu container
 - `Navbar.Divider`: Divider in dropdown menus
@@ -64,7 +65,7 @@ function example() {
     <Navbar>
       <Navbar.Brand>
         <Navbar.Item href="#">
-          <img src="logo.svg" alt="Logo" width="112" height="28" />
+          <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
         </Navbar.Item>
         <Navbar.Burger
           active={active}
@@ -99,7 +100,7 @@ This example shows a simple navbar with just the brand logo. The `Navbar.Brand` 
 <Navbar>
   <Navbar.Brand>
     <Navbar.Item href="#">
-      <img src="logo.svg" alt="Logo" width="112" height="28" />
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
     </Navbar.Item>
   </Navbar.Brand>
 </Navbar>
@@ -111,9 +112,17 @@ This example shows a simple navbar with just the brand logo. The `Navbar.Brand` 
 
 Demonstrates the `Navbar.Burger` component, which is the mobile menu toggle. It doesn't have an associated menu in this snippet, but in practice, it would control the visibility of the `Navbar.Menu`.
 
+:::note
+The burger is only shown on touch/mobile viewports by default. The example below forces `display: flex` so you can see it on desktop.
+:::
+
 ```tsx live
 <Navbar>
-  <Navbar.Burger aria-label="menu" aria-expanded={false} />
+  <Navbar.Burger
+    aria-label="menu"
+    aria-expanded={false}
+    style={{ display: 'flex' }}
+  />
 </Navbar>
 ```
 
@@ -125,7 +134,12 @@ Shows the `Navbar.Burger` in its active state, indicating that the menu it contr
 
 ```tsx live
 <Navbar>
-  <Navbar.Burger active aria-label="menu" aria-expanded />
+  <Navbar.Burger
+    active
+    aria-label="menu"
+    aria-expanded
+    style={{ display: 'flex' }}
+  />
 </Navbar>
 ```
 
@@ -158,7 +172,7 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 <Navbar>
   <Navbar.Brand>
     <Navbar.Item>
-      <img src="logo.svg" alt="Logo" width="112" height="28" />
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
     </Navbar.Item>
   </Navbar.Brand>
   <Navbar.Menu active>
@@ -166,7 +180,7 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
       <Navbar.Item href="#">Home</Navbar.Item>
       <Navbar.Item href="#">Docs</Navbar.Item>
       <Navbar.Dropdown hoverable>
-        <Navbar.Item as="a">More</Navbar.Item>
+        <Navbar.Link>More</Navbar.Link>
         <Navbar.DropdownMenu>
           <Navbar.Item href="#">About</Navbar.Item>
           <Navbar.Item href="#">Jobs</Navbar.Item>
@@ -211,7 +225,7 @@ Demonstrates a dropdown menu aligned to the right. This can be useful for user a
   <Navbar.Menu active>
     <Navbar.End>
       <Navbar.Dropdown hoverable right>
-        <Navbar.Item as="a">Right Dropdown</Navbar.Item>
+        <Navbar.Link>Right Dropdown</Navbar.Link>
         <Navbar.DropdownMenu right>
           <Navbar.Item href="#">Profile</Navbar.Item>
           <Navbar.Item href="#">Settings</Navbar.Item>
@@ -226,36 +240,44 @@ Demonstrates a dropdown menu aligned to the right. This can be useful for user a
 
 ### Dropup
 
-This example shows a dropdown menu that opens upwards, which can be useful in certain layout situations to prevent covering content.
+This example shows a dropdown menu that opens upwards, which can be useful in certain layout situations to prevent covering content. A `Hero` is placed above the navbar to give the dropup room to expand.
 
 ```tsx live
-<Navbar>
-  <Navbar.Menu active>
-    <Navbar.Start>
-      <Navbar.Dropdown hoverable up>
-        <Navbar.Item as="a">Dropup</Navbar.Item>
-        <Navbar.DropdownMenu up>
-          <Navbar.Item href="#">Up1</Navbar.Item>
-          <Navbar.Item href="#">Up2</Navbar.Item>
-        </Navbar.DropdownMenu>
-      </Navbar.Dropdown>
-    </Navbar.Start>
-  </Navbar.Menu>
-</Navbar>
+<>
+  <Hero color="primary" size="small">
+    <Hero.Body>
+      <Title>Hero above Navbar</Title>
+      <SubTitle>Hover "Dropup" below to see the menu open upward</SubTitle>
+    </Hero.Body>
+  </Hero>
+  <Navbar>
+    <Navbar.Menu active>
+      <Navbar.Start>
+        <Navbar.Dropdown hoverable up>
+          <Navbar.Link>Dropup</Navbar.Link>
+          <Navbar.DropdownMenu up>
+            <Navbar.Item href="#">Up1</Navbar.Item>
+            <Navbar.Item href="#">Up2</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      </Navbar.Start>
+    </Navbar.Menu>
+  </Navbar>
+</>
 ```
 
 ---
 
 ### Dropdown without Arrow
 
-Demonstrates a dropdown menu styled without the default arrow indicator. This might be used to achieve a specific design aesthetic.
+Demonstrates a dropdown menu styled without the default arrow indicator. Set `arrowless` on `Navbar.Link` to remove the arrow indicator.
 
 ```tsx live
 <Navbar>
   <Navbar.Menu active>
     <Navbar.Start>
-      <Navbar.Dropdown hoverable className="no-arrow">
-        <Navbar.Item as="a">No Arrow</Navbar.Item>
+      <Navbar.Dropdown hoverable>
+        <Navbar.Link arrowless>No Arrow</Navbar.Link>
         <Navbar.DropdownMenu>
           <Navbar.Item href="#">A</Navbar.Item>
           <Navbar.Item href="#">B</Navbar.Item>
@@ -277,7 +299,7 @@ Shows a dropdown menu with an active item. The active state is typically used to
   <Navbar.Menu active>
     <Navbar.Start>
       <Navbar.Dropdown active>
-        <Navbar.Item as="a">Active Dropdown</Navbar.Item>
+        <Navbar.Link>Active Dropdown</Navbar.Link>
         <Navbar.DropdownMenu>
           <Navbar.Item href="#">A1</Navbar.Item>
           <Navbar.Item href="#">A2</Navbar.Item>
@@ -299,7 +321,7 @@ This example shows a dropdown menu that includes a divider, which is used to sep
   <Navbar.Menu active>
     <Navbar.Start>
       <Navbar.Dropdown hoverable>
-        <Navbar.Item as="a">With Divider</Navbar.Item>
+        <Navbar.Link>With Divider</Navbar.Link>
         <Navbar.DropdownMenu>
           <Navbar.Item href="#">One</Navbar.Item>
           <Navbar.Item href="#">Two</Navbar.Item>
@@ -319,18 +341,40 @@ This example shows a dropdown menu that includes a divider, which is used to sep
 Demonstrates the use of different color modifiers for the navbar. Each `Navbar` component has a different color prop to showcase the available options.
 
 ```tsx live
-<>
-  <Navbar color="primary">{/* ... */}</Navbar>
-  <Navbar color="link">{/* ... */}</Navbar>
-  <Navbar color="info">{/* ... */}</Navbar>
-  <Navbar color="success">{/* ... */}</Navbar>
-  <Navbar color="warning">{/* ... */}</Navbar>
-  <Navbar color="danger">{/* ... */}</Navbar>
-  <Navbar color="black">{/* ... */}</Navbar>
-  <Navbar color="dark">{/* ... */}</Navbar>
-  <Navbar color="light">{/* ... */}</Navbar>
-  <Navbar color="white">{/* ... */}</Navbar>
-</>
+function example() {
+  const colors = [
+    'primary',
+    'link',
+    'info',
+    'success',
+    'warning',
+    'danger',
+    'black',
+    'dark',
+    'light',
+    'white',
+  ];
+  return (
+    <>
+      {colors.map(color => (
+        <Navbar key={color} color={color} mb="2">
+          <Navbar.Brand>
+            <Navbar.Item href="#">
+              <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+            </Navbar.Item>
+          </Navbar.Brand>
+          <Navbar.Menu active>
+            <Navbar.Start>
+              <Navbar.Item href="#">Home</Navbar.Item>
+              <Navbar.Item href="#">Docs</Navbar.Item>
+              <Navbar.Item href="#">Components</Navbar.Item>
+            </Navbar.Start>
+          </Navbar.Menu>
+        </Navbar>
+      ))}
+    </>
+  );
+}
 ```
 
 ---

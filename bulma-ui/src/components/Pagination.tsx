@@ -63,6 +63,10 @@ export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<
 
 /**
  * Bulma Pagination previous button.
+ *
+ * @function
+ * @param {PaginationPreviousNextProps} props - Props for the PaginationPrevious component.
+ * @returns {JSX.Element} The rendered previous button.
  */
 export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
   className,
@@ -96,6 +100,10 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
 
 /**
  * Bulma Pagination next button.
+ *
+ * @function
+ * @param {PaginationPreviousNextProps} props - Props for the PaginationNext component.
+ * @returns {JSX.Element} The rendered next button.
  */
 export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
   className,
@@ -202,6 +210,10 @@ export interface PaginationListProps
 
 /**
  * Bulma Pagination list container.
+ *
+ * @function
+ * @param {PaginationListProps} props - Props for the PaginationList component.
+ * @returns {JSX.Element} The rendered pagination list.
  */
 export const PaginationList: React.FC<PaginationListProps> = ({
   className,
@@ -255,6 +267,10 @@ export interface PaginationLinkProps
 
 /**
  * Bulma Pagination link (page number).
+ *
+ * @function
+ * @param {PaginationLinkProps} props - Props for the PaginationLink component.
+ * @returns {JSX.Element} The rendered pagination link.
  */
 export const PaginationLink: React.FC<PaginationLinkProps> = ({
   className,
@@ -310,7 +326,8 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
 /**
  * Bulma Pagination ellipsis element.
  *
- * @param props - Standard li props.
+ * @function
+ * @param {React.LiHTMLAttributes<HTMLLIElement>} props - Standard li props.
  * @returns {JSX.Element} The rendered ellipsis.
  */
 export const PaginationEllipsis: React.FC<

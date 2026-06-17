@@ -8,6 +8,18 @@ sidebar_position: 4
 
 Bulma provides comprehensive typography helpers to control text size, alignment, transformation, weight, and font family. These utilities ensure consistent typography throughout your application.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useTypographyClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
+:::info Reference
+
+This page documents the bestax-bulma prop API for Bulma's typography helpers. For the underlying CSS utilities, see the [official Bulma typography helpers](https://bulma.io/documentation/helpers/typography-helpers/).
+
+:::
+
 :::tip
 
 All components in bestax-bulma have access to these typography properties through the `useBulmaClasses` hook. You can apply typography properties to any component in the library.
@@ -75,6 +87,18 @@ You can apply responsive text sizes that change based on screen size using the `
 | `viewport="desktop"`    | Between 1024px and 1215px | Desktop screens     |
 | `viewport="widescreen"` | Between 1216px and 1407px | Widescreen displays |
 | `viewport="fullhd"`     | 1408px and above          | Full HD and larger  |
+
+### Viewport-Specific Text Size Props
+
+For combining multiple viewports on a single element, use these per-viewport props instead of `viewport` + `textSize`. Each accepts values `'1'` through `'7'`.
+
+| Property             | Bulma Class Pattern      | Target Viewport  |
+| -------------------- | ------------------------ | ---------------- |
+| `textSizeMobile`     | `is-size-{n}-mobile`     | Up to 768px      |
+| `textSizeTablet`     | `is-size-{n}-tablet`     | 769px – 1023px   |
+| `textSizeDesktop`    | `is-size-{n}-desktop`    | 1024px – 1215px  |
+| `textSizeWidescreen` | `is-size-{n}-widescreen` | 1216px – 1407px  |
+| `textSizeFullhd`     | `is-size-{n}-fullhd`     | 1408px and above |
 
 ### Responsive Size Examples
 
@@ -161,6 +185,18 @@ function AlignmentExamples() {
 ## Responsive Alignment
 
 Apply responsive text alignment that changes based on screen size.
+
+### Viewport-Specific Text Align Props
+
+Like the text size viewport props, these per-viewport alignment props can be combined on one element. Each accepts `'centered'`, `'justified'`, `'left'`, or `'right'`.
+
+| Property              | Bulma Class Pattern           | Target Viewport  |
+| --------------------- | ----------------------------- | ---------------- |
+| `textAlignMobile`     | `has-text-{value}-mobile`     | Up to 768px      |
+| `textAlignTablet`     | `has-text-{value}-tablet`     | 769px – 1023px   |
+| `textAlignDesktop`    | `has-text-{value}-desktop`    | 1024px – 1215px  |
+| `textAlignWidescreen` | `has-text-{value}-widescreen` | 1216px – 1407px  |
+| `textAlignFullhd`     | `has-text-{value}-fullhd`     | 1408px and above |
 
 ### Responsive Alignment Examples
 
@@ -476,7 +512,7 @@ For detailed API information about typography properties, see the [useBulmaClass
 ## See Also
 
 - [useBulmaClasses](/docs/api/helpers/usebulmaclasses) - Complete typography property reference
-- [Responsive Design](/docs/guides/getting-started/responsiveness) - Responsive typography techniques
+- [Responsive Design](/docs/guides/features/responsiveness) - Responsive typography techniques
 - [Color Helpers](/docs/guides/helpers/color) - Text color properties
 - [Title & SubTitle Components](/docs/api/elements/title) - Dedicated heading components
 - [Bulma Typography Documentation](https://bulma.io/documentation/helpers/typography-helpers/) - Official Bulma typography helpers

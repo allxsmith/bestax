@@ -120,8 +120,9 @@ export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 /**
  * Modal.Background - Renders the modal background overlay.
  *
- * @param {ModalBackgroundProps} props - Component props
- * @returns {JSX.Element} Modal background element
+ * @function
+ * @param {ModalBackgroundProps} props - Component props.
+ * @returns {JSX.Element} Modal background element.
  */
 const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
@@ -137,8 +138,9 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
 /**
  * Modal.Content - Renders modal content wrapper for custom content.
  *
- * @param {ModalContentProps} props - Component props
- * @returns {JSX.Element} Modal content element
+ * @function
+ * @param {ModalContentProps} props - Component props.
+ * @returns {JSX.Element} Modal content element.
  */
 const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
   const classes = classNames(usePrefixedClassNames('modal-content'), className);
@@ -148,8 +150,9 @@ const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
 /**
  * Modal.Card.Head - Renders modal card header section.
  *
- * @param {ModalCardHeadProps} props - Component props
- * @returns {JSX.Element} Modal card header element
+ * @function
+ * @param {ModalCardHeadProps} props - Component props.
+ * @returns {JSX.Element} Modal card header element.
  */
 const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
@@ -165,8 +168,9 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
 /**
  * Modal.Card.Title - Renders modal card title.
  *
- * @param {ModalCardTitleProps} props - Component props
- * @returns {JSX.Element} Modal card title element
+ * @function
+ * @param {ModalCardTitleProps} props - Component props.
+ * @returns {JSX.Element} Modal card title element.
  */
 const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
@@ -182,8 +186,9 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
 /**
  * Modal.Card.Body - Renders modal card body section.
  *
- * @param {ModalCardBodyProps} props - Component props
- * @returns {JSX.Element} Modal card body element
+ * @function
+ * @param {ModalCardBodyProps} props - Component props.
+ * @returns {JSX.Element} Modal card body element.
  */
 const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
@@ -199,8 +204,9 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 /**
  * Modal.Card.Foot - Renders modal card footer section.
  *
- * @param {ModalCardFootProps} props - Component props
- * @returns {JSX.Element} Modal card footer element
+ * @function
+ * @param {ModalCardFootProps} props - Component props.
+ * @returns {JSX.Element} Modal card footer element.
  */
 const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
@@ -217,8 +223,9 @@ const ModalCardFoot: React.FC<ModalCardFootProps> = ({
  * Modal.Card - Renders modal card wrapper with compound components.
  * Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.
  *
- * @param {ModalCardProps} props - Component props
- * @returns {JSX.Element} Modal card element
+ * @function
+ * @param {ModalCardProps} props - Component props.
+ * @returns {JSX.Element} Modal card element.
  */
 const ModalCard: React.FC<ModalCardProps> & {
   Head: typeof ModalCardHead;
@@ -238,8 +245,9 @@ ModalCard.Foot = ModalCardFoot;
 /**
  * Modal.Close - Renders modal close button with two variant styles.
  *
- * @param {ModalCloseProps} props - Component props
- * @returns {JSX.Element} Close button element
+ * @function
+ * @param {ModalCloseProps} props - Component props.
+ * @returns {JSX.Element} Close button element.
  *
  * @remarks
  * Supports two variants:
@@ -270,6 +278,7 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  * Bulma Modal component, supporting both modal-card and modal-content variants.
  * Supports both legacy props-based API and compound component API.
  *
+ * @function
  * @param {ModalProps} props - Props for the Modal component.
  * @returns {JSX.Element} The rendered modal.
  *

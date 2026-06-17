@@ -132,9 +132,9 @@ Render a set of tags with different `color` values to display a palette of avail
 You can combine `color`, `size`, and `isHoverable` props to show all size variants for each color in a single layout.
 
 ```tsx live
-<Tags>
+<Block>
   {['primary', 'success', 'danger'].map(color => (
-    <div key={color} style={{ display: 'flex', gap: '10px' }}>
+    <Tags key={color}>
       <Tag color={color} size="normal" isHoverable>
         {color.charAt(0).toUpperCase() + color.slice(1)} Normal
       </Tag>
@@ -144,9 +144,9 @@ You can combine `color`, `size`, and `isHoverable` props to show all size varian
       <Tag color={color} size="large" isHoverable>
         {color.charAt(0).toUpperCase() + color.slice(1)} Large
       </Tag>
-    </div>
+    </Tags>
   ))}
-</Tags>
+</Block>
 ```
 
 ### Hoverable Tag

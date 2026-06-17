@@ -27,13 +27,13 @@ No more string manipulation for classes. Use type-safe props that your IDE can a
 
 ## The Components
 
-| Category | Components | HTML Elements |
-|----------|------------|---------------|
-| **Text** | `Link`, `Span`, `Paragraph`, `Strong`, `Emphasis` | `<a>`, `<span>`, `<p>`, `<strong>`, `<em>` |
-| **Lists** | `UnorderedList`, `OrderedList`, `ListItem` | `<ul>`, `<ol>`, `<li>` |
-| **Code** | `Code`, `Pre` | `<code>`, `<pre>` |
-| **Media** | `Figure`, `Figure.Caption` | `<figure>`, `<figcaption>` |
-| **Layout** | `Divider` | `<hr>` |
+| Category   | Components                                        | HTML Elements                              |
+| ---------- | ------------------------------------------------- | ------------------------------------------ |
+| **Text**   | `Link`, `Span`, `Paragraph`, `Strong`, `Emphasis` | `<a>`, `<span>`, `<p>`, `<strong>`, `<em>` |
+| **Lists**  | `UnorderedList`, `OrderedList`, `ListItem`        | `<ul>`, `<ol>`, `<li>`                     |
+| **Code**   | `Code`, `Pre`                                     | `<code>`, `<pre>`                          |
+| **Media**  | `Figure`, `Figure.Caption`                        | `<figure>`, `<figcaption>`                 |
+| **Layout** | `Divider`                                         | `<hr>`                                     |
 
 ## Examples
 
@@ -60,7 +60,11 @@ No more string manipulation for classes. Use type-safe props that your IDE can a
 
 ```tsx live
 <Figure textAlign="centered">
-  <Image src="/img/bestax-solar-system-3d.png" alt="Bestax Solar System" size="16by9" />
+  <Image
+    src="/img/bestax-solar-system-3d.png"
+    alt="Bestax Solar System"
+    size="16by9"
+  />
   <Figure.Caption textColor="grey" textSize="7">
     Bestax Solar System
   </Figure.Caption>
@@ -85,4 +89,4 @@ Every component supports the full range of Bulma helper props: `textColor`, `bgC
 import { Link, Paragraph, Code, Figure } from '@allxsmith/bestax-bulma';
 ```
 
-Check out the [Extra Elements guide](/docs/guides/library/elements/extras) for full documentation.
+Check out the [Elements guide](/docs/guides/library/elements) for full documentation.

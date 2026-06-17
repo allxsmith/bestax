@@ -5,13 +5,15 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { FieldProvider } from './FormContext';
 
 /**
  * Props for the Field component.
  *
  * @property {boolean} [horizontal] - Renders the field as horizontal (label and control side by side).
  * @property {boolean|'centered'|'right'|'multiline'} [grouped] - Group controls in a row (optionally centered, right, or multiline).
- * @property {boolean} [hasAddons] - Group controls as addons.
+ * @property {boolean|'centered'|'right'} [hasAddons] - Group controls as addons (optionally centered or right-aligned).
+ * @property {boolean} [narrow] - Constrains the field to its content's width (used inside horizontal field bodies).
  * @property {React.ReactNode} [label] - Field label.
  * @property {'small'|'normal'|'medium'|'large'} [labelSize] - Size for the label.
  * @property {object} [labelProps] - Props for the label element.
@@ -27,7 +29,8 @@ export interface FieldProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   horizontal?: boolean;
   grouped?: boolean | 'centered' | 'right' | 'multiline';
-  hasAddons?: boolean;
+  hasAddons?: boolean | 'centered' | 'right';
+  narrow?: boolean;
   label?: React.ReactNode;
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -88,6 +91,9 @@ export interface FieldBodyProps
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
+ *
+ * @example
+ * <FieldLabel size="normal">Name</FieldLabel>
  */
 export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
@@ -121,6 +127,9 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
  * @function
  * @param {FieldBodyProps} props - Props for the FieldBody component.
  * @returns {JSX.Element} The rendered field body.
+ *
+ * @example
+ * <FieldBody><input className="input" /></FieldBody>
  */
 export const FieldBody: React.FC<FieldBodyProps> = ({
   textColor,
@@ -153,6 +162,18 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
  * @param {FieldProps} props - Props for the Field component.
  * @returns {JSX.Element} The rendered field container.
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
+ *
+ * @example
+ * // Labelled field
+ * <Field label="Email">
+ *   <input className="input" type="email" />
+ * </Field>
+ *
+ * @example
+ * // Horizontal field
+ * <Field horizontal label="Name">
+ *   <input className="input" />
+ * </Field>
  */
 export const Field: React.FC<FieldProps> & {
   Label: typeof FieldLabel;
@@ -161,6 +182,7 @@ export const Field: React.FC<FieldProps> & {
   horizontal,
   grouped,
   hasAddons,
+  narrow,
   label,
   labelSize,
   labelProps,
@@ -180,6 +202,9 @@ export const Field: React.FC<FieldProps> & {
   const mainClass = usePrefixedClassNames('field', {
     'is-horizontal': horizontal,
     'has-addons': !!hasAddons,
+    'has-addons-centered': hasAddons === 'centered',
+    'has-addons-right': hasAddons === 'right',
+    'is-narrow': narrow,
     'is-grouped':
       grouped === true ||
       grouped === 'centered' ||
@@ -191,9 +216,8 @@ export const Field: React.FC<FieldProps> & {
   });
   const fieldClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  // Map 'normal' to undefined for FieldLabel size prop
-  const mappedLabelSize: FieldLabelProps['size'] =
-    labelSize === 'normal' ? undefined : labelSize;
+  // Default labelSize to 'normal' when horizontal for proper baseline alignment
+  const effectiveLabelSize = labelSize ?? (horizontal ? 'normal' : undefined);
 
   const labelClass = usePrefixedClassNames('label');
 
@@ -201,7 +225,7 @@ export const Field: React.FC<FieldProps> & {
   if (label) {
     if (horizontal) {
       renderedLabel = (
-        <FieldLabel size={mappedLabelSize}>
+        <FieldLabel size={effectiveLabelSize}>
           <label
             {...labelProps}
             className={classNames(labelClass, labelProps?.className)}
@@ -224,16 +248,24 @@ export const Field: React.FC<FieldProps> & {
     }
   }
 
-  // If horizontal, wrap children in FieldBody (unless children is already a FieldBody)
+  // If horizontal, wrap children in FieldBody (unless the user already provided
+  // a FieldBody — either as the single child, or as one element among siblings
+  // like <Field.Label/> + <Field.Body/>).
   let content = children;
   if (horizontal) {
-    // If children is a FieldBody already, don't double wrap
-    // Simple check using displayName
-    if (
-      React.isValidElement(children) &&
-      // @ts-expect-error children.type && children.type.displayName &&
-      (children.type === FieldBody || children.type.displayName === 'FieldBody')
-    ) {
+    const isFieldBody = (c: React.ReactNode): boolean =>
+      React.isValidElement(c) &&
+      // @ts-expect-error displayName isn't on the public type
+      (c.type === FieldBody || c.type?.displayName === 'FieldBody');
+    const isFieldLabel = (c: React.ReactNode): boolean =>
+      React.isValidElement(c) &&
+      // @ts-expect-error displayName isn't on the public type
+      (c.type === FieldLabel || c.type?.displayName === 'FieldLabel');
+    const childArray = React.Children.toArray(children);
+    const userProvidedStructure = childArray.some(
+      c => isFieldBody(c) || isFieldLabel(c)
+    );
+    if (userProvidedStructure) {
       content = children;
     } else {
       content = <FieldBody>{children}</FieldBody>;
@@ -241,10 +273,12 @@ export const Field: React.FC<FieldProps> & {
   }
 
   return (
-    <div className={fieldClass} {...rest}>
-      {renderedLabel}
-      {content}
-    </div>
+    <FieldProvider value={true}>
+      <div className={fieldClass} {...rest}>
+        {renderedLabel}
+        {content}
+      </div>
+    </FieldProvider>
   );
 };
 

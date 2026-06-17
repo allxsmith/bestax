@@ -29,7 +29,7 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 | `isStatic`     | `boolean`                                        | Renders textarea as static (styled readonly).    |
 | `isHovered`    | `boolean`                                        | Applies hovered state.                           |
 | `isFocused`    | `boolean`                                        | Applies focused state.                           |
-| `isLoading`    | `boolean`                                        | Shows loading indicator.                         |
+| `isLoading`    | `boolean`                                        | Shows loading indicator on the wrapping Control. |
 | `isActive`     | `boolean`                                        | Applies Bulma's is-active modifier.              |
 | `hasFixedSize` | `boolean`                                        | Fixed textarea size (no resize).                 |
 | `className`    | `string`                                         | Additional CSS classes.                          |
@@ -42,75 +42,40 @@ import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+`TextArea` is a convenience component that internally composes `Field` and `Control`. For most multi-line inputs, use `<TextArea>` directly with its props (`label`, `color`, `size`, `rows`, `hasFixedSize`, `isLoading`, `message`, `horizontal`, etc.). Bulma doesn't document textareas in addons or grouped layouts, so the convenience form covers nearly every case. Reach for explicit `<Field>` + `<Control>` only for very custom layouts.
+
 ### Default
 
-This example shows a standard multi-line text input using the `TextArea` component, wrapped in a `Field` and `Control` for proper Bulma form structure. The `placeholder` prop provides hint text for the user.
+A standard multi-line text input. The `placeholder` prop provides hint text.
 
 ```tsx live
-<Field label="Default">
-  <Control>
-    <TextArea placeholder="Carpe Diem" />
-  </Control>
-</Field>
+<TextArea label="Default" placeholder="e.g. Hello world" />
 ```
 
 ---
 
 ### Row Count
 
-Set the `rows` prop to control the visible number of text lines in the `TextArea`. This is useful for customizing the input size for different use cases, such as comments or longer form entries.
+Set the `rows` prop to control the visible number of text lines.
 
 ```tsx live
-<Field label="Rows">
-  <Control>
-    <TextArea rows={8} placeholder="8 rows" />
-  </Control>
-</Field>
+<TextArea label="Rows" rows={10} placeholder="10 rows" />
 ```
 
 ---
 
 ### Colors
 
-This example demonstrates the `color` prop, which applies Bulma color modifiers to the textarea. Use `color="primary"`, `color="link"`, `color="info"`, `color="success"`, `color="warning"`, or `color="danger"` to visually distinguish input fields based on context or validation state.
+The `color` prop applies Bulma color modifiers to visually distinguish input fields based on context or validation state.
 
 ```tsx live
 <>
-  <Field label="Primary">
-    <Control>
-      <TextArea color="primary" placeholder="Primary (color='primary')" />
-    </Control>
-  </Field>
-
-  <Field label="Link">
-    <Control>
-      <TextArea color="link" placeholder="Link (color='link')" />
-    </Control>
-  </Field>
-
-  <Field label="Info">
-    <Control>
-      <TextArea color="info" placeholder="Info (color='info')" />
-    </Control>
-  </Field>
-
-  <Field label="Success">
-    <Control>
-      <TextArea color="success" placeholder="Success (color='success')" />
-    </Control>
-  </Field>
-
-  <Field label="Warning">
-    <Control>
-      <TextArea color="warning" placeholder="Warning (color='warning')" />
-    </Control>
-  </Field>
-
-  <Field label="Danger">
-    <Control>
-      <TextArea color="danger" placeholder="Danger (color='danger')" />
-    </Control>
-  </Field>
+  <TextArea label="Primary" color="primary" placeholder="Primary textarea" />
+  <TextArea label="Link" color="link" placeholder="Link textarea" />
+  <TextArea label="Info" color="info" placeholder="Info textarea" />
+  <TextArea label="Success" color="success" placeholder="Success textarea" />
+  <TextArea label="Warning" color="warning" placeholder="Warning textarea" />
+  <TextArea label="Danger" color="danger" placeholder="Danger textarea" />
 </>
 ```
 
@@ -118,33 +83,14 @@ This example demonstrates the `color` prop, which applies Bulma color modifiers 
 
 ### Sizes
 
-This example demonstrates the `size` prop, which controls the overall size of the textarea. Use `size="small"`, `size="medium"`, or `size="large"` to match your form's scale. The default size is normal.
+The `size` prop controls the overall size of the textarea.
 
 ```tsx live
 <>
-  <Field label="Small">
-    <Control>
-      <TextArea size="small" placeholder="Small" />
-    </Control>
-  </Field>
-
-  <Field label="Normal">
-    <Control>
-      <TextArea placeholder="Normal" />
-    </Control>
-  </Field>
-
-  <Field label="Medium">
-    <Control>
-      <TextArea size="medium" placeholder="Medium" />
-    </Control>
-  </Field>
-
-  <Field label="Large">
-    <Control>
-      <TextArea size="large" placeholder="Large" />
-    </Control>
-  </Field>
+  <TextArea label="Small" size="small" placeholder="Small textarea" />
+  <TextArea label="Normal" placeholder="Normal textarea" />
+  <TextArea label="Medium" size="medium" placeholder="Medium textarea" />
+  <TextArea label="Large" size="large" placeholder="Large textarea" />
 </>
 ```
 
@@ -152,33 +98,14 @@ This example demonstrates the `size` prop, which controls the overall size of th
 
 ### States
 
-This example shows how to use the `isHovered`, `isFocused`, and `isLoading` props to visually indicate different states of the textarea. These states help users understand the current interaction or loading status.
+`isHovered`, `isFocused`, and `isLoading` force the corresponding state on the textarea.
 
 ```tsx live
 <>
-  <Field label="Normal">
-    <Control>
-      <TextArea placeholder="Normal state" />
-    </Control>
-  </Field>
-
-  <Field label="Hover">
-    <Control>
-      <TextArea isHovered placeholder="Hovered state" />
-    </Control>
-  </Field>
-
-  <Field label="Focus">
-    <Control>
-      <TextArea isFocused placeholder="Focused state" />
-    </Control>
-  </Field>
-
-  <Field label="Loading">
-    <Control isLoading>
-      <TextArea placeholder="Loading state" />
-    </Control>
-  </Field>
+  <TextArea label="Normal" placeholder="Normal textarea" />
+  <TextArea label="Hover" isHovered placeholder="Hovered textarea" />
+  <TextArea label="Focus" isFocused placeholder="Focused textarea" />
+  <TextArea label="Loading" isLoading placeholder="Loading textarea" />
 </>
 ```
 
@@ -186,33 +113,36 @@ This example shows how to use the `isHovered`, `isFocused`, and `isLoading` prop
 
 ### Loading States by Size
 
-This example demonstrates loading indicators for different textarea sizes. Combine the `isLoading` and `size` props on both `Control` and `TextArea` for consistent UI feedback.
+The loading indicator at every textarea size. Use `controlSize` on `<TextArea>` to scale the spinner to match.
 
 ```tsx live
 <>
-  <Field label="Loading Small">
-    <Control isLoading size="small">
-      <TextArea size="small" placeholder="Loading small" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Normal">
-    <Control isLoading>
-      <TextArea placeholder="Loading normal" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Medium">
-    <Control isLoading size="medium">
-      <TextArea size="medium" placeholder="Loading medium" />
-    </Control>
-  </Field>
-
-  <Field label="Loading Large">
-    <Control isLoading size="large">
-      <TextArea size="large" placeholder="Loading large" />
-    </Control>
-  </Field>
+  <TextArea
+    label="Loading Small"
+    size="small"
+    controlSize="small"
+    isLoading
+    placeholder="Small loading textarea"
+  />
+  <TextArea
+    label="Loading Normal"
+    isLoading
+    placeholder="Normal loading textarea"
+  />
+  <TextArea
+    label="Loading Medium"
+    size="medium"
+    controlSize="medium"
+    isLoading
+    placeholder="Medium loading textarea"
+  />
+  <TextArea
+    label="Loading Large"
+    size="large"
+    controlSize="large"
+    isLoading
+    placeholder="Large loading textarea"
+  />
 </>
 ```
 
@@ -220,21 +150,12 @@ This example demonstrates loading indicators for different textarea sizes. Combi
 
 ### Disabled & Read Only
 
-This example shows how to use the `disabled` and `readOnly` props to render non-interactive or read-only textareas. Use `disabled` to prevent user input, and `readOnly` to display static content that cannot be edited.
+Disabled textareas cannot be interacted with; read-only textareas can be focused but not edited.
 
 ```tsx live
 <>
-  <Field label="Disabled">
-    <Control>
-      <TextArea disabled placeholder="Disabled textarea" />
-    </Control>
-  </Field>
-
-  <Field label="Read Only">
-    <Control>
-      <TextArea readOnly value="Read only value" />
-    </Control>
-  </Field>
+  <TextArea label="Disabled" disabled placeholder="Disabled textarea" />
+  <TextArea label="Read Only" readOnly value="This content is readonly" />
 </>
 ```
 
@@ -242,28 +163,94 @@ This example shows how to use the `disabled` and `readOnly` props to render non-
 
 ### Fixed Size
 
-Set the `hasFixedSize` prop to prevent the textarea from being resized by the user. This is useful for layouts where you want to maintain a consistent height.
+Set `hasFixedSize` to prevent the textarea from being user-resized.
 
 ```tsx live
-<Field label="Fixed Size">
-  <Control>
-    <TextArea hasFixedSize placeholder="Fixed size textarea" rows={3} />
-  </Control>
-</Field>
+<TextArea
+  label="Fixed Size"
+  hasFixedSize
+  rows={3}
+  placeholder="Fixed size textarea"
+/>
+```
+
+---
+
+### Horizontal
+
+Use `horizontal` to render the label to the left of the textarea.
+
+```tsx live
+<TextArea
+  horizontal
+  label="Question"
+  placeholder="Explain how we can help you"
+  rows={4}
+/>
+```
+
+---
+
+### Context-Aware Rendering
+
+The `TextArea` component is context-aware: it detects whether it is already inside a `Field` or `Control` and adjusts its rendering accordingly. You can use it standalone with a `label` prop (it wraps itself in Field+Control), inside a `Field` (it skips its own Field), or inside both `Field` and `Control` (it renders only the raw textarea).
+
+#### Default (with label)
+
+```tsx live
+<TextArea label="Message" placeholder="Enter your message" />
+```
+
+---
+
+#### With Field Wrapper
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Message">
+      <Field.Body>
+        <Field>
+          <TextArea placeholder="Enter your message" />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Message">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="comment">
+            <TextArea placeholder="Enter your message" />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
 ```
 
 ---
 
 ## Accessibility
 
-- Always provide a `<label>` (use with `Field`) for accessible usage.
-- Use the `rows` prop for appropriate height for your content.
+- Always provide a `<label>` (use TextArea's `label` prop, or wrap in `Field`) for accessible usage.
+- Use the `rows` prop to set an appropriate height for your content.
 
 ---
 
 ## Related Components
 
-- [`Control`](./control.md): For icons and loading.
+- [`Control`](./control.md): For loading.
 - [`Field`](./field.md): For field grouping and labels.
 
 ---

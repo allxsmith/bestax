@@ -6,7 +6,17 @@ sidebar_position: 2
 
 # CSS Variables
 
-Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables), enabling runtime customization without requiring Sass compilation. This React library provides full support for all 500+ Bulma CSS variables through the `Theme` component.
+[Bulma v1 introduces comprehensive support for CSS custom properties (CSS variables)](https://bulma.io/documentation/features/css-variables/), enabling runtime customization without Sass compilation. bestax-bulma gives you a first-class React surface for all 500+ of them through the `Theme` component: named, camelCase props for the common variables, a `bulmaVars` escape hatch for the long tail, and automatic scoping so themes compose via React context — no manual style-sheet injection, no string concatenation, fully type-checked.
+
+:::info Bulma's canonical reference
+The authoritative documentation for every Bulma CSS variable lives on the Bulma site:
+
+- [CSS Variables in Bulma](https://bulma.io/documentation/features/css-variables/) — how Bulma uses CSS variables and their `--bulma-` prefix.
+- [Themes](https://bulma.io/documentation/features/themes/) — Bulma's theme system (a theme is a set of CSS variables scoped at `:root` or below).
+- [Dark Mode](https://bulma.io/documentation/features/dark-mode/) — the prefers-color-scheme and `.theme-dark` conventions Bulma ships.
+
+This page focuses on the React surface (`Theme`, `bulmaVars`); refer to Bulma's docs for the variable catalog and CSS-level semantics.
+:::
 
 ## What are CSS Variables?
 
@@ -53,7 +63,12 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 
 ## Using the Theme Component
 
-The `Theme` component provides a React-friendly way to work with CSS variables:
+`Theme` is bestax's React wrapper for Bulma's CSS variables. Two things make it idiomatic to use from React rather than hand-writing `style.setProperty` calls:
+
+- **Named props for the common variables** — `primaryH`, `schemeH`, `radius`, `familyPrimary`, etc. TypeScript autocompletes them and catches typos at build time.
+- **`bulmaVars` for everything else** — a single object prop that accepts raw CSS variable names, so you never hit a ceiling.
+
+Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
 
 ### Global Theme Application
 
@@ -135,7 +150,7 @@ function AdvancedTheming() {
 
 ## Complete CSS Variables Catalog
 
-Bulma v1 provides 500+ CSS variables organized by category. Here are the key categories:
+Bulma v1 provides 500+ CSS variables organized by category. Here are the key categories — for the full, authoritative list see the [Bulma CSS Variables reference](https://bulma.io/documentation/features/css-variables/) and the per-component pages under [bulma.io/documentation](https://bulma.io/documentation/).
 
 ### Scheme Variables
 
@@ -213,6 +228,8 @@ Bulma v1 provides 500+ CSS variables organized by category. Here are the key cat
 ## Dynamic Theming Examples
 
 ### Dark Mode Toggle
+
+Bulma ships a built-in dark-mode scheme that responds to `prefers-color-scheme` — see the [Bulma Dark Mode documentation](https://bulma.io/documentation/features/dark-mode/) for the CSS-level details. The example below overrides a subset of the scheme variables from React:
 
 ```tsx
 function DarkModeApp() {
@@ -327,11 +344,10 @@ const brandTheme = {
 };
 ```
 
-### Performance
+### Scope
 
-- Use Theme component judiciously - too many nested themes can impact performance
-- Prefer setting variables at higher levels in your component tree
-- Use `isRoot={true}` for application-wide themes
+- Prefer a single `isRoot` `Theme` at the top of your tree for global values.
+- Use nested, non-root `Theme` elements only to override a specific subtree (a dashboard section, a marketing block) — each non-root theme wraps its children in a `<div>`, so don't nest one around a single button when a helper prop would do.
 
 ### Consistency
 
@@ -339,4 +355,10 @@ const brandTheme = {
 - Document which variables your team uses most commonly
 - Create reusable theme objects for common scenarios
 
-For comprehensive API documentation and more examples, see the [Theme component reference](../../api/helpers/theme.md).
+## Further Reading
+
+- [Theme component reference](../../api/helpers/theme.md) — the full bestax React API.
+- [Bulma: CSS Variables](https://bulma.io/documentation/features/css-variables/) — how Bulma defines and consumes CSS variables.
+- [Bulma: Themes](https://bulma.io/documentation/features/themes/) — Bulma's theme system and scoping rules.
+- [Bulma: Dark Mode](https://bulma.io/documentation/features/dark-mode/) — dark-scheme conventions.
+- [Bulma: Customize with CSS Variables](https://bulma.io/documentation/customize/with-css-variables/) — CSS-only customization guide.

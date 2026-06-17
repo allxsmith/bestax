@@ -318,7 +318,7 @@ describe('Th Component', () => {
 
   describe('ClassPrefix', () => {
     it('applies classPrefix to modifier classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="my-prefix-">
           <table>
             <thead>
@@ -331,13 +331,13 @@ describe('Th Component', () => {
           </table>
         </ConfigProvider>
       );
-      const th = container.querySelector('th');
+      const th = screen.getByRole('columnheader', { name: 'Test' });
       expect(th).toHaveClass('my-prefix-is-primary');
       expect(th).toHaveClass('my-prefix-has-text-centered');
     });
 
     it('uses default classes when no classPrefix provided', () => {
-      const { container } = render(
+      render(
         <ConfigProvider>
           <table>
             <thead>
@@ -350,13 +350,13 @@ describe('Th Component', () => {
           </table>
         </ConfigProvider>
       );
-      const th = container.querySelector('th');
+      const th = screen.getByRole('columnheader', { name: 'Test' });
       expect(th).toHaveClass('is-primary');
       expect(th).toHaveClass('has-text-centered');
     });
 
     it('uses default classes when classPrefix is undefined', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix={undefined}>
           <table>
             <thead>
@@ -369,13 +369,13 @@ describe('Th Component', () => {
           </table>
         </ConfigProvider>
       );
-      const th = container.querySelector('th');
+      const th = screen.getByRole('columnheader', { name: 'Test' });
       expect(th).toHaveClass('is-primary');
       expect(th).toHaveClass('has-text-centered');
     });
 
     it('applies prefix to both modifier and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <table>
             <thead>
@@ -389,7 +389,7 @@ describe('Th Component', () => {
         </ConfigProvider>
       );
 
-      const th = container.querySelector('th');
+      const th = screen.getByRole('columnheader', { name: 'Test Header' });
       expect(th).toHaveClass('bulma-is-primary');
       expect(th).toHaveClass('bulma-has-text-left');
       expect(th).toHaveClass('bulma-m-2');
@@ -397,7 +397,7 @@ describe('Th Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <table>
           <thead>
             <tr>
@@ -409,7 +409,7 @@ describe('Th Component', () => {
         </table>
       );
 
-      const th = container.querySelector('th');
+      const th = screen.getByRole('columnheader', { name: 'Standard Header' });
       expect(th).toHaveClass('is-info');
       expect(th).toHaveClass('has-text-right');
       expect(th).toHaveClass('has-text-centered');

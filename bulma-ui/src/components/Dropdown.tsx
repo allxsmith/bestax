@@ -231,13 +231,14 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
 /**
  * Bulma Dropdown divider.
  *
- * @returns {JSX.Element} The divider element.
+ * @function
+ * @returns {JSX.Element} The rendered divider element.
  */
 export const DropdownDivider: React.FC = () => (
   <hr className={usePrefixedClassNames('dropdown-divider')} />
 );
 
-// Assign static subcomponents
+/** Bulma Dropdown component with Item and Divider sub-components. */
 export const Dropdown = Object.assign(DropdownComponent, {
   Item: DropdownItem,
   Divider: DropdownDivider,

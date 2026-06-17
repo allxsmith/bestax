@@ -21,62 +21,65 @@ import { File, Icon } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop             | Type                                                      | Description                                      |
-| ---------------- | --------------------------------------------------------- | ------------------------------------------------ |
-| `color`          | `'primary' \| 'link' \| ... \| 'white'`                   | Bulma color modifier for the file input.         |
-| `size`           | `'small' \| 'medium' \| 'large'`                          | Size modifier for the file input.                |
-| `isBoxed`        | `boolean`                                                 | Boxed file input.                                |
-| `isFullwidth`    | `boolean`                                                 | File input expands to full width.                |
-| `isRight`        | `boolean`                                                 | Align file input to the right.                   |
-| `isCentered`     | `boolean`                                                 | Center the file input.                           |
-| `hasName`        | `boolean`                                                 | Show a file name indicator.                      |
-| `label`          | `React.ReactNode`                                         | Custom label text or node.                       |
-| `iconLeft`       | `React.ReactNode`                                         | Left icon element.                               |
-| `iconRight`      | `React.ReactNode`                                         | Right icon element.                              |
-| `className`      | `string`                                                  | Additional CSS classes.                          |
-| `inputClassName` | `string`                                                  | Additional CSS classes for the `<input>`.        |
-| `fileName`       | `string`                                                  | File name to display.                            |
-| ...              | All standard `<input type="file">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+| Prop             | Type                                                      | Description                                                 |
+| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
+| `color`          | `'primary' \| 'link' \| ... \| 'white'`                   | Bulma color modifier for the file input.                    |
+| `size`           | `'small' \| 'medium' \| 'large'`                          | Size modifier for the file input.                           |
+| `isBoxed`        | `boolean`                                                 | Boxed file input.                                           |
+| `isFullwidth`    | `boolean`                                                 | File input expands to full width.                           |
+| `isRight`        | `boolean`                                                 | Position the CTA on the right (with `hasName`).             |
+| `isCentered`     | `boolean`                                                 | Center the file input within its container.                 |
+| `hasName`        | `boolean`                                                 | Show a file name indicator.                                 |
+| `buttonLabel`    | `React.ReactNode`                                         | Text on the file CTA button (defaults to "Choose a file…"). |
+| `label`          | `React.ReactNode`                                         | Field label rendered above the widget.                      |
+| `iconLeft`       | `React.ReactNode`                                         | Left icon element.                                          |
+| `iconRight`      | `React.ReactNode`                                         | Right icon element.                                         |
+| `className`      | `string`                                                  | Additional CSS classes.                                     |
+| `inputClassName` | `string`                                                  | Additional CSS classes for the `<input>`.                   |
+| `fileName`       | `string`                                                  | File name to display.                                       |
+| ...              | All standard `<input type="file">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses))            |
 
 ---
 
 ## Usage
 
+`File` is a self-contained Bulma file widget. It detects whether it's already inside a `Field` and skips rendering its own field wrapper if so. For typical use, pass `buttonLabel`, `iconLeft`, and any modifier props (`hasName`, `isBoxed`, `isFullwidth`, `isRight`, `isCentered`, `color`, `size`) — Bulma doesn't document file inputs in addons or grouped layouts, so the convenience form covers every case. Use `label` only when you want an additional Bulma `<label class="label">` rendered above the widget.
+
 ### Default
 
-This example shows a basic file input using the `File` component. The `label` prop provides the button text, and the `iconLeft` prop adds a left icon for visual context.
+A basic file input. The `buttonLabel` prop sets the text on the CTA button, and `iconLeft` adds an icon for visual context.
 
 ```tsx live
-<File label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
 ```
 
 ---
 
-### With `hasName` and Filename Display
+### With Filename Display
 
-Set the `hasName` prop to display the selected file name. The `fileName` prop can be used to show a custom or pre-selected file name. This is useful for upload UIs where you want to show the user which file is selected.
+Set `hasName` to display the selected file name. The `fileName` prop shows a custom or pre-selected name.
 
 ```tsx live
 <File
   hasName
   fileName="resume.pdf"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
 ```
 
 ---
 
-### Right-Aligned
+### CTA on Right
 
-Use the `isRight` prop to align the file input to the right. Combine with `hasName` and `fileName` for a right-aligned file upload UI.
+Combine `isRight` with `hasName` to put the CTA button on the right and the filename on the left.
 
 ```tsx live
 <File
   hasName
   isRight
   fileName="contract.pdf"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
 ```
@@ -85,40 +88,40 @@ Use the `isRight` prop to align the file input to the right. Combine with `hasNa
 
 ### Full Width
 
-The `isFullwidth` prop makes the file input take up the full width of its container. This is particularly useful in forms where you want the file input to be more prominent.
+`isFullwidth` makes the file input take the full width of its container — pairs well with `hasName` so the filename area expands.
 
 ```tsx live
 <File
   hasName
   isFullwidth
   fileName="picture.png"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
 ```
 
 ---
 
-### Boxed Style
+### Boxed
 
-The `isBoxed` prop gives the file input a boxed appearance, which can be useful for emphasizing the input area.
+`isBoxed` stacks the icon over the text into a square box.
 
 ```tsx live
-<File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />
+<File isBoxed buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
 ```
 
 ---
 
-### Boxed and Has Name
+### Boxed with Name
 
-Combine `isBoxed` and `hasName` to create a file input that is both boxed and displays the selected file name.
+Combine `isBoxed` and `hasName` for a boxed widget that also shows the filename.
 
 ```tsx live
 <File
   isBoxed
   hasName
   fileName="holiday.jpg"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
 ```
@@ -127,29 +130,35 @@ Combine `isBoxed` and `hasName` to create a file input that is both boxed and di
 
 ### Colors
 
-The `color` prop allows you to change the color of the file input, using any of Bulma's color modifiers. This can be useful for indicating different states or categories of file uploads.
+The `color` prop applies Bulma color modifiers. The four examples below match the combinations Bulma's docs show.
 
 ```tsx live
 <>
   <File
     color="primary"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     color="info"
-    label="Choose a file..."
+    hasName
+    fileName="resume.pdf"
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     color="warning"
-    label="Choose a file..."
-    iconLeft={<Icon name="upload" />}
+    isBoxed
+    buttonLabel="Choose a file…"
+    iconLeft={<Icon name="cloud-upload-alt" />}
   />
   <File
     color="danger"
-    label="Choose a file..."
-    iconLeft={<Icon name="upload" />}
+    isBoxed
+    hasName
+    fileName="resume.pdf"
+    buttonLabel="Choose a file…"
+    iconLeft={<Icon name="cloud-upload-alt" />}
   />
 </>
 ```
@@ -158,25 +167,24 @@ The `color` prop allows you to change the color of the file input, using any of 
 
 ### Sizes
 
-The `size` prop controls the size of the file input. You can choose from `small`, `medium`, or `large` to fit your design needs.
+The `size` prop controls the file input's size.
 
 ```tsx live
 <>
   <File
     size="small"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
-  <File label="Choose a file..." iconLeft={<Icon name="upload" />} />{' '}
-  {/* Normal */}
+  <File buttonLabel="Choose a file…" iconLeft={<Icon name="upload" />} />
   <File
     size="medium"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     size="large"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
 </>
@@ -186,7 +194,7 @@ The `size` prop controls the size of the file input. You can choose from `small`
 
 ### Sizes with Name
 
-When using the `hasName` prop, the file input will display the name of the selected file. This is particularly useful in forms where users need to upload files and you want to show them the file name they've selected.
+Combine `size` with `hasName` to scale the filename display alongside the button.
 
 ```tsx live
 <>
@@ -194,27 +202,27 @@ When using the `hasName` prop, the file input will display the name of the selec
     size="small"
     hasName
     fileName="sample.txt"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     hasName
     fileName="sample.txt"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     size="medium"
     hasName
     fileName="sample.txt"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     size="large"
     hasName
     fileName="sample.txt"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
 </>
@@ -224,28 +232,31 @@ When using the `hasName` prop, the file input will display the name of the selec
 
 ### Sizes with Boxed
 
-The `isBoxed` prop can also be used in conjunction with the `size` prop to create a boxed file input in various sizes.
+Combine `size` with `isBoxed` for boxed file inputs at every size.
 
 ```tsx live
 <>
   <File
     size="small"
     isBoxed
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
-  <File isBoxed label="Choose a file..." iconLeft={<Icon name="upload" />} />{' '}
-  {/* Normal */}
+  <File
+    isBoxed
+    buttonLabel="Choose a file…"
+    iconLeft={<Icon name="upload" />}
+  />
   <File
     size="medium"
     isBoxed
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     size="large"
     isBoxed
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
 </>
@@ -253,9 +264,9 @@ The `isBoxed` prop can also be used in conjunction with the `size` prop to creat
 
 ---
 
-### Sizes with Name and Boxed
+### Sizes with Boxed and Name
 
-For a file input that is both boxed and shows the selected file name, use the `isBoxed` and `hasName` props together. This is useful for creating a clear and concise file upload area in your UI.
+For a boxed file input that also shows the filename, combine `isBoxed`, `hasName`, and `size`.
 
 ```tsx live
 <>
@@ -264,23 +275,22 @@ For a file input that is both boxed and shows the selected file name, use the `i
     isBoxed
     hasName
     fileName="summary.docx"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
     isBoxed
     hasName
     fileName="summary.docx"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
-  />{' '}
-  {/* Normal */}
+  />
   <File
     size="medium"
     isBoxed
     hasName
     fileName="summary.docx"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
   <File
@@ -288,7 +298,7 @@ For a file input that is both boxed and shows the selected file name, use the `i
     isBoxed
     hasName
     fileName="summary.docx"
-    label="Choose a file..."
+    buttonLabel="Choose a file…"
     iconLeft={<Icon name="upload" />}
   />
 </>
@@ -298,7 +308,7 @@ For a file input that is both boxed and shows the selected file name, use the `i
 
 ### Alignment: Centered
 
-To center the file input within its container, use the `isCentered` prop. This can be useful in forms where you want to draw attention to the file upload area.
+`isCentered` centers the widget within its parent container.
 
 ```tsx live
 <File
@@ -307,7 +317,7 @@ To center the file input within its container, use the `isCentered` prop. This c
   isBoxed
   hasName
   fileName="centered.pdf"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
 ```
@@ -316,7 +326,7 @@ To center the file input within its container, use the `isCentered` prop. This c
 
 ### Alignment: Right
 
-For a right-aligned file input, use the `isRight` prop. This can be useful in layouts where you want the file input to be aligned with other right-aligned elements.
+`isRight` aligns the widget to the right of its parent.
 
 ```tsx live
 <File
@@ -324,9 +334,79 @@ For a right-aligned file input, use the `isRight` prop. This can be useful in la
   isRight
   hasName
   fileName="right.pdf"
-  label="Choose a file..."
+  buttonLabel="Choose a file…"
   iconLeft={<Icon name="upload" />}
 />
+```
+
+---
+
+### Context-Aware Rendering
+
+The `File` component is context-aware: it detects whether it is already inside a `Field` and skips rendering its own field wrapper if so. Use `label` to add a Bulma `<label class="label">` above the widget; use `buttonLabel` to set the CTA text.
+
+:::note
+File does not consume the Control context (it is its own self-contained widget). The "With Field and Control Wrappers" example below shows that wrapping File in a Control is harmless but doesn't change its rendering.
+:::
+
+#### Default (with label)
+
+The simplest usage — `label` adds a Field label above the widget.
+
+```tsx live
+<File
+  label="Document"
+  buttonLabel="Choose a file…"
+  iconLeft={<Icon name="upload" />}
+/>
+```
+
+---
+
+#### With Field Wrapper
+
+For manual layout control (e.g., horizontal forms), wrap in `Field`. The component detects it's inside a Field and skips rendering its own.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Document">
+      <Field.Body>
+        <Field>
+          <File
+            buttonLabel="Choose a file…"
+            iconLeft={<Icon name="upload" />}
+          />
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
+```
+
+---
+
+#### With Field and Control Wrappers
+
+For full manual composition, wrap in both `Field` and `Control`. File doesn't consume Control's context but the outer Field is still detected and File's own Field wrapper is skipped.
+
+```tsx live
+function example() {
+  return (
+    <Field horizontal label="Document">
+      <Field.Body>
+        <Field>
+          <Control iconLeftName="paperclip">
+            <File
+              buttonLabel="Choose a file…"
+              iconLeft={<Icon name="upload" />}
+            />
+          </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  );
+}
 ```
 
 ---

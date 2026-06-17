@@ -60,38 +60,32 @@ This example demonstrates the `Media` component with its subcomponents: `Media.L
     />
   </Media.Left>
   <Media.Content>
-    <div className="content">
-      <p>
-        <strong>Alexander Hamilton</strong> <small>@hamilton</small>{' '}
+    <Content>
+      <Paragraph>
+        <Strong>Alexander Hamilton</Strong> <small>@hamilton</small>{' '}
         <small>31m</small>
         <br />
         If men were angels, no government would be necessary. If angels were to
         govern men, neither external nor internal controls on government would
         be necessary.
-      </p>
-    </div>
+      </Paragraph>
+    </Content>
     <Level isMobile>
       <Level.Left>
         <Level.Item as="a">
-          <span className="icon is-small">
-            <Icon name="reply" library="fa" libraryFeatures={['fas']} />
-          </span>
+          <Icon name="reply" variant="solid" size="small" />
         </Level.Item>
         <Level.Item as="a">
-          <span className="icon is-small">
-            <Icon name="retweet" library="fa" libraryFeatures={['fas']} />
-          </span>
+          <Icon name="retweet" variant="solid" size="small" />
         </Level.Item>
         <Level.Item as="a">
-          <span className="icon is-small">
-            <Icon name="heart" library="fa" libraryFeatures={['fas']} />
-          </span>
+          <Icon name="heart" variant="solid" size="small" />
         </Level.Item>
       </Level.Left>
     </Level>
   </Media.Content>
   <Media.Right>
-    <button className="delete" aria-label="delete" />
+    <Delete aria-label="delete" />
   </Media.Right>
 </Media>
 ```
@@ -115,7 +109,7 @@ This example shows the `Media` component used with form inputs. The `Media.Conte
   <Media.Content>
     <Field>
       <Control as="p">
-        <TextArea className="textarea" placeholder="Add a comment..." />
+        <TextArea placeholder="Add a comment..." />
       </Control>
     </Field>
     <Level>
@@ -154,8 +148,8 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
   </Media.Left>
   <Media.Content>
     <Content>
-      <p>
-        <strong>John Jay</strong>
+      <Paragraph>
+        <Strong>John Jay</Strong>
         <br />
         The people, in their collective capacity, are the ultimate authority.
         The Union is essential to the security of the people of America against
@@ -164,7 +158,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
         <small>
           <a>Like</a> &middot; <a>Reply</a> &middot; 3 hrs
         </small>
-      </p>
+      </Paragraph>
     </Content>
     {/* First nested media */}
     <Media>
@@ -178,8 +172,8 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
       </Media.Left>
       <Media.Content>
         <Content>
-          <p>
-            <strong>James Madison</strong>
+          <Paragraph>
+            <Strong>James Madison</Strong>
             <br />
             The accumulation of all powers, legislative, executive, and
             judiciary, in the same hands, may justly be pronounced the very
@@ -188,7 +182,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
             <small>
               <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
             </small>
-          </p>
+          </Paragraph>
         </Content>
         {/* 2nd nested media (two siblings) */}
         <Media>
@@ -209,8 +203,8 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
       </Media.Left>
       <Media.Content>
         <Content>
-          <p>
-            <strong>Alexander Hamilton</strong>
+          <Paragraph>
+            <Strong>Alexander Hamilton</Strong>
             <br />
             Safety from external danger is the most powerful director of
             national conduct. The desire for respect and security will always
@@ -219,7 +213,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
             <small>
               <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
             </small>
-          </p>
+          </Paragraph>
         </Content>
       </Media.Content>
     </Media>
@@ -245,14 +239,14 @@ In this variation, a button is placed below the input area within the `Media.Con
   </Media.Left>
   <Media.Content>
     <Field>
-      <p className="control">
-        <TextArea className="textarea" placeholder="Add a comment..." />
-      </p>
+      <Control as="p">
+        <TextArea placeholder="Add a comment..." />
+      </Control>
     </Field>
     <Field>
-      <p className="control">
+      <Control as="p">
         <Button>Post comment</Button>
-      </p>
+      </Control>
     </Field>
   </Media.Content>
 </Media>

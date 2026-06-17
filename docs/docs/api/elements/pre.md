@@ -103,7 +103,7 @@ dist/index.js  45.23 kB
 Display different code examples side by side.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+<Block display="flex" flexDirection="column" gap="4">
   <Pre bgColor="light" p="3">
     <Code>{`// JavaScript
 const add = (a, b) => a + b;`}</Code>
@@ -112,7 +112,7 @@ const add = (a, b) => a + b;`}</Code>
     <Code>{`// TypeScript
 const add = (a: number, b: number): number => a + b;`}</Code>
   </Pre>
-</div>
+</Block>
 ```
 
 ### Primary Accent

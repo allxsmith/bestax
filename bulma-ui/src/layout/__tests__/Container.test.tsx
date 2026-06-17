@@ -131,6 +131,22 @@ describe('Container', () => {
     expect(container.firstChild).not.toHaveClass('is-max-tablet');
   });
 
+  it('skips both is-* and is-max-* when isMax is true but breakpoint is not in the allowed list', () => {
+    // Cast to bypass the typed enum and exercise the isMax=true && !valid path.
+    const { container } = render(
+      <Container
+        // @ts-expect-error intentionally invalid breakpoint
+        breakpoint="mobile"
+        isMax
+      >
+        Content
+      </Container>
+    );
+    // No is-mobile and no is-max-mobile — both branches were skipped.
+    expect(container.firstChild).not.toHaveClass('is-mobile');
+    expect(container.firstChild).not.toHaveClass('is-max-mobile');
+  });
+
   it('applies bulmaHelperClasses from props', () => {
     const { container } = render(
       <Container textColor="primary" bgColor="info">

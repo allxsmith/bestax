@@ -170,12 +170,10 @@ describe('Panel.Block', () => {
 });
 
 describe('Panel.Icon', () => {
-  it('renders icon span', () => {
+  it('renders icon span with Icon props', () => {
     render(
       <Panel.Block>
-        <Panel.Icon data-testid="icon">
-          <i className="fas fa-user" />
-        </Panel.Icon>
+        <Panel.Icon name="user" variant="solid" data-testid="icon" />
         Item
       </Panel.Block>
     );
@@ -187,10 +185,25 @@ describe('Panel.Icon', () => {
   it('accepts custom className', () => {
     render(
       <Panel.Block>
-        <Panel.Icon className="custom-icon" data-testid="icon" />
+        <Panel.Icon
+          name="user"
+          variant="solid"
+          className="custom-icon"
+          data-testid="icon"
+        />
       </Panel.Block>
     );
-    expect(screen.getByTestId('icon')).toHaveClass('custom-icon');
+    expect(screen.getByTestId('icon')).toHaveClass('custom-icon', 'panel-icon');
+  });
+
+  it('supports different icon variants', () => {
+    render(
+      <Panel.Block>
+        <Panel.Icon name="star" variant="regular" data-testid="icon" />
+      </Panel.Block>
+    );
+    const icon = screen.getByTestId('icon');
+    expect(icon.querySelector('i')).toHaveClass('far', 'fa-star');
   });
 });
 

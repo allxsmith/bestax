@@ -1,0 +1,196 @@
+// Themed Radio styles
+// Custom-styled radio button with colors, sizes, and visual states
+// Follows Bulma v1 CSS variable convention (see _dialog.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Radio-specific SCSS variables
+$radio-size: 1.25em !default;
+$radio-border-width: 2px !default;
+$radio-border-color: cv.getVar("border") !default;
+$radio-background: transparent !default;
+$radio-dot-color: cv.getVar("scheme-main") !default;
+$radio-active-color: cv.getVar("primary") !default;
+$radio-label-gap: 0.5em !default;
+$radio-focus-shadow-size: 0 0 0 0.125em !default;
+$radio-transition-duration: cv.getVar("duration") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}styled-radio {
+  @include cv.register-vars(
+    (
+      "radio-size": #{$radio-size},
+      "radio-border-width": #{$radio-border-width},
+      "radio-border-color": #{$radio-border-color},
+      "radio-background": #{$radio-background},
+      "radio-dot-color": #{$radio-dot-color},
+      "radio-active-color": #{$radio-active-color},
+      "radio-label-gap": #{$radio-label-gap},
+      "radio-focus-shadow-size": #{$radio-focus-shadow-size},
+      "radio-transition-duration": #{$radio-transition-duration},
+    )
+  );
+}
+
+// Main radio label
+.#{iv.$class-prefix}styled-radio {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  line-height: 1.5;
+
+  // Hidden native input
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    // Checked state
+    &:checked + .check {
+      border-color: cv.getVar("radio-active-color");
+
+      // Inner dot
+      &::before {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    // Focus-visible state (keyboard only)
+    &:focus-visible + .check {
+      outline: 2px solid cv.getVar("radio-active-color");
+      outline-offset: 2px;
+    }
+
+    // Disabled state
+    &:disabled + .check {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:disabled ~ .control-label {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // Custom radio indicator
+  .check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    width: cv.getVar("radio-size");
+    height: cv.getVar("radio-size");
+    min-width: 24px;
+    min-height: 24px;
+    background-color: cv.getVar("radio-background");
+    border: cv.getVar("radio-border-width") solid cv.getVar("radio-border-color");
+    border-radius: 50%;
+    transition-property: border-color;
+    transition-duration: cv.getVar("radio-transition-duration");
+    transition-timing-function: ease;
+
+    // Inner dot
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 50%;
+      border-radius: 50%;
+      background-color: cv.getVar("radio-active-color");
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
+      transition-property: opacity, transform;
+      transition-duration: cv.getVar("radio-transition-duration");
+      transition-timing-function: ease;
+    }
+  }
+
+  // Label text
+  .control-label {
+    margin-left: cv.getVar("radio-label-gap");
+    line-height: 1.5;
+  }
+}
+
+// Color variants
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "radio-active-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// Size variants
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-small {
+  font-size: cv.getVar("size-small");
+}
+
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-medium {
+  font-size: cv.getVar("size-medium");
+}
+
+.#{iv.$class-prefix}styled-radio.#{iv.$class-prefix}is-large {
+  font-size: cv.getVar("size-large");
+}
+
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}styled-radio {
+    .check {
+      border-color: ButtonText;
+    }
+
+    input[type="radio"]:checked + .check {
+      border-color: Highlight;
+
+      &::before {
+        background-color: Highlight;
+      }
+    }
+
+    input[type="radio"]:focus-visible + .check {
+      outline-color: Highlight;
+    }
+
+    input[type="radio"]:disabled + .check {
+      border-color: GrayText;
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}styled-radio {
+    .check,
+    .check::before {
+      transition: none;
+    }
+  }
+}
+
+// Vertical alignment for horizontal-field layouts.
+// Bulma applies `padding-top: 0.375em` to `.field-label.is-normal` so its
+// baseline aligns with the text inside `.input`. Our themed radios have no
+// internal padding, so without this match they sit ~6px higher than the
+// field-label and look misaligned. Apply the same padding on the radios
+// wrapper, but only inside a horizontal field-body so vertical/standalone
+// usage is unaffected.
+.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal {
+  .#{iv.$class-prefix}field-body {
+    .#{iv.$class-prefix}radios {
+      padding-top: 0.375em;
+    }
+  }
+}

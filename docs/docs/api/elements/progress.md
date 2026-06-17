@@ -106,10 +106,10 @@ Easily create multiple indeterminate progress bars with different sizes and colo
 
 ```tsx live
 <>
-  <Progress className="is-small is-primary" max={100} />
-  <Progress className="is-danger" max={100} />
-  <Progress className="is-medium is-dark" max={100} />
-  <Progress className="is-large is-info" max={100} />
+  <Progress size="small" color="primary" max={100} />
+  <Progress color="danger" max={100} />
+  <Progress size="medium" color="dark" max={100} />
+  <Progress size="large" color="info" max={100} />
 </>
 ```
 

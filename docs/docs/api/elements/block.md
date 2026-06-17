@@ -109,7 +109,7 @@ The notification blocks have zero margin bottom assigned to illustrate the spaci
 :::
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+<Block display="flex" flexDirection="column" gap="0">
   <Block>
     <Notification color="primary" mb={0}>
       First Block
@@ -130,7 +130,7 @@ The notification blocks have zero margin bottom assigned to illustrate the spaci
       Fourth Block
     </Notification>
   </Block>
-</div>
+</Block>
 ```
 
 ---

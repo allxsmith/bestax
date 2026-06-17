@@ -37,6 +37,10 @@ import { Paragraph } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+:::info Wrap Paragraphs in Content for Traditional Spacing
+Without a [`Content`](./content.md) wrapper, Bulma resets paragraph margins. Wrap your paragraphs in `<Content>` to get the expected spacing between `<p>` tags.
+:::
+
 ### Default Paragraph
 
 The default usage of the `Paragraph` component renders a standard paragraph element.
@@ -71,8 +75,8 @@ Use the `textAlign` prop to center the text.
 Add a background color and padding to create a callout effect.
 
 ```tsx live
-<Paragraph bgColor="light" p="3">
-  This paragraph has a light background.
+<Paragraph bgColor="dark" textColor="white" p="3">
+  This paragraph has a dark background.
 </Paragraph>
 ```
 
@@ -97,14 +101,14 @@ Use the `textSize` prop with a larger number for smaller text.
 Use `textAlign="justified"` for text that spans the full width.
 
 ```tsx live
-<div style={{ maxWidth: '400px' }}>
+<Block style={{ maxWidth: '400px' }}>
   <Paragraph textAlign="justified">
     This paragraph has justified text alignment. Lorem ipsum dolor sit amet,
     consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
     dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
     ullamco laboris.
   </Paragraph>
-</div>
+</Block>
 ```
 
 ### All Colors
@@ -112,35 +116,33 @@ Use `textAlign="justified"` for text that spans the full width.
 Display paragraphs in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Paragraph textColor="primary">Primary paragraph</Paragraph>
   <Paragraph textColor="link">Link paragraph</Paragraph>
   <Paragraph textColor="info">Info paragraph</Paragraph>
   <Paragraph textColor="success">Success paragraph</Paragraph>
   <Paragraph textColor="warning">Warning paragraph</Paragraph>
   <Paragraph textColor="danger">Danger paragraph</Paragraph>
-</div>
+</Block>
 ```
 
 ### Stacked Paragraphs
 
-Use margin props to control spacing between paragraphs.
+Wrap paragraphs in `Content` to get natural spacing between them without manual margin props.
 
 ```tsx live
-<div style={{ maxWidth: '500px' }}>
-  <Paragraph mb="4">
-    First paragraph with margin bottom. Lorem ipsum dolor sit amet, consectetur
-    adipiscing elit.
-  </Paragraph>
-  <Paragraph mb="4">
-    Second paragraph with margin bottom. Sed do eiusmod tempor incididunt ut
-    labore et dolore magna aliqua.
+<Content style={{ maxWidth: '500px' }}>
+  <Paragraph>
+    First paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
   </Paragraph>
   <Paragraph>
-    Third paragraph without margin bottom. Ut enim ad minim veniam, quis nostrud
-    exercitation.
+    Second paragraph. Sed do eiusmod tempor incididunt ut labore et dolore magna
+    aliqua.
   </Paragraph>
-</div>
+  <Paragraph>
+    Third paragraph. Ut enim ad minim veniam, quis nostrud exercitation.
+  </Paragraph>
+</Content>
 ```
 
 ### Highlighted Paragraph

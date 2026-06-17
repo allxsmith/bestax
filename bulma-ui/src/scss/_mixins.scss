@@ -1,0 +1,215 @@
+// Bestax Extras - SCSS Mixins
+// Shared mixins for extra components
+
+@use 'variables' as *;
+
+@use 'sass:list';
+
+// Transition mixin - accepts multiple properties
+@mixin extras-transition($properties...) {
+  $props: all;
+  @if list.length($properties) > 0 {
+    $props: $properties;
+  }
+  transition-property: $props;
+  transition-duration: $extras-duration;
+  transition-timing-function: $extras-easing;
+}
+
+// Focus outline for accessibility
+@mixin extras-focus-outline {
+  outline: 2px solid $extras-link;
+  outline-offset: 2px;
+}
+
+// Visually hidden but accessible to screen readers
+@mixin extras-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Reset button styles
+@mixin extras-button-reset {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+// Overlay backdrop
+@mixin extras-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 10, 10, 0.86);
+}
+
+// Center content with flexbox
+@mixin extras-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Ellipsis text overflow
+@mixin extras-text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Scrollable container
+@mixin extras-scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// Responsive breakpoints (matching Bulma)
+$extras-breakpoint-mobile: 768px;
+$extras-breakpoint-tablet: 769px;
+$extras-breakpoint-desktop: 1024px;
+$extras-breakpoint-widescreen: 1216px;
+$extras-breakpoint-fullhd: 1408px;
+
+@mixin extras-mobile {
+  @media screen and (max-width: $extras-breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin extras-tablet {
+  @media screen and (min-width: $extras-breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin extras-tablet-only {
+  @media screen and (min-width: $extras-breakpoint-tablet) and (max-width: $extras-breakpoint-desktop - 1px) {
+    @content;
+  }
+}
+
+@mixin extras-desktop {
+  @media screen and (min-width: $extras-breakpoint-desktop) {
+    @content;
+  }
+}
+
+@mixin extras-desktop-only {
+  @media screen and (min-width: $extras-breakpoint-desktop) and (max-width: $extras-breakpoint-widescreen - 1px) {
+    @content;
+  }
+}
+
+@mixin extras-widescreen {
+  @media screen and (min-width: $extras-breakpoint-widescreen) {
+    @content;
+  }
+}
+
+@mixin extras-widescreen-only {
+  @media screen and (min-width: $extras-breakpoint-widescreen) and (max-width: $extras-breakpoint-fullhd - 1px) {
+    @content;
+  }
+}
+
+@mixin extras-fullhd {
+  @media screen and (min-width: $extras-breakpoint-fullhd) {
+    @content;
+  }
+}
+
+// Color variant mixin for components
+@mixin extras-color-variant($color-h, $color-s, $color-l) {
+  --extras-color-h: #{$color-h};
+  --extras-color-s: #{$color-s};
+  --extras-color-l: #{$color-l};
+  --extras-color: hsl(var(--extras-color-h), var(--extras-color-s), var(--extras-color-l));
+}
+
+// Loading animation
+@mixin extras-loading-animation {
+  animation: extras-spin 0.5s infinite linear;
+}
+
+@keyframes extras-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Fade animation
+@keyframes extras-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes extras-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+// Slide animations
+@keyframes extras-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes extras-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes extras-slide-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes extras-slide-right {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

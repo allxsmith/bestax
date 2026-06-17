@@ -186,6 +186,15 @@ describe('Pagination.Link', () => {
     fireEvent.click(screen.getByTestId('link'));
     expect(handleClick).not.toHaveBeenCalled();
   });
+
+  it('does not throw when clicked without an onClick handler (covers the if-onClick branch)', () => {
+    render(
+      <Pagination.List>
+        <Pagination.Link data-testid="link">3</Pagination.Link>
+      </Pagination.List>
+    );
+    expect(() => fireEvent.click(screen.getByTestId('link'))).not.toThrow();
+  });
 });
 
 describe('Pagination.Ellipsis', () => {

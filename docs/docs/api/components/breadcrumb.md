@@ -42,17 +42,17 @@ To create a navigation trail, use the `Breadcrumb` component with a series of `<
 <Breadcrumb>
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -68,17 +68,17 @@ Set the `alignment` prop to `centered` to center the breadcrumb navigation horiz
 <Breadcrumb alignment="centered">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -94,17 +94,17 @@ Use the `alignment` prop with the value `right` to align the breadcrumb navigati
 <Breadcrumb alignment="right">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -120,17 +120,17 @@ Set the `separator` prop to `arrow` to use arrow icons between breadcrumb items.
 <Breadcrumb separator="arrow">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -146,17 +146,17 @@ Use the `separator` prop with the value `bullet` to display bullet points betwee
 <Breadcrumb separator="bullet">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -172,17 +172,17 @@ Set the `separator` prop to `dot` to use dot separators between breadcrumb items
 <Breadcrumb separator="dot">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -198,17 +198,17 @@ Use the `separator` prop with the value `succeeds` to show a chevron-style separ
 <Breadcrumb separator="succeeds">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -224,17 +224,17 @@ Set the `size` prop to `small` to render a compact breadcrumb navigation. This i
 <Breadcrumb size="small">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -250,17 +250,17 @@ Use the `size` prop with the value `medium` to increase the breadcrumb's size fo
 <Breadcrumb size="medium">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -276,17 +276,17 @@ Set the `size` prop to `large` to make the breadcrumb navigation more prominent.
 <Breadcrumb size="large">
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon library="fa" name="home" ariaLabel="home icon" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon library="fa" name="folder" ariaLabel="category icon" /> Category
     </a>
   </li>
   <li className="is-active">
     <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <Icon library="fa" name="file" ariaLabel="item icon" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -308,7 +308,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li>
     <a href="#">
       <Icon
-        name="fas fa-home"
+        library="fa"
+        name="home"
         textColor="primary"
         size="small"
         ariaLabel="home icon"
@@ -319,7 +320,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li>
     <a href="#">
       <Icon
-        name="fas fa-folder"
+        library="fa"
+        name="folder"
         textColor="info"
         size="small"
         ariaLabel="category icon"
@@ -330,7 +332,8 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
   <li className="is-active">
     <a href="#">
       <Icon
-        name="fas fa-file"
+        library="fa"
+        name="file"
         textColor="success"
         size="small"
         ariaLabel="item icon"

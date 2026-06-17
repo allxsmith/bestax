@@ -8,6 +8,18 @@ sidebar_position: 7
 
 Bulma provides a collection of additional utility helpers that solve common CSS challenges and provide convenient styling shortcuts. These miscellaneous helpers are essential for fine-tuning layouts and addressing specific design requirements.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useOtherClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
+:::info Reference
+
+This page documents the bestax-bulma prop API for Bulma's other helpers. For the underlying CSS utilities, see the [official Bulma other helpers](https://bulma.io/documentation/helpers/other-helpers/).
+
+:::
+
 :::tip
 
 Many of these helpers are available as direct props through the `useBulmaClasses` hook in bestax-bulma, providing a clean and type-safe way to apply these utility styles to any component in the library.
@@ -559,10 +571,10 @@ function InteractionExamples() {
               color="white"
               p="3"
               interaction="clickable"
-              interaction="unselectable"
+              textTransform="uppercase"
               onClick={() => alert('Also clicked!')}
             >
-              This box is both clickable and unselectable
+              This box is clickable with uppercase text
             </Box>
 
             <Box backgroundColor="light" p="3">
@@ -576,6 +588,65 @@ function InteractionExamples() {
 }
 ```
 
+## Cursor
+
+The `cursor` prop sets the mouse cursor style. `cursor="pointer"` reuses Bulma's built-in `is-clickable` class; `cursor="help"` uses bestax's project-level `is-cursor-help` class to indicate a help/tooltip affordance.
+
+| Property           | Bulma Class      | CSS Property      |
+| ------------------ | ---------------- | ----------------- |
+| `cursor="pointer"` | `is-clickable`   | `cursor: pointer` |
+| `cursor="help"`    | `is-cursor-help` | `cursor: help`    |
+
+### Cursor Examples
+
+```tsx live
+import { Box } from '@allxsmith/bestax-bulma';
+
+function CursorExamples() {
+  return (
+    <Box p="4">
+      <Box
+        cursor="pointer"
+        backgroundColor="primary"
+        color="white"
+        p="3"
+        mb="3"
+      >
+        Cursor: pointer (is-clickable)
+      </Box>
+      <Box cursor="help" backgroundColor="info" color="white" p="3">
+        Cursor: help (is-cursor-help)
+      </Box>
+    </Box>
+  );
+}
+```
+
+## Responsive
+
+The `responsive` prop applies Bulma's always-on responsive modifiers. These are primarily useful on layout components like `Navbar` and `Columns` that have viewport-dependent default behavior.
+
+| Property              | Bulma Class | Typical Use                                              |
+| --------------------- | ----------- | -------------------------------------------------------- |
+| `responsive="mobile"` | `is-mobile` | Force mobile layout at all viewports (e.g. on `Columns`) |
+| `responsive="narrow"` | `is-narrow` | Shrink a column to fit its content                       |
+
+## Full Height
+
+The `fullHeight` prop applies `height: 100%`, useful for making a child fill its positioned parent.
+
+| Property            | Bulma Class      | CSS Property   |
+| ------------------- | ---------------- | -------------- |
+| `fullHeight={true}` | `is-full-height` | `height: 100%` |
+
+## Skeleton
+
+The `skeleton` prop toggles Bulma's skeleton loading state on a component. See the [skeleton examples in the useBulmaClasses API reference](/docs/api/helpers/usebulmaclasses#skeleton-examples) for per-component usage.
+
+| Property          | Bulma Class   | Effect                  |
+| ----------------- | ------------- | ----------------------- |
+| `skeleton={true}` | `is-skeleton` | Skeleton loading effect |
+
 ## Position Relative
 
 The position relative helper applies `position: relative` to an element, which is essential for creating positioning contexts for absolutely positioned children.
@@ -588,7 +659,7 @@ The position relative helper applies `position: relative` to an element, which i
 
 ### Position Relative Examples
 
-````tsx
+```tsx
 import { Box, Content, Card, Title } from '@allxsmith/bestax-bulma';
 
 function PositionRelativeExamples() {
@@ -610,9 +681,7 @@ function PositionRelativeExamples() {
             p="4"
             style={{ height: '200px', border: '2px dashed #ccc' }}
           >
-            <Content>
-              This container has position: relative
-            </Content>
+            <Content>This container has position: relative</Content>
             <Box
               style={{
                 position: 'absolute',
@@ -632,6 +701,7 @@ function PositionRelativeExamples() {
     </Box>
   );
 }
+```
 
 ## Combined Usage Example
 
@@ -717,7 +787,7 @@ function CombinedHelpersExample() {
     </Box>
   );
 }
-````
+```
 
 ## Best Practices
 

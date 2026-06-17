@@ -25,17 +25,20 @@ import { Pagination } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop           | Type                                                                                      | Default | Description                                         |
-| -------------- | ----------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                                      | —       | Size modifier.                                      |
-| `align`        | `'centered'` \| `'right'`                                                                 | —       | Alignment for the pagination.                       |
-| `rounded`      | `boolean`                                                                                 | `false` | Renders pagination with rounded corners.            |
-| `total`        | `number`                                                                                  | —       | Total number of pages (for custom implementations). |
-| `current`      | `number`                                                                                  | —       | Current page (for controlled implementations).      |
-| `onPageChange` | `(page: number) => void`                                                                  | —       | Callback when a page is selected.                   |
-| `className`    | `string`                                                                                  | —       | Additional CSS classes.                             |
-| `children`     | `React.ReactNode`                                                                         | —       | Custom pagination content (usually subcomponents).  |
-| ...            | All standard HTML and Bulma helper props (see [Helper Props](../helpers/usebulmaclasses)) |         | Utility and accessibility props.                    |
+| Prop           | Type                                                                                                                                                                                                                                                                                     | Default | Description                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                                     | —       | Size modifier.                                      |
+| `align`        | `'centered'` \| `'right'`                                                                                                                                                                                                                                                                | —       | Alignment for the pagination.                       |
+| `rounded`      | `boolean`                                                                                                                                                                                                                                                                                | `false` | Renders pagination with rounded corners.            |
+| `total`        | `number`                                                                                                                                                                                                                                                                                 | —       | Total number of pages (for custom implementations). |
+| `current`      | `number`                                                                                                                                                                                                                                                                                 | —       | Current page (for controlled implementations).      |
+| `onPageChange` | `(page: number) => void`                                                                                                                                                                                                                                                                 | —       | Callback when a page is selected.                   |
+| `className`    | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                             |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'`                                                                                                                                                       | —       | Color modifier for the pagination.                  |
+| `textColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                  |
+| `bgColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                            |
+| `children`     | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Custom pagination content (usually subcomponents).  |
+| ...            | All standard HTML and Bulma helper props (see [Helper Props](../helpers/usebulmaclasses))                                                                                                                                                                                                |         | Utility and accessibility props.                    |
 
 **Subcomponents:**
 
@@ -75,14 +78,14 @@ Showcases the use of the `size` prop to render paginations in different sizes. S
 
 ```tsx live
 <>
-  <Pagination size="small" style={{ marginBottom: 8 }}>
+  <Pagination size="small" mb="2">
     <Pagination.List>
       <Pagination.Link>1</Pagination.Link>
       <Pagination.Link active>2</Pagination.Link>
       <Pagination.Link>3</Pagination.Link>
     </Pagination.List>
   </Pagination>
-  <Pagination size="medium" style={{ marginBottom: 8 }}>
+  <Pagination size="medium" mb="2">
     <Pagination.List>
       <Pagination.Link>1</Pagination.Link>
       <Pagination.Link active>2</Pagination.Link>
@@ -107,7 +110,7 @@ Demonstrates the `align` prop to control the pagination alignment. Use `align="c
 
 ```tsx live
 <>
-  <Pagination align="centered" style={{ marginBottom: 8 }}>
+  <Pagination align="centered" mb="2">
     <Pagination.List>
       <Pagination.Link>1</Pagination.Link>
       <Pagination.Link active>2</Pagination.Link>
@@ -167,22 +170,39 @@ This example shows how to use the `disabled` prop on `Pagination.Link` to indica
 This example demonstrates a controlled pagination pattern using the `page` state and the `onClick` handler on each `Pagination.Link`. The current page is tracked in state, and clicking a link updates the page. Use this approach for paginations where you need to manage the current page in your app logic.
 
 ```tsx live
-const [page, setPage] = useState(1);
-<Pagination>
-  <Pagination.List>
-    <Pagination.Link disabled={page === 1} onClick={() => setPage(page - 1)}>
-      &laquo;
-    </Pagination.Link>
-    {[1, 2, 3, 4, 5].map(i => (
-      <Pagination.Link key={i} active={i === page} onClick={() => setPage(i)}>
-        {i}
-      </Pagination.Link>
-    ))}
-    <Pagination.Ellipsis />
-    <Pagination.Link onClick={() => setPage(page + 1)}>&raquo;</Pagination.Link>
-  </Pagination.List>
-  <div style={{ marginTop: 8 }}>Current page: {page}</div>
-</Pagination>;
+function example() {
+  const [page, setPage] = useState(1);
+  return (
+    <>
+      <Pagination>
+        <Pagination.Previous
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </Pagination.Previous>
+        <Pagination.Next
+          disabled={page === 5}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </Pagination.Next>
+        <Pagination.List>
+          {[1, 2, 3, 4, 5].map(i => (
+            <Pagination.Link
+              key={i}
+              active={i === page}
+              onClick={() => setPage(i)}
+            >
+              {i}
+            </Pagination.Link>
+          ))}
+        </Pagination.List>
+      </Pagination>
+      <Paragraph mt="2">Current page: {page}</Paragraph>
+    </>
+  );
+}
 ```
 
 ---

@@ -184,7 +184,7 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
     <Notification>Cell 1</Notification>
   </Cell>
   <Cell rowSpan={2}>
-    <Notification color="primary" style={{ height: '100%' }}>
+    <Notification color="primary" fullHeight>
       Cell 2
     </Notification>
   </Cell>

@@ -1,0 +1,32 @@
+// Bestax No Dark Mode - Combined Bulma + Extras, light theme only
+//
+// Usage (pre-built CSS):
+//   import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';
+//
+// Includes only the light theme, reducing CSS bundle size
+
+// Configure utilities (primary override) before themes load it transitively
+@use "bulma/sass/utilities" with ($primary: #1e6b99);
+@use "bulma/sass/themes/light";
+@use "bulma/sass/themes/setup";
+@use '../variables';
+@use '../mixins';
+@use '../components/index' as components;
+@use '../form/index' as form;
+@use '../elements/index' as elements;
+@use '../helpers/index' as helpers;
+
+@forward "bulma/sass/utilities";
+@forward "bulma/sass/base";
+@forward "bulma/sass/elements";
+@forward "bulma/sass/form";
+@forward "bulma/sass/components";
+@forward "bulma/sass/grid";
+@forward "bulma/sass/layout";
+@forward "bulma/sass/base/skeleton";
+@forward "bulma/sass/helpers";
+
+:root {
+  @include light.light-theme;
+  @include setup.setup-theme;
+}

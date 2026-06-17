@@ -181,6 +181,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 
 ## Related Components
 
+- [`Sidebar`](./sidebar.md): For slide-out navigation panels using Menu.
 - [`Panel`](./panel.md): For alternate sidebar/navigation layouts.
 - [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
 

@@ -45,7 +45,12 @@ export interface CardProps
   children?: React.ReactNode;
 }
 
-// Always wrap each footer item in .card-footer-item
+/**
+ * Wrap each footer item in a `.card-footer-item` span.
+ * @param {CardProps['footer']} footer - Footer content (single node or array).
+ * @param {string | undefined} classPrefix - Bulma class prefix.
+ * @returns {React.ReactNode[] | null} Wrapped footer items, or null if no footer.
+ */
 const renderFooter = (
   footer: CardProps['footer'],
   classPrefix: string | undefined
@@ -62,7 +67,11 @@ const renderFooter = (
   ));
 };
 
-// Check if children contain any Card compound components
+/**
+ * Check if children contain any Card compound sub-components.
+ * @param {React.ReactNode} children - The children to inspect.
+ * @returns {boolean} True if any child is a Card compound component.
+ */
 const hasCompoundComponents = (children: React.ReactNode): boolean => {
   return React.Children.toArray(children).some(child => {
     if (!React.isValidElement(child)) return false;
@@ -200,43 +209,95 @@ const CardComponent: React.FC<CardProps> = ({
 };
 
 // Compound components for flexible composition
+
+/**
+ * Props for the Card.Header compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Header content. Wrap in Card.Header.Title for Bulma styling.
+ * @property {boolean} [centered] - Whether to center the header title text.
+ */
 export interface CardHeaderProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
   children?: React.ReactNode;
   centered?: boolean;
 }
 
+/**
+ * Props for the Card.Image compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Image content (e.g. a `<figure>` with an `<img>`).
+ */
 export interface CardImageProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the Card.Content compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Card body content.
+ */
 export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the Card.Footer compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Footer content, typically Card.FooterItem elements.
+ */
 export interface CardFooterProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the Card.FooterItem compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Footer item content (link, button, text, etc.).
+ */
 export interface CardFooterItemProps extends React.HTMLAttributes<HTMLSpanElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the Card.Header.Title compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Title text content.
+ * @property {boolean} [centered] - Whether to center the title text.
+ */
 export interface CardHeaderTitleProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
   centered?: boolean;
 }
 
+/**
+ * Props for the Card.Header.Icon compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Icon content (e.g. an icon element).
+ */
 export interface CardHeaderIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Card header compound component. Wraps children in a `.card-header` element.
+ *
+ * @function
+ * @param {CardHeaderProps} props - Props for the CardHeader component.
+ * @returns {JSX.Element} The rendered card header.
+ */
 const CardHeader: React.FC<CardHeaderProps> = ({
   className,
   children,
@@ -275,6 +336,13 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   );
 };
 
+/**
+ * Card header title compound component. Renders a `.card-header-title` element.
+ *
+ * @function
+ * @param {CardHeaderTitleProps} props - Props for the CardHeaderTitle component.
+ * @returns {JSX.Element} The rendered card header title.
+ */
 const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   className,
   children,
@@ -294,6 +362,13 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   </div>
 );
 
+/**
+ * Card header icon compound component. Renders a `.card-header-icon` button.
+ *
+ * @function
+ * @param {CardHeaderIconProps} props - Props for the CardHeaderIcon component.
+ * @returns {JSX.Element} The rendered card header icon button.
+ */
 const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   className,
   children,
@@ -308,6 +383,13 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   </button>
 );
 
+/**
+ * Card image compound component. Wraps children in a `.card-image` element.
+ *
+ * @function
+ * @param {CardImageProps} props - Props for the CardImage component.
+ * @returns {JSX.Element} The rendered card image container.
+ */
 const CardImage: React.FC<CardImageProps> = ({
   className,
   children,
@@ -321,6 +403,13 @@ const CardImage: React.FC<CardImageProps> = ({
   </div>
 );
 
+/**
+ * Card content compound component. Wraps children in a `.card-content` element.
+ *
+ * @function
+ * @param {CardContentProps} props - Props for the CardContent component.
+ * @returns {JSX.Element} The rendered card content container.
+ */
 const CardContent: React.FC<CardContentProps> = ({
   className,
   children,
@@ -334,6 +423,13 @@ const CardContent: React.FC<CardContentProps> = ({
   </div>
 );
 
+/**
+ * Card footer compound component. Wraps children in a `.card-footer` element.
+ *
+ * @function
+ * @param {CardFooterProps} props - Props for the CardFooter component.
+ * @returns {JSX.Element} The rendered card footer.
+ */
 const CardFooter: React.FC<CardFooterProps> = ({
   className,
   children,
@@ -347,6 +443,13 @@ const CardFooter: React.FC<CardFooterProps> = ({
   </footer>
 );
 
+/**
+ * Card footer item compound component. Wraps children in a `.card-footer-item` span.
+ *
+ * @function
+ * @param {CardFooterItemProps} props - Props for the CardFooterItem component.
+ * @returns {JSX.Element} The rendered card footer item.
+ */
 const CardFooterItem: React.FC<CardFooterItemProps> = ({
   className,
   children,
@@ -360,7 +463,7 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   </span>
 );
 
-// Create a type that extends the Card component with compound components
+/** Card component type with Header, Image, Content, Footer, and FooterItem sub-components. */
 type CardWithCompounds = typeof CardComponent & {
   Header: typeof CardHeader & {
     Title: typeof CardHeaderTitle;
@@ -392,5 +495,5 @@ CardWithSubComponents.FooterItem = CardFooterItem;
 // Export the compound component
 export { CardWithSubComponents as Card };
 
-// Only for test coverage
+/** Internal test-only exports. Not part of the public API. */
 export const __test_exports__ = { renderFooter };

@@ -1,99 +1,167 @@
 import React, { forwardRef } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { usePrefixedClassNames } from '../helpers/classNames';
+import { Field, FieldProps } from './Field';
+import { Control, ControlBaseProps } from './Control';
+import { InputBase, InputBaseProps } from './InputBase';
+import { useInsideField, useInsideControl } from './FormContext';
 
 /**
  * Props for the Input component.
  *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the input.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the input.
- * @property {boolean} [isRounded] - Renders the input with rounded corners.
- * @property {boolean} [isStatic] - Renders the input as static text.
- * @property {boolean} [isHovered] - Applies the hovered state.
- * @property {boolean} [isFocused] - Applies the focused state.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the input is disabled.
- * @property {boolean} [readOnly] - Whether the input is read-only.
+ * Composes Field, Control, and Input into a single convenience component.
+ * Supports all Input props, plus Field-level (label, horizontal) and
+ * Control-level (icons, loading) props.
+ *
+ * @property {React.ReactNode} [label] - Field label.
+ * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
+ * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
+ * @property {boolean} [horizontal] - Horizontal field layout.
+ * @property {ControlBaseProps['iconLeft']} [iconLeft] - Icon props for left icon.
+ * @property {ControlBaseProps['iconRight']} [iconRight] - Icon props for right icon.
+ * @property {string} [iconLeftName] - Shortcut for left icon name.
+ * @property {string} [iconRightName] - Shortcut for right icon name.
+ * @property {ControlBaseProps['iconLeftSize']} [iconLeftSize] - Shortcut for left icon size.
+ * @property {ControlBaseProps['iconRightSize']} [iconRightSize] - Shortcut for right icon size.
+ * @property {boolean} [hasIconsLeft] - Force left icon container.
+ * @property {boolean} [hasIconsRight] - Force right icon container.
+ * @property {boolean} [isLoading] - Show loading indicator on the control.
+ * @property {boolean} [isExpanded] - Expand the control.
+ * @property {'small'|'medium'|'large'} [controlSize] - Control size.
+ * @property {React.ReactNode} [message] - Help/validation message below the input.
+ * @property {string} [messageColor] - Bulma color for the message.
+ * @property {string} [fieldClassName] - Additional CSS classes for the Field.
+ * @property {string} [controlClassName] - Additional CSS classes for the Control.
  */
-export interface InputProps
-  extends
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
-    Omit<BulmaClassesProps, 'color'> {
-  color?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger'
-    | 'black'
-    | 'dark'
-    | 'light'
-    | 'white';
-  size?: 'small' | 'medium' | 'large';
-  isRounded?: boolean;
-  isStatic?: boolean;
-  isHovered?: boolean;
-  isFocused?: boolean;
+export interface InputProps extends InputBaseProps {
+  label?: React.ReactNode;
+  labelSize?: FieldProps['labelSize'];
+  labelProps?: FieldProps['labelProps'];
+  horizontal?: boolean;
+  iconLeft?: ControlBaseProps['iconLeft'];
+  iconRight?: ControlBaseProps['iconRight'];
+  iconLeftName?: string;
+  iconRightName?: string;
+  iconLeftSize?: ControlBaseProps['iconLeftSize'];
+  iconRightSize?: ControlBaseProps['iconRightSize'];
+  hasIconsLeft?: boolean;
+  hasIconsRight?: boolean;
   isLoading?: boolean;
-  className?: string;
-  disabled?: boolean;
-  readOnly?: boolean;
+  isExpanded?: boolean;
+  controlSize?: ControlBaseProps['size'];
+  message?: React.ReactNode;
+  messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  fieldClassName?: string;
+  controlClassName?: string;
 }
 
 /**
- * Bulma Input component with full Bulma helper class support.
+ * Input is a convenience component that composes Field, Control, and Input.
+ *
+ * Use this for typical form fields. For complex layouts (grouped fields,
+ * addons, etc.), compose Field, Control, and Input directly.
  *
  * @function
- * @param {InputProps} props - Props for the Input component.
- * @returns {JSX.Element} The rendered input element.
- * @see {@link https://bulma.io/documentation/form/input/ | Bulma Input documentation}
+ * @param {InputProps} props - Props for Input.
+ * @returns {JSX.Element} The composed field element.
+ *
+ * @example
+ * <Input label="Username" placeholder="Enter username" iconLeftName="user" />
+ *
+ * @example
+ * <Input
+ *   label="Email"
+ *   type="email"
+ *   message="Please enter a valid email"
+ *   messageColor="danger"
+ *   color="danger"
+ * />
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
-      color,
-      size,
-      isRounded,
-      isStatic,
-      isHovered,
-      isFocused,
+      // Field props
+      label,
+      labelSize,
+      labelProps,
+      horizontal,
+      // Control props
+      iconLeft,
+      iconRight,
+      iconLeftName,
+      iconRightName,
+      iconLeftSize,
+      iconRightSize,
+      hasIconsLeft,
+      hasIconsRight,
       isLoading,
-      className,
-      disabled,
-      readOnly,
-      ...props
+      isExpanded,
+      controlSize,
+      // Message props
+      message,
+      messageColor,
+      // Container class overrides
+      fieldClassName,
+      controlClassName,
+      // Everything else goes to Input
+      ...inputProps
     },
     ref
   ) => {
-    const { bulmaHelperClasses, rest } = useBulmaClasses({
-      color,
-      ...props,
+    const insideField = useInsideField();
+    const insideControl = useInsideControl();
+    const helpClass = usePrefixedClassNames('help', {
+      [`is-${messageColor}`]: !!messageColor,
     });
 
-    const mainClass = usePrefixedClassNames('input', {
-      [`is-${color}`]: !!color,
-      [`is-${size}`]: !!size,
-      'is-rounded': isRounded,
-      'is-static': isStatic,
-      'is-hovered': isHovered,
-      'is-focused': isFocused,
-      'is-loading': isLoading,
-    });
-    const inputClass = classNames(mainClass, bulmaHelperClasses, className);
+    let content = <InputBase ref={ref} {...inputProps} />;
+
+    if (!insideControl) {
+      content = (
+        <Control
+          iconLeft={iconLeft}
+          iconRight={iconRight}
+          iconLeftName={iconLeftName}
+          iconRightName={iconRightName}
+          iconLeftSize={iconLeftSize}
+          iconRightSize={iconRightSize}
+          hasIconsLeft={hasIconsLeft}
+          hasIconsRight={hasIconsRight}
+          isLoading={isLoading}
+          isExpanded={isExpanded}
+          size={controlSize}
+          className={controlClassName}
+        >
+          {content}
+        </Control>
+      );
+    }
+
+    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+
+    if (!insideField) {
+      return (
+        <Field
+          label={label}
+          labelSize={labelSize}
+          labelProps={labelProps}
+          horizontal={horizontal}
+          className={fieldClassName}
+        >
+          {content}
+          {messageEl}
+        </Field>
+      );
+    }
 
     return (
-      <input
-        ref={ref}
-        className={inputClass}
-        disabled={disabled}
-        readOnly={readOnly}
-        {...rest}
-      />
+      <>
+        {content}
+        {messageEl}
+      </>
     );
   }
 );
+
 Input.displayName = 'Input';
 
 export default Input;

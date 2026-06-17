@@ -148,15 +148,17 @@ Renders the message body section.
 ```tsx live
 <Message color="info">
   <Message.Header>
-    <p>Compound Component Message</p>
-    <button className="delete" aria-label="delete" />
+    <Paragraph>Compound Component Message</Paragraph>
+    <Delete aria-label="delete" />
   </Message.Header>
   <Message.Body>
-    <p>
+    <Paragraph>
       This message is built using compound components for maximum flexibility
       and control over each section.
-    </p>
-    <p>You can include multiple paragraphs and elements in the body.</p>
+    </Paragraph>
+    <Paragraph>
+      You can include multiple paragraphs and elements in the body.
+    </Paragraph>
   </Message.Body>
 </Message>
 ```
@@ -166,7 +168,9 @@ Renders the message body section.
 ```tsx live
 <Message color="success">
   <Message.Body>
-    <p>A simple message using only the Message.Body compound component.</p>
+    <Paragraph>
+      A simple message using only the Message.Body compound component.
+    </Paragraph>
   </Message.Body>
 </Message>
 ```
@@ -176,8 +180,8 @@ Renders the message body section.
 ```tsx live
 <Message color="warning">
   <Message.Header>
-    <p>Header-only message</p>
-    <button className="delete" aria-label="delete" />
+    <Paragraph>Header-only message</Paragraph>
+    <Delete aria-label="delete" />
   </Message.Header>
 </Message>
 ```
@@ -188,11 +192,13 @@ You can combine the traditional prop-based API with compound components:
 
 ```tsx live
 <Message color="danger" title="Mixed Approach">
-  <Message.Body className="has-background-light">
-    <p>You can mix prop-based and compound component approaches!</p>
-    <p>
+  <Message.Body bgColor="light">
+    <Paragraph>
+      You can mix prop-based and compound component approaches!
+    </Paragraph>
+    <Paragraph>
       This message uses the title prop but compound components for the body.
-    </p>
+    </Paragraph>
   </Message.Body>
 </Message>
 ```

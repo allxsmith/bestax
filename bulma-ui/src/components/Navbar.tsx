@@ -51,6 +51,7 @@ export interface NavbarProps
 export const Navbar: React.FC<NavbarProps> & {
   Brand: typeof NavbarBrand;
   Item: typeof NavbarItem;
+  Link: typeof NavbarLink;
   Burger: typeof NavbarBurger;
   Menu: typeof NavbarMenu;
   Start: typeof NavbarStart;
@@ -400,6 +401,69 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
 };
 
 /**
+ * Props for the NavbarLink component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ElementType} [as] - Render as a custom component (default: 'a').
+ * @property {boolean} [arrowless] - Remove the dropdown arrow indicator.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
+ * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
+ * @property {React.ReactNode} [children] - Link content.
+ */
+export interface NavbarLinkProps
+  extends
+    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  className?: string;
+  as?: React.ElementType;
+  arrowless?: boolean;
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  children?: React.ReactNode;
+}
+
+/**
+ * Bulma Navbar link — the dropdown trigger inside a `Navbar.Dropdown`.
+ *
+ * Renders with the `navbar-link` class, which adds a dropdown arrow indicator
+ * automatically. Use `arrowless` to remove the arrow.
+ *
+ * @function
+ * @param {NavbarLinkProps} props - Props for the NavbarLink component.
+ * @returns {JSX.Element} The rendered navbar link.
+ */
+export const NavbarLink: React.FC<NavbarLinkProps> = ({
+  className,
+  as: Component = 'a',
+  arrowless,
+  textColor,
+  bgColor,
+  children,
+  ...props
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor,
+    backgroundColor: bgColor,
+    ...props,
+  });
+
+  return (
+    <Component
+      className={classNames(
+        usePrefixedClassNames('navbar-link', {
+          'is-arrowless': arrowless,
+        }),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </Component>
+  );
+};
+
+/**
  * Props for the NavbarDropdown component.
  *
  * @property {string} [className] - Additional CSS classes.
@@ -437,8 +501,8 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
   <div
     className={classNames(
       usePrefixedClassNames('navbar-item', 'has-dropdown', {
+        'has-dropdown-up': up,
         'is-right': right,
-        'is-up': up,
         'is-hoverable': hoverable,
         'is-active': active,
       }),
@@ -496,7 +560,8 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
 /**
  * Bulma Navbar divider.
  *
- * @param props - Standard hr props.
+ * @function
+ * @param {React.HTMLAttributes<HTMLHRElement>} props - Standard hr props.
  * @returns {JSX.Element} The rendered divider.
  */
 export const NavbarDivider: React.FC<
@@ -508,6 +573,7 @@ export const NavbarDivider: React.FC<
 // Attach subcomponents
 Navbar.Brand = NavbarBrand;
 Navbar.Item = NavbarItem;
+Navbar.Link = NavbarLink;
 Navbar.Burger = NavbarBurger;
 Navbar.Menu = NavbarMenu;
 Navbar.Start = NavbarStart;

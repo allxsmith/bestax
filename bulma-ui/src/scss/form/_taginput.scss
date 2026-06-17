@@ -1,0 +1,356 @@
+// Taginput Component Styles
+// A tag input control for managing multiple tags with autocomplete
+// Follows Bulma v1 CSS variable convention (see _switch.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Taginput-specific SCSS variables
+$taginput-height: auto !default;
+$taginput-min-height: 2.5em !default;
+$taginput-padding: 0.375rem 0.5rem !default;
+$taginput-border-color: cv.getVar("border") !default;
+$taginput-border-radius: cv.getVar("radius") !default;
+$taginput-background: cv.getVar("scheme-main") !default;
+$taginput-tag-gap: 0.25rem !default;
+$taginput-dropdown-max-height: 200px !default;
+$taginput-transition-duration: cv.getVar("duration") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}taginput {
+  @include cv.register-vars(
+    (
+      "taginput-height": #{$taginput-height},
+      "taginput-min-height": #{$taginput-min-height},
+      "taginput-padding": #{$taginput-padding},
+      "taginput-border-color": #{$taginput-border-color},
+      "taginput-border-radius": #{$taginput-border-radius},
+      "taginput-background": #{$taginput-background},
+      "taginput-tag-gap": #{$taginput-tag-gap},
+      "taginput-dropdown-max-height": #{$taginput-dropdown-max-height},
+      "taginput-transition-duration": #{$taginput-transition-duration},
+    )
+  );
+}
+
+// Main taginput wrapper
+.#{iv.$class-prefix}taginput {
+  position: relative;
+  width: 100%;
+
+  // Container for tags and input
+  .#{iv.$class-prefix}taginput-container {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    height: cv.getVar("taginput-height");
+    min-height: cv.getVar("taginput-min-height");
+    padding: cv.getVar("taginput-padding");
+    border: 1px solid cv.getVar("taginput-border-color");
+    border-radius: cv.getVar("taginput-border-radius");
+    background-color: cv.getVar("taginput-background");
+    cursor: text;
+    transition-property: border-color, box-shadow;
+    transition-duration: cv.getVar("taginput-transition-duration");
+    transition-timing-function: ease;
+
+    &:hover {
+      border-color: cv.getVar("border-hover");
+    }
+
+    &:focus-within {
+      border-color: hsl(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"));
+      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"), cv.getVar("input-focus-shadow-alpha"));
+    }
+
+    &.#{iv.$class-prefix}is-attached {
+      .#{iv.$class-prefix}tags {
+        gap: 0;
+
+        .#{iv.$class-prefix}tag {
+          margin-right: 0;
+          border-radius: 0;
+
+          &:first-child {
+            border-top-left-radius: cv.getVar("taginput-border-radius");
+            border-bottom-left-radius: cv.getVar("taginput-border-radius");
+          }
+
+          &:last-of-type {
+            border-top-right-radius: cv.getVar("taginput-border-radius");
+            border-bottom-right-radius: cv.getVar("taginput-border-radius");
+          }
+        }
+      }
+    }
+
+    // Loading spinner icon
+    > .#{iv.$class-prefix}icon.#{iv.$class-prefix}is-right {
+      position: absolute;
+      right: 0.625em;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    // Left icon support
+    &.#{iv.$class-prefix}has-icons-left {
+      > .#{iv.$class-prefix}tags {
+        padding-left: 2em;
+      }
+
+      > .#{iv.$class-prefix}icon.#{iv.$class-prefix}is-left {
+        position: absolute;
+        left: 0.625em;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        z-index: 4;
+        color: cv.getVar("text-weak");
+      }
+    }
+  }
+
+  // Tags wrapper
+  .#{iv.$class-prefix}tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: cv.getVar("taginput-tag-gap");
+    margin: 0;
+    flex-grow: 1;
+
+    .#{iv.$class-prefix}tag {
+      margin-bottom: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: cv.getVar("taginput-tag-gap");
+
+      .#{iv.$class-prefix}delete {
+        margin-left: 0.25rem;
+        margin-right: -0.25rem;
+      }
+    }
+  }
+
+  // Input field
+  .#{iv.$class-prefix}input {
+    flex: 1 1 auto;
+    min-width: 80px;
+    width: auto;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    height: auto;
+    background: transparent;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      color: cv.getVar("text-weak");
+    }
+  }
+
+  // Dropdown menu
+  .#{iv.$class-prefix}dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: none;
+    padding-top: 4px;
+
+    &.#{iv.$class-prefix}is-active {
+      display: block;
+    }
+  }
+
+  // Dropdown content
+  .#{iv.$class-prefix}dropdown-content {
+    background-color: cv.getVar("taginput-background");
+    border-radius: cv.getVar("taginput-border-radius");
+    box-shadow: cv.getVar("shadow");
+    padding-bottom: 0.5rem;
+    padding-top: 0.5rem;
+    max-height: cv.getVar("taginput-dropdown-max-height");
+    overflow-y: auto;
+  }
+
+  // Dropdown items
+  .#{iv.$class-prefix}dropdown-item {
+    display: block;
+    padding: 0.375rem 1rem;
+    color: cv.getVar("text");
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+      background-color: cv.getVar("scheme-main-bis");
+      color: cv.getVar("text-strong");
+    }
+
+    &.#{iv.$class-prefix}is-active {
+      background-color: cv.getVar("scheme-main-bis");
+      color: cv.getVar("text-strong");
+    }
+  }
+
+  // Counter display
+  .#{iv.$class-prefix}help.#{iv.$class-prefix}counter {
+    float: right;
+    margin-left: auto;
+  }
+
+  // Rounded modifier — makes tags rounded
+  &.#{iv.$class-prefix}is-rounded {
+    .#{iv.$class-prefix}tag {
+      border-radius: cv.getVar("radius-rounded");
+    }
+  }
+
+  // Ellipsis modifier — truncate long tag text
+  &.#{iv.$class-prefix}is-ellipsis {
+    .#{iv.$class-prefix}tag {
+      max-width: 10em;
+
+      > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// Size variants
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-small {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 2em;
+    padding: 0.25rem 0.375rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-small");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-small");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-small");
+    padding: 0.25rem 0.75rem;
+  }
+}
+
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-medium {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 3em;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-medium");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-medium");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-medium");
+    padding: 0.5rem 1.25rem;
+  }
+}
+
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-large {
+  .#{iv.$class-prefix}taginput-container {
+    min-height: 3.5em;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .#{iv.$class-prefix}input {
+    font-size: cv.getVar("size-large");
+  }
+
+  .#{iv.$class-prefix}tag {
+    font-size: cv.getVar("size-large");
+  }
+
+  .#{iv.$class-prefix}dropdown-item {
+    font-size: cv.getVar("size-large");
+    padding: 0.625rem 1.5rem;
+  }
+}
+
+// Disabled state
+.#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-disabled {
+  .#{iv.$class-prefix}taginput-container {
+    background-color: cv.getVar("scheme-main-bis");
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: cv.getVar("taginput-border-color");
+    }
+  }
+
+  .#{iv.$class-prefix}tag {
+    opacity: 0.7;
+  }
+
+  .#{iv.$class-prefix}input {
+    cursor: not-allowed;
+  }
+}
+
+// Color variants (for input focus state)
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-#{$name} {
+    .#{iv.$class-prefix}taginput-container:focus-within {
+      border-color: cv.getVar($name);
+      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("#{$name}-h"), cv.getVar("#{$name}-s"), cv.getVar("#{$name}-l"), cv.getVar("input-focus-shadow-alpha"));
+    }
+  }
+}
+
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}taginput {
+    .#{iv.$class-prefix}taginput-container {
+      border-color: ButtonText;
+
+      &:focus-within {
+        border-color: Highlight;
+      }
+    }
+
+    .#{iv.$class-prefix}tag {
+      border: 1px solid ButtonText;
+    }
+
+    &.#{iv.$class-prefix}is-disabled {
+      .#{iv.$class-prefix}taginput-container {
+        border-color: GrayText;
+      }
+
+      .#{iv.$class-prefix}tag {
+        border-color: GrayText;
+      }
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}taginput {
+    .#{iv.$class-prefix}taginput-container {
+      transition: none;
+    }
+  }
+}

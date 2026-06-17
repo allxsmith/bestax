@@ -101,6 +101,10 @@ export interface HeroHeadProps
 
 /**
  * Bulma Hero head section.
+ *
+ * @function
+ * @param {HeroHeadProps} props - Props for the HeroHead component.
+ * @returns {JSX.Element} The rendered hero head.
  */
 export const HeroHead: React.FC<HeroHeadProps> = ({
   className,
@@ -146,6 +150,10 @@ export interface HeroBodyProps
 
 /**
  * Bulma Hero body section.
+ *
+ * @function
+ * @param {HeroBodyProps} props - Props for the HeroBody component.
+ * @returns {JSX.Element} The rendered hero body.
  */
 export const HeroBody: React.FC<HeroBodyProps> = ({
   className,
@@ -191,6 +199,10 @@ export interface HeroFootProps
 
 /**
  * Bulma Hero foot section.
+ *
+ * @function
+ * @param {HeroFootProps} props - Props for the HeroFoot component.
+ * @returns {JSX.Element} The rendered hero foot.
  */
 export const HeroFoot: React.FC<HeroFootProps> = ({
   className,

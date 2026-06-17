@@ -5,6 +5,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
+/** Valid Bulma color values for table cells. */
 export const validTableColors = [
   'primary',
   'link',

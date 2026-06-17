@@ -1,0 +1,22 @@
+// Bestax No Helpers, Prefixed - Combined Bulma + Extras with "bestax-" prefix, no helpers
+//
+// Usage (pre-built CSS):
+//   import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';
+//
+// Excludes helper classes and prefixes all CSS classes with "bestax-"
+
+@use "bulma/sass/utilities" with ($class-prefix: "bestax-", $primary: #1e6b99);
+@forward "bulma/sass/themes";
+@forward "bulma/sass/base";
+@forward "bulma/sass/elements";
+@forward "bulma/sass/form";
+@forward "bulma/sass/components";
+@forward "bulma/sass/grid";
+@forward "bulma/sass/layout";
+@forward "bulma/sass/base/skeleton";
+
+@use '../variables';
+@use '../mixins';
+@use '../components/index' as components;
+@use '../form/index' as form;
+@use '../elements/index' as elements;

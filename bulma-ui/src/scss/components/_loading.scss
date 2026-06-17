@@ -1,0 +1,231 @@
+// Loading Component Styles
+// A loading overlay with spinner animation
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../variables' as *;
+@use '../mixins' as *;
+
+// Loading-specific SCSS variables
+$loading-overlay-background: cv.getVar("scheme-main") !default;
+$loading-overlay-opacity: 0.7 !default;
+$loading-overlay-fullpage-opacity: 0.8 !default;
+$loading-overlay-opacity-light: 0.4 !default;
+$loading-overlay-opacity-dark: 0.85 !default;
+$loading-overlay-opacity-opaque: 1 !default;
+$loading-icon-size: 4.5em !default;
+$loading-icon-size-small: 3em !default;
+$loading-icon-size-medium: 6em !default;
+$loading-icon-size-large: 7.5em !default;
+$loading-icon-border-width: 0.25em !default;
+$loading-icon-border-width-small: 0.2em !default;
+$loading-icon-border-width-medium: 0.3em !default;
+$loading-icon-border-width-large: 0.375em !default;
+$loading-icon-spin-color: cv.getVar("grey-light") !default;
+$loading-text-color: cv.getVar("text") !default;
+$loading-text-size: cv.getVar("size-normal") !default;
+$loading-content-gap: 1rem !default;
+$loading-cancel-color: cv.getVar("text-light") !default;
+$loading-cancel-border-color: cv.getVar("border") !default;
+$loading-cancel-background: cv.getVar("scheme-main") !default;
+$loading-cancel-hover-color: cv.getVar("text") !default;
+$loading-cancel-hover-border-color: cv.getVar("text-light") !default;
+$loading-cancel-radius: cv.getVar("radius") !default;
+$loading-cancel-size: cv.getVar("size-small") !default;
+$loading-animation-duration: 0.75s !default;
+
+// Register CSS variables
+.#{iv.$class-prefix}loading {
+  @include cv.register-vars(
+    (
+      "loading-overlay-background": #{$loading-overlay-background},
+      "loading-overlay-opacity": #{$loading-overlay-opacity},
+      "loading-overlay-fullpage-opacity": #{$loading-overlay-fullpage-opacity},
+      "loading-overlay-opacity-light": #{$loading-overlay-opacity-light},
+      "loading-overlay-opacity-dark": #{$loading-overlay-opacity-dark},
+      "loading-overlay-opacity-opaque": #{$loading-overlay-opacity-opaque},
+      "loading-icon-size": #{$loading-icon-size},
+      "loading-icon-size-small": #{$loading-icon-size-small},
+      "loading-icon-size-medium": #{$loading-icon-size-medium},
+      "loading-icon-size-large": #{$loading-icon-size-large},
+      "loading-icon-border-width": #{$loading-icon-border-width},
+      "loading-icon-border-width-small": #{$loading-icon-border-width-small},
+      "loading-icon-border-width-medium": #{$loading-icon-border-width-medium},
+      "loading-icon-border-width-large": #{$loading-icon-border-width-large},
+      "loading-icon-spin-color": #{$loading-icon-spin-color},
+      "loading-text-color": #{$loading-text-color},
+      "loading-text-size": #{$loading-text-size},
+      "loading-content-gap": #{$loading-content-gap},
+      "loading-cancel-color": #{$loading-cancel-color},
+      "loading-cancel-border-color": #{$loading-cancel-border-color},
+      "loading-cancel-background": #{$loading-cancel-background},
+      "loading-cancel-hover-color": #{$loading-cancel-hover-color},
+      "loading-cancel-hover-border-color": #{$loading-cancel-hover-border-color},
+      "loading-cancel-radius": #{$loading-cancel-radius},
+      "loading-cancel-size": #{$loading-cancel-size},
+      "loading-animation-duration": #{$loading-animation-duration},
+    )
+  );
+}
+
+// Main loading container
+.#{iv.$class-prefix}loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: $extras-z-index-modal;
+
+  &.#{iv.$class-prefix}is-active {
+    display: flex;
+  }
+
+  &.#{iv.$class-prefix}is-full-page {
+    position: fixed;
+    z-index: $extras-z-index-modal + 10;
+  }
+
+  &.#{iv.$class-prefix}is-cancelable {
+    .#{iv.$class-prefix}loading-overlay {
+      cursor: pointer;
+    }
+  }
+}
+
+// Overlay backdrop
+.#{iv.$class-prefix}loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: cv.getVar("loading-overlay-background");
+  opacity: cv.getVar("loading-overlay-opacity");
+
+  .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-full-page & {
+    opacity: cv.getVar("loading-overlay-fullpage-opacity");
+  }
+}
+
+// Content wrapper
+.#{iv.$class-prefix}loading-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: cv.getVar("loading-content-gap");
+  z-index: 1;
+}
+
+// Spinner icon — 82.5% arc via conic-gradient, ring via radial mask
+.#{iv.$class-prefix}loading-icon {
+  display: inline-block;
+  width: cv.getVar("loading-icon-size");
+  height: cv.getVar("loading-icon-size");
+  border-radius: 50%;
+  background: conic-gradient(
+    #{cv.getVar("loading-icon-spin-color")} 0deg,
+    #{cv.getVar("loading-icon-spin-color")} 297deg,
+    transparent 297deg
+  );
+  -webkit-mask: radial-gradient(
+    circle farthest-side,
+    transparent calc(100% - #{cv.getVar("loading-icon-border-width")}),
+    black calc(100% - #{cv.getVar("loading-icon-border-width")})
+  );
+  mask: radial-gradient(
+    circle farthest-side,
+    transparent calc(100% - #{cv.getVar("loading-icon-border-width")}),
+    black calc(100% - #{cv.getVar("loading-icon-border-width")})
+  );
+  animation: extras-spin cv.getVar("loading-animation-duration") infinite linear;
+
+  &.#{iv.$class-prefix}is-small {
+    width: cv.getVar("loading-icon-size-small");
+    height: cv.getVar("loading-icon-size-small");
+    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-small}));
+  }
+
+  &.#{iv.$class-prefix}is-medium {
+    width: cv.getVar("loading-icon-size-medium");
+    height: cv.getVar("loading-icon-size-medium");
+    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-medium}));
+  }
+
+  &.#{iv.$class-prefix}is-large {
+    width: cv.getVar("loading-icon-size-large");
+    height: cv.getVar("loading-icon-size-large");
+    @include cv.register-vars(("loading-icon-border-width": #{$loading-icon-border-width-large}));
+  }
+}
+
+// Custom icon container — spins user-provided static content
+.#{iv.$class-prefix}loading-icon-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: extras-spin cv.getVar("loading-animation-duration") infinite linear;
+}
+
+// Loading text
+.#{iv.$class-prefix}loading-text {
+  font-size: cv.getVar("loading-text-size");
+  color: cv.getVar("loading-text-color");
+  text-align: center;
+  white-space: nowrap;
+}
+
+// Cancel button
+.#{iv.$class-prefix}loading-cancel {
+  @include extras-button-reset;
+  padding: 0.5em 1em;
+  font-size: cv.getVar("loading-cancel-size");
+  color: cv.getVar("loading-cancel-color");
+  border: 1px solid cv.getVar("loading-cancel-border-color");
+  border-radius: cv.getVar("loading-cancel-radius");
+  background-color: cv.getVar("loading-cancel-background");
+  @include extras-transition(border-color, color);
+
+  &:hover {
+    border-color: cv.getVar("loading-cancel-hover-border-color");
+    color: cv.getVar("loading-cancel-hover-color");
+  }
+
+  &:focus {
+    @include extras-focus-outline;
+  }
+}
+
+// Overlay opacity variants
+@each $name in light, dark, opaque {
+  .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "loading-overlay-opacity": #{cv.getVar("loading-overlay-opacity-#{$name}")},
+      )
+    );
+  }
+}
+
+// Color variants — override spinner color
+@each $name in primary, link, info, success, warning, danger {
+  .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "loading-icon-spin-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}loading-icon,
+  .#{iv.$class-prefix}loading-icon-custom {
+    animation: none;
+  }
+}

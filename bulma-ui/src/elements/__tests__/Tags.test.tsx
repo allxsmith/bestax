@@ -107,7 +107,7 @@ describe('Tags Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Tags hasAddons isMultiline m="2">
             <span>Tag 1</span>
@@ -116,7 +116,7 @@ describe('Tags Component', () => {
         </ConfigProvider>
       );
 
-      const tags = container.querySelector('div');
+      const tags = screen.getByText('Tag 1').parentElement;
       expect(tags).toHaveClass('bulma-tags');
       expect(tags).toHaveClass('bulma-has-addons');
       expect(tags).toHaveClass('bulma-are-multiline');
@@ -124,13 +124,13 @@ describe('Tags Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Tags hasAddons p="3">
           <span>Standard Tag</span>
         </Tags>
       );
 
-      const tags = container.querySelector('div');
+      const tags = screen.getByText('Standard Tag').parentElement;
       expect(tags).toHaveClass('tags');
       expect(tags).toHaveClass('has-addons');
       expect(tags).toHaveClass('p-3');

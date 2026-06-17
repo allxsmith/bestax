@@ -213,7 +213,7 @@ describe('Title Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Title size="2" isSpaced m="2">
             Test Title
@@ -221,7 +221,10 @@ describe('Title Component', () => {
         </ConfigProvider>
       );
 
-      const title = container.querySelector('h2');
+      const title = screen.getByRole('heading', {
+        name: 'Test Title',
+        level: 2,
+      });
       expect(title).toHaveClass('bulma-title');
       expect(title).toHaveClass('bulma-is-2');
       expect(title).toHaveClass('bulma-is-spaced');
@@ -229,13 +232,16 @@ describe('Title Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Title size="3" isSpaced p="3">
           Standard Title
         </Title>
       );
 
-      const title = container.querySelector('h3');
+      const title = screen.getByRole('heading', {
+        name: 'Standard Title',
+        level: 3,
+      });
       expect(title).toHaveClass('title');
       expect(title).toHaveClass('is-3');
       expect(title).toHaveClass('is-spaced');

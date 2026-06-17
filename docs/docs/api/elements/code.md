@@ -98,14 +98,14 @@ Add background color and padding for visibility.
 Display code in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Code textColor="primary">primary code</Code>
   <Code textColor="link">link code</Code>
   <Code textColor="info">info code</Code>
   <Code textColor="success">success code</Code>
   <Code textColor="warning">warning code</Code>
   <Code textColor="danger">danger code</Code>
-</div>
+</Block>
 ```
 
 ### File Path

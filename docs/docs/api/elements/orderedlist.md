@@ -40,16 +40,22 @@ import { OrderedList, ListItem } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+:::info Wrap Lists in Content for Traditional Styling
+Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets, numbers). Wrap your lists in `<Content>` to get the expected typographic list appearance.
+:::
+
 ### Default List
 
 The default usage of the `OrderedList` component with numbered items.
 
 ```tsx live
-<OrderedList>
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList>
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Alphabetic Lowercase
@@ -57,11 +63,13 @@ The default usage of the `OrderedList` component with numbered items.
 Use `type="a"` for lowercase alphabetic numbering.
 
 ```tsx live
-<OrderedList type="a">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList type="a">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Alphabetic Uppercase
@@ -69,11 +77,13 @@ Use `type="a"` for lowercase alphabetic numbering.
 Use `type="A"` for uppercase alphabetic numbering.
 
 ```tsx live
-<OrderedList type="A">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList type="A">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Roman Numerals
@@ -81,11 +91,13 @@ Use `type="A"` for uppercase alphabetic numbering.
 Use `type="I"` for uppercase Roman numerals or `type="i"` for lowercase.
 
 ```tsx live
-<OrderedList type="I">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList type="I">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Custom Starting Number
@@ -93,11 +105,13 @@ Use `type="I"` for uppercase Roman numerals or `type="i"` for lowercase.
 Use the `start` prop to begin numbering from a specific value.
 
 ```tsx live
-<OrderedList start={5}>
-  <ListItem>Fifth item</ListItem>
-  <ListItem>Sixth item</ListItem>
-  <ListItem>Seventh item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList start={5}>
+    <ListItem>Fifth item</ListItem>
+    <ListItem>Sixth item</ListItem>
+    <ListItem>Seventh item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Reversed Order
@@ -105,11 +119,13 @@ Use the `start` prop to begin numbering from a specific value.
 Use the `reversed` prop to count down instead of up.
 
 ```tsx live
-<OrderedList reversed>
-  <ListItem>Third item (shown as 3)</ListItem>
-  <ListItem>Second item (shown as 2)</ListItem>
-  <ListItem>First item (shown as 1)</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList reversed>
+    <ListItem>Third item (shown as 3)</ListItem>
+    <ListItem>Second item (shown as 2)</ListItem>
+    <ListItem>First item (shown as 1)</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Colored List
@@ -117,11 +133,13 @@ Use the `reversed` prop to count down instead of up.
 Apply text color to all list items.
 
 ```tsx live
-<OrderedList textColor="primary">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList textColor="primary">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ### Nested Lists
@@ -129,17 +147,19 @@ Apply text color to all list items.
 Create nested ordered lists with different numbering types.
 
 ```tsx live
-<OrderedList>
-  <ListItem>First item</ListItem>
-  <ListItem>
-    Second item with nested list
-    <OrderedList type="a">
-      <ListItem>Nested item a</ListItem>
-      <ListItem>Nested item b</ListItem>
-    </OrderedList>
-  </ListItem>
-  <ListItem>Third item</ListItem>
-</OrderedList>
+<Content>
+  <OrderedList>
+    <ListItem>First item</ListItem>
+    <ListItem>
+      Second item with nested list
+      <OrderedList type="a">
+        <ListItem>Nested item a</ListItem>
+        <ListItem>Nested item b</ListItem>
+      </OrderedList>
+    </ListItem>
+    <ListItem>Third item</ListItem>
+  </OrderedList>
+</Content>
 ```
 
 ---

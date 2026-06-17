@@ -549,10 +549,16 @@ const bulmaCssVars = [
   '--bulma-section-padding-large',
 ] as const;
 
+/** A single Bulma CSS variable key from the `bulmaCssVars` tuple. */
 type BulmaVarKey = (typeof bulmaCssVars)[number];
+/** A partial record mapping Bulma CSS variable keys to string values. */
 type BulmaVars = Partial<Record<BulmaVarKey, string>>;
 
-// Utility: Convert Bulma CSS var to camelCase prop name (e.g., --bulma-primary-h -> primaryH)
+/**
+ * Convert a Bulma CSS variable name to a camelCase prop name.
+ * @param {string} varName - CSS variable name (e.g., '--bulma-primary-h').
+ * @returns {string} The camelCase prop name (e.g., 'primaryH').
+ */
 function cssVarToProp(varName: string): string {
   return varName
     .replace(/^--bulma-/, '')
@@ -563,12 +569,55 @@ function cssVarToProp(varName: string): string {
     .join('');
 }
 
-// Generate prop names and mapping
+/** Mapping of camelCase prop names to their Bulma CSS variable counterparts. */
 const bulmaVarPropMap = Object.fromEntries(
   bulmaCssVars.map(cssVar => [cssVarToProp(cssVar), cssVar])
 ) as Record<string, string>;
 
-// Explicitly define the props interface to avoid index signature conflicts
+/**
+ * Props for the Theme component.
+ *
+ * @property {React.ReactNode} children - Content to render inside the theme scope.
+ * @property {string} [className] - Additional CSS classes (only when isRoot is false).
+ * @property {boolean} [isRoot] - Inject CSS variables globally at :root level. Default: false.
+ * @property {BulmaVars} [bulmaVars] - Object mapping Bulma CSS variable names to values.
+ * @property {string} [schemeH] - Scheme hue value.
+ * @property {string} [schemeS] - Scheme saturation value.
+ * @property {string} [lightL] - Light theme lightness value.
+ * @property {string} [lightInvertL] - Light theme inverted lightness value.
+ * @property {string} [darkL] - Dark theme lightness value.
+ * @property {string} [darkInvertL] - Dark theme inverted lightness value.
+ * @property {string} [softL] - Soft lightness value.
+ * @property {string} [boldL] - Bold lightness value.
+ * @property {string} [softInvertL] - Soft inverted lightness value.
+ * @property {string} [boldInvertL] - Bold inverted lightness value.
+ * @property {string} [hoverBackgroundLDelta] - Background lightness delta on hover.
+ * @property {string} [activeBackgroundLDelta] - Background lightness delta on active.
+ * @property {string} [hoverBorderLDelta] - Border lightness delta on hover.
+ * @property {string} [activeBorderLDelta] - Border lightness delta on active.
+ * @property {string} [hoverColorLDelta] - Text color lightness delta on hover.
+ * @property {string} [activeColorLDelta] - Text color lightness delta on active.
+ * @property {string} [hoverShadowADelta] - Shadow alpha delta on hover.
+ * @property {string} [activeShadowADelta] - Shadow alpha delta on active.
+ * @property {string} [primaryH] - Primary color hue.
+ * @property {string} [primaryS] - Primary color saturation.
+ * @property {string} [primaryL] - Primary color lightness.
+ * @property {string} [linkH] - Link color hue.
+ * @property {string} [linkS] - Link color saturation.
+ * @property {string} [linkL] - Link color lightness.
+ * @property {string} [infoH] - Info color hue.
+ * @property {string} [infoS] - Info color saturation.
+ * @property {string} [infoL] - Info color lightness.
+ * @property {string} [successH] - Success color hue.
+ * @property {string} [successS] - Success color saturation.
+ * @property {string} [successL] - Success color lightness.
+ * @property {string} [warningH] - Warning color hue.
+ * @property {string} [warningS] - Warning color saturation.
+ * @property {string} [warningL] - Warning color lightness.
+ * @property {string} [dangerH] - Danger color hue.
+ * @property {string} [dangerS] - Danger color saturation.
+ * @property {string} [dangerL] - Danger color lightness.
+ */
 export interface ThemeProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
@@ -619,12 +668,20 @@ export interface ThemeProps extends Omit<
 }
 
 /**
- * Theme injects Bulma CSS variables as a wrapper component.
- * - className: Additional CSS classes to apply to the wrapper div (when isRoot=false)
- * - bulmaVars: An object mapping Bulma CSS variable names to values.
- * - isRoot: If true, CSS variables are injected globally at :root level. If false (default), they're injected locally on a wrapping div.
- * - Individual props for each Bulma CSS variable (e.g., primaryH, schemeH, etc.)
- * - Supports all BulmaClassesProps for additional styling when isRoot=false
+ * Theme component that injects Bulma CSS variables either globally or locally.
+ *
+ * When `isRoot` is true, variables are injected at `:root`. Otherwise, a wrapping
+ * `<div>` scopes the variables to its children.
+ *
+ * @function
+ * @param {ThemeProps} props - Props for the Theme component.
+ * @returns {JSX.Element} The theme wrapper or fragment.
+ *
+ * @example
+ * // Local theme scope
+ * <Theme primaryH="171" primaryS="100%" primaryL="41%">
+ *   <Button color="primary">Themed</Button>
+ * </Theme>
  */
 export const Theme: React.FC<ThemeProps> = ({
   bulmaVars = {},

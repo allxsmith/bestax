@@ -913,6 +913,31 @@ describe('useBulmaClasses', () => {
     });
   });
 
+  // FULL HEIGHT HELPER
+  describe('fullHeight helper', () => {
+    it('applies is-full-height class when fullHeight is true', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        fullHeight: true,
+      });
+      expect(bulmaHelperClasses).toBe('is-full-height');
+    });
+
+    it('does not apply is-full-height when fullHeight is false', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        fullHeight: false,
+      });
+      expect(bulmaHelperClasses).toBe('');
+    });
+
+    it('applies is-full-height with class prefix', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses(
+        { fullHeight: true },
+        'bulma-'
+      );
+      expect(bulmaHelperClasses).toBe('bulma-is-full-height');
+    });
+  });
+
   describe('Viewport-specific text size properties', () => {
     it('applies mobile text size class', () => {
       const { bulmaHelperClasses } = renderUseBulmaClasses({
@@ -1253,6 +1278,42 @@ describe('useBulmaClasses', () => {
     });
   });
 
+  // Cursor helper tests
+  describe('Cursor helper', () => {
+    it('applies is-clickable class for cursor pointer', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'pointer',
+      });
+      expect(bulmaHelperClasses).toBe('is-clickable');
+    });
+
+    it('applies is-cursor-help class for cursor help', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'help',
+      });
+      expect(bulmaHelperClasses).toBe('is-cursor-help');
+    });
+
+    it('applies cursor with class prefix', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses(
+        { cursor: 'help' },
+        'bulma-'
+      );
+      expect(bulmaHelperClasses).toBe('bulma-is-cursor-help');
+    });
+
+    it('applies cursor with other helpers', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'pointer',
+        color: 'primary',
+        p: '3',
+      });
+      expect(bulmaHelperClasses.split(' ')).toEqual(
+        expect.arrayContaining(['has-text-primary', 'p-3', 'is-clickable'])
+      );
+    });
+  });
+
   // Flexbox item properties tests
   describe('Flexbox item properties', () => {
     it('applies alignSelf class without requiring display flex', () => {
@@ -1302,6 +1363,22 @@ describe('useBulmaClasses', () => {
       expect(bulmaHelperClasses).toContain('is-flex-grow-1');
       expect(bulmaHelperClasses).not.toContain('is-justify-content-center');
       expect(bulmaHelperClasses).not.toContain('is-align-items-center');
+    });
+  });
+
+  describe('Branch coverage gaps', () => {
+    it('ignores invalid visibility (covers else-if false branch)', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        visibility: 'bogus' as any,
+      });
+      expect(bulmaHelperClasses).toBe('');
+    });
+
+    it('ignores invalid cursor (covers else-if false branch)', () => {
+      const { bulmaHelperClasses } = renderUseBulmaClasses({
+        cursor: 'wait' as any,
+      });
+      expect(bulmaHelperClasses).toBe('');
     });
   });
 });

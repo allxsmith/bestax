@@ -6,58 +6,60 @@ sidebar_position: 1
 
 # Quick Start
 
-Get **bestax-bulma** running in under 2 minutes with this quick start guide.
+## Create a Bestax App
 
-:::tip
-For detailed installation options, framework-specific guides, or troubleshooting, check out our [comprehensive guides](/docs/guides/getting-started/installation).
+The fastest way to get started. The scaffolder sets up a Vite + React project with bestax-bulma and CSS pre-configured:
+
+```bash
+npm create bestax@latest my-bestax-app
+cd my-bestax-app
+npm install
+npm run dev
+```
+
+:::info CSS is included automatically
+The scaffolder configures `bestax.css` for you — a single stylesheet that includes both Bulma and all bestax extras. No manual CSS setup needed.
+:::
+
+That's it! Visit http://localhost:5173 to see your app. Skip ahead to [Next Steps](#next-steps), or keep reading to add bestax to an existing project.
+
+---
+
+## Add to an Existing Project
+
+### Install Dependencies
+
+```bash
+npm install @allxsmith/bestax-bulma
+```
+
+### Add Bestax CSS
+
+Import the combined stylesheet in your application entry point (e.g. `main.jsx`, `main.tsx`, `index.js`):
+
+```js
+import '@allxsmith/bestax-bulma/bestax.css';
+```
+
+This single import includes both Bulma base styles and all bestax extras.
+
+:::tip Already using Bulma?
+If you already import Bulma CSS separately, you can keep that and just add the extras:
+
+```js
+import 'bulma/css/bulma.min.css';
+import '@allxsmith/bestax-bulma/extras.css';
+```
+
 :::
 
 ---
 
-## 1. Create a React App
+## Use Your First Component
 
-Using Vite (recommended for quick setup):
+Replace `src/App.jsx` (or add to your existing app):
 
-```bash
-npm create vite@latest my-bestax-app -- --template react
-cd my-bestax-app
-```
-
----
-
-## 2. Install Dependencies
-
-```bash
-npm install @allxsmith/bestax-bulma bulma
-```
-
----
-
-## 3. Add Bulma CSS
-
-In your `src/main.jsx`:
-
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import 'bulma/css/bulma.min.css'; // Add this line
-import './index.css';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-```
-
----
-
-## 4. Use Your First Component
-
-Replace `src/App.jsx`:
-
-```jsx
+```jsx title="src/App.jsx"
 import { Button, Box, Title, Notification } from '@allxsmith/bestax-bulma';
 import { useState } from 'react';
 
@@ -66,7 +68,7 @@ function App() {
 
   return (
     <Box>
-      <Title>Welcome to bestax-bulma! 🎉</Title>
+      <Title>Welcome to bestax-bulma!</Title>
 
       <Button color="primary" onClick={() => setShowAlert(!showAlert)}>
         Click me!
@@ -86,119 +88,19 @@ export default App;
 
 ---
 
-## 5. Run Your App
+## Run Your App
 
 ```bash
 npm run dev
 ```
 
-**That's it!** Visit http://localhost:5173 to see your app running.
+Visit http://localhost:5173 to see your app running.
 
 ---
 
-## What's Next?
+## Next Steps
 
-Now that you have bestax-bulma running:
-
-### 📦 **Installation Options**
-
-→ [Installation Guide](/docs/guides/getting-started/installation)
-
-- Different ways to include Bulma CSS
-- Adding icon libraries (Font Awesome, Material Icons)
-- Prerequisites and browser support
-
-### 🛠️ **Toolchain Setup**
-
-→ [Toolchains](/docs/guides/getting-started/react-setups)
-
-- Next.js setup (with SSR)
-- TypeScript configuration
-- Create React App setup
-- Vite advanced configuration
-
-### 🎨 **Explore Components**
-
-→ [Browse all components](/docs/category/elements)
-
-- 60+ React components
-- Full Bulma v1 support
-- Live examples and API docs
-
----
-
-## Component Categories
-
-bestax-bulma provides a complete set of Bulma components organized into logical groups:
-
-### 🟢 [Elements](/docs/category/elements)
-
-Basic building blocks like [Button](/docs/api/elements/button), [Box](/docs/api/elements/box), [Title](/docs/api/elements/title), and [Tag](/docs/api/elements/tag).
-
-### 🟦 [Layout](/docs/category/layout)
-
-Structure your app with [Container](/docs/api/layout/container), [Section](/docs/api/layout/section), [Hero](/docs/api/layout/hero), and [Level](/docs/api/layout/level).
-
-### 🟧 [Components](/docs/category/components)
-
-Advanced UI components like [Modal](/docs/api/components/modal), [Navbar](/docs/api/components/navbar), [Card](/docs/api/components/card), and [Dropdown](/docs/api/components/dropdown).
-
-### 🟪 [Form](/docs/category/form)
-
-Complete form controls including [Input](/docs/api/form/input), [Select](/docs/api/form/select), [Checkbox](/docs/api/form/checkbox), and [Field](/docs/api/form/field).
-
-### 🟩 [Grid & Columns](/docs/category/grid)
-
-Responsive layouts with [Grid](/docs/api/grid), [Columns](/docs/api/columns), and [Cell](/docs/api/grid/cell).
-
----
-
-## Live Playground
-
-Want to experiment? Try our live examples:
-
-```tsx live
-// Try editing this code!
-function Demo() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <Box>
-      <Title size="4">Interactive Demo</Title>
-      <Buttons>
-        <Button color="primary" onClick={() => setCount(count + 1)}>
-          Clicked {count} times
-        </Button>
-        <Button color="danger" isOutlined onClick={() => setCount(0)}>
-          Reset
-        </Button>
-      </Buttons>
-    </Box>
-  );
-}
-```
-
----
-
-## Need Help?
-
-- 📚 **[Full Documentation](/docs/guides/getting-started/installation)** - Detailed setup guides
-- 🎨 **[Storybook](https://bestax.io/storybook)** - Interactive component explorer
-- 💬 **[GitHub Issues](https://github.com/allxsmith/bestax/issues)** - Report bugs or request features
-- 📦 **[NPM Package](https://www.npmjs.com/package/@allxsmith/bestax-bulma)** - Package details
-
----
-
-## Why bestax-bulma?
-
-- ✅ **Latest Bulma v1** - Full support for the newest Bulma features
-- ✅ **TypeScript Ready** - Complete type definitions included
-- ✅ **Tree Shakeable** - Only import what you need
-- ✅ **99% Test Coverage** - Reliable and stable
-- ✅ **Zero Dependencies** - Just React and Bulma CSS
-
----
-
-:::info Bulma CSS Required
-Remember that bestax-bulma components require Bulma CSS to be loaded. The components provide the React integration, while Bulma CSS provides the styling.
-:::
+- [Installation Options](/docs/guides/getting-started/installation) -- Icon libraries, CDN, custom Bulma builds, and more
+- [Extra Components](/docs/guides/library/components) -- Toast, Dialog, Slider, Switch, and other extras
+- [Toolchains](/docs/guides/getting-started/react-setups) -- Next.js, TypeScript, and Create React App guides
+- [Browse Components](/docs/category/elements) -- Full API docs and live examples

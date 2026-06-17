@@ -92,14 +92,14 @@ Apply bold text weight for emphasis.
 Display spans in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Span textColor="primary">Primary Span</Span>
   <Span textColor="link">Link Span</Span>
   <Span textColor="info">Info Span</Span>
   <Span textColor="success">Success Span</Span>
   <Span textColor="warning">Warning Span</Span>
   <Span textColor="danger">Danger Span</Span>
-</div>
+</Block>
 ```
 
 ### Inline with Text

@@ -208,10 +208,14 @@ This example demonstrates the use of the `gapSize` prop to control the space bet
 <>
   <Columns gapSize={0}>
     <Column>
-      <Notification color="primary">gapSize=0</Notification>
+      <Notification color="primary" radius="radiusless">
+        gapSize=0
+      </Notification>
     </Column>
     <Column>
-      <Notification color="primary">gapSize=0</Notification>
+      <Notification color="info" radius="radiusless">
+        gapSize=0
+      </Notification>
     </Column>
   </Columns>
   <Columns gapSize={3}>
@@ -219,7 +223,7 @@ This example demonstrates the use of the `gapSize` prop to control the space bet
       <Notification color="primary">gapSize=3</Notification>
     </Column>
     <Column>
-      <Notification color="primary">gapSize=3</Notification>
+      <Notification color="info">gapSize=3</Notification>
     </Column>
   </Columns>
   <Columns gapSizeMobile={1} gapSizeTablet={3} gapSizeDesktop={6}>
@@ -229,7 +233,7 @@ This example demonstrates the use of the `gapSize` prop to control the space bet
       </Notification>
     </Column>
     <Column>
-      <Notification color="primary">
+      <Notification color="info">
         gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
       </Notification>
     </Column>
@@ -288,16 +292,16 @@ This example demonstrates the `isNarrow` prop, which can be applied to columns t
 <Columns>
   <Column isNarrow>
     <Notification color="primary" style={{ width: 200 }}>
-      <span style={{ fontWeight: 'bold' }}>Narrow column</span>
+      <Strong>Narrow column</Strong>
       <br />
-      <span>This column is only 200px wide.</span>
+      <Span>This column is only 200px wide.</Span>
     </Notification>
   </Column>
   <Column>
     <Notification color="primary">
-      <span style={{ fontWeight: 'bold' }}>Flexible column</span>
+      <Strong>Flexible column</Strong>
       <br />
-      <span>This column will take up the remaining space available.</span>
+      <Span>This column will take up the remaining space available.</Span>
     </Notification>
   </Column>
 </Columns>
@@ -312,16 +316,24 @@ This example shows how to create columns without any gaps between them using the
 ```tsx live
 <Columns isGapless>
   <Column>
-    <Notification color="primary">1</Notification>
+    <Notification color="primary" radius="radiusless">
+      1
+    </Notification>
   </Column>
   <Column>
-    <Notification color="primary">2</Notification>
+    <Notification color="info" radius="radiusless">
+      2
+    </Notification>
   </Column>
   <Column>
-    <Notification color="primary">3</Notification>
+    <Notification color="success" radius="radiusless">
+      3
+    </Notification>
   </Column>
   <Column>
-    <Notification color="primary">4</Notification>
+    <Notification color="warning" radius="radiusless">
+      4
+    </Notification>
   </Column>
 </Columns>
 ```
@@ -335,31 +347,49 @@ This example demonstrates using the `isMultiline` and `isGapless` props together
 ```tsx live
 <Columns isGapless isMultiline isMobile>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="primary" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="info" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="success" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="warning" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="half">
-    <Notification color="primary">is-half</Notification>
+    <Notification color="danger" radius="radiusless">
+      is-half
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="link" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="dark" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column size="one-quarter">
-    <Notification color="primary">is-one-quarter</Notification>
+    <Notification color="primary" radius="radiusless">
+      is-one-quarter
+    </Notification>
   </Column>
   <Column>
-    <Notification color="primary">Auto</Notification>
+    <Notification color="info" radius="radiusless">
+      Auto
+    </Notification>
   </Column>
 </Columns>
 ```
@@ -374,37 +404,37 @@ This example demonstrates how to use the `gapSize` prop to create columns with v
 <>
   <Columns gapSize={2}>
     <Column size={3}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Side
       </Notification>
     </Column>
     <Column size={9}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Main
       </Notification>
     </Column>
   </Columns>
   <Columns gapSize={2}>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
     <Column size={4}>
-      <Notification color="primary" className="has-text-centered">
+      <Notification color="primary" textAlign="centered">
         Three columns
       </Notification>
     </Column>
   </Columns>
   <Columns gapSize={2}>
-    {Array.from({ length: 12 }).map((_, i) => (
+    {Array.from({ length: 6 }).map((_, i) => (
       <Column key={i + 1}>
-        <Notification color="primary" className="has-text-centered">
+        <Notification color="primary" textAlign="centered">
           {i + 1}
         </Notification>
       </Column>
@@ -427,7 +457,7 @@ This example shows how to set different gap sizes for different breakpoints. Thi
   gapSizeWidescreen={8}
   gapSizeFullhd={2}
 >
-  {[...Array(6)].map((_, idx) => (
+  {[...Array(3)].map((_, idx) => (
     <Column key={idx}>
       <Notification color="primary">Column</Notification>
     </Column>

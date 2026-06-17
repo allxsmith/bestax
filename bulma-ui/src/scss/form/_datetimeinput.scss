@@ -1,0 +1,191 @@
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$datetimeinput-gap: 0.75rem !default;
+$datetimeinput-time-card-background: cv.getVar('scheme-main') !default;
+$datetimeinput-time-card-border-color: cv.getVar('border') !default;
+$datetimeinput-time-card-radius: cv.getVar('radius-large') !default;
+$datetimeinput-time-card-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.18) !default;
+$datetimeinput-time-card-padding: 0.5rem 0.75rem !default;
+// Frosted scrim over the calendar while the time wheels are open. Built from
+// the scheme HSL components so it dims toward the panel background in both
+// light and dark themes (same technique as Bulma's modal background).
+$datetimeinput-time-overlay-background: hsla(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  #{cv.getVar('scheme-main-l')},
+  0.55
+) !default;
+$datetimeinput-time-overlay-blur: 3px !default;
+
+.#{iv.$class-prefix}datetimeinput {
+  @include cv.register-vars(
+    (
+      'datetimeinput-gap': #{$datetimeinput-gap},
+      'datetimeinput-time-card-background':
+        #{$datetimeinput-time-card-background},
+      'datetimeinput-time-card-border-color':
+        #{$datetimeinput-time-card-border-color},
+      'datetimeinput-time-card-radius': #{$datetimeinput-time-card-radius},
+      'datetimeinput-time-card-shadow': #{$datetimeinput-time-card-shadow},
+      'datetimeinput-time-card-padding': #{$datetimeinput-time-card-padding},
+      'datetimeinput-time-overlay-background':
+        #{$datetimeinput-time-overlay-background},
+      'datetimeinput-time-overlay-blur': #{$datetimeinput-time-overlay-blur},
+    )
+  );
+}
+
+.#{iv.$class-prefix}datetimeinput {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar('datetimeinput-gap');
+}
+
+.#{iv.$class-prefix}datetimeinput-calendar-wrap {
+  position: relative;
+}
+
+// Frosted click-catcher covering the calendar while the wheels are open; it
+// dims and blurs the calendar so the wheel card reads as the focused layer,
+// and clicking it (not the card) collapses the wheels, like the native picker.
+// The footer is a sibling of the calendar wrap, so it stays uncovered.
+.#{iv.$class-prefix}datetimeinput-time-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: cv.getVar('datetimeinput-time-overlay-background');
+  backdrop-filter: blur(cv.getVar('datetimeinput-time-overlay-blur'));
+  animation: #{iv.$class-prefix}datetimeinput-overlay-in 0.12s ease-out;
+}
+
+@keyframes #{iv.$class-prefix}datetimeinput-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// Floating wheel card — visually a small popover over the calendar, so
+// revealing the wheels never grows the panel or forces scrolling.
+.#{iv.$class-prefix}datetimeinput-time-card {
+  background-color: cv.getVar('datetimeinput-time-card-background');
+  border: 1px solid cv.getVar('datetimeinput-time-card-border-color');
+  border-radius: cv.getVar('datetimeinput-time-card-radius');
+  box-shadow: cv.getVar('datetimeinput-time-card-shadow');
+  padding: cv.getVar('datetimeinput-time-card-padding');
+  max-width: 100%;
+}
+.#{iv.$class-prefix}datetimeinput-time-card .#{iv.$class-prefix}timeinput {
+  display: block;
+}
+.#{iv.$class-prefix}datetimeinput-time-card
+  .#{iv.$class-prefix}timeinput-wheels {
+  justify-content: center;
+}
+
+// iOS-style footer: a "Time  5:07 PM" display row over a "Reset … (✓)" row.
+.#{iv.$class-prefix}datetimeinput-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+// The time row is a button: click it to reveal / hide the time wheels
+// (iOS-style). The value renders as a pill that fills with the primary color
+// while the wheels are open.
+.#{iv.$class-prefix}datetimeinput-footer-time {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.25rem;
+  font: inherit;
+  cursor: pointer;
+  border-radius: cv.getVar('radius');
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background-color: hsla(0, 0%, 50%, 0.08);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  & > span:first-child {
+    color: cv.getVar('text-weak');
+    font-size: cv.getVar('size-7');
+  }
+}
+
+.#{iv.$class-prefix}datetimeinput-footer-time-pill {
+  color: cv.getVar('primary');
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 0.15em 0.6em;
+  border-radius: 9999px;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.#{iv.$class-prefix}datetimeinput-footer-time[aria-expanded='true']
+  .#{iv.$class-prefix}datetimeinput-footer-time-pill {
+  background-color: cv.getVar('primary');
+  color: cv.getVar('primary-invert');
+}
+
+.#{iv.$class-prefix}datetimeinput-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.#{iv.$class-prefix}datetimeinput-footer-reset {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0.5rem 0.25rem;
+  font: inherit;
+  color: cv.getVar('text');
+  cursor: pointer;
+  border-radius: cv.getVar('radius');
+
+  &:hover,
+  &:focus-visible {
+    background-color: hsla(0, 0%, 50%, 0.12);
+  }
+}
+
+.#{iv.$class-prefix}datetimeinput-footer-done {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: cv.getVar('primary');
+  color: cv.getVar('primary-invert');
+  cursor: pointer;
+  box-shadow: 0 1px 3px hsla(0, 0%, 0%, 0.18);
+  transition: transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.94);
+  }
+  &:focus-visible {
+    outline: 2px solid cv.getVar('primary');
+    outline-offset: 2px;
+  }
+}

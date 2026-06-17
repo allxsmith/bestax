@@ -47,7 +47,7 @@ This example shows a standard `Section` component, which provides vertical spaci
 <Section>
   <Title>Section</Title>
   <SubTitle>
-    Divide your content into into <strong>sections</strong>. Tada!
+    Divide your content into into <Strong>sections</Strong>. Tada!
   </SubTitle>
 </Section>
 ```
@@ -62,7 +62,7 @@ Set the `size` prop to `"medium"` to increase the vertical spacing of the sectio
 <Section size="medium">
   <Title>Medium Section</Title>
   <SubTitle>
-    Divide your content into into <strong>sections</strong>. Tada! Make sure
+    Divide your content into into <Strong>sections</Strong>. Tada! Make sure
     your window is wide or you won't see a medium section.
   </SubTitle>
 </Section>
@@ -78,7 +78,7 @@ Set the `size` prop to `"large"` for even more vertical spacing. Use this for pr
 <Section size="large">
   <Title>Large Section</Title>
   <SubTitle>
-    Divide your content into into <strong>sections</strong>. Tada! Make sure
+    Divide your content into into <Strong>sections</Strong>. Tada! Make sure
     your window is wide or you won't see a large section.
   </SubTitle>
 </Section>

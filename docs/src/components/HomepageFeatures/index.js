@@ -22,8 +22,8 @@ const FeatureList = [
     description: (
       <>
         Ultra-lightweight: Only 21KB gzipped. 3-20x smaller than most React UI
-        libraries. Zero external dependencies: Clean installs, reduced bundle
-        size, and fewer security concerns.
+        libraries. Just one dependency — Bulma — shipped automatically. Clean
+        installs, reduced bundle size, and fewer security concerns.
       </>
     ),
   },

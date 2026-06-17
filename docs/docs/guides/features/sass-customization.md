@@ -6,15 +6,26 @@ sidebar_position: 3
 
 # Sass Customization
 
-Sass customization allows you to configure Bulma's design tokens at build time by setting Sass variables. This approach was the primary customization method in Bulma v0.9.4 and earlier, and remains useful for creating consistent, compiled themes.
+Sass customization is the **build-time half** of bestax's two-layer theming story. You set [Bulma's Sass variables](https://bulma.io/documentation/customize/with-sass/) once at build time to bake in defaults (brand colors, fonts, radii); then bestax's [`Theme` component](./css-variables.md) lets you adjust any of them at runtime via CSS variables. The two layers are designed to work together — Sass defines what ships, `Theme` adjusts what renders.
 
-:::tip Modern Approach
-While Sass customization is still supported and useful, consider using [CSS Variables](./css-variables.md) for runtime flexibility and dynamic theming capabilities introduced in Bulma v1.
+:::info Bulma's canonical reference
+The authoritative documentation for customizing Bulma with Sass lives on the Bulma site:
+
+- [Customize with Sass](https://bulma.io/documentation/customize/with-sass/) — end-to-end walkthrough of overriding Sass variables.
+- [List of Sass variables](https://bulma.io/documentation/customize/list-of-sass-variables/) — the full catalog of initial, derived, and component-level variables.
+- [Concepts](https://bulma.io/documentation/customize/concepts/) — how Sass variables flow into the generated CSS and CSS custom properties.
+- [Customize with Modular Sass](https://bulma.io/documentation/customize/with-modular-sass/) — importing only the parts of Bulma you need.
+
+This page focuses on wiring a Bulma Sass build into a bestax React project; refer to Bulma's docs for the variable reference and Sass semantics.
+:::
+
+:::tip Do you actually need a custom Sass build?
+If you came in through `npm create bestax@latest`, you already picked one of the prebuilt Bulma flavors shipped with this library (`bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`, etc. — see `bulma-ui/src/scss/versions/`). Those are [modular Sass builds](https://bulma.io/documentation/customize/with-modular-sass/) of Bulma. That, plus runtime overrides through `Theme`, covers most projects. Reach for a custom Sass build when you need design tokens (brand colors, typography, control sizes) baked into the CSS that ships to users.
 :::
 
 ## Overview
 
-Sass variables control the fundamental values that Bulma uses to generate its CSS. When you customize Sass variables, these values are compiled into the final CSS at build time, affecting the default appearance and the values of CSS variables.
+Sass variables feed the generated Bulma CSS — including the values of Bulma's CSS custom properties. Customize them at build time to set the **defaults** of your design system; then use the `Theme` component (or raw CSS variables) to override those defaults at runtime.
 
 ## Dependencies
 
@@ -27,84 +38,15 @@ npm install bulma
 
 ## Build Configuration
 
-### Webpack
-
-For Webpack-based projects (Create React App, custom Webpack):
-
-**package.json scripts:**
-
-```json
-{
-  "scripts": {
-    "build-bulma": "sass --load-path=node_modules src/styles/bulma-custom.scss src/styles/bulma-custom.css",
-    "watch-bulma": "npm run build-bulma -- --watch"
-  }
-}
-```
-
-**Custom Sass file (src/styles/bulma-custom.scss):**
-
-```scss
-// Set your brand colors
-$purple: #8a4d76;
-$pink: #fa7c91;
-$brown: #757763;
-$beige-light: #d0d1cd;
-$beige-lighter: #eff0eb;
-
-// Customize Bulma variables
-@use 'bulma/sass' with (
-  $family-primary: '"Nunito", sans-serif',
-  $grey-dark: $brown,
-  $grey-light: $beige-light,
-  $primary: $purple,
-  $link: $pink,
-  $control-border-width: 2px,
-  $input-shadow: none
-);
-
-// Import custom fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
-```
-
-**Import in your React app:**
-
-```tsx
-// src/index.tsx or src/App.tsx
-import './styles/bulma-custom.css';
-import { Button, Box, Title } from '@allxsmith/bestax-bulma';
-
-function App() {
-  return (
-    <Box p="4">
-      <Title>Custom Sass Theme</Title>
-      <Button color="primary">Custom Primary Button</Button>
-    </Box>
-  );
-}
-```
-
 ### Vite
 
-For Vite projects, you can directly import and process Sass:
+Vite is the default toolchain for projects scaffolded by `npm create bestax@latest`, and handles Sass out of the box once `sass` is installed:
 
-**vite.config.js:**
-
-```javascript
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        includePaths: ['node_modules'],
-      },
-    },
-  },
-});
+```bash
+npm install sass
 ```
 
-**Custom Sass file (src/styles/bulma-custom.scss):**
+**`src/styles/bulma-custom.scss`:**
 
 ```scss
 @use 'bulma/sass' with (
@@ -115,10 +57,10 @@ export default defineConfig({
 );
 ```
 
-**Import directly in React:**
+**Import directly in your entry:**
 
 ```tsx
-// src/main.tsx or src/App.tsx
+// src/main.tsx
 import './styles/bulma-custom.scss';
 import { Button, Container } from '@allxsmith/bestax-bulma';
 
@@ -186,7 +128,26 @@ export default function Home() {
 }
 ```
 
+### Webpack / Create React App
+
+Create React App is no longer actively developed — new projects should prefer Vite or Next.js. If you're maintaining an existing CRA app, you can compile a custom Sass file with a standalone `sass` CLI script and import the generated CSS:
+
+```json
+{
+  "scripts": {
+    "build-bulma": "sass --load-path=node_modules src/styles/bulma-custom.scss src/styles/bulma-custom.css",
+    "watch-bulma": "npm run build-bulma -- --watch"
+  }
+}
+```
+
+```tsx
+import './styles/bulma-custom.css';
+```
+
 ## Common Sass Variables
+
+The snippets below show the variables most projects customize. For the full catalog — initial, derived, and component-level — refer to Bulma's [List of Sass variables](https://bulma.io/documentation/customize/list-of-sass-variables/).
 
 ### Color Variables
 
@@ -292,44 +253,27 @@ export default function Home() {
 );
 ```
 
-## Legacy vs Modern Approach
+## How Sass Feeds Bulma's CSS Variables
 
-### Bulma v0.9.4 and Earlier
-
-In older versions of Bulma, Sass customization was the only way to customize the framework:
+In Bulma v1, the values you pass to `@use 'bulma/sass'` are compiled into the defaults of the CSS custom properties Bulma exposes — see Bulma's [Concepts](https://bulma.io/documentation/customize/concepts/) page for the end-to-end flow from Sass variable to generated CSS variable:
 
 ```scss
-// Old approach (still works)
-$primary: #ff6b35;
-$family-primary: 'Helvetica Neue', sans-serif;
-
-@import 'bulma/bulma.sass';
-```
-
-### Bulma v1 with CSS Variables
-
-Modern Bulma generates CSS variables from Sass variables:
-
-```scss
-// Sass variables affect the CSS variable defaults
 @use 'bulma/sass' with (
-    $primary: #ff6b35,
-    // Sets --bulma-primary-* variables
-    $family-primary: 'Helvetica Neue',
-    sans-serif
-  );
+  $primary: #ff6b35,
+  $family-primary: '"Helvetica Neue", sans-serif'
+);
 ```
-
-The generated CSS includes variables that can be overridden at runtime:
 
 ```css
 :root {
   --bulma-primary-h: 18deg;
   --bulma-primary-s: 100%;
   --bulma-primary-l: 60%;
-  --bulma-family-primary: 'Helvetica Neue', sans-serif;
+  --bulma-family-primary: '"Helvetica Neue", sans-serif';
 }
 ```
+
+Those same CSS variables can be re-addressed at runtime through bestax's [`Theme` component](./css-variables.md) — so Sass sets the baseline, `Theme` overrides as needed.
 
 ## Integration with React Components
 
@@ -461,25 +405,18 @@ Create different themes for different environments:
 );
 ```
 
-## Migration from Sass to CSS Variables
+## Pairing Sass Defaults with Runtime Overrides
 
-When migrating from pure Sass customization to CSS variables:
+A typical bestax project uses both layers together: Sass sets shipped defaults, `Theme` adjusts them per-context or per-user.
 
 ```scss
-// Before: Sass only
-$primary: #8b5cf6;
-$border-radius: 8px;
-
-// After: Sass for defaults, CSS variables for runtime
 @use 'bulma/sass' with (
   $primary: #8b5cf6,
-  // Default value
-  $radius: 8px // Default value
+  $radius: 8px
 );
 ```
 
 ```tsx
-// Runtime customization with Theme component
 <Theme
   primaryH="258"
   primaryS="90%"
@@ -490,6 +427,11 @@ $border-radius: 8px;
 </Theme>
 ```
 
-This approach provides the best of both worlds: consistent build-time defaults with runtime flexibility.
+## Further Reading
 
-For more information about modern theming approaches, see [CSS Variables](./css-variables.md) and [Theme component documentation](../../api/helpers/theme.md).
+- [CSS Variables (bestax guide)](./css-variables.md) — the runtime half of the theming story.
+- [Theme component reference](../../api/helpers/theme.md) — the full bestax React API.
+- [Bulma: Customize with Sass](https://bulma.io/documentation/customize/with-sass/) — Bulma's official Sass customization guide.
+- [Bulma: List of Sass variables](https://bulma.io/documentation/customize/list-of-sass-variables/) — the complete variable catalog.
+- [Bulma: Customize with Modular Sass](https://bulma.io/documentation/customize/with-modular-sass/) — importing only the parts of Bulma you need.
+- [Bulma: Concepts](https://bulma.io/documentation/customize/concepts/) — how Sass variables feed Bulma's CSS custom properties.

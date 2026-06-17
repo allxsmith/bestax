@@ -90,8 +90,8 @@ export default App;
   3-20x smaller than most popular React UI libraries (which range from 60-500KB+ gzipped)
 - **Supports the latest Bulma v1.x**
   Other React Bulma libraries are stuck on Bulma 0.9.4 — bestax-bulma is built for the future.
-- **Zero external dependencies**
-  Clean install, smaller bundle, fewer security concerns.
+- **Just one dependency: Bulma**
+  Every Bulma library depends on it — we ship it automatically. Clean install, smaller bundle, fewer security concerns.
 - **99% unit test coverage**
   Rigorously tested for reliability and stability.
 - **100% TypeScript**

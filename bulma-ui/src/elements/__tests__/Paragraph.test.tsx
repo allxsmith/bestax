@@ -35,17 +35,28 @@ describe('Paragraph Component', () => {
     });
   });
 
-  test('applies Bulma helper classes', () => {
-    render(
-      <Paragraph m="3" p="4" textAlign="centered" textWeight="bold">
-        Test
-      </Paragraph>
-    );
-    const paragraph = screen.getByText('Test');
-    expect(paragraph).toHaveClass('m-3', { exact: false });
-    expect(paragraph).toHaveClass('p-4', { exact: false });
-    expect(paragraph).toHaveClass('has-text-centered', { exact: false });
-    expect(paragraph).toHaveClass('has-text-weight-bold', { exact: false });
+  test('applies margin helper class', () => {
+    render(<Paragraph m="3">Test</Paragraph>);
+    expect(screen.getByText('Test')).toHaveClass('m-3', { exact: false });
+  });
+
+  test('applies padding helper class', () => {
+    render(<Paragraph p="4">Test</Paragraph>);
+    expect(screen.getByText('Test')).toHaveClass('p-4', { exact: false });
+  });
+
+  test('applies textAlign centered helper class', () => {
+    render(<Paragraph textAlign="centered">Test</Paragraph>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-centered', {
+      exact: false,
+    });
+  });
+
+  test('applies textWeight helper class', () => {
+    render(<Paragraph textWeight="bold">Test</Paragraph>);
+    expect(screen.getByText('Test')).toHaveClass('has-text-weight-bold', {
+      exact: false,
+    });
   });
 
   test('applies textSize class', () => {

@@ -70,7 +70,9 @@ Set the `minCol` prop to control the minimum width of each column in the grid. T
 <Grid minCol={4}>
   {[...Array(24)].map((_, i) => (
     <Cell key={i}>
-      <Notification color="primary">Cell {i + 1}</Notification>
+      <Notification color="primary" textSize="7">
+        Cell {i + 1}
+      </Notification>
     </Cell>
   ))}
 </Grid>

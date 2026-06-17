@@ -4,381 +4,172 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import HomepageCarousel from '@site/src/components/HomepageCarousel';
+import FormDemo from '@site/src/components/HomepageCarousel/FormDemo';
+import CategoryCards from '@site/src/components/CategoryCards';
+import GapElements from '@site/src/components/GapElements';
+import EnhancedAddons from '@site/src/components/EnhancedAddons';
+import PickerShowcase from '@site/src/components/PickerShowcase';
+import AiReady from '@site/src/components/AiReady';
 import Heading from '@theme/Heading';
+import {
+  Skeleton,
+  Grid,
+  Cell,
+  Notification,
+  Box,
+} from '@allxsmith/bestax-bulma';
 import styles from './index.module.css';
 
-// Source: docs/docs/guides/intro.md
-const categories = [
+const CELL_COLORS = ['primary', 'link', 'info', 'success', 'warning', 'danger'];
+
+const v1Slides = [
   {
-    heading: 'Elements',
-    blurb:
-      'Basic Bulma elements made available as React components for fast, consistent UIs.',
-    items: [
-      {
-        name: 'Block',
-        link: '/docs/api/elements/block',
-        desc: 'Container with margin bottom. Great for consistent spacing.',
-      },
-      {
-        name: 'Box',
-        link: '/docs/api/elements/box',
-        desc: 'Container with optional color/shadow.',
-      },
-      {
-        name: 'Button',
-        link: '/docs/api/elements/button',
-        desc: 'The most awesome button in existence.',
-      },
-      {
-        name: 'Buttons',
-        link: '/docs/api/elements/buttons',
-        desc: 'A container for grouping buttons.',
-      },
-      {
-        name: 'Content',
-        link: '/docs/api/elements/content',
-        desc: 'Container for html content, great for content from services and editors.',
-      },
-      {
-        name: 'Delete',
-        link: '/docs/api/elements/delete',
-        desc: 'Signify delete or close. Useful in tons of situations.',
-      },
-      {
-        name: 'Icon',
-        link: '/docs/api/elements/icon',
-        desc: 'Standardized icon wrapper for Bulma/Font Awesome.',
-      },
-      {
-        name: 'Image',
-        link: '/docs/api/elements/image',
-        desc: 'Container for images, fixed and responsive.',
-      },
-      {
-        name: 'Notification',
-        link: '/docs/api/elements/notification',
-        desc: 'A colored block to notify.',
-      },
-      {
-        name: 'Progress',
-        link: '/docs/api/elements/progress',
-        desc: 'A decent looking progress bar.',
-      },
-      {
-        name: 'Skeleton',
-        link: '/docs/api/elements/skeleton',
-        desc: 'Bulma-styled skeleton loader for indicating loading state.',
-      },
-      {
-        name: 'Table',
-        link: '/docs/api/elements/table',
-        desc: 'Thead, Tbody, Tfoot, Td, Th, Tr for styled tables.',
-      },
-      {
-        name: 'Tag',
-        link: '/docs/api/elements/tag',
-        desc: 'Labels with colors and sizes.',
-      },
-      {
-        name: 'Tags',
-        link: '/docs/api/elements/tags',
-        desc: 'Group tags together.',
-      },
-      {
-        name: 'Title',
-        link: '/docs/api/elements/title',
-        desc: 'A styled title.',
-      },
-      {
-        name: 'SubTitle',
-        link: '/docs/api/elements/subtitle',
-        desc: 'A styled SubTitle, goes well under a Title.',
-      },
-    ],
+    key: 'skeleton',
+    title: 'Skeleton',
+    description:
+      'Bulma-styled loading placeholders. Use the block or lines variant directly, or flip the skeleton prop on compatible components to show a loading state while real content arrives.',
+    link: '/docs/api/elements/skeleton',
+    linkLabel: 'Skeleton Docs',
+    demo: (
+      <Box style={{ maxWidth: '26rem', margin: '0 auto' }}>
+        <Skeleton variant="block" style={{ height: '7rem' }} />
+        <div className="mt-4">
+          <Skeleton variant="lines" lines={4} />
+        </div>
+      </Box>
+    ),
   },
   {
-    heading: 'Components',
-    blurb:
-      'Reusable UI widgets and navigation components for building interactive applications.',
-    items: [
-      {
-        name: 'Breadcrumb',
-        link: '/docs/api/components/breadcrumb',
-        desc: 'A breadcrumb to help users navigate.',
-      },
-      {
-        name: 'Card',
-        link: '/docs/api/components/card',
-        desc: 'Content card with header, image, content, and footer.',
-      },
-      {
-        name: 'Dropdown',
-        link: '/docs/api/components/dropdown',
-        desc: 'A dropdown menu, kinda like select, but not a select.',
-      },
-      {
-        name: 'Menu',
-        link: '/docs/api/components/menu',
-        desc: 'Vertical navigation menu with nested items.',
-      },
-      {
-        name: 'Message',
-        link: '/docs/api/components/message',
-        desc: 'Colored message blocks, great for emphasis.',
-      },
-      {
-        name: 'Modal',
-        link: '/docs/api/components/modal',
-        desc: 'A Modal or dialog box.',
-      },
-      {
-        name: 'Navbar',
-        link: '/docs/api/components/navbar',
-        desc: 'Responsive top navigation bar and items.',
-      },
-      {
-        name: 'Pagination',
-        link: '/docs/api/components/pagination',
-        desc: 'A pagination bar for navigating multiple pages of results.',
-      },
-      {
-        name: 'Panel',
-        link: '/docs/api/components/panel',
-        desc: 'Sidebar menu/panel with subcomponents (tabs, blocks, icons).',
-      },
-      {
-        name: 'Tabs/Tab',
-        link: '/docs/api/components/tabs',
-        desc: 'Tab navigation with tab list and tab item.',
-      },
-    ],
+    key: 'grid',
+    title: 'Grid',
+    description:
+      'Bulma’s modern CSS Grid as a React component. Set minCol and a gap, and the grid responsively fits as many columns as the space allows — no breakpoint math required.',
+    link: '/docs/api/grid',
+    linkLabel: 'Grid Docs',
+    demo: (
+      <Grid minCol={4} gap={1}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <Cell key={i}>
+            <Notification
+              color={CELL_COLORS[i % CELL_COLORS.length]}
+              className="has-text-centered py-3 px-2"
+            >
+              Cell {i + 1}
+            </Notification>
+          </Cell>
+        ))}
+      </Grid>
+    ),
   },
   {
-    heading: 'Form',
-    blurb:
-      'Accessible, fully styled form controls and layout, supporting all Bulma modifiers.',
-    items: [
-      {
-        name: 'Field',
-        link: '/docs/api/form/field',
-        desc: 'Form field wrapper with label and layout.',
-      },
-      {
-        name: 'Control',
-        link: '/docs/api/form/control',
-        desc: 'Form control container (handles icons, loading, etc).',
-      },
-      {
-        name: 'Input',
-        link: '/docs/api/form/input',
-        desc: 'Styled input field.',
-      },
-      {
-        name: 'Select',
-        link: '/docs/api/form/select',
-        desc: 'Styled select dropdown.',
-      },
-      { name: 'File', link: '/docs/api/form/file', desc: 'File input.' },
-      {
-        name: 'Radio & Radios',
-        link: '/docs/api/form/radio',
-        desc: 'Radio button and grouped radios.',
-      },
-      {
-        name: 'Checkbox & Checkboxes',
-        link: '/docs/api/form/checkbox',
-        desc: 'Checkbox and grouped checkboxes.',
-      },
-      {
-        name: 'TextArea',
-        link: '/docs/api/form/textarea',
-        desc: 'Styled textarea field.',
-      },
-    ],
-  },
-  {
-    heading: 'Layout',
-    blurb: 'High-level layout primitives for structuring your app and pages.',
-    items: [
-      {
-        name: 'Container',
-        link: '/docs/api/layout/container',
-        desc: 'Responsive maximum width container.',
-      },
-      {
-        name: 'Section',
-        link: '/docs/api/layout/section',
-        desc: 'Page section wrapper.',
-      },
-      {
-        name: 'Hero',
-        link: '/docs/api/layout/hero',
-        desc: 'Prominent hero banner (with Hero.Head, Hero.Body, Hero.Foot).',
-      },
-      {
-        name: 'Level',
-        link: '/docs/api/layout/level',
-        desc: 'Horizontal alignment container and items.',
-      },
-      {
-        name: 'Media',
-        link: '/docs/api/layout/media',
-        desc: 'Flexible media object for avatars/media + content.',
-      },
-      { name: 'Footer', link: '/docs/api/layout/footer', desc: 'Page footer.' },
-    ],
-  },
-  {
-    heading: 'Columns',
-    blurb:
-      'Responsive and flexible row-column layouts using Bulma’s columns system.',
-    items: [
-      {
-        name: 'Columns',
-        link: '/docs/api/columns',
-        desc: 'Row container for columns.',
-      },
-      {
-        name: 'Column',
-        link: '/docs/api/columns/column',
-        desc: 'Individual grid column.',
-      },
-    ],
-  },
-  {
-    heading: 'Grid',
-    blurb:
-      'CSS Grid support, using Bulma’s new grid utilities for advanced layouts.',
-    items: [
-      { name: 'Grid', link: '/docs/api/grid', desc: 'CSS grid container.' },
-      { name: 'Cell', link: '/docs/api/grid/cell', desc: 'CSS grid cell.' },
-    ],
-  },
-  {
-    heading: 'Helpers',
-    blurb:
-      'Little helpers for translating properties to Bulma classes, recommended for custom Bulma-powered components.',
-    items: [
-      {
-        name: 'classNames',
-        link: '/docs/api/helpers/classnames',
-        desc: 'Our internal class name generator.',
-      },
-      {
-        name: 'useBulmaClasses',
-        link: '/docs/api/helpers/usebulmaclasses',
-        desc: 'Handles the translation from property to bulma classes.',
-      },
-    ],
+    key: 'cell',
+    title: 'Cell',
+    description:
+      'Place individual grid items with precision. Span columns and rows, set explicit start positions, and build dashboard-style layouts with colSpan, rowSpan, colStart, and friends.',
+    link: '/docs/api/grid/cell',
+    linkLabel: 'Cell Docs',
+    demo: (
+      <Grid isFixed fixedCols={4} gap={1}>
+        <Cell colSpan={2}>
+          <Notification color="primary" className="py-3">
+            colSpan 2
+          </Notification>
+        </Cell>
+        <Cell>
+          <Notification color="info" className="py-3">
+            1
+          </Notification>
+        </Cell>
+        <Cell rowSpan={2}>
+          <Notification
+            color="success"
+            className="py-3"
+            style={{ height: '100%' }}
+          >
+            rowSpan 2
+          </Notification>
+        </Cell>
+        <Cell colStart={2} colSpan={2}>
+          <Notification color="warning" className="py-3">
+            colStart 2, colSpan 2
+          </Notification>
+        </Cell>
+        <Cell>
+          <Notification color="danger" className="py-3">
+            2
+          </Notification>
+        </Cell>
+        <Cell colSpan={3}>
+          <Notification color="link" className="py-3">
+            colSpan 3
+          </Notification>
+        </Cell>
+      </Grid>
+    ),
   },
 ];
 
-function V1ComponentList() {
-  return (
-    <section className={styles.v1ListSection}>
-      <div className="container">
-        <Heading as="h2" className={styles.v1ListHeading}>
-          New Features
-        </Heading>
-        <p className={styles.v1ListIntro}>
-          These are brand new components found in the latest Bulma v1, and now
-          available in Bestax-Bulma!
-        </p>
-        <div className={styles.v1List}>
-          <Heading as="h3" className={styles.v1ListComponentHeading}>
-            <Link to="/docs/api/elements/skeleton">Skeleton</Link>
-          </Heading>
-          <p>
-            The{' '}
-            <Link to="/docs/api/elements/skeleton">
-              <strong>Skeleton</strong>
-            </Link>{' '}
-            component is a Bulma-styled skeleton loader for React, designed to
-            visually indicate that content is loading. It provides block and
-            multi-line placeholder variants, and can be used as a direct
-            component or applied to compatible components using the{' '}
-            <code>skeleton</code> prop or <code>useBulmaClasses</code>.
-            Skeletons help improve perceived performance by showing a loading
-            state before real content appears.
-          </p>
-          <Heading as="h3" className={styles.v1ListComponentHeading}>
-            <Link to="/docs/api/grid">Grid &amp; Cell</Link>
-          </Heading>
-          <p>
-            The{' '}
-            <Link to="/docs/api/grid">
-              <strong>Grid</strong>
-            </Link>{' '}
-            component brings Bulma&amp;s advanced CSS Grid layout to React,
-            supporting both responsive and fixed grid modes, gap and column
-            controls, and multiple breakpoints. Use{' '}
-            <Link to="/docs/api/grid/cell">
-              <strong>Cell</strong>
-            </Link>{' '}
-            inside a{' '}
-            <Link to="/docs/api/grid">
-              <strong>Grid</strong>
-            </Link>{' '}
-            to place individual items, control their span, and manage layout at
-            a granular level. These components allow for complex, modern layouts
-            with full Bulma utility support, including color, background, and
-            spacing helpers.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Existing Features Section: h2, then h3 per category, with blurb and list
-function ComponentLibrarySections() {
-  return (
-    <section className={styles.existingFeaturesSection}>
-      <div className="container">
-        <Heading as="h2" className={styles.existingFeaturesHeading}>
-          Bulma Supported Components
-        </Heading>
-        {categories.map(cat => (
-          <div key={cat.heading} className={styles.componentCategorySection}>
-            <Heading as="h3" className={styles.categoryHeading}>
-              {cat.heading}
-            </Heading>
-            <p className={styles.categoryBlurb}>{cat.blurb}</p>
-            <ul className={styles.categoryList}>
-              {cat.items.map(item => (
-                <li key={item.name} className={styles.categoryListItem}>
-                  <Link to={item.link} className={styles.categoryLink}>
-                    <strong>{item.name}</strong>
-                  </Link>
-                  <span className={styles.categoryDesc}> – {item.desc}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
+const formSlides = [
+  {
+    key: 'autocomplete',
+    title: 'Autocomplete',
+    description:
+      'An input with filtered dropdown suggestions and full keyboard navigation. Watch it search — then hover to try it yourself.',
+    link: '/docs/api/form/autocomplete',
+    linkLabel: 'Autocomplete Docs',
+    demo: ({ active }) => <FormDemo kind="autocomplete" active={active} />,
+  },
+  {
+    key: 'switch',
+    title: 'Switch',
+    description:
+      'Toggle switches for on/off settings in every Bulma color and size, with rounded, thin, and outlined styles.',
+    link: '/docs/api/form/switch',
+    linkLabel: 'Switch Docs',
+    demo: ({ active }) => <FormDemo kind="switch" active={active} />,
+  },
+  {
+    key: 'numberinput',
+    title: 'Numberinput',
+    description:
+      'A number input with increment and decrement buttons, min/max bounds, steps, and a stepper variant.',
+    link: '/docs/api/form/numberinput',
+    linkLabel: 'Numberinput Docs',
+    demo: ({ active }) => <FormDemo kind="number" active={active} />,
+  },
+  {
+    key: 'slider',
+    title: 'Slider',
+    description:
+      'A range slider with single or dual thumbs, custom steps, tooltips, and vertical orientation.',
+    link: '/docs/api/form/slider',
+    linkLabel: 'Slider Docs',
+    demo: ({ active }) => <FormDemo kind="slider" active={active} />,
+  },
+  {
+    key: 'rate',
+    title: 'Rate',
+    description:
+      'Star ratings with half-star precision, custom icons and counts, and read-only display mode.',
+    link: '/docs/api/form/rate',
+    linkLabel: 'Rate Docs',
+    demo: ({ active }) => <FormDemo kind="rate" active={active} />,
+  },
+  {
+    key: 'taginput',
+    title: 'Taginput',
+    description:
+      'A tag and chip input with autocomplete suggestions, configurable confirm keys, and closable tags.',
+    link: '/docs/api/form/taginput',
+    linkLabel: 'Taginput Docs',
+    demo: ({ active }) => <FormDemo kind="tags" active={active} />,
+  },
+];
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
-  const [githubStars, setGithubStars] = React.useState(null);
-  const [githubForks, setGithubForks] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
-
-  React.useEffect(() => {
-    // Fetch GitHub stats
-    fetch('https://api.github.com/repos/allxsmith/bestax')
-      .then(res => res.json())
-      .then(data => {
-        setGithubStars(data.stargazers_count);
-        setGithubForks(data.forks_count);
-      })
-      .catch(() => {
-        // Silently fail if API is unavailable
-      });
-  }, []);
 
   const handleCopyNpm = () => {
     navigator.clipboard.writeText('npm install @allxsmith/bestax-bulma');
@@ -447,43 +238,23 @@ function HomepageHeader() {
           </div>
           <div className={styles.buttons}>
             <Link
-              className="button button--primary button--lg"
+              className={clsx(
+                'button button--primary button--lg',
+                styles.heroPrimaryButton
+              )}
               to="/docs/guides/intro"
             >
               Get Started
             </Link>
-            <Link
-              className="button button--secondary button--lg"
-              to="/docs/api/elements/block"
-            >
-              Components
-            </Link>
-          </div>
-          <div className={styles.githubButtonsRow}>
             <a
+              className={clsx('button button--lg', styles.heroGithubButton)}
               href="https://github.com/allxsmith/bestax"
               target="_blank"
               rel="noopener noreferrer"
-              className={styles.githubButton}
             >
               <GitHubIcon />
-              <span>Star</span>
+              <span>GitHub</span>
             </a>
-            {/* {githubStars !== null && (
-              <span className={styles.githubCountTag}>{githubStars}</span>
-            )} */}
-            <a
-              href="https://github.com/allxsmith/bestax/fork"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.githubButton}
-            >
-              <GitHubIcon />
-              <span>Fork</span>
-            </a>
-            {/* {githubForks !== null && (
-              <span className={styles.githubCountTag}>{githubForks}</span>
-            )} */}
           </div>
         </div>
       </div>
@@ -527,9 +298,27 @@ export default function Home() {
     >
       <HomepageHeader />
       <main>
+        <AiReady />
         <HomepageFeatures />
-        <V1ComponentList />
-        <ComponentLibrarySections />
+        <HomepageCarousel
+          heading="New in Bulma v1"
+          intro="Brand new components from the latest Bulma v1, available now in Bestax-Bulma — every demo below is the real component, rendered live."
+          slides={v1Slides}
+          alt
+        />
+        <CategoryCards />
+        <GapElements />
+        <EnhancedAddons />
+        <HomepageCarousel
+          heading="Advanced Form Controls"
+          intro="Form controls Bulma never shipped — autocomplete, switches, sliders, ratings, and tag inputs, all speaking fluent Bulma."
+          slides={formSlides}
+          interval={10000}
+          hasDrag={false}
+          arrow
+          slideMinHeight="280px"
+        />
+        <PickerShowcase />
         <PronunciationSection />
       </main>
     </Layout>

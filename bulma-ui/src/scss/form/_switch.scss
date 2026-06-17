@@ -1,0 +1,314 @@
+// Switch Component Styles
+// A toggle switch control for on/off states
+// Follows Bulma v1 CSS variable convention (see _checkbox.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Switch-specific SCSS variables
+$switch-width: 2.75em !default;
+$switch-height: 1.5em !default;
+$switch-padding: 0.1875em !default;
+$switch-border-width: 1px !default;
+$switch-background: cv.getVar("grey-light") !default;
+$switch-circle-color: cv.getVar("scheme-main") !default;
+$switch-circle-color-light: cv.getVar("white-ter") !default;
+$switch-active-color: cv.getVar("primary") !default;
+$switch-radius: cv.getVar("radius-rounded") !default;
+$switch-label-gap: 0.5em !default;
+$switch-transition-duration: cv.getVar("duration") !default;
+$switch-circle-shadow: 0 2px 3px rgba(10, 10, 10, 0.1) !default;
+$switch-focus-shadow: 0 0 0 0.125em rgba(0, 0, 0, 0.1) !default;
+$switch-thin-height: 0.75em !default;
+$switch-thin-circle-size: 1.25em !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}switch {
+  @include cv.register-vars(
+    (
+      "switch-width": #{$switch-width},
+      "switch-height": #{$switch-height},
+      "switch-padding": #{$switch-padding},
+      "switch-border-width": #{$switch-border-width},
+      "switch-background": #{$switch-background},
+      "switch-circle-color": #{$switch-circle-color},
+      "switch-active-color": #{$switch-active-color},
+      "switch-radius": #{$switch-radius},
+      "switch-label-gap": #{$switch-label-gap},
+      "switch-transition-duration": #{$switch-transition-duration},
+      "switch-circle-shadow": #{$switch-circle-shadow},
+      "switch-focus-shadow": #{$switch-focus-shadow},
+      "switch-thin-height": #{$switch-thin-height},
+      "switch-thin-circle-size": #{$switch-thin-circle-size},
+    )
+  );
+}
+
+// Main switch label
+.#{iv.$class-prefix}switch {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+
+  // Hidden native input
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    // Checked state
+    &:checked + .check {
+      background-color: cv.getVar("switch-active-color");
+      border-color: cv.getVar("switch-active-color");
+
+      &::before {
+        transform: translateX(
+          calc(cv.getVar("switch-width") - cv.getVar("switch-height"))
+        );
+      }
+    }
+
+    // Focus-visible state (keyboard only)
+    &:focus-visible + .check {
+      outline: 2px solid cv.getVar("switch-active-color");
+      outline-offset: 2px;
+    }
+
+    // Legacy focus state for older browsers
+    &:focus + .check {
+      box-shadow: cv.getVar("switch-focus-shadow");
+    }
+
+    // Disabled state
+    &:disabled + .check {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:disabled ~ .control-label {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  // Track (the pill-shaped background)
+  .check {
+    display: inline-block;
+    position: relative;
+    width: cv.getVar("switch-width");
+    height: cv.getVar("switch-height");
+    background-color: cv.getVar("switch-background");
+    border: cv.getVar("switch-border-width") solid transparent;
+    border-radius: cv.getVar("switch-radius");
+    flex-shrink: 0;
+    transition-property: background-color, border-color;
+    transition-duration: cv.getVar("switch-transition-duration");
+    transition-timing-function: ease;
+
+    // Circle knob
+    &::before {
+      content: "";
+      position: absolute;
+      top: cv.getVar("switch-padding");
+      left: cv.getVar("switch-padding");
+      width: calc(
+        cv.getVar("switch-height") - cv.getVar("switch-padding") * 2 -
+          cv.getVar("switch-border-width") * 2
+      );
+      height: calc(
+        cv.getVar("switch-height") - cv.getVar("switch-padding") * 2 -
+          cv.getVar("switch-border-width") * 2
+      );
+      background-color: cv.getVar("switch-circle-color");
+      border-radius: 50%;
+      box-shadow: cv.getVar("switch-circle-shadow");
+      transition-property: transform;
+      transition-duration: cv.getVar("switch-transition-duration");
+      transition-timing-function: ease;
+    }
+  }
+
+  // Label text
+  .control-label {
+    margin-left: cv.getVar("switch-label-gap");
+    line-height: cv.getVar("switch-height");
+  }
+
+  // RTL support
+  &.#{iv.$class-prefix}is-rtl {
+    flex-direction: row-reverse;
+
+    .control-label {
+      margin-left: 0;
+      margin-right: cv.getVar("switch-label-gap");
+    }
+  }
+}
+
+// Size variants
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-small {
+  font-size: cv.getVar("size-small");
+}
+
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-medium {
+  font-size: cv.getVar("size-medium");
+}
+
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-large {
+  font-size: cv.getVar("size-large");
+}
+
+// Rounded variant (already rounded by default, but explicit class for consistency)
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-rounded {
+  .check {
+    border-radius: cv.getVar("switch-radius");
+
+    &::before {
+      border-radius: 50%;
+    }
+  }
+}
+
+// Thin variant — MUI-style: colored circle, muted track
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-thin {
+  .check {
+    height: cv.getVar("switch-thin-height");
+    background-color: color-mix(
+      in srgb,
+      cv.getVar("switch-background") 50%,
+      transparent
+    );
+    border-color: transparent;
+
+    &::before {
+      top: calc(
+        (cv.getVar("switch-thin-height") - cv.getVar("switch-thin-circle-size")) /
+          2 - cv.getVar("switch-border-width")
+      );
+      width: cv.getVar("switch-thin-circle-size");
+      height: cv.getVar("switch-thin-circle-size");
+      background-color: cv.getVar("switch-background");
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  // Checked: circle becomes active color, track becomes muted active color
+  input[type="checkbox"]:checked + .check {
+    background-color: color-mix(
+      in srgb,
+      cv.getVar("switch-active-color") 50%,
+      transparent
+    );
+    border-color: transparent;
+
+    &::before {
+      background-color: cv.getVar("switch-active-color");
+      transform: translateX(
+        calc(
+          cv.getVar("switch-width") - cv.getVar("switch-thin-circle-size") -
+            cv.getVar("switch-padding") * 2
+        )
+      );
+    }
+  }
+}
+
+// Outlined variant
+.#{iv.$class-prefix}switch.#{iv.$class-prefix}is-outlined {
+  .check {
+    background-color: transparent;
+    border-color: cv.getVar("switch-background");
+
+    &::before {
+      background-color: cv.getVar("switch-background");
+    }
+  }
+
+  input[type="checkbox"]:checked + .check {
+    background-color: transparent;
+    border-color: cv.getVar("switch-active-color");
+
+    &::before {
+      background-color: cv.getVar("switch-active-color");
+    }
+  }
+}
+
+// Color variants
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "switch-active-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// Passive type variants (unchecked state color)
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name}-passive {
+    .check {
+      background-color: cv.getVar($name);
+      border-color: cv.getVar($name);
+    }
+
+    // Outlined passive: transparent background, colored border and circle
+    &.#{iv.$class-prefix}is-outlined {
+      .check {
+        background-color: transparent;
+        border-color: cv.getVar($name);
+
+        &::before {
+          background-color: cv.getVar($name);
+        }
+      }
+    }
+  }
+}
+
+// Light mode: use a soft grey circle instead of pure white
+@media (prefers-color-scheme: light) {
+  .#{iv.$class-prefix}switch {
+    @include cv.register-vars(
+      (
+        "switch-circle-color": #{$switch-circle-color-light},
+      )
+    );
+  }
+}
+
+// High Contrast Mode support
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}switch {
+    .check {
+      border-color: ButtonText;
+    }
+
+    input[type="checkbox"]:checked + .check {
+      background-color: Highlight;
+      border-color: Highlight;
+    }
+
+    input[type="checkbox"]:focus-visible + .check {
+      outline-color: Highlight;
+    }
+
+    input[type="checkbox"]:disabled + .check {
+      border-color: GrayText;
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}switch {
+    .check,
+    .check::before {
+      transition: none;
+    }
+  }
+}

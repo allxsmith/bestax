@@ -87,14 +87,14 @@ Emphasis works naturally inline within paragraphs.
 Display emphasized text in all Bulma theme colors.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+<Block display="flex" flexDirection="column" gap="2">
   <Emphasis textColor="primary">Primary emphasis</Emphasis>
   <Emphasis textColor="link">Link emphasis</Emphasis>
   <Emphasis textColor="info">Info emphasis</Emphasis>
   <Emphasis textColor="success">Success emphasis</Emphasis>
   <Emphasis textColor="warning">Warning emphasis</Emphasis>
   <Emphasis textColor="danger">Danger emphasis</Emphasis>
-</div>
+</Block>
 ```
 
 ### Quotation Style

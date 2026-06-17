@@ -180,11 +180,9 @@ This example demonstrates using the `fullheightWithNavbar` prop to create a hero
         </Navbar.Start>
         <Navbar.End>
           <Navbar.Item as="span">
-            <div className="buttons">
-              <Button color="primary" isInverted as="a">
-                Github
-              </Button>
-            </div>
+            <Button color="primary" isInverted as="a" mx="2">
+              Github
+            </Button>
           </Navbar.Item>
         </Navbar.End>
       </Navbar.Menu>
@@ -213,17 +211,9 @@ This example shows a comprehensive usage of the `Hero` component with all its su
       <Container>
         <Navbar.Brand>
           <Navbar.Item as="a">
-            <img
-              src="https://bulma.io/assets/images/bulma-type-white.png"
-              alt="Logo"
-            />
+            <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
           </Navbar.Item>
-          <span className="navbar-burger" data-target="navbarMenuHeroA">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-          </span>
+          <Navbar.Burger />
         </Navbar.Brand>
         <Navbar.Menu id="navbarMenuHeroA">
           <Navbar.End>
@@ -233,14 +223,14 @@ This example shows a comprehensive usage of the `Hero` component with all its su
             <Navbar.Item as="a">APIs</Navbar.Item>
             <Navbar.Item as="a">Blog</Navbar.Item>
             <Navbar.Item as="span">
-              <Button color="primary" isInverted as="a">
+              <Button color="primary" isInverted as="a" mx="2">
                 <Icon
                   library="fa"
                   name="github"
                   variant="brands"
                   ariaLabel="github"
                 />
-                <span>Github</span>
+                <Span>Github</Span>
               </Button>
             </Navbar.Item>
           </Navbar.End>
@@ -250,7 +240,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
   </Hero.Head>
 
   <Hero.Body>
-    <Container className="has-text-centered">
+    <Container textAlign="centered">
       <Title>Bestax</Title>
       <SubTitle>A Bulma Component Library</SubTitle>
     </Container>

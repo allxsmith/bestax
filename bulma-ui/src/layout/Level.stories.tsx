@@ -4,7 +4,7 @@ import { Title } from '../elements/Title';
 import { Button } from '../elements/Button';
 import Field from '../form/Field';
 import Control from '../form/Control';
-import Input from '../form/Input';
+import { Input } from '../form/Input';
 
 const meta: Meta<typeof Level> = {
   title: 'Layout/Level',
@@ -19,7 +19,7 @@ export const Default: StoryObj<typeof Level> = {
       <Level.Left>
         <Level.Item>
           <Title as="p" size="5" className="subtitle">
-            <strong>Favorite Posts</strong> posts
+            <strong>Favorite Posts</strong>
           </Title>
         </Level.Item>
         <Level.Item>
@@ -38,13 +38,13 @@ export const Default: StoryObj<typeof Level> = {
           <strong>All</strong>
         </Level.Item>
         <Level.Item as="p">
-          <a>From Followers</a>
+          <a>Published</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>From Verified Followers</a>
+          <a>Drafts</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>Replies</a>
+          <a>Deleted</a>
         </Level.Item>
         <Level.Item as="p">
           <Button color="success" as="a">
@@ -99,11 +99,7 @@ export const LevelCenteredMenu: StoryObj<typeof Level> = {
         <a className="link is-info">APIs</a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <img
-          src="https://bulma.io/assets/images/bulma-type.png"
-          alt=""
-          style={{ height: 30 }}
-        />
+        <img src="/img/bestax-type.svg" alt="Bestax" style={{ height: 30 }} />
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
         <a className="link is-info">Versions</a>

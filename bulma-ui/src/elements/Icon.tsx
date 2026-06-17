@@ -47,6 +47,8 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
  * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the icon.
  * @property {string} [ariaLabel='icon'] - ARIA label for accessibility (default: 'icon').
  * @property {object} [style] - Inline style object.
+ * @property {string} [icon] - DEPRECATED: Legacy prop, use `name` instead.
+ * @property {string} [containerClassName] - Override the default 'icon' container class (e.g., 'panel-icon').
  */
 export interface IconProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
@@ -63,6 +65,7 @@ export interface IconProps
   size?: 'small' | 'medium' | 'large';
   ariaLabel?: string;
   style?: React.CSSProperties;
+  containerClassName?: string; // Override the default 'icon' container class (e.g., 'panel-icon')
 }
 
 /**
@@ -164,6 +167,7 @@ export const Icon: React.FC<IconProps> = ({
   style,
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
   color: _color, // Exclude 'color' prop if passed directly
+  containerClassName,
   ...restProps
 }) => {
   // Handle deprecated 'icon' prop - parse it to extract the actual name
@@ -197,12 +201,22 @@ export const Icon: React.FC<IconProps> = ({
     ...restProps,
   });
 
-  const bulmaClasses = usePrefixedClassNames('icon', {
+  // Hoisted unconditionally to respect rules-of-hooks; the ternaries below
+  // pick which result to consume.
+  const defaultIconClasses = usePrefixedClassNames('icon', {
     [`is-${size}`]: size,
   });
+  const sizeModifierClass = usePrefixedClassNames(
+    size ? `is-${size}` : undefined
+  );
+
+  const bulmaClasses = containerClassName
+    ? containerClassName
+    : defaultIconClasses;
 
   const iconContainerClasses = classNames(
     bulmaClasses,
+    containerClassName && size ? sizeModifierClass : undefined,
     bulmaHelperClasses,
     className
   );

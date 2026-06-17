@@ -318,7 +318,7 @@ export const ThemeWithClassName = () => (
 // Multiple nested themes with different classes
 import { Column } from '../columns/Column';
 import { Columns } from '../columns/Columns';
-import Input from '../form/Input';
+import { Input } from '../form/Input';
 import { Buttons } from '../elements/Buttons';
 
 export const NestedThemes = () => (

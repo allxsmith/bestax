@@ -103,16 +103,36 @@ const MessageComponent: React.FC<MessageProps> = ({
 };
 
 // Compound components for flexible composition
+
+/**
+ * Props for the Message.Header compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Header content (title, close button, etc.).
+ */
 export interface MessageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Props for the Message.Body compound component.
+ *
+ * @property {string} [className] - Additional CSS classes.
+ * @property {React.ReactNode} [children] - Message body content.
+ */
 export interface MessageBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }
 
+/**
+ * Message header compound component. Renders a `.message-header` element.
+ *
+ * @function
+ * @param {MessageHeaderProps} props - Props for the MessageHeader component.
+ * @returns {JSX.Element} The rendered message header.
+ */
 const MessageHeader: React.FC<MessageHeaderProps> = ({
   className,
   children,
@@ -126,6 +146,13 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
   </div>
 );
 
+/**
+ * Message body compound component. Renders a `.message-body` element.
+ *
+ * @function
+ * @param {MessageBodyProps} props - Props for the MessageBody component.
+ * @returns {JSX.Element} The rendered message body.
+ */
 const MessageBody: React.FC<MessageBodyProps> = ({
   className,
   children,

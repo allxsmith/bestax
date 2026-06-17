@@ -11,11 +11,20 @@ export * from './components/Navbar';
 export * from './components/Pagination';
 export * from './components/Panel';
 export * from './components/Tabs';
+export * from './components/Loading';
+export * from './components/Collapse';
+export * from './components/Tooltip';
+export * from './components/Steps';
+export * from './components/Sidebar';
+export * from './components/Toast';
+export * from './components/Dialog';
+export * from './components/Carousel';
 
 export * from './elements/Block';
 export * from './elements/Box';
 export * from './elements/Button';
 export * from './elements/Buttons';
+export * from './elements/LinkButton';
 export * from './elements/Code';
 export * from './elements/Content';
 export * from './elements/Delete';
@@ -53,11 +62,48 @@ export * from './form/Checkboxes';
 export * from './form/Control';
 export * from './form/Field';
 export * from './form/File';
-export * from './form/Input';
 export * from './form/Radio';
 export * from './form/Radios';
-export * from './form/Select';
-export * from './form/TextArea';
+export * from './form/Switch';
+export * from './form/Slider';
+export * from './form/Numberinput';
+export * from './form/Rate';
+export * from './form/Autocomplete';
+export * from './form/Taginput';
+
+// Raw form components — exported with "Base" suffix as escape hatch
+export { InputBase } from './form/InputBase';
+export type { InputBaseProps } from './form/InputBase';
+export { SelectBase } from './form/SelectBase';
+export type { SelectBaseProps } from './form/SelectBase';
+export { TextAreaBase } from './form/TextAreaBase';
+export type { TextAreaBaseProps } from './form/TextAreaBase';
+
+// Convenience wrappers become primary exports
+export { Input } from './form/Input';
+export type { InputProps } from './form/Input';
+export { Select } from './form/Select';
+export type { SelectProps } from './form/Select';
+export { TextArea } from './form/TextArea';
+export type { TextAreaProps } from './form/TextArea';
+
+// Date / time pickers
+export { DateInputBase } from './form/DateInputBase';
+export type { DateInputBaseProps } from './form/DateInputBase';
+export { DateInput } from './form/DateInput';
+export type { DateInputProps } from './form/DateInput';
+export { TimeInputBase } from './form/TimeInputBase';
+export type { TimeInputBaseProps } from './form/TimeInputBase';
+export { TimeInput } from './form/TimeInput';
+export type { TimeInputProps } from './form/TimeInput';
+export { DateTimeInputBase } from './form/DateTimeInputBase';
+export type { DateTimeInputBaseProps } from './form/DateTimeInputBase';
+export { DateTimeInput } from './form/DateTimeInput';
+export type { DateTimeInputProps } from './form/DateTimeInput';
+
+// Form contexts and shared types
+export { useInsideField, useInsideControl } from './form/FormContext';
+export type { FormFieldProps } from './form/fieldProps';
 
 export * from './grid/Cell';
 export * from './grid/Grid';

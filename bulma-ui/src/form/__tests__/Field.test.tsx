@@ -100,6 +100,29 @@ describe('Field', () => {
     expect(label).toHaveClass('extra-label');
   });
 
+  it('horizontal with element whose type is null (covers ?. nullish branch)', () => {
+    // Construct a React-element-like object whose `type` is null. This still
+    // passes React.isValidElement (which only checks $$typeof), so the Field
+    // logic's `c.type?.displayName` short-circuits via the `?.` nullish branch.
+    // React itself will refuse to render the fake child, so we silence and catch.
+    const real = React.createElement('div');
+    const fake = { ...real, type: null } as unknown as React.ReactElement;
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    try {
+      expect(() =>
+        render(
+          <Field horizontal label="Hi">
+            {fake}
+          </Field>
+        )
+      ).toThrow();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it('renders Field.Label and Field.Body as static components', () => {
     render(
       <Field>
@@ -127,10 +150,10 @@ describe('Field', () => {
     expect(fieldLabel).toHaveClass('is-medium');
   });
 
-  it('does not add a Bulma size class for labelSize "normal"', () => {
+  it('adds is-normal class for labelSize "normal" in horizontal layout', () => {
     render(<Field label="NormalSize" labelSize="normal" horizontal />);
     const fieldLabel = screen.getByText('NormalSize').closest('.field-label');
-    expect(fieldLabel?.className).not.toMatch(/is-normal/);
+    expect(fieldLabel?.className).toMatch(/is-normal/);
   });
 
   it('does not wrap children in FieldBody if already a FieldBody', () => {

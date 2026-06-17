@@ -25,21 +25,22 @@ import { Icon } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop              | Type                                                                                                                                                                                                                                                                                     | Default  | Description                                                        |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| `className`       | `string`                                                                                                                                                                                                                                                                                 | —        | Additional CSS classes.                                            |
-| `textColor`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —        | Text color helper.                                                 |
-| `color`           | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —        | Bulma color modifier for the icon.                                 |
-| `bgColor`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —        | Background color helper.                                           |
-| `name`            | `string`                                                                                                                                                                                                                                                                                 |          | The icon name (without library prefix, e.g. `'star'`).             |
-| `library`         | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'`                                                                                                                                                                                                                       | `'fa'`   | The icon library to use.                                           |
-| `variant`         | `string`                                                                                                                                                                                                                                                                                 | —        | Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`).    |
-| `features`        | `string \| string[]`                                                                                                                                                                                                                                                                     | —        | Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). |
-| `libraryFeatures` | `string \| string[]`                                                                                                                                                                                                                                                                     | —        | **DEPRECATED:** Use `variant` and `features` instead.              |
-| `size`            | `'small' \| 'medium' \| 'large'`                                                                                                                                                                                                                                                         | —        | Size modifier for the icon container.                              |
-| `ariaLabel`       | `string`                                                                                                                                                                                                                                                                                 | `'icon'` | ARIA label for accessibility.                                      |
-| `style`           | `object`                                                                                                                                                                                                                                                                                 | —        | Inline style object.                                               |
-| ...               | All standard `<span>` and Bulma helper props                                                                                                                                                                                                                                             |          | (See [Helper Props](../helpers/usebulmaclasses))                   |
+| Prop                 | Type                                                                                                                                                                                                                                                                                     | Default  | Description                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| `className`          | `string`                                                                                                                                                                                                                                                                                 | —        | Additional CSS classes.                                               |
+| `textColor`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —        | Text color helper.                                                    |
+| `color`              | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —        | Bulma color modifier for the icon.                                    |
+| `bgColor`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —        | Background color helper.                                              |
+| `name`               | `string`                                                                                                                                                                                                                                                                                 |          | The icon name (without library prefix, e.g. `'star'`).                |
+| `library`            | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'`                                                                                                                                                                                                                       | `'fa'`   | The icon library to use.                                              |
+| `variant`            | `string`                                                                                                                                                                                                                                                                                 | —        | Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`).       |
+| `features`           | `string \| string[]`                                                                                                                                                                                                                                                                     | —        | Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`).    |
+| `libraryFeatures`    | `string \| string[]`                                                                                                                                                                                                                                                                     | —        | **DEPRECATED:** Use `variant` and `features` instead.                 |
+| `size`               | `'small' \| 'medium' \| 'large'`                                                                                                                                                                                                                                                         | —        | Size modifier for the icon container.                                 |
+| `ariaLabel`          | `string`                                                                                                                                                                                                                                                                                 | `'icon'` | ARIA label for accessibility.                                         |
+| `style`              | `object`                                                                                                                                                                                                                                                                                 | —        | Inline style object.                                                  |
+| `containerClassName` | `string`                                                                                                                                                                                                                                                                                 | —        | Override the default `'icon'` container class (e.g., `'panel-icon'`). |
+| ...                  | All standard `<span>` and Bulma helper props                                                                                                                                                                                                                                             |          | (See [Helper Props](../helpers/usebulmaclasses))                      |
 
 ---
 
@@ -126,7 +127,7 @@ The `size` prop adjusts the size of the icon container. Use `size="large"` for a
 Use Google's official Material Icons with different styles available through `variant`.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+<Block display="flex" gap="4" alignItems="center">
   <Icon library="material-icons" name="favorite" ariaLabel="Filled heart" />
   <Icon
     library="material-icons"
@@ -140,7 +141,7 @@ Use Google's official Material Icons with different styles available through `va
     variant="round"
     ariaLabel="Round heart"
   />
-</div>
+</Block>
 ```
 
 ### Material Symbols
@@ -148,7 +149,7 @@ Use Google's official Material Icons with different styles available through `va
 Google's newest icon system with modern design and comprehensive coverage.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+<Block display="flex" gap="4" alignItems="center">
   <Icon
     library="material-symbols"
     name="settings"
@@ -166,7 +167,7 @@ Google's newest icon system with modern design and comprehensive coverage.
     variant="sharp"
     ariaLabel="Settings sharp"
   />
-</div>
+</Block>
 ```
 
 ### Material Design Icons

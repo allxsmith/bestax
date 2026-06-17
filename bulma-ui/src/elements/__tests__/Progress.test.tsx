@@ -95,7 +95,7 @@ describe('Progress Component', () => {
     });
 
     it('applies prefix to both main class and helper classes', () => {
-      const { container } = render(
+      render(
         <ConfigProvider classPrefix="bulma-">
           <Progress value={75} max={100} color="primary" size="large" m="2">
             75%
@@ -103,7 +103,7 @@ describe('Progress Component', () => {
         </ConfigProvider>
       );
 
-      const progress = container.querySelector('progress');
+      const progress = screen.getByRole('progressbar');
       expect(progress).toHaveClass('bulma-progress');
       expect(progress).toHaveClass('bulma-is-primary');
       expect(progress).toHaveClass('bulma-is-large');
@@ -111,13 +111,13 @@ describe('Progress Component', () => {
     });
 
     it('works without prefix', () => {
-      const { container } = render(
+      render(
         <Progress value={60} max={100} color="info" size="medium" p="3">
           60%
         </Progress>
       );
 
-      const progress = container.querySelector('progress');
+      const progress = screen.getByRole('progressbar');
       expect(progress).toHaveClass('progress');
       expect(progress).toHaveClass('is-info');
       expect(progress).toHaveClass('is-medium');

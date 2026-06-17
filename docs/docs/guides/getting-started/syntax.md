@@ -8,6 +8,10 @@ sidebar_position: 4
 
 This guide introduces you to how Bulma works and how our React components relate to Bulma's class-based system.
 
+:::info Styles already loaded?
+Every helper, modifier, and example on this page works as soon as you've imported `@allxsmith/bestax-bulma/bestax.css` (one stylesheet covers Bulma + bestax extras). See the [Quick Start](/docs/guides/intro) or [Installation](/docs/guides/getting-started/installation) if you haven't set that up yet.
+:::
+
 ## Bulma Syntax
 
 Bulma is a CSS framework that uses modifier classes to control the appearance and behavior of components. Understanding Bulma's syntax is essential to effectively using this React library.
@@ -16,7 +20,7 @@ Bulma is a CSS framework that uses modifier classes to control the appearance an
 
 Here's how a button works in Bulma HTML:
 
-```tsx live
+```html
 <div class="buttons">
   <button class="button is-small">Button</button>
 
@@ -38,7 +42,7 @@ Here's how a button works in Bulma HTML:
 
   <button class="button is-link is-medium">Medium Button</button>
 
-  {/* Rounded loading button */}
+  <!-- Rounded loading button -->
   <button class="button is-warning is-large is-rounded is-loading">
     Loading
   </button>
@@ -83,42 +87,59 @@ Bulma uses modifier classes that follow consistent patterns:
 
 - **Color modifiers**: `is-primary`, `is-info`, `is-success`, `is-warning`, `is-danger`
 - **Size modifiers**: `is-small`, `is-normal`, `is-medium`, `is-large`
-- **State modifiers**: `is-loading`, `is-disabled`, `is-active`
+- **State modifiers**: `is-loading`, `is-active` (note: disabled state uses the HTML `disabled` attribute, not a class)
 - **Style modifiers**: `is-rounded`, `is-outlined`, `is-inverted`
 
 ### Combining Modifiers
 
 Modifiers can be combined to create complex styling:
 
-```html live
+```html
 <button class="button is-primary is-large is-outlined is-rounded">
   Fancy Button
 </button>
+```
+
+Or, in this library, as a single React component:
+
+```tsx live
+<Button color="primary" size="large" outlined rounded>
+  Fancy Button
+</Button>
 ```
 
 ## React Component Mapping
 
 This React library maps properties to Bulma classes, making it easier and more type-safe to work with Bulma in React applications.
 
+:::tip Why use React props over raw Bulma classes?
+
+- **TypeScript catches typos at compile time.** `color="primery"` fails to build; `class="is-primery"` silently renders a broken button.
+- **IDE autocomplete** for every component, prop, and allowed value — no memorizing Bulma's class vocabulary.
+- **Enumerated values.** `size` only accepts `'small' | 'normal' | 'medium' | 'large'`. Illegal combinations don't type-check.
+- **Discoverable API.** Hover or Cmd-click a prop to jump to its definition. Classes are opaque strings.
+- **Refactor-safe.** Renaming a prop is a codemod; renaming across class-string literals is fragile.
+- **One source of truth.** Each prop → class mapping lives in one place, so upgrades propagate to every component.
+  :::
+
 ### Property to Class Conversion
 
-Instead of writing class names manually, you use React props:
+Instead of writing class names manually, you use React props.
+
+Instead of this HTML:
+
+```html
+<button class="button is-primary is-large is-rounded is-loading">
+  Loading
+</button>
+```
+
+You write this React:
 
 ```tsx live
-<>
-  <Block>
-    <p>Instead of this HTML:</p>
-    <button class="button is-primary is-large is-rounded is-loading">
-      Loading
-    </button>
-  </Block>
-  <Block>
-    <p>You write this React:</p>
-    <Button color="primary" size="large" rounded loading>
-      Loading
-    </Button>
-  </Block>
-</>
+<Button color="primary" size="large" rounded loading>
+  Loading
+</Button>
 ```
 
 ### Helper Classes Integration
@@ -186,8 +207,8 @@ Spacing properties use Bulma's spacing scale (0-6):
   <Box m="4">All margins → m-4</Box>
   <Box mt="2" mb="3">
     Top/bottom → mt-2 mb-3
-  </Box>{' '}
-  <Box mx="auto">Centered → mx-auto </Box>
+  </Box>
+  <Box mx="auto">Centered → mx-auto</Box>
   <Box p="5">All padding → p-5</Box>
   <Box px="3" py="2">
     Horizontal/vertical → px-3 py-2
@@ -441,7 +462,7 @@ Each component has many additional specific properties beyond what's shown here.
 
 ## Advanced Usage
 
-For more complex scenarios, you can combine the helper classes with custom CSS classes:
+For more complex scenarios, you can combine the helper props with your own CSS classes:
 
 ```tsx live
 <Button
@@ -456,6 +477,10 @@ For more complex scenarios, you can combine the helper classes with custom CSS c
   Custom Styled Button
 </Button>
 ```
+
+:::note `className` is for _your_ CSS, not Bulma's
+Use `className` for app-specific classes defined in your own stylesheets (like `my-custom-button` above). Don't reach for `className="is-primary"` as an escape hatch for Bulma modifiers — if a Bulma class isn't exposed through a prop, open an issue so we can add it. This keeps your call sites type-safe.
+:::
 
 ## Further Reading
 

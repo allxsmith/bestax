@@ -1,0 +1,77 @@
+// Bestax Extras - LinkButton Styles
+// Overrides for .button.is-text and .button.is-ghost when used as LinkButton
+// Follows Bulma v1 CSS variable convention
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// LinkButton-specific SCSS variables
+$link-button-underline-offset: 0.2em !default;
+$link-button-transition-duration: cv.getVar("duration") !default;
+$link-button-ghost-color: cv.getVar("text") !default;
+$link-button-ghost-hover-color: cv.getVar("text-strong") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}button.#{iv.$class-prefix}link-button {
+  @include cv.register-vars(
+    (
+      "link-button-underline-offset": #{$link-button-underline-offset},
+      "link-button-transition-duration": #{$link-button-transition-duration},
+      "link-button-ghost-color": #{$link-button-ghost-color},
+      "link-button-ghost-hover-color": #{$link-button-ghost-hover-color},
+    )
+  );
+
+  // Text variant: remove underline that Bulma adds
+  &.#{iv.$class-prefix}is-text {
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+
+  // Ghost variant: use default text color instead of link color, remove underline
+  &.#{iv.$class-prefix}is-ghost {
+    color: cv.getVar("link-button-ghost-color");
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      color: cv.getVar("link-button-ghost-hover-color");
+      text-decoration: none;
+    }
+  }
+
+  // Underline variant: plain text, underline on hover/focus, no button chrome
+  &.#{iv.$class-prefix}link-button-underline {
+    text-decoration: none;
+    background-color: transparent;
+    border-color: transparent;
+    transition: text-decoration cv.getVar("link-button-transition-duration");
+
+    &:hover,
+    &:focus {
+      text-decoration: underline;
+      text-underline-offset: cv.getVar("link-button-underline-offset");
+      background-color: transparent;
+      border-color: transparent;
+    }
+  }
+
+  // Color variants — override text color for all variants
+  @each $name
+    in ("primary", "link", "info", "success", "warning", "danger", "white",
+      "light", "dark", "black")
+  {
+    &.#{iv.$class-prefix}link-button-#{$name} {
+      color: cv.getVar("#{$name}");
+
+      &:hover,
+      &:focus {
+        color: cv.getVar("#{$name}");
+      }
+    }
+  }
+}

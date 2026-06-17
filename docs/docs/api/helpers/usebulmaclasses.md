@@ -31,6 +31,79 @@ const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
 ---
 
+## Composable Mini-Hooks
+
+`useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of six composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string, which you can combine with the [`classNames`](./classnames.md) utility.
+
+| Hook                   | Props Covered                                                                                                                                  | Returns                                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                               | Text and background color classes, including palette shades                                                                                                                             |
+| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                               | Margin and padding classes                                                                                                                                                              |
+| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}` | Typography classes, including responsive size/alignment variants                                                                                                                        |
+| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile..Fullhd}`, `visibility{Mobile..Fullhd}`                                              | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
+| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                             | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
+| `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`    | Miscellaneous utility classes                                                                                                                                                           |
+
+All six hooks (and `classNames`) are exported from the package root:
+
+```tsx
+import {
+  useColorClasses,
+  useSpacingClasses,
+  classNames,
+} from '@allxsmith/bestax-bulma';
+```
+
+Here is a small custom component that only needs color and spacing helpers:
+
+```tsx live
+function example() {
+  function PriceTag({
+    color,
+    backgroundColor,
+    backgroundColorShade,
+    m,
+    children,
+  }) {
+    const colorClasses = useColorClasses({
+      color,
+      backgroundColor,
+      backgroundColorShade,
+    });
+    const spacingClasses = useSpacingClasses({ m });
+    return (
+      <span className={classNames('tag', colorClasses, spacingClasses)}>
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <div>
+      <PriceTag color="white" backgroundColor="success" m="2">
+        $19.99
+      </PriceTag>
+      <PriceTag
+        color="white"
+        backgroundColor="danger"
+        backgroundColorShade="dark"
+        m="2"
+      >
+        $49.99
+      </PriceTag>
+    </div>
+  );
+}
+```
+
+:::note useFlexboxClasses and display
+
+`useFlexboxClasses` only emits container classes (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`) when a `display` or `display{Viewport}` prop is `flex` or `inline-flex` — it reads those display props for gating but never emits the display class itself. Pair it with `useVisibilityClasses` (which owns display emission), or just use `useBulmaClasses`.
+
+:::
+
+---
+
 ## Supported Props
 
 Below is the full list of supported props, derived from the `BulmaClassesProps` TypeScript definition:
@@ -60,7 +133,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                  |
 | `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                       |
 | `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                        |
-| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`                                                                                                                                                                                   | `is-flex`, `is-inline-block`                                 |
+| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'none'`                                                                                                                                                                         | `is-flex`, `is-inline-block`, `is-hidden`                    |
 | `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                    |
 | `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                      |
 | `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                        |
@@ -74,6 +147,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `overflow`             | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
 | `overlay`              | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
 | `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                            |
+| `cursor`               | `'pointer'`, `'help'`                                                                                                                                                                                                                                | `is-clickable`, `is-cursor-help`                             |
 | `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                              |
 | `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                              |
 | `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                     |
@@ -81,6 +155,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                |
 | `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                |
 | `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                |
+| `fullHeight`           | `true`                                                                                                                                                                                                                                               | `is-full-height`                                             |
 
 ### Viewport-Specific Properties
 
@@ -112,35 +187,40 @@ The following properties allow you to set different values for each viewport bre
 | `clearfix`             | `true`                                                          | `is-clearfix`                                                              |
 | `relative`             | `true`                                                          | `is-relative`                                                              |
 | `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`                                    |
-| `className`            | `string`                                                        | Any additional classes                                                     |
 
 ---
 
 ### Full TypeScript Definition
 
+`BulmaClassesProps` is composed from the six group interfaces, each of which is also exported (along with the shared `BulmaViewportProps` and `BulmaDisplayProps` types) and accepted by the corresponding [mini hook](#composable-mini-hooks):
+
 ```ts
-export interface BulmaClassesProps {
+export interface BulmaClassesProps
+  extends
+    BulmaColorProps,
+    BulmaSpacingProps,
+    BulmaTypographyProps,
+    BulmaVisibilityProps,
+    BulmaFlexboxProps,
+    BulmaOtherProps {}
+
+export type BulmaViewportProps =
+  | 'mobile'
+  | 'tablet'
+  | 'desktop'
+  | 'widescreen'
+  | 'fullhd';
+
+export type BulmaDisplayProps =
+  | 'block'
+  | 'flex'
+  | 'inline'
+  | 'inline-block'
+  | 'inline-flex'
+  | 'none';
+
+export interface BulmaColorProps {
   color?:
-    | 'primary'
-    | 'link'
-    | 'info'
-    | 'success'
-    | 'warning'
-    | 'danger'
-    | 'black'
-    | 'black-bis'
-    | 'black-ter'
-    | 'grey-darker'
-    | 'grey-dark'
-    | 'grey'
-    | 'grey-light'
-    | 'grey-lighter'
-    | 'white'
-    | 'light'
-    | 'dark'
-    | 'inherit'
-    | 'current';
-  backgroundColor?:
     | 'primary'
     | 'link'
     | 'info'
@@ -187,6 +267,11 @@ export interface BulmaClassesProps {
     | 'soft'
     | 'bold'
     | 'on-scheme';
+  backgroundColor?: BulmaColorProps['color'];
+  backgroundColorShade?: BulmaColorProps['colorShade'];
+}
+
+export interface BulmaSpacingProps {
   m?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   mt?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   mr?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
@@ -201,13 +286,44 @@ export interface BulmaClassesProps {
   pl?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   px?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   py?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
+}
+
+export interface BulmaTypographyProps {
   textSize?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textAlign?: 'centered' | 'justified' | 'left' | 'right';
   textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
-  display?: 'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex';
-  visibility?: 'hidden' | 'sr-only';
+  viewport?: BulmaViewportProps;
+  textSizeMobile?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeTablet?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeDesktop?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeWidescreen?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textSizeFullhd?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
+  textAlignMobile?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignTablet?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignDesktop?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignWidescreen?: 'centered' | 'justified' | 'left' | 'right';
+  textAlignFullhd?: 'centered' | 'justified' | 'left' | 'right';
+}
+
+export interface BulmaVisibilityProps {
+  display?: BulmaDisplayProps;
+  visibility?: 'hidden' | 'sr-only' | 'invisible';
+  viewport?: BulmaViewportProps;
+  displayMobile?: BulmaDisplayProps;
+  displayTablet?: BulmaDisplayProps;
+  displayDesktop?: BulmaDisplayProps;
+  displayWidescreen?: BulmaDisplayProps;
+  displayFullhd?: BulmaDisplayProps;
+  visibilityMobile?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityTablet?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityDesktop?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityWidescreen?: 'hidden' | 'sr-only' | 'invisible';
+  visibilityFullhd?: 'hidden' | 'sr-only' | 'invisible';
+}
+
+export interface BulmaFlexboxProps {
   flexDirection?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   justifyContent?:
@@ -246,23 +362,31 @@ export interface BulmaClassesProps {
     | 'stretch';
   flexGrow?: '0' | '1' | '2' | '3' | '4' | '5';
   flexShrink?: '0' | '1' | '2' | '3' | '4' | '5';
+}
+
+export interface BulmaOtherProps {
   float?: 'left' | 'right';
   overflow?: 'clipped';
   overlay?: boolean;
   interaction?: 'unselectable' | 'clickable';
+  cursor?: 'pointer' | 'help';
   radius?: 'radiusless';
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
-  viewport?: 'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
+  skeleton?: boolean;
   clearfix?: boolean;
   relative?: boolean;
-  className?: string;
+  fullHeight?: boolean;
 }
 ```
 
 ---
 
 ## Usage
+
+:::info Container components pad themselves
+Container components like `Box`, `Notification`, `Message`, and `Card` ship with Bulma's standard, pleasant padding and stack with sensible default spacing. The examples below only add margin or padding props when spacing itself is what's being demonstrated.
+:::
 
 ### Basic Example
 
@@ -378,28 +502,36 @@ Example with flex items:
 
 ### Using with Components
 
+:::note These are illustrations, not replacements
+The snippets below rebuild simplified components by hand purely to show how `useBulmaClasses` fits inside one. In a real app, use the library's own [Columns / Column](../columns/columns.md) and [Card](../components/card.md) components — they already wire up `useBulmaClasses` (plus prefixes, modifiers, and more) for you.
+:::
+
 #### Columns
+
+`MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
 function example() {
-  const props = {
-    isGapless = true,
-  };
+  function MyColumns({ children, ...props }) {
+    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    return (
+      <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
+        {children}
+      </div>
+    );
+  }
 
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const columnsClasses = classNames(
-    'columns',
-    { 'is-gapless': isGapless },
-    bulmaHelperClasses
-  );
   return (
-    <div className={columnsClasses} {...rest}>
-      {children}
-    </div>
+    <MyColumns textAlign="centered" textTransform="uppercase">
+      <div className="column">
+        <Notification color="primary">Left</Notification>
+      </div>
+      <div className="column">
+        <Notification color="info">Right</Notification>
+      </div>
+    </MyColumns>
   );
 }
-
-// Inside Columns.tsx
 ```
 
 #### Card
@@ -432,31 +564,6 @@ function example() {
 }
 ```
 
-#### Dropdown
-
-```tsx live
-function example() {
-  const props = {};
-  const active = true;
-  const right = true;
-  const className = 'custom-dropdown';
-
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const dropdownClasses = classNames(
-    'dropdown',
-    bulmaHelperClasses,
-    {
-      'is-active': active,
-      'is-right': right,
-      // ...
-    },
-    className
-  );
-
-  return dropdownClasses;
-}
-```
-
 ---
 
 ### Colors
@@ -478,93 +585,126 @@ Use the `color` prop to apply Bulma color classes. Here, each button demonstrate
 
 ### Background Color
 
-Use the `backgroundColor` prop to set the background color. Here, each Box demonstrates a different background color:
+Use the `backgroundColor` prop to set the background color. Pair it with a text color that keeps the label readable on each background:
 
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary">Primary</Box>
+    <Box backgroundColor="primary" textColor="white">
+      Primary
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="link">Link</Box>
+    <Box backgroundColor="link" textColor="white">
+      Link
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="info">Info</Box>
+    <Box backgroundColor="info" textColor="white">
+      Info
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="success">Success</Box>
+    <Box backgroundColor="success" textColor="white">
+      Success
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="warning">Warning</Box>
+    <Box backgroundColor="warning" textColor="black">
+      Warning
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="danger">Danger</Box>
+    <Box backgroundColor="danger" textColor="white">
+      Danger
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="black">Black</Box>
+    <Box backgroundColor="black" textColor="white">
+      Black
+    </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="white">White</Box>
+    <Box backgroundColor="white" textColor="black">
+      White
+    </Box>
   </Column>
 </Columns>
 ```
 
 ### Color Shade
 
-Use the `color` and `colorShade` props to apply color shades. Here, each button demonstrates a different shade:
+`colorShade` refines the **text color** — it pairs with the hook's `color` prop (exposed as `textColor` on components, where `color` is the component's own modifier). Here, each line steps through the primary palette:
 
 ```tsx live
-<Buttons>
-  <Button color="primary" colorShade="10">
+<>
+  <Paragraph textColor="primary" colorShade="10" textWeight="semibold">
     Primary 10
-  </Button>
-  <Button color="primary" colorShade="30">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="30" textWeight="semibold">
     Primary 30
-  </Button>
-  <Button color="primary" colorShade="60">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="60" textWeight="semibold">
     Primary 60
-  </Button>
-  <Button color="primary" colorShade="90">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="90" textWeight="semibold">
     Primary 90
-  </Button>
-  <Button color="primary" colorShade="invert">
+  </Paragraph>
+  <Paragraph textColor="primary" colorShade="invert" textWeight="semibold">
     Primary Invert
-  </Button>
-</Buttons>
+  </Paragraph>
+</>
 ```
 
 ### Background Color Shade
 
-Use the `backgroundColor` and `colorShade` props to apply background color shades. Here, each Box demonstrates a different shade:
+Background shades use their own prop: `backgroundColorShade` pairs with `backgroundColor`, independently of `colorShade` (which pairs with the text color). Low shade numbers are dark and high numbers are light, so dark shades get light text and light shades get dark text to keep each label readable:
 
 ```tsx live
 <Columns isMultiline>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="10">
+    <Box backgroundColor="primary" backgroundColorShade="10" textColor="white">
       Primary 10
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="30">
+    <Box backgroundColor="primary" backgroundColorShade="30" textColor="white">
       Primary 30
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="60">
+    <Box backgroundColor="primary" backgroundColorShade="60" textColor="black">
       Primary 60
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="90">
+    <Box backgroundColor="primary" backgroundColorShade="90" textColor="black">
       Primary 90
     </Box>
   </Column>
   <Column size="one-quarter">
-    <Box backgroundColor="primary" colorShade="invert">
+    <Box
+      backgroundColor="primary"
+      backgroundColorShade="invert"
+      textColor="white"
+    >
       Primary Invert
     </Box>
   </Column>
 </Columns>
+```
+
+Because the two shade props are independent, you can shade the text and the background at the same time — a dark background shade with a light text shade of the same color reads well in both themes:
+
+```tsx live
+<Box
+  backgroundColor="primary"
+  backgroundColorShade="15"
+  textColor="primary"
+  colorShade="85"
+>
+  Primary text shade 85 on a primary background shade 15
+</Box>
 ```
 
 ### Margin
@@ -792,6 +932,17 @@ Show text in a Box with `unselectable`, and another Box with `clickable`:
 </>
 ```
 
+### Cursor
+
+Use the `cursor` prop to set the cursor style. `'pointer'` reuses Bulma's `is-clickable` class, while `'help'` uses the project-level `is-cursor-help` class:
+
+```tsx live
+<>
+  <Box cursor="pointer">Cursor: pointer (uses is-clickable)</Box>
+  <Box cursor="help">Cursor: help</Box>
+</>
+```
+
 ### Radius
 
 Show buttons with `radiusless`:
@@ -827,32 +978,28 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 ```tsx live
 <>
-  <Box mb="4">
-    <h4>Without Clearfix (Container Collapse)</h4>
-    <Box p="3" style={{ background: '#ffebee', border: '2px solid #f44336' }}>
+  <Box>
+    <Title size="6">Without clearfix (container collapses)</Title>
+    <Notification color="danger">
       <Button float="left" color="primary">
         Left
       </Button>
       <Button float="right" color="danger">
         Right
       </Button>
-    </Box>
+    </Notification>
   </Box>
 
   <Box>
-    <h4>With Clearfix (Proper Container)</h4>
-    <Box
-      p="3"
-      clearfix
-      style={{ background: '#e8f5e8', border: '2px solid #4caf50' }}
-    >
+    <Title size="6">With clearfix (container wraps its floats)</Title>
+    <Notification color="success" clearfix>
       <Button float="left" color="primary">
         Left
       </Button>
       <Button float="right" color="danger">
         Right
       </Button>
-    </Box>
+    </Notification>
   </Box>
 </>
 ```
@@ -861,27 +1008,19 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 Show a container with relative positioning that provides context for absolutely positioned children:
 
+Bulma only ships an `is-relative` helper — absolute positioning itself has no helper class, so the child keeps a minimal `position/top/right` inline style while everything visual comes from props:
+
 ```tsx live
-<Box
-  relative
-  p="4"
-  style={{ background: '#f5f5f5', border: '2px solid #333', height: '150px' }}
->
-  <span>This container has position: relative</span>
-  <Box
-    style={{
-      position: 'absolute',
-      top: '20px',
-      right: '20px',
-      background: '#ff5722',
-      color: 'white',
-      padding: '0.5rem 1rem',
-      borderRadius: '4px',
-    }}
+<Notification relative pb="6" color="info">
+  <Span>This container has position: relative</Span>
+  <Tag
+    color="primary"
+    size="medium"
+    style={{ position: 'absolute', top: '1rem', right: '1rem' }}
   >
     Absolutely positioned child
-  </Box>
-</Box>
+  </Tag>
+</Notification>
 ```
 
 ---
@@ -915,12 +1054,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples f
 #### Skeleton Image
 
 ```tsx live
-<Image
-  skeleton
-  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1150px-React-icon.svg.png"
-  alt="Skeleton image"
-  size="128x128"
-/>
+<Image skeleton src="/img/react-logo.png" alt="Skeleton image" size="128x128" />
 ```
 
 #### Skeleton Notification

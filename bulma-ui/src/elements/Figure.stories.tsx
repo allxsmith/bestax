@@ -65,7 +65,7 @@ type Story = StoryObj<typeof Figure>;
 export const Default: Story = {
   render: () => (
     <Figure>
-      <img src="/logo.png" alt="Placeholder" style={{ display: 'block' }} />
+      <img src="/img/logo.png" alt="Placeholder" style={{ display: 'block' }} />
     </Figure>
   ),
 };
@@ -73,7 +73,7 @@ export const Default: Story = {
 export const WithCaption: Story = {
   render: () => (
     <Figure>
-      <img src="/logo.png" alt="Placeholder" style={{ display: 'block' }} />
+      <img src="/img/logo.png" alt="Placeholder" style={{ display: 'block' }} />
       <Figure.Caption>This is a caption for the image</Figure.Caption>
     </Figure>
   ),
@@ -83,7 +83,7 @@ export const WithCaption: Story = {
 export const CaptionWithColor: Story = {
   render: () => (
     <Figure>
-      <img src="/logo.png" alt="Placeholder" style={{ display: 'block' }} />
+      <img src="/img/logo.png" alt="Placeholder" style={{ display: 'block' }} />
       <Figure.Caption textColor="grey">
         This is a grey colored caption
       </Figure.Caption>
@@ -95,7 +95,7 @@ export const CaptionWithColor: Story = {
 export const WithBackground: Story = {
   render: () => (
     <Figure bgColor="light" textColor="dark" p="4">
-      <img src="/logo.png" alt="Placeholder" style={{ display: 'block' }} />
+      <img src="/img/logo.png" alt="Placeholder" style={{ display: 'block' }} />
       <Figure.Caption mt="2">Figure with background and padding</Figure.Caption>
     </Figure>
   ),
@@ -106,7 +106,7 @@ export const CenteredCaption: Story = {
   render: () => (
     <Figure textAlign="centered">
       <img
-        src="/logo.png"
+        src="/img/logo.png"
         alt="Placeholder"
         style={{ display: 'block', margin: '0 auto' }}
       />
@@ -122,15 +122,15 @@ export const MultipleFigures: Story = {
   render: () => (
     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
       <Figure>
-        <img src="/logo.png" alt="First" style={{ display: 'block' }} />
+        <img src="/img/logo.png" alt="First" style={{ display: 'block' }} />
         <Figure.Caption>First figure</Figure.Caption>
       </Figure>
       <Figure>
-        <img src="/logo.png" alt="Second" style={{ display: 'block' }} />
+        <img src="/img/logo.png" alt="Second" style={{ display: 'block' }} />
         <Figure.Caption>Second figure</Figure.Caption>
       </Figure>
       <Figure>
-        <img src="/logo.png" alt="Third" style={{ display: 'block' }} />
+        <img src="/img/logo.png" alt="Third" style={{ display: 'block' }} />
         <Figure.Caption>Third figure</Figure.Caption>
       </Figure>
     </div>

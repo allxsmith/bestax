@@ -1,0 +1,185 @@
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$picker-popover-z-index: 30 !default;
+$picker-popover-background: cv.getVar('scheme-main') !default;
+$picker-popover-radius: cv.getVar('radius-large') !default;
+$picker-popover-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.18) !default;
+$picker-popover-border-color: cv.getVar('border') !default;
+$picker-popover-padding: 0.75rem !default;
+$picker-popover-offset: 4px !default;
+$picker-popover-animation-duration: 0.15s !default;
+$picker-trigger-width: 2.5em !default;
+$picker-trigger-color: cv.getVar('text') !default;
+$picker-trigger-hover-color: cv.getVar('text-strong') !default;
+
+.#{iv.$class-prefix}picker-popover {
+  @include cv.register-vars(
+    (
+      'picker-popover-z-index': #{$picker-popover-z-index},
+      'picker-popover-background': #{$picker-popover-background},
+      'picker-popover-radius': #{$picker-popover-radius},
+      'picker-popover-shadow': #{$picker-popover-shadow},
+      'picker-popover-border-color': #{$picker-popover-border-color},
+      'picker-popover-padding': #{$picker-popover-padding},
+      'picker-popover-offset': #{$picker-popover-offset},
+      'picker-popover-animation-duration': #{$picker-popover-animation-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}picker-popover {
+  position: absolute;
+  z-index: cv.getVar('picker-popover-z-index');
+  background-color: cv.getVar('picker-popover-background');
+  border: 1px solid cv.getVar('picker-popover-border-color');
+  border-radius: cv.getVar('picker-popover-radius');
+  box-shadow: cv.getVar('picker-popover-shadow');
+  padding: cv.getVar('picker-popover-padding');
+  outline: none;
+  animation: picker-popover-fade-in
+    cv.getVar('picker-popover-animation-duration') ease;
+
+  &.#{iv.$class-prefix}is-bottom-left {
+    top: calc(100% + cv.getVar('picker-popover-offset'));
+    left: 0;
+  }
+  &.#{iv.$class-prefix}is-bottom-right {
+    top: calc(100% + cv.getVar('picker-popover-offset'));
+    right: 0;
+  }
+  &.#{iv.$class-prefix}is-top-left {
+    bottom: calc(100% + cv.getVar('picker-popover-offset'));
+    left: 0;
+  }
+  &.#{iv.$class-prefix}is-top-right {
+    bottom: calc(100% + cv.getVar('picker-popover-offset'));
+    right: 0;
+  }
+  &.#{iv.$class-prefix}is-portal {
+    position: fixed;
+  }
+}
+
+@keyframes picker-popover-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}picker-popover {
+    animation: none;
+  }
+}
+
+// Bulma sizes the Control's icon via `.input.is-small ~ .icon { font-size }`
+// — a sibling selector. The picker bases wrap their input in a *-container
+// div, so the input is no longer a direct sibling of the icon and that
+// cascade is broken: the icon stays at the default font-size, leaving it
+// vertically off-center inside a sized control. Restore the cascade by
+// matching the icon as a sibling of the picker container instead.
+$picker-containers: (
+  '#{iv.$class-prefix}dateinput-container',
+  '#{iv.$class-prefix}timeinput-container',
+  '#{iv.$class-prefix}datetimeinput-container'
+);
+@each $container in $picker-containers {
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-small
+    .#{$container}
+    ~ .#{iv.$class-prefix}icon {
+    font-size: cv.getVar('size-small');
+  }
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-medium
+    .#{$container}
+    ~ .#{iv.$class-prefix}icon {
+    font-size: cv.getVar('size-medium');
+  }
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-large
+    .#{$container}
+    ~ .#{iv.$class-prefix}icon {
+    font-size: cv.getVar('size-large');
+  }
+}
+
+// Right-side launcher button. The picker bases render this real <button>
+// inside their *-container (Bulma's Control icons are decorative —
+// `pointer-events: none` — so they can't open the popover). It toggles the
+// popover and is keyboard-focusable. Sizing mirrors Bulma's 2.5em icon slot
+// and tracks the input's size modifier via the sibling selector.
+$picker-trigger-pairs: (
+  ('#{iv.$class-prefix}dateinput-container' '#{iv.$class-prefix}dateinput-trigger'),
+  ('#{iv.$class-prefix}timeinput-container' '#{iv.$class-prefix}timeinput-trigger'),
+  (
+    '#{iv.$class-prefix}datetimeinput-container'
+      '#{iv.$class-prefix}datetimeinput-trigger'
+  )
+);
+
+@each $pair in $picker-trigger-pairs {
+  $container: nth($pair, 1);
+  $trigger: nth($pair, 2);
+
+  .#{$container} {
+    position: relative;
+    @include cv.register-vars(
+      (
+        'picker-trigger-width': #{$picker-trigger-width},
+        'picker-trigger-color': #{$picker-trigger-color},
+        'picker-trigger-hover-color': #{$picker-trigger-hover-color},
+      )
+    );
+
+    // Reserve room so typed text doesn't slide under the launcher.
+    > .#{iv.$class-prefix}input {
+      padding-right: cv.getVar('picker-trigger-width');
+    }
+
+    > .#{$trigger} {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 4;
+      height: 100%;
+      width: cv.getVar('picker-trigger-width');
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: cv.getVar('picker-trigger-color');
+      cursor: pointer;
+      transition: color 0.15s ease;
+
+      .#{iv.$class-prefix}icon {
+        pointer-events: none;
+      }
+
+      &:hover:not(:disabled) {
+        color: cv.getVar('picker-trigger-hover-color');
+      }
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
+
+    // Match the launcher's font-size to the input's size modifier so its
+    // em-based width tracks the control.
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-small ~ .#{$trigger} {
+      font-size: cv.getVar('size-small');
+    }
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-medium ~ .#{$trigger} {
+      font-size: cv.getVar('size-medium');
+    }
+    > .#{iv.$class-prefix}input.#{iv.$class-prefix}is-large ~ .#{$trigger} {
+      font-size: cv.getVar('size-large');
+    }
+  }
+}

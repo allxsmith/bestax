@@ -262,6 +262,63 @@ describe('Card Component', () => {
     expect(__test_exports__.renderFooter(0)).toBeNull();
   });
 
+  test('renderFooter wraps a single ReactNode in one card-footer-item', () => {
+    const { container } = render(
+      <div>
+        {__test_exports__.renderFooter(<a href="#one">One</a>, undefined)}
+      </div>
+    );
+    const items = container.querySelectorAll('.card-footer-item');
+    expect(items).toHaveLength(1);
+    expect(screen.getByText('One')).toBeInTheDocument();
+  });
+
+  test('renderFooter wraps each item in card-footer-item when given an array', () => {
+    const { container } = render(
+      <div>
+        {__test_exports__.renderFooter(
+          ['Item 1', 'Item 2', 'Item 3'],
+          undefined
+        )}
+      </div>
+    );
+    const items = container.querySelectorAll('.card-footer-item');
+    expect(items).toHaveLength(3);
+    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    expect(screen.getByText('Item 2')).toBeInTheDocument();
+    expect(screen.getByText('Item 3')).toBeInTheDocument();
+  });
+
+  test('renderFooter renders mixed ReactNode array elements', () => {
+    const { container } = render(
+      <div>
+        {__test_exports__.renderFooter(
+          [
+            <a key="a" href="#one">
+              One
+            </a>,
+            <button key="b" type="button">
+              Two
+            </button>,
+          ],
+          undefined
+        )}
+      </div>
+    );
+    const items = container.querySelectorAll('.card-footer-item');
+    expect(items).toHaveLength(2);
+    expect(screen.getByRole('link', { name: 'One' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Two' })).toBeInTheDocument();
+  });
+
+  test('renderFooter applies classPrefix to card-footer-item', () => {
+    const { container } = render(
+      <div>{__test_exports__.renderFooter(['A', 'B'], 'bulma-')}</div>
+    );
+    const items = container.querySelectorAll('.bulma-card-footer-item');
+    expect(items).toHaveLength(2);
+  });
+
   test('applies classPrefix when provided via ConfigProvider', () => {
     const { container } = render(
       <ConfigProvider classPrefix="bulma-">

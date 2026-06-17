@@ -1,133 +1,186 @@
-import { createRef } from 'react';
+import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Input from '../Input';
+import '@testing-library/jest-dom';
+import { Input } from '../Input';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Input', () => {
-  it('renders an input', () => {
-    render(<Input />);
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  describe('rendering', () => {
+    it('renders an input inside a field', () => {
+      const { container } = render(<Input data-testid="input" />);
+      const input = screen.getByTestId('input');
+      expect(input).toBeInTheDocument();
+      expect(input).toHaveClass('input');
+      expect(container.querySelector('.field')).toBeInTheDocument();
+      expect(container.querySelector('.control')).toBeInTheDocument();
+    });
+
+    it('renders with a label', () => {
+      const { container } = render(
+        <Input label="Username" data-testid="input" />
+      );
+      expect(container.querySelector('.label')).toHaveTextContent('Username');
+    });
+
+    it('renders without label when not provided', () => {
+      const { container } = render(<Input data-testid="input" />);
+      expect(container.querySelector('.label')).not.toBeInTheDocument();
+    });
   });
 
-  it('renders with placeholder', () => {
-    render(<Input placeholder="Type here..." />);
-    expect(screen.getByPlaceholderText('Type here...')).toBeInTheDocument();
+  describe('message', () => {
+    it('renders help message', () => {
+      const { container } = render(
+        <Input message="Required field" data-testid="input" />
+      );
+      expect(container.querySelector('.help')).toHaveTextContent(
+        'Required field'
+      );
+    });
+
+    it('renders help message with color', () => {
+      const { container } = render(
+        <Input
+          message="Invalid email"
+          messageColor="danger"
+          data-testid="input"
+        />
+      );
+      const help = container.querySelector('.help');
+      expect(help).toHaveTextContent('Invalid email');
+      expect(help).toHaveClass('is-danger');
+    });
+
+    it('does not render help when message is not provided', () => {
+      const { container } = render(<Input data-testid="input" />);
+      expect(container.querySelector('.help')).not.toBeInTheDocument();
+    });
   });
 
-  it('applies Bulma and custom classes', () => {
-    const { container } = render(
-      <Input
-        color="primary"
-        size="large"
-        className="custom-class"
-        isRounded
-        isStatic
-        isHovered
-        isFocused
-        isLoading
-      />
-    );
-    const input = container.querySelector('input');
-    expect(input).toHaveClass('input');
-    expect(input).toHaveClass('is-primary');
-    expect(input).toHaveClass('is-large');
-    expect(input).toHaveClass('custom-class');
-    expect(input).toHaveClass('is-rounded');
-    expect(input).toHaveClass('is-static');
-    expect(input).toHaveClass('is-hovered');
-    expect(input).toHaveClass('is-focused');
-    expect(input).toHaveClass('is-loading');
+  describe('input props', () => {
+    it('passes color to input', () => {
+      render(<Input color="danger" data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveClass('is-danger');
+    });
+
+    it('passes size to input', () => {
+      render(<Input size="large" data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveClass('is-large');
+    });
+
+    it('passes placeholder', () => {
+      render(<Input placeholder="Enter text" />);
+      expect(screen.getByPlaceholderText('Enter text')).toBeInTheDocument();
+    });
+
+    it('passes disabled', () => {
+      render(<Input disabled data-testid="input" />);
+      expect(screen.getByTestId('input')).toBeDisabled();
+    });
+
+    it('passes readOnly', () => {
+      render(<Input readOnly data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveAttribute('readonly');
+    });
+
+    it('handles controlled value', () => {
+      render(<Input value="hello" onChange={() => {}} />);
+      expect(screen.getByDisplayValue('hello')).toBeInTheDocument();
+    });
+
+    it('calls onChange', () => {
+      const handleChange = jest.fn();
+      render(<Input onChange={handleChange} data-testid="input" />);
+      fireEvent.change(screen.getByTestId('input'), {
+        target: { value: 'test' },
+      });
+      expect(handleChange).toHaveBeenCalled();
+    });
   });
 
-  it('sets disabled and readOnly', () => {
-    render(<Input disabled readOnly />);
-    const input = screen.getByRole('textbox') as HTMLInputElement;
-    expect(input.disabled).toBe(true);
-    expect(input.readOnly).toBe(true);
+  describe('control props', () => {
+    it('renders with icon left name', () => {
+      const { container } = render(
+        <Input iconLeftName="user" data-testid="input" />
+      );
+      expect(container.querySelector('.control')).toHaveClass('has-icons-left');
+    });
+
+    it('renders with icon right name', () => {
+      const { container } = render(
+        <Input iconRightName="check" data-testid="input" />
+      );
+      expect(container.querySelector('.control')).toHaveClass(
+        'has-icons-right'
+      );
+    });
+
+    it('applies isLoading to control', () => {
+      const { container } = render(<Input isLoading data-testid="input" />);
+      expect(container.querySelector('.control')).toHaveClass('is-loading');
+    });
+
+    it('applies isExpanded to control', () => {
+      const { container } = render(<Input isExpanded data-testid="input" />);
+      expect(container.querySelector('.control')).toHaveClass('is-expanded');
+    });
   });
 
-  it('shows value when controlled', () => {
-    render(<Input value="Hello" onChange={() => {}} />);
-    expect(screen.getByDisplayValue('Hello')).toBeInTheDocument();
+  describe('horizontal layout', () => {
+    it('applies is-horizontal to field', () => {
+      const { container } = render(
+        <Input horizontal label="Name" data-testid="input" />
+      );
+      expect(container.querySelector('.field')).toHaveClass('is-horizontal');
+    });
   });
 
-  it('calls onChange handler', () => {
-    const handleChange = jest.fn();
-    render(<Input onChange={handleChange} />);
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'test' } });
-    expect(handleChange).toHaveBeenCalled();
+  describe('custom classNames', () => {
+    it('applies fieldClassName to field', () => {
+      const { container } = render(
+        <Input fieldClassName="custom-field" data-testid="input" />
+      );
+      expect(container.querySelector('.field')).toHaveClass('custom-field');
+    });
+
+    it('applies controlClassName to control', () => {
+      const { container } = render(
+        <Input controlClassName="custom-control" data-testid="input" />
+      );
+      expect(container.querySelector('.control')).toHaveClass('custom-control');
+    });
+
+    it('applies className to input', () => {
+      render(<Input className="custom-input" data-testid="input" />);
+      expect(screen.getByTestId('input')).toHaveClass('custom-input');
+    });
   });
 
-  it('forwards ref to input element', () => {
-    const ref = createRef<HTMLInputElement>();
-    render(<Input ref={ref} />);
-    expect(ref.current).toBeInstanceOf(HTMLInputElement);
+  describe('ref forwarding', () => {
+    it('forwards ref to the input element', () => {
+      const ref = createRef<HTMLInputElement>();
+      render(<Input ref={ref} />);
+      expect(ref.current).toBeInstanceOf(HTMLInputElement);
+    });
   });
 
-  it('passes other props to input', () => {
-    render(<Input data-testid="my-input" />);
-    expect(screen.getByTestId('my-input')).toBeInTheDocument();
-  });
-
-  it('applies classPrefix when provided via ConfigProvider', () => {
-    const { container } = render(
-      <ConfigProvider classPrefix="bulma-">
-        <Input />
-      </ConfigProvider>
-    );
-    const input = container.querySelector('.bulma-input');
-    expect(input).toBeInTheDocument();
-    expect(input).not.toHaveClass('input');
-  });
-
-  describe('ClassPrefix', () => {
-    it('applies prefix to classes when provided', () => {
-      render(
+  describe('classPrefix', () => {
+    it('applies prefix to field, control, input, and help classes', () => {
+      const { container } = render(
         <ConfigProvider classPrefix="bulma-">
-          <Input data-testid="input" />
+          <Input
+            label="Name"
+            message="Required"
+            messageColor="danger"
+            data-testid="input"
+          />
         </ConfigProvider>
       );
-      const input = screen.getByTestId('input');
-      expect(input).toHaveClass('bulma-input');
-    });
-
-    it('uses default classes when no prefix is provided', () => {
-      render(<Input data-testid="input" />);
-      const input = screen.getByTestId('input');
-      expect(input).toHaveClass('input');
-    });
-
-    it('uses default classes when classPrefix is undefined', () => {
-      render(
-        <ConfigProvider classPrefix={undefined}>
-          <Input data-testid="input" />
-        </ConfigProvider>
-      );
-      const input = screen.getByTestId('input');
-      expect(input).toHaveClass('input');
-    });
-
-    it('applies prefix to both main class and helper classes', () => {
-      render(
-        <ConfigProvider classPrefix="bulma-">
-          <Input color="primary" isRounded m="2" data-testid="input" />
-        </ConfigProvider>
-      );
-      const input = screen.getByTestId('input');
-      expect(input).toHaveClass('bulma-input');
-      expect(input).toHaveClass('bulma-is-primary');
-      expect(input).toHaveClass('bulma-is-rounded');
-      expect(input).toHaveClass('bulma-m-2');
-    });
-
-    it('works without prefix', () => {
-      render(<Input color="danger" isLoading p="3" data-testid="input" />);
-      const input = screen.getByTestId('input');
-      expect(input).toHaveClass('input');
-      expect(input).toHaveClass('is-danger');
-      expect(input).toHaveClass('is-loading');
-      expect(input).toHaveClass('p-3');
+      expect(container.querySelector('.bulma-field')).toBeInTheDocument();
+      expect(container.querySelector('.bulma-control')).toBeInTheDocument();
+      expect(screen.getByTestId('input')).toHaveClass('bulma-input');
+      expect(container.querySelector('.bulma-help')).toBeInTheDocument();
+      expect(container.querySelector('.bulma-label')).toBeInTheDocument();
     });
   });
 });

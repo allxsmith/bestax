@@ -1,0 +1,126 @@
+// Collapse Component Styles
+// An expandable/collapsible content panel
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use '../mixins' as *;
+
+// Collapse-specific SCSS variables
+$collapse-margin-bottom: 0.5rem !default;
+$collapse-border-color: cv.getVar("border") !default;
+$collapse-radius: cv.getVar("radius") !default;
+$collapse-trigger-icon-size: 1.5em !default;
+$collapse-trigger-icon-margin: 0.5em !default;
+$collapse-header-weight: cv.getVar("weight-semibold") !default;
+$collapse-group-gap: 0.5rem !default;
+
+.#{iv.$class-prefix}collapse {
+  @include cv.register-vars(
+    (
+      "collapse-margin-bottom": #{$collapse-margin-bottom},
+      "collapse-border-color": #{$collapse-border-color},
+      "collapse-radius": #{$collapse-radius},
+      "collapse-trigger-icon-size": #{$collapse-trigger-icon-size},
+      "collapse-trigger-icon-margin": #{$collapse-trigger-icon-margin},
+      "collapse-header-weight": #{$collapse-header-weight},
+      "collapse-group-gap": #{$collapse-group-gap},
+    )
+  );
+}
+
+.#{iv.$class-prefix}collapse {
+  margin-bottom: cv.getVar("collapse-margin-bottom");
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.#{iv.$class-prefix}collapse-trigger {
+  cursor: pointer;
+  user-select: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+// Bordered collapse
+.#{iv.$class-prefix}collapse.#{iv.$class-prefix}is-bordered {
+  border: 1px solid cv.getVar("collapse-border-color");
+  border-radius: cv.getVar("collapse-radius");
+
+  .#{iv.$class-prefix}collapse-trigger {
+    border-bottom: 1px solid transparent;
+    @include extras-transition(border-color);
+  }
+
+  &.#{iv.$class-prefix}is-active .#{iv.$class-prefix}collapse-trigger {
+    border-bottom-color: cv.getVar("collapse-border-color");
+  }
+}
+
+// Collapse with icon indicator
+.#{iv.$class-prefix}collapse-trigger-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: cv.getVar("collapse-trigger-icon-size");
+  height: cv.getVar("collapse-trigger-icon-size");
+  margin-right: cv.getVar("collapse-trigger-icon-margin");
+  @include extras-transition(transform);
+
+  .#{iv.$class-prefix}collapse.#{iv.$class-prefix}is-active & {
+    transform: rotate(90deg);
+  }
+}
+
+// Alternative rotation for caret-down style icons
+.#{iv.$class-prefix}collapse-trigger-icon.#{iv.$class-prefix}is-rotated-down {
+  .#{iv.$class-prefix}collapse.#{iv.$class-prefix}is-active & {
+    transform: rotate(180deg);
+  }
+}
+
+// Full width header trigger
+.#{iv.$class-prefix}collapse-trigger-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: cv.getVar("collapse-header-weight");
+}
+
+// Accordion group (multiple collapses)
+.#{iv.$class-prefix}collapses {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar("collapse-group-gap");
+
+  &.#{iv.$class-prefix}is-seamless {
+    gap: 0;
+
+    .#{iv.$class-prefix}collapse {
+      margin-bottom: 0;
+      border-radius: 0;
+
+      &:first-child {
+        border-top-left-radius: cv.getVar("collapse-radius");
+        border-top-right-radius: cv.getVar("collapse-radius");
+      }
+
+      &:last-child {
+        border-bottom-left-radius: cv.getVar("collapse-radius");
+        border-bottom-right-radius: cv.getVar("collapse-radius");
+      }
+
+      &:not(:last-child) {
+        border-bottom: none;
+      }
+    }
+  }
+}

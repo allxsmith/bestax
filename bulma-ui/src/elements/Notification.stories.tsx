@@ -1,6 +1,12 @@
 import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
-import { Notification, NotificationProps } from './Notification';
+import {
+  Notification,
+  NotificationProps,
+  NotificationContainer,
+  notification,
+} from './Notification';
+import { Button } from './Button';
 
 // Separate component for dismissible notification to comply with react-hooks/rules-of-hooks
 const DismissibleNotification: React.FC<NotificationProps> = props => {
@@ -171,5 +177,156 @@ export const CustomContent: Story = {
         <a href="#">custom content</a>.
       </>
     ),
+  },
+};
+
+/**
+ * Programmatic notification API.
+ */
+export const ProgrammaticAPI: Story = {
+  render: function ProgrammaticExample() {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <NotificationContainer position="top-right" />
+        <div className="buttons">
+          <Button
+            color="success"
+            onClick={() => notification.success('Changes saved!')}
+          >
+            Success
+          </Button>
+          <Button
+            color="danger"
+            onClick={() => notification.danger('Something went wrong!')}
+          >
+            Danger
+          </Button>
+          <Button
+            color="warning"
+            onClick={() => notification.warning('Check your input')}
+          >
+            Warning
+          </Button>
+          <Button
+            color="info"
+            onClick={() => notification.info('New update available')}
+          >
+            Info
+          </Button>
+          <Button
+            onClick={() =>
+              notification.show({
+                message: 'Custom notification',
+                color: 'primary',
+                isLight: true,
+                duration: 5000,
+              })
+            }
+          >
+            Custom
+          </Button>
+          <Button color="danger" onClick={() => notification.closeAll()}>
+            Close All
+          </Button>
+        </div>
+      </div>
+    );
+  },
+};
+
+/**
+ * Queued notifications display one at a time.
+ */
+export const QueuedNotifications: Story = {
+  render: function QueuedExample() {
+    return (
+      <div style={{ padding: '2rem' }}>
+        <NotificationContainer position="top-right" />
+        <p className="mb-4">Queued notifications display one at a time.</p>
+        <div className="buttons">
+          <Button
+            color="primary"
+            onClick={() => {
+              notification.show({
+                message: 'Queued 1 of 3',
+                color: 'info',
+                queue: true,
+                duration: 2000,
+              });
+              notification.show({
+                message: 'Queued 2 of 3',
+                color: 'success',
+                queue: true,
+                duration: 2000,
+              });
+              notification.show({
+                message: 'Queued 3 of 3',
+                color: 'warning',
+                queue: true,
+                duration: 2000,
+              });
+            }}
+          >
+            Show 3 Queued
+          </Button>
+          <Button
+            onClick={() =>
+              notification.show({
+                message: 'Non-queued (stacks)',
+                duration: 3000,
+              })
+            }
+          >
+            Non-Queued
+          </Button>
+        </div>
+      </div>
+    );
+  },
+};
+
+/**
+ * Different positions for programmatic notifications.
+ */
+export const Positions: Story = {
+  render: function PositionsExample() {
+    const [pos, setPos] = React.useState<
+      | 'top-left'
+      | 'top'
+      | 'top-right'
+      | 'bottom-left'
+      | 'bottom'
+      | 'bottom-right'
+    >('top-right');
+
+    return (
+      <div style={{ padding: '2rem' }}>
+        <NotificationContainer position={pos} />
+        <div className="buttons">
+          {(
+            [
+              'top-left',
+              'top',
+              'top-right',
+              'bottom-left',
+              'bottom',
+              'bottom-right',
+            ] as const
+          ).map(p => (
+            <Button
+              key={p}
+              color={pos === p ? 'primary' : undefined}
+              onClick={() => {
+                setPos(p);
+                notification.closeAll();
+                notification.info(`Position: ${p}`, { duration: 3000 });
+              }}
+            >
+              {p}
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
   },
 };

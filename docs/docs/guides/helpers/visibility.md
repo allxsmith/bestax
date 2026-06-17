@@ -8,6 +8,18 @@ sidebar_position: 5
 
 Bulma provides comprehensive visibility helpers to control how elements are displayed and hidden across different screen sizes and contexts. These utilities are essential for responsive design and accessibility.
 
+:::tip Composable hook
+
+These props are also available standalone via the `useVisibilityClasses` hook — see [Composable Mini-Hooks](/docs/api/helpers/usebulmaclasses#composable-mini-hooks).
+
+:::
+
+:::info Reference
+
+This page documents the bestax-bulma prop API for Bulma's visibility helpers. For the underlying CSS utilities, see the [official Bulma visibility helpers](https://bulma.io/documentation/helpers/visibility-helpers/).
+
+:::
+
 :::tip
 
 All components in bestax-bulma have access to these visibility properties through the `useBulmaClasses` hook. You can apply visibility properties to any component in the library.
@@ -307,31 +319,19 @@ function MultipleViewportExample() {
         </Notification>
       </Box>
 
-                  displayDesktop="flex"
-            p="3"
-            mb="3"
-          >
-            <Notification color="primary" mr="2" mb="2">
-              Different displays across multiple viewports
-            </Notification>
-            <Notification color="info" mb="2">
-              Hidden on mobile, block on tablet, flex on desktop
-            </Notification>
-          </Box>
-
-          <Box
-            displayMobile="block"
-            displayTablet="inline-block"
-            displayDesktop="flex"
-            p="3"
-          >
-            <Notification color="success" mr="2" mb="2">
-              Progressive layout enhancement
-            </Notification>
-            <Notification color="warning" mb="2">
-              Stacked → inline-block → flex
-            </Notification>
-          </Box>
+      <Box
+        displayMobile="block"
+        displayTablet="inline-block"
+        displayDesktop="flex"
+        p="3"
+      >
+        <Notification color="success" mr="2" mb="2">
+          Progressive layout enhancement
+        </Notification>
+        <Notification color="warning" mb="2">
+          Stacked → inline-block → flex
+        </Notification>
+      </Box>
     </Box>
   );
 }
@@ -617,6 +617,31 @@ Additional visibility utilities for specific use cases.
 | `visibility="sr-only"`   | `is-sr-only`   | Only visible to screen readers            |
 | `visibility="invisible"` | `is-invisible` | Element is invisible but takes up space   |
 
+### Viewport-Specific Visibility Properties
+
+Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to a specific breakpoint using these viewport-specific props. Unlike the generic `visibility` + `viewport` pair, these can be combined on a single element to describe different behavior per viewport.
+
+| Property               | Bulma Class Pattern     | Target Viewport  |
+| ---------------------- | ----------------------- | ---------------- |
+| `visibilityMobile`     | `is-{value}-mobile`     | Up to 768px      |
+| `visibilityTablet`     | `is-{value}-tablet`     | 769px – 1023px   |
+| `visibilityDesktop`    | `is-{value}-desktop`    | 1024px – 1215px  |
+| `visibilityWidescreen` | `is-{value}-widescreen` | 1216px – 1407px  |
+| `visibilityFullhd`     | `is-{value}-fullhd`     | 1408px and above |
+
+**Example:** `visibilityMobile="hidden"` generates `is-hidden-mobile`; `visibilityDesktop="invisible"` generates `is-invisible-desktop`.
+
+```tsx live
+<Box
+  visibilityMobile="hidden"
+  visibilityDesktop="invisible"
+  backgroundColor="warning"
+  p="3"
+>
+  Hidden on mobile, invisible on desktop and up, visible on tablet.
+</Box>
+```
+
 ### Other Visibility Examples
 
 ```tsx live
@@ -867,7 +892,7 @@ For detailed API information about visibility properties, see the [useBulmaClass
 ## See Also
 
 - [useBulmaClasses](/docs/api/helpers/usebulmaclasses) - Complete visibility property reference
-- [Responsive Design](/docs/guides/getting-started/responsiveness) - Responsive design principles
+- [Responsive Design](/docs/guides/features/responsiveness) - Responsive design principles
 
 <!--
 - [Flexbox Helpers](/docs/guides/helpers/flex) - Flex display and layout utilities

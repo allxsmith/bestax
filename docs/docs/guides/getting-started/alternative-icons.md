@@ -1,15 +1,61 @@
 ---
-title: Alternative Icon Libraries
-sidebar_label: Alternative Icons
+title: Icons
+sidebar_label: Icons
 sidebar_position: 3
 ---
 
-# Alternative Icon Libraries
+# Icons
 
-While Font Awesome is the most popular choice and the default for bestax-bulma, the library supports multiple icon libraries to suit different project needs and design preferences.
+bestax-bulma supports five icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
 
-:::note Getting Started with Font Awesome
-If you haven't set up Font Awesome yet, check out our [Installation Guide](/docs/guides/getting-started/installation) which covers installing Font Awesome as the default icon library for bestax-bulma.
+:::tip Easiest path: `create-bestax`
+The [Quick Start](/docs/guides/intro) installer prompts you to pick an icon library (or none) and handles the install, CSS import, and any needed `ConfigProvider` wiring automatically. Use the manual steps below if you're adding icons to an existing project or want to switch libraries later.
+:::
+
+---
+
+## Font Awesome
+
+Font Awesome is the default icon library — no `library` prop required.
+
+**Install:**
+
+```bash
+npm install @fortawesome/fontawesome-free
+```
+
+**Import:**
+
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
+
+```js
+import '@fortawesome/fontawesome-free/css/all.min.css';
+```
+
+**Usage:**
+
+```tsx live
+import { Button, Icon } from '@allxsmith/bestax-bulma';
+
+function FontAwesomeExample() {
+  return (
+    <Button color="primary">
+      <Icon name="user" />
+      <span>Profile</span>
+    </Button>
+  );
+}
+```
+
+**Variants** (Font Awesome styles):
+
+- Solid (default): `<Icon name="user" />`
+- Regular: `<Icon name="user" variant="regular" />`
+- Brands: `<Icon name="github" variant="brands" />`
+- Light, Duotone, and Thin are also available via the `variant` prop.
+
+:::info Library values
+The `library` prop defaults to `"fa"` (Font Awesome). You only need to set it when using another library, e.g., `library="mdi"`.
 :::
 
 ---
@@ -25,6 +71,8 @@ npm install @mdi/font
 ```
 
 **Import:**
+
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
 
 ```js
 import '@mdi/font/css/materialdesignicons.min.css';
@@ -156,6 +204,8 @@ Ionicons v8 simplified the naming convention:
 - **Sharp**: `heart-sharp`, `settings-sharp`, `home-sharp`
 
 The old iOS/MD prefixes (`ios-heart`, `md-heart`) are no longer used in v8.
+
+You can also pass the variant separately — `<Icon library="ion" name="heart" variant="outline" />` is equivalent to `<Icon library="ion" name="heart-outline" />`.
 :::
 
 ---
@@ -171,6 +221,8 @@ npm install material-icons
 ```
 
 **Import:**
+
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
 
 ```js
 // Default import (includes all styles)
@@ -279,6 +331,8 @@ npm install material-symbols
 ```
 
 **Import:**
+
+Add this to your main application file (e.g., `main.tsx` or `App.tsx`):
 
 ```js
 // Default import (includes all styles)
@@ -445,6 +499,12 @@ For a complete list of available symbols and detailed usage instructions, visit 
 
 ---
 
+:::tip Skip the manual setup
+If you haven't started your project yet, `npm create bestax@latest` will install and wire up any of these icon libraries for you. See the [Quick Start](/docs/guides/intro).
+:::
+
+---
+
 ## Choosing the Right Icon Library
 
 | Library                   | Icons Count | File Size | Best For                        |
@@ -471,4 +531,4 @@ For a complete list of available symbols and detailed usage instructions, visit 
 
 - **Learn about Icon component props**: [Icon API](/docs/api/elements/icon)
 - **Explore IconText component**: [IconText API](/docs/api/elements/icontext)
-- **Browse Bulma variations**: [Bulma Variations](/docs/guides/getting-started/bulma-variations)
+- **Browse CSS variations**: [CSS Variations](/docs/guides/getting-started/variations)

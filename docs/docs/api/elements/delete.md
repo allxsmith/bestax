@@ -106,10 +106,10 @@ You can use Bulma spacing helpers like `m` to add margin around the button for b
 The `Delete` component is often used inside a `Tag` for removable labels. This example shows a small, colored delete button inside a tag.
 
 ```tsx live
-<span className="tag is-info is-medium">
+<Tag color="info" size="medium">
   Example Tag
   <Delete size="small" textColor="danger" ariaLabel="Remove tag" />
-</span>
+</Tag>
 ```
 
 ### In a Notification
@@ -117,10 +117,10 @@ The `Delete` component is often used inside a `Tag` for removable labels. This e
 Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages.
 
 ```tsx live
-<div className="notification is-primary">
+<Notification color="primary">
   <Delete bgColor="warning" ariaLabel="Close notification" />
-  <p>This is a primary notification with a delete button.</p>
-</div>
+  <Paragraph>This is a primary notification with a delete button.</Paragraph>
+</Notification>
 ```
 
 ### In a Message Header
@@ -128,15 +128,9 @@ Use the `Delete` component inside a `Notification` to provide a dismiss action f
 The `Delete` component can be placed in a message header for dismissible messages. Combine with spacing and color props for best results.
 
 ```tsx live
-<article className="message is-success">
-  <div className="message-header">
-    <p>Success Message</p>
-    <Delete m="1" textColor="dark" ariaLabel="Close message" />
-  </div>
-  <div className="message-body">
-    This is a success message with a delete button in the header.
-  </div>
-</article>
+<Message color="success" title="Success Message">
+  This is a success message with a delete button in the header.
+</Message>
 ```
 
 ---

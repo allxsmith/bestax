@@ -1,0 +1,15 @@
+// Bestax Prefixed - Combined Bulma + Extras with "bestax-" class prefix
+//
+// Usage (pre-built CSS):
+//   import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
+//
+// All CSS classes will be prefixed with "bestax-", e.g. "bestax-button", "bestax-is-primary"
+
+@use 'bulma/sass' with ($class-prefix: "bestax-", $primary: #1e6b99);
+
+@use '../variables';
+@use '../mixins';
+@use '../components/index' as components;
+@use '../form/index' as form;
+@use '../elements/index' as elements;
+@use '../helpers/index' as helpers;

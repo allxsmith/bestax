@@ -37,16 +37,22 @@ import { UnorderedList, ListItem } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+:::info Wrap Lists in Content for Traditional Styling
+Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets, numbers). Wrap your lists in `<Content>` to get the expected typographic list appearance.
+:::
+
 ### Default List
 
 The default usage of the `UnorderedList` component with `ListItem` children.
 
 ```tsx live
-<UnorderedList>
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Colored List
@@ -54,11 +60,13 @@ The default usage of the `UnorderedList` component with `ListItem` children.
 Apply text color to all list items at once.
 
 ```tsx live
-<UnorderedList textColor="primary">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList textColor="primary">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### List with Background
@@ -66,11 +74,13 @@ Apply text color to all list items at once.
 Add a background color and padding for a contained look.
 
 ```tsx live
-<UnorderedList bgColor="light" p="4">
-  <ListItem>First item</ListItem>
-  <ListItem>Second item</ListItem>
-  <ListItem>Third item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList bgColor="dark" textColor="white" p="6">
+    <ListItem>First item</ListItem>
+    <ListItem>Second item</ListItem>
+    <ListItem>Third item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Nested Lists
@@ -78,17 +88,19 @@ Add a background color and padding for a contained look.
 Create nested lists for hierarchical content.
 
 ```tsx live
-<UnorderedList>
-  <ListItem>First item</ListItem>
-  <ListItem>
-    Second item with nested list
-    <UnorderedList>
-      <ListItem>Nested item 1</ListItem>
-      <ListItem>Nested item 2</ListItem>
-    </UnorderedList>
-  </ListItem>
-  <ListItem>Third item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem>First item</ListItem>
+    <ListItem>
+      Second item with nested list
+      <UnorderedList>
+        <ListItem>Nested item 1</ListItem>
+        <ListItem>Nested item 2</ListItem>
+      </UnorderedList>
+    </ListItem>
+    <ListItem>Third item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ### Individually Colored Items
@@ -96,12 +108,14 @@ Create nested lists for hierarchical content.
 Apply different colors to individual list items.
 
 ```tsx live
-<UnorderedList>
-  <ListItem textColor="primary">Primary item</ListItem>
-  <ListItem textColor="success">Success item</ListItem>
-  <ListItem textColor="warning">Warning item</ListItem>
-  <ListItem textColor="danger">Danger item</ListItem>
-</UnorderedList>
+<Content>
+  <UnorderedList>
+    <ListItem textColor="primary">Primary item</ListItem>
+    <ListItem textColor="success">Success item</ListItem>
+    <ListItem textColor="warning">Warning item</ListItem>
+    <ListItem textColor="danger">Danger item</ListItem>
+  </UnorderedList>
+</Content>
 ```
 
 ---
