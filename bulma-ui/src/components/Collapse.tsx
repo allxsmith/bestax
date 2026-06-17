@@ -137,6 +137,10 @@ export const Collapse: React.FC<CollapseProps> = ({
       }
     }
     return undefined;
+    // `height` is read here but is an output of this effect; re-running when it
+    // changes would re-trigger the open/close animation, so it's intentionally
+    // excluded from the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, animation]);
 
   // Handle toggle

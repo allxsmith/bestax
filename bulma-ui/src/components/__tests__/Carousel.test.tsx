@@ -45,6 +45,22 @@ describe('Carousel', () => {
         'carousel'
       );
     });
+
+    it('defaults the region aria-label to "Image carousel"', () => {
+      render(<TestCarousel />);
+      expect(screen.getByRole('region')).toHaveAttribute(
+        'aria-label',
+        'Image carousel'
+      );
+    });
+
+    it('accepts a custom ariaLabel', () => {
+      render(<TestCarousel ariaLabel="Featured products" />);
+      expect(screen.getByRole('region')).toHaveAttribute(
+        'aria-label',
+        'Featured products'
+      );
+    });
   });
 
   describe('CarouselItem', () => {

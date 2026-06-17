@@ -85,6 +85,30 @@ describe('Toast', () => {
     });
   });
 
+  describe('Accessibility (aria-live by type)', () => {
+    it.each(['danger', 'warning'] as const)(
+      'uses assertive aria-live for %s',
+      type => {
+        render(<Toast message="Test" type={type} duration={0} />);
+        expect(screen.getByRole('alert')).toHaveAttribute(
+          'aria-live',
+          'assertive'
+        );
+      }
+    );
+
+    it.each(['default', 'success', 'info'] as const)(
+      'uses polite aria-live for %s',
+      type => {
+        render(<Toast message="Test" type={type} duration={0} />);
+        expect(screen.getByRole('alert')).toHaveAttribute(
+          'aria-live',
+          'polite'
+        );
+      }
+    );
+  });
+
   describe('ActionType (colors action button)', () => {
     it('applies is-action-success class', () => {
       render(

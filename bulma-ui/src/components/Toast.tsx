@@ -233,7 +233,9 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         ref={setRef}
         className={combinedClasses}
         role="alert"
-        aria-live="polite"
+        aria-live={
+          type === 'danger' || type === 'warning' ? 'assertive' : 'polite'
+        }
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={dismissible ? handleClose : undefined}

@@ -276,6 +276,21 @@ describe('Taginput', () => {
 
       expect(onChange).toHaveBeenCalledWith(['React']);
     });
+
+    it('accepts an existing data item typed in a different case when allowNew is false', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput data={frameworks} allowNew={false} onChange={onChange} />
+      );
+      const input = screen.getByRole('textbox');
+
+      // 'react' matches 'React' in data case-insensitively, so it is accepted
+      // (the case-sensitive check previously rejected it).
+      fireEvent.change(input, { target: { value: 'react' } });
+      fireEvent.keyDown(input, { key: 'Enter' });
+
+      expect(onChange).toHaveBeenCalledWith(['react']);
+    });
   });
 
   describe('Autocomplete', () => {

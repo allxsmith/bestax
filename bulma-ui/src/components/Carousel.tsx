@@ -135,6 +135,8 @@ export interface CarouselProps
   iconFeatures?: string | string[];
   arrowBackground?: boolean;
   arrowColor?: 'light' | 'dark';
+  /** Accessible label for the carousel region. Default: 'Image carousel'. */
+  ariaLabel?: string;
   onChange?: (value: number) => void;
   children?: React.ReactNode;
 }
@@ -191,6 +193,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       iconFeatures,
       arrowBackground = true,
       arrowColor,
+      ariaLabel = 'Image carousel',
       onChange,
       className,
       children,
@@ -501,7 +504,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         onMouseLeave={handleMouseLeave}
         role="region"
         aria-roledescription="carousel"
-        aria-label="Image carousel"
+        aria-label={ariaLabel}
         {...rest}
       >
         <div

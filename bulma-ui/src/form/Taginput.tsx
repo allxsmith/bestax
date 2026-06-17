@@ -304,8 +304,14 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           if (exists) return;
         }
 
-        // Check if allowed (must be in data if allowNew is false)
-        if (!allowNew && !data.includes(displayValue)) return;
+        // Check if allowed (must be in data if allowNew is false). Compare
+        // case-insensitively, consistent with the dropdown filter and the
+        // duplicate check above.
+        if (
+          !allowNew &&
+          !data.some(d => d.toLowerCase() === displayValue.toLowerCase())
+        )
+          return;
 
         // beforeAdding validation
         if (beforeAdding && !beforeAdding(displayValue)) return;
