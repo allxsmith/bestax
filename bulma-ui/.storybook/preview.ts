@@ -4,7 +4,8 @@ import 'bulma/css/bulma.min.css';
 import 'bulma/css/versions/bulma-prefixed.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '@mdi/font/css/materialdesignicons.min.css';
-import 'ionicons/dist/css/ionicons.min.css';
+// Ionicons v8 are web components registered via the ESM loader in
+// preview-head.html (matching the docs site); no CSS import needed.
 import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
 // Import extras SCSS for component styles
