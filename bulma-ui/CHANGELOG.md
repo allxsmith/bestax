@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.1...@allxsmith/bestax-bulma@3.0.2) (2026-06-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add fontawesome-free as explicit devDependency ([a4a5389](https://github.com/allxsmith/bestax/commit/a4a53895f8797ca0889060403ae5d1e21cd09bec))
+
 ## [3.0.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.0...@allxsmith/bestax-bulma@3.0.1) (2026-06-17)
 
 
