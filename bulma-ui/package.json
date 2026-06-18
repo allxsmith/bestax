@@ -34,7 +34,7 @@
     "release": "npx semantic-release"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.0.3",
+    "@faker-js/faker": "^10.5.0",
     "@mdi/font": "^7.4.47",
     "@rollup/plugin-commonjs": "^28.0.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
@@ -45,9 +45,9 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/jest": "^29.5.13",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
     "eslint": "^9.39.2",
@@ -86,11 +86,21 @@
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
-    "@fortawesome/fontawesome-free": { "optional": true },
-    "@mdi/font": { "optional": true },
-    "ionicons": { "optional": true },
-    "material-icons": { "optional": true },
-    "material-symbols": { "optional": true }
+    "@fortawesome/fontawesome-free": {
+      "optional": true
+    },
+    "@mdi/font": {
+      "optional": true
+    },
+    "ionicons": {
+      "optional": true
+    },
+    "material-icons": {
+      "optional": true
+    },
+    "material-symbols": {
+      "optional": true
+    }
   },
   "keywords": [
     "react",
@@ -122,16 +132,36 @@
     "./dist/bestax.min.css": {
       "default": "./dist/bestax.css"
     },
-    "./versions/bestax-prefixed.css": { "default": "./dist/versions/bestax-prefixed.css" },
-    "./dist/versions/bestax-prefixed.css": { "default": "./dist/versions/bestax-prefixed.css" },
-    "./versions/bestax-bulma-prefixed.css": { "default": "./dist/versions/bestax-bulma-prefixed.css" },
-    "./dist/versions/bestax-bulma-prefixed.css": { "default": "./dist/versions/bestax-bulma-prefixed.css" },
-    "./versions/bestax-no-helpers.css": { "default": "./dist/versions/bestax-no-helpers.css" },
-    "./dist/versions/bestax-no-helpers.css": { "default": "./dist/versions/bestax-no-helpers.css" },
-    "./versions/bestax-no-helpers-prefixed.css": { "default": "./dist/versions/bestax-no-helpers-prefixed.css" },
-    "./dist/versions/bestax-no-helpers-prefixed.css": { "default": "./dist/versions/bestax-no-helpers-prefixed.css" },
-    "./versions/bestax-no-dark-mode.css": { "default": "./dist/versions/bestax-no-dark-mode.css" },
-    "./dist/versions/bestax-no-dark-mode.css": { "default": "./dist/versions/bestax-no-dark-mode.css" },
+    "./versions/bestax-prefixed.css": {
+      "default": "./dist/versions/bestax-prefixed.css"
+    },
+    "./dist/versions/bestax-prefixed.css": {
+      "default": "./dist/versions/bestax-prefixed.css"
+    },
+    "./versions/bestax-bulma-prefixed.css": {
+      "default": "./dist/versions/bestax-bulma-prefixed.css"
+    },
+    "./dist/versions/bestax-bulma-prefixed.css": {
+      "default": "./dist/versions/bestax-bulma-prefixed.css"
+    },
+    "./versions/bestax-no-helpers.css": {
+      "default": "./dist/versions/bestax-no-helpers.css"
+    },
+    "./dist/versions/bestax-no-helpers.css": {
+      "default": "./dist/versions/bestax-no-helpers.css"
+    },
+    "./versions/bestax-no-helpers-prefixed.css": {
+      "default": "./dist/versions/bestax-no-helpers-prefixed.css"
+    },
+    "./dist/versions/bestax-no-helpers-prefixed.css": {
+      "default": "./dist/versions/bestax-no-helpers-prefixed.css"
+    },
+    "./versions/bestax-no-dark-mode.css": {
+      "default": "./dist/versions/bestax-no-dark-mode.css"
+    },
+    "./dist/versions/bestax-no-dark-mode.css": {
+      "default": "./dist/versions/bestax-no-dark-mode.css"
+    },
     "./scss": {
       "default": "./src/scss/extras.scss"
     },

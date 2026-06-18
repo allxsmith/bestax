@@ -21,7 +21,9 @@ interface IonIconProps extends React.HTMLAttributes<HTMLElement> {
   ariaHidden?: string;
 }
 
-declare global {
+// React 19 moved the global `JSX` namespace under the `react` module, so the
+// `<ion-icon>` web-component augmentation must target `React.JSX` to take effect.
+declare module 'react' {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
