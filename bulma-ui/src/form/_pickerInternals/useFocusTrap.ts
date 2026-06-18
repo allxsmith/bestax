@@ -11,12 +11,12 @@ const FOCUSABLE_SELECTOR = [
 ].join(',');
 
 interface UseFocusTrapOptions {
-  initialFocusRef?: React.RefObject<HTMLElement>;
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
   restoreFocus?: boolean;
 }
 
 export function useFocusTrap(
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: React.RefObject<HTMLElement | null>,
   active: boolean,
   options: UseFocusTrapOptions = {}
 ): void {

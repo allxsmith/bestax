@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # npm — a single root entry covers all workspaces (bulma-ui, docs, create-bestax)
+  # because Dependabot reads the root package-lock.json and every workspace manifest.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    # Batch related updates into a few PRs instead of one-per-dependency.
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-dependencies:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    labels:
+      - dependencies
+      - javascript
+
+  # GitHub Actions used across the workflows (checkout, setup-node, artifacts,
+  # github-script, wrangler). Grouped so action bumps land together.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - dependencies
+      - github-actions

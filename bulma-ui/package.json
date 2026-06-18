@@ -23,7 +23,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "bundle:stats": "rollup -c --configPlugin visualizer",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
@@ -34,9 +34,10 @@
     "release": "npx semantic-release"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.0.3",
+    "@faker-js/faker": "^10.5.0",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@mdi/font": "^7.4.47",
-    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.0",
     "@storybook/addon-docs": "^10.1.11",
@@ -45,17 +46,16 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/jest": "^29.5.13",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
     "@typescript-eslint/parser": "^8.8.1",
-    "eslint": "^9.39.2",
+    "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-config-react-hooks": "^1.0.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.1",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-storybook": "^10.1.11",
     "ionicons": "^8.0.13",
     "jest": "^30.2.0",
@@ -77,7 +77,7 @@
     "bulma": "^1.0.4"
   },
   "peerDependencies": {
-    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-free": "^6.7.2 || ^7.0.0",
     "@mdi/font": "^7.4.47",
     "ionicons": "^8.0.0",
     "material-icons": "^1.13.10",
@@ -200,10 +200,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
   }
 }

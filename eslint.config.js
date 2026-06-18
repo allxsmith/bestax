@@ -66,7 +66,11 @@ export default [
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
-      ...reactHooksPlugin.configs.recommended.rules,
+      // react-hooks v7 ships the React Compiler ruleset in its recommended
+      // presets; we keep the two classic rules to preserve prior behavior.
+      // Adopting the full compiler ruleset is a separate, reviewed effort.
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off', // Disable the rule
       'react/jsx-uses-react': 'off', // Disable related rule (optional, for completeness)
@@ -105,15 +109,7 @@ export default [
     ],
     languageOptions: {
       globals: {
-        jest: true,
-        describe: 'readonly',
-        it: 'readonly',
-        expect: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        test: 'readonly',
+        ...cleanGlobals(globals.jest),
       },
     },
   },
@@ -122,12 +118,7 @@ export default [
   {
     languageOptions: {
       globals: {
-        node: true,
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        Buffer: 'readonly',
-        global: 'readonly',
+        ...cleanGlobals(globals.node),
       },
     },
   },
