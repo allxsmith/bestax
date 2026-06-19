@@ -464,6 +464,7 @@ export const MinimumStep: Story = {
           min={0}
           color="success"
         />
+        {/* eslint-disable-next-line @eslint-react/jsx-no-leaked-dollar -- intentional currency prefix */}
         <p className="help mt-2">Value: ${value.toFixed(2)}</p>
       </div>
     );

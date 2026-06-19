@@ -914,7 +914,7 @@ describe('Card - Advanced Integration Tests', () => {
       </Card>
     );
 
-    card = screen.getByTestId('card');
+    screen.getByTestId('card');
     expect(screen.getByTestId('custom-image')).toBeInTheDocument();
   });
 

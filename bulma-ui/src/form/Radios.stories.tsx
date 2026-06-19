@@ -175,6 +175,7 @@ export const WithName: Story = {
 export const WithNameThroughWrappers: Story = {
   render: function RadiosWrappedForm() {
     const [submitted, setSubmitted] = useState<string>('');
+    // eslint-disable-next-line @eslint-react/no-nested-component-definitions -- demo-only story component
     const RadioCard = ({ value, label }: { value: string; label: string }) => (
       <div
         style={{

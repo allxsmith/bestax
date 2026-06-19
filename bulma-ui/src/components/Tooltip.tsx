@@ -143,6 +143,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           setIsVisible(true);
         }, delay);
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- show immediately on hover when no delay
         setIsVisible(true);
       }
     } else {
@@ -165,6 +166,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const isAuto = position === 'auto';
 
     if (!isAuto) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement effect resolves placement
       setResolvedPosition(position);
     }
 

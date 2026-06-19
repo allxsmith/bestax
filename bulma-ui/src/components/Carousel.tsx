@@ -222,9 +222,12 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const activeIndex =
       controlledValue !== undefined ? controlledValue : internalValue;
 
-    // Sync displayIndex when controlled value changes externally
+    // Sync displayIndex when controlled value changes externally. Intentional
+    // external-prop sync that must not run mid-wrap animation; covered by tests
+    // and certified in-browser.
     useEffect(() => {
       if (controlledValue !== undefined && !isWrapping) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
         setDisplayIndex(controlledValue);
       }
     }, [controlledValue, isWrapping]);

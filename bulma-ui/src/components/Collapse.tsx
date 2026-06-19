@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
@@ -99,10 +99,10 @@ export const Collapse: React.FC<CollapseProps> = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
   const isOpen = isControlled ? controlledOpen : internalOpen;
 
-  // Generate unique ID for accessibility
-  const uniqueId = useRef(
-    ariaId || `collapse-${Math.random().toString(36).slice(2, 9)}`
-  );
+  // Generate unique ID for accessibility (useId is SSR-safe and stable across
+  // renders; works in React 18 and 19).
+  const generatedId = useId();
+  const uniqueId = ariaId || generatedId;
 
   // Update height when open state changes (for 'slide' animation)
   useEffect(() => {
@@ -220,7 +220,7 @@ export const Collapse: React.FC<CollapseProps> = ({
       role="button"
       tabIndex={0}
       aria-expanded={isOpen}
-      aria-controls={uniqueId.current}
+      aria-controls={uniqueId}
     >
       {trigger}
     </div>
@@ -230,7 +230,7 @@ export const Collapse: React.FC<CollapseProps> = ({
     <div style={contentWrapperStyle}>
       <div
         ref={contentRef}
-        id={uniqueId.current}
+        id={uniqueId}
         className={combinedContentClasses}
         aria-hidden={!isOpen}
       >
