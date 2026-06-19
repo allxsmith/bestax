@@ -5,13 +5,18 @@ import { Carousel, CarouselItem } from '../Carousel';
 // Mock timers for auto-play testing
 jest.useFakeTimers();
 
-const TestCarousel = (props: React.ComponentProps<typeof Carousel>) => (
-  <Carousel {...props}>
+// forwardRef so `ref` is forwarded to Carousel on React 18 too — a plain
+// function component only forwards ref via props on React 19 (ref-as-prop).
+const TestCarousel = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<typeof Carousel>
+>((props, ref) => (
+  <Carousel ref={ref} {...props}>
     <CarouselItem>Slide 1</CarouselItem>
     <CarouselItem>Slide 2</CarouselItem>
     <CarouselItem>Slide 3</CarouselItem>
   </Carousel>
-);
+));
 
 describe('Carousel', () => {
   afterEach(() => {

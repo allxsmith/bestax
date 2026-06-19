@@ -82,6 +82,48 @@ jobs:
           name: storybook
           path: bulma-ui/storybook-static
 
+  react-compat:
+    # bestax-bulma supports React 18 and 19 (see peerDependencies). Build,
+    # typecheck and test the library against both majors so a change that
+    # depends on a React-19-only API (or breaks React 18) fails CI.
+    name: React ${{ matrix.react }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        react: ['18', '19']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      # Pin react/react-dom consistently across all workspaces, then a plain
+      # `npm install` (no --legacy-peer-deps, so peer deps like
+      # @testing-library/dom are still installed) resolves a clean tree.
+      - name: Pin React ${{ matrix.react }}
+        run: node .github/scripts/pin-react.mjs ${{ matrix.react }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify installed React major
+        run: node -e "console.log('react', require('react/package.json').version)"
+
+      - name: Build bulma-ui
+        run: npm run build -w @allxsmith/bestax-bulma
+
+      - name: Typecheck bulma-ui
+        run: npm run typecheck -w @allxsmith/bestax-bulma
+
+      - name: Test bulma-ui
+        run: npm run test -w @allxsmith/bestax-bulma
+
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
