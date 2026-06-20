@@ -24,7 +24,7 @@ If you've already installed everything and want to start building, explore our [
 
 - **Node.js**: 16.0.0 or higher
 - **npm**: 7.0.0 or higher (or yarn/pnpm)
-- **React**: 16.8.0 or higher (requires hooks support)
+- **React**: 18.0.0 or higher (React 18 or 19; v4 dropped React 16/17 support)
 
 ### HTML Setup
 

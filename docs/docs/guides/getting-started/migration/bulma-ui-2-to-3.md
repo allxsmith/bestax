@@ -1,7 +1,7 @@
 ---
 title: bestax-bulma 2.x → 3.x
 sidebar_label: 2.x to 3.x
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Upgrading bestax-bulma 2.x → 3.x
