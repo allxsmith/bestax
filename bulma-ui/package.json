@@ -65,7 +65,7 @@
     "rimraf": "^6.0.1",
     "rollup": "^4.55.1",
     "rollup-plugin-scss": "^4.0.1",
-    "rollup-plugin-visualizer": "^5.12.0",
+    "rollup-plugin-visualizer": "^7.0.1",
     "sass": "^1.97.2",
     "storybook": "^10.1.11",
     "ts-jest": "^29.4.6",
