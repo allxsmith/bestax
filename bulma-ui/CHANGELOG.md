@@ -1,3 +1,21 @@
+# [4.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.2...@allxsmith/bestax-bulma@4.0.0) (2026-06-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** resolve react-hooks v7 and [@eslint-react](https://github.com/eslint-react) findings ([14caaaf](https://github.com/allxsmith/bestax/commit/14caaafa1db777ae5ce59c512ac253968df21fc3))
+
+
+### Features
+
+* **bulma-ui:** require React 18 as the minimum supported version ([c7251b0](https://github.com/allxsmith/bestax/commit/c7251b0a4a1f92ab90c4eda59c60c0ee931e91e1))
+
+
+### BREAKING CHANGES
+
+* **bulma-ui:** React 16 and 17 are no longer supported; the minimum
+supported React version is now 18.
+
 ## [3.0.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.1...@allxsmith/bestax-bulma@3.0.2) (2026-06-18)
 
 
