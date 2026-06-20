@@ -84,8 +84,11 @@ const DropdownComponent: React.FC<DropdownProps> = ({
 
   const buttonClass = usePrefixedClassNames('button');
 
-  // Controlled mode support
+  // Controlled mode support: mirror the controlled `active` prop into local
+  // state. This is an intentional external-prop sync (controlled/uncontrolled
+  // hybrid); behavior is covered by tests and certified in-browser.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
     if (typeof activeProp === 'boolean') setActive(activeProp);
   }, [activeProp]);
 

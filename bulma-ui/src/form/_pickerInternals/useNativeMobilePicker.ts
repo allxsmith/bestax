@@ -44,6 +44,7 @@ export function useNativeMobilePicker(
     update();
     const subscribe = (mql: MediaQueryList, fn: () => void) => {
       if (mql.addEventListener) {
+        // eslint-disable-next-line @eslint-react/web-api-no-leaked-event-listener -- cleanup returned below and run in the effect teardown
         mql.addEventListener('change', fn);
         return () => mql.removeEventListener('change', fn);
       }

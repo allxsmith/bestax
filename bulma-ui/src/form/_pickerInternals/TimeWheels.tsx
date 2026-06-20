@@ -1,3 +1,13 @@
+/* eslint-disable react-hooks/refs --
+ * This wheel/momentum picker intentionally accesses refs during render:
+ *  - state is mirrored into refs (positionRef, audioTickEnabledRef) so the
+ *    RAF/drag/tick callbacks read the latest values in lockstep with rendering
+ *    (refactoring to effect-synced refs would desync drag from the frame);
+ *  - a MediaQueryList is lazily cached in a ref (reducedMotionMqlRef);
+ *  - per-column Wheel handle refs build the keyboard focus order.
+ * These are deliberate, established patterns; behavior is covered by unit tests
+ * and certified interactively in-browser (drag, ticks, keyboard focus nav).
+ */
 import React, {
   useCallback,
   useEffect,

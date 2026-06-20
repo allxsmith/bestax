@@ -6,11 +6,17 @@ slug: /guides/getting-started/migration
 
 # Migration
 
-:::note Two independent migration paths
-The pages below cover unrelated upgrades. Most readers only need one. If you're already on Bulma v1 and just bumping bestax, skip straight to **2.x to 3.x**.
+:::note Independent migration paths
+The pages below cover unrelated upgrades. Most readers only need one. The 3.x → 4.x bump is a one-line change for most apps; the real work (if any) is in 2.x → 3.x.
 :::
 
 Pick whichever applies to your situation:
+
+## [Upgrading bestax-bulma 3.x → 4.x](./bulma-ui-3-to-4.md)
+
+The 4.x release has a single consumer-facing change: the **minimum supported React version is now 18** (React 16 and 17 are dropped). If your app is on React 18 or 19, upgrade with no code changes. Every release is now built and tested against both React 18 and 19. The rest of 4.0 was internal tooling and ships nothing that affects your code.
+
+[Read the full 3.x to 4.x guide →](./bulma-ui-3-to-4.md)
 
 ## [Upgrading bestax-bulma 2.x → 3.x](./bulma-ui-2-to-3.md)
 

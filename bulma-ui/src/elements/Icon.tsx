@@ -85,9 +85,9 @@ function getIconClasses(
   variant?: string,
   features?: string | string[]
 ): string {
-  let baseClass = '';
-  let iconClass = '';
-  let featureList = Array.isArray(features)
+  let baseClass: string;
+  let iconClass: string;
+  const featureList = Array.isArray(features)
     ? features
     : features
       ? [features]

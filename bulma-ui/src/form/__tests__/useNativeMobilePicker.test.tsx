@@ -72,6 +72,7 @@ const Probe: React.FC<{
   force?: boolean;
 }> = ({ result, force }) => {
   const v = useNativeMobilePicker({ force });
+  // eslint-disable-next-line react-hooks/immutability -- test probe captures the hook result
   result.current = v;
   return null;
 };
@@ -81,6 +82,7 @@ const ProbeNoOptions: React.FC<{
   result: { current: ReturnType<typeof useNativeMobilePicker> | null };
 }> = ({ result }) => {
   const v = useNativeMobilePicker();
+  // eslint-disable-next-line react-hooks/immutability -- test probe captures the hook result
   result.current = v;
   return null;
 };

@@ -1,5 +1,5 @@
 import js from '@eslint/js';
-import reactPlugin from 'eslint-plugin-react';
+import eslintReact from '@eslint-react/eslint-plugin';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
@@ -41,11 +41,12 @@ export default [
   },
   prettierConfig,
 
-  // React and React Hooks
+  // React Hooks — adopt the full react-hooks v7 ruleset (rules-of-hooks,
+  // exhaustive-deps, and the React Compiler rules: refs, immutability, purity,
+  // set-state-in-effect, etc.).
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
     },
     languageOptions: {
@@ -59,21 +60,8 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
     rules: {
-      ...reactPlugin.configs.recommended.rules,
-      // react-hooks v7 ships the React Compiler ruleset in its recommended
-      // presets; we keep the two classic rules to preserve prior behavior.
-      // Adopting the full compiler ruleset is a separate, reviewed effort.
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-      'react/prop-types': 'off',
-      'react/react-in-jsx-scope': 'off', // Disable the rule
-      'react/jsx-uses-react': 'off', // Disable related rule (optional, for completeness)
+      ...reactHooksPlugin.configs['recommended-latest'].rules,
     },
   },
 
@@ -97,6 +85,45 @@ export default [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+
+  // React correctness rules via @eslint-react (the flat-config-native,
+  // TS-first replacement for eslint-plugin-react, which has no eslint 10 support).
+  {
+    files: ['**/*.{ts,tsx}'],
+    ...eslintReact.configs['recommended-typescript'],
+  },
+  // @eslint-react rule adjustments.
+  {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      // React 18 + 19 compatibility: these rules enforce React-19-only APIs,
+      // but bestax-bulma supports React 16.8–19 (see peerDependencies). Keeping
+      // them on would push the code to React-19-only patterns and break React 18.
+      '@eslint-react/no-forward-ref': 'off', // forwardRef is required before React 19
+      '@eslint-react/no-use-context': 'off', // use(Context) is React 19+
+      '@eslint-react/no-context-provider': 'off', // <Context> as provider is React 19+
+      // Owned by eslint-plugin-react-hooks (recommended-latest) above — turn off
+      // @eslint-react's equivalents so the same issues aren't double-reported.
+      '@eslint-react/exhaustive-deps': 'off',
+      '@eslint-react/set-state-in-effect': 'off',
+      '@eslint-react/purity': 'off',
+      '@eslint-react/static-components': 'off',
+      // Stylistic, not correctness, and high-noise on tests/demos (passing
+      // `children` as a prop and index keys in static demo lists are both valid).
+      '@eslint-react/jsx-no-children-prop': 'off',
+      '@eslint-react/no-array-index-key': 'off',
+      // Advisory rules that fight this library's intentional composition model.
+      // The React.Children / cloneElement APIs are how the Bulma wrapper
+      // components inject classes into children, and are valid across React
+      // 16.8–19; the use-state lazy-init nudge is a micro-optimization only.
+      '@eslint-react/no-children-to-array': 'off',
+      '@eslint-react/no-children-map': 'off',
+      '@eslint-react/no-children-for-each': 'off',
+      '@eslint-react/no-children-count': 'off',
+      '@eslint-react/no-clone-element': 'off',
+      '@eslint-react/use-state': 'off',
     },
   },
 
