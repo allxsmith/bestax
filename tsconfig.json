@@ -5,17 +5,16 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": {
-      "@allxsmith/bestax": ["bulma-ui/src/index.ts"],
-      "@allxsmith/bestax/shared": ["packages/shared/src/index.ts"]
+      "@allxsmith/bestax": ["./bulma-ui/src/index.ts"],
+      "@allxsmith/bestax/shared": ["./packages/shared/src/index.ts"]
     }
   },
   "include": ["bulma-ui"],

@@ -159,6 +159,9 @@ create-bestax/dist
 # Rollup build stats
 bulma-ui/stats.html
 
+# Rollup compiled-config temp files (from `rollup -c --configPlugin ...`)
+rollup.config-*.mjs
+
 # E2E test temporary directories and apps
 test-apps/
 test-app-*/
