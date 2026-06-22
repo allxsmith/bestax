@@ -29,7 +29,7 @@ export default {
         tsconfig: {
           module: 'ESNext',
           target: 'ESNext',
-          moduleResolution: 'node',
+          moduleResolution: 'bundler',
         },
       },
     ],
