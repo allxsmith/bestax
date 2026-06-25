@@ -26,9 +26,9 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.2",
+    "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.0.2",
-    "@eslint-react/eslint-plugin": "^5.9.0",
+    "@eslint-react/eslint-plugin": "^5.9.3",
     "@eslint/js": "^10.0.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
@@ -38,14 +38,14 @@
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.2.1",
-    "globals": "^17.6.0",
+    "globals": "^17.7.0",
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "semantic-release": "^25.0.2",
     "ts-jest": "^29.4.6",
-    "turbo": "^2.7.3",
+    "turbo": "^2.10.0",
     "typescript": "^6.0.3"
   },
   "keywords": [
