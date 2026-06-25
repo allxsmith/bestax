@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.1.1...create-bestax@2.2.0) (2026-06-25)
+
+
+### Features
+
+* **create-bestax:** modernize templates (Vite 8, ESLint 10, TS 6) + add working lint config ([4537629](https://github.com/allxsmith/bestax/commit/4537629a82bf3d6254518389564a467b1fc71242)), closes [#167](https://github.com/allxsmith/bestax/issues/167)
+
 ## [2.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@2.1.0...create-bestax@2.1.1) (2026-06-22)
 
 
