@@ -62,11 +62,11 @@ jobs:
           node-version: '24'
           cache: 'npm' # Cache enabled for create-bestax CLI installation
 
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install create-bestax dependencies (with cache)
-        working-directory: create-bestax
+      - name: Install dependencies
+        # Root `npm ci` installs every workspace (incl. create-bestax dev deps),
+        # so no separate create-bestax install is needed. Running `npm ci` from
+        # the create-bestax subdir re-ran the root `prepare: husky` script with
+        # husky unresolvable and failed with exit 127 (npm workspaces quirk).
         run: npm ci
 
       - name: Build create-bestax CLI
