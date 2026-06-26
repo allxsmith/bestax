@@ -1,3 +1,19 @@
+# [3.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.2.0...create-bestax@3.0.0) (2026-06-26)
+
+
+* feat(bulma-ui)!: remove bestax-bulma-prefixed CSS variant ([94baa34](https://github.com/allxsmith/bestax/commit/94baa3489ac54587e6026a8bece9f86816af9372))
+
+
+### Bug Fixes
+
+* **create-bestax:** scaffold bundled bestax CSS flavors, not stock Bulma ([43621dc](https://github.com/allxsmith/bestax/commit/43621dc7cebef2dd51f017feccc91a2154e1f7a3))
+
+
+### BREAKING CHANGES
+
+* the @allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css
+export is removed. Use versions/bestax-prefixed.css with classPrefix="bestax-".
+
 # [2.2.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.1.1...create-bestax@2.2.0) (2026-06-25)
 
 
