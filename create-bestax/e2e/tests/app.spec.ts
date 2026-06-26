@@ -46,19 +46,33 @@ test.describe('Scaffolded App - Info Cards', () => {
     // Verify all three cards are present (works for both prefixed and unprefixed)
     // Use a selector that works with unprefixed, 'bulma-', and 'bestax-' class names
     const cards = page.locator('.card, .bulma-card, .bestax-card').filter({
-      has: page.locator('.card-content, .bulma-card-content, .bestax-card-content'),
+      has: page.locator(
+        '.card-content, .bulma-card-content, .bestax-card-content'
+      ),
     });
     await expect(cards).toHaveCount(3);
 
     // Verify card titles
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(0)
+      page
+        .locator(
+          '.card-header-title, .bulma-card-header-title, .bestax-card-header-title'
+        )
+        .nth(0)
     ).toContainText('Quick Start');
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(1)
+      page
+        .locator(
+          '.card-header-title, .bulma-card-header-title, .bestax-card-header-title'
+        )
+        .nth(1)
     ).toContainText('Documentation');
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(2)
+      page
+        .locator(
+          '.card-header-title, .bulma-card-header-title, .bestax-card-header-title'
+        )
+        .nth(2)
     ).toContainText('Examples');
 
     // Visual regression check for cards section
@@ -258,7 +272,9 @@ test.describe('Scaffolded App - Full Page', () => {
 
     // Wait for all content to be loaded (works for both prefixed and unprefixed)
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(page.locator('.card, .bulma-card, .bestax-card').first()).toBeVisible();
+    await expect(
+      page.locator('.card, .bulma-card, .bestax-card').first()
+    ).toBeVisible();
 
     // Full page screenshot for comprehensive visual check
     await expect(page).toHaveScreenshot('10-full-page.png', {
