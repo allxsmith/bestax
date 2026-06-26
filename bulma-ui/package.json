@@ -137,12 +137,6 @@
     "./dist/versions/bestax-prefixed.css": {
       "default": "./dist/versions/bestax-prefixed.css"
     },
-    "./versions/bestax-bulma-prefixed.css": {
-      "default": "./dist/versions/bestax-bulma-prefixed.css"
-    },
-    "./dist/versions/bestax-bulma-prefixed.css": {
-      "default": "./dist/versions/bestax-bulma-prefixed.css"
-    },
     "./versions/bestax-no-helpers.css": {
       "default": "./dist/versions/bestax-no-helpers.css"
     },

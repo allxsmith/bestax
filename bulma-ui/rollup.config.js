@@ -94,7 +94,6 @@ export default commandLineArgs => {
     },
     // CSS variation builds
     variationBuild('bestax-prefixed'),
-    variationBuild('bestax-bulma-prefixed'),
     variationBuild('bestax-no-helpers'),
     variationBuild('bestax-no-helpers-prefixed'),
     variationBuild('bestax-no-dark-mode'),
