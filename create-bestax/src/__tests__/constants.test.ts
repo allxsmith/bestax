@@ -148,30 +148,24 @@ describe('constants', () => {
       expect(BULMA_FLAVORS[0].importStatement).toBe(
         "import '@allxsmith/bestax-bulma/bestax.css';"
       );
-      expect(BULMA_FLAVORS[1].importStatement).toContain(
-        "import 'bulma/css/versions/bulma-prefixed.min.css';"
+      expect(BULMA_FLAVORS[1].importStatement).toBe(
+        "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';"
       );
-      expect(BULMA_FLAVORS[1].importStatement).toContain(
-        "import '@allxsmith/bestax-bulma/extras.css';"
+      expect(BULMA_FLAVORS[2].importStatement).toBe(
+        "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';"
       );
-      expect(BULMA_FLAVORS[2].importStatement).toContain(
-        "import 'bulma/css/versions/bulma-no-helpers.min.css';"
+      expect(BULMA_FLAVORS[3].importStatement).toBe(
+        "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';"
       );
-      expect(BULMA_FLAVORS[2].importStatement).toContain(
-        "import '@allxsmith/bestax-bulma/extras.css';"
+      expect(BULMA_FLAVORS[4].importStatement).toBe(
+        "import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';"
       );
-      expect(BULMA_FLAVORS[3].importStatement).toContain(
-        "import 'bulma/css/versions/bulma-no-helpers-prefixed.min.css';"
-      );
-      expect(BULMA_FLAVORS[3].importStatement).toContain(
-        "import '@allxsmith/bestax-bulma/extras.css';"
-      );
-      expect(BULMA_FLAVORS[4].importStatement).toContain(
-        "import 'bulma/css/versions/bulma-no-dark-mode.min.css';"
-      );
-      expect(BULMA_FLAVORS[4].importStatement).toContain(
-        "import '@allxsmith/bestax-bulma/extras.css';"
-      );
+      // Every non-complete flavor uses a single bundled bestax variant
+      // (Bulma + extras together) — never stock bulma/css + a separate extras.
+      BULMA_FLAVORS.forEach(flavor => {
+        expect(flavor.importStatement).not.toContain('bulma/css/');
+        expect(flavor.importStatement).not.toContain('extras.css');
+      });
     });
 
     it('should have color functions for each flavor', () => {

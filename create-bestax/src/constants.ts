@@ -111,10 +111,10 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
   {
     name: 'prefixed',
     display: 'Prefixed',
-    description: 'All classes prefixed with "bulma-" to avoid conflicts',
+    description: 'All classes prefixed with "bestax-" to avoid conflicts',
     color: chalk.blue,
     importStatement:
-      "import 'bulma/css/versions/bulma-prefixed.min.css';\nimport '@allxsmith/bestax-bulma/extras.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
     needsPrefix: true,
   },
   {
@@ -123,15 +123,15 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
     description: 'Core components only, no utility classes',
     color: chalk.yellow,
     importStatement:
-      "import 'bulma/css/versions/bulma-no-helpers.min.css';\nimport '@allxsmith/bestax-bulma/extras.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';",
   },
   {
     name: 'no-helpers-prefixed',
     display: 'No Helpers, Prefixed',
-    description: 'Core components only with "bulma-" prefix',
+    description: 'Core components only with "bestax-" prefix',
     color: chalk.magenta,
     importStatement:
-      "import 'bulma/css/versions/bulma-no-helpers-prefixed.min.css';\nimport '@allxsmith/bestax-bulma/extras.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';",
     needsPrefix: true,
   },
   {
@@ -140,6 +140,6 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
     description: 'Light mode only, smaller bundle size',
     color: chalk.cyan,
     importStatement:
-      "import 'bulma/css/versions/bulma-no-dark-mode.min.css';\nimport '@allxsmith/bestax-bulma/extras.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';",
   },
 ];
