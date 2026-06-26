@@ -12,7 +12,7 @@ sidebar_position: 1
 
 `ConfigProvider` supports two settings today:
 
-- **`classPrefix`** — prefix applied to every Bulma class name the library renders (pairs with Bulma's official prefixed CSS builds).
+- **`classPrefix`** — prefix applied to every Bulma class name the library renders (pair it with the matching prefixed bestax CSS bundle, `@allxsmith/bestax-bulma/versions/bestax-prefixed.css`, for `classPrefix="bestax-"`).
 - **`iconLibrary`** — the default icon library (`'fa'`, `'mdi'`, `'ion'`, `'material-icons'`, `'material-symbols'`) that `Icon` components resolve to when no `library` prop is set.
 
 Both are optional; without a `ConfigProvider` the library uses unprefixed Bulma classes and Font Awesome icons.
@@ -21,9 +21,9 @@ Both are optional; without a `ConfigProvider` the library uses unprefixed Bulma 
 
 Class prefixing adds a namespace to every Bulma class the library renders:
 
-- `button` becomes `bulma-button`
-- `box` becomes `bulma-box`
-- `title` becomes `bulma-title`
+- `button` becomes `bestax-button`
+- `box` becomes `bestax-box`
+- `title` becomes `bestax-title`
 
 The goal is to avoid collisions between Bulma's generic class names (`.button`, `.card`, `.title`, `.menu`, `.notification`, …) and the class names used by your own application's CSS. Teams that have their own hand-written stylesheets — design tokens, layout utilities, component classes — often already use some of those names; prefixing every Bulma class lets both sets coexist cleanly.
 
@@ -37,11 +37,11 @@ Class prefixing is about namespacing Bulma's class names, not about running best
 
 ```tsx
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
-import 'bulma/css/versions/bulma-prefixed.min.css';
+import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 
 function App() {
   return (
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Box p="4">
         <Title size="4">Prefixed Components</Title>
         <Button color="primary">Prefixed Button</Button>
@@ -54,9 +54,9 @@ function App() {
 This renders HTML with prefixed CSS classes:
 
 ```html
-<div class="bulma-box p-4">
-  <h4 class="bulma-title is-4">Prefixed Components</h4>
-  <button class="bulma-button is-primary">Prefixed Button</button>
+<div class="bestax-box p-4">
+  <h4 class="bestax-title is-4">Prefixed Components</h4>
+  <button class="bestax-button is-primary">Prefixed Button</button>
 </div>
 ```
 
@@ -66,13 +66,13 @@ If your application already ships its own CSS — a home-grown design system, ma
 
 ```tsx
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
-import 'bulma/css/versions/bulma-prefixed.min.css';
+import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 import './styles/app.css'; // your own CSS, free to define its own .button, .card, etc.
 
 function App() {
   return (
-    <ConfigProvider classPrefix="bulma-">
-      {/* bestax renders .bulma-button, .bulma-box, etc.
+    <ConfigProvider classPrefix="bestax-">
+      {/* bestax renders .bestax-button, .bestax-box, etc.
           Your app's own .button / .card rules are untouched. */}
       <Box p="4">
         <Title size="4">App section</Title>
@@ -110,23 +110,23 @@ Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'`
 Both settings are independent and compose. Set whichever you need:
 
 ```tsx
-<ConfigProvider classPrefix="bulma-" iconLibrary="mdi">
+<ConfigProvider classPrefix="bestax-" iconLibrary="mdi">
   <App />
 </ConfigProvider>
 ```
 
-## Official Prefixed Bulma CSS
+## Prefixed bestax CSS bundle
 
-Bulma v1 provides official prefixed CSS files that you can use directly:
+bestax ships a prebuilt, `bestax-`-prefixed bundle (Bulma **and** the bestax extras, all prefixed together) that pairs with `classPrefix="bestax-"`. Import it directly:
 
 ```tsx
-// Using official prefixed Bulma CSS
-import 'bulma/css/versions/bulma-prefixed.min.css';
+// Prefixed bestax bundle (Bulma + extras, all "bestax-" prefixed)
+import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 
 function App() {
   return (
-    <ConfigProvider classPrefix="bulma-">
-      <Button color="primary">Uses bulma-button class</Button>
+    <ConfigProvider classPrefix="bestax-">
+      <Button color="primary">Uses bestax-button class</Button>
     </ConfigProvider>
   );
 }
@@ -247,7 +247,7 @@ import { usePrefixedClass } from '@allxsmith/bestax-bulma';
 
 function CustomBanner() {
   const prefixed = usePrefixedClass();
-  // Renders "bulma-notification" under ConfigProvider classPrefix="bulma-",
+  // Renders "bestax-notification" under ConfigProvider classPrefix="bestax-",
   // or plain "notification" without a prefix.
   return <div className={prefixed('notification')}>Hello</div>;
 }
@@ -295,7 +295,7 @@ function MyLibraryProvider({ children }) {
 ## Best Practices
 
 1. **Set at the root level** — apply `ConfigProvider` once near the top of your tree; nest only when a subtree genuinely needs different settings.
-2. **Match CSS and React** — if you pass `classPrefix="bulma-"`, the imported Bulma CSS must be a prefixed build with the same prefix (`bulma/css/versions/bulma-prefixed.min.css` or your own Sass build).
+2. **Match CSS and React** — if you set `classPrefix="bestax-"`, import the matching prefixed bestax bundle `@allxsmith/bestax-bulma/versions/bestax-prefixed.css` (or your own Sass build with the same prefix). Using the bestax bundle — rather than stock `bulma/css/...` plus a separate `extras.css` — keeps the bestax extra components (Notification, Tooltip, etc.) prefixed too.
 3. **Match icon font and setting** — if you set `iconLibrary="mdi"`, make sure the MDI font package is imported somewhere in your app.
 4. **Trust one source** — the `create-bestax` installer wires all of this up in a consistent way; reach for a custom `ConfigProvider` only when the defaults don't fit.
 
@@ -306,7 +306,7 @@ ConfigProvider works seamlessly with other library features:
 ```tsx
 function CompleteSetup() {
   return (
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Theme primaryH="270" primaryS="100%" primaryL="50%" isRoot>
         <App />
       </Theme>

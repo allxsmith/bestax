@@ -261,16 +261,13 @@ export default App;
 If you want something smaller than `bestax.css` without writing SCSS, bestax ships a handful of prebuilt variants as a middle ground:
 
 ```js
-// Bulma + extras, all Bulma classes prefixed with `bulma-`
-import '@allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css';
-
-// Extras only, with `bulma-` prefixed class names
+// Bulma + extras, all classes prefixed with `bestax-` (pair with classPrefix="bestax-")
 import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 
 // Combined bundle without Bulma's helper classes (saves a lot of CSS)
 import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';
 
-// Same, prefixed
+// Same, `bestax-` prefixed
 import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';
 
 // Combined bundle without dark-mode rules

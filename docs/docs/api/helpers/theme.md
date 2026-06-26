@@ -105,8 +105,8 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Box Variables:**
 
-- `--bulma-box-background-color`, `--bulma-box-color`, `--bulma-box-radius`, `--bulma-box-shadow`
-- `--bulma-box-padding`, `--bulma-box-link-hover-shadow`, `--bulma-box-link-active-shadow`
+- `--bestax-box-background-color`, `--bestax-box-color`, `--bestax-box-radius`, `--bestax-box-shadow`
+- `--bestax-box-padding`, `--bestax-box-link-hover-shadow`, `--bestax-box-link-active-shadow`
 
 **Breadcrumb Variables:**
 
@@ -116,12 +116,12 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Card Variables:**
 
-- `--bulma-card-color`, `--bulma-card-background-color`, `--bulma-card-shadow`, `--bulma-card-radius`
-- `--bulma-card-header-background-color`, `--bulma-card-header-color`, `--bulma-card-header-padding`
-- `--bulma-card-header-shadow`, `--bulma-card-header-weight`
-- `--bulma-card-content-background-color`, `--bulma-card-content-padding`
-- `--bulma-card-footer-background-color`, `--bulma-card-footer-border-top`, `--bulma-card-footer-padding`
-- `--bulma-card-media-margin`
+- `--bestax-card-color`, `--bestax-card-background-color`, `--bestax-card-shadow`, `--bestax-card-radius`
+- `--bestax-card-header-background-color`, `--bestax-card-header-color`, `--bestax-card-header-padding`
+- `--bestax-card-header-shadow`, `--bestax-card-header-weight`
+- `--bestax-card-content-background-color`, `--bestax-card-content-padding`
+- `--bestax-card-footer-background-color`, `--bestax-card-footer-border-top`, `--bestax-card-footer-padding`
+- `--bestax-card-media-margin`
 
 **Dropdown Variables:**
 
@@ -214,9 +214,9 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Notification Variables:**
 
-- `--bulma-notification-h`, `--bulma-notification-s`, `--bulma-notification-background-l`
-- `--bulma-notification-color-l`, `--bulma-notification-code-background-color`
-- `--bulma-notification-radius`, `--bulma-notification-padding`
+- `--bestax-notification-h`, `--bestax-notification-s`, `--bestax-notification-background-l`
+- `--bestax-notification-color-l`, `--bestax-notification-code-background-color`
+- `--bestax-notification-radius`, `--bestax-notification-padding`
 
 **Pagination Variables:**
 
@@ -297,9 +297,9 @@ The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars
 
 **Title & Subtitle Variables:**
 
-- `--bulma-title-color`, `--bulma-title-family`, `--bulma-title-size`, `--bulma-title-weight`
-- `--bulma-title-line-height`, `--bulma-title-strong-color`, `--bulma-title-strong-weight`
-- `--bulma-title-sub-size`, `--bulma-title-sup-size`
+- `--bestax-title-color`, `--bestax-title-family`, `--bestax-title-size`, `--bestax-title-weight`
+- `--bestax-title-line-height`, `--bestax-title-strong-color`, `--bestax-title-strong-weight`
+- `--bestax-title-sub-size`, `--bestax-title-sup-size`
 - `--bulma-subtitle-color`, `--bulma-subtitle-family`, `--bulma-subtitle-size`, `--bulma-subtitle-weight`
 - `--bulma-subtitle-line-height`, `--bulma-subtitle-strong-color`, `--bulma-subtitle-strong-weight`
 
@@ -453,7 +453,7 @@ function TypographyTheme() {
     '--bulma-family-code': '"Fira Code", monospace',
     '--bulma-size-normal': '16px',
     '--bulma-weight-bold': '700',
-    '--bulma-title-color': 'hsl(0, 0%, 21%)',
+    '--bestax-title-color': 'hsl(0, 0%, 21%)',
     '--bulma-subtitle-color': 'hsl(0, 0%, 48%)',
   };
 
@@ -469,11 +469,11 @@ function TypographyTheme() {
 ```tsx
 function CustomButtonTheme() {
   const customButton = {
-    '--bulma-button-border-radius': '12px',
-    '--bulma-button-padding-vertical': '0.75rem',
-    '--bulma-button-padding-horizontal': '1.5rem',
-    '--bulma-button-focus-box-shadow-size': '0 0 0 0.2rem',
-    '--bulma-button-focus-box-shadow-color': 'rgba(72, 95, 199, 0.25)',
+    '--bestax-button-border-radius': '12px',
+    '--bestax-button-padding-vertical': '0.75rem',
+    '--bestax-button-padding-horizontal': '1.5rem',
+    '--bestax-button-focus-box-shadow-size': '0 0 0 0.2rem',
+    '--bestax-button-focus-box-shadow-color': 'rgba(72, 95, 199, 0.25)',
   };
 
   return (
@@ -490,8 +490,8 @@ function SpacingTheme() {
     '--bulma-block-spacing': '2rem',
     '--bulma-column-gap': '1rem',
     '--bulma-section-padding': '4rem 1.5rem',
-    '--bulma-box-padding': '2rem',
-    '--bulma-card-content-padding': '2rem',
+    '--bestax-box-padding': '2rem',
+    '--bestax-card-content-padding': '2rem',
   };
 
   return (
@@ -618,7 +618,7 @@ function NestedThemes() {
 ```tsx
 function PrefixedTheme() {
   return (
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Theme primaryH="300" primaryS="80%" primaryL="50%" isRoot>
         <Button color="primary">Prefixed & Themed Button</Button>
       </Theme>
@@ -674,7 +674,7 @@ propName → --bulma-prop-name
 - `schemeS` → `--bulma-scheme-s`
 - `lightL` → `--bulma-light-l`
 - `hoverBackgroundLDelta` → `--bulma-hover-background-l-delta`
-- `cardContentPadding` → `--bulma-card-content-padding`
+- `cardContentPadding` → `--bestax-card-content-padding`
 
 ### Prop vs bulmaVars
 
@@ -694,7 +694,7 @@ You can use CSS variables in two ways:
        '--bulma-primary-h': '270',
        '--bulma-primary-s': '100%',
        '--bulma-primary-l': '50%',
-       '--bulma-card-content-padding': '2rem',
+       '--bestax-card-content-padding': '2rem',
      }}
    />
    ```
@@ -705,7 +705,7 @@ You can use CSS variables in two ways:
      primaryH="270" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
-       '--bulma-card-content-padding': '2rem',
+       '--bestax-card-content-padding': '2rem',
      }}
    />
    ```
