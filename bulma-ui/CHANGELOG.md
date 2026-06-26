@@ -1,3 +1,25 @@
+# [5.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@4.0.0...@allxsmith/bestax-bulma@5.0.0) (2026-06-26)
+
+
+* feat(bulma-ui)!: remove bestax-bulma-prefixed CSS variant ([94baa34](https://github.com/allxsmith/bestax/commit/94baa3489ac54587e6026a8bece9f86816af9372))
+
+
+### Bug Fixes
+
+* **create-bestax:** scaffold @allxsmith/bestax-bulma ^4.0.0 ([1d3b802](https://github.com/allxsmith/bestax/commit/1d3b802eb7285ca05c64cfb0a44bdb96ddb2d82b))
+* **create-bestax:** scaffold bundled bestax CSS flavors, not stock Bulma ([43621dc](https://github.com/allxsmith/bestax/commit/43621dc7cebef2dd51f017feccc91a2154e1f7a3))
+
+
+### Features
+
+* **create-bestax:** modernize templates (Vite 8, ESLint 10, TS 6) + add working lint config ([4537629](https://github.com/allxsmith/bestax/commit/4537629a82bf3d6254518389564a467b1fc71242)), closes [#167](https://github.com/allxsmith/bestax/issues/167)
+
+
+### BREAKING CHANGES
+
+* the @allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css
+export is removed. Use versions/bestax-prefixed.css with classPrefix="bestax-".
+
 # [4.0.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@3.0.2...@allxsmith/bestax-bulma@4.0.0) (2026-06-20)
 
 
