@@ -44,26 +44,26 @@ test.describe('Scaffolded App - Info Cards', () => {
     await page.goto('/');
 
     // Verify all three cards are present (works for both prefixed and unprefixed)
-    // Use a more specific selector that works with both 'card' and 'bulma-card' classes
-    const cards = page.locator('.card, .bulma-card').filter({
-      has: page.locator('.card-content, .bulma-card-content'),
+    // Use a selector that works with unprefixed, 'bulma-', and 'bestax-' class names
+    const cards = page.locator('.card, .bulma-card, .bestax-card').filter({
+      has: page.locator('.card-content, .bulma-card-content, .bestax-card-content'),
     });
     await expect(cards).toHaveCount(3);
 
     // Verify card titles
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title').nth(0)
+      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(0)
     ).toContainText('Quick Start');
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title').nth(1)
+      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(1)
     ).toContainText('Documentation');
     await expect(
-      page.locator('.card-header-title, .bulma-card-header-title').nth(2)
+      page.locator('.card-header-title, .bulma-card-header-title, .bestax-card-header-title').nth(2)
     ).toContainText('Examples');
 
     // Visual regression check for cards section
     const cardsSection = page
-      .locator('.columns, .bulma-columns')
+      .locator('.columns, .bulma-columns, .bestax-columns')
       .filter({ hasText: 'Quick Start' })
       .first();
     await expect(cardsSection).toHaveScreenshot('02-info-cards.png');
@@ -92,7 +92,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification visible
     const interactiveSection = page
-      .locator('.box, .bulma-box')
+      .locator('.box, .bulma-box, .bestax-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '03-notification-visible.png'
@@ -121,7 +121,7 @@ test.describe('Scaffolded App - Notification Toggle', () => {
 
     // Visual regression check with notification hidden
     const interactiveSection = page
-      .locator('.box, .bulma-box')
+      .locator('.box, .bulma-box, .bestax-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '04-notification-hidden.png'
@@ -150,7 +150,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check (works for both prefixed and unprefixed)
     const interactiveSection = page
-      .locator('.box, .bulma-box')
+      .locator('.box, .bulma-box, .bestax-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '05-counter-incremented.png'
@@ -184,7 +184,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('.box, .bulma-box')
+      .locator('.box, .bulma-box, .bestax-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot('06-counter-reset.png');
   });
@@ -212,7 +212,7 @@ test.describe('Scaffolded App - Counter', () => {
 
     // Visual regression check
     const interactiveSection = page
-      .locator('.box, .bulma-box')
+      .locator('.box, .bulma-box, .bestax-box')
       .filter({ hasText: 'Interactive Example' });
     await expect(interactiveSection).toHaveScreenshot(
       '07-counter-milestone.png'
@@ -258,7 +258,7 @@ test.describe('Scaffolded App - Full Page', () => {
 
     // Wait for all content to be loaded (works for both prefixed and unprefixed)
     await expect(page.locator('h1').first()).toBeVisible();
-    await expect(page.locator('.card, .bulma-card').first()).toBeVisible();
+    await expect(page.locator('.card, .bulma-card, .bestax-card').first()).toBeVisible();
 
     // Full page screenshot for comprehensive visual check
     await expect(page).toHaveScreenshot('10-full-page.png', {
