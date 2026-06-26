@@ -377,7 +377,7 @@ export class ProjectCreator {
       // Build ConfigProvider props
       const configProps: string[] = [];
       if (needsPrefix) {
-        configProps.push('classPrefix="bulma-"');
+        configProps.push('classPrefix="bestax-"');
       }
       if (needsIconLibrary) {
         // Map the icon library name to the correct value for ConfigProvider

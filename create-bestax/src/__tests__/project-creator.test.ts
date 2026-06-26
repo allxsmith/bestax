@@ -253,7 +253,7 @@ describe('ProjectCreator', () => {
       expect(fs.default.writeFile).toHaveBeenCalledWith(
         _mainFilePath,
         expect.stringContaining(
-          "import 'bulma/css/versions/bulma-prefixed.min.css'"
+          "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css'"
         )
       );
     });
@@ -581,7 +581,7 @@ describe('ProjectCreator', () => {
       );
       expect(fs.default.writeFile).toHaveBeenCalledWith(
         _mainFilePath,
-        expect.stringContaining('classPrefix="bulma-"')
+        expect.stringContaining('classPrefix="bestax-"')
       );
     });
 
@@ -1292,7 +1292,7 @@ describe('ProjectCreator', () => {
       const writtenContent = writeCall[1] as string;
 
       expect(writtenContent).toContain('ConfigProvider');
-      expect(writtenContent).toContain('classPrefix="bulma-"');
+      expect(writtenContent).toContain('classPrefix="bestax-"');
       expect(writtenContent).toContain('iconLibrary="mdi"');
     });
   });

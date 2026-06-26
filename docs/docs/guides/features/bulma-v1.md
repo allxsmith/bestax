@@ -58,11 +58,11 @@ Advanced configuration options for enterprise and multi-framework environments:
 
 ```tsx
 import { ConfigProvider, Button, Box } from '@allxsmith/bestax-bulma';
-import 'bulma/css/versions/bulma-prefixed.min.css';
+import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 
 function PrefixedApp() {
   return (
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Box>
         <Button color="primary">Prefixed button</Button>
       </Box>
@@ -312,7 +312,7 @@ import { Button } from 'react-bulma-components';
 // After: Full Bulma v1 features
 import { Button, Theme, ConfigProvider } from '@allxsmith/bestax-bulma';
 
-<ConfigProvider classPrefix="bulma-">
+<ConfigProvider classPrefix="bestax-">
   <Theme primaryH="270" primaryS="100%" primaryL="50%">
     <Button color="primary" skeleton={loading}>
       Modern Bulma v1
@@ -360,7 +360,7 @@ import {
 
 function ModernBulmaApp() {
   return (
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Theme primaryH="200" primaryS="100%" primaryL="50%" isRoot>
         <Grid minCol={2} gap={3}>
           <Cell>

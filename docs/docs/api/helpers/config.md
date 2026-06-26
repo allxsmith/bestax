@@ -71,7 +71,7 @@ function App() {
       <Title size="3">Prefixed Bulma Components</Title>
       <p>
         This demonstrates using ConfigProvider with{' '}
-        <code>classPrefix="bulma-"</code> to add the "bulma-" prefix to all
+        <code>classPrefix="bestax-"</code> to add the "bestax-" prefix to all
         component CSS classes. This is useful when integrating Bulma with other
         CSS frameworks or when you need to namespace Bulma classes to avoid
         conflicts.
@@ -80,35 +80,35 @@ function App() {
       <Notification color="info" mt="4">
         <strong>Tip:</strong> Open your browser's developer tools and inspect
         the DOM elements below. You'll see that all Bulma CSS classes have the
-        "bulma-" prefix applied.
+        "bestax-" prefix applied.
       </Notification>
 
-      <ConfigProvider classPrefix="bulma-">
+      <ConfigProvider classPrefix="bestax-">
         <Box mt="4" p="4">
           {/* 
             This Box will have classes:
-            - bulma-box (main class)
-            - bulma-mt-4 (helper class)
-            - bulma-p-4 (helper class)
+            - bestax-box (main class)
+            - bestax-mt-4 (helper class)
+            - bestax-p-4 (helper class)
           */}
           <Title size="4">Prefixed Components</Title>
           {/* 
             This Title will have classes:
-            - bulma-title (main class)
-            - bulma-is-4 (modifier class)
+            - bestax-title (main class)
+            - bestax-is-4 (modifier class)
           */}
           <p>
             All components inside this ConfigProvider will have their CSS
-            classes prefixed with "bulma-". This allows you to use Bulma
+            classes prefixed with "bestax-". This allows you to use Bulma
             alongside other CSS frameworks without class name conflicts.
           </p>
           <Button color="primary" mt="3" isRounded>
             {/* 
               This Button will have classes:
-              - bulma-button (main class)
-              - bulma-is-primary (modifier class)
-              - bulma-is-rounded (modifier class)
-              - bulma-mt-3 (helper class)
+              - bestax-button (main class)
+              - bestax-is-primary (modifier class)
+              - bestax-is-rounded (modifier class)
+              - bestax-mt-3 (helper class)
             */}
             Bulma-Prefixed Button
           </Button>
@@ -185,12 +185,12 @@ function CustomComponent() {
 When integrating Bulma with other CSS frameworks like Bootstrap or Tailwind CSS:
 
 ```tsx
-<ConfigProvider classPrefix="bulma-">
+<ConfigProvider classPrefix="bestax-">
   <App />
 </ConfigProvider>
 ```
 
-This ensures all Bulma classes are prefixed with `bulma-`, preventing conflicts with other framework classes.
+This ensures all Bulma classes are prefixed with `bestax-`, preventing conflicts with other framework classes.
 
 ### Multi-tenant Applications
 
@@ -217,9 +217,9 @@ When wrapping Bulma UI components in your own component library:
 ## Notes
 
 - The `classPrefix` is applied to **all Bulma classes**:
-  - Main component classes (e.g., `button` → `bulma-button`, `box` → `bulma-box`)
-  - Helper/modifier classes (e.g., `is-primary` → `bulma-is-primary`, `has-text-centered` → `bulma-has-text-centered`)
-  - Spacing classes (e.g., `m-4` → `bulma-m-4`, `p-2` → `bulma-p-2`)
+  - Main component classes (e.g., `button` → `bestax-button`, `box` → `bestax-box`)
+  - Helper/modifier classes (e.g., `is-primary` → `bestax-is-primary`, `has-text-centered` → `bestax-has-text-centered`)
+  - Spacing classes (e.g., `m-4` → `bestax-m-4`, `p-2` → `bestax-p-2`)
   - All other Bulma utility classes
 - Changes to the `classPrefix` will affect all child components immediately
 - If no `classPrefix` is provided, components use standard Bulma class names

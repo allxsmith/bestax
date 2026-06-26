@@ -90,38 +90,6 @@ This renders HTML with prefixed classes:
 
 ---
 
-## Bulma-Prefixed (`bulma-`)
-
-Same as Prefixed, but uses `bulma-` as the class prefix. Useful if you want a Bulma-branded prefix while still including bestax extras.
-
-**Prefix:** `bulma-`\
-**Import Statement:**
-
-```js
-import '@allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css';
-```
-
-**Usage:**
-
-```tsx
-import React from 'react';
-import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
-import '@allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css';
-
-function App() {
-  return (
-    <ConfigProvider classPrefix="bulma-">
-      <Box>
-        <Title>Bulma-Prefixed Components</Title>
-        <Button color="primary">Bulma-Prefixed Button</Button>
-      </Box>
-    </ConfigProvider>
-  );
-}
-```
-
----
-
 ## No Helpers
 
 Includes Bulma core components and bestax extras, but excludes Bulma helper classes (spacing, typography, color utilities, etc.).
@@ -287,7 +255,6 @@ This approach allows you to:
 | ----------------------------------------- | ------------------------------------------------------- |
 | **New project, full control**             | Complete (`bestax.css`)                                 |
 | **Avoid class conflicts (bestax prefix)** | Prefixed (`bestax-prefixed.css`)                        |
-| **Avoid class conflicts (bulma prefix)**  | Bulma-Prefixed (`bestax-bulma-prefixed.css`)            |
 | **Custom styling, minimal CSS**           | No Helpers (`bestax-no-helpers.css`)                    |
 | **Minimal CSS + prefixed**                | No Helpers, Prefixed (`bestax-no-helpers-prefixed.css`) |
 | **Light mode only, smaller bundle**       | No Dark Mode (`bestax-no-dark-mode.css`)                |
@@ -301,7 +268,6 @@ This approach allows you to:
 | ------------------------- | ------------ | -------------------------------- |
 | Complete                  | ~78KB        | Full-featured, recommended       |
 | Prefixed (`bestax-`)      | ~80KB        | Full + `bestax-` class prefix    |
-| Bulma-Prefixed (`bulma-`) | ~80KB        | Full + `bulma-` class prefix     |
 | No Helpers                | ~63KB        | No helper utilities              |
 | No Helpers, Prefixed      | ~64KB        | No helpers + `bestax-` prefix    |
 | No Dark Mode              | ~66KB        | Light theme only                 |
