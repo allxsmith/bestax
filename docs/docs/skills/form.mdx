@@ -29,6 +29,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-form
   prompt="Build a signup form (name, email, country) that validates on submit and shows inline errors — no form library — following the bestax form skill."
 />
 
+### Live form
+
 Click **Create account** with empty fields to see the validation.
 
 ```tsx live
@@ -95,13 +97,12 @@ function example() {
 }
 ```
 
-The pattern: own the state, compute errors, and reflect them with `color="danger"` (colors the
-input), `message` (help text), and `messageColor="danger"` (colors the help text).
+### Validation pattern
+
+Own the state, compute errors, and reflect them on each field with `color="danger"` (colors the
+input), `message` (the help text), and `messageColor="danger"` (colors the help text).
 
 ## Account settings
-
-Selection controls — `TextArea`, `Select`, a `Radios` group, a `Checkboxes` group, and `Switch`
-toggles.
 
 <ExampleMeta
   skill="bestax-form"
@@ -110,6 +111,8 @@ toggles.
   date="2026-06-27"
   prompt="Build an account settings form with a bio, a timezone select, an email-digest radio group, interest checkboxes, and toggle switches — following the bestax form skill."
 />
+
+### Live form
 
 ```tsx live
 function example() {
@@ -176,14 +179,12 @@ function example() {
 }
 ```
 
-:::note
+### Grouped controls
+
 `Checkboxes` manages an **array** value; `Radios` manages a **single** value. Each child carries a
 `value`, and the group reports the selection through `onChange`.
-:::
 
 ## Advanced inputs
-
-The controls Bulma never shipped — each labelled via its `label` prop.
 
 <ExampleMeta
   skill="bestax-form"
@@ -192,6 +193,8 @@ The controls Bulma never shipped — each labelled via its `label` prop.
   date="2026-06-27"
   prompt="Build a freelancer profile form using the advanced inputs: autocomplete, slider, number input, star rating, and tag input — following the bestax form skill."
 />
+
+### Live form
 
 ```tsx live
 function example() {
@@ -248,15 +251,13 @@ function example() {
 }
 ```
 
-:::note
+### Wiring notes
+
 `Autocomplete` reports typing via `onInput` and a chosen suggestion via `onSelect`. `Taginput`'s
 `onChange` yields tag objects-or-strings, so map them when you store plain strings. A dual-thumb
 `Slider` needs the `range` prop.
-:::
 
 ## Files & scheduling
-
-A file upload plus the date/time pickers — `File`, `DateInput`, `TimeInput`, `DateTimeInput`.
 
 <ExampleMeta
   skill="bestax-form"
@@ -265,6 +266,8 @@ A file upload plus the date/time pickers — `File`, `DateInput`, `TimeInput`, `
   date="2026-06-27"
   prompt="Build an onboarding form with a file upload plus date, time, and date-time pickers — following the bestax form skill."
 />
+
+### Live form
 
 ```tsx live
 function example() {
@@ -289,7 +292,7 @@ function example() {
 }
 ```
 
-:::note
+### Controlled date & time
+
 The date/time inputs are controlled with a `Date | null` value and an `onChange(date)` handler,
 just like the text inputs — only the widget differs.
-:::
