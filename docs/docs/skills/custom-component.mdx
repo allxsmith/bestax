@@ -1,5 +1,5 @@
 ---
-title: Custom Component skill
+title: Custom Component
 sidebar_label: Custom Component
 sidebar_position: 1
 ---
@@ -8,11 +8,22 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { ExampleMeta } from '@site/src/components/SkillExamples';
 
-# Custom Component skill — example
+# Custom Component skill
 
-An agent was asked to build a `ProfileCard` and followed the
-[`bestax-custom-component`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-custom-component/SKILL.md)
-skill — which begins by **checking whether a matching component already exists**.
+The [`bestax-custom-component`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-custom-component/SKILL.md)
+skill teaches an agent to build a new custom component the bestax way — starting by
+**checking whether a matching component already exists**, then the helper hooks and the Bulma v1
+SCSS pattern, plus stories, tests, and docs.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
+```
+
+## Example
+
+An agent was asked to build a `ProfileCard` and followed the skill.
 
 <ExampleMeta
   skill="bestax-custom-component"

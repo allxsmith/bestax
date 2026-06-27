@@ -31,7 +31,7 @@ const SKILL_HREF =
   'https://github.com/allxsmith/bestax/tree/main/skills/bestax-form/SKILL.md';
 
 const meta: Meta = {
-  title: 'Skills/Examples/Form',
+  title: 'Skills/Form',
   parameters: { layout: 'padded' },
 };
 export default meta;

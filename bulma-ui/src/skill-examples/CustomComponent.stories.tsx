@@ -10,7 +10,7 @@ const SKILL_HREF =
   'https://github.com/allxsmith/bestax/tree/main/skills/bestax-custom-component/SKILL.md';
 
 const meta: Meta = {
-  title: 'Skills/Examples/Custom Component',
+  title: 'Skills/Custom Component',
   parameters: { layout: 'padded' },
 };
 export default meta;

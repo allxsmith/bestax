@@ -1,6 +1,6 @@
 // Metadata header for a docs "Skill Example": the skill invoked (linked to its
 // SKILL.md), the prompt given to the agent, and the model + date it was generated.
-// Imported by the MDX example pages under docs/skills/examples/.
+// Imported by the skill MDX pages under docs/skills/.
 import React from 'react';
 import styles from './styles.module.css';
 
