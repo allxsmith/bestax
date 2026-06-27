@@ -57,6 +57,7 @@ export type MyComponentColor =
  * Props for the MyComponent component.
  *
  * @property {MyComponentColor} [color] - Bulma color modifier.
+ * @property {'small' | 'medium' | 'large'} [size] - Size modifier.
  * @property {boolean} [isActive] - Whether the component is active.
  */
 export interface MyComponentProps
@@ -64,6 +65,7 @@ export interface MyComponentProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
   color?: MyComponentColor;
+  size?: 'small' | 'medium' | 'large';
   isActive?: boolean;
 }
 
@@ -71,16 +73,17 @@ export interface MyComponentProps
  * MyComponent — short description of what it does.
  *
  * @example
- * <MyComponent color="primary" isActive>Hello</MyComponent>
+ * <MyComponent color="primary" size="large" isActive>Hello</MyComponent>
  */
 export const MyComponent = forwardRef<HTMLDivElement, MyComponentProps>(
-  ({ color, isActive, className, children, ...props }, ref) => {
+  ({ color, size, isActive, className, children, ...props }, ref) => {
     // 1. Pull Bulma helper classes (m/p, text*, display, etc.) out of props.
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
     // 2. Build this component's own classes (respects the Config classPrefix).
     const mainClasses = usePrefixedClassNames('mycomponent', {
       [`is-${color}`]: !!color,
+      [`is-${size}`]: !!size,
       'is-active': !!isActive,
     });
 
@@ -109,6 +112,12 @@ Rules that keep components consistent:
 - **Spread `rest`, not `props`**, onto the DOM node — `useBulmaClasses` has already stripped the
   helper props out of `rest`, so they don't leak to the DOM as invalid attributes.
 - **Set `displayName`** on `forwardRef` components (needed for tests and Storybook autodocs).
+- **Element sizing uses an inline `'small' | 'medium' | 'large'` union**, mapped to `is-small` /
+  `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
+  constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.
+- **Format before you lint.** The repo enforces Prettier and ESLint fails on unformatted code.
+  Run `npx prettier --write` on your new files (or `npm run format` from the repo root) before
+  `npm run lint`. Copy snippets as a starting point, then let Prettier normalize them.
 
 See `references/api.md` for the full helper API and `references/patterns.md` for the complete
 Dialog walkthrough.
@@ -295,7 +304,8 @@ import { MyComponent } from '@allxsmith/bestax-bulma';
 
 Two index files must be updated or the component won't ship:
 
-1. **Package export** — add to `bulma-ui/src/index.ts`:
+1. **Package export** — add to `bulma-ui/src/index.ts`, in the **components** group (the file
+   groups exports by directory — keep yours next to the other `./components/*` lines):
    ```ts
    export * from './components/MyComponent';
    ```
@@ -308,6 +318,7 @@ Then build and verify:
 
 ```sh
 cd bulma-ui
+npx prettier --write src/components/MyComponent.tsx src/scss/components/_mycomponent.scss
 npm run lint
 npm test
 npm run build      # compiles JS + the bestax/extras CSS bundles
@@ -322,6 +333,6 @@ npm run build      # compiles JS + the bestax/extras CSS bundles
 - [ ] `MyComponent.stories.tsx` — `tags: ['autodocs']`, `argTypes`, one story per variant.
 - [ ] `__tests__/MyComponent.test.tsx` — render, prop→class, helper passthrough, ref.
 - [ ] `docs/docs/api/components/mycomponent.md` — Overview / Import / Props / `tsx live`.
-- [ ] `src/index.ts` exports the component.
+- [ ] `src/index.ts` exports the component (in the `./components/*` group).
 - [ ] `scss/components/_index.scss` `@use`s the partial.
-- [ ] `npm run lint && npm test && npm run build` all pass.
+- [ ] Prettier-formatted, then `npm run lint && npm test && npm run build` all pass.
