@@ -19,8 +19,8 @@ const CARDS = [
     icon: SkillsIcon,
     title: 'Agent skills',
     desc: 'Drop-in skills that teach coding agents the Bestax way — composing fields, layouts, and whole components without hand-holding.',
-    href: 'https://github.com/allxsmith/bestax/tree/main/skills',
-    cta: 'Browse skills',
+    href: '/docs/skills/intro',
+    cta: 'Explore skills',
   },
   {
     key: 'mcp',

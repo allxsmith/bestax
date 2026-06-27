@@ -144,6 +144,12 @@ const config = {
             position: 'left',
             label: 'Components',
           },
+          {
+            type: 'docSidebar',
+            sidebarId: 'skillsSidebar',
+            position: 'left',
+            label: 'Skills',
+          },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
             href: 'https://github.com/allxsmith/bestax',

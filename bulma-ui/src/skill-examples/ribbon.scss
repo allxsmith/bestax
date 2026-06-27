@@ -1,0 +1,74 @@
+// Skill-example styles for the Ribbon component (skills/bestax-custom-component).
+// Storybook-only: imported by .storybook/preview.ts, NOT wired into the shipped
+// extras/bestax CSS bundle. Demonstrates the Bulma v1 register-vars/getVar pattern.
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$ribbon-background: cv.getVar('scheme-main-ter') !default;
+$ribbon-color: cv.getVar('text-strong') !default;
+$ribbon-radius: cv.getVar('radius-rounded') !default;
+$ribbon-padding: 0.4em 0.9em !default;
+$ribbon-weight: cv.getVar('weight-semibold') !default;
+$ribbon-size: cv.getVar('size-normal') !default;
+
+.#{iv.$class-prefix}ribbon {
+  @include cv.register-vars(
+    (
+      'ribbon-background': #{$ribbon-background},
+      'ribbon-color': #{$ribbon-color},
+      'ribbon-radius': #{$ribbon-radius},
+      'ribbon-padding': #{$ribbon-padding},
+      'ribbon-weight': #{$ribbon-weight},
+      'ribbon-size': #{$ribbon-size},
+    )
+  );
+}
+
+.#{iv.$class-prefix}ribbon {
+  display: inline-block;
+  background-color: cv.getVar('ribbon-background');
+  color: cv.getVar('ribbon-color');
+  border-radius: cv.getVar('ribbon-radius');
+  padding: cv.getVar('ribbon-padding');
+  font-weight: cv.getVar('ribbon-weight');
+  font-size: cv.getVar('ribbon-size');
+  line-height: 1;
+  white-space: nowrap;
+}
+
+// Color variants — reuse Bulma's registered color vars.
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-primary {
+  background-color: cv.getVar('primary');
+  color: cv.getVar('primary-invert');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-link {
+  background-color: cv.getVar('link');
+  color: cv.getVar('link-invert');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-info {
+  background-color: cv.getVar('info');
+  color: cv.getVar('info-invert');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-success {
+  background-color: cv.getVar('success');
+  color: cv.getVar('success-invert');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-warning {
+  background-color: cv.getVar('warning');
+  color: cv.getVar('warning-invert');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-danger {
+  background-color: cv.getVar('danger');
+  color: cv.getVar('danger-invert');
+}
+
+// Size variants.
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-small {
+  font-size: cv.getVar('size-small');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-medium {
+  font-size: cv.getVar('size-medium');
+}
+.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-large {
+  font-size: cv.getVar('size-large');
+}

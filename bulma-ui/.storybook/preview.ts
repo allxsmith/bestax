@@ -10,6 +10,8 @@ import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
 // Import extras SCSS for component styles
 import '../src/scss/extras.scss';
+// Skill-example styles (Storybook-only — NOT part of the shipped CSS bundle)
+import '../src/skill-examples/ribbon.scss';
 
 // Determine theme based on system preference
 const prefersDark =
@@ -46,6 +48,7 @@ const preview: Preview = {
           'Grid',
           'Layout',
           'Helpers',
+          'Skills',
         ],
       },
     },
@@ -59,6 +62,7 @@ const preview: Preview = {
         'Grid',
         'Layout',
         'Helpers',
+        'Skills',
       ],
     },
     docs: {

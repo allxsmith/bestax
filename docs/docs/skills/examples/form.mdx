@@ -1,0 +1,205 @@
+---
+title: Form skill
+sidebar_label: Form
+sidebar_position: 2
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { ExampleMeta } from '@site/src/components/SkillExamples';
+
+# Form skill — example
+
+An agent followed the
+[`bestax-form`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-form/SKILL.md)
+skill to build a validated signup form. There is no form library — state is plain React, and
+errors surface through `color="danger"` + `message` + `messageColor`.
+
+<ExampleMeta
+  skill="bestax-form"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-form/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+  prompt="Build a signup form with name, email and country fields that validates on submit and shows inline errors — no form library — following the bestax form skill."
+/>
+
+## Live result
+
+Click **Save** with empty fields to see the validation.
+
+```tsx live
+function example() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [country, setCountry] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const errors = {
+    name: !name.trim() ? 'Name is required.' : undefined,
+    email: !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)
+      ? 'Enter a valid email.'
+      : undefined,
+    country: !country ? 'Pick a country.' : undefined,
+  };
+  const show = k => (submitted ? errors[k] : undefined);
+
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        setSubmitted(true);
+      }}
+      style={{ maxWidth: '28rem' }}
+    >
+      <Input
+        label="Name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        color={show('name') ? 'danger' : undefined}
+        message={show('name')}
+        messageColor="danger"
+        iconLeftName="user"
+      />
+      <Input
+        label="Email"
+        type="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        color={show('email') ? 'danger' : undefined}
+        message={show('email')}
+        messageColor="danger"
+        iconLeftName="envelope"
+      />
+      <Select
+        label="Country"
+        value={country}
+        onChange={e => setCountry(e.target.value)}
+        color={show('country') ? 'danger' : undefined}
+        message={show('country')}
+        messageColor="danger"
+      >
+        <option value="">Select…</option>
+        <option value="us">United States</option>
+        <option value="ca">Canada</option>
+        <option value="uk">United Kingdom</option>
+      </Select>
+      <Field>
+        <Buttons>
+          <Button color="primary" type="submit">
+            Save
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setName('');
+              setEmail('');
+              setCountry('');
+              setSubmitted(false);
+            }}
+          >
+            Reset
+          </Button>
+        </Buttons>
+      </Field>
+    </form>
+  );
+}
+```
+
+## Generated code
+
+<Tabs>
+<TabItem value="form" label="SignupForm.tsx">
+
+```tsx
+import { useState } from 'react';
+import { Input, Select, Button, Field, Buttons } from '@allxsmith/bestax-bulma';
+
+export function SignupForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [country, setCountry] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const errors = {
+    name: !name.trim() ? 'Name is required.' : undefined,
+    email: !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)
+      ? 'Enter a valid email.'
+      : undefined,
+    country: !country ? 'Pick a country.' : undefined,
+  };
+  const show = (k: keyof typeof errors) => (submitted ? errors[k] : undefined);
+
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        setSubmitted(true);
+      }}
+    >
+      <Input
+        label="Name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        color={show('name') ? 'danger' : undefined}
+        message={show('name')}
+        messageColor="danger"
+        iconLeftName="user"
+      />
+      <Input
+        label="Email"
+        type="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        color={show('email') ? 'danger' : undefined}
+        message={show('email')}
+        messageColor="danger"
+        iconLeftName="envelope"
+      />
+      <Select
+        label="Country"
+        value={country}
+        onChange={e => setCountry(e.target.value)}
+        color={show('country') ? 'danger' : undefined}
+        message={show('country')}
+        messageColor="danger"
+      >
+        <option value="">Select…</option>
+        <option value="us">United States</option>
+        <option value="ca">Canada</option>
+        <option value="uk">United Kingdom</option>
+      </Select>
+      <Field>
+        <Buttons>
+          <Button color="primary" type="submit">
+            Save
+          </Button>
+        </Buttons>
+      </Field>
+    </form>
+  );
+}
+```
+
+</TabItem>
+<TabItem value="pattern" label="The validation pattern">
+
+```tsx
+// No form library — own the state, compute errors, reflect them on the field:
+<Input
+  value={email}
+  onChange={e => setEmail(e.target.value)}
+  color={error ? 'danger' : undefined} // colors the input
+  message={error} // help text under the input
+  messageColor="danger" // colors the help text
+/>
+```
+
+</TabItem>
+</Tabs>
+
+:::note
+The full skill — Field/Control composition, the complete component inventory, and more validation
+patterns — is on
+[GitHub](https://github.com/allxsmith/bestax/tree/main/skills/bestax-form).
+:::
