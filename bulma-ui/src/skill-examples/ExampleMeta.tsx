@@ -64,16 +64,22 @@ export const ExampleMeta: React.FC<ExampleMetaProps> = ({
         {date}
       </span>
     </div>
-    <div
+    <div style={{ ...labelStyle, marginBottom: '0.3rem' }}>Prompt</div>
+    <pre
       style={{
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-        fontSize: '0.95rem',
-        lineHeight: 1.5,
+        margin: 0,
+        padding: '0.75rem 1rem',
+        borderRadius: '4px',
+        background: 'var(--bulma-scheme-main-ter)',
         color: 'var(--bulma-text-strong)',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+        fontSize: '0.9rem',
+        lineHeight: 1.5,
+        whiteSpace: 'pre-wrap',
       }}
     >
-      <span style={labelStyle}>Prompt&nbsp;▸&nbsp;</span>“{prompt}”
-    </div>
+      {prompt}
+    </pre>
   </div>
 );
 
