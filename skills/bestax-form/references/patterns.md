@@ -184,7 +184,7 @@ const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;
 
 const [range, setRange] = useState<[number, number]>([20, 80]);
-<Slider value={range} onChange={setRange} min={0} max={100} />;
+<Slider range value={range} onChange={setRange} min={0} max={100} />;
 
 // Numberinput
 const [qty, setQty] = useState(1);
@@ -194,9 +194,15 @@ const [qty, setQty] = useState(1);
 const [stars, setStars] = useState(3);
 <Rate value={stars} onChange={setStars} max={5} />;
 
-// Taginput
+// Taginput — tags can be strings or { value, label } objects; onChange yields TaginputTag[].
 const [tags, setTags] = useState<string[]>(['react']);
-<Taginput value={tags} onChange={setTags} data={['react', 'bulma', 'ts']} />;
+<Taginput
+  value={tags}
+  onChange={next =>
+    setTags(next.map(t => (typeof t === 'string' ? t : t.value)))
+  }
+  data={['react', 'bulma', 'ts']}
+/>;
 ```
 
 Each renders inside Bulma's field/control structure already, so wrap them in a `Field` only when

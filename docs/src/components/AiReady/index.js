@@ -19,7 +19,8 @@ const CARDS = [
     icon: SkillsIcon,
     title: 'Agent skills',
     desc: 'Drop-in skills that teach coding agents the Bestax way — composing fields, layouts, and whole components without hand-holding.',
-    soon: true,
+    href: 'https://github.com/allxsmith/bestax/tree/main/skills',
+    cta: 'Browse skills',
   },
   {
     key: 'mcp',
@@ -91,8 +92,8 @@ export default function AiReady() {
           Bring Bestax to your AI tools
         </Heading>
         <p className={styles.subtitle}>
-          Point your coding assistant at machine-readable docs today — with
-          agent skills and an MCP server on the way.
+          Point your coding assistant at machine-readable docs and drop-in agent
+          skills today — with an MCP server on the way.
         </p>
         <div className={styles.grid}>
           {CARDS.map((card, i) => (
