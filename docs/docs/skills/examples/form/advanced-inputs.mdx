@@ -1,0 +1,83 @@
+---
+title: Advanced inputs
+sidebar_label: Advanced inputs
+sidebar_position: 3
+---
+
+import { ExampleMeta } from '@site/src/components/SkillExamples';
+
+# Form skill — Advanced inputs
+
+The controls Bulma never shipped: `Autocomplete`, `Slider`, `Numberinput`, `Rate`, and
+`Taginput` — each labelled via its `label` prop.
+
+<ExampleMeta
+  skill="bestax-form"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-form/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+  prompt="Build a freelancer profile form using the advanced inputs: autocomplete, slider, number input, star rating, and tag input — following the bestax form skill."
+/>
+
+## Live result
+
+```tsx live
+function example() {
+  const [skill, setSkill] = useState('');
+  const [experience, setExperience] = useState(5);
+  const [rateUsd, setRateUsd] = useState(75);
+  const [quality, setQuality] = useState(4);
+  const [tags, setTags] = useState(['typescript']);
+
+  return (
+    <div style={{ maxWidth: '32rem' }}>
+      <Autocomplete
+        label="Primary skill"
+        value={skill}
+        onInput={setSkill}
+        onSelect={item =>
+          setSkill(typeof item === 'string' ? item : (item?.value ?? ''))
+        }
+        data={['React', 'Vue', 'Svelte', 'Angular']}
+        openOnFocus
+      />
+      <Slider
+        label="Years of experience"
+        value={experience}
+        onChange={setExperience}
+        min={0}
+        max={20}
+        tooltip="auto"
+      />
+      <Numberinput
+        label="Hourly rate (USD)"
+        value={rateUsd}
+        onChange={setRateUsd}
+        min={10}
+        max={500}
+        step={5}
+      />
+      <Rate
+        label="Self-rated quality"
+        value={quality}
+        onChange={setQuality}
+        max={5}
+      />
+      <Taginput
+        label="Tech stack"
+        value={tags}
+        onChange={next =>
+          setTags(next.map(t => (typeof t === 'string' ? t : t.value)))
+        }
+        data={['typescript', 'node', 'graphql', 'css']}
+      />
+    </div>
+  );
+}
+```
+
+:::note
+`Autocomplete` reports typing via `onInput` and a chosen suggestion via `onSelect`. `Taginput`'s
+`onChange` yields tag objects-or-strings, so map them when you store plain strings. A dual-thumb
+`Slider` needs the `range` prop.
+:::

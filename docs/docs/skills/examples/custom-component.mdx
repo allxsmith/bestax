@@ -10,44 +10,51 @@ import { ExampleMeta } from '@site/src/components/SkillExamples';
 
 # Custom Component skill — example
 
-An agent was given the prompt below and followed the
+An agent was asked to build a `ProfileCard` and followed the
 [`bestax-custom-component`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-custom-component/SKILL.md)
-skill to build a brand-new `Ribbon` component — React + TypeScript, plus SCSS in the Bulma v1
-register-vars/getVar pattern.
+skill — which begins by **checking whether a matching component already exists**.
 
 <ExampleMeta
   skill="bestax-custom-component"
   skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-custom-component/SKILL.md"
   model="Claude Opus 4.8"
   date="2026-06-27"
-  prompt="Build a new custom Ribbon label component with the six Bulma colors and small/medium/large sizes, following the bestax custom-component skill."
+  prompt="Build a ProfileCard component — avatar on top, then name, role, and a short description — following the bestax custom-component skill."
 />
+
+:::info What the skill checked first
+There is no `ProfileCard` in the library — but `Card`, `Image`, `Title`, `SubTitle`, and
+`Content` already exist. So rather than reinventing them, `ProfileCard` is a new component that
+**composes** the existing elements and adds only its own layout. (Had the request been a "label"
+or "badge", the skill would have stopped and pointed at the existing `Tag` / `Tags`.)
+:::
 
 ## Live result
 
 ```tsx live
 function example() {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '0.6rem',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-      }}
-    >
-      <Ribbon color="primary">primary</Ribbon>
-      <Ribbon color="link">link</Ribbon>
-      <Ribbon color="info">info</Ribbon>
-      <Ribbon color="success">success</Ribbon>
-      <Ribbon color="warning">warning</Ribbon>
-      <Ribbon color="danger">danger</Ribbon>
-      <Ribbon color="primary" size="small">
-        small
-      </Ribbon>
-      <Ribbon color="primary" size="large">
-        large
-      </Ribbon>
+    <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+      <ProfileCard
+        name="Ada Lovelace"
+        role="Mathematician & Writer"
+        imageSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Ada_Lovelace_portrait.jpg/330px-Ada_Lovelace_portrait.jpg"
+      >
+        English mathematician who worked on Charles Babbage's proposed
+        Analytical Engine. She was the first to recognise that the machine had
+        applications beyond pure calculation, and published what is now regarded
+        as the first algorithm intended to be carried out by a machine.
+      </ProfileCard>
+      <ProfileCard
+        name="Alan Turing"
+        role="Computer Scientist"
+        imageSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Alan_Turing_Aged_16.jpg/330px-Alan_Turing_Aged_16.jpg"
+      >
+        British mathematician and logician who formalised the concepts of
+        algorithm and computation with the Turing machine. His wartime
+        codebreaking at Bletchley Park helped shorten the Second World War, and
+        he is widely considered the father of theoretical computer science.
+      </ProfileCard>
     </div>
   );
 }
@@ -56,117 +63,133 @@ function example() {
 ## Generated code
 
 <Tabs>
-<TabItem value="component" label="Ribbon.tsx">
+<TabItem value="component" label="ProfileCard.tsx">
 
 ```tsx
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+// Compose the existing elements rather than reinventing them.
+import { Image, Title, SubTitle, Content } from '../index';
 
-export type RibbonColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
-
-/**
- * Props for the Ribbon component.
- *
- * @property {RibbonColor} [color] - Bulma color modifier.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier.
- */
-export interface RibbonProps
+export interface ProfileCardProps
   extends
-    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
-    Omit<BulmaClassesProps, 'color'> {
-  color?: RibbonColor;
-  size?: 'small' | 'medium' | 'large';
+    Omit<React.HTMLAttributes<HTMLDivElement>, 'title' | 'color'>,
+    BulmaClassesProps {
+  name: string;
+  role?: string;
+  imageSrc: string;
+  imageAlt?: string;
 }
 
-/**
- * Ribbon — a small label/banner chip with Bulma color and size modifiers.
- *
- * @example
- * <Ribbon color="primary" size="large">New</Ribbon>
- */
-export const Ribbon = forwardRef<HTMLSpanElement, RibbonProps>(
-  ({ color, size, className, children, ...props }, ref) => {
+export const ProfileCard = forwardRef<HTMLDivElement, ProfileCardProps>(
+  ({ name, role, imageSrc, imageAlt, className, children, ...props }, ref) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const mainClasses = usePrefixedClassNames('ribbon', {
-      [`is-${color}`]: !!color,
-      [`is-${size}`]: !!size,
-    });
-    const combined = classNames(mainClasses, bulmaHelperClasses, className);
+    const cardClass = usePrefixedClassNames('profile-card');
+    const imageClass = usePrefixedClassNames('profile-card-image');
+    const bodyClass = usePrefixedClassNames('profile-card-body');
+    const combined = classNames(cardClass, bulmaHelperClasses, className);
+
     return (
-      <span ref={ref} className={combined} {...rest}>
-        {children}
-      </span>
+      <div ref={ref} className={combined} {...rest}>
+        <div className={imageClass}>
+          <Image
+            size="128x128"
+            src={imageSrc}
+            alt={imageAlt ?? name}
+            isRounded
+          />
+        </div>
+        <div className={bodyClass}>
+          <Title size="4" as="h3">
+            {name}
+          </Title>
+          {role && (
+            <SubTitle size="6" as="p">
+              {role}
+            </SubTitle>
+          )}
+          {children && <Content>{children}</Content>}
+        </div>
+      </div>
     );
   }
 );
 
-Ribbon.displayName = 'Ribbon';
+ProfileCard.displayName = 'ProfileCard';
 
-export default Ribbon;
+export default ProfileCard;
 ```
 
 </TabItem>
-<TabItem value="scss" label="_ribbon.scss">
+<TabItem value="scss" label="_profilecard.scss">
 
 ```scss
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 
-$ribbon-background: cv.getVar('scheme-main-ter') !default;
-$ribbon-color: cv.getVar('text-strong') !default;
-$ribbon-radius: cv.getVar('radius-rounded') !default;
-$ribbon-padding: 0.4em 0.9em !default;
-$ribbon-weight: cv.getVar('weight-semibold') !default;
-$ribbon-size: cv.getVar('size-normal') !default;
+$profile-card-width: 20rem !default;
+$profile-card-min-height: 26rem !default;
+$profile-card-avatar-size: 9rem !default;
+$profile-card-background: cv.getVar('scheme-main') !default;
+$profile-card-border: cv.getVar('border-weak') !default;
+$profile-card-radius: cv.getVar('radius-large') !default;
+$profile-card-shadow: 0 0.5em 1em -0.125em hsla(0, 0%, 4%, 0.1) !default;
+$profile-card-padding: 1.5rem !default;
+$profile-card-gap: 0.75rem !default;
 
-.#{iv.$class-prefix}ribbon {
+.#{iv.$class-prefix}profile-card {
   @include cv.register-vars(
     (
-      'ribbon-background': #{$ribbon-background},
-      'ribbon-color': #{$ribbon-color},
-      'ribbon-radius': #{$ribbon-radius},
-      'ribbon-padding': #{$ribbon-padding},
-      'ribbon-weight': #{$ribbon-weight},
-      'ribbon-size': #{$ribbon-size},
+      'profile-card-width': #{$profile-card-width},
+      'profile-card-min-height': #{$profile-card-min-height},
+      'profile-card-avatar-size': #{$profile-card-avatar-size},
+      'profile-card-background': #{$profile-card-background},
+      'profile-card-border': #{$profile-card-border},
+      'profile-card-radius': #{$profile-card-radius},
+      'profile-card-shadow': #{$profile-card-shadow},
+      'profile-card-padding': #{$profile-card-padding},
+      'profile-card-gap': #{$profile-card-gap},
     )
   );
 }
 
-.#{iv.$class-prefix}ribbon {
-  display: inline-block;
-  background-color: cv.getVar('ribbon-background');
-  color: cv.getVar('ribbon-color');
-  border-radius: cv.getVar('ribbon-radius');
-  padding: cv.getVar('ribbon-padding');
-  font-weight: cv.getVar('ribbon-weight');
-  font-size: cv.getVar('ribbon-size');
-  line-height: 1;
-  white-space: nowrap;
+.#{iv.$class-prefix}profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center; // horizontal centering of the column
+  text-align: center;
+  width: cv.getVar('profile-card-width');
+  min-height: cv.getVar('profile-card-min-height');
+  max-width: 100%;
+  gap: cv.getVar('profile-card-gap');
+  padding: cv.getVar('profile-card-padding');
+  background-color: cv.getVar('profile-card-background');
+  border: 1px solid cv.getVar('profile-card-border');
+  border-radius: cv.getVar('profile-card-radius');
+  box-shadow: cv.getVar('profile-card-shadow');
 }
 
-// Color variants — reuse Bulma's registered color vars.
-.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-primary {
-  background-color: cv.getVar('primary');
-  color: cv.getVar('primary-invert');
+.#{iv.$class-prefix}profile-card-image {
+  display: flex;
+  justify-content: center;
 }
-// …is-link / is-info / is-success / is-warning / is-danger follow the same shape.
 
-// Size variants.
-.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-small {
-  font-size: cv.getVar('size-small');
+// Enlarge the composed avatar and crop (not stretch) the portrait to a circle.
+.#{iv.$class-prefix}profile-card-image .#{iv.$class-prefix}image {
+  width: cv.getVar('profile-card-avatar-size');
+  height: cv.getVar('profile-card-avatar-size');
 }
-.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-medium {
-  font-size: cv.getVar('size-medium');
+.#{iv.$class-prefix}profile-card-image .#{iv.$class-prefix}image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.#{iv.$class-prefix}ribbon.#{iv.$class-prefix}is-large {
-  font-size: cv.getVar('size-large');
+
+.#{iv.$class-prefix}profile-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 ```
 
@@ -174,19 +197,20 @@ $ribbon-size: cv.getVar('size-normal') !default;
 <TabItem value="usage" label="Usage">
 
 ```tsx
-import { Ribbon } from '@allxsmith/bestax-bulma';
+import { ProfileCard } from '@allxsmith/bestax-bulma';
 
-<Ribbon color="primary" size="large">
-  New
-</Ribbon>;
+<ProfileCard name="Ada Lovelace" role="Mathematician" imageSrc="/ada.jpg">
+  Wrote the first algorithm intended to be carried out by a machine.
+</ProfileCard>;
 ```
 
 </TabItem>
 </Tabs>
 
 :::note
-`Ribbon` is an **example** produced by the skill — it is not part of the published
-`@allxsmith/bestax-bulma` package. The point is the _pattern_, which you can follow to build any
-custom component. See the full skill on
+`ProfileCard` is an **example** produced by the skill — it is not part of the published
+`@allxsmith/bestax-bulma` package. The point is the _pattern_ (check first, compose existing
+elements, follow the SCSS convention, then **inspect it in a browser** to confirm spacing and
+alignment). See the full skill on
 [GitHub](https://github.com/allxsmith/bestax/tree/main/skills/bestax-custom-component).
 :::

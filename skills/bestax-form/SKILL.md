@@ -180,10 +180,30 @@ Rules of thumb:
 See `references/api.md` for per-component props and `references/patterns.md` for a full
 multi-field form plus the advanced inputs.
 
+## Reuse the shipped components
+
+bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch,
+File, Autocomplete, Slider, Numberinput, Rate, Taginput, and the date/time inputs (see the
+inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
+reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
+`docs/docs/api/form/` first — it's probably already there under a different name.
+
+## Visually inspect it in a browser
+
+Forms have layout, spacing, and _stateful_ behavior that types and unit tests don't cover.
+Before calling a form done, **render it and look at it**: run `npm run storybook` (in `bulma-ui`)
+or the docs dev server, open the form, and check field alignment/spacing, the help-text/error
+states, and the validation flow (submit empty → fields turn `danger` with messages; fix → errors
+clear). If claude-in-chrome or Playwright is available, drive the browser and screenshot the
+valid and error states; otherwise eyeball it yourself.
+
 ## Checklist
 
+- [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
 - [ ] Every input has an associated label (`label` prop, or a `<label htmlFor>` when composing).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
+- [ ] **Rendered and visually inspected in a browser** — layout and the error/validation states
+      look right, not just green tests.

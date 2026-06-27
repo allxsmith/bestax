@@ -1,0 +1,78 @@
+// Skill-example styles for the ProfileCard component (skills/bestax-custom-component).
+// Storybook-only: imported by .storybook/preview.ts, NOT wired into the shipped
+// extras/bestax CSS bundle. Demonstrates the Bulma v1 register-vars/getVar pattern.
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+$profile-card-width: 20rem !default;
+$profile-card-min-height: 26rem !default;
+$profile-card-avatar-size: 9rem !default;
+$profile-card-background: cv.getVar('scheme-main') !default;
+$profile-card-border: cv.getVar('border-weak') !default;
+$profile-card-radius: cv.getVar('radius-large') !default;
+$profile-card-shadow: 0 0.5em 1em -0.125em hsla(0, 0%, 4%, 0.1) !default;
+$profile-card-padding: 1.5rem !default;
+$profile-card-gap: 0.75rem !default;
+
+.#{iv.$class-prefix}profile-card {
+  @include cv.register-vars(
+    (
+      'profile-card-width': #{$profile-card-width},
+      'profile-card-min-height': #{$profile-card-min-height},
+      'profile-card-avatar-size': #{$profile-card-avatar-size},
+      'profile-card-background': #{$profile-card-background},
+      'profile-card-border': #{$profile-card-border},
+      'profile-card-radius': #{$profile-card-radius},
+      'profile-card-shadow': #{$profile-card-shadow},
+      'profile-card-padding': #{$profile-card-padding},
+      'profile-card-gap': #{$profile-card-gap},
+    )
+  );
+}
+
+.#{iv.$class-prefix}profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: cv.getVar('profile-card-width');
+  min-height: cv.getVar('profile-card-min-height');
+  max-width: 100%;
+  gap: cv.getVar('profile-card-gap');
+  padding: cv.getVar('profile-card-padding');
+  background-color: cv.getVar('profile-card-background');
+  border: 1px solid cv.getVar('profile-card-border');
+  border-radius: cv.getVar('profile-card-radius');
+  box-shadow: cv.getVar('profile-card-shadow');
+}
+
+.#{iv.$class-prefix}profile-card-image {
+  display: flex;
+  justify-content: center;
+}
+
+// Enlarge the composed avatar and crop (not stretch) the portrait to a circle.
+.#{iv.$class-prefix}profile-card-image .#{iv.$class-prefix}image {
+  width: cv.getVar('profile-card-avatar-size');
+  height: cv.getVar('profile-card-avatar-size');
+}
+
+.#{iv.$class-prefix}profile-card-image .#{iv.$class-prefix}image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.#{iv.$class-prefix}profile-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+// The composed Title/SubTitle/Content carry Bulma margins; the flex gap handles
+// spacing here, so zero them out inside the card.
+.#{iv.$class-prefix}profile-card .#{iv.$class-prefix}title,
+.#{iv.$class-prefix}profile-card .#{iv.$class-prefix}subtitle,
+.#{iv.$class-prefix}profile-card .#{iv.$class-prefix}content {
+  margin-bottom: 0;
+}

@@ -1,0 +1,49 @@
+---
+title: Files & scheduling
+sidebar_label: Files & scheduling
+sidebar_position: 4
+---
+
+import { ExampleMeta } from '@site/src/components/SkillExamples';
+
+# Form skill — Files & scheduling
+
+A file upload plus the date/time pickers: `File`, `DateInput`, `TimeInput`, and `DateTimeInput`.
+
+<ExampleMeta
+  skill="bestax-form"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-form/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+  prompt="Build an onboarding form with a file upload plus date, time, and date-time pickers — following the bestax form skill."
+/>
+
+## Live result
+
+```tsx live
+function example() {
+  const [date, setDate] = useState(null);
+  const [time, setTime] = useState(null);
+  const [appt, setAppt] = useState(null);
+
+  return (
+    <div style={{ maxWidth: '28rem' }}>
+      <Field label="Profile photo">
+        <File hasName buttonLabel="Choose a file…" />
+      </Field>
+      <DateInput label="Date of birth" value={date} onChange={setDate} />
+      <TimeInput
+        label="Preferred contact time"
+        value={time}
+        onChange={setTime}
+      />
+      <DateTimeInput label="Appointment" value={appt} onChange={setAppt} />
+    </div>
+  );
+}
+```
+
+:::note
+The date/time inputs are controlled with a `Date | null` value and an `onChange(date)` handler,
+just like the text inputs — only the widget differs.
+:::

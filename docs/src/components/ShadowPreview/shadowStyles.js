@@ -17,8 +17,8 @@ import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css
 import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/material-icons.css';
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
 import rawExtrasStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/extras.css';
-// Docs-only Skill Example styles (Ribbon) — not part of the shipped CSS bundle.
-import rawRibbonStyles from '!!raw-loader!@site/src/components/SkillExamples/ribbon.css';
+// Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
+import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
 
 // Enhanced preprocessing function for better CSS variable handling
 function preprocessBulmaStyles(rawStyles) {
@@ -109,8 +109,11 @@ export const materialSymbolsStyles = rawMaterialSymbolsStyles.replace(
 
 export const extrasStyles = rawExtrasStyles.replace(/:root/g, ':host');
 
-// Docs-only Skill Example (Ribbon) styles for the shadow-DOM live previews.
-export const ribbonStyles = rawRibbonStyles.replace(/:root/g, ':host');
+// Docs-only Skill Example (ProfileCard) styles for the shadow-DOM live previews.
+export const profileCardStyles = rawProfileCardStyles.replace(
+  /:root/g,
+  ':host'
+);
 
 // Add specific CSS for ionicons web components
 export const ioniconStyles = `
@@ -139,6 +142,6 @@ export const shadowStyleSheets = [
   ioniconStyles,
   materialSymbolsStyles,
   extrasStyles,
-  ribbonStyles,
+  profileCardStyles,
   colorModeStyles,
 ];

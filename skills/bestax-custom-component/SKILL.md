@@ -19,6 +19,34 @@ component to `@allxsmith/bestax-bulma`, or refactor a component to match house s
 
 For **form** components (Field/Control/Input/etc.) use the `bestax-form` skill instead.
 
+## Check for an existing component first
+
+Before building anything, **search the library for a component that already does this — or a
+close synonym** — and tell the user what you found. Many requests are covered by an existing
+element, or are best built by composing existing ones. Building a near-duplicate (a "label" when
+`Tag` exists, a "banner" when `Notification` exists) fragments the API and is usually the wrong
+call.
+
+Where to look:
+
+- `bulma-ui/src/index.ts` — the full export list; scan it for the name and its synonyms.
+- `docs/docs/api/{elements,components,form}/` — one doc page per shipped component.
+- Storybook titles — `Elements/*`, `Components/*`, `Form/*`.
+
+Then decide, and **surface the decision to the user**:
+
+- **Exact / synonym match exists** → recommend using it. Don't build a duplicate. (E.g. a small
+  colored label/badge/chip → `Tag` / `Tags` already exist.)
+- **Partial overlap** → prefer **composing or extending** the existing pieces inside your new
+  component rather than re-implementing them. (E.g. a "profile card" → there's no `ProfileCard`,
+  but `Card`, `Image`, `Title`, `SubTitle`, and `Content` exist; build `ProfileCard` to compose
+  them.)
+- **Genuine gap** → build the new component using the pattern below.
+
+State plainly which case applies before writing code, e.g. _"`Tag` already covers a colored
+label — use that instead"_ or _"No `ProfileCard` exists; I'll build one composing the existing
+`Card`/`Image`/`Title` elements."_
+
 ## File layout
 
 Every custom component has five files. Mirror the existing names exactly (PascalCase TSX,
@@ -324,8 +352,29 @@ npm test
 npm run build      # compiles JS + the bestax/extras CSS bundles
 ```
 
+## Visually inspect it in a browser
+
+Types and unit tests don't see layout. **Render the component and actually look at it** before
+you call it done — spacing, padding, vertical centering, alignment, and every variant/state
+(colors, sizes, hover/active, dark mode). Visual bugs hide from `tsc` and `@testing-library`.
+
+1. Run a surface that renders it: `npm run storybook` (compiles SCSS live) or the docs dev server.
+2. Open the component and inspect it. If a browser-automation tool (claude-in-chrome, Playwright)
+   is available, drive the browser and screenshot each variant; otherwise open it yourself and
+   eyeball it.
+3. Check the usual offenders:
+   - **Vertical centering of inline text** — `display: inline-block` + `line-height: 1` makes
+     text sit low. For chips/labels/buttons use `display: inline-flex; align-items: center;
+justify-content: center;` with a normal `line-height` (Bulma's `Tag` is the reference).
+   - Padding/gaps look balanced; nothing clips or overflows.
+   - Every color/size variant renders; dark mode is legible.
+
+Fix what you see, then re-inspect. A green test suite with a misaligned component is not done.
+
 ## Checklist
 
+- [ ] **Checked the inventory first** — searched `src/index.ts` / docs / Storybook for an existing
+      match or synonym, and told the user (reuse/extend it, or confirm there's a genuine gap).
 - [ ] `MyComponent.tsx` — `forwardRef`, `Omit<…, 'color'>`, `useBulmaClasses`,
       `usePrefixedClassNames`, `classNames`, spread `rest`, `displayName` set.
 - [ ] `_mycomponent.scss` — `@use` Bulma utilities, `$vars !default`, `cv.register-vars`,
@@ -336,3 +385,5 @@ npm run build      # compiles JS + the bestax/extras CSS bundles
 - [ ] `src/index.ts` exports the component (in the `./components/*` group).
 - [ ] `scss/components/_index.scss` `@use`s the partial.
 - [ ] Prettier-formatted, then `npm run lint && npm test && npm run build` all pass.
+- [ ] **Rendered and visually inspected in a browser** — centering/spacing/variants all look
+      right (not just green tests).
