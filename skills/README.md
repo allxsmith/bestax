@@ -13,6 +13,7 @@ directory the agent reads on demand.
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`bestax-custom-component`](./bestax-custom-component/SKILL.md) | Building a **new custom component** beyond stock Bulma — React + TS, the Bulma v1 SCSS CSS-variable pattern, stories, tests, docs, and export/build wiring. |
 | [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).            |
+| [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.        |
 
 ## Install
 
@@ -21,12 +22,7 @@ Add a skill to your agent with the [`skills`](https://skills.sh/) CLI:
 ```sh
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
-```
-
-Or add them both:
-
-```sh
-npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component --skill bestax-form
+npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 ```
 
 ## Layout
@@ -43,6 +39,14 @@ skills/
     references/
       api.md        # per-component props
       patterns.md   # complete form + advanced inputs
+  bestax-theming/
+    SKILL.md
+    references/
+      css-variables.md        # the --bulma-* map + override mechanisms
+      themeable-components.md  # color/size props + accepted values
+    examples/
+      theme-config.tsx         # custom brand theme (app root + scoped)
+      dark-mode.tsx            # light/dark toggle via data-theme
 ```
 
 ## See also

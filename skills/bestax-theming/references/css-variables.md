@@ -1,0 +1,125 @@
+# Bulma CSS variables & override mechanisms
+
+`@allxsmith/bestax-bulma` wraps **Bulma 1.x**, which is themed entirely through `--bulma-*` CSS
+custom properties. Every color, font, size, and radius resolves from one of these variables, so
+theming means overriding the right `--bulma-*` values.
+
+## How to override (three paths)
+
+### 1. The `Theme` component (runtime, recommended)
+
+`Theme` is exported from the package and writes `--bulma-*` variables for you.
+
+- `isRoot` → injects the variables globally at `:root` (use once, at the app root).
+- without `isRoot` → wraps children in a `<div>` and scopes the variables to that subtree.
+- Named props set the color/scheme HSL channels and common values (see "Theme props" below).
+- `bulmaVars` sets any other variable, keyed by its real `--bulma-*` name:
+
+```tsx
+<Theme
+  isRoot
+  primaryH="265"
+  primaryS="65%"
+  primaryL="55%"
+  bulmaVars={{
+    '--bulma-radius': '0.75rem',
+    '--bulma-family-primary': "'Inter', sans-serif",
+  }}
+>
+  <App />
+</Theme>
+```
+
+> Note: the type of the `bulmaVars` keys is not exported — pass it as an object literal (TypeScript
+> still checks the keys against the allowed `--bulma-*` names).
+
+### 2. Plain CSS
+
+Set the variables yourself on any selector. `:root` themes the whole document; a class scopes it.
+
+```css
+:root {
+  --bulma-primary-h: 265;
+  --bulma-primary-s: 65%;
+  --bulma-primary-l: 55%;
+  --bulma-radius: 0.75rem;
+}
+```
+
+### 3. Build-time Sass
+
+If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variables are generated:
+
+```scss
+@use 'bulma/sass' with (
+  $primary: #1e6b99,
+  $link: #485fc7
+);
+```
+
+(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way.)
+
+## Colors — override the H/S/L trio to recolor
+
+Bulma derives a color's entire palette (shades, light/dark/invert variants) from three channels.
+Override the trio; the rest follows automatically. For each color `<c>` ∈ `primary`, `link`,
+`info`, `success`, `warning`, `danger`:
+
+| Variable        | Meaning                    | `Theme` prop             |
+| --------------- | -------------------------- | ------------------------ |
+| `--bulma-<c>-h` | hue (unitless, e.g. `265`) | `<c>H` (e.g. `primaryH`) |
+| `--bulma-<c>-s` | saturation (`%`)           | `<c>S`                   |
+| `--bulma-<c>-l` | lightness (`%`)            | `<c>L`                   |
+
+Read-only derived values (set automatically; reference if you need them): `--bulma-<c>` (the
+resolved color), `--bulma-<c>-invert`, `--bulma-<c>-light`, `--bulma-<c>-dark`, `--bulma-<c>-rgb`,
+and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
+
+## Scheme, text, background, border (light/dark surfaces)
+
+| Variable                                                                    | Role                                                  |
+| --------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `--bulma-scheme-h`, `--bulma-scheme-s`                                      | scheme hue/saturation (`Theme`: `schemeH`, `schemeS`) |
+| `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter` | page/surface backgrounds (main + subtle steps)        |
+| `--bulma-background`                                                        | secondary background                                  |
+| `--bulma-text`, `--bulma-text-strong`, `--bulma-text-weak`                  | body / emphasized / muted text                        |
+| `--bulma-border`, `--bulma-border-weak`                                     | borders                                               |
+
+## Radius, typography
+
+| Variable                                                                      | Default                           | `Theme` prop    |
+| ----------------------------------------------------------------------------- | --------------------------------- | --------------- |
+| `--bulma-radius-small` / `--bulma-radius` / `--bulma-radius-large`            | 0.25 / 0.375 / 0.75rem            | via `bulmaVars` |
+| `--bulma-radius-rounded`                                                      | 9999px                            | via `bulmaVars` |
+| `--bulma-family-primary` / `--bulma-family-secondary` / `--bulma-family-code` | sans / sans / mono                | via `bulmaVars` |
+| `--bulma-size-1` … `--bulma-size-7`                                           | 3rem … 0.75rem                    | via `bulmaVars` |
+| `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
+| `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
+
+## Dark mode (no shipped helper — use Bulma's `data-theme`)
+
+The library ships **no** dark-mode component or hook. Bulma 1.x supplies the dark palette and
+switches to it from any of:
+
+- `@media (prefers-color-scheme: dark)` on `:root` (the OS preference, automatic), and
+- the **`[data-theme="dark"]`** attribute or **`.theme-dark`** class (explicit toggle).
+
+To toggle in an app, set the attribute high in the tree (on `<html>`):
+
+```ts
+document.documentElement.setAttribute('data-theme', 'dark'); // or 'light'
+```
+
+Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
+`--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from
+`Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
+channels directly.
+
+## `Theme` props (named)
+
+Color trios: `primaryH/primaryS/primaryL`, `linkH/linkS/linkL`, `infoH/S/L`, `successH/S/L`,
+`warningH/S/L`, `dangerH/S/L`. Scheme: `schemeH`, `schemeS`, `lightL`, `darkL`, `lightInvertL`,
+`darkInvertL`, `softL`, `boldL`, `softInvertL`, `boldInvertL`. Interaction deltas:
+`hoverBackgroundLDelta`, `activeBackgroundLDelta`, `hoverBorderLDelta`, `activeBorderLDelta`,
+`hoverColorLDelta`, `activeColorLDelta`, `hoverShadowADelta`, `activeShadowADelta`. Everything else:
+`bulmaVars={{ '--bulma-…': '…' }}`. All values are strings.

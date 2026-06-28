@@ -1,0 +1,196 @@
+---
+title: Theming
+sidebar_label: Theming
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { ExampleMeta } from '@site/src/components/SkillExamples';
+
+# Theming skill
+
+The [`bestax-theming`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/SKILL.md)
+skill teaches an agent to customize colors, branding, and dark mode of an app built with
+`@allxsmith/bestax-bulma`. Bulma 1.x is themed through `--bulma-*` CSS variables; recolor a brand
+color by overriding its hue/saturation/lightness trio with the exported `Theme` component.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
+```
+
+## Custom brand theme
+
+<ExampleMeta
+  skill="bestax-theming"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Set up a custom brand theme for an app built with @allxsmith/bestax-bulma —
+override the brand colors and the corner radius — following the bestax theming
+skill.
+```
+
+### Live result
+
+The wrapped section below recolors via a **scoped** `<Theme>` (no `isRoot`), so the override
+applies only to its children.
+
+```tsx live
+function example() {
+  return (
+    <Theme
+      infoH="291"
+      infoS="70%"
+      infoL="50%"
+      linkH="291"
+      linkS="70%"
+      linkL="50%"
+      bulmaVars={{ '--bulma-radius': '9999px' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+        }}
+      >
+        <Button color="info">Info button</Button>
+        <Button color="link">Link button</Button>
+        <Tag color="info">Themed tag</Tag>
+      </div>
+    </Theme>
+  );
+}
+```
+
+:::note
+This live preview pins `--bulma-primary-*`, so the demo recolors `info`/`link` to show the effect.
+In a real app, override `primaryH`/`primaryS`/`primaryL` the same way to recolor the brand primary.
+:::
+
+### Generated code
+
+<Tabs>
+<TabItem value="root" label="App root (global)">
+
+```tsx
+import { Theme } from '@allxsmith/bestax-bulma';
+
+// Wrap the app once. `isRoot` writes the variables to :root globally.
+export function ThemedApp({ children }: { children: React.ReactNode }) {
+  return (
+    <Theme
+      isRoot
+      primaryH="265"
+      primaryS="65%"
+      primaryL="55%"
+      linkH="200"
+      linkS="80%"
+      linkL="45%"
+      bulmaVars={{
+        '--bulma-radius': '0.75rem',
+        '--bulma-family-primary': "'Inter', system-ui, sans-serif",
+      }}
+    >
+      {children}
+    </Theme>
+  );
+}
+```
+
+</TabItem>
+<TabItem value="scoped" label="Scoped override">
+
+```tsx
+import { Theme, Box, Button } from '@allxsmith/bestax-bulma';
+
+// Theme one section; the rest of the app is untouched (no `isRoot`).
+export function PromoPanel() {
+  return (
+    <Theme primaryH="16" primaryS="85%" primaryL="55%">
+      <Box>
+        <Button color="primary">Warm primary, only here</Button>
+      </Box>
+    </Theme>
+  );
+}
+```
+
+</TabItem>
+</Tabs>
+
+Bulma derives every shade and the light/dark/invert variants from the `--bulma-<color>-h/-s/-l`
+trio, so overriding the trio recolors the whole palette. Non-color tokens (radius, fonts, sizes)
+go through `bulmaVars`, keyed by their real `--bulma-*` names.
+
+## Dark mode
+
+<ExampleMeta
+  skill="bestax-theming"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Add a light/dark mode toggle to an app built with @allxsmith/bestax-bulma —
+there is no shipped dark-mode component — following the bestax theming skill.
+```
+
+### Generated code
+
+```tsx
+import { useEffect, useState } from 'react';
+import { Box, Button, Title, Notification } from '@allxsmith/bestax-bulma';
+
+type Mode = 'light' | 'dark';
+
+function getInitialMode(): Mode {
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+}
+
+export function DarkModeToggle() {
+  const [mode, setMode] = useState<Mode>(getInitialMode);
+
+  // Apply the mode to <html> so Bulma's [data-theme="dark"] selectors take over.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', mode);
+  }, [mode]);
+
+  return (
+    <Box>
+      <Title size="5">Theme: {mode}</Title>
+      <Notification color="info">
+        Components follow the current Bulma color scheme.
+      </Notification>
+      <Button
+        color="primary"
+        onClick={() => setMode(m => (m === 'light' ? 'dark' : 'light'))}
+      >
+        Switch to {mode === 'light' ? 'dark' : 'light'} mode
+      </Button>
+    </Box>
+  );
+}
+```
+
+### How it works
+
+The library ships **no** dark-mode component. Bulma 1.x supplies the dark palette and switches to
+it from the `data-theme` attribute (and the OS `prefers-color-scheme`). Set
+`data-theme="dark"` on `<html>` and every component re-reads its `--bulma-*` scheme variables. Brand
+overrides from `<Theme isRoot>` still apply on top.

@@ -12,7 +12,9 @@ other skills.sh-compatible tools — how to build with **@allxsmith/bestax-bulma
 Install one with the [`skills`](https://skills.sh/) CLI:
 
 ```bash
-npx skills add https://github.com/allxsmith/bestax --skill <skill-name>
+npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
+npx skills add https://github.com/allxsmith/bestax --skill bestax-form
+npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 ```
 
 Then explore each skill — what it does, how to install it, and live examples:
@@ -21,3 +23,5 @@ Then explore each skill — what it does, how to install it, and live examples:
   (check for an existing one first, then the helper hooks + Bulma v1 SCSS pattern).
 - **[Form](./form)** — build forms with the bestax form components and the validate-it-yourself
   error pattern (no form library).
+- **[Theming](./theming)** — customize colors, branding, and dark mode by overriding Bulma's
+  `--bulma-*` variables with the `Theme` component.
