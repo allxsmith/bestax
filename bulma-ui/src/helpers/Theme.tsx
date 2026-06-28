@@ -580,6 +580,10 @@ const bulmaVarPropMap = Object.fromEntries(
  * @property {React.ReactNode} children - Content to render inside the theme scope.
  * @property {string} [className] - Additional CSS classes (only when isRoot is false).
  * @property {boolean} [isRoot] - Inject CSS variables globally at :root level. Default: false.
+ * @property {'light' | 'dark' | 'system'} [colorMode] - Set Bulma's light/dark scheme by writing
+ *   the `data-theme` attribute on the document root (`<html>`). This is always global, even on a
+ *   scoped Theme. `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`.
+ *   Omit to leave the current setting untouched.
  * @property {BulmaVars} [bulmaVars] - Object mapping Bulma CSS variable names to values.
  * @property {string} [schemeH] - Scheme hue value.
  * @property {string} [schemeS] - Scheme saturation value.
@@ -625,6 +629,7 @@ export interface ThemeProps extends Omit<
   children: ReactNode;
   className?: string;
   isRoot?: boolean;
+  colorMode?: 'light' | 'dark' | 'system';
   bulmaVars?: BulmaVars;
   // Bulma scheme variables
   schemeH?: string;
@@ -688,6 +693,7 @@ export const Theme: React.FC<ThemeProps> = ({
   children,
   className,
   isRoot = false,
+  colorMode,
   ...restProps
 }) => {
   // Extract Bulma variable props from restProps
@@ -757,6 +763,33 @@ export const Theme: React.FC<ThemeProps> = ({
       }
     };
   }, [mergedVars, isRoot]);
+
+  // Toggle Bulma's light/dark scheme by writing the `data-theme` attribute on
+  // the document root (<html>). This is always global, even on a scoped Theme.
+  // `'system'` removes the attribute so Bulma follows the OS preference.
+  useEffect(() => {
+    if (colorMode === undefined) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const previous = root.getAttribute('data-theme');
+
+    if (colorMode === 'system') {
+      root.removeAttribute('data-theme');
+    } else {
+      root.setAttribute('data-theme', colorMode);
+    }
+
+    // Restore the previous value when colorMode changes or the component unmounts.
+    return () => {
+      if (previous === null) {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', previous);
+      }
+    };
+  }, [colorMode]);
 
   // For local injection (when isRoot is false), prepare style object for CSS vars
   const style: CSSProperties = useMemo(() => {

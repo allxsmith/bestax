@@ -96,19 +96,24 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 | `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
 | `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
 
-## Dark mode (no shipped helper — use Bulma's `data-theme`)
+## Dark mode (`Theme colorMode`)
 
-The library ships **no** dark-mode component or hook. Bulma 1.x supplies the dark palette and
-switches to it from any of:
+Drive the light/dark scheme with the `Theme` component's **`colorMode`** prop —
+`'light' | 'dark' | 'system'`:
 
-- `@media (prefers-color-scheme: dark)` on `:root` (the OS preference, automatic), and
-- the **`[data-theme="dark"]`** attribute or **`.theme-dark`** class (explicit toggle).
-
-To toggle in an app, set the attribute high in the tree (on `<html>`):
-
-```ts
-document.documentElement.setAttribute('data-theme', 'dark'); // or 'light'
+```tsx
+<Theme isRoot colorMode={mode}>
+  <App />
+</Theme>
 ```
+
+`colorMode` writes Bulma's **`data-theme`** attribute on `<html>`, so it is always **global** (even
+on a scoped `Theme`). `'system'` removes the attribute, so Bulma falls back to the OS
+`@media (prefers-color-scheme: dark)`. Omitting `colorMode` leaves the current setting untouched.
+
+Under the hood this is Bulma 1.x's own mechanism — `[data-theme="dark"]` / `.theme-dark` selectors
+(plus the `prefers-color-scheme` media query). Setting the attribute by hand still works
+(`document.documentElement.setAttribute('data-theme', 'dark')`); `colorMode` just does it for you.
 
 Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
 `--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from

@@ -150,47 +150,46 @@ there is no shipped dark-mode component — following the bestax theming skill.
 
 ### Generated code
 
+The `Theme` component drives dark mode via its `colorMode` prop — no manual DOM work.
+
 ```tsx
-import { useEffect, useState } from 'react';
-import { Box, Button, Title, Notification } from '@allxsmith/bestax-bulma';
+import { useState } from 'react';
+import {
+  Theme,
+  Box,
+  Button,
+  Title,
+  Notification,
+} from '@allxsmith/bestax-bulma';
 
-type Mode = 'light' | 'dark';
-
-function getInitialMode(): Mode {
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
-}
+type Mode = 'light' | 'dark' | 'system';
 
 export function DarkModeToggle() {
-  const [mode, setMode] = useState<Mode>(getInitialMode);
-
-  // Apply the mode to <html> so Bulma's [data-theme="dark"] selectors take over.
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', mode);
-  }, [mode]);
+  const [mode, setMode] = useState<Mode>('system');
 
   return (
-    <Box>
-      <Title size="5">Theme: {mode}</Title>
-      <Notification color="info">
-        Components follow the current Bulma color scheme.
-      </Notification>
-      <Button
-        color="primary"
-        onClick={() => setMode(m => (m === 'light' ? 'dark' : 'light'))}
-      >
-        Switch to {mode === 'light' ? 'dark' : 'light'} mode
-      </Button>
-    </Box>
+    <Theme isRoot colorMode={mode}>
+      <Box>
+        <Title size="5">Color mode: {mode}</Title>
+        <Notification color="info">
+          Components follow the current Bulma color scheme.
+        </Notification>
+        <Button color="primary" onClick={() => setMode('light')}>
+          Light
+        </Button>
+        <Button color="primary" onClick={() => setMode('dark')}>
+          Dark
+        </Button>
+        <Button onClick={() => setMode('system')}>System</Button>
+      </Box>
+    </Theme>
   );
 }
 ```
 
 ### How it works
 
-The library ships **no** dark-mode component. Bulma 1.x supplies the dark palette and switches to
-it from the `data-theme` attribute (and the OS `prefers-color-scheme`). Set
-`data-theme="dark"` on `<html>` and every component re-reads its `--bulma-*` scheme variables. Brand
-overrides from `<Theme isRoot>` still apply on top.
+`Theme`'s `colorMode` prop (`'light' | 'dark' | 'system'`) writes Bulma's `data-theme` attribute on
+`<html>`, so the whole document follows the chosen scheme — global, even on a scoped `Theme`.
+`'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Brand overrides
+from `<Theme isRoot>` still apply on top of either scheme.

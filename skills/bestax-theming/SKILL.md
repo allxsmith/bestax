@@ -30,9 +30,10 @@ Choose an override path:
 - **Plain CSS.** Set `:root { --bulma-primary-h: …; }` (or any selector) directly.
 - **Build-time Sass.** `@use 'bulma/sass' with ($primary: #1e6b99)` when compiling Bulma's Sass.
 
-For **dark mode**, set Bulma's `data-theme` attribute — the library ships no dark-mode component.
-Toggle `document.documentElement.setAttribute('data-theme', 'dark' | 'light')`; Bulma also honors
-the OS `prefers-color-scheme`.
+For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). It writes Bulma's
+`data-theme` attribute on `<html>`, flipping the light/dark scheme — global, even on a scoped
+`Theme`; `'system'` follows the OS `prefers-color-scheme`. Drive it from state on the app-root
+`Theme`: `<Theme isRoot colorMode={mode}>`.
 
 Reach for the helper props (`color` / `textColor` / `bgColor` / `colorShade`, `textSize`,
 `textWeight`, `fontFamily`) to apply themed colors and type to individual components.
