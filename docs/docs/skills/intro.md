@@ -15,6 +15,7 @@ Install one with the [`skills`](https://skills.sh/) CLI:
 npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-component
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
+npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 ```
 
 Then explore each skill — what it does, how to install it, and live examples:
@@ -25,3 +26,5 @@ Then explore each skill — what it does, how to install it, and live examples:
   error pattern (no form library).
 - **[Theming](./theming)** — customize colors, branding, and dark mode by overriding Bulma's
   `--bulma-*` variables with the `Theme` component.
+- **[Layout scaffold](./layout-scaffold)** — go from "build me a dashboard / landing page / catalog"
+  to a complete responsive page using the layout archetypes.

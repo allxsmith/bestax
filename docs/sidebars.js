@@ -31,7 +31,12 @@ const sidebars = {
       type: 'category',
       label: 'Skills',
       collapsed: false,
-      items: ['skills/custom-component', 'skills/form', 'skills/theming'],
+      items: [
+        'skills/custom-component',
+        'skills/form',
+        'skills/theming',
+        'skills/layout-scaffold',
+      ],
     },
   ],
 
