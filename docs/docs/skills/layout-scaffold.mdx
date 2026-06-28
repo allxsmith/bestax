@@ -35,10 +35,63 @@ Build an admin dashboard shell with a fixed top nav and a sidebar menu —
 following the bestax layout-scaffold skill.
 ```
 
+### Live result
+
+The shell structure — a `Navbar`, a narrow `Menu` column, and a main content column. This preview
+uses a **non-fixed** navbar; the shippable version uses `fixed="top"` (see Generated code), which
+needs `position: fixed` and a page-level class and therefore can't render inside this embed.
+
+```tsx live
+function example() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <>
+      <Navbar color="dark">
+        <Navbar.Brand>
+          <Navbar.Item href="#">Acme Admin</Navbar.Item>
+          <Navbar.Burger
+            active={menuOpen}
+            onClick={() => setMenuOpen(open => !open)}
+            aria-label="menu"
+          />
+        </Navbar.Brand>
+        <Navbar.Menu active={menuOpen}>
+          <Navbar.End>
+            <Navbar.Item href="#">Account</Navbar.Item>
+          </Navbar.End>
+        </Navbar.Menu>
+      </Navbar>
+      <Container fluid>
+        <Columns>
+          <Column size={3}>
+            <Menu>
+              <Menu.Label>General</Menu.Label>
+              <Menu.List>
+                <Menu.Item active href="#">
+                  Dashboard
+                </Menu.Item>
+                <Menu.Item href="#">Customers</Menu.Item>
+                <Menu.Item href="#">Orders</Menu.Item>
+              </Menu.List>
+            </Menu>
+          </Column>
+          <Column>
+            <Box>
+              <Title size="4">Dashboard</Title>
+              <p>Main content area.</p>
+            </Box>
+          </Column>
+        </Columns>
+      </Container>
+    </>
+  );
+}
+```
+
 ### Generated code
 
-A fixed top `Navbar` plus a narrow `Menu` column beside the main content. (Fixed navbars don't
-preview well inside this embed, so this one is shown as code — see `examples/app-shell.tsx`.)
+The shippable version adds `fixed="top"` and the required `has-navbar-fixed-top` class on `<html>`
+(see `examples/app-shell.tsx`).
 
 ```tsx
 import { useEffect, useState } from 'react';
