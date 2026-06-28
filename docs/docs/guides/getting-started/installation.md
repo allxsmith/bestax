@@ -22,8 +22,8 @@ If you've already installed everything and want to start building, explore our [
 
 ### System Requirements
 
-- **Node.js**: 16.0.0 or higher
-- **npm**: 7.0.0 or higher (or yarn/pnpm)
+- **Node.js**: 22.0.0 or higher (the current LTS baseline)
+- **npm**: 10.0.0 or higher (ships with Node 22; or yarn/pnpm)
 - **React**: 18.0.0 or higher (React 18 or 19; v4 dropped React 16/17 support)
 
 ### HTML Setup
