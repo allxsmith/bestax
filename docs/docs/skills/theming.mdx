@@ -193,3 +193,11 @@ export function DarkModeToggle() {
 `<html>`, so the whole document follows the chosen scheme — global, even on a scoped `Theme`.
 `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Brand overrides
 from `<Theme isRoot>` still apply on top of either scheme.
+
+:::note Why there's no live demo here
+`colorMode` flips the page-level `data-theme` on `<html>` — the same attribute this documentation
+site uses for its own light/dark mode, and the embedded previews are sandboxed to the site theme.
+A live toggle would flip the entire site, not a contained example. To see it: toggle this site's
+dark mode (top-right of the navbar) to view components in dark, or run the **Helpers / Theme →
+DarkMode** story in Storybook.
+:::
