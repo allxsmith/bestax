@@ -34,6 +34,17 @@ export async function promptOverwriteDirectory(
   return response.overwrite === true;
 }
 
+export async function promptInstallSkills(): Promise<boolean> {
+  const response = await prompts({
+    type: 'confirm',
+    name: 'skills',
+    message: PROMPT_MESSAGES.INSTALL_SKILLS,
+    initial: true,
+  });
+
+  return response.skills === true;
+}
+
 export async function promptTemplate(): Promise<string | null> {
   const response = await prompts({
     type: 'select',

@@ -213,6 +213,40 @@ describe('ProjectCreator', () => {
     });
   });
 
+  describe('setupSkills', () => {
+    it('copies the bundled skills and writes CLAUDE.md when the bundle exists', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app');
+
+      expect(fs.default.copy).toHaveBeenCalledWith(
+        expect.stringContaining('skills'),
+        expect.stringContaining('.claude/skills')
+      );
+      expect(fs.default.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining('CLAUDE.md'),
+        expect.stringContaining('my-app')
+      );
+    });
+
+    it('skips when the skills bundle is missing', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(false);
+
+      await projectCreator.setupSkills('/target/path', 'my-app');
+
+      expect(fs.default.copy).not.toHaveBeenCalled();
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+    });
+  });
+
   describe('setupBulmaFlavor', () => {
     it('should update main file with Bulma flavor for JavaScript', async () => {
       const targetPath = '/test/project';

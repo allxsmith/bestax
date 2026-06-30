@@ -7,6 +7,9 @@ node_modules/
 # Build output
 dist/
 
+# Generated: skills bundled from the monorepo's /skills (see scripts/sync-skills.mjs)
+templates/skills/
+
 # Coverage
 coverage/
 

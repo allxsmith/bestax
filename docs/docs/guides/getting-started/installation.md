@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript). See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
+Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?

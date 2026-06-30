@@ -18,6 +18,10 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 ```
 
+Starting a new app? `npm create bestax@latest` offers to **preinstall these skills** into the
+generated app's `.claude/skills/` (alongside a `CLAUDE.md`), so a Claude Code session picks them up
+automatically — no manual `skills add` needed.
+
 Then explore each skill — what it does, how to install it, and live examples:
 
 - **[Custom Component](./custom-component)** — build a new custom component the bestax way
