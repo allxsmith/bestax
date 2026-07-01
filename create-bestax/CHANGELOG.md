@@ -1,3 +1,11 @@
+# [3.1.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.0.0...create-bestax@3.1.0) (2026-07-01)
+
+
+### Features
+
+* **bulma-ui:** add colorMode dark-mode prop to Theme ([4acc41e](https://github.com/allxsmith/bestax/commit/4acc41ea6138da3ac2051d5eacfa6d5635560c62)), closes [#174](https://github.com/allxsmith/bestax/issues/174)
+* **create-bestax:** offer to install the bestax AI skills when scaffolding ([625b7bf](https://github.com/allxsmith/bestax/commit/625b7bfdf6570f9954898bea00fc72d9e28df250)), closes [#174](https://github.com/allxsmith/bestax/issues/174)
+
 # [3.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@2.2.0...create-bestax@3.0.0) (2026-06-26)
 
 
