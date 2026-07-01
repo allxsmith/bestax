@@ -219,4 +219,60 @@ describe('Theme', () => {
     // Invalid var skipped.
     expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
   });
+
+  describe('colorMode', () => {
+    afterEach(() => {
+      document.documentElement.removeAttribute('data-theme');
+    });
+
+    it('sets data-theme="dark" on the document root', () => {
+      render(
+        <Theme colorMode="dark">
+          <div>Test</div>
+        </Theme>
+      );
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    });
+
+    it('sets data-theme="light" on the document root', () => {
+      render(
+        <Theme colorMode="light">
+          <div>Test</div>
+        </Theme>
+      );
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    });
+
+    it('removes data-theme for "system"', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      render(
+        <Theme colorMode="system">
+          <div>Test</div>
+        </Theme>
+      );
+      expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    });
+
+    it('leaves data-theme untouched when colorMode is omitted', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      render(
+        <Theme>
+          <div>Test</div>
+        </Theme>
+      );
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    });
+
+    it('restores the previous data-theme on unmount', () => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const { unmount } = render(
+        <Theme colorMode="dark">
+          <div>Test</div>
+        </Theme>
+      );
+      expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+      unmount();
+      expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+    });
+  });
 });

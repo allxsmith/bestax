@@ -97,6 +97,8 @@ export function createCLI(): Command {
       '-i, --icon <library>',
       'icon library (none, fontawesome, mdi, ionicons, material-icons, material-symbols)'
     )
+    .option('--skills', 'install the bestax AI skills into .claude/skills')
+    .option('--no-skills', 'do not install the bestax AI skills')
     .option('-y, --yes', 'skip prompts and use defaults or provided options')
     .action((projectDir?: string, options?: unknown) => {
       projectCreator.create(projectDir, options as CLIOptions);

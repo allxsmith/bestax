@@ -1,0 +1,342 @@
+---
+title: Layout scaffold
+sidebar_label: Layout scaffold
+sidebar_position: 4
+---
+
+import { ExampleMeta } from '@site/src/components/SkillExamples';
+
+# Layout scaffold skill
+
+The [`bestax-layout-scaffold`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-layout-scaffold/SKILL.md)
+skill turns a high-level request — "admin dashboard", "landing page", "login screen", "product
+catalog" — into a complete, responsive page built from bestax-bulma layout components, in one shot.
+It maps the request to one of four archetypes and builds it without asking layout questions.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
+```
+
+## App shell with sidebar
+
+<ExampleMeta
+  skill="bestax-layout-scaffold"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-layout-scaffold/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Build an admin dashboard shell with a fixed top nav and a sidebar menu —
+following the bestax layout-scaffold skill.
+```
+
+### Live result
+
+The shell structure — a `Navbar`, a narrow `Menu` column, and a main content column. This preview
+uses a **non-fixed** navbar; the shippable version uses `fixed="top"` (see Generated code), which
+needs `position: fixed` and a page-level class and therefore can't render inside this embed.
+
+```tsx live
+function example() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  return (
+    <>
+      <Navbar color="dark">
+        <Navbar.Brand>
+          <Navbar.Item href="#">Acme Admin</Navbar.Item>
+          <Navbar.Burger
+            active={menuOpen}
+            onClick={() => setMenuOpen(open => !open)}
+            aria-label="menu"
+          />
+        </Navbar.Brand>
+        <Navbar.Menu active={menuOpen}>
+          <Navbar.End>
+            <Navbar.Item href="#">Account</Navbar.Item>
+          </Navbar.End>
+        </Navbar.Menu>
+      </Navbar>
+      <Container fluid>
+        <Columns>
+          <Column size={3}>
+            <Menu>
+              <Menu.Label>General</Menu.Label>
+              <Menu.List>
+                <Menu.Item active href="#">
+                  Dashboard
+                </Menu.Item>
+                <Menu.Item href="#">Customers</Menu.Item>
+                <Menu.Item href="#">Orders</Menu.Item>
+              </Menu.List>
+            </Menu>
+          </Column>
+          <Column>
+            <Box>
+              <Title size="4">Dashboard</Title>
+              <p>Main content area.</p>
+            </Box>
+          </Column>
+        </Columns>
+      </Container>
+    </>
+  );
+}
+```
+
+### Generated code
+
+The shippable version adds `fixed="top"` and the required `has-navbar-fixed-top` class on `<html>`
+(see `examples/app-shell.tsx`).
+
+```tsx
+import { useEffect, useState } from 'react';
+import {
+  Navbar,
+  Menu,
+  Container,
+  Columns,
+  Column,
+  Section,
+  Title,
+  Box,
+} from '@allxsmith/bestax-bulma';
+
+export default function AdminShell() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // A fixed-top navbar needs `has-navbar-fixed-top` on <html> (Bulma requirement;
+  // the library does not add it for you).
+  useEffect(() => {
+    document.documentElement.classList.add('has-navbar-fixed-top');
+    return () =>
+      document.documentElement.classList.remove('has-navbar-fixed-top');
+  }, []);
+
+  return (
+    <>
+      <Navbar fixed="top" color="dark">
+        <Navbar.Brand>
+          <Navbar.Item href="#">Acme Admin</Navbar.Item>
+          <Navbar.Burger
+            active={menuOpen}
+            onClick={() => setMenuOpen(open => !open)}
+            aria-label="menu"
+            aria-expanded={menuOpen}
+          />
+        </Navbar.Brand>
+        <Navbar.Menu active={menuOpen}>
+          <Navbar.End>
+            <Navbar.Item href="#">Account</Navbar.Item>
+          </Navbar.End>
+        </Navbar.Menu>
+      </Navbar>
+
+      <Container fluid>
+        <Columns>
+          <Column size={3} sizeWidescreen={2}>
+            <Menu>
+              <Menu.Label>General</Menu.Label>
+              <Menu.List>
+                <Menu.Item active href="#">
+                  Dashboard
+                </Menu.Item>
+                <Menu.Item href="#">Customers</Menu.Item>
+              </Menu.List>
+            </Menu>
+          </Column>
+          <Column>
+            <Section>
+              <Title size="3">Dashboard</Title>
+              <Box>Main content area.</Box>
+            </Section>
+          </Column>
+        </Columns>
+      </Container>
+    </>
+  );
+}
+```
+
+### Responsive
+
+The navbar collapses to a burger on mobile; the sidebar and content columns sit side by side on
+tablet and up, and stack on mobile.
+
+## Marketing / landing
+
+<ExampleMeta
+  skill="bestax-layout-scaffold"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-layout-scaffold/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Build a marketing landing page with a hero, a three-feature section, and a
+footer — following the bestax layout-scaffold skill.
+```
+
+### Live result
+
+```tsx live
+function example() {
+  return (
+    <>
+      <Hero color="primary" size="medium">
+        <Hero.Body>
+          <Container textAlign="centered">
+            <Title size="2">Ship faster with Acme</Title>
+            <SubTitle size="4">
+              The all-in-one platform for modern teams.
+            </SubTitle>
+            <Buttons isCentered>
+              <Button color="light" size="large">
+                Get started
+              </Button>
+            </Buttons>
+          </Container>
+        </Hero.Body>
+      </Hero>
+      <Section>
+        <Container>
+          <Columns>
+            <Column>
+              <Box>
+                <Title size="5">Fast</Title>
+                <Content>Ship pages in minutes.</Content>
+              </Box>
+            </Column>
+            <Column>
+              <Box>
+                <Title size="5">Responsive</Title>
+                <Content>Looks right on every screen.</Content>
+              </Box>
+            </Column>
+            <Column>
+              <Box>
+                <Title size="5">Composable</Title>
+                <Content>Build from small pieces.</Content>
+              </Box>
+            </Column>
+          </Columns>
+        </Container>
+      </Section>
+    </>
+  );
+}
+```
+
+### Responsive
+
+Sections stack vertically; the feature `Columns` collapse to one per row on mobile.
+
+## Centered single-column
+
+<ExampleMeta
+  skill="bestax-layout-scaffold"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-layout-scaffold/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Build a centered login page — following the bestax layout-scaffold skill.
+```
+
+### Live result
+
+```tsx live
+function example() {
+  return (
+    <Section>
+      <Container>
+        <Columns isCentered>
+          <Column size="half" sizeWidescreen="one-third">
+            <Box>
+              <Title size="4" textAlign="centered">
+                Sign in
+              </Title>
+              <Input label="Email" type="email" iconLeftName="envelope" />
+              <Input label="Password" type="password" iconLeftName="lock" />
+              <Button color="primary" isFullWidth mt="4">
+                Sign in
+              </Button>
+            </Box>
+          </Column>
+        </Columns>
+      </Container>
+    </Section>
+  );
+}
+```
+
+### Responsive
+
+The centered column is narrow on desktop and full width on mobile.
+
+## Card grid / catalog
+
+<ExampleMeta
+  skill="bestax-layout-scaffold"
+  skillHref="https://github.com/allxsmith/bestax/blob/main/skills/bestax-layout-scaffold/SKILL.md"
+  model="Claude Opus 4.8"
+  date="2026-06-27"
+/>
+
+### Prompt
+
+```text
+Build a product catalog as a responsive grid of cards — following the bestax
+layout-scaffold skill.
+```
+
+### Live result
+
+```tsx live
+function example() {
+  const items = [
+    { id: 1, name: 'Aurora Lamp', price: '$48', seed: 1 },
+    { id: 2, name: 'Drift Chair', price: '$220', seed: 2 },
+    { id: 3, name: 'Stone Mug', price: '$18', seed: 3 },
+  ];
+  return (
+    <Section>
+      <Container>
+        <Columns isMultiline>
+          {items.map(item => (
+            <Column
+              key={item.id}
+              sizeMobile="full"
+              sizeTablet="half"
+              sizeDesktop="one-third"
+            >
+              <Card
+                image={`https://picsum.photos/seed/${item.seed}/600/400`}
+                imageAlt={item.name}
+                header={item.name}
+                footer={<span className="card-footer-item">{item.price}</span>}
+              >
+                A short product description.
+              </Card>
+            </Column>
+          ))}
+        </Columns>
+      </Container>
+    </Section>
+  );
+}
+```
+
+### Responsive
+
+`isMultiline` wraps cards onto new rows; the `size*` props set one card per row on mobile, two on
+tablet, three on desktop.

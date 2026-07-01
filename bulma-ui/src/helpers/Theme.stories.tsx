@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Theme } from './Theme';
 import Box from '../elements/Box';
 import Title from '../elements/Title';
@@ -516,3 +517,30 @@ export const BulmaPrefixedTheme = () => (
     </div>
   </div>
 );
+
+// Dark mode: <Theme colorMode> writes the `data-theme` attribute on <html>,
+// flipping Bulma's light/dark scheme globally. `'system'` follows the OS.
+export const DarkMode = () => {
+  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('light');
+  return (
+    <Theme colorMode={mode}>
+      <Box>
+        <Title size="4">Color mode: {mode}</Title>
+        <p className="mb-4">
+          The <code>colorMode</code> prop sets <code>data-theme</code> on{' '}
+          <code>&lt;html&gt;</code>, so every component follows the active
+          scheme.
+        </p>
+        <div className="buttons">
+          <Button color="primary" onClick={() => setMode('light')}>
+            Light
+          </Button>
+          <Button color="primary" onClick={() => setMode('dark')}>
+            Dark
+          </Button>
+          <Button onClick={() => setMode('system')}>System</Button>
+        </div>
+      </Box>
+    </Theme>
+  );
+};

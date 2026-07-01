@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript). See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
+Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?
@@ -22,8 +22,8 @@ If you've already installed everything and want to start building, explore our [
 
 ### System Requirements
 
-- **Node.js**: 16.0.0 or higher
-- **npm**: 7.0.0 or higher (or yarn/pnpm)
+- **Node.js**: 22.0.0 or higher (the current LTS baseline)
+- **npm**: 10.0.0 or higher (ships with Node 22; or yarn/pnpm)
 - **React**: 18.0.0 or higher (React 18 or 19; v4 dropped React 16/17 support)
 
 ### HTML Setup

@@ -1,0 +1,66 @@
+---
+name: bestax-layout-scaffold
+description: Scaffold a complete, responsive page layout with @allxsmith/bestax-bulma — app shells/dashboards, marketing/landing pages, centered auth/settings pages, and card-grid catalogs. Use when building a full page or overall app layout (not a single component).
+license: MIT
+---
+
+# Scaffolding a page layout with @allxsmith/bestax-bulma
+
+Turn a high-level request ("admin dashboard", "landing page", "login screen", "product catalog")
+into a complete responsive page built from bestax-bulma layout components.
+
+## Behavioral rule
+
+Select an archetype from the request and build it in one shot. Do **not** ask layout questions
+("how many columns?", "where should the nav go?", "what width?") — infer the structure from the
+request and proceed. The archetype determines the structure; fill it with the requested content.
+
+Ask **at most one** clarifying question, and only for a high-level fork the request genuinely does
+not imply: whether the page is **public-facing** (marketing) or an **internal tool** (authenticated
+app). When the request already signals this ("dashboard", "admin", "landing", "login", "pricing"),
+skip the question and default.
+
+## Select an archetype
+
+| Request signals                                                        | Archetype     |
+| ---------------------------------------------------------------------- | ------------- |
+| dashboard, admin, console, internal tool, authenticated app, "sidebar" | **App shell** |
+| landing, marketing, homepage, product/pricing page, public site        | **Landing**   |
+| login, sign up, auth, settings, checkout, a single focused form        | **Centered**  |
+| catalog, gallery, products, listing, "grid of cards", search results   | **Card grid** |
+
+Default when ambiguous: internal tool → App shell; public-facing → Landing; one focused task →
+Centered; a collection of items → Card grid. For mixed requests, pick the dominant intent (e.g.
+"admin dashboard with a product list" → App shell whose main column holds a Card grid).
+
+## Approach
+
+- Compose pages from the shipped layout components — `Container`, `Section`, `Hero`, `Footer`,
+  `Level`, `Columns`/`Column`, `Navbar`, `Menu`, `Card`. There is **no `Tile` component** — build
+  grids with `Columns`/`Column`.
+- Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
+  mobile. Add responsive `size*` props only to tune the breakpoints.
+- For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
+  hidden behind it — the library does not do this automatically.
+
+## References
+
+- `references/layout-components.md` — the layout component inventory: real prop names, types, and
+  accepted values, plus subcomponent nesting.
+- `references/archetypes.md` — the four archetypes: selection criteria, JSX skeleton, and responsive
+  behavior.
+
+## Examples
+
+- `examples/app-shell.tsx` — fixed `Navbar` + sidebar `Menu` + content (dashboard).
+- `examples/landing.tsx` — `Hero` + `Section`s + `Footer`.
+- `examples/centered.tsx` — centered single column (auth/settings).
+- `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
+
+## Checklist
+
+- [ ] Map the request to one archetype; do not ask layout questions.
+- [ ] Wrap page content in `Container` (+ `Section` for vertical rhythm).
+- [ ] Use `Columns`/`Column` for side-by-side layout; rely on the mobile stack default.
+- [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
+- [ ] Do not use `Tile` — it is not shipped.

@@ -30,6 +30,8 @@ export const MESSAGES = {
   PROJECT_CREATED: '✔ Done! Project created successfully.',
   NEXT_STEPS: 'Next steps:',
   HAPPY_CODING: 'Happy coding! 🎉',
+  SKILLS_ADDED:
+    '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md)',
 } as const;
 
 export const PROMPTS = {
@@ -37,7 +39,29 @@ export const PROMPTS = {
   SELECT_FRAMEWORK: 'Select a framework:',
   SELECT_ICON_LIBRARY: 'Would you like to add an icon library?',
   SELECT_BULMA_FLAVOR: 'Which Bulma CSS flavor would you like to use?',
+  INSTALL_SKILLS:
+    'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
 } as const;
+
+// Minimal CLAUDE.md scaffolded alongside the skills so an AI agent knows the
+// stack and where the skills live.
+export const CLAUDE_MD = (projectName: string): string => `# ${projectName}
+
+This app is built with [\`@allxsmith/bestax-bulma\`](https://bestax.io) — React components for
+Bulma 1.x.
+
+## AI skills
+
+\`.claude/skills/\` contains Agent Skills that teach Claude how to build with this library. They load
+automatically when the task matches:
+
+- **bestax-custom-component** — build a new custom component the bestax way.
+- **bestax-form** — build forms with the bestax form components (no form library).
+- **bestax-theming** — colors, branding, and dark mode via the \`Theme\` component (\`colorMode\`).
+- **bestax-layout-scaffold** — scaffold full pages (app shell, landing, centered, card grid).
+
+Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+`;
 
 export interface IconLibrary {
   name: string;

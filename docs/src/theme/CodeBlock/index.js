@@ -14,8 +14,10 @@ import {
   materialSymbolsStyles,
   extrasStyles,
   ioniconStyles,
+  profileCardStyles,
   colorModeStyles,
 } from '@site/src/components/ShadowPreview/shadowStyles';
+import { ProfileCard } from '@site/src/components/SkillExamples';
 import BrowserWindow from './BrowserWindow';
 
 function isLiveCodeBlock(props) {
@@ -154,6 +156,7 @@ function transformCode(code) {
 const scope = {
   ...BestaxBulma,
   Theme: SmartTheme, // Override with our smart Theme selector
+  ProfileCard, // docs-only Skill Example component (not shipped in the library)
   React,
   useState,
   useEffect,
@@ -298,6 +301,7 @@ export default function CodeBlockEnhancer(props) {
           <style>{ioniconStyles}</style>
           <style>{materialSymbolsStyles}</style>
           <style>{extrasStyles}</style>
+          <style>{profileCardStyles}</style>
           <style>{colorModeStyles}</style>
           <style id="theme-vars"></style>
           <div data-theme={colorMode}>

@@ -49,6 +49,7 @@ const {
   promptTemplate,
   promptBulmaFlavor,
   promptIconLibrary,
+  promptInstallSkills,
 } = await import('../prompts.js');
 
 // Import helper functions from cli.js
@@ -132,6 +133,43 @@ describe('prompts', () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
 
       const result = await promptOverwriteDirectory('project');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('promptInstallSkills', () => {
+    it('should prompt to install skills and default to true', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        skills: true,
+      });
+
+      const result = await promptInstallSkills();
+
+      expect(result).toBe(true);
+      expect(prompts).toHaveBeenCalledWith({
+        type: 'confirm',
+        name: 'skills',
+        message:
+          'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
+        initial: true,
+      });
+    });
+
+    it('should return false when user declines', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        skills: false,
+      });
+
+      const result = await promptInstallSkills();
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when user cancels prompt', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
+
+      const result = await promptInstallSkills();
 
       expect(result).toBe(false);
     });

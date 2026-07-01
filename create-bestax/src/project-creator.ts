@@ -16,6 +16,7 @@ import {
   promptTemplate,
   promptIconLibrary,
   promptBulmaFlavor,
+  promptInstallSkills,
 } from './prompts.js';
 import {
   displayHeader,
@@ -24,7 +25,12 @@ import {
   displayCancelled,
 } from './display.js';
 import { validateProjectName } from './validators.js';
-import { MESSAGES, ICON_LIBRARIES, BULMA_FLAVORS } from './constants.js';
+import {
+  MESSAGES,
+  ICON_LIBRARIES,
+  BULMA_FLAVORS,
+  CLAUDE_MD,
+} from './constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,6 +46,7 @@ export interface CLIOptions {
   template?: string;
   bulma?: string;
   icon?: string;
+  skills?: boolean;
   yes?: boolean;
 }
 
@@ -92,6 +99,23 @@ export class ProjectCreator {
     const templatePath = this.getTemplatePath(template);
     await ensureDirectory(targetPath);
     await copyDirectory(templatePath, targetPath);
+  }
+
+  async setupSkills(targetPath: string, projectName: string): Promise<void> {
+    const skillsSrc = path.join(this.templatesDir, 'skills');
+    if (!(await checkDirectoryExists(skillsSrc))) {
+      console.log(
+        chalk.yellow('  Skipping skills — bundle not found in this build.')
+      );
+      return;
+    }
+
+    await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
+    await fs.writeFile(
+      path.join(targetPath, 'CLAUDE.md'),
+      CLAUDE_MD(projectName)
+    );
+    console.log(chalk.green(MESSAGES.SKILLS_ADDED));
   }
 
   async setupBulmaFlavor(
@@ -507,6 +531,16 @@ export class ProjectCreator {
       }
     }
 
+    // Install AI skills? (use option -> --yes default -> prompt)
+    let installSkills: boolean;
+    if (options?.skills !== undefined) {
+      installSkills = options.skills;
+    } else if (options?.yes) {
+      installSkills = true;
+    } else {
+      installSkills = await promptInstallSkills();
+    }
+
     // Create project
     console.log();
     console.log(chalk.green(MESSAGES.CREATING_PROJECT(targetPath)));
@@ -522,6 +556,9 @@ export class ProjectCreator {
         iconLibrary,
         template
       );
+      if (installSkills) {
+        await this.setupSkills(targetPath, projectName);
+      }
       displaySuccess(targetDir);
     } catch (error) {
       displayError((error as Error).message);

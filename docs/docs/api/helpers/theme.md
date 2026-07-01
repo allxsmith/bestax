@@ -22,12 +22,13 @@ import { Theme } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                     | Description                                                                                                                      |
-| ----------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`              | The child components to apply the theme to.                                                                                      |
-| `className` | `string`                 | Additional CSS classes for the theme wrapper.                                                                                    |
-| `isRoot`    | `boolean`                | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div. |
-| `bulmaVars` | `Record<string, string>` | Object containing CSS custom properties as key-value pairs (e.g., `{'--bulma-primary-h': '210'}`).                               |
+| Prop        | Type                            | Description                                                                                                                                                                                                                                               |
+| ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
+| `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
+| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
+| `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
+| `bulmaVars` | `Record<string, string>`        | Object containing CSS custom properties as key-value pairs (e.g., `{'--bulma-primary-h': '210'}`).                                                                                                                                                        |
 
 ### CSS Variable Props
 
@@ -395,6 +396,30 @@ function GlobalTheme() {
         <Button color="primary">Global Purple Theme</Button>
         <Button color="info">Info Button</Button>
       </div>
+    </Theme>
+  );
+}
+```
+
+### Dark Mode
+
+The `colorMode` prop sets Bulma's `data-theme` on `<html>`, flipping the light/dark scheme globally.
+Use `'system'` to follow the OS preference.
+
+```tsx
+import { useState } from 'react';
+
+function App() {
+  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
+  return (
+    <Theme isRoot colorMode={mode}>
+      <Button color="primary" onClick={() => setMode('dark')}>
+        Dark
+      </Button>
+      <Button color="primary" onClick={() => setMode('light')}>
+        Light
+      </Button>
+      <Button onClick={() => setMode('system')}>System</Button>
     </Theme>
   );
 }

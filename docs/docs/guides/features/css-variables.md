@@ -229,33 +229,33 @@ Bulma v1 provides 500+ CSS variables organized by category. Here are the key cat
 
 ### Dark Mode Toggle
 
-Bulma ships a built-in dark-mode scheme that responds to `prefers-color-scheme` — see the [Bulma Dark Mode documentation](https://bulma.io/documentation/features/dark-mode/) for the CSS-level details. The example below overrides a subset of the scheme variables from React:
+Bulma ships a built-in dark-mode scheme. The simplest way to drive it is the `Theme` component's
+`colorMode` prop (`'light' | 'dark' | 'system'`), which writes Bulma's `data-theme` attribute on
+`<html>` for you. `'system'` follows the OS `prefers-color-scheme`.
 
 ```tsx
 function DarkModeApp() {
-  const [isDark, setIsDark] = useState(false);
-
-  const themeVars = {
-    '--bulma-scheme-h': isDark ? '220' : '0',
-    '--bulma-light-l': isDark ? '15%' : '96%',
-    '--bulma-dark-l': isDark ? '85%' : '4%',
-    '--bulma-scheme-invert-ter': isDark
-      ? 'var(--bulma-scheme-main)'
-      : 'var(--bulma-scheme-main-ter)',
-  };
+  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
 
   return (
-    <Theme bulmaVars={themeVars} isRoot>
+    <Theme isRoot colorMode={mode}>
       <Box p="4">
         <Title>Dynamic Dark Mode</Title>
-        <Button onClick={() => setIsDark(!isDark)} color="primary">
-          Toggle {isDark ? 'Light' : 'Dark'} Mode
+        <Button onClick={() => setMode('dark')} color="primary">
+          Dark
         </Button>
+        <Button onClick={() => setMode('light')} color="primary">
+          Light
+        </Button>
+        <Button onClick={() => setMode('system')}>System</Button>
       </Box>
     </Theme>
   );
 }
 ```
+
+For full control you can instead override the scheme variables yourself via `bulmaVars` (e.g.
+`--bulma-scheme-h`, `--bulma-light-l`, `--bulma-dark-l`), but `colorMode` covers the common case.
 
 ### Color Palette Generator
 
