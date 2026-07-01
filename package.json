@@ -60,5 +60,8 @@
   },
   "author": "Alex Smith",
   "license": "MIT",
-  "packageManager": "npm@10.9.2"
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22"
+  }
 }
