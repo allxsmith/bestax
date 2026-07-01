@@ -79,7 +79,24 @@ const config = {
   //     type: 'text/css',
   //   },
   // ],
-  plugins: [],
+  plugins: [
+    [
+      'docusaurus-plugin-llms',
+      {
+        // Generate both the curated index (/llms.txt) and the full
+        // concatenated docs (/llms-full.txt) at build time, per llmstxt.org.
+        generateLLMsTxt: true,
+        generateLLMsFullTxt: true,
+        docsDir: 'docs',
+        title: 'Bestax-Bulma',
+        description:
+          'A Bulma React component library. LLM-friendly documentation for @allxsmith/bestax-bulma.',
+        includeBlog: false,
+        includeOrder: ['guides/*', 'skills/*', 'api/*', 'components/*'],
+        includeUnmatchedLast: true,
+      },
+    ],
+  ],
   themes: [
     '@docusaurus/theme-live-codeblock',
     // '@docusaurus/theme-mermaid',
