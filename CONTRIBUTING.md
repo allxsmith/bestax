@@ -42,7 +42,24 @@ Before contributing, your PR **must** satisfy the following:
 
 Get up and running quickly with these steps, whether you want to contribute or just explore the project locally.
 
-### 1. Clone and Install
+### 1. Node & Package Manager
+
+Use **Node 22** (the LTS this repo targets — see [`.nvmrc`](.nvmrc)); with `nvm`, run `nvm use`.
+
+This repo pins its package manager via the `packageManager` field (`npm@10.9.2`). The simplest way
+to match it — on any Node version — is to enable **Corepack** (bundled with Node), which makes `npm`
+automatically use the pinned version:
+
+```bash
+corepack enable
+```
+
+Why it matters: newer npm (11, bundled with Node 24/25) resolves the lockfile differently than
+npm 10 and can desync `package-lock.json`, breaking `npm ci` in CI. If you change dependencies,
+regenerate the lockfile with npm 10 — via `corepack enable` (above) or `npx npm@10 install` — not
+npm 11.
+
+### 2. Clone and Install
 
 ```bash
 git clone https://github.com/allxsmith/bestax.git
@@ -50,7 +67,7 @@ cd bestax
 npm install
 ```
 
-### 2. Run the Documentation Site
+### 3. Run the Documentation Site
 
 From the root of the monorepo, start the Docusaurus documentation site:
 
@@ -60,7 +77,7 @@ npm run docs
 
 Visit [http://localhost:3000](http://localhost:3000) to view the docs.
 
-### 3. Run Storybook
+### 4. Run Storybook
 
 To explore and develop components interactively:
 
@@ -70,7 +87,7 @@ npm run storybook
 
 Visit the displayed local URL to view Storybook.
 
-### 4. Build All Packages
+### 5. Build All Packages
 
 To build all packages in the repo:
 
@@ -78,7 +95,7 @@ To build all packages in the repo:
 npm run build
 ```
 
-### 5. Run All Checks
+### 6. Run All Checks
 
 This will run build, typecheck, tests (with coverage), lint, format check, and Storybook build:
 
