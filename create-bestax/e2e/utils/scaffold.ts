@@ -65,15 +65,17 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
   });
 
   // Install dependencies in the scaffolded app with a fresh pnpm resolve.
+  // --ignore-workspace: the app may live inside the monorepo tree, so treat it
+  // as a standalone project rather than a workspace member.
   console.log(`Installing dependencies in ${outputDir} (pnpm install)...`);
-  execSync('pnpm install --prefer-offline=false', {
+  execSync('pnpm install --ignore-workspace --prefer-offline=false', {
     cwd: outputDir,
     stdio: 'inherit',
   });
 
   // Build the app
   console.log(`Building app in ${outputDir}...`);
-  execSync('pnpm run build', {
+  execSync('pnpm --ignore-workspace run build', {
     cwd: outputDir,
     stdio: 'inherit',
   });
