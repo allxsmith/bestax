@@ -172,7 +172,7 @@ function HomepageHeader() {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopyNpm = () => {
-    navigator.clipboard.writeText('npm install @allxsmith/bestax-bulma');
+    navigator.clipboard.writeText('pnpm add @allxsmith/bestax-bulma');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -233,7 +233,7 @@ function HomepageHeader() {
             onClick={handleCopyNpm}
             title={copied ? 'Copied!' : 'Click to copy'}
           >
-            <code>npm install @allxsmith/bestax-bulma</code>
+            <code>pnpm add @allxsmith/bestax-bulma</code>
             {copied ? <CheckIcon /> : <CopyIcon />}
           </div>
           <div className={styles.buttons}>

@@ -11,7 +11,7 @@ For detailed installation options, framework-specific guides, or troubleshooting
 ## 1. Run the Installer
 
 ```bash
-npm create bestax@latest my-bestax-app
+pnpm create bestax@latest my-bestax-app
 cd my-bestax-app
 ```
 
@@ -21,7 +21,7 @@ The installer walks you through a few prompts and sets up everything for you:
 - **Bulma flavor** — Complete, Prefixed, No Helpers, No Helpers + Prefixed, or No Dark Mode
 - **Icon library** — Font Awesome, Material Design Icons, Material Icons, Material Symbols, Ionicons, or none
 
-It installs `@allxsmith/bestax-bulma`, the icon font package you pick, adds the CSS imports to `src/main.{jsx,tsx}`, and scaffolds a working app. No manual `npm install` or CSS import step needed.
+It installs `@allxsmith/bestax-bulma`, the icon font package you pick, adds the CSS imports to `src/main.{jsx,tsx}`, and scaffolds a working app. No manual `pnpm install` or CSS import step needed.
 
 ---
 
@@ -61,7 +61,7 @@ export default App;
 ## 3. Run Your App
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 **That's it!** Visit http://localhost:5173 to see your app running.

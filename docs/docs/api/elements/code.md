@@ -71,7 +71,7 @@ Display command line instructions.
 
 ```tsx live
 <Paragraph>
-  Run <Code>npm install</Code> to install the dependencies.
+  Run <Code>pnpm install</Code> to install the dependencies.
 </Paragraph>
 ```
 

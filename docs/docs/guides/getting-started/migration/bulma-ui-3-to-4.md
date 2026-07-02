@@ -35,10 +35,10 @@ React 16.8 and 17 are no longer supported. The library is built and tested again
 **Who is affected:**
 
 - ✅ On React 18 or 19 — upgrade with no code changes. Your existing components, props, imports, and CSS all behave exactly as they did in 3.x.
-- ⚠️ On React 16 or 17 — `npm install @allxsmith/bestax-bulma@4` will emit a peer-dependency warning, and some components rely on hooks/behavior that assume a modern React. **Stay on `@3`** until you can upgrade React:
+- ⚠️ On React 16 or 17 — `pnpm add @allxsmith/bestax-bulma@4` will emit a peer-dependency warning, and some components rely on hooks/behavior that assume a modern React. **Stay on `@3`** until you can upgrade React:
 
   ```bash
-  npm install @allxsmith/bestax-bulma@^3
+  pnpm add @allxsmith/bestax-bulma@^3
   ```
 
 **Why this changed:** dropping the legacy React versions lets the library use modern React idioms (e.g. `useId` for accessible, SSR-safe element IDs) without compatibility shims, and keeps the maintenance surface focused on the versions the ecosystem actually runs.

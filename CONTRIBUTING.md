@@ -24,15 +24,15 @@ This project is a modern, flexible React component library built on top of Bulma
 
 Before contributing, your PR **must** satisfy the following:
 
-- **All tests pass** (`npm run test` & `npm run test:coverage`)
+- **All tests pass** (`pnpm test` & `pnpm test:coverage`)
   - Coverage must remain **95% or higher**
-- **Linting and formatting pass** (`npm run lint`, `npm run format:check`)
-- **Type checks pass** (`npm run typecheck`)
-- **Storybook runs and covers UI changes** (`npm run storybook`)
+- **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
+- **Type checks pass** (`pnpm typecheck`)
+- **Storybook runs and covers UI changes** (`pnpm storybook`)
   - Any UI change must have a corresponding Storybook story
 - **Documentation is up-to-date**
   - Update or create relevant markdown files for the [Docusaurus docs](./docs)
-- **CI/CD checks pass** (`npm run all`)
+- **CI/CD checks pass** (`pnpm all`)
 - **Pull request targets the `main` branch**
   - **Direct pushes to `main` are not allowed.** PRs are required and will be reviewed.
 
@@ -46,25 +46,26 @@ Get up and running quickly with these steps, whether you want to contribute or j
 
 Use **Node 22** (the LTS this repo targets — see [`.nvmrc`](.nvmrc)); with `nvm`, run `nvm use`.
 
-This repo pins its package manager via the `packageManager` field (`npm@10.9.2`). The simplest way
-to match it — on any Node version — is to enable **Corepack** (bundled with Node), which makes `npm`
-automatically use the pinned version:
+This repo uses **pnpm**, pinned via the `packageManager` field (`pnpm@11.9.0`). The simplest way to
+get the exact version — on any Node — is to enable **Corepack** (bundled with Node), which makes the
+`pnpm` command automatically use the pinned version:
 
 ```bash
 corepack enable
 ```
 
-Why it matters: newer npm (11, bundled with Node 24/25) resolves the lockfile differently than
-npm 10 and can desync `package-lock.json`, breaking `npm ci` in CI. If you change dependencies,
-regenerate the lockfile with npm 10 — via `corepack enable` (above) or `npx npm@10 install` — not
-npm 11.
+pnpm is what powers our supply-chain hardening (see [`pnpm-workspace.yaml`](pnpm-workspace.yaml) and
+the [Security guide](./docs/docs/guides/security.md)): lifecycle/postinstall scripts are blocked by
+default, and a 3-day `minimumReleaseAge` cooldown prevents installing just-published versions. If you
+add a dependency whose install scripts must run, add it to `allowBuilds` (run `pnpm approve-builds`);
+if you need a version younger than the cooldown, add it to `minimumReleaseAgeExclude`.
 
 ### 2. Clone and Install
 
 ```bash
 git clone https://github.com/allxsmith/bestax.git
 cd bestax
-npm install
+pnpm install
 ```
 
 ### 3. Run the Documentation Site
@@ -72,7 +73,7 @@ npm install
 From the root of the monorepo, start the Docusaurus documentation site:
 
 ```bash
-npm run docs
+pnpm docs
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to view the docs.
@@ -82,7 +83,7 @@ Visit [http://localhost:3000](http://localhost:3000) to view the docs.
 To explore and develop components interactively:
 
 ```bash
-npm run storybook
+pnpm storybook
 ```
 
 Visit the displayed local URL to view Storybook.
@@ -92,7 +93,7 @@ Visit the displayed local URL to view Storybook.
 To build all packages in the repo:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ### 6. Run All Checks
@@ -100,7 +101,7 @@ npm run build
 This will run build, typecheck, tests (with coverage), lint, format check, and Storybook build:
 
 ```bash
-npm run all
+pnpm all
 ```
 
 ---
@@ -114,7 +115,7 @@ npm run all
    ```
 3. **Install dependencies** from the root if you haven't already:
    ```bash
-   npm install
+   pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
 5. **Update/add unit tests** (coverage must remain at 95% or higher).
@@ -123,7 +124,7 @@ npm run all
 8. **Run all checks**:
 
    ```bash
-   npm run all
+   pnpm all
    ```
 
    This command will run build, typecheck, tests (w/ coverage), lint, format check, and Storybook build.

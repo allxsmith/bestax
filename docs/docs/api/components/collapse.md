@@ -252,7 +252,7 @@ function example() {
       q: 'What is Bestax?',
       a: 'Bestax is a React component library built on Bulma.',
     },
-    { q: 'How do I install it?', a: 'npm install @allxsmith/bestax-bulma' },
+    { q: 'How do I install it?', a: 'pnpm add @allxsmith/bestax-bulma' },
     { q: 'Is it free?', a: 'Yes, Bestax is open source and free to use.' },
   ];
 

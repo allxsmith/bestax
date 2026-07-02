@@ -7,14 +7,14 @@ This is the documentation site for [`@allxsmith/bestax-bulma`](https://github.co
 You can run the documentation site from the root of the monorepo with:
 
 ```bash
-npm run docs
+pnpm docs
 ```
 
 Alternatively, to run the docs locally from within this package:
 
 ```bash
-npm install
-npm run start
+pnpm install
+pnpm start
 ```
 
 This will start the Docusaurus development server. Visit [http://localhost:3000](http://localhost:3000) to view the documentation.
@@ -24,7 +24,7 @@ This will start the Docusaurus development server. Visit [http://localhost:3000]
 To build the static site, run:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 The output will appear in the `build/` directory.

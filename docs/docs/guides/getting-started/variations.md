@@ -202,7 +202,7 @@ For teams that want a custom class prefix matching their brand or organization. 
 1. **Install dependencies:**
 
    ```bash
-   npm install bulma sass
+   pnpm add bulma sass
    ```
 
 2. **Create a custom SCSS file:**

@@ -50,7 +50,7 @@ Bulma v1 uses **Dart Sass** instead of the deprecated Node Sass:
 npm uninstall node-sass
 
 # Install modern Sass compiler
-npm install sass
+pnpm add sass
 ```
 
 ## CSS variables support
@@ -253,14 +253,14 @@ Consider migrating to CSS variables for runtime flexibility:
 ## Migration tool
 
 :::info Coming soon
-The migration tool described below is in development and not yet published. The command will eventually be `npx bestax-bulma-migrate`. In the meantime, the manual steps in this guide cover the same ground.
+The migration tool described below is in development and not yet published. The command will eventually be `pnpm dlx bestax-bulma-migrate`. In the meantime, the manual steps in this guide cover the same ground.
 :::
 
 We're developing a migration tool to help you transition from older React Bulma libraries to bestax-bulma:
 
 ```bash
 # Coming soon: Automated migration tool
-npx bestax-bulma-migrate
+pnpm dlx bestax-bulma-migrate
 ```
 
 This tool will use jscodeshift to:

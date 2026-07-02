@@ -103,7 +103,7 @@ function App() {
 }
 ```
 
-Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'` (Ionicons), `'material-icons'`, and `'material-symbols'`. This is the same choice `npm create bestax@latest` prompts for during project setup.
+Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'` (Ionicons), `'material-icons'`, and `'material-symbols'`. This is the same choice `pnpm create bestax@latest` prompts for during project setup.
 
 ## Combining Prefix and Icon Library
 
@@ -139,7 +139,7 @@ For teams building custom Bulma CSS with their own prefixes:
 ### 1. Install Dependencies
 
 ```bash
-npm install bulma sass
+pnpm add bulma sass
 ```
 
 ### 2. Create Custom Sass File
