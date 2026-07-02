@@ -32,7 +32,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Docusaurus
-        run: pnpm run build -- --filter=@allxsmith/bestax-docs
+        run: pnpm exec turbo run build --filter=@allxsmith/bestax-docs
 
       - name: Build Storybook
         run: pnpm --filter @allxsmith/bestax-bulma run build-storybook
