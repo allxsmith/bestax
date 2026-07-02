@@ -90,12 +90,7 @@ export const Notification: React.FC<NotificationProps> = ({
 
 /** Screen positions where programmatic notifications can be displayed. */
 export type NotificationPosition =
-  | 'top-left'
-  | 'top'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom'
-  | 'bottom-right';
+  'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
 /**
  * Options for showing a programmatic notification.

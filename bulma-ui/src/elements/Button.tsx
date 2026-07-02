@@ -168,8 +168,7 @@ export const Button: React.FC<ButtonProps> = ({
           isDisabled
             ? (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()
             : (onClick as
-                | React.MouseEventHandler<HTMLAnchorElement>
-                | undefined)
+                React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }
         {...(anchorRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
       >

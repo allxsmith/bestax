@@ -40,11 +40,9 @@ beforeAll(() => {
 // Pointer-capture stubs. Saved/restored so other suites see jsdom's own
 // behavior (if any).
 let originalSetPointerCapture:
-  | typeof HTMLElement.prototype.setPointerCapture
-  | undefined;
+  typeof HTMLElement.prototype.setPointerCapture | undefined;
 let originalReleasePointerCapture:
-  | typeof HTMLElement.prototype.releasePointerCapture
-  | undefined;
+  typeof HTMLElement.prototype.releasePointerCapture | undefined;
 
 beforeAll(() => {
   originalSetPointerCapture = HTMLElement.prototype.setPointerCapture;

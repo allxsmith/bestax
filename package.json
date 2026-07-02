@@ -3,11 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "bulma-ui",
-    "docs",
-    "create-bestax"
-  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -40,7 +35,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "prettier": "^3.7.4",
+    "prettier": "^3.9.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "semantic-release": "^25.0.2",
@@ -60,7 +55,7 @@
   },
   "author": "Alex Smith",
   "license": "MIT",
-  "packageManager": "npm@10.9.2",
+  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22"
   }

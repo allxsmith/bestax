@@ -11,13 +11,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
-  | 'default'
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'default' | 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /** Screen positions where toasts can be displayed. */
 export type ToastPosition =

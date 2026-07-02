@@ -229,11 +229,7 @@ describe('PickerPopover position resolution', () => {
 
   const PositionedHarness: React.FC<{
     position?:
-      | 'auto'
-      | 'bottom-left'
-      | 'bottom-right'
-      | 'top-left'
-      | 'top-right';
+      'auto' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
     appendToBody?: boolean;
   }> = ({ position = 'auto', appendToBody = true }) => {
     const anchorRef = useRef<HTMLButtonElement>(null);

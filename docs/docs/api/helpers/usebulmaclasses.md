@@ -205,19 +205,10 @@ export interface BulmaClassesProps
     BulmaOtherProps {}
 
 export type BulmaViewportProps =
-  | 'mobile'
-  | 'tablet'
-  | 'desktop'
-  | 'widescreen'
-  | 'fullhd';
+  'mobile' | 'tablet' | 'desktop' | 'widescreen' | 'fullhd';
 
 export type BulmaDisplayProps =
-  | 'block'
-  | 'flex'
-  | 'inline'
-  | 'inline-block'
-  | 'inline-flex'
-  | 'none';
+  'block' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'none';
 
 export interface BulmaColorProps {
   color?:
@@ -354,12 +345,7 @@ export interface BulmaFlexboxProps {
     | 'start'
     | 'end';
   alignSelf?:
-    | 'auto'
-    | 'flex-start'
-    | 'flex-end'
-    | 'center'
-    | 'baseline'
-    | 'stretch';
+    'auto' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
   flexGrow?: '0' | '1' | '2' | '3' | '4' | '5';
   flexShrink?: '0' | '1' | '2' | '3' | '4' | '5';
 }

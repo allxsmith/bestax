@@ -12,12 +12,7 @@ import { FormFieldProps } from './fieldProps';
 export type RateSize = 'small' | 'medium' | 'large';
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 type BulmaColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * Props for individual rate icons.

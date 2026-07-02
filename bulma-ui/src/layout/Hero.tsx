@@ -10,11 +10,7 @@ import {
  * Possible values for Bulma hero size.
  */
 export type HeroSize =
-  | 'small'
-  | 'medium'
-  | 'large'
-  | 'fullheight'
-  | 'fullheight-with-navbar';
+  'small' | 'medium' | 'large' | 'fullheight' | 'fullheight-with-navbar';
 
 /**
  * Props for the Hero component.

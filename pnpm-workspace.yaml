@@ -1,0 +1,39 @@
+packages:
+  - bulma-ui
+  - docs
+  - create-bestax
+
+# --- Supply-chain hardening ---
+
+# Block-by-default: only these dependencies may run install/build lifecycle
+# scripts. Allow the genuine native builders; deny core-js (its postinstall
+# only prints a funding banner — no build needed).
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true
+  unrs-resolver: true
+  core-js: false
+
+# Dependency cooldown: refuse to install versions published less than 3 days
+# ago (defends against just-published malicious releases, which are usually
+# yanked within hours). Add packages to the exclude list for urgent patches.
+minimumReleaseAge: 4320
+# Dev-only formatter: its output must be deterministic, so we track the exact
+# version the code is formatted with rather than lag it behind the cooldown
+# (which would cause recurring reformat churn). Not shipped to users.
+minimumReleaseAgeExclude:
+  - prettier
+
+# Pin a single prettier version workspace-wide so eslint-plugin-prettier and
+# `prettier --check` never disagree (patch versions format union types
+# differently, which otherwise splits into two resolved copies).
+overrides:
+  prettier: 3.9.4
+
+# Strict, symlinked node_modules prevents phantom dependencies (using packages
+# we never declared). Narrow public hoists only for tooling that needs a flat
+# layout; expand this list rather than reaching for shamefully-hoist.
+nodeLinker: isolated
+publicHoistPattern:
+  - '*eslint*'
+  - '*prettier*'

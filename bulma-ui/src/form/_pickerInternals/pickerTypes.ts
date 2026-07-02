@@ -1,9 +1,5 @@
 export type PickerPosition =
-  | 'bottom-left'
-  | 'bottom-right'
-  | 'top-left'
-  | 'top-right'
-  | 'auto';
+  'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto';
 
 export type HourFormat = '12' | '24';
 
