@@ -50,19 +50,7 @@ export type BulmaMinColValue =
  * Allowed fixed grid columns for Bulma grid.
  */
 export type BulmaFixedGridCols =
-  | 0
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 10
-  | 11
-  | 12;
+  0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 /**
  * Allowed fixed grid columns prop for Bulma grid.
  */

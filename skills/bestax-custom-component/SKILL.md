@@ -74,12 +74,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 export type MyComponentColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * Props for the MyComponent component.

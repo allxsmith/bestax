@@ -264,14 +264,14 @@ This approach allows you to:
 
 ## File Size Comparison
 
-| Variation                 | Gzipped Size | Description                      |
-| ------------------------- | ------------ | -------------------------------- |
-| Complete                  | ~78KB        | Full-featured, recommended       |
-| Prefixed (`bestax-`)      | ~80KB        | Full + `bestax-` class prefix    |
-| No Helpers                | ~63KB        | No helper utilities              |
-| No Helpers, Prefixed      | ~64KB        | No helpers + `bestax-` prefix    |
-| No Dark Mode              | ~66KB        | Light theme only                 |
-| Custom Brand              | ~78KB        | Custom prefix, built from source |
+| Variation            | Gzipped Size | Description                      |
+| -------------------- | ------------ | -------------------------------- |
+| Complete             | ~78KB        | Full-featured, recommended       |
+| Prefixed (`bestax-`) | ~80KB        | Full + `bestax-` class prefix    |
+| No Helpers           | ~63KB        | No helper utilities              |
+| No Helpers, Prefixed | ~64KB        | No helpers + `bestax-` prefix    |
+| No Dark Mode         | ~66KB        | Light theme only                 |
+| Custom Brand         | ~78KB        | Custom prefix, built from source |
 
 :::tip
 All sizes are approximate gzipped transfer sizes. Enable gzip compression on your server to achieve these transfer sizes.

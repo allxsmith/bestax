@@ -14,12 +14,12 @@ This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from
 4.x drops support for **React 16 and 17**. If your app is already on React 18 or 19, upgrade freely — nothing in your code needs to change. If you're still on React 16 or 17, stay on `@allxsmith/bestax-bulma@3` until you can move to React 18+.
 :::
 
-| Area               | What changed                                                       | Action                                            |
-| ------------------ | ----------------------------------------------------------------- | ------------------------------------------------- |
-| React peer range   | Now `^18.0.0 \|\| ^19.0.0` (was `^16.8 \|\| ^17 \|\| ^18 \|\| ^19`) | Be on React 18 or 19                              |
-| Component behavior | No changes                                                        | None                                              |
-| Props / exports    | No removals or renames                                            | None                                              |
-| CSS / SCSS         | No changes                                                        | None                                              |
+| Area               | What changed                                                        | Action               |
+| ------------------ | ------------------------------------------------------------------- | -------------------- |
+| React peer range   | Now `^18.0.0 \|\| ^19.0.0` (was `^16.8 \|\| ^17 \|\| ^18 \|\| ^19`) | Be on React 18 or 19 |
+| Component behavior | No changes                                                          | None                 |
+| Props / exports    | No removals or renames                                              | None                 |
+| CSS / SCSS         | No changes                                                          | None                 |
 
 ## The one breaking change: React 18 minimum
 

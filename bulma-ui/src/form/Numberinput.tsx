@@ -22,12 +22,7 @@ export type NumberinputColor =
 
 /** Valid colors for the Numberinput inner input element. */
 export type NumberinputInputColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /** Position of the increment/decrement control buttons. */
 export type NumberinputControlsPosition = 'left' | 'right' | 'both';

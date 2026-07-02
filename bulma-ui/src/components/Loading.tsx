@@ -11,12 +11,7 @@ export type LoadingOverlay = 'light' | 'dark' | 'opaque';
  * Color variants for the Loading spinner.
  */
 export type LoadingColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * Props for the Loading component.

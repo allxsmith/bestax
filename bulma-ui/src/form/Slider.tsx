@@ -18,12 +18,7 @@ export type SliderSize = 'small' | 'medium' | 'large';
 
 /** Valid colors for the Slider component. */
 export type SliderColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /** Tooltip display mode for the Slider component. */
 export type SliderTooltip = 'auto' | 'always' | 'hidden';
@@ -196,9 +191,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     let controlledValue: number | [number, number] | undefined;
     let defaultValue: number | [number, number] | undefined;
     let onChange:
-      | ((v: number) => void)
-      | ((v: [number, number]) => void)
-      | undefined;
+      ((v: number) => void) | ((v: [number, number]) => void) | undefined;
     let ariaLabel: string | [string, string] | undefined;
     let minDistance = 0;
     let nameLow: string | undefined;

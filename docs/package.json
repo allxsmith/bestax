@@ -15,9 +15,10 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@allxsmith/bestax-bulma": "*",
+    "@allxsmith/bestax-bulma": "workspace:*",
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
+    "@docusaurus/theme-common": "^3.9.2",
     "@docusaurus/theme-live-codeblock": "^3.9.2",
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@mdi/font": "^7.4.47",
@@ -29,6 +30,7 @@
     "prism-react-renderer": "^2.3.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-live": "^4.1.8",
     "react-shadow": "^20.6.0"
   },
   "devDependencies": {

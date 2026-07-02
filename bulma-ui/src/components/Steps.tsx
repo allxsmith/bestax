@@ -6,12 +6,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 export type StepsSize = 'small' | 'medium' | 'large';
 /** Available color variants for the Steps component. */
 export type StepsColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * Props for individual Step items.
