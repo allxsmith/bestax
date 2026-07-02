@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Most users should run `npm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
+Most users should run `pnpm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?
@@ -53,13 +53,13 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 ## Package Installation
 
 :::info Prefer the installer
-`npm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
+`pnpm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
 :::
 
 ### Using npm (recommended)
 
 ```bash
-npm install @allxsmith/bestax-bulma
+pnpm add @allxsmith/bestax-bulma
 ```
 
 ### Using yarn
@@ -82,7 +82,7 @@ To see available versions:
 npm view @allxsmith/bestax-bulma versions
 ```
 
-To install a specific version, append `@<version>` to the package name (e.g. `npm install @allxsmith/bestax-bulma@<version>`).
+To install a specific version, append `@<version>` to the package name (e.g. `pnpm add @allxsmith/bestax-bulma@<version>`).
 
 ---
 
@@ -143,7 +143,7 @@ Or if you only need Bulma itself:
 1. Install Sass as a dev dependency (Bulma is already installed):
 
 ```bash
-npm install -D sass
+pnpm add -D sass
 ```
 
 2. Create a custom SCSS file:
@@ -178,7 +178,7 @@ bestax-bulma components support multiple icon libraries. Icons are optional but 
 ### Font Awesome (Most Popular)
 
 ```bash
-npm install @fortawesome/fontawesome-free
+pnpm add @fortawesome/fontawesome-free
 ```
 
 Import in your main file:
@@ -192,7 +192,7 @@ Usage: `<Icon name="user" />` or `<Icon name="github" variant="brands" />`
 ### Material Design Icons
 
 ```bash
-npm install @mdi/font
+pnpm add @mdi/font
 ```
 
 ```js
@@ -204,7 +204,7 @@ Usage: `<Icon name="account" library="mdi" />`
 ### Material Icons (Google)
 
 ```bash
-npm install material-icons
+pnpm add material-icons
 ```
 
 ```js
@@ -216,7 +216,7 @@ Usage: `<Icon name="person" library="material-icons" />`
 ### Ionicons
 
 ```bash
-npm install ionicons
+pnpm add ionicons
 ```
 
 ```js
@@ -274,7 +274,7 @@ bestax-bulma includes TypeScript definitions. For the best experience:
 ### Install Type Definitions
 
 ```bash
-npm install -D typescript @types/react @types/react-dom
+pnpm add -D typescript @types/react @types/react-dom
 ```
 
 ### TypeScript Configuration
@@ -326,13 +326,13 @@ To analyze your bundle:
 1. Install bundle analyzer:
 
 ```bash
-npm install -D webpack-bundle-analyzer
+pnpm add -D webpack-bundle-analyzer
 ```
 
 2. Check what's included:
 
 ```bash
-npx webpack-bundle-analyzer stats.json
+pnpm dlx webpack-bundle-analyzer stats.json
 ```
 
 ### Expected Sizes

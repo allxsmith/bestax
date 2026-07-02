@@ -28,7 +28,7 @@ A modern, flexible React component library built with the latest Bulma v1 and Ty
 ### 1. Install the package
 
 ```bash
-npm install @allxsmith/bestax-bulma
+pnpm add @allxsmith/bestax-bulma
 # or
 yarn add @allxsmith/bestax-bulma
 ```
@@ -55,7 +55,7 @@ Or add it via CDN in your HTML:
 Many components work well with icons. We recommend [Font Awesome](https://fontawesome.com/):
 
 ```bash
-npm install @fortawesome/fontawesome-free
+pnpm add @fortawesome/fontawesome-free
 ```
 
 And then import in your code as needed.

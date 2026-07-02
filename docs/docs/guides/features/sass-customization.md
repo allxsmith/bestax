@@ -20,7 +20,7 @@ This page focuses on wiring a Bulma Sass build into a bestax React project; refe
 :::
 
 :::tip Do you actually need a custom Sass build?
-If you came in through `npm create bestax@latest`, you already picked one of the prebuilt Bulma flavors shipped with this library (`bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`, etc. — see `bulma-ui/src/scss/versions/`). Those are [modular Sass builds](https://bulma.io/documentation/customize/with-modular-sass/) of Bulma. That, plus runtime overrides through `Theme`, covers most projects. Reach for a custom Sass build when you need design tokens (brand colors, typography, control sizes) baked into the CSS that ships to users.
+If you came in through `pnpm create bestax@latest`, you already picked one of the prebuilt Bulma flavors shipped with this library (`bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`, etc. — see `bulma-ui/src/scss/versions/`). Those are [modular Sass builds](https://bulma.io/documentation/customize/with-modular-sass/) of Bulma. That, plus runtime overrides through `Theme`, covers most projects. Reach for a custom Sass build when you need design tokens (brand colors, typography, control sizes) baked into the CSS that ships to users.
 :::
 
 ## Overview
@@ -32,18 +32,18 @@ Sass variables feed the generated Bulma CSS — including the values of Bulma's 
 To customize Bulma with Sass variables, you need:
 
 ```bash
-npm install sass
-npm install bulma
+pnpm add sass
+pnpm add bulma
 ```
 
 ## Build Configuration
 
 ### Vite
 
-Vite is the default toolchain for projects scaffolded by `npm create bestax@latest`, and handles Sass out of the box once `sass` is installed:
+Vite is the default toolchain for projects scaffolded by `pnpm create bestax@latest`, and handles Sass out of the box once `sass` is installed:
 
 ```bash
-npm install sass
+pnpm add sass
 ```
 
 **`src/styles/bulma-custom.scss`:**
@@ -80,7 +80,7 @@ Next.js has built-in Sass support:
 **Install Sass:**
 
 ```bash
-npm install sass
+pnpm add sass
 ```
 
 **Custom Sass file (styles/bulma-custom.scss):**
@@ -136,7 +136,7 @@ Create React App is no longer actively developed — new projects should prefer 
 {
   "scripts": {
     "build-bulma": "sass --load-path=node_modules src/styles/bulma-custom.scss src/styles/bulma-custom.css",
-    "watch-bulma": "npm run build-bulma -- --watch"
+    "watch-bulma": "pnpm build-bulma -- --watch"
   }
 }
 ```

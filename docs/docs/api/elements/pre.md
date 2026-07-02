@@ -64,12 +64,8 @@ console.log(\`\${greeting}, \${name}!\`);`}</Code>
 Create a terminal-like appearance with dark background and light text.
 
 ```tsx live
-<Pre
-  bgColor="dark"
-  textColor="white"
-  p="4"
->{`npm install @allxsmith/bestax-bulma
-npm run build`}</Pre>
+<Pre bgColor="dark" textColor="white" p="4">{`pnpm add @allxsmith/bestax-bulma
+pnpm build`}</Pre>
 ```
 
 ### Light Background
@@ -88,7 +84,7 @@ Use a light background for a subtle code block.
 Style terminal output with appropriate colors.
 
 ```tsx live
-<Pre bgColor="dark" textColor="success" p="4">{`$ npm run build
+<Pre bgColor="dark" textColor="success" p="4">{`$ pnpm build
 > @allxsmith/bestax-bulma@2.0.0 build
 > tsc && vite build
 

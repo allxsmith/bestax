@@ -140,7 +140,7 @@ An inline code (`<code>`) wrapper for short code snippets. [View full documentat
 
 ```tsx live
 <Paragraph>
-  Run <Code>npm install</Code> to install dependencies.
+  Run <Code>pnpm install</Code> to install dependencies.
 </Paragraph>
 ```
 
