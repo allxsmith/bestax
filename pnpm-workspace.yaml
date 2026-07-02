@@ -13,6 +13,10 @@ allowBuilds:
   '@parcel/watcher': true
   unrs-resolver: true
   core-js: false
+  # wrangler (CI-only Cloudflare Pages deploy) pulls these native builds; the
+  # `pages deploy` static upload doesn't need them, so keep them blocked.
+  sharp: false
+  workerd: false
 
 # Dependency cooldown: refuse to install versions published less than 3 days
 # ago (defends against just-published malicious releases, which are usually
