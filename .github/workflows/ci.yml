@@ -21,42 +21,45 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Test
-        run: npm run test
+        run: pnpm run test
 
       - name: Test Coverage
-        run: npm run test:coverage
+        run: pnpm run test:coverage
 
       - name: Bundle Stats
-        run: npm run bundle:stats
+        run: pnpm run bundle:stats
 
       - name: Lint
-        run: npm run lint
-
-      - name: Format
-        run: npm run format
+        run: pnpm run lint
 
       - name: Format Check
-        run: npm run format:check
+        run: pnpm run format:check
+
+      - name: Audit (high severity)
+        run: pnpm audit --audit-level=high
 
       - name: Build Storybook (bulma-ui)
         if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'bulma-ui/**')
-        run: npm run build-storybook -w bulma-ui
+        run: pnpm --filter @allxsmith/bestax-bulma run build-storybook
 
       - name: Archive Coverage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -97,32 +100,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
-          cache: 'npm'
+          cache: 'pnpm'
 
       # Pin react/react-dom consistently across all workspaces, then a plain
-      # `npm install` (no --legacy-peer-deps, so peer deps like
-      # @testing-library/dom are still installed) resolves a clean tree.
+      # (non-frozen) install re-resolves the tree for the requested React major.
       - name: Pin React ${{ matrix.react }}
         run: node .github/scripts/pin-react.mjs ${{ matrix.react }}
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Verify installed React major
         run: node -e "console.log('react', require('react/package.json').version)"
 
       - name: Build bulma-ui
-        run: npm run build -w @allxsmith/bestax-bulma
+        run: pnpm --filter @allxsmith/bestax-bulma run build
 
       - name: Typecheck bulma-ui
-        run: npm run typecheck -w @allxsmith/bestax-bulma
+        run: pnpm --filter @allxsmith/bestax-bulma run typecheck
 
       - name: Test bulma-ui
-        run: npm run test -w @allxsmith/bestax-bulma
+        run: pnpm --filter @allxsmith/bestax-bulma run test
 
   publish:
     name: Publish to npm
@@ -144,23 +149,27 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
-          cache: 'npm'
+          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      # OIDC trusted publishing requires npm >= 11.5.1. Node 24 may ship an
-      # older npm, so pin a known-good version that supports OIDC.
+      # semantic-release publishes via @semantic-release/npm, which shells out
+      # to `npm publish`. OIDC trusted publishing requires npm >= 11.5.1, so
+      # pin a known-good npm even though dependencies are managed by pnpm.
       - name: Update npm for OIDC trusted publishing
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Import GPG key
         env:
@@ -188,7 +197,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git log -1 --show-signature
-          npx semantic-release
+          pnpm exec semantic-release
 
       - name: Semantic Release (create-bestax)
         working-directory: create-bestax
@@ -198,4 +207,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git log -1 --show-signature
-          npx semantic-release
+          pnpm exec semantic-release
