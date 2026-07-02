@@ -193,6 +193,7 @@
     "url": "https://github.com/allxsmith/bestax/issues"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   }
 }
