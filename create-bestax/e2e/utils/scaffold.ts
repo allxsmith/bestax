@@ -29,7 +29,7 @@ export interface ScaffoldConfig {
  * This function:
  * 1. Removes any existing test app directory
  * 2. Runs create-bestax with specified configuration
- * 3. Installs dependencies using npm install (not npm ci) for fresh downloads
+ * 3. Installs dependencies with a fresh pnpm resolve
  * 4. Builds the app for production testing
  *
  * @param config - Configuration for the scaffolded app
@@ -49,7 +49,7 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
   // Build create-bestax CLI first (ensure we're using latest code)
   const cliRoot = path.resolve(__dirname, '../..');
   console.log(`Building CLI from: ${cliRoot}`);
-  execSync('npm run build', {
+  execSync('pnpm run build', {
     cwd: cliRoot,
     stdio: 'inherit',
   });
@@ -64,22 +64,16 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
     stdio: 'inherit',
   });
 
-  // Install dependencies with npm install (NOT npm ci) to get fresh downloads
-  console.log(
-    `Installing dependencies in ${outputDir} (using npm install for fresh downloads)...`
-  );
-  execSync('npm install', {
+  // Install dependencies in the scaffolded app with a fresh pnpm resolve.
+  console.log(`Installing dependencies in ${outputDir} (pnpm install)...`);
+  execSync('pnpm install --prefer-offline=false', {
     cwd: outputDir,
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      npm_config_cache: 'false', // Disable npm cache to ensure fresh downloads
-    },
   });
 
   // Build the app
   console.log(`Building app in ${outputDir}...`);
-  execSync('npm run build', {
+  execSync('pnpm run build', {
     cwd: outputDir,
     stdio: 'inherit',
   });

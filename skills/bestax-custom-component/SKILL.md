@@ -139,8 +139,8 @@ Rules that keep components consistent:
   `is-medium` / `is-large` (see `Tabs.tsx`, `Control.tsx`). Do **not** reach for the `validSizes`
   constant — that one is `'0'…'6' | 'auto'` and exists for **spacing** helpers, not element size.
 - **Format before you lint.** The repo enforces Prettier and ESLint fails on unformatted code.
-  Run `npx prettier --write` on your new files (or `npm run format` from the repo root) before
-  `npm run lint`. Copy snippets as a starting point, then let Prettier normalize them.
+  Run `pnpm exec prettier --write` on your new files (or `pnpm format` from the repo root) before
+  `pnpm lint`. Copy snippets as a starting point, then let Prettier normalize them.
 
 See `references/api.md` for the full helper API and `references/patterns.md` for the complete
 Dialog walkthrough.
@@ -320,7 +320,7 @@ import { MyComponent } from '@allxsmith/bestax-bulma';
 ````
 
 > Note: the Docusaurus docs load the **built** dist CSS. After SCSS changes, run
-> `cd bulma-ui && npm run build` before the new styles show up in the docs site (Storybook
+> `cd bulma-ui && pnpm build` before the new styles show up in the docs site (Storybook
 > compiles SCSS live and does not need this).
 
 ## Wiring & build
@@ -341,10 +341,10 @@ Then build and verify:
 
 ```sh
 cd bulma-ui
-npx prettier --write src/components/MyComponent.tsx src/scss/components/_mycomponent.scss
-npm run lint
-npm test
-npm run build      # compiles JS + the bestax/extras CSS bundles
+pnpm exec prettier --write src/components/MyComponent.tsx src/scss/components/_mycomponent.scss
+pnpm lint
+pnpm test
+pnpm build      # compiles JS + the bestax/extras CSS bundles
 ```
 
 ## Visually inspect it in a browser
@@ -353,7 +353,7 @@ Types and unit tests don't see layout. **Render the component and actually look 
 you call it done — spacing, padding, vertical centering, alignment, and every variant/state
 (colors, sizes, hover/active, dark mode). Visual bugs hide from `tsc` and `@testing-library`.
 
-1. Run a surface that renders it: `npm run storybook` (compiles SCSS live) or the docs dev server.
+1. Run a surface that renders it: `pnpm storybook` (compiles SCSS live) or the docs dev server.
 2. Open the component and inspect it. If a browser-automation tool (claude-in-chrome, Playwright)
    is available, drive the browser and screenshot each variant; otherwise open it yourself and
    eyeball it.
@@ -379,6 +379,6 @@ Fix what you see, then re-inspect. A green test suite with a misaligned componen
 - [ ] `docs/docs/api/components/mycomponent.md` — Overview / Import / Props / `tsx live`.
 - [ ] `src/index.ts` exports the component (in the `./components/*` group).
 - [ ] `scss/components/_index.scss` `@use`s the partial.
-- [ ] Prettier-formatted, then `npm run lint && npm test && npm run build` all pass.
+- [ ] Prettier-formatted, then `pnpm lint && pnpm test && pnpm build` all pass.
 - [ ] **Rendered and visually inspected in a browser** — centering/spacing/variants all look
       right (not just green tests).

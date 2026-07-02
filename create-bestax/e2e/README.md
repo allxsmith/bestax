@@ -27,30 +27,30 @@ The test suite validates:
 
 ```bash
 # From repository root
-npm install
+pnpm install
 
 # Install create-bestax dependencies
 cd create-bestax
-npm install
+pnpm install
 
 # Install Playwright browsers
-npx playwright install --with-deps chromium
+pnpm exec playwright install --with-deps chromium
 ```
 
 ### Quick Start
 
 ```bash
 # Run all tests (from create-bestax directory)
-npm run test:e2e
+ppnpm test:e2e
 
 # Run tests with UI mode (interactive)
-npm run test:e2e:ui
+ppnpm test:e2e:ui
 
 # Run tests with visible browser
-npm run test:e2e:headed
+ppnpm test:e2e:headed
 
 # Update baseline screenshots
-npm run test:e2e:update
+ppnpm test:e2e:update
 ```
 
 ### Testing a Specific Configuration
@@ -64,15 +64,15 @@ node ../create-bestax/dist/index.js test-app -t vite-ts -b prefixed -i fontaweso
 
 # 2. Install and build the app
 cd test-app
-npm install
-npm run build
+pnpm install
+pnpm build
 
 # 3. Start preview server in background
-npm run preview &
+pnpm preview &
 
 # 4. Run Playwright tests (from create-bestax/e2e)
 cd ../../create-bestax
-npm run test:e2e
+ppnpm test:e2e
 
 # 5. Stop the server
 kill %1
@@ -123,7 +123,7 @@ When intentional visual changes are made:
 
 ```bash
 # Update all baseline screenshots
-npm run test:e2e:update
+ppnpm test:e2e:update
 
 # Commit the updated screenshots
 git add e2e/tests/**/*.png
@@ -136,7 +136,7 @@ When tests fail:
 
 ```bash
 # View HTML report
-npm run test:e2e:report
+ppnpm test:e2e:report
 ```
 
 The report shows:
@@ -193,8 +193,8 @@ All 17 scenarios run in parallel:
 
 The CI workflow intentionally:
 
-- Uses `npm install` (not `npm ci`) for scaffolded apps
-- Disables npm cache for fresh downloads
+- Uses a fresh `pnpm install` for scaffolded apps (no frozen lockfile)
+- Prefers the network over cache for fresh downloads
 - Generates ~17 downloads per day of @allxsmith/bestax-bulma
 - Results in ~500+ monthly downloads from CI alone
 
@@ -210,7 +210,7 @@ On test failure, the workflow uploads:
 
 ### Tests Failing Locally But Passing in CI
 
-- Ensure you're using Chromium (not Chrome): `npx playwright install chromium`
+- Ensure you're using Chromium (not Chrome): `pnpm exec playwright install chromium`
 - Check viewport size matches config (1920×1080)
 - Verify no OS-level zoom or scaling
 
@@ -241,7 +241,7 @@ expect: {
 
 ```bash
 # Ensure CLI is built
-npm run build
+pnpm build
 
 # Check CLI output
 node dist/index.js --help
@@ -249,8 +249,8 @@ node dist/index.js --help
 
 ## Best Practices
 
-1. **Always build CLI first**: `npm run build` before testing
-2. **Use UI mode for debugging**: `npm run test:e2e:ui`
+1. **Always build CLI first**: `pnpm build` before testing
+2. **Use UI mode for debugging**: `ppnpm test:e2e:ui`
 3. **Update baselines intentionally**: Only when visual changes are expected
 4. **Review diffs carefully**: Don't blindly update baselines
 5. **Test locally before CI**: Ensure tests pass locally first

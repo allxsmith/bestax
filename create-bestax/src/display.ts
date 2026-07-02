@@ -17,8 +17,8 @@ export function displaySuccess(targetDir: string): void {
   console.log(chalk.bold(MESSAGES.NEXT_STEPS));
   console.log();
   console.log(chalk.cyan(`  cd ${targetDir}`));
-  console.log(chalk.cyan('  npm install'));
-  console.log(chalk.cyan('  npm run dev'));
+  console.log(chalk.cyan('  pnpm install'));
+  console.log(chalk.cyan('  pnpm dev'));
   console.log();
   console.log(
     chalk.gray('  Your app includes a beautiful logo-centric homepage')
