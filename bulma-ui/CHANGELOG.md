@@ -1,3 +1,12 @@
+## [5.1.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.0...@allxsmith/bestax-bulma@5.1.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **bulma-ui:** publish with npm provenance attestation ([172da62](https://github.com/allxsmith/bestax/commit/172da62349b464d414da552058dfa4db238ab720)), closes [#180](https://github.com/allxsmith/bestax/issues/180)
+* **create-bestax:** publish with npm provenance attestation ([21ffe8f](https://github.com/allxsmith/bestax/commit/21ffe8f753419eeded407b1fa8685bcbd473fbfe)), closes [#180](https://github.com/allxsmith/bestax/issues/180)
+* **docs:** generate llms.txt so the advertised homepage link resolves ([9fae464](https://github.com/allxsmith/bestax/commit/9fae464305595c284335eda65d721480d1accb25)), closes [#177](https://github.com/allxsmith/bestax/issues/177)
+
 # [5.1.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.0.0...@allxsmith/bestax-bulma@5.1.0) (2026-07-01)
 
 ### Features
