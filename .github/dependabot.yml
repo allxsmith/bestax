@@ -1,7 +1,9 @@
 version: 2
 updates:
-  # npm — a single root entry covers all workspaces (bulma-ui, docs, create-bestax)
-  # because Dependabot reads the root package-lock.json and every workspace manifest.
+  # npm ecosystem (also covers pnpm/yarn) — a single root entry covers all
+  # workspaces (bulma-ui, docs, create-bestax) because Dependabot reads the root
+  # pnpm-lock.yaml and every workspace manifest. There is no separate "pnpm"
+  # ecosystem value; pnpm lockfiles are handled under "npm".
   - package-ecosystem: npm
     directory: "/"
     schedule:

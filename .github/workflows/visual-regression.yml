@@ -56,26 +56,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
-          cache: 'npm' # Cache enabled for create-bestax CLI installation
+          cache: 'pnpm' # Cache enabled for create-bestax CLI installation
 
       - name: Install dependencies
-        # Root `npm ci` installs every workspace (incl. create-bestax dev deps),
-        # so no separate create-bestax install is needed. Running `npm ci` from
-        # the create-bestax subdir re-ran the root `prepare: husky` script with
-        # husky unresolvable and failed with exit 127 (npm workspaces quirk).
-        run: npm ci
+        # Root install covers every workspace (incl. create-bestax dev deps),
+        # so no separate create-bestax install is needed.
+        run: pnpm install --frozen-lockfile
 
       - name: Build create-bestax CLI
-        working-directory: create-bestax
-        run: npm run build
+        run: pnpm --filter create-bestax run build
 
       - name: Install Playwright browsers
         working-directory: create-bestax
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Create test directory
         run: mkdir -p test-apps
@@ -90,29 +90,29 @@ jobs:
             -i ${{ matrix.scenario.icon }} \
             -y
 
-      - name: Install app dependencies (no cache)
+      - name: Install app dependencies
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: npm install --prefer-online --no-audit --no-fund
+        run: pnpm install --prefer-offline=false
 
       - name: Build scaffolded app
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: npm run build
+        run: pnpm run build
 
       - name: Start Vite preview server
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
         run: |
-          npm run preview &
+          pnpm run preview &
           echo $! > server.pid
           # Wait for server to be ready
-          npx wait-on http://localhost:4173 --timeout 60000
+          pnpm dlx wait-on http://localhost:4173 --timeout 60000
 
       - name: Run Playwright tests
         working-directory: create-bestax
         run: |
           if [ "${{ inputs.update_snapshots }}" = "true" ]; then
-            npm run test:e2e:update -- --project=chromium
+            pnpm run test:e2e:update -- --project=chromium
           else
-            npm run test:e2e -- --project=chromium
+            pnpm run test:e2e -- --project=chromium
           fi
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:4173
@@ -220,5 +220,5 @@ jobs:
           echo "## Visual Regression Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🎯 Total test scenarios: 10" >> $GITHUB_STEP_SUMMARY
-          echo "📦 Fresh npm downloads: ~10 packages per run" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Fresh pnpm installs: ~10 apps per run" >> $GITHUB_STEP_SUMMARY
           echo "✅ Status: ${{ needs.visual-regression.result }}" >> $GITHUB_STEP_SUMMARY
