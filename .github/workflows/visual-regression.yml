@@ -90,18 +90,21 @@ jobs:
             -i ${{ matrix.scenario.icon }} \
             -y
 
+      # The scaffolded app lives inside the repo, so pnpm would otherwise treat
+      # it as part of the root workspace. --ignore-workspace installs/builds it
+      # standalone (like a real user's fresh app).
       - name: Install app dependencies
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: pnpm install --prefer-offline=false
+        run: pnpm install --ignore-workspace --prefer-offline=false
 
       - name: Build scaffolded app
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
-        run: pnpm run build
+        run: pnpm --ignore-workspace run build
 
       - name: Start Vite preview server
         working-directory: test-apps/test-app-${{ matrix.scenario.template }}-${{ matrix.scenario.bulma }}-${{ matrix.scenario.icon }}
         run: |
-          pnpm run preview &
+          pnpm --ignore-workspace run preview &
           echo $! > server.pid
           # Wait for server to be ready
           pnpm dlx wait-on http://localhost:4173 --timeout 60000
