@@ -29,6 +29,9 @@ minimumReleaseAgeExclude:
 # differently, which otherwise splits into two resolved copies).
 overrides:
   prettier: 3.9.4
+  # Force the patched serialize-javascript (transitive via Docusaurus webpack
+  # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
+  serialize-javascript: '>=7.0.3'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
