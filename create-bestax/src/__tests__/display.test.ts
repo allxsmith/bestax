@@ -108,17 +108,17 @@ describe('display', () => {
       expect(output).toContain(projectName);
     });
 
-    it('should include npm commands', () => {
+    it('should include pnpm commands', () => {
       displaySuccess('my-app');
 
       const calls = (console.log as jest.MockedFunction<typeof console.log>)
         .mock.calls;
       const output = calls.map(call => call.join(' ')).join('\n');
 
-      // Check for npm commands
+      // Check for pnpm commands
       expect(output).toContain('cd my-app');
-      expect(output).toContain('npm install');
-      expect(output).toContain('npm run dev');
+      expect(output).toContain('pnpm install');
+      expect(output).toContain('pnpm dev');
     });
 
     it('should use chalk for formatting', () => {

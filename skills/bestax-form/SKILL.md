@@ -191,7 +191,7 @@ reinvent a control.** If you think a control is missing, check `bulma-ui/src/ind
 ## Visually inspect it in a browser
 
 Forms have layout, spacing, and _stateful_ behavior that types and unit tests don't cover.
-Before calling a form done, **render it and look at it**: run `npm run storybook` (in `bulma-ui`)
+Before calling a form done, **render it and look at it**: run `pnpm storybook` (in `bulma-ui`)
 or the docs dev server, open the form, and check field alignment/spacing, the help-text/error
 states, and the validation flow (submit empty → fields turn `danger` with messages; fix → errors
 clear). If claude-in-chrome or Playwright is available, drive the browser and screenshot the
