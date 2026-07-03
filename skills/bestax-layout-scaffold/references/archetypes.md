@@ -4,6 +4,10 @@ Four named, composable page patterns. For each: **when to pick it**, the **JSX s
 **responsive behavior**. Map the request to one archetype and build it — do not ask the user layout
 questions. Full runnable versions live in `examples/`.
 
+Wrap any page once at the root in `<ConfigProvider iconLibrary="…">` so `<Icon>` needs no per-icon
+`library` prop (see `examples/app-shell.tsx` and `examples/content-page.tsx`). Inside, style with
+helper props (`mt`, `textAlign`, `textColor`), never inline `style`.
+
 ---
 
 ## 1. App shell with sidebar

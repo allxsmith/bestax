@@ -5,8 +5,12 @@
 // is padded below it — Bulma requires this and the library does NOT add it for
 // you. The columns sit side by side on tablet and up, and stack (menu above
 // content) on mobile.
+//
+// `ConfigProvider` wraps the shell once at the root to set the app-wide icon
+// library (so <Icon> needs no `library` prop) and, optionally, a class prefix.
 import React, { useEffect, useState } from 'react';
 import {
+  ConfigProvider,
   Navbar,
   Menu,
   Container,
@@ -28,7 +32,7 @@ export default function AdminShell() {
   }, []);
 
   return (
-    <>
+    <ConfigProvider iconLibrary="fa">
       <Navbar fixed="top" color="dark">
         <Navbar.Brand>
           <Navbar.Item href="#">Acme Admin</Navbar.Item>
@@ -75,6 +79,6 @@ export default function AdminShell() {
           </Column>
         </Columns>
       </Container>
-    </>
+    </ConfigProvider>
   );
 }

@@ -9,6 +9,37 @@ This page summarizes the helper utilities in Bestax, with a brief description, u
 
 ---
 
+## Helper props at a glance
+
+Most components accept these shared helper props (they map to Bulma utility classes via [`useBulmaClasses`](../../api/helpers/usebulmaclasses); a few thin wrappers like `Skeleton` opt out). Prefer them over inline `style` — they are type-checked, theme-aware, and responsive.
+
+| Group          | Representative props                                                          | Example                   | Renders                     |
+| -------------- | ----------------------------------------------------------------------------- | ------------------------- | --------------------------- |
+| **Spacing**    | `m` `mt` `mb` `ml` `mr` `mx` `my` `p` `pt` `pb` `px` `py` (`0`–`6` \| `auto`) | `mt="4"`                  | `mt-4`                      |
+| **Color**      | `textColor` `bgColor` `colorShade`                                            | `textColor="primary"`     | `has-text-primary`          |
+| **Typography** | `textSize` `textAlign` `textWeight` `textTransform` `fontFamily`              | `textAlign="centered"`    | `has-text-centered`         |
+| **Display**    | `display` `visibility`                                                        | `display="flex"`          | `is-flex`                   |
+| **Flexbox**    | `flexDirection` `justifyContent` `alignItems` `flexGrow` `flexShrink`         | `justifyContent="center"` | `is-justify-content-center` |
+| **Other**      | `float` `radius` `shadow` `overflow` `clearfix`                               | `float="right"`           | `is-pulled-right`           |
+
+## Inline styles → helper props
+
+Reach for a helper prop before an inline `style`. Reserve `style` / CSS variables only for values the design system doesn't tokenize (e.g. a one-off brand hex).
+
+| Instead of…                       | Use                              | Renders                    |
+| --------------------------------- | -------------------------------- | -------------------------- |
+| `style={{ marginTop: '1rem' }}`   | `mt="4"`                         | `mt-4`                     |
+| `style={{ padding: '0.5rem' }}`   | `p="2"`                          | `p-2`                      |
+| `style={{ textAlign: 'center' }}` | `textAlign="centered"`           | `has-text-centered`        |
+| `style={{ color: '…' }}`          | `textColor="…"` (+ `colorShade`) | `has-text-…`               |
+| `style={{ background: '…' }}`     | `bgColor="…"`                    | `has-background-…`         |
+| `style={{ fontWeight: 600 }}`     | `textWeight="semibold"`          | `has-text-weight-semibold` |
+| `style={{ display: 'flex' }}`     | `display="flex"`                 | `is-flex`                  |
+
+Spacing scale: `0` = 0, `1` = 0.25rem, `2` = 0.5rem, `3` = 0.75rem, `4` = 1rem, `5` = 1.5rem, `6` = 3rem, `auto` = auto. See [margin & padding](../helpers/margin-and-padding) for every side.
+
+---
+
 ## useBulmaClasses
 
 A custom React hook that generates Bulma helper class strings from a set of props. Makes it easy to apply color, spacing, alignment, typography, flexbox, and other Bulma utility classes to your components. Returns both the class string and the remaining props for spreading onto elements.
@@ -300,9 +331,9 @@ A component that injects Bulma CSS variables for local or global theming. Wrap a
 
 ## ConfigProvider
 
-A context provider for global settings like class prefix and icon library. Wrap your app in `<ConfigProvider>` to configure all bestax-bulma components at once.
+A context provider for global settings like class prefix and icon library. Wrap your app in `<ConfigProvider>` to configure all bestax-bulma components at once — e.g. set `iconLibrary="fa"` once at the root so `<Icon name="check" />` needs no per-icon `library` prop.
 
-[View full documentation.](../../api/helpers/config)
+[View full documentation.](../../api/helpers/config) · [Configuration guide](../features/configuration)
 
 ---
 
