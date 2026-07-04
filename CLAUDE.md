@@ -1,86 +1,80 @@
-# CLAUDE.md
+# bestax
 
-Guidance for Claude Code (and the `@claude` GitHub Action) working in this repo.
-CodeRabbit also reads this file when reviewing PRs. Keep it concise and current.
+React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrated by turbo:
 
-## What this is
+- `bulma-ui/` — the library, published as `@allxsmith/bestax-bulma` (has its own CLAUDE.md)
+- `docs/` — Docusaurus site → https://bestax.io (has its own CLAUDE.md)
+- `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
+- `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 
-`@allxsmith/bestax` — a **pnpm + Turborepo monorepo** for **bestax-bulma**, a
-TypeScript-first React component library for the Bulma v1 CSS framework.
-Published to npm; docs live at https://bestax.io.
+## Toolchain
 
-## Layout
+Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packageManager`; run
+`corepack enable` once). Install with `pnpm install --frozen-lockfile` for CI parity.
 
-- `bulma-ui/` — the `@allxsmith/bestax-bulma` library (React 19, Rollup build,
-  Jest, Storybook). **Most component work happens here.**
-- `docs/` — `@allxsmith/bestax-docs`, the Docusaurus site (deployed to
-  Cloudflare Pages). Also generates `llms.txt` / `llms-full.txt`.
-- `create-bestax/` — the `create-bestax` CLI scaffolder (`templates/vite`,
-  `templates/vite-ts`) with Playwright e2e tests.
-- `skills/` — shipped Agent Skills: `bestax-custom-component`, `bestax-form`,
-  `bestax-layout-scaffold`, `bestax-theming`. **Consult the relevant skill's
-  `references/` before building components, forms, layouts, or theming.**
-- `scripts/` — repo tooling (e.g. `gen-component-catalog.mjs`).
-
-## Environment
-
-- **Node 22+** (repo targets Node 22 LTS; CI runs Node 24). **pnpm 11.9.0**,
-  pinned via `packageManager` — run `corepack enable` to get the exact version.
-- Install with `pnpm install` (or `pnpm install --frozen-lockfile` for CI parity).
-- Supply-chain hardening in `pnpm-workspace.yaml`: postinstall scripts are
-  blocked by default (`allowBuilds` allowlist) and a **3-day `minimumReleaseAge`
-  cooldown** blocks just-published versions. Don't add deps that need install
-  scripts without also updating `allowBuilds`.
-
-## Commands (root, via Turbo)
+## Commands
 
 ```bash
-pnpm all            # full CI suite: build, typecheck, test, test:coverage,
-                    # bundle:stats, lint, format:check, + build-storybook
-pnpm build          # build all packages
-pnpm typecheck      # tsc --noEmit across packages
-pnpm test           # jest
-pnpm test:coverage  # coverage — MUST stay >= 95%
+pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
+pnpm test           # jest (bulma-ui + create-bestax)
+pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
-pnpm format         # prettier --write   (format:check = verify only)
-pnpm gen:catalog:check   # regenerate + verify the component catalog (CI gate)
-pnpm storybook      # Storybook dev server (:6006)
-pnpm docs           # Docusaurus dev server (:3000)
+pnpm typecheck      # tsc --noEmit
+pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
+pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
+pnpm docs           # Docusaurus dev server :3000
+pnpm storybook      # Storybook dev server :6006
+pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
 ```
 
-Scope to one package with Turbo filters, e.g.
-`pnpm exec turbo run test --filter=@allxsmith/bestax-bulma`.
+## Quality gates
 
-## Non-negotiables (all enforced by `ci.yml`)
+Enforced by CI (`.github/workflows/ci.yml`):
 
-- **Test coverage must remain ≥ 95%.** Add/adjust Jest tests with every change.
-- **Every visible/interactive UI change needs a Storybook story.**
-- **After changing components, run `pnpm gen:catalog:check`** — the generated
-  `skills/bestax-custom-component/references/component-catalog.md` must be in sync
-  (CI fails otherwise).
-- `pnpm lint`, `pnpm typecheck`, and `pnpm format:check` must pass. Prettier is
-  pinned to 3.9.4 — don't reformat unrelated files.
-- **Strict TypeScript, no `any`.** Prefer accessible markup (semantic elements,
-  `aria-*`).
-- **Public APIs/components must be documented** in `docs/api/`; guides in
-  `docs/docs/guides/`.
-- **Component scope:** `bulma-ui` covers components that exist in Bulma. Anything
-  outside the Bulma spec should be discussed in an issue first.
+- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
+  create-bestax 95% (78% branches).
+- Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
 
-## Git & PRs
+Enforced in review (a green CI does **not** check these):
 
-- Branch off `main`; **direct pushes to `main` are not allowed** — always PR.
-- Claude Code works on `claude/`-prefixed branches.
-- **Conventional Commits** (commitlint enforced): `feat:`, `fix:`,
-  `docs:`, `refactor:`, `chore:`, etc. — the type drives semantic-release
-  versioning. Subject in imperative mood, ≤ 80 chars, then a blank line and a
-  bullet list of changes.
-- Keep PRs focused (one feature/fix). Fill out `.github/pull_request_template.md`.
+- Every visible/interactive UI change needs a **Storybook story**.
+- Every public API change needs a **docs page update** (`docs/docs/api/...`) before approval.
+- Component/prop changes that affect the skills update `skills/` **in the same PR**.
+- Run `pnpm all` locally before opening a PR.
 
-## Gotchas — do not touch
+## Commits — release-affecting, not cosmetic
 
-- **Publishing is fully automated** by semantic-release on merge to `main`
-  (npm OIDC trusted publishing, GPG-signed release commits). **Never bump
-  versions, edit changelogs, or run `npm publish` by hand.**
-- React **18 & 19 compat matrix** runs in CI — don't rely on version-specific APIs.
-- `docs/` and `bulma-ui/` changes trigger Cloudflare Pages deploys via `deploy.yml`.
+Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
+semantic-release. Two repo-specific rules:
+
+- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`, or
+  `create-bestax` — unscoped release types are rejected (`commitlint.config.js`).
+- **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
+  `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
+  `releaseRules` in each package's `release.config.js` are the source of truth.
+
+```
+feat(bulma-ui): add Collapse component   → minor release of bulma-ui only
+fix(create-bestax): handle missing TTY   → patch release of create-bestax only
+docs: fix typo in contributing guide     → no release; scope optional
+```
+
+Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
+
+## Dependencies are a deliberate act
+
+`pnpm-workspace.yaml` (read its comments before touching deps) enforces supply-chain hardening:
+
+- Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
+- `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
+- Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
+
+## Workflow
+
+PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
+`CONTRIBUTING.md`. New components should stay within the Bulma spec — propose anything beyond
+it in an issue first.
+
+AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
+shipped product (see `skills/CLAUDE.md`).
