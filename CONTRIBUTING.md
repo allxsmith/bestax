@@ -26,7 +26,9 @@ This project is a modern, flexible React component library built on top of Bulma
 Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
-  - Coverage must remain **95% or higher**
+  - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
+    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)), **create-bestax 95%**
+    (78% branches, [`create-bestax/jest.config.mjs`](./create-bestax/jest.config.mjs))
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -134,7 +136,7 @@ pnpm run all
 pnpm run build          # turbo build all packages
 pnpm run typecheck
 pnpm run test           # jest (bulma-ui + create-bestax)
-pnpm run test:coverage  # coverage (must stay >= 95%)
+pnpm run test:coverage  # coverage (bulma-ui: 99%; create-bestax: 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -230,7 +232,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must remain at 95% or higher).
+5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% for create-bestax).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -258,10 +260,10 @@ no `npm publish`, no tag, no GitHub release.
 
 ## Semantic Release & Publishing
 
-We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of the `bulma-ui` package as `bulma-bestax` on npm.
+We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of both packages to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) and [`create-bestax`](https://www.npmjs.com/package/create-bestax).
 
-- Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases.
-- The PR title and commit messages should reflect the type of release (fix, feat, BREAKING CHANGE, etc.).
+- Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
+- **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
 - Only the `main` branch is published.
 
 ### npm authentication (OIDC trusted publishing)
@@ -282,7 +284,7 @@ The CI `publish` job grants `id-token: write` and upgrades npm to a version that
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below 95%.**
+- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%, create-bestax 95%).
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).
@@ -291,16 +293,22 @@ The CI `publish` job grants `id-token: write` and upgrades npm to a version that
 
 ## Commit Message Guidelines
 
-- **Format all commit messages as follows:**
-  - **Subject line:** Imperative mood, ≤ 80 chars
-  - **Blank line**
-  - **List of changes (bullet points or short sentences)**
-  - **Optional paragraph describing the motivation or context**
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/), enforced by
+commitlint via the husky `commit-msg` hook ([`commitlint.config.js`](./commitlint.config.js)):
+
+- **Format:** `<type>(<scope>): <subject>` — imperative subject, blank line, then an optional
+  body with bullet points and context.
+- **Release types need a scope:** commits of type `feat`, `fix`, `perf`, `refactor`, or `style`
+  **must** use a scope of `bulma-ui`, `docs`, or `create-bestax` (repo-specific commitlint
+  rule — the scope decides which package releases, see [`VERSIONING.md`](./VERSIONING.md)).
+- **Breaking changes** need a `BREAKING CHANGE:` footer in the body — a `!` after the type is
+  **not** picked up by our release tooling.
+- Non-releasing types (`docs`, `chore`, `ci`, `test`, `build`) may omit the scope.
 
 **Example:**
 
 ```
-Add support for Bulma breadcrumb component
+feat(bulma-ui): add support for Bulma breadcrumb component
 
 - Implement Breadcrumb component and tests
 - Add Storybook stories
