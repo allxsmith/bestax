@@ -1,0 +1,9 @@
+{
+  "label": "LLMs",
+  "position": 3,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "guides/llms/index"
+  }
+}
