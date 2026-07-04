@@ -40,3 +40,10 @@ Content-signal: search=yes, ai-input=yes, ai-train=yes
 # ============================================================================
 
 Sitemap: https://bestax.io/sitemap.xml
+
+# ============================================================================
+# LLM DOCS
+# ============================================================================
+# LLM-optimized documentation for AI agents (llmstxt.org standard):
+# LLM docs index: https://bestax.io/llms.txt
+# LLM docs (full): https://bestax.io/llms-full.txt
