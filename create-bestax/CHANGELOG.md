@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.1...create-bestax@3.1.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **create-bestax:** ship improved bundled skills + component catalog ([#199](https://github.com/allxsmith/bestax/issues/199)) ([a1515c2](https://github.com/allxsmith/bestax/commit/a1515c2742fa1a2b82052045674c4f1b41d0c792))
+
 ## [3.1.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.0...create-bestax@3.1.1) (2026-07-02)
 
 
