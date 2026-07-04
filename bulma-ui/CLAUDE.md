@@ -42,5 +42,5 @@ The full worked walkthrough (including the SCSS side for extras) is
   widget) need an issue discussion first, and pair with SCSS in `src/scss/`.
 - Tests: jest + ts-jest + Testing Library, in each folder's `__tests__/`. Run one file with
   `pnpm --filter @allxsmith/bestax-bulma exec jest src/elements/__tests__/Button.test.tsx`.
-- Bundle size is marketing-visible ("~21 kB gzipped") — check `pnpm bundle:stats`
+- Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
   (writes `dist/stats.html`) when adding anything with real runtime weight.
