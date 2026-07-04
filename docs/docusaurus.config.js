@@ -170,6 +170,10 @@ const config = {
             position: 'left',
             label: 'Components',
           },
+          // TODO(nav refactor): rework the AI-docs nav — Skills gets its own
+          // top-nav dropdown while the LLMs guide is buried inside the
+          // "Getting Started" (guideSidebar) side menu. Plan: surface the LLMs
+          // guide in a dedicated side menu and keep Skills at the top. Another day.
           {
             type: 'docSidebar',
             sidebarId: 'skillsSidebar',
