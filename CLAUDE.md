@@ -1,0 +1,82 @@
+# bestax
+
+React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrated by turbo:
+
+- `bulma-ui/` — the library, published as `@allxsmith/bestax-bulma` (has its own CLAUDE.md)
+- `docs/` — Docusaurus site → https://bestax.io (has its own CLAUDE.md)
+- `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
+- `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
+
+## Toolchain
+
+Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packageManager`; run
+`corepack enable` once). Install with `pnpm install --frozen-lockfile` for CI parity.
+
+## Commands
+
+```bash
+pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
+pnpm test           # jest (bulma-ui + create-bestax)
+pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
+pnpm lint           # eslint
+pnpm typecheck      # tsc --noEmit
+pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
+pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
+pnpm docs           # Docusaurus dev server :3000
+pnpm storybook      # Storybook dev server :6006
+pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
+```
+
+## Quality gates
+
+Enforced by CI (`.github/workflows/ci.yml`):
+
+- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
+  create-bestax 95% (78% branches). Don't quote the stale 95% figure in CONTRIBUTING.md.
+- Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
+
+Enforced in review (a green CI does **not** check these):
+
+- Every visible/interactive UI change needs a **Storybook story**.
+- Every public API change needs a **docs page update** (`docs/docs/api/...`) before approval.
+- Component/prop changes that affect the skills update `skills/` **in the same PR**.
+- Run `pnpm all` locally before opening a PR.
+
+## Commits — release-affecting, not cosmetic
+
+Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
+semantic-release. Two repo-specific rules:
+
+- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`, or
+  `create-bestax` — unscoped release types are rejected (`commitlint.config.js`).
+- **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
+  `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
+  `releaseRules` in each package's `release.config.js` are the source of truth.
+
+```
+feat(bulma-ui): add Collapse component   → minor release of bulma-ui only
+fix(create-bestax): handle missing TTY   → patch release of create-bestax only
+docs: fix typo in contributing guide     → no release; scope optional
+```
+
+Stale-docs warning: `VERSIONING.md` describes an older _synchronized_ versioning scheme, and
+CONTRIBUTING.md's "Commit Message Guidelines" section shows a type-less format commitlint would
+reject. The commitlint config and release configs are authoritative.
+
+## Dependencies are a deliberate act
+
+`pnpm-workspace.yaml` (read its comments before touching deps) enforces supply-chain hardening:
+
+- Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
+- `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
+- Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
+
+## Workflow
+
+PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
+`CONTRIBUTING.md` (commit-format section aside — see above). New components should stay within
+the Bulma spec — propose anything beyond it in an issue first.
+
+AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
+shipped product (see `skills/CLAUDE.md`).
