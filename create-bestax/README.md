@@ -31,6 +31,7 @@ You'll be asked to:
 2. Select a framework (Vite or Vite + TypeScript)
 3. Choose a Bulma CSS flavor (Complete or Minimal)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
+5. Choose whether to install the bestax AI skills into `.claude/skills/`
 
 ### Command Line Options
 
@@ -61,11 +62,15 @@ npm create bestax@latest [project-directory] [options]
   - `material-icons` - Material Icons
   - `material-symbols` - Material Symbols  
     **Default:** `none`
+- `--skills` / `--no-skills` - Install (or skip) the bestax AI skills into
+  `.claude/skills/` (with a `CLAUDE.md`) so a Claude Code session picks them up
+  automatically. When omitted you're prompted; with `-y` the default is to install.
 - `-y, --yes` - Skip prompts and use defaults or provided options.  
   When used, the following defaults are selected unless overridden by flags:
   - Template: `vite`
   - Bulma flavor: `complete`
   - Icon library: `none`
+  - AI skills: installed (pass `--no-skills` to opt out)
 
 **Example:**
 
@@ -91,6 +96,15 @@ Each template includes:
 - Icon library support (Font Awesome, Material Design, etc.)
 - Sample components demonstrating library usage
 - Development and build scripts
+
+## For AI Tools
+
+Scaffolding for an AI agent? Pass `--skills` (or accept the prompt) to drop the bestax
+Agent Skills and a `CLAUDE.md` into the new project. The library also ships LLM-optimized
+docs:
+
+- [LLMs guide](https://bestax.io/docs/guides/llms) — using bestax with Claude Code, Cursor, Copilot
+- [llms.txt](https://bestax.io/llms.txt) (curated index) · [llms-full.txt](https://bestax.io/llms-full.txt) (full docs)
 
 ## Development
 

@@ -48,6 +48,7 @@
     "directory": "create-bestax"
   },
   "homepage": "https://bestax.io",
+  "llms": "https://bestax.io/llms.txt",
   "bugs": {
     "url": "https://github.com/allxsmith/bestax/issues"
   },
