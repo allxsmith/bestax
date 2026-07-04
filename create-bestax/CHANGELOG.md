@@ -1,3 +1,12 @@
+## [3.1.3](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.2...create-bestax@3.1.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** reference llms docs from README and package.json ([#198](https://github.com/allxsmith/bestax/issues/198)) ([db8aab3](https://github.com/allxsmith/bestax/commit/db8aab32c1c07d81071e7da0c74e811150289d40))
+* **create-bestax:** point scaffolded CLAUDE.md at llms docs; document skills ([#198](https://github.com/allxsmith/bestax/issues/198)) ([b2e0514](https://github.com/allxsmith/bestax/commit/b2e0514c0ed4a04192b56fda8e2fc23a67898f97))
+* **docs:** emit per-page markdown so llms.txt links resolve ([#200](https://github.com/allxsmith/bestax/issues/200)) ([7877083](https://github.com/allxsmith/bestax/commit/7877083da55d53bdc57811ddc14d5065fd0efdae))
+
 ## [3.1.2](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.1...create-bestax@3.1.2) (2026-07-04)
 
 
