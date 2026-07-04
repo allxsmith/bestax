@@ -129,6 +129,20 @@ Explore live, interactive component examples in our Storybook:
 
 ---
 
+## 🤖 For AI Tools
+
+Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM-optimized docs:
+
+- 📘 **[LLMs guide](https://bestax.io/docs/guides/llms)** — how to use the library with AI tools
+- 📄 **[llms.txt](https://bestax.io/llms.txt)** — curated index · **[llms-full.txt](https://bestax.io/llms-full.txt)** — the full docs in one file
+- 🧩 **[Agent Skills](https://bestax.io/docs/skills/intro)** — teach your agent the bestax way:
+
+  ```bash
+  npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
+  ```
+
+---
+
 ## 🙏 Special Thanks
 
 ### [Bulma](https://github.com/jgthms/bulma)

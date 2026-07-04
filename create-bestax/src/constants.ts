@@ -61,6 +61,12 @@ automatically when the task matches:
 - **bestax-layout-scaffold** — scaffold full pages (app shell, landing, centered, card grid).
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+
+## Docs
+
+- Docs site: https://bestax.io
+- LLM-ready docs: https://bestax.io/llms.txt (curated index) and https://bestax.io/llms-full.txt
+- Using bestax with AI tools: https://bestax.io/docs/guides/llms
 `;
 
 export interface IconLibrary {

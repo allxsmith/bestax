@@ -11,8 +11,8 @@ const CARDS = [
     icon: DocsIcon,
     title: 'LLM-ready docs',
     desc: 'Token-friendly, plain-text documentation a model can read in full — point Claude, Cursor, Copilot, or ChatGPT straight at it.',
-    href: 'https://bestax.io/llms.txt',
-    cta: 'View llms.txt',
+    href: '/docs/guides/llms',
+    cta: 'Read the guide',
   },
   {
     key: 'skills',

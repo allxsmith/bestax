@@ -161,6 +161,16 @@ function Demo() {
 
 ---
 
+## For AI Tools
+
+Building with an AI agent? bestax-bulma ships LLM-optimized docs:
+
+- 🤖 **[LLMs guide](/docs/guides/llms)** - How to use the library with Claude Code, Cursor, and Copilot
+- 📄 **[llms.txt](https://bestax.io/llms.txt)** / **[llms-full.txt](https://bestax.io/llms-full.txt)** - Point your assistant straight at the docs
+- 🧩 **[Agent Skills](/docs/skills/intro)** - `npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold`
+
+---
+
 ## Why bestax-bulma?
 
 - ✅ **Latest Bulma v1** - Full support for the newest Bulma features
