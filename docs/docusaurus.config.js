@@ -87,6 +87,15 @@ const config = {
         // concatenated docs (/llms-full.txt) at build time, per llmstxt.org.
         generateLLMsTxt: true,
         generateLLMsFullTxt: true,
+        // Emit a per-page markdown file for every doc page and point llms.txt
+        // at them (e.g. /docs/guides/intro.md). Without this, llms.txt links to
+        // .md URLs (addMdExtension defaults true) that 404 because no markdown
+        // is emitted. preserveDirectoryStructure (default) keeps the .md paths
+        // aligned with the HTML routes. excludeImports strips MDX import lines
+        // so the generated markdown is clean for agent ingestion.
+        generateMarkdownFiles: true,
+        excludeImports: true,
+        removeDuplicateHeadings: true,
         docsDir: 'docs',
         title: 'Bestax-Bulma',
         description:
