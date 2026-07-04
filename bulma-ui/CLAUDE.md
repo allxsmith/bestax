@@ -20,7 +20,7 @@ npm package so consumers can build the styles themselves.
 A new or changed component is **five artifacts, not one**. Touch all of:
 
 1. `src/<folder>/Foo.tsx` — the component
-2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage ≥ 95%)
+2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `jest.config.js`)
 3. `src/<folder>/Foo.stories.tsx` — Storybook story
 4. `docs/docs/api/<folder>/foo.md` — the API docs page
 5. `src/index.ts` — the export

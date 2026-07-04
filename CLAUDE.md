@@ -10,15 +10,15 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 
 ## Toolchain
 
-Node 22 (`.nvmrc`) and `pnpm@11.9.0` (pinned via `packageManager`; run `corepack enable` once).
-Install with `pnpm install --frozen-lockfile` for CI parity.
+Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packageManager`; run
+`corepack enable` once). Install with `pnpm install --frozen-lockfile` for CI parity.
 
 ## Commands
 
 ```bash
 pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
 pnpm test           # jest (bulma-ui + create-bestax)
-pnpm test:coverage  # coverage — must stay >= 95%
+pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit
 pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
@@ -28,28 +28,41 @@ pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
 ```
 
-## Quality gates (CI enforces all of these)
+## Quality gates
 
-- Test coverage **≥ 95%**.
+Enforced by CI (`.github/workflows/ci.yml`):
+
+- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
+  create-bestax 95% (78% branches). Don't quote the stale 95% figure in CONTRIBUTING.md.
+- Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
+
+Enforced in review (a green CI does **not** check these):
+
 - Every visible/interactive UI change needs a **Storybook story**.
-- Every public API change needs a **docs page update** (`docs/docs/api/...`) before PR approval.
-- Component/prop changes that affect the skills update `skills/` **in the same PR**, then `pnpm gen:catalog`.
-- `pnpm all` must pass locally before opening a PR.
+- Every public API change needs a **docs page update** (`docs/docs/api/...`) before approval.
+- Component/prop changes that affect the skills update `skills/` **in the same PR**.
+- Run `pnpm all` locally before opening a PR.
 
 ## Commits — release-affecting, not cosmetic
 
 Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
-semantic-release. One non-standard rule (`commitlint.config.js`): commits of type
-`feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`, or `create-bestax` —
-unscoped release types are rejected because they would bump both packages.
+semantic-release. Two repo-specific rules:
+
+- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`, or
+  `create-bestax` — unscoped release types are rejected (`commitlint.config.js`).
+- **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
+  `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
+  `releaseRules` in each package's `release.config.js` are the source of truth.
 
 ```
-feat(bulma-ui): add Collapse component   → minor release of BOTH packages (synchronized versioning)
-fix(create-bestax): handle missing TTY   → patch release
+feat(bulma-ui): add Collapse component   → minor release of bulma-ui only
+fix(create-bestax): handle missing TTY   → patch release of create-bestax only
 docs: fix typo in contributing guide     → no release; scope optional
 ```
 
-Both packages always release together with identical versions — see `VERSIONING.md`.
+Stale-docs warning: `VERSIONING.md` describes an older _synchronized_ versioning scheme, and
+CONTRIBUTING.md's "Commit Message Guidelines" section shows a type-less format commitlint would
+reject. The commitlint config and release configs are authoritative.
 
 ## Dependencies are a deliberate act
 
@@ -61,12 +74,9 @@ Both packages always release together with identical versions — see `VERSIONIN
 
 ## Workflow
 
-PRs target `main`; direct pushes to `main` are not allowed. Keep PRs focused (one feature/fix).
-Full contributor guide: `CONTRIBUTING.md`. New components should stay within the Bulma spec —
-propose anything beyond it in an issue first.
+PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
+`CONTRIBUTING.md` (commit-format section aside — see above). New components should stay within
+the Bulma spec — propose anything beyond it in an issue first.
 
-## AI / LLM surfaces
-
-Usage skills live in `skills/`; LLM-ready docs are generated at `https://bestax.io/llms.txt`
-(canonical guide: https://bestax.io/docs/guides/llms). This repo treats AI agents as first-class
-contributors _and_ consumers — changes to docs/skills alter what agents everywhere are taught.
+AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
+shipped product (see `skills/CLAUDE.md`).

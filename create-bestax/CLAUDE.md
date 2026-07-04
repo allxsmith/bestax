@@ -6,7 +6,7 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 
 ## Architecture
 
-- `src/cli.ts` — arg parsing / entry
+- `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program
 - `src/prompts.ts` — interactive questions (each maps to a flag)
 - `src/project-creator.ts` — writes the project: copies a template, injects options,
   installs skills, writes `CLAUDE.md`

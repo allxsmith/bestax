@@ -31,8 +31,8 @@ discovery surfaces on it — don't add new competing entrypoints.
 
 ## Conventions
 
-- Pages carry frontmatter (`title`, `sidebar_position`); follow neighboring pages in the same
-  folder for structure — API pages use consistent sections (props table, examples).
+- Pages carry frontmatter (`title`, `sidebar_position`); API pages use consistent sections
+  (props table, examples) — mirror a sibling page, don't invent a new structure.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).

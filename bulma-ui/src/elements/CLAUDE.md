@@ -1,8 +1,8 @@
 # elements/ — simple building blocks
 
 Bulma's _elements_: single-purpose components that render (mostly) one HTML element with Bulma
-classes — Button, Box, Block, Content, Delete, Icon, Image, Notification, Progress, Table, Tag,
-Title, …
+classes — Button, Box, Icon, Tag, Title, and friends (the generated
+`skills/bestax-custom-component/references/component-catalog.md` is the authoritative list).
 
 **Belongs here?** One element, one Bulma concept, no internal state or subcomponents.
 Interactive multi-part widgets (dropdowns, modals, …) go in `../components/`; page structure in
