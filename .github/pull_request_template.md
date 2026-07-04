@@ -39,6 +39,7 @@ Related to #
 - [ ] My changes require a change to the documentation
 - [ ] All new and existing tests passed
 - [ ] Any relevant dependencies are updated
+- [ ] If this PR changes commands, conventions, or package structure, the affected `CLAUDE.md` files are updated
 
 ## Screenshots / Demos
 
