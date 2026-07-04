@@ -33,7 +33,7 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 Enforced by CI (`.github/workflows/ci.yml`):
 
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
-  create-bestax 95% (78% branches). Don't quote the stale 95% figure in CONTRIBUTING.md.
+  create-bestax 95% (78% branches).
 - Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
 
 Enforced in review (a green CI does **not** check these):
@@ -60,9 +60,7 @@ fix(create-bestax): handle missing TTY   → patch release of create-bestax only
 docs: fix typo in contributing guide     → no release; scope optional
 ```
 
-Stale-docs warning: `VERSIONING.md` describes an older _synchronized_ versioning scheme, and
-CONTRIBUTING.md's "Commit Message Guidelines" section shows a type-less format commitlint would
-reject. The commitlint config and release configs are authoritative.
+Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
 ## Dependencies are a deliberate act
 
@@ -75,8 +73,8 @@ reject. The commitlint config and release configs are authoritative.
 ## Workflow
 
 PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
-`CONTRIBUTING.md` (commit-format section aside — see above). New components should stay within
-the Bulma spec — propose anything beyond it in an issue first.
+`CONTRIBUTING.md`. New components should stay within the Bulma spec — propose anything beyond
+it in an issue first.
 
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
 shipped product (see `skills/CLAUDE.md`).

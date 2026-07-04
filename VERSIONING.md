@@ -1,149 +1,75 @@
-# Synchronized Versioning Strategy
+# Independent Versioning Strategy
 
-This monorepo uses **synchronized versioning** between `@allxsmith/bestax-bulma` and `create-bestax` packages.
+`@allxsmith/bestax-bulma` and `create-bestax` are versioned and released **independently**.
+Each package releases only when a commit is scoped to it — the two version numbers are
+unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x).
 
-## How It Works
+The source of truth is the `releaseRules` in each package's semantic-release config:
+[`bulma-ui/release.config.js`](./bulma-ui/release.config.js) and
+[`create-bestax/release.config.js`](./create-bestax/release.config.js).
 
-Both packages maintain **identical version numbers** and are released together whenever either package has changes.
+## Release Rules
 
-### Release Rules
+A commit releases **only** the package its scope names:
 
-Both packages analyze commits with the following scopes:
+| Commit                                                            | bestax-bulma | create-bestax |
+| ----------------------------------------------------------------- | ------------ | ------------- |
+| `feat(bulma-ui): …`                                               | minor        | —             |
+| `fix(bulma-ui): …`                                                | patch        | —             |
+| `perf/refactor/style(bulma-ui): …`                                | patch        | —             |
+| `feat(create-bestax): …`                                          | —            | minor         |
+| `fix(create-bestax): …`                                           | —            | patch         |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             |
+| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             |
 
-- `feat(bulma-ui)` or `feat(create-bestax)` → **Minor version bump** (e.g., 1.0.0 → 1.1.0)
-- `fix(bulma-ui)` or `fix(create-bestax)` → **Patch version bump** (e.g., 1.0.0 → 1.0.1)
-- Breaking changes in either → **Major version bump** (e.g., 1.0.0 → 2.0.0)
+Notes:
 
-### Ignored Scopes
+- **Breaking changes require a `BREAKING CHANGE:` footer** in the commit body. The angular
+  commit-analyzer preset does **not** parse `feat(bulma-ui)!:` bang headers.
+- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`) **must** carry a
+  scope of `bulma-ui`, `docs`, or `create-bestax` — enforced by commitlint
+  ([`commitlint.config.js`](./commitlint.config.js)) via the husky `commit-msg` hook. This is
+  what guarantees the per-scope release rules can't be bypassed by an unscoped commit.
+- A commit scoped to `docs` never releases either package.
 
-The following scopes do NOT trigger releases:
+## Tags & Changelogs
 
-- `docs` - Documentation changes
-- `chore` - Maintenance tasks
-- `ci` - CI/CD configuration
-- `test` - Test updates
-- `build` - Build system changes
+Each package tags and logs its own releases:
 
-## Example Scenarios
-
-### Scenario 1: bulma-ui Feature
-
-```bash
-git commit -m "feat(bulma-ui): add new Modal component"
-```
-
-**Result:**
-
-- ✅ `@allxsmith/bestax-bulma`: 1.0.0 → 1.1.0
-- ✅ `create-bestax`: 1.0.0 → 1.1.0
-- Both packages published with version 1.1.0
-
-### Scenario 2: create-bestax Fix
-
-```bash
-git commit -m "fix(create-bestax): correct template scaffolding issue"
-```
-
-**Result:**
-
-- ✅ `@allxsmith/bestax-bulma`: 1.1.0 → 1.1.1
-- ✅ `create-bestax`: 1.1.0 → 1.1.1
-- Both packages published with version 1.1.1
-
-### Scenario 3: Documentation Update
-
-```bash
-git commit -m "docs: update README"
-```
-
-**Result:**
-
-- ❌ No version bump
-- ❌ No packages published
-
-### Scenario 4: Mixed Changes
-
-```bash
-git commit -m "feat(bulma-ui): add Button variants"
-git commit -m "fix(create-bestax): fix icon library setup"
-```
-
-**Result:**
-
-- ✅ `@allxsmith/bestax-bulma`: 1.1.1 → 1.2.0 (minor wins over patch)
-- ✅ `create-bestax`: 1.1.1 → 1.2.0
-- Both packages published with version 1.2.0
-
-## Why Synchronized Versioning?
-
-1. **User Clarity**: Users always know which versions work together
-2. **Simplified Dependency Management**: create-bestax templates always use the matching bulma-ui version
-3. **Consistent Releases**: Both packages stay in lockstep, reducing confusion
-
-## Version Determination
-
-When commits affect both packages, the **highest semantic level** determines the bump:
-
-- Major > Minor > Patch
-- Breaking change > feat > fix
+- `@allxsmith/bestax-bulma@X.Y.Z` tags, changelog at `bulma-ui/CHANGELOG.md`
+- `create-bestax@X.Y.Z` tags, changelog at `create-bestax/CHANGELOG.md`
 
 ## Release Process
 
-The CI workflow (`ci.yml`) handles releases automatically:
+On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in each package:
 
-1. Analyzes all commits since last release
-2. Determines version bump based on commit scopes
-3. Publishes `@allxsmith/bestax-bulma` first
-4. Publishes `create-bestax` with the same version
-5. Creates git tags for both packages
-6. Updates CHANGELOGs
-7. Creates GitHub releases
+1. Each package analyzes the commits since **its own** last tag against its `releaseRules`.
+2. If a release is due: version bump, `CHANGELOG.md` update, npm publish (OIDC trusted
+   publishing — no `NPM_TOKEN`), a signed `chore(release): X.Y.Z [skip ci]` commit, git tag,
+   and GitHub release.
+3. A push may release one package, both, or neither — they never bump each other.
 
-## Commit Message Format
+Preview locally without publishing: see "semantic-release dry-run" in
+[`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
-Follow conventional commits with scopes:
-
-```bash
-<type>(<scope>): <subject>
-
-# Examples:
-feat(bulma-ui): add new component
-fix(create-bestax): resolve scaffolding bug
-docs: update API documentation
-chore(bulma-ui): refactor tests
-```
-
-## Initial Setup
-
-The packages were manually synchronized to version **2.3.3** to establish the baseline for synchronized versioning.
-
-Commit used:
+## Example Scenarios
 
 ```bash
-git commit -m "chore: synchronize package versions to 2.3.3 [skip ci]"
+git commit -m "feat(bulma-ui): add new Modal variant"
+# → bestax-bulma minor bump; create-bestax untouched
+
+git commit -m "fix(create-bestax): correct template scaffolding issue"
+# → create-bestax patch bump; bestax-bulma untouched
+
+git commit -m "docs: update README"
+# → no release
+
+git commit -m "feat(bulma-ui): rename Theme props" -m "BREAKING CHANGE: bulmaVars renamed to vars"
+# → bestax-bulma major bump
 ```
 
-## Manual Version Sync
+## History
 
-In rare cases where versions drift (e.g., after manual intervention), you can manually sync by:
-
-1. Updating both `package.json` files to the same version
-2. Committing with `chore: sync package versions to X.X.X [skip ci]`
-3. Creating matching git tags if needed (usually not necessary)
-
-## Troubleshooting
-
-**Q: What if I only want to release one package?**
-A: Not supported with this strategy. Both packages always release together to maintain version parity.
-
-**Q: Can I still use docs commits?**
-A: Yes! Commits with `scope: docs` or `type: docs` won't trigger releases.
-
-**Q: What about pre-releases?**
-A: Configure pre-release branches in both `release.config.js` files identically.
-
-## Related Files
-
-- `bulma-ui/release.config.js` - Semantic release config for bulma-ui
-- `create-bestax/release.config.js` - Semantic release config for create-bestax
-- `.github/workflows/ci.yml` - CI/CD workflow with release steps
+Versions 2.x and earlier used a synchronized scheme where both packages released together with
+identical version numbers. That was removed — the per-scope `release: false` rules in each
+config exist precisely so a `feat(bulma-ui)` commit no longer bumps `create-bestax`.
