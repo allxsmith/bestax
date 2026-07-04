@@ -21,6 +21,11 @@ import {
 Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `textAlign`,
 `textColor`, `bgColor`, etc.).
 
+> **Use helper props, never inline `style`, for spacing / alignment / color.** `mt="4"` (= 1rem)
+> not `style={{ marginTop: '1rem' }}`; `textAlign="centered"` not `style={{ textAlign: 'center' }}`;
+> `textColor="grey"` / `bgColor="light"` not `style={{ color }}`. Spacing scale is `0`–`6` | `auto`
+> (`4` = 1rem). Reserve `style`/CSS vars only for values the design system doesn't tokenize.
+
 > **There is no `Tile` component.** Build grids and nested layouts with `Columns` / `Column`.
 
 ## Container

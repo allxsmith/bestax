@@ -33,6 +33,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Fast, source-only check (no build deps) — fail early if the generated
+      # skill catalog is stale.
+      - name: Component catalog up to date
+        run: pnpm run gen:catalog:check
+
       - name: Build
         run: pnpm run build
 

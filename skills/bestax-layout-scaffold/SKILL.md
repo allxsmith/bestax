@@ -42,6 +42,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
   hidden behind it — the library does not do this automatically.
+- **Style with helper props, not inline `style`.** Use `m`/`p` spacing (`mt="4"` = 1rem),
+  `textAlign="centered"`, and `textColor`/`bgColor` instead of `style={{ marginTop, textAlign,
+color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
+  rather than `library` on every `<Icon>`.
 
 ## References
 
@@ -56,6 +60,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - `examples/landing.tsx` — `Hero` + `Section`s + `Footer`.
 - `examples/centered.tsx` — centered single column (auth/settings).
 - `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
+- `examples/content-page.tsx` — hero + feature cards + CTA styled with helper props (no inline
+  `style`), wrapped in `ConfigProvider`.
 
 ## Checklist
 
@@ -64,3 +70,5 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] Use `Columns`/`Column` for side-by-side layout; rely on the mobile stack default.
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
+- [ ] Style with helper props (`mt`/`p`, `textAlign`, `textColor`), not inline `style`.
+- [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.

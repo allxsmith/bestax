@@ -13,6 +13,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx}\"",
     "lint": "turbo run lint",
+    "gen:catalog": "node scripts/gen-component-catalog.mjs",
+    "gen:catalog:check": "node scripts/gen-component-catalog.mjs && git diff --exit-code -- skills/bestax-custom-component/references/component-catalog.md",
     "all": "turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",
     "storybook": "turbo run storybook --filter=@allxsmith/bestax-bulma",
     "docs": "turbo run docs --filter=@allxsmith/bestax-docs",

@@ -1,6 +1,6 @@
 ---
 name: bestax-theming
-description: Customize colors, branding, dark mode, and visual tokens of an app built with @allxsmith/bestax-bulma. Use when changing the primary/brand color, recoloring components, overriding Bulma --bulma-* CSS variables, setting fonts/radius/spacing tokens, or adding light/dark mode.
+description: Customize colors, branding, dark mode, and visual tokens of an app built with @allxsmith/bestax-bulma. Use when changing the primary/brand color, recoloring components, overriding Bulma --bulma-* CSS variables, setting fonts/radius/spacing tokens, adding light/dark mode, or configuring the app-wide icon library / class prefix via ConfigProvider.
 license: MIT
 ---
 
@@ -52,6 +52,27 @@ import { Theme, Button } from '@allxsmith/bestax-bulma';
 <Button color="primary">Save</Button>;
 ```
 
+## App-wide config (icons & class prefix)
+
+`ConfigProvider` sets app-wide options once at the root, separate from `Theme`. Wrap the app so
+you don't repeat the same prop on every component:
+
+```tsx
+import { ConfigProvider } from '@allxsmith/bestax-bulma';
+
+// Set the icon library once — <Icon> no longer needs a `library` prop.
+<ConfigProvider iconLibrary="fa">
+  <App />
+</ConfigProvider>;
+// now <Icon name="check" /> resolves as Font Awesome; no per-icon library="fa".
+```
+
+- `iconLibrary` — `'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'`. `Icon` reads it
+  (`library || iconLibrary || 'fa'`), so set it here instead of on each `<Icon>`.
+- `classPrefix` — namespaces every Bulma class (e.g. `bulma-`) to avoid collisions with other CSS.
+
+Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
+
 ## References
 
 - `references/css-variables.md` — the `--bulma-*` variable map (colors, scheme/text/border, radius,
@@ -71,3 +92,4 @@ import { Theme, Button } from '@allxsmith/bestax-bulma';
 - [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`.
 - [ ] Implement dark mode with `data-theme` on `<html>`; do not expect a shipped dark-mode component.
 - [ ] Pass `color`/`textColor`/`bgColor` (not custom CSS) to color individual components.
+- [ ] Set the icon library once with `<ConfigProvider iconLibrary="…">` at the root, not `library` on every `<Icon>`.

@@ -29,8 +29,12 @@ call.
 
 Where to look:
 
-- `bulma-ui/src/index.ts` — the full export list; scan it for the name and its synonyms.
-- `docs/docs/api/{elements,components,form}/` — one doc page per shipped component.
+- `references/component-catalog.md` — **start here.** Every documented component with a one-line
+  purpose, grouped by category (generated from the API docs). Scan it for the name and its
+  synonyms before anything else.
+- `bulma-ui/src/index.ts` — the full export list; check here for anything not yet documented (e.g.
+  raw `*Base` form variants) that the catalog omits.
+- `docs/docs/api/{elements,components,form}/` — one doc page per shipped component (full props).
 - Storybook titles — `Elements/*`, `Components/*`, `Form/*`.
 
 Then decide, and **surface the decision to the user**:
@@ -103,7 +107,7 @@ export const MyComponent = forwardRef<HTMLDivElement, MyComponentProps>(
     // 1. Pull Bulma helper classes (m/p, text*, display, etc.) out of props.
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
-    // 2. Build this component's own classes (respects the Config classPrefix).
+    // 2. Build this component's own classes (respects the ConfigProvider classPrefix).
     const mainClasses = usePrefixedClassNames('mycomponent', {
       [`is-${color}`]: !!color,
       [`is-${size}`]: !!size,
@@ -131,7 +135,7 @@ Rules that keep components consistent:
 - **Always `Omit<…, 'color'>`** from both `HTMLAttributes` and `BulmaClassesProps` when the
   component exposes its own typed `color`, so the native/helper `color` doesn't collide.
 - **Never hand-build class strings.** Use `usePrefixedClassNames(base, conditionalMap)` so the
-  optional `classPrefix` from `Config` is honored, then `classNames(...)` to merge.
+  optional `classPrefix` from `ConfigProvider` is honored, then `classNames(...)` to merge.
 - **Spread `rest`, not `props`**, onto the DOM node — `useBulmaClasses` has already stripped the
   helper props out of `rest`, so they don't leak to the DOM as invalid attributes.
 - **Set `displayName`** on `forwardRef` components (needed for tests and Storybook autodocs).
@@ -199,7 +203,7 @@ $mycomponent-padding: 1rem !default;
 ```
 
 Why this matters: registering vars makes the component themeable at runtime (the docs site and
-`Theme`/`Config` providers override `--bulma-*` properties), and the `iv.$class-prefix` keeps
+`Theme`/`ConfigProvider` providers override `--bulma-*` properties), and the `iv.$class-prefix` keeps
 the component working when consumers opt into a class prefix to avoid collisions.
 
 The canonical reference file is `bulma-ui/src/scss/components/_dialog.scss`.

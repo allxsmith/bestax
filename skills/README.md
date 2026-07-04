@@ -34,8 +34,9 @@ skills/
   bestax-custom-component/
     SKILL.md
     references/
-      api.md        # helper hooks, classNames, valid-value constants, SCSS utilities
-      patterns.md   # Dialog — the canonical worked example
+      api.md                # helper hooks, classNames, valid-value constants, SCSS utilities
+      patterns.md           # Dialog — the canonical worked example
+      component-catalog.md  # generated: every exported component + one-line purpose
   bestax-form/
     SKILL.md
     references/
@@ -59,7 +60,11 @@ skills/
       landing.tsx              # hero + sections + footer
       centered.tsx             # centered single column
       card-grid.tsx            # multiline columns of cards
+      content-page.tsx         # hero + cards + CTA, helper props (no inline style)
 ```
+
+> `component-catalog.md` is generated from the API docs by `scripts/gen-component-catalog.mjs`
+> (`npm run gen:catalog`). Don't edit it by hand.
 
 ## See also
 

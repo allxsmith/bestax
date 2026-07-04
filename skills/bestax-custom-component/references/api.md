@@ -37,7 +37,7 @@ Accepts strings, numbers, arrays, and objects (truthy keys included); flattens r
 de-dupes. Related exports:
 
 - `usePrefixedClassNames(...args)` — **use this in components.** Reads `classPrefix` from the
-  `Config` context and prefixes every class. With `classPrefix="bulma-"`,
+  `ConfigProvider` context and prefixes every class. With `classPrefix="bulma-"`,
   `usePrefixedClassNames('button', { 'is-primary': true })` → `'bulma-button bulma-is-primary'`.
 - `prefixedClassNames(prefix, ...args)` — non-hook form; pass `undefined` for no prefix.
 - `createPrefixedClassNames(prefix)` — factory returning a bound `classNames`.
@@ -57,10 +57,11 @@ Storybook `argTypes`/tests:
 export type MyColor = (typeof validColors)[number];
 ```
 
-## `Config` / `Theme` — `helpers/Config.tsx`, `helpers/Theme.tsx`
+## `ConfigProvider` / `Theme` — `helpers/Config.tsx`, `helpers/Theme.tsx`
 
-`Config` provides the runtime `classPrefix` consumed by `usePrefixedClassNames` (opt-in class
-prefixing to avoid collisions). `Theme` overrides `--bulma-*` custom properties at runtime —
+`ConfigProvider` provides the runtime `classPrefix` (and `iconLibrary`) consumed via `useConfig`;
+`classPrefix` feeds `usePrefixedClassNames` (opt-in class prefixing to avoid collisions). `Theme`
+overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
