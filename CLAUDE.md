@@ -77,4 +77,5 @@ PRs target `main`; direct pushes to `main` are not allowed. Full contributor gui
 it in an issue first.
 
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
-shipped product (see `skills/CLAUDE.md`).
+shipped product (see `skills/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
+and the **`@claude`** GitHub Action (project instructions), so keep it accurate.

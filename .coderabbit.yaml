@@ -1,0 +1,60 @@
+# CodeRabbit configuration — https://docs.coderabbit.ai/reference/configuration
+# Free for public repositories; billed on CodeRabbit's own account (does NOT
+# consume Anthropic/Claude usage). Reviews every PR automatically.
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: false
+
+reviews:
+  profile: chill # 'chill' = less noisy; switch to 'assertive' for stricter reviews
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+
+  # Repo-specific guidance so reviews match this monorepo's standards.
+  path_instructions:
+    - path: 'bulma-ui/**'
+      instructions: >
+        React 19 + TypeScript Bulma component library (@allxsmith/bestax-bulma).
+        Enforce strict TypeScript types (no `any`), consistent prop naming, and
+        accessibility (aria-* attributes, semantic elements). Every new or
+        changed component should have a matching Storybook story and Jest tests;
+        overall coverage must remain >= 99% for all metrics (the bulma-ui CI
+        gate). Flag any change that would drop coverage below that, and flag
+        missing tests/stories.
+    - path: 'create-bestax/**'
+      instructions: >
+        CLI scaffolder that generates starter projects. Check template
+        correctness (vite / vite-ts), generated file integrity, and Playwright
+        e2e coverage for user-facing changes.
+    - path: 'docs/**'
+      instructions: >
+        Docusaurus documentation site. Check MDX/Markdown correctness, working
+        internal links, and that documented APIs match the library.
+    - path: '**/*.{ts,tsx}'
+      instructions: >
+        Follow the repo ESLint + Prettier config (Prettier 3.9.4). Prefer
+        conventional-commit-friendly, focused changes.
+
+  # Don't waste review effort on generated / lock / snapshot files.
+  path_filters:
+    - '!**/dist/**'
+    - '!**/*.snap'
+    - '!**/coverage/**'
+    - '!**/storybook-static/**'
+    - '!pnpm-lock.yaml'
+
+chat:
+  auto_reply: true
+
+# Keep CodeRabbit's own summaries out of Claude's trigger path and reduce noise.
+knowledge_base:
+  learnings:
+    scope: auto
