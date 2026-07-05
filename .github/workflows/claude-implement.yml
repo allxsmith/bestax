@@ -91,9 +91,9 @@ jobs:
           track_progress: true
           use_commit_signing: true
           claude_args: |
-            --max-turns 50
+            --max-turns 150
             --model claude-sonnet-5
-            --allowedTools "Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(node:*),Bash(gh issue view:*),Bash(gh pr create:*),Bash(gh pr view:*)"
+            --allowedTools "Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
             ISSUE NUMBER: ${{ github.event.issue.number }}
