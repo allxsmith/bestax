@@ -26,36 +26,65 @@ concurrency:
 
 jobs:
   implement:
-    # Exact-label + exact-owner gate: only the owner can spend Claude usage
-    # this way, and only via the claude-fix label. Labeling an issue means
+    # Label + human-labeler gate. GitHub only lets triage+ users apply
+    # labels, and the permission step below re-verifies the labeler's role
+    # live (belt and braces — e.g. against a template auto-applying the
+    # label on behalf of an outside issue author). Labeling an issue means
     # "execute this issue body" — read it fully (including raw markdown)
     # before applying the label.
     if: |
       github.event.label.name == 'claude-fix' &&
-      github.event.sender.login == 'allxsmith' &&
+      github.event.sender.type == 'User' &&
       vars.AI_LOOP_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      # Anyone with triage access or higher may start the loop; everyone
+      # else (including issue authors whose template applied the label) is
+      # a silent no-op that spends no Claude usage.
+      - name: Check labeler permission
+        id: perm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          set -euo pipefail
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "$SENDER has $ROLE access — starting the loop" ;;
+            *)
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "$SENDER lacks triage access ($ROLE) — not starting" ;;
+          esac
+
       - name: Checkout code
+        if: steps.perm.outputs.allowed == 'true'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup pnpm
+        if: steps.perm.outputs.allowed == 'true'
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       - name: Setup Node.js
+        if: steps.perm.outputs.allowed == 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
+        if: steps.perm.outputs.allowed == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Run Claude (implement issue)
+        if: steps.perm.outputs.allowed == 'true'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -118,7 +147,7 @@ jobs:
       # Copilot's automatic-review ruleset skips bot-authored PRs on personal
       # repos, so the review must be requested explicitly.
       - name: Request Copilot review (optional)
-        if: vars.AI_LOOP_COPILOT == 'true'
+        if: steps.perm.outputs.allowed == 'true' && vars.AI_LOOP_COPILOT == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}

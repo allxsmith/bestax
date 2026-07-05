@@ -72,7 +72,8 @@ machine.
 - **Protected paths**: the loop refuses to operate on changes touching CI workflows, coverage
   thresholds, commitlint/release configuration, or dependency policy — the gates that keep it
   honest can't be edited by it.
-- **Owner-only entry**: only the repository owner can start the loop, and only by labeling an
-  issue after reading it.
+- **Maintainer-only entry**: only collaborators with triage access or higher can start the loop
+  (the workflow re-verifies the labeler's permission live), and only by labeling an issue after
+  reading it.
 - **Kill switches**: removing the `ai-loop` label stops one PR; a repository variable turns
   the whole system off.

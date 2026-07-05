@@ -98,9 +98,11 @@ jobs:
           github.event.workflow_run.conclusion != 'cancelled' &&
           github.event.workflow_run.head_repository.full_name == github.repository &&
           startsWith(github.event.workflow_run.head_branch, 'claude/')) ||
-        (github.event_name == 'workflow_dispatch' &&
-          contains(fromJSON('["allxsmith","github-actions[bot]","github-actions"]'), github.actor))
+        (github.event_name == 'workflow_dispatch')
       )
+    # workflow_dispatch needs no actor allowlist: GitHub only lets users
+    # with write access dispatch workflows, and the loop's self-dispatch
+    # arrives as github-actions[bot].
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

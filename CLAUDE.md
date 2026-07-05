@@ -82,7 +82,7 @@ and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
 
 ## AI development loop
 
-Issues labeled `claude-fix` (owner-only) are implemented autonomously: Claude opens a PR labeled
+Issues labeled `claude-fix` (requires triage+ access, verified live) are implemented autonomously: Claude opens a PR labeled
 `ai-loop`, CodeRabbit + a Claude deep review comment on it, and `claude-pr-loop.yml` drives
 fix/verify rounds (cap 4) until CI is green and every AI review thread is resolved. Labels:
 `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner reviews and
