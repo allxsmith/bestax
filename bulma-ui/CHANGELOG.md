@@ -1,3 +1,33 @@
+## [5.1.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.2...@allxsmith/bestax-bulma@5.1.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** publish rewritten README to npm ([9810081](https://github.com/allxsmith/bestax/commit/981008179d96b19f692ca73c17a02ae3f5fa6298))
+* **create-bestax:** refresh README and bump scaffolded bestax-bulma to ^5 ([4e19e86](https://github.com/allxsmith/bestax/commit/4e19e8691781cc0dce9bf6b277a4d0e90a9ec693))
+
+
+### Documentation
+
+* fix stale versioning and coverage docs; drop CLAUDE.md stale-docs flags ([71c4583](https://github.com/allxsmith/bestax/commit/71c4583979d942af739bf3216f187ab454ae4a99))
+
+
+### BREAKING CHANGES
+
+* footer requirement, and the commitlint scope rule
+- CONTRIBUTING.md: replace the type-less commit example with a
+  commitlint-valid conventional format (verified against commitlint);
+  correct all four coverage mentions to the real jest thresholds
+  (bulma-ui 99%, create-bestax 95%/78% branches); fix the npm package
+  name (@allxsmith/bestax-bulma, plus create-bestax) and link VERSIONING.md
+- CLAUDE.md: remove the stale-docs warning and asides now that the
+  underlying docs are correct; point at VERSIONING.md again
+
+Closes #206.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0131uD6QKmAij7Byk3SByyLh
+
 ## [5.1.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.1...@allxsmith/bestax-bulma@5.1.2) (2026-07-04)
 
 

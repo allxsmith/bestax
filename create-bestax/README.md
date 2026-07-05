@@ -1,6 +1,12 @@
 # create-bestax
 
-CLI tool for scaffolding new bestax-bulma projects.
+[![npm version](https://img.shields.io/npm/v/create-bestax.svg)](https://www.npmjs.com/package/create-bestax)
+[![npm downloads](https://img.shields.io/npm/dm/create-bestax.svg)](https://www.npmjs.com/package/create-bestax)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+The scaffolder for [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) — spin up a Vite app pre-wired for the **Bulma v1** React component library in one command. Picks your framework (JS or TypeScript), CSS flavor, and icon library, and can drop in the bestax **AI skills** so an agent like Claude Code knows the library from the first prompt.
+
+Part of the [bestax monorepo](https://github.com/allxsmith/bestax) — see also [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) for the components themselves.
 
 ## Usage
 
@@ -32,6 +38,8 @@ You'll be asked to:
 3. Choose a Bulma CSS flavor (Complete or Minimal)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
 5. Choose whether to install the bestax AI skills into `.claude/skills/`
+
+Every prompt has a flag equivalent, so the whole flow is scriptable and CI-friendly — see the options below.
 
 ### Command Line Options
 
@@ -91,8 +99,8 @@ Available templates:
 
 Each template includes:
 
-- Pre-configured bestax-bulma integration
-- Bulma CSS v1.0.4
+- Pre-configured bestax-bulma integration (React 19)
+- The latest `@allxsmith/bestax-bulma`, which ships Bulma v1 automatically
 - Icon library support (Font Awesome, Material Design, etc.)
 - Sample components demonstrating library usage
 - Development and build scripts
@@ -100,10 +108,11 @@ Each template includes:
 ## For AI Tools
 
 Scaffolding for an AI agent? Pass `--skills` (or accept the prompt) to drop the bestax
-Agent Skills and a `CLAUDE.md` into the new project. The library also ships LLM-optimized
-docs:
+Agent Skills and a `CLAUDE.md` into the new project so Claude Code, Cursor, or Copilot
+build the bestax way from the start. The library also ships LLM-optimized docs:
 
 - [LLMs guide](https://bestax.io/docs/guides/llms) — using bestax with Claude Code, Cursor, Copilot
+- [Agent Skills](https://bestax.io/docs/skills/intro) — teach your agent the bestax conventions
 - [llms.txt](https://bestax.io/llms.txt) (curated index) · [llms-full.txt](https://bestax.io/llms-full.txt) (full docs)
 
 ## Development
