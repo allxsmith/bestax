@@ -79,3 +79,14 @@ it in an issue first.
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
 shipped product (see `skills/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
+
+## AI development loop
+
+Issues labeled `claude-fix` (owner-only) are implemented autonomously: Claude opens a PR labeled
+`ai-loop`, CodeRabbit + a Claude deep review comment on it, and `claude-pr-loop.yml` drives
+fix/verify rounds (cap 4) until CI is green and every AI review thread is resolved. Labels:
+`ai-loop` (in the loop), `needs-human-review` (converged or contested — owner reviews and
+squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard hit). Kill switches:
+remove `ai-loop` (per PR) or set repo variable `AI_LOOP_ENABLED=false` (whole system). The
+`<!-- ai-loop-state … -->` PR comment is machine-managed — never reformat its first line. The
+loop refuses PRs that touch `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
