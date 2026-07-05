@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { LinkButton } from './LinkButton';
 import { Buttons } from './Buttons';
@@ -277,4 +277,21 @@ const LinkButtonInFormDemo = () => {
 export const InFormContext: Story = {
   render: () => <LinkButtonInFormDemo />,
   name: 'In Form Context',
+};
+
+// Polymorphic `as` — render as a custom component (e.g. a router Link)
+const RouterLikeLink = ({
+  to,
+  ...rest
+}: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  <a data-to={to} {...rest} />
+);
+
+export const PolymorphicAs: Story = {
+  render: () => (
+    <LinkButton as={RouterLikeLink} to="/dashboard" variant="underline">
+      Go to Dashboard
+    </LinkButton>
+  ),
+  name: 'Polymorphic `as` (Router Link)',
 };

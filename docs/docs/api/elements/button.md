@@ -9,6 +9,10 @@ sidebar_label: Button
 
 The `Button` component provides a flexible and highly customizable button for your Bulma React UI. It supports all Bulma color, size, and state modifiers, as well as additional helper classes for text, spacing, and more.
 
+:::caution Accessibility
+Use `Button` for real button actions (submit, toggle, open a dialog). For a link-styled click target or client-side navigation, prefer [`LinkButton`](./linkbutton.md) — using `Button` as a fake link/`<div onClick>` loses proper anchor and a11y semantics.
+:::
+
 :::tip
 Make sure to provide meaningful text or accessible content for screen readers.
 :::
@@ -40,7 +44,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 | `isActive`    | `boolean`                                                                                                                             | Applies active styling (visual only).                                                                              |
 | `isHovered`   | `boolean`                                                                                                                             | Applies hovered styling (visual only).                                                                             |
 | `isDisabled`  | `boolean`                                                                                                                             | Applies disabled styling.                                                                                          |
-| `as`          | `'button' \| 'a'`                                                                                                                     | Render as a `<button>` or `<a>`.                                                                                   |
+| `as`          | `React.ElementType`                                                                                                                   | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`.               |
 | `href`        | `string`                                                                                                                              | Href value (if rendering as `<a>`).                                                                                |
 | `onClick`     | `function`                                                                                                                            | Click event handler.                                                                                               |
 | `target`      | `string`                                                                                                                              | Anchor tag target.                                                                                                 |
@@ -284,6 +288,21 @@ You can pass any standard HTML attributes to the Button component, such as `type
   Submit Button
 </Button>
 ```
+
+### Polymorphic `as` (Router Links)
+
+The `as` prop accepts any `React.ElementType`, not just `'button'` or `'a'`. This lets `Button` render as a router's `Link` component (React Router, Next.js, TanStack Router, etc.) while keeping Bulma's button styling and real anchor semantics — `href`, middle-click, right-click "copy link", and correct accessibility all keep working, unlike a `useNavigate()`-in-`onClick` wrapper.
+
+```tsx
+import { Link as RouterLink } from 'react-router-dom';
+import { Button } from '@allxsmith/bestax-bulma';
+
+<Button as={RouterLink} to="/visit" color="primary">
+  Book a visit
+</Button>;
+```
+
+When `as` is anything other than `'button'` (including `'a'` or a custom component), `Button` strips button-only HTML attributes (`type`, `disabled`, `form`, etc.) before spreading the remaining props onto the rendered element, so they don't leak onto a link-like component.
 
 ---
 

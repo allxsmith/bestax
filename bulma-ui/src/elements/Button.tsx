@@ -25,7 +25,7 @@ import {
  * @property {string} [className] - Additional CSS classes to apply.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {'a' | 'button'} [as] - Render as an anchor or button element.
+ * @property {React.ElementType} [as] - Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.
  * @property {string} [href] - Specifies the URL for anchor buttons.
  * @property {React.MouseEventHandler<HTMLButtonElement> | React.MouseEventHandler<HTMLAnchorElement>} [onClick] - Click handler for the button or anchor.
  * @property {string} [target] - Target for anchor element.
@@ -64,7 +64,7 @@ export interface ButtonProps
   className?: string;
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  as?: 'a' | 'button';
+  as?: React.ElementType;
   href?: string;
   onClick?:
     | React.MouseEventHandler<HTMLButtonElement>
@@ -104,7 +104,7 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   textColor,
   bgColor,
-  as = 'button',
+  as: Component = 'button',
   href,
   onClick,
   target,
@@ -139,8 +139,10 @@ export const Button: React.FC<ButtonProps> = ({
   // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
   const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
-  if (as === 'a') {
-    // Create anchor-specific props by excluding button-specific ones
+  if (Component !== 'button') {
+    // Create anchor-specific props by excluding button-specific ones, so
+    // native/custom link-like elements (an <a>, a router Link, ...) don't
+    // receive button-only HTML attributes.
     const {
       type: _type,
       disabled: _disabled,
@@ -157,7 +159,7 @@ export const Button: React.FC<ButtonProps> = ({
     } = rest as React.ButtonHTMLAttributes<HTMLButtonElement>;
 
     return (
-      <a
+      <Component
         className={buttonClasses}
         href={href}
         target={target}
@@ -173,7 +175,7 @@ export const Button: React.FC<ButtonProps> = ({
         {...(anchorRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
         {children}
-      </a>
+      </Component>
     );
   }
 
