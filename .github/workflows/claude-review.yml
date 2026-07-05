@@ -1,0 +1,131 @@
+name: Claude Deep Review
+
+# One full adversarial Claude review per AI-loop PR, at open. Uses a stronger
+# model (opus) than the sonnet implementer to decorrelate blind spots. Its
+# inline threads are work items for the fixer in claude-pr-loop.yml; the
+# fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
+# claude-pr-loop.yml's verify mode and resolves only what is genuinely fixed
+# (mirroring CodeRabbit's "✅ Addressed" verification).
+#
+# Deliberately does NOT trigger on `synchronize`: one review per PR, so
+# Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
+# ping-pong, no claude-code-action#1299-style self-trigger failures).
+
+on:
+  pull_request:
+    types: [opened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    # Only AI-loop PRs from claude/* branches in this repo. For `labeled`
+    # events, only the ai-loop label itself may fire the review.
+    if: |
+      contains(github.event.pull_request.labels.*.name, 'ai-loop') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'ai-loop') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'claude/') &&
+      github.event.pull_request.state == 'open' &&
+      vars.AI_LOOP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # `opened` and `labeled` both fire when a PR is created with the label
+      # already attached — review exactly once. The concurrency group
+      # serializes the double-fire; the marker probe catches the second run.
+      # (The marker, not just any claude[bot] activity: the fix agent posts
+      # claude[bot] thread replies too, which must not count as "reviewed".)
+      - name: Skip if already reviewed
+        id: dedupe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          MARKER=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
+            '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
+                           and (.body | contains("<!-- claude-deep-review -->")))] | length')
+          if [ "$MARKER" -gt 0 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "deep review already posted on PR #$PR — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR head
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node.js
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.dedupe.outputs.skip == 'false'
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Claude (deep review)
+        if: steps.dedupe.outputs.skip == 'false'
+        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # The PR opener/labeler is claude[bot] (the implementer) by design.
+          allowed_bots: 'claude'
+          claude_args: |
+            --max-turns 20
+            --model claude-opus-4-8
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            You are the independent DEEP REVIEWER for this AI-authored PR.
+            The PR branch is checked out and dependencies are installed. You
+            did not write this code — review it adversarially.
+
+            1. Read the diff (`gh pr diff`) and the changed files in full.
+            2. Verify every candidate finding against the actual code before
+               posting it; run the relevant tests (`pnpm --filter <pkg> run
+               test`) when unsure. Only post REAL defects:
+               - correctness bugs and broken edge cases
+               - accessibility problems (aria-*, semantics, focus)
+               - public API inconsistencies with the rest of the library
+               - missing Storybook story, missing docs page for API changes,
+                 missing skills/ update for component/prop changes
+               - meaningful coverage gaps in the new code
+            3. Do NOT post nitpicks, style, or formatting comments —
+               CodeRabbit and the linters cover those.
+            4. Post each defect as an inline comment with
+               mcp__github_inline_comment__create_inline_comment
+               (confirmed: true).
+            5. ALWAYS finish — findings or not — by submitting one summary
+               review that certifies the deep review ran (the loop's gate
+               requires it before it may hand the PR to a human):
+               gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews" \
+                 -f event=COMMENT \
+                 -f body="<!-- claude-deep-review -->**Deep review complete** — <N> finding(s) posted as inline comments."
+               Keep the literal marker "<!-- claude-deep-review -->" as the
+               first thing in the body — it is machine-parsed.
+            6. Never push, merge, close, or label anything, and never write
+               "@claude" or "@coderabbitai" in any text.

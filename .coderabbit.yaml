@@ -7,14 +7,24 @@ early_access: false
 
 reviews:
   profile: chill # 'chill' = less noisy; switch to 'assertive' for stricter reviews
+  # Keep false: a CodeRabbit APPROVE could satisfy main's required-1-approval
+  # rule, which would gut the human merge gate of the AI loop (issue #215).
   request_changes_workflow: false
   high_level_summary: true
   poem: false
   review_status: true
+  # The AI loop's convergence gate (claude-pr-loop.yml) reads the coderabbit
+  # commit status on the PR head to know CodeRabbit reviewed the current SHA.
+  commit_status: true
   collapse_walkthrough: false
   auto_review:
     enabled: true
     drafts: false
+    # 0 = never auto-pause (default pauses after 5 reviewed commits). A pause
+    # is unrecoverable inside the AI loop — its agents are forbidden from
+    # writing "@coderabbitai resume" — and would silently freeze the loop.
+    # Runaway protection lives in the loop's own iteration cap (4) instead.
+    auto_pause_after_reviewed_commits: 0
     base_branches:
       - main
 

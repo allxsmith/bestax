@@ -11,6 +11,7 @@ This project is a modern, flexible React component library built on top of Bulma
 - [Setting Up & Running the Project](#setting-up--running-the-project)
 - [Local Development Commands](#local-development-commands)
 - [Development Workflow](#development-workflow)
+- [AI-Assisted Development & Review](#ai-assisted-development--review)
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Semantic Release & Publishing](#semantic-release--publishing)
 - [Code Quality Standards](#code-quality-standards)
@@ -246,6 +247,26 @@ no `npm publish`, no tag, no GitHub release.
 9. **Commit your changes** following the [commit message guidelines](#commit-message-guidelines).
 10. **Push and open a Pull Request** targeting the `main` branch.
 11. **Participate in code review** and update your PR if requested.
+
+---
+
+## AI-Assisted Development & Review
+
+This repo uses AI reviewers and an autonomous fix loop — full details in the docs:
+[AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development).
+The short version for contributors:
+
+- **Every PR gets a CodeRabbit review** automatically. Address or refute its comments — it
+  re-reviews on each push and marks addressed comments "✅ Addressed". A human maintainer still
+  reviews and merges everything.
+- **`@claude` mentions are maintainer-only** (they spend the maintainer's Claude usage).
+  External contributors don't need them — just push your changes.
+- **Issues labeled `claude-fix`** are implemented autonomously: Claude opens a PR labeled
+  `ai-loop` and iterates with the AI reviewers until it converges, then a human reviews and
+  squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
+  `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
+- **PR titles must be scoped conventional commits** — the title becomes the squash commit and
+  drives semantic-release (see [Commit Message Guidelines](#commit-message-guidelines)).
 
 ---
 
