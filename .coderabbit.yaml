@@ -26,7 +26,9 @@ reviews:
         Enforce strict TypeScript types (no `any`), consistent prop naming, and
         accessibility (aria-* attributes, semantic elements). Every new or
         changed component should have a matching Storybook story and Jest tests;
-        overall coverage must remain >= 95%. Flag missing tests/stories.
+        overall coverage must remain >= 99% for all metrics (the bulma-ui CI
+        gate). Flag any change that would drop coverage below that, and flag
+        missing tests/stories.
     - path: 'create-bestax/**'
       instructions: >
         CLI scaffolder that generates starter projects. Check template
@@ -48,9 +50,6 @@ reviews:
     - '!**/coverage/**'
     - '!**/storybook-static/**'
     - '!pnpm-lock.yaml'
-
-  auto_review_labels:
-    - 'coderabbit'
 
 chat:
   auto_reply: true
