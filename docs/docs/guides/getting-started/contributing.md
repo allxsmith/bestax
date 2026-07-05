@@ -158,3 +158,13 @@ drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types 
 `build`, and `test` don't publish. Publishing uses npm **OIDC trusted publishing** with **provenance**
 (no long-lived token). See [`CONTRIBUTING.md`](https://github.com/allxsmith/bestax/blob/main/CONTRIBUTING.md)
 for the full details.
+
+## AI-assisted development & review
+
+Every PR gets an automatic **CodeRabbit** review (address or refute its comments — it re-reviews
+on each push), and maintainers can invoke the **`@claude`** assistant (maintainer-only, since it
+spends the maintainer's Claude usage). Issues labeled `claude-fix` are implemented autonomously:
+Claude opens a PR labeled `ai-loop` that iterates with the AI reviewers until it converges, and a
+human always reviews and squash-merges the result. Don't touch the loop labels (`ai-loop`,
+`needs-human-review`, `ai-loop-paused`) on PRs you don't own. Full details:
+[AI-Assisted Development](./ai-development.md).
