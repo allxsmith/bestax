@@ -85,16 +85,6 @@ jobs:
 
       - name: Run Claude (implement issue)
         if: steps.perm.outputs.allowed == 'true'
-        # Authenticate the `gh` CLI inside the agent's Bash sandbox so step 5's
-        # `gh pr create` can actually open the PR. Without a token here, gh is
-        # unauthenticated and PR creation silently fails (the branch still gets
-        # pushed via the signed-commit MCP, but no PR is opened). AI_LOOP_PAT is
-        # the bestaxbot machine account's fine-grained PAT (scoped to this repo,
-        # Contents + Pull requests: write). Using a real account's PAT — rather
-        # than the automatic GITHUB_TOKEN — means the PR is authored by bestaxbot
-        # and therefore triggers CI, which the claude-pr-loop convergence needs.
-        env:
-          GH_TOKEN: ${{ secrets.AI_LOOP_PAT }}
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -143,12 +133,20 @@ jobs:
                scope of bulma-ui, docs, or create-bestax. The PR title
                becomes the squash commit and drives semantic-release — this
                is release-critical.
-            5. Open the PR yourself:
+            5. Open the PR yourself. This is REQUIRED and is the definition
+               of "done" — the task is NOT complete until a real PR exists.
+               Do NOT merely post a "Create a PR" / compare link; a link does
+               not count and is an explicit failure of this step. You MUST
+               actually run `gh pr create` and it MUST return a PR URL:
                gh pr create --base main \
                  --title "<type>(<scope>): <description>" \
                  --label ai-loop \
                  --body "<summary; fill the PR template checklist; the body
                  MUST contain the literal line: Fixes #${{ github.event.issue.number }}>"
+               Then confirm it exists with `gh pr view --json url,number` and
+               put that PR URL in your final comment. If `gh pr create` errors,
+               report the exact error in your comment and STOP — never fall
+               back to a compare link and never claim the PR step is done.
             6. Never merge or close PRs, never enable auto-merge, never push
                to main, and never write "@claude" or "@coderabbitai" in any
                comment, commit message, or PR text.
