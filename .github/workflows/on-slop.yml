@@ -1,0 +1,69 @@
+name: On Slop
+
+# A maintainer flags a low-quality AI-generated PR by applying the `slop`
+# label; this workflow posts a standardized explanation and closes the PR.
+# Mirrors oven-sh/bun's on-slop.yml. GitHub only lets triage+ users apply
+# labels; the permission step re-verifies the labeler as belt-and-braces.
+# This never checks out PR code, so `pull_request_target` is safe here.
+
+on:
+  pull_request_target:
+    types: [labeled]
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+concurrency:
+  group: on-slop-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  close:
+    if: |
+      github.event.label.name == 'slop' &&
+      github.event.sender.type == 'User' &&
+      github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write # comment, label, close
+      issues: write # issue-comment API for the PR conversation
+    steps:
+      - name: Verify labeler has triage+ and close
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          set -euo pipefail
+          # GitHub already restricts labeling to triage+; re-verify defensively
+          # so an automated/template label can never trigger an auto-close.
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              echo "$SENDER has $ROLE access — closing PR #$PR as slop" ;;
+            *)
+              echo "$SENDER lacks triage access ($ROLE) — ignoring"; exit 0 ;;
+          esac
+
+          gh pr comment "$PR" --repo "$REPO" --body "**Flagged as AI slop** by @$SENDER and closed.
+
+          This PR was flagged as a low-quality AI-generated change. Common reasons:
+          - Fails to verify the reported problem actually exists.
+          - Fails to test that the fix works (no failing→passing regression test).
+          - Makes incorrect assumptions about the codebase or the fix's scope.
+
+          If the underlying issue is real, please open (or re-open) an issue with a
+          reproduction and it will get a proper fix. The AI loop never merges — a
+          human always rules."
+
+          # Strip loop labels so the PR leaves the loop cleanly; ignore any that
+          # are not present.
+          gh pr edit "$PR" --repo "$REPO" \
+            --remove-label ai-loop \
+            --remove-label ai-loop-paused \
+            --remove-label needs-human-review || true
+
+          gh pr close "$PR" --repo "$REPO"
