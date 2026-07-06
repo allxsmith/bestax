@@ -16,6 +16,7 @@ import {
  * @property {string} [target] - Where to open the linked document.
  * @property {string} [rel] - Relationship between the current and linked document.
  * @property {boolean} [isActive] - Whether the link appears active.
+ * @property {React.ElementType} [as] - Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.
  * @property {React.ReactNode} [children] - Content to be rendered inside the link.
  */
 export interface LinkProps
@@ -26,6 +27,7 @@ export interface LinkProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   isActive?: boolean;
+  as?: React.ElementType;
   children?: React.ReactNode;
 }
 
@@ -45,6 +47,7 @@ export const Link: React.FC<LinkProps> = ({
   textColor,
   bgColor,
   isActive,
+  as: Component = 'a',
   children,
   ...props
 }) => {
@@ -63,8 +66,8 @@ export const Link: React.FC<LinkProps> = ({
   const linkClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
-    <a className={linkClasses || undefined} {...rest}>
+    <Component className={linkClasses || undefined} {...rest}>
       {children}
-    </a>
+    </Component>
   );
 };

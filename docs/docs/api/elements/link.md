@@ -25,17 +25,18 @@ import { Link } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                       |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `href`      | `string`                                                                                                                                                                                                                                                                                 | —       | The URL the link points to.                       |
-| `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                                                                                                                                                                                                                                       | —       | Where to open the linked document.                |
-| `rel`       | `string`                                                                                                                                                                                                                                                                                 | —       | Relationship between current and linked document. |
-| `isActive`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Whether the link appears active.                  |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                           |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the link.                |
-| ...         | All standard `<a>` and Bulma helper props                                                                                                                                                                                                                                                |         | (See [Helper Props](../helpers/usebulmaclasses))  |
+| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------- |
+| `href`      | `string`                                                                                                                                                                                                                                                                                 | —       | The URL the link points to.                                           |
+| `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                                                                                                                                                                                                                                       | —       | Where to open the linked document.                                    |
+| `rel`       | `string`                                                                                                                                                                                                                                                                                 | —       | Relationship between current and linked document.                     |
+| `isActive`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Whether the link appears active.                                      |
+| `as`        | `React.ElementType`                                                                                                                                                                                                                                                                      | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. |
+| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                               |
+| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                                    |
+| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                                              |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the link.                                    |
+| ...         | All standard `<a>` and Bulma helper props                                                                                                                                                                                                                                                |         | (See [Helper Props](../helpers/usebulmaclasses))                      |
 
 ---
 
@@ -103,6 +104,19 @@ A `<Button as="a">` should still navigate to a URL. If the element triggers an a
 <Button as="a" href="#" color="primary">
   Button Link
 </Button>
+```
+
+### Polymorphic `as` (Router Links)
+
+`Link` renders an `<a>` by default, but the `as` prop accepts any `React.ElementType`, so it can render as a router's `Link` component (React Router, Next.js, TanStack Router, etc.) directly — no wrapper needed, and remaining props (like `to`) are forwarded to the rendered component.
+
+```tsx
+import { Link as RouterLink } from 'react-router-dom';
+import { Link } from '@allxsmith/bestax-bulma';
+
+<Link as={RouterLink} to="/about" textColor="primary">
+  About
+</Link>;
 ```
 
 ### Large Text Link
