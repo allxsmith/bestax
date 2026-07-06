@@ -85,6 +85,16 @@ jobs:
 
       - name: Run Claude (implement issue)
         if: steps.perm.outputs.allowed == 'true'
+        # Authenticate the `gh` CLI inside the agent's Bash sandbox so step 5's
+        # `gh pr create` can actually open the PR. Without a token here, gh is
+        # unauthenticated and PR creation silently fails (the branch still gets
+        # pushed via the signed-commit MCP, but no PR is opened). AI_LOOP_PAT is
+        # the bestaxbot machine account's fine-grained PAT (scoped to this repo,
+        # Contents + Pull requests: write). Using a real account's PAT — rather
+        # than the automatic GITHUB_TOKEN — means the PR is authored by bestaxbot
+        # and therefore triggers CI, which the claude-pr-loop convergence needs.
+        env:
+          GH_TOKEN: ${{ secrets.AI_LOOP_PAT }}
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
