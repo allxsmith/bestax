@@ -123,6 +123,16 @@ jobs:
                - Never touch .github/**, jest configs, commitlint/release
                  configs, pnpm-workspace.yaml, .npmrc, .coderabbit.yaml, or
                  turbo.json (the loop's gate rejects PRs that do).
+               - REGRESSION-TEST GATE (bug fixes): if the issue reports a
+                 BUG, FIRST write a test that reproduces it and FAILS against
+                 the current code; run it and confirm it fails for the
+                 reported reason. THEN implement the fix and confirm that
+                 same test now passes. Include both in the PR. If you cannot
+                 produce a failing→passing reproduction — the bug does not
+                 reproduce, or it is not a code defect — do NOT open a PR:
+                 comment on the issue explaining what you found, and stop.
+                 (For feature/enhancement issues, add tests that exercise the
+                 new behavior; a pre-fix failing test is not required.)
             3. Before opening the PR, run the gates for what you touched:
                `pnpm --filter <pkg> run lint`, `... typecheck`,
                `... test:coverage`, `pnpm run format:check`,
