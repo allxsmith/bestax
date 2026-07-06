@@ -1,3 +1,4 @@
+import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Button, ButtonProps } from './Button';
 import { Buttons } from './Buttons'; // Added import
@@ -410,4 +411,21 @@ export const WithHTMLAttributes: Story = {
     className: 'custom-class',
     children: 'Submit Button',
   },
+};
+
+// Polymorphic `as` — render as a custom component (e.g. a router Link)
+const RouterLikeLink = ({
+  to,
+  ...rest
+}: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  <a data-to={to} {...rest} />
+);
+
+export const PolymorphicAs: Story = {
+  render: () => (
+    <Button as={RouterLikeLink} to="/visit" color="primary">
+      Book a visit
+    </Button>
+  ),
+  name: 'Polymorphic `as` (Router Link)',
 };

@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Button } from '../Button';
@@ -115,6 +116,40 @@ describe('Button Component', () => {
       expect(handleClick).not.toHaveBeenCalled();
       expect(link).toHaveAttribute('aria-disabled', 'true');
       expect(link).toHaveAttribute('tabindex', '-1');
+    });
+  });
+
+  describe('as={Component} custom component rendering', () => {
+    it('renders as a custom component and forwards link-like props', () => {
+      const CustomLink = ({
+        to,
+        ...rest
+      }: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+        <a data-to={to} {...rest} />
+      );
+      render(
+        <Button as={CustomLink} to="/visit" color="primary">
+          Book a visit
+        </Button>
+      );
+      const link = screen.getByText('Book a visit');
+      expect(link.tagName).toBe('A');
+      expect(link).toHaveClass('button', 'is-primary');
+      expect(link).toHaveAttribute('data-to', '/visit');
+    });
+
+    it('does not forward button-only attributes to a custom component', () => {
+      const CustomLink = (
+        props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+      ) => <a {...props} />;
+      render(
+        <Button as={CustomLink} href="#" type="submit" name="foo">
+          Custom
+        </Button>
+      );
+      const link = screen.getByRole('link');
+      expect(link).not.toHaveAttribute('type');
+      expect(link).not.toHaveAttribute('name');
     });
   });
 
