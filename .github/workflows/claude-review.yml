@@ -93,7 +93,7 @@ jobs:
           # The PR opener/labeler is claude[bot] (the implementer) by design.
           allowed_bots: 'claude'
           claude_args: |
-            --max-turns 20
+            --max-turns 60
             --model claude-opus-4-8
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
