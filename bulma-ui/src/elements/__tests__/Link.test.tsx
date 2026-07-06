@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Link } from '../Link';
 import { ConfigProvider } from '../../helpers/Config';
@@ -145,6 +146,31 @@ describe('Link Component', () => {
     render(<Link href="#">Plain Link</Link>);
     const link = screen.getByRole('link');
     expect(link.getAttribute('class')).toBeNull();
+  });
+
+  describe('as prop (polymorphic rendering)', () => {
+    it('renders as <a> by default', () => {
+      render(<Link href="#">Default</Link>);
+      expect(screen.getByRole('link').tagName).toBe('A');
+    });
+
+    it('renders as a custom component and forwards props', () => {
+      const CustomLink = ({
+        to,
+        ...rest
+      }: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+        <a data-to={to} {...rest} />
+      );
+      render(
+        <Link as={CustomLink} to="/about" textColor="primary">
+          Router Link
+        </Link>
+      );
+      const link = screen.getByText('Router Link');
+      expect(link.tagName).toBe('A');
+      expect(link).toHaveAttribute('data-to', '/about');
+      expect(link).toHaveClass('has-text-primary', { exact: false });
+    });
   });
 
   describe('ClassPrefix', () => {
