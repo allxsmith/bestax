@@ -107,8 +107,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read # commits API (head age)
-      pull-requests: read # pr view / checks / reviews / threads
-      issues: write # the ai-loop-state marker comment
+      pull-requests: write # pr reads + POST the ai-loop-state marker comment (a PR comment needs pull-requests:write, not issues:write)
+      issues: write # issue-comment reads
       checks: read # gh pr checks (check runs)
       statuses: read # gh pr checks + CodeRabbit commit status
       actions: read # gh run list (deep-review conclusion)
