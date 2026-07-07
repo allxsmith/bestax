@@ -47,7 +47,7 @@ $reveal-easing: cv.getVar('easing') !default;
 }
 
 .#{iv.$class-prefix}reveal-fade-down {
-  transform: translateY(-#{cv.getVar('reveal-offset')});
+  transform: translateY(calc(-1 * cv.getVar('reveal-offset')));
 }
 
 .#{iv.$class-prefix}reveal-slide-left {
@@ -55,7 +55,7 @@ $reveal-easing: cv.getVar('easing') !default;
 }
 
 .#{iv.$class-prefix}reveal-slide-right {
-  transform: translateX(-#{cv.getVar('reveal-offset-large')});
+  transform: translateX(calc(-1 * cv.getVar('reveal-offset-large')));
 }
 
 .#{iv.$class-prefix}reveal-zoom {
