@@ -9,6 +9,10 @@ sidebar_label: Box
 
 The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class. It's useful for visually separating content, callouts, or emphasizing important UI elements. Supports all Bulma helper props for color, spacing, and more.
 
+:::tip
+`Box` is a simple container: it applies Bulma's `box` styling (padding, rounded corners, subtle shadow) and forwards standard helper props like any other element.
+:::
+
 :::info
 By default, `Box` includes a subtle shadow. You can disable the shadow with `hasShadow={false}`.
 :::
