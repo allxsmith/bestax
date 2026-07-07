@@ -7,8 +7,7 @@ sidebar_label: Reveal
 
 ## Overview
 
-The `Reveal` component animates its content into view as it scrolls into the viewport, backed
-by `IntersectionObserver`. It's a lightweight, CSS-driven wrapper for "fade/slide/zoom in on
+The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`. It's a lightweight, CSS-driven wrapper for "fade/slide/zoom in on
 scroll" effects on landing pages — no animation runtime dependency required.
 
 Accessibility and progressive enhancement are built in, not opt-in:
@@ -93,6 +92,11 @@ therefore wraps the component in an observed `div`: your `className`, `style`, a
 classes go on that wrapper `div`, while the remaining props (`id`, `aria-*`, `data-*`, event
 handlers) are forwarded to the inner component. A combined selector like `#hero.highlight` that
 assumes both `id` and `className` sit on the same element won't match in that case.
+
+For the same reason, avoid Bulma layout primitives that must be a **direct child** of their
+container — `Column` (inside `Columns`) or `Cell` (inside `Grid`) — as the `as` component: the
+observed wrapper `div` sits between the container and the primitive and breaks the layout. Reveal
+the surrounding container instead, or use `cascade` to animate the primitives as children.
 
 :::
 
