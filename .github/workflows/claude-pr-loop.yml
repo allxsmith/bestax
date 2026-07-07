@@ -340,9 +340,9 @@ jobs:
           additional_permissions: |
             actions: read
           claude_args: |
-            --max-turns 80
-            --model claude-sonnet-5
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(node:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checks:*),Bash(gh pr comment:*),Bash(gh api:*)"
+            --max-turns 120
+            --model claude-opus-4-8[1m]
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checks:*),Bash(gh pr comment:*),Bash(gh api:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ needs.gate.outputs.pr }}
