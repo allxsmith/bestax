@@ -1,3 +1,4 @@
+import React from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Link } from './Link';
 
@@ -189,4 +190,21 @@ export const InlineWithText: Story = {
     </p>
   ),
   name: 'Inline with Text',
+};
+
+// Polymorphic `as` — render as a custom component (e.g. a router Link)
+const RouterLikeLink = ({
+  to,
+  ...rest
+}: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  <a data-to={to} {...rest} />
+);
+
+export const PolymorphicAs: Story = {
+  render: () => (
+    <Link as={RouterLikeLink} to="/about" textColor="primary">
+      Router-powered Link
+    </Link>
+  ),
+  name: 'Polymorphic `as` (Router Link)',
 };

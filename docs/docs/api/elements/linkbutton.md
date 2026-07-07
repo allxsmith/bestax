@@ -32,25 +32,25 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop          | Type                                                                                                             | Default    | Description                                                             |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------- |
-| `variant`     | `'text' \| 'ghost' \| 'underline'`                                                                               | `'text'`   | Display mode. `text` has no underline; `ghost` uses default text color. |
-| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black'` | —          | Text color override for the button.                                     |
-| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                     | —          | Size of the button.                                                     |
-| `isRounded`   | `boolean`                                                                                                        | —          | Makes the button rounded.                                               |
-| `isLoading`   | `boolean`                                                                                                        | —          | Displays a loading spinner.                                             |
-| `isStatic`    | `boolean`                                                                                                        | —          | Makes the button non-interactive.                                       |
-| `isFullWidth` | `boolean`                                                                                                        | —          | Makes the button full-width.                                            |
-| `isFocused`   | `boolean`                                                                                                        | —          | Applies focused styling (visual only).                                  |
-| `isActive`    | `boolean`                                                                                                        | —          | Applies active styling (visual only).                                   |
-| `isHovered`   | `boolean`                                                                                                        | —          | Applies hovered styling (visual only).                                  |
-| `isDisabled`  | `boolean`                                                                                                        | —          | Applies disabled styling.                                               |
-| `as`          | `'button' \| 'a'`                                                                                                | `'button'` | Render as a `<button>` or `<a>`.                                        |
-| `href`        | `string`                                                                                                         | —          | Href value (if rendering as `<a>`).                                     |
-| `onClick`     | `function`                                                                                                       | —          | Click event handler.                                                    |
-| `className`   | `string`                                                                                                         | —          | Custom class name.                                                      |
-| `children`    | `React.ReactNode`                                                                                                | —          | Button content.                                                         |
-| ...           | All standard `<button>` and Bulma helper props                                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                       |
+| Prop          | Type                                                                                                             | Default    | Description                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
+| `variant`     | `'text' \| 'ghost' \| 'underline'`                                                                               | `'text'`   | Display mode. `text` has no underline; `ghost` uses default text color.      |
+| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black'` | —          | Text color override for the button.                                          |
+| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                     | —          | Size of the button.                                                          |
+| `isRounded`   | `boolean`                                                                                                        | —          | Makes the button rounded.                                                    |
+| `isLoading`   | `boolean`                                                                                                        | —          | Displays a loading spinner.                                                  |
+| `isStatic`    | `boolean`                                                                                                        | —          | Makes the button non-interactive.                                            |
+| `isFullWidth` | `boolean`                                                                                                        | —          | Makes the button full-width.                                                 |
+| `isFocused`   | `boolean`                                                                                                        | —          | Applies focused styling (visual only).                                       |
+| `isActive`    | `boolean`                                                                                                        | —          | Applies active styling (visual only).                                        |
+| `isHovered`   | `boolean`                                                                                                        | —          | Applies hovered styling (visual only).                                       |
+| `isDisabled`  | `boolean`                                                                                                        | —          | Applies disabled styling.                                                    |
+| `as`          | `React.ElementType`                                                                                              | `'button'` | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). |
+| `href`        | `string`                                                                                                         | —          | Href value (if rendering as `<a>`).                                          |
+| `onClick`     | `function`                                                                                                       | —          | Click event handler.                                                         |
+| `className`   | `string`                                                                                                         | —          | Custom class name.                                                           |
+| `children`    | `React.ReactNode`                                                                                                | —          | Button content.                                                              |
+| ...           | All standard `<button>` and Bulma helper props                                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                            |
 
 :::note
 The `isOutlined`, `isInverted`, and `isLight` props from Button are not available on LinkButton — they don't apply to link-like buttons.
@@ -124,6 +124,19 @@ Colors work with the ghost variant too.
     </LinkButton>
   ))}
 </Buttons>
+```
+
+### Polymorphic `as` (Router Links)
+
+Since `LinkButton` forwards its props to [`Button`](./button.md), it inherits the same polymorphic `as` prop — render it as a router's `Link` component to get a link-styled, a11y-friendly, client-side-navigating call to action.
+
+```tsx
+import { Link as RouterLink } from 'react-router-dom';
+import { LinkButton } from '@allxsmith/bestax-bulma';
+
+<LinkButton as={RouterLink} to="/dashboard" variant="underline">
+  Go to Dashboard
+</LinkButton>;
 ```
 
 ---
