@@ -1,3 +1,10 @@
+# [5.2.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.3...@allxsmith/bestax-bulma@5.2.0) (2026-07-07)
+
+
+### Features
+
+* **bulma-ui:** make Button and Link as prop polymorphic (React.ElementType) ([#238](https://github.com/allxsmith/bestax/issues/238)) ([ce90304](https://github.com/allxsmith/bestax/commit/ce90304091872c44c4041035672629b8b7e9fca6)), closes [#188](https://github.com/allxsmith/bestax/issues/188)
+
 ## [5.1.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.2...@allxsmith/bestax-bulma@5.1.3) (2026-07-04)
 
 
