@@ -31,19 +31,19 @@ import { Reveal } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop              | Type                                                                                                  | Default     | Description                                                                                                  |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| `animation`       | `'fade'` \| `'fade-up'` \| `'fade-down'` \| `'slide-left'` \| `'slide-right'` \| `'zoom'` \| `'flip'` | `'fade-up'` | Animation style applied when the element enters the viewport.                                                |
-| `delay`           | `number`                                                                                              | `0`         | Delay in milliseconds before the animation starts.                                                           |
-| `duration`        | `number`                                                                                              | `600`       | Animation duration in milliseconds.                                                                          |
-| `threshold`       | `number`                                                                                              | `0.15`      | Fraction (0-1) of the element that must be visible to trigger the reveal.                                    |
-| `once`            | `boolean`                                                                                             | `true`      | Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. |
-| `as`              | `React.ElementType`                                                                                   | `'div'`     | Element or component to render as.                                                                           |
-| `cascade`         | `boolean`                                                                                             | `false`     | Stagger direct children with an incrementing delay instead of animating this element as a single block.      |
-| `cascadeInterval` | `number`                                                                                              | `80`        | Milliseconds added to each successive child's delay when `cascade` is set.                                   |
-| `children`        | `React.ReactNode`                                                                                     | —           | Content to reveal.                                                                                           |
-| `className`       | `string`                                                                                              | —           | Additional CSS classes.                                                                                      |
-| ...               | All standard HTML and Bulma helper props                                                              |             | (See [Helper Props](../helpers/usebulmaclasses))                                                             |
+| Prop              | Type                                                                                                  | Default     | Description                                                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `animation`       | `'fade'` \| `'fade-up'` \| `'fade-down'` \| `'slide-left'` \| `'slide-right'` \| `'zoom'` \| `'flip'` | `'fade-up'` | Animation style applied when the element enters the viewport.                                                                              |
+| `delay`           | `number`                                                                                              | `0`         | Delay in milliseconds before the animation starts.                                                                                         |
+| `duration`        | `number`                                                                                              | `600`       | Animation duration in milliseconds.                                                                                                        |
+| `threshold`       | `number`                                                                                              | `0.15`      | Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. |
+| `once`            | `boolean`                                                                                             | `true`      | Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit.                               |
+| `as`              | `React.ElementType`                                                                                   | `'div'`     | Element or component to render as.                                                                                                         |
+| `cascade`         | `boolean`                                                                                             | `false`     | Stagger direct children with an incrementing delay instead of animating this element as a single block.                                    |
+| `cascadeInterval` | `number`                                                                                              | `80`        | Milliseconds added to each successive child's delay when `cascade` is set.                                                                 |
+| `children`        | `React.ReactNode`                                                                                     | —           | Content to reveal.                                                                                                                         |
+| `className`       | `string`                                                                                              | —           | Additional CSS classes.                                                                                                                    |
+| ...               | All standard HTML and Bulma helper props                                                              |             | (See [Helper Props](../helpers/usebulmaclasses))                                                                                           |
 
 ---
 
@@ -80,6 +80,21 @@ function example() {
   );
 }
 ```
+
+:::note Where your props land with a component `as`
+
+When `as` is a plain intrinsic tag (e.g. `as="section"`), your `className`, `style`, Bulma
+helper classes, and everything else (`id`, `aria-*`, `data-*`, event handlers) all land on that
+single rendered element.
+
+When `as` is a **component** (e.g. `as={Section}`), scroll detection needs a real DOM node it
+can attach a ref to, which library components like `Section`/`Card` don't forward. `Reveal`
+therefore wraps the component in an observed `div`: your `className`, `style`, and helper
+classes go on that wrapper `div`, while the remaining props (`id`, `aria-*`, `data-*`, event
+handlers) are forwarded to the inner component. A combined selector like `#hero.highlight` that
+assumes both `id` and `className` sit on the same element won't match in that case.
+
+:::
 
 ### Animation styles
 

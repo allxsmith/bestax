@@ -163,6 +163,24 @@ describe('Reveal', () => {
       expect(instance.options).toEqual({ threshold: 0.4 });
     });
 
+    it('clamps a threshold above 1 down to 1', () => {
+      render(<Reveal threshold={2}>Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+      expect(instance.options).toEqual({ threshold: 1 });
+    });
+
+    it('clamps a negative threshold up to 0', () => {
+      render(<Reveal threshold={-0.5}>Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+      expect(instance.options).toEqual({ threshold: 0 });
+    });
+
+    it('falls back to the default threshold for a non-finite value', () => {
+      render(<Reveal threshold={NaN}>Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+      expect(instance.options).toEqual({ threshold: 0.15 });
+    });
+
     it('adds is-revealed once the element intersects', () => {
       const { container } = render(<Reveal animation="fade">Content</Reveal>);
       const instance = MockIntersectionObserver.instances[0];

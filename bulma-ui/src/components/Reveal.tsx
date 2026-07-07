@@ -31,9 +31,9 @@ export type RevealAnimation =
  * @property {RevealAnimation} [animation] - Animation style used when the element enters the viewport. Default: 'fade-up'.
  * @property {number} [delay] - Delay in milliseconds before the animation starts. Default: 0.
  * @property {number} [duration] - Animation duration in milliseconds. Default: 600.
- * @property {number} [threshold] - Fraction (0-1) of the element that must be visible to trigger the reveal. Default: 0.15.
+ * @property {number} [threshold] - Fraction (0-1) of the element that must be visible to trigger the reveal. Values are clamped to the 0-1 range and fall back to 0.15 when not a finite number. Default: 0.15.
  * @property {boolean} [once] - Animate only the first time the element enters the viewport; if `false`, it re-animates on every entry/exit. Default: true.
- * @property {React.ElementType} [as] - Element or component to render as. Default: 'div'.
+ * @property {React.ElementType} [as] - Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component.
  * @property {boolean} [cascade] - Stagger direct children with an incrementing delay instead of animating this element as a single block.
  * @property {number} [cascadeInterval] - Milliseconds added to each successive child's delay when `cascade` is set. Default: 80.
  * @property {React.ReactNode} [children] - Content to reveal.
@@ -128,6 +128,12 @@ export const Reveal: React.FC<RevealProps> = ({
   const [isMounted, setIsMounted] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
 
+  // IntersectionObserver throws a RangeError for NaN or thresholds outside
+  // 0-1, so clamp valid numbers and fall back to the default for anything else.
+  const observerThreshold = Number.isFinite(threshold)
+    ? Math.min(Math.max(threshold, 0), 1)
+    : 0.15;
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- flips to true once mounted on the client so SSR/first-paint markup matches the server
     setIsMounted(true);
@@ -158,12 +164,12 @@ export const Reveal: React.FC<RevealProps> = ({
           setIsRevealed(false);
         }
       },
-      { threshold }
+      { threshold: observerThreshold }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [node, prefersReducedMotion, once, threshold]);
+  }, [node, prefersReducedMotion, once, observerThreshold]);
 
   // Only apply the hidden/animating state once mounted on the client with
   // motion allowed; otherwise render the final, visible state (SSR-safe).
