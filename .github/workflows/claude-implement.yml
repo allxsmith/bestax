@@ -106,7 +106,7 @@ jobs:
           claude_args: |
             --max-turns 150
             --model claude-sonnet-5
-            --allowedTools "Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
+            --allowedTools "Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
             ISSUE NUMBER: ${{ github.event.issue.number }}
@@ -173,6 +173,20 @@ jobs:
             6. Never merge or close PRs, never enable auto-merge, never push
                to main, and never write "@claude" or "@coderabbitai" in any
                comment, commit message, or PR text.
+
+      # Observability: the action writes a full turn-by-turn stream (every
+      # tool call, and every permission denial) to this file. Upload it so a
+      # failed/thrashing run is diagnosable after the fact — the Actions log
+      # itself only carries the init + final result. `always()` so it is kept
+      # even when the Claude step fails (exactly when it is needed).
+      - name: Upload Claude execution log
+        if: always() && steps.perm.outputs.allowed == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: claude-implement-log-${{ github.event.issue.number }}
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       # Optional second reviewer (repo variable AI_LOOP_COPILOT=true).
       # Copilot's automatic-review ruleset skips bot-authored PRs on personal

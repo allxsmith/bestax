@@ -421,6 +421,20 @@ jobs:
             (every remaining thread is refuted), say so in the summary
             comment and stop — do not make cosmetic commits.
 
+      # Observability: the action writes a full turn-by-turn stream (every
+      # tool call, and every permission denial) to this file. Upload it so a
+      # failed/thrashing fix pass is diagnosable after the fact — the Actions
+      # log itself only carries the init + final result. `always()` so it is
+      # kept even when the fix step fails (exactly when it is needed).
+      - name: Upload Claude execution log
+        if: always() && steps.claude.conclusion != 'skipped'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: claude-fix-log-pr${{ needs.gate.outputs.pr }}-iter${{ needs.gate.outputs.iteration }}
+          path: ${{ runner.temp }}/claude-execution-output.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       # No push + threads still open would stall the loop forever (no event
       # fires). End in a named state instead.
       - name: Terminal state check
