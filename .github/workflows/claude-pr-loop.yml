@@ -322,6 +322,15 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
+          # Fix/refute as the bestaxbot machine account (Stage 2): its
+          # refutation replies come from a real *user*, so CodeRabbit engages
+          # with them instead of skipping bot comments. SSH-signs commits as
+          # bestaxbot so they are Verified. The deep review + verify stay
+          # claude[bot], preserving the loop's ^claude state machine.
+          github_token: ${{ secrets.AI_LOOP_PAT }}
+          ssh_signing_key: ${{ secrets.AI_LOOP_SSH_SIGNING_KEY }}
+          bot_name: bestaxbot
+          bot_id: "300268469"
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Trigger actors are bots by design: coderabbitai[bot] (reviews),
           # claude[bot] (CI workflow_run after its own pushes), and
