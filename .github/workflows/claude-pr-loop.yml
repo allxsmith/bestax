@@ -10,9 +10,12 @@ name: Claude PR Loop
 #   fix-reviews unresolved actionable AI review threads → Claude fixes or
 #               refutes each, pushes. On Claude-review threads it replies
 #               "Fixed in <sha>" but NEVER resolves them.
-#   verify      Claude-review threads claim "Fixed in <sha>" → the REVIEWER
-#               (opus, read-only) re-checks each and resolves only genuine
-#               fixes (CodeRabbit does this natively for its own threads).
+#   verify      Claude-review threads awaiting the REVIEWER (opus, read-only):
+#               either a "Fixed in <sha>" claim it re-checks and resolves only
+#               if genuinely fixed, or a fix-agent refutation it answers with
+#               ONE rebuttal-or-concede round (concede→resolve; disagree→one
+#               sharpened rebuttal, then a human rules). CodeRabbit does its
+#               own verification natively.
 #   handoff     CI green + zero unresolved AI threads + CodeRabbit reviewed
 #               the current head → summary, ai-loop → needs-human-review,
 #               request review from the owner. Humans always merge.
@@ -197,13 +200,31 @@ jobs:
             -f o="${REPO%/*}" -f r="${REPO#*/}" -F n="$PR" --jq \
             '[.data.repository.pullRequest.reviewThreads.nodes[]
               | select(.isResolved == false)
-              | {first: .comments.nodes[0].author.login,
-                 last:  .comments.nodes[-1].body}]')
-          ACTIONABLE=$(jq '[.[] | select(.first | test("^(coderabbitai|copilot|claude)"; "i"))
-              | select((.first | test("^claude"; "i")) and (.last | startswith("Fixed in ")) | not)
+              | {first:    .comments.nodes[0].author.login,
+                 lastauth: .comments.nodes[-1].author.login,
+                 last:     .comments.nodes[-1].body,
+                 ccount:   ([.comments.nodes[] | select(.author.login | test("^claude"; "i"))] | length)}]')
+          # Fixer's turn: any CodeRabbit/Copilot thread, plus claude threads
+          # where the reviewer spoke last (its finding, or a rebuttal awaiting
+          # the fixer) OR that are already contested past the 1 rebuttal round
+          # (ccount >= 2). Rebuttable claude threads (below) are excluded — they
+          # go to the reviewer — and "Fixed in" ones go to verify.
+          ACTIONABLE=$(jq '[.[]
+              | select((.first | test("^(coderabbitai|copilot)"; "i"))
+                       or ((.first | test("^claude"; "i"))
+                           and ((.last | startswith("Fixed in ")) | not)
+                           and ((.lastauth | test("^claude"; "i")) or (.ccount >= 2))))
             ] | length' <<<"$THREADS")
           PENDING_VERIFY=$(jq '[.[] | select(.first | test("^claude"; "i"))
               | select(.last | startswith("Fixed in "))
+            ] | length' <<<"$THREADS")
+          # Reviewer's turn to rebut-or-concede: a claude finding the fix agent
+          # refuted (fixer spoke last, no "Fixed in") where the reviewer has not
+          # yet spent its single rebuttal (claude comment count < 2).
+          REBUTTABLE=$(jq '[.[] | select(.first | test("^claude"; "i"))
+              | select((.last | startswith("Fixed in ")) | not)
+              | select((.lastauth | test("^claude"; "i")) | not)
+              | select(.ccount < 2)
             ] | length' <<<"$THREADS")
 
           # ---- Has CodeRabbit reviewed the CURRENT head? (anti-race) ----
@@ -252,7 +273,7 @@ jobs:
           if   [ "$FAILING" -gt 0 ];        then MODE=fix-ci
           elif [ "$PENDING" -gt 0 ];        then MODE=skip
           elif [ "$ACTIONABLE" -gt 0 ];     then MODE=fix-reviews
-          elif [ "$PENDING_VERIFY" -gt 0 ]; then MODE=verify
+          elif [ "$PENDING_VERIFY" -gt 0 ] || [ "$REBUTTABLE" -gt 0 ]; then MODE=verify
           elif [ "$CR_STATE" = "success" ]; then
             if   [ "$DEEP" -gt 0 ] || [ "$DR_CONC" = "success" ]; then MODE=handoff
             elif [ "$DR_CONC" = "failure" ] || [ "$DR_CONC" = "timed_out" ]; then
@@ -284,7 +305,7 @@ jobs:
             fi
             out iteration "$NEXT"
           fi
-          echo "decision: $MODE (fail=$FAILING pend=$PENDING actionable=$ACTIONABLE verify=$PENDING_VERIFY cr=$CR_STATE iter=$ITER)"
+          echo "decision: $MODE (fail=$FAILING pend=$PENDING actionable=$ACTIONABLE verify=$PENDING_VERIFY rebut=$REBUTTABLE cr=$CR_STATE iter=$ITER)"
           out mode "$MODE"
 
   fix:
@@ -396,7 +417,13 @@ jobs:
                gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved path line comments(first:50){nodes{author{login} body url}}}}}}}' -f o=<owner> -f r=<repo> -F n=<PR>
                Work only on threads with isResolved=false whose FIRST comment
                author is coderabbitai, copilot*, or claude. Skip claude
-               threads whose last reply already starts with "Fixed in ".
+               threads whose last reply already starts with "Fixed in ". ALSO
+               skip any claude (deep-review) thread whose LAST comment is your
+               OWN refutation (not a "Fixed in") — you already argued that one
+               and it is now the reviewer's turn to rebut or concede. Only
+               re-engage such a thread once the REVIEWER has replied to your
+               refutation (then answer that rebuttal: fix if it convinced you,
+               or hold your ground once and let the loop escalate to a human).
             2. Handle threads ONE AT A TIME and FINISH each — including its
                reply — before starting the next. Do NOT defer replies to the
                end of the pass.
@@ -493,10 +520,20 @@ jobs:
             -f o="${REPO%/*}" -f r="${REPO#*/}" -F n="$PR" --jq \
             '[.data.repository.pullRequest.reviewThreads.nodes[]
               | select(.isResolved == false)
-              | {first: .comments.nodes[0].author.login,
-                 last:  .comments.nodes[-1].body}]')
-          ACTIONABLE=$(jq '[.[] | select(.first | test("^(coderabbitai|copilot|claude)"; "i"))
-              | select((.first | test("^claude"; "i")) and (.last | startswith("Fixed in ")) | not)
+              | {first:    .comments.nodes[0].author.login,
+                 lastauth: .comments.nodes[-1].author.login,
+                 last:     .comments.nodes[-1].body,
+                 ccount:   ([.comments.nodes[] | select(.author.login | test("^claude"; "i"))] | length)}]')
+          # Same rebuttal-aware classification as the gate: a claude thread the
+          # fix agent just refuted (ccount < 2) is NOT "stuck" — it is the
+          # reviewer's turn, so it must fall through to a re-dispatch, not a
+          # human escalation. CodeRabbit/Copilot threads and contested claude
+          # threads (ccount >= 2) remain actionable → hand to a human.
+          ACTIONABLE=$(jq '[.[]
+              | select((.first | test("^(coderabbitai|copilot)"; "i"))
+                       or ((.first | test("^claude"; "i"))
+                           and ((.last | startswith("Fixed in ")) | not)
+                           and ((.lastauth | test("^claude"; "i")) or (.ccount >= 2))))
             ] | length' <<<"$THREADS")
           if [ "$ACTIONABLE" -gt 0 ]; then
             gh pr comment "$PR" --repo "$REPO" --body "**AI loop stopped — contested findings.** The fix agent pushed no changes and $ACTIONABLE review thread(s) remain open (refuted or unaddressable). A human ruling is needed; see the fix agent's summary above."
@@ -546,34 +583,59 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: 'coderabbitai,claude,github-actions'
           claude_args: |
-            --max-turns 15
+            --max-turns 25
             --model claude-opus-4-8
-            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api graphql:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ needs.gate.outputs.pr }}
             BRANCH: ${{ needs.gate.outputs.head_ref }} (already checked out)
 
-            You are the DEEP REVIEWER verifying your own earlier findings on
-            this PR. The current code is checked out; dependencies are
-            installed. You may NOT edit files or push — verification only.
+            You are the DEEP REVIEWER, re-examining your OWN earlier findings
+            on this PR. The current code is checked out and dependencies are
+            installed. You may NOT edit files or push — this pass is verify and
+            debate only. Be thorough: actually read the code at each location
+            and run the relevant test (`pnpm --filter <pkg> run test`) before
+            you conclude. Do not rubber-stamp.
 
             1. List unresolved review threads whose FIRST comment author is
                claude (your earlier review) using the reviewThreads GraphQL
-               query (fetch id, path, comments with author+body).
-            2. For each such thread whose LAST reply starts with
-               "Fixed in": re-examine the current code at that location;
-               run the relevant tests if useful.
-               - Genuinely fixed → reply "Verified fixed." in the thread,
-                 then resolve it with the resolveReviewThread mutation.
-               - NOT fixed → reply precisely what is still wrong (do not
-                 resolve). The fix agent gets another round.
-            3. For claude threads whose last reply is a refutation by the
-               fix agent: accept and resolve the thread if the refutation is
-               correct; if you still disagree, leave it unresolved and say
-               so once — a human will rule on it.
-            4. Raise NO new findings in this mode, post no other comments,
-               and never write "@claude" or "@coderabbitai".
+               query (fetch id, path, and every comment's author + body).
+
+            2. VERIFY — for a thread whose LAST reply STARTS WITH "Fixed in"
+               (the fix agent claims a fix): re-examine the current code there
+               and run the relevant test.
+               - Genuinely fixed → reply "Verified fixed — <one plain sentence
+                 on what you checked>." then resolve it with the
+                 resolveReviewThread mutation.
+               - NOT actually fixed → reply precisely what is still wrong, with
+                 a code citation; do NOT resolve. The fix agent gets another
+                 round.
+
+            3. REBUT-OR-CONCEDE — for a thread whose LAST reply is the fix
+               agent's REFUTATION of your finding: this is your ONE rebuttal
+               round on that thread, so make it count. Re-check the code and
+               the fix agent's reasoning honestly.
+               - Refutation correct, or a reasonable scope/judgment call →
+                 CONCEDE: reply briefly acknowledging it, then RESOLVE the
+                 thread. Never escalate a finding you no longer stand behind.
+               - Refutation genuinely WRONG (the defect is real and in scope) →
+                 post ONE sharpened, code-cited rebuttal for why it still needs
+                 fixing, and leave the thread unresolved. Do this at most once
+                 per thread; if the fix agent pushes back again, the loop hands
+                 it to a human — never rebut the same thread a second time.
+
+            FORMAT — write every reply as clean GitHub Markdown that reads well
+            for the fix agent AND a human: a bold one-line takeaway, then
+            What / Why with a code citation, and a ```suggestion or fenced diff
+            when you want a concrete change. Fold long traces into a <details>
+            block; never post a jumbled paragraph.
+
+            4. Raise NO new findings in this mode and post no unrelated
+               comments. End your FINAL reply of the pass with a one-line
+               human sign-off in the voice of a laid-back California surfer —
+               fun, but accurate about where things stand. Never write
+               "@claude" or "@coderabbitai".
 
       # Thread replies/resolutions fire no workflow events — continue the
       # loop explicitly, but only if this pass made progress (otherwise a
@@ -597,7 +659,12 @@ jobs:
             '[.data.repository.pullRequest.reviewThreads.nodes[]
               | select(.isResolved == false)
               | select(.comments.nodes[0].author.login | test("^claude"; "i"))
-              | select(.comments.nodes[-1].body | startswith("Fixed in "))] | length')
+              | select(
+                  (.comments.nodes[-1].body | startswith("Fixed in "))
+                  or (((.comments.nodes[-1].body | startswith("Fixed in ")) | not)
+                      and ((.comments.nodes[-1].author.login | test("^claude"; "i")) | not)
+                      and (([.comments.nodes[] | select(.author.login | test("^claude"; "i"))] | length) < 2))
+                )] | length')
           if [ "$REMAINING" -gt 0 ]; then
             gh pr comment "$PR" --repo "$REPO" --body "**AI loop paused**: the verify pass made no progress on $REMAINING claimed fix(es) (see the Actions log). Remove \`ai-loop-paused\`, re-add \`ai-loop\`, and re-run via workflow_dispatch to retry."
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label ai-loop-paused
