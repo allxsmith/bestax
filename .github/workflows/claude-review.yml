@@ -93,7 +93,7 @@ jobs:
           # The PR opener/labeler is claude[bot] (the implementer) by design.
           allowed_bots: 'claude'
           claude_args: |
-            --max-turns 60
+            --max-turns 120
             --model claude-opus-4-8
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
@@ -116,16 +116,55 @@ jobs:
                - meaningful coverage gaps in the new code
             3. Do NOT post nitpicks, style, or formatting comments —
                CodeRabbit and the linters cover those.
+
+            FORMAT — your output is read by BOTH the fix agent (which needs
+            precise, actionable detail) and a human maintainer (who wants it
+            to read cleanly). Use GitHub-flavored Markdown well; NEVER post a
+            jumbled wall-of-text paragraph.
             4. Post each defect as an inline comment with
                mcp__github_inline_comment__create_inline_comment
-               (confirmed: true).
-            5. ALWAYS finish — findings or not — by submitting one summary
+               (confirmed: true). Structure EVERY inline finding as Markdown:
+               - A bold one-line title followed by a severity + category tag,
+                 e.g. `**Observer ref can be clobbered** — 🟠 Major ·
+                 Correctness`. Severity is one of 🔴 Critical / 🟠 Major /
+                 🟡 Minor; category is Correctness / Accessibility / API /
+                 Coverage / SSR / Performance.
+               - **What:** one or two sentences on the actual defect.
+               - **Why it matters:** the concrete failure mode or user impact.
+               - **Fix:** a ```suggestion block when it is a small local edit,
+                 otherwise a fenced diff or code snippet.
+               - Put any long trace or reasoning inside a <details> block so
+                 the comment stays scannable.
+               - Include a ```mermaid diagram when a control-/data-flow picture
+                 makes the bug clearer than prose (GitHub renders it).
+            5. ALWAYS finish — findings or not — by submitting ONE summary
                review that certifies the deep review ran (the loop's gate
-               requires it before it may hand the PR to a human):
-               gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews" \
-                 -f event=COMMENT \
-                 -f body="<!-- claude-deep-review -->**Deep review complete** — <N> finding(s) posted as inline comments."
+               requires it before it may hand the PR to a human). Write the
+               body to a file first so the Markdown/tables survive intact,
+               then post it:
+
+                 (write this to /tmp/deep-review.md, filling in the values)
+                 <!-- claude-deep-review -->
+                 ## Deep review — <N> finding(s)
+
+                 | # | Severity | Area | Finding | Location |
+                 |---|----------|------|---------|----------|
+                 | 1 | 🟠 Major | Correctness | <short summary> | `path:line` |
+
+                 **Overall:** <2-3 sentences — is the change sound, what is the
+                 riskiest part, and what should the human focus on first.>
+
+                 > 🏄 <one or two sentences in the voice of a laid-back
+                 > California surfer summing up the vibe of this PR — fun, but
+                 > still accurate about whether it is good to go.>
+
+                 then:
+                 gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews" \
+                   -f event=COMMENT -F body=@/tmp/deep-review.md
+
                Keep the literal marker "<!-- claude-deep-review -->" as the
-               first thing in the body — it is machine-parsed.
+               VERY FIRST line of the body — it is machine-parsed. With zero
+               findings, put "No blocking defects found." in the table area and
+               still include the Overall line and the surfer blurb.
             6. Never push, merge, close, or label anything, and never write
                "@claude" or "@coderabbitai" in any text.
