@@ -9,6 +9,10 @@ sidebar_label: Notification
 
 The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users. It supports color themes, light variants, an optional close (delete) button, custom content, and all Bulma helper props for spacing, etc.
 
+:::tip
+`Notification` renders Bulma's colored message block, and supports a `hasDelete`/`onDelete` dismiss affordance plus the standard color helper props (`color`, `textColor`, `isLight`).
+:::
+
 :::info
 Notifications are perfect for status updates, alerts, and dismissible feedback in your UI.
 :::
