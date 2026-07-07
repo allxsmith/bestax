@@ -1,0 +1,95 @@
+// Reveal component styles
+// Scroll-triggered "animate into view" wrapper, driven by IntersectionObserver
+// toggling the `is-revealed` class; see Reveal.tsx.
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// Reveal-specific SCSS variables
+$reveal-offset: 24px !default;
+$reveal-offset-large: 64px !default;
+$reveal-scale: 0.92 !default;
+$reveal-flip-angle: -15deg !default;
+$reveal-duration: cv.getVar('duration') !default;
+$reveal-easing: cv.getVar('easing') !default;
+
+.#{iv.$class-prefix}reveal {
+  @include cv.register-vars(
+    (
+      'reveal-offset': #{$reveal-offset},
+      'reveal-offset-large': #{$reveal-offset-large},
+      'reveal-scale': #{$reveal-scale},
+      'reveal-flip-angle': #{$reveal-flip-angle},
+      'reveal-duration': #{$reveal-duration},
+      'reveal-easing': #{$reveal-easing},
+    )
+  );
+}
+
+// Shared transition applied to whichever element (the Reveal wrapper itself,
+// or each cascaded child) carries a `reveal-*` animation class.
+.#{iv.$class-prefix}reveal-fade,
+.#{iv.$class-prefix}reveal-fade-up,
+.#{iv.$class-prefix}reveal-fade-down,
+.#{iv.$class-prefix}reveal-slide-left,
+.#{iv.$class-prefix}reveal-slide-right,
+.#{iv.$class-prefix}reveal-zoom,
+.#{iv.$class-prefix}reveal-flip {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transition-duration: cv.getVar('reveal-duration');
+  transition-timing-function: cv.getVar('reveal-easing');
+  will-change: opacity, transform;
+}
+
+.#{iv.$class-prefix}reveal-fade-up {
+  transform: translateY(cv.getVar('reveal-offset'));
+}
+
+.#{iv.$class-prefix}reveal-fade-down {
+  transform: translateY(-#{cv.getVar('reveal-offset')});
+}
+
+.#{iv.$class-prefix}reveal-slide-left {
+  transform: translateX(cv.getVar('reveal-offset-large'));
+}
+
+.#{iv.$class-prefix}reveal-slide-right {
+  transform: translateX(-#{cv.getVar('reveal-offset-large')});
+}
+
+.#{iv.$class-prefix}reveal-zoom {
+  transform: scale(cv.getVar('reveal-scale'));
+}
+
+.#{iv.$class-prefix}reveal-flip {
+  transform: perspective(600px) rotateX(cv.getVar('reveal-flip-angle'));
+}
+
+// Final, visible state — reached once the element has scrolled into view.
+.#{iv.$class-prefix}reveal-fade.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-fade-up.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-fade-down.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-slide-left.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-slide-right.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-zoom.#{iv.$class-prefix}is-revealed,
+.#{iv.$class-prefix}reveal-flip.#{iv.$class-prefix}is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+// Respect the user's OS-level motion preference: skip the animation and show
+// the final state immediately, regardless of scroll position.
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}reveal-fade,
+  .#{iv.$class-prefix}reveal-fade-up,
+  .#{iv.$class-prefix}reveal-fade-down,
+  .#{iv.$class-prefix}reveal-slide-left,
+  .#{iv.$class-prefix}reveal-slide-right,
+  .#{iv.$class-prefix}reveal-zoom,
+  .#{iv.$class-prefix}reveal-flip {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

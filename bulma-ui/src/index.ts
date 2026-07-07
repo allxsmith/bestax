@@ -19,6 +19,7 @@ export * from './components/Sidebar';
 export * from './components/Toast';
 export * from './components/Dialog';
 export * from './components/Carousel';
+export * from './components/Reveal';
 
 export * from './elements/Block';
 export * from './elements/Box';
