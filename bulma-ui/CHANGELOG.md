@@ -1,3 +1,10 @@
+## [5.2.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.2.0...@allxsmith/bestax-bulma@5.2.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* **bulma-ui:** strip redundant library prefix from Icon name ([#242](https://github.com/allxsmith/bestax/issues/242)) ([dbe3622](https://github.com/allxsmith/bestax/commit/dbe36221af3db5be729dd65a3d528042986ee3ec)), closes [#189](https://github.com/allxsmith/bestax/issues/189)
+
 # [5.2.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.1.3...@allxsmith/bestax-bulma@5.2.0) (2026-07-07)
 
 
