@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { LinkButton } from '../LinkButton';
@@ -114,6 +115,24 @@ describe('LinkButton Component', () => {
     const link = screen.getByRole('link');
     expect(link.tagName).toBe('A');
     expect(link).toHaveAttribute('href', 'https://example.com');
+    expect(link).toHaveClass('link-button');
+  });
+
+  it('renders as a custom component and forwards link-like props', () => {
+    const CustomLink = ({
+      to,
+      ...rest
+    }: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+      <a data-to={to} {...rest} />
+    );
+    render(
+      <LinkButton as={CustomLink} to="/dashboard">
+        Dashboard
+      </LinkButton>
+    );
+    const link = screen.getByText('Dashboard');
+    expect(link.tagName).toBe('A');
+    expect(link).toHaveAttribute('data-to', '/dashboard');
     expect(link).toHaveClass('link-button');
   });
 
