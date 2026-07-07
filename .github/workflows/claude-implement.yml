@@ -103,6 +103,10 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           use_commit_signing: true
+          # Stream tool calls + denials into the job log (the execution-output
+          # artifact's blob host is blocked by the proxy) so a blocked commit
+          # or a thrash is diagnosable.
+          show_full_output: true
           claude_args: |
             --max-turns 150
             --model claude-sonnet-5
@@ -151,11 +155,20 @@ jobs:
                `... test:coverage`, `pnpm run format:check`,
                `pnpm run gen:catalog:check`. Fix failures; full CI is the
                backstop.
-            4. Commit messages AND the PR title must be conventional
-               commits; the types feat|fix|perf|refactor|style REQUIRE a
-               scope of bulma-ui, docs, or create-bestax. The PR title
-               becomes the squash commit and drives semantic-release — this
-               is release-critical.
+            4. COMMIT + PUSH with the git CLI — create the branch and push it
+               yourself with plain git:
+                 git checkout -b claude/issue-${{ github.event.issue.number }}-<short-timestamp>
+                 git add -A
+                 git commit -m "<conventional commit message>"
+                 git push -u origin HEAD
+               Do NOT use any MCP commit tool (e.g.
+               mcp__github_file_ops__commit_files) — it is NOT allowlisted here
+               and will be denied. Git is already configured to SSH-sign your
+               commits as bestaxbot, so git-CLI commits come out Verified.
+               Commit messages AND the PR title must be Conventional Commits;
+               the types feat|fix|perf|refactor|style REQUIRE a scope of
+               bulma-ui, docs, or create-bestax. The PR title becomes the
+               squash commit and drives semantic-release — release-critical.
             5. Open the PR yourself. This is REQUIRED and is the definition
                of "done" — the task is NOT complete until a real PR exists.
                Do NOT merely post a "Create a PR" / compare link; a link does
