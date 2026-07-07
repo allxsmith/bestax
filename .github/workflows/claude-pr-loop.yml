@@ -358,6 +358,10 @@ jobs:
           # github-actions[bot] (the loop's self-dispatch continuation).
           allowed_bots: 'coderabbitai,claude,github-actions'
           use_commit_signing: true
+          # Stream the full turn-by-turn (tool calls + permission denials) into
+          # the job log. The proxy blocks the execution-output artifact's blob
+          # host, so this is the only way to see WHICH tool a denial hit.
+          show_full_output: true
           additional_permissions: |
             actions: read
           claude_args: |
@@ -424,6 +428,13 @@ jobs:
                re-engage such a thread once the REVIEWER has replied to your
                refutation (then answer that rebuttal: fix if it convinced you,
                or hold your ground once and let the loop escalate to a human).
+               HOW TO REPLY — reply INSIDE the review thread with `gh api`, not
+               an MCP tool. The ONLY MCP tool available here is
+               mcp__github_inline_comment__create_inline_comment (a NEW inline
+               comment); there is NO MCP "reply" tool, so reaching for one just
+               burns denials. Use the thread id from the query above:
+                 gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id}}}' -f t=<thread-id> -f b="<your reply>"
+               (A brand-new top-level note is `gh pr comment`.)
             2. Handle threads ONE AT A TIME and FINISH each — including its
                reply — before starting the next. Do NOT defer replies to the
                end of the pass.
@@ -582,6 +593,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: 'coderabbitai,claude,github-actions'
+          # Stream tool calls + denials to the log (blob-hosted artifact is
+          # blocked by the proxy) so a rebuttal pass is diagnosable.
+          show_full_output: true
           claude_args: |
             --max-turns 25
             --model claude-opus-4-8
@@ -601,6 +615,9 @@ jobs:
             1. List unresolved review threads whose FIRST comment author is
                claude (your earlier review) using the reviewThreads GraphQL
                query (fetch id, path, and every comment's author + body).
+               Reply INSIDE a thread with `gh api` (you have no MCP tools here):
+                 gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id}}}' -f t=<thread-id> -f b="<your reply>"
+               Resolve with the resolveReviewThread mutation.
 
             2. VERIFY — for a thread whose LAST reply STARTS WITH "Fixed in"
                (the fix agent claims a fix): re-examine the current code there
