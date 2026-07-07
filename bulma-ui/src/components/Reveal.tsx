@@ -231,10 +231,10 @@ export const Reveal: React.FC<RevealProps> = ({
     return React.createElement(
       Component,
       {
+        ...rest,
         ref: setNode,
         className: combinedClasses,
         style: wrapperStyle,
-        ...rest,
       },
       content
     );
