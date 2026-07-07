@@ -387,39 +387,65 @@ jobs:
               weaken tests, never lower coverage thresholds, never add
               istanbul/eslint suppression comments to get green.
 
-            For unresolved AI review threads (in both modes):
+            For unresolved AI review threads (in both modes) — respond like a
+            human engineer answering a reviewer, and do it AS YOU GO, not in
+            one batch at the end. Someone watching the PR should see the
+            conversation unfold in real time: a reply should land on each
+            thread as you address it, not 15 minutes later.
             1. List them with:
                gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved path line comments(first:50){nodes{author{login} body url}}}}}}}' -f o=<owner> -f r=<repo> -F n=<PR>
                Work only on threads with isResolved=false whose FIRST comment
                author is coderabbitai, copilot*, or claude. Skip claude
                threads whose last reply already starts with "Fixed in ".
-            2. For EACH thread: first verify the finding still exists in the
-               current code (comments go stale). If valid, fix it minimally
-               per AGENTS.md/CLAUDE.md. If wrong, reply in that thread
-               explaining why, citing the code. Never remove a public
-               export, a test, or a story just to satisfy a comment —
-               refute instead.
-            3. Thread bookkeeping — this drives the loop's state machine:
-               - CodeRabbit threads: never resolve them; CodeRabbit verifies
-                 and resolves its own on its next review.
-               - Claude-review threads (first author claude): after fixing,
-                 reply in the thread with exactly "Fixed in <full-sha>"
-                 (after you commit, so you know the sha). Do NOT resolve
-                 them — the deep reviewer verifies and resolves.
-               - Copilot threads: after fixing or refuting, resolve them
-                 with the resolveReviewThread GraphQL mutation (Copilot
-                 never resolves its own).
-            4. Run the gates for what you touched: lint, typecheck,
-               test:coverage (bulma-ui >= 99%, create-bestax >= 95%),
-               pnpm run format:check, and pnpm run gen:catalog:check if
-               bulma-ui/src changed.
-            5. Commit (conventional; feat|fix|perf|refactor|style require
-               scope bulma-ui|docs|create-bestax) and push to BRANCH.
-            6. Post ONE `gh pr comment` summary: a table of fixed findings,
-               refuted findings (with thread links), and the gates you ran.
+            2. Handle threads ONE AT A TIME and FINISH each — including its
+               reply — before starting the next. Do NOT defer replies to the
+               end of the pass.
+               - First verify the finding still exists in the current code
+                 (comments go stale).
+               - If it is a valid, in-scope defect: fix it minimally per
+                 AGENTS.md/CLAUDE.md, commit that fix (do not amend or rebase
+                 earlier commits, so its sha is stable), then reply in that
+                 same thread right away.
+               - If it is wrong, stale, or out of scope: reply in that thread
+                 right away with your reasoning and push NO code for it. Never
+                 remove a public export, a test, or a story to satisfy a
+                 comment — refute instead.
+               Write every reply in plain English and the first person, the
+               way you would answer a human reviewer: say what you changed and
+               WHY, or why you disagree, and cite the specific file/code. No
+               bare markers, no terse one-liners — be concrete and
+               conversational (e.g. "I reordered the spread so the observer ref
+               can't be clobbered — `...rest` now comes before `ref`.").
+            3. Thread bookkeeping — keep these EXACT rules even while writing
+               conversationally; they drive the loop's state machine:
+               - Claude-review threads (first author claude): when you fix one,
+                 your reply MUST START with the literal token
+                 "Fixed in <full-sha>" and then continue, in plain English,
+                 with what you changed and why (e.g. "Fixed in abc1234 — I
+                 …"). Do NOT resolve the thread; the deep reviewer verifies and
+                 resolves. If you are REFUTING a claude thread instead, do not
+                 use the "Fixed in" prefix — just explain, and leave it open
+                 for the human.
+               - CodeRabbit threads: reply conversationally (fix explanation or
+                 refutation); never resolve them — CodeRabbit verifies and
+                 resolves its own on its next review.
+               - Copilot threads: after replying, resolve them with the
+                 resolveReviewThread GraphQL mutation (Copilot never resolves
+                 its own).
+            4. Once every thread is handled, commit any remaining changes
+               (conventional; feat|fix|perf|refactor|style require scope
+               bulma-ui|docs|create-bestax), run the gates for what you
+               touched — lint, typecheck, test:coverage (bulma-ui >= 99%,
+               create-bestax >= 95%), pnpm run format:check, and
+               pnpm run gen:catalog:check if bulma-ui/src changed — and push
+               to BRANCH.
+            5. Finally, post ONE `gh pr comment` that RECAPS the pass in plain
+               English: a short table of fixed findings, refuted findings (with
+               thread links), and the gates you ran. This recaps the per-thread
+               replies you already posted — it does not replace them.
             If, after verification, there is genuinely nothing to change
-            (every remaining thread is refuted), say so in the summary
-            comment and stop — do not make cosmetic commits.
+            (every remaining thread is refuted), say so in that recap comment
+            and stop — do not make cosmetic commits.
 
       # Observability: the action writes a full turn-by-turn stream (every
       # tool call, and every permission denial) to this file. Upload it so a
