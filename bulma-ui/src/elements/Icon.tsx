@@ -71,6 +71,33 @@ export interface IconProps
 }
 
 /**
+ * Strips a redundant leading library prefix from an icon name (e.g. `fa-check` -> `check`
+ * for the `fa` library, `mdi-account` -> `account` for `mdi`), so `name` behaves the same
+ * whether or not the caller includes the prefix. Font Awesome and Material Design Icons docs
+ * conventionally refer to icons with their class prefix (`fa-check`), which otherwise gets
+ * doubled by `getIconClasses` (producing `fa-fa-check`, matching no glyph).
+ *
+ * @param {string} name - The icon name, possibly including a redundant library prefix.
+ * @param {IconLibrary} library - The icon library the name will be rendered with.
+ * @returns {string} The icon name with any redundant leading library prefix removed.
+ */
+function stripRedundantLibraryPrefix(
+  name: string,
+  library: IconLibrary
+): string {
+  if (!name) {
+    return name;
+  }
+  if (library === 'fa' && name.startsWith('fa-')) {
+    return name.substring(3);
+  }
+  if (library === 'mdi' && name.startsWith('mdi-')) {
+    return name.substring(4);
+  }
+  return name;
+}
+
+/**
  * Gets the correct classes for the icon element based on the library and features.
  *
  * @param {IconLibrary} library - The icon library.
@@ -193,6 +220,10 @@ export const Icon: React.FC<IconProps> = ({
   // Get the default icon library from context, fallback to 'fa' if not set
   const defaultLibrary = useIconLibrary();
   const finalLibrary = library || defaultLibrary || 'fa';
+
+  // Normalize a redundant leading library prefix (e.g. "fa-check" -> "check" when the
+  // library is 'fa'), so `name` behaves identically with or without the prefix.
+  finalName = stripRedundantLibraryPrefix(finalName, finalLibrary);
   /**
    * Generates Bulma helper classes and separates out remaining props.
    * Note: variant, features, and libraryFeatures are excluded from props spread
