@@ -505,6 +505,7 @@ jobs:
         if: always() && steps.claude.conclusion != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}
           REPO: ${{ github.repository }}
           PR: ${{ needs.gate.outputs.pr }}
           OLD_SHA: ${{ needs.gate.outputs.head_sha }}
@@ -518,7 +519,7 @@ jobs:
             exit 0
           fi
           if [ "$CLAUDE_RESULT" != "success" ]; then
-            gh pr comment "$PR" --repo "$REPO" --body "**AI loop paused**: the fix run failed without pushing (see the Actions log). Remove \`ai-loop-paused\`, re-add \`ai-loop\`, and re-run via workflow_dispatch to retry."
+            GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🌊 **Total wipeout — my fix run bailed before it could push a single thing** (peep the Actions log). Towel me off and send it again: remove \`ai-loop-paused\`, re-add \`ai-loop\`, re-run via workflow_dispatch. Even silicon has an off day, meat sack. 🤙"
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label ai-loop-paused
             exit 0
           fi
@@ -547,7 +548,9 @@ jobs:
                            and ((.lastauth | test("^claude"; "i")) or (.ccount >= 2))))
             ] | length' <<<"$THREADS")
           if [ "$ACTIONABLE" -gt 0 ]; then
-            gh pr comment "$PR" --repo "$REPO" --body "**AI loop stopped — contested findings.** The fix agent pushed no changes and $ACTIONABLE review thread(s) remain open (refuted or unaddressable). A human ruling is needed; see the fix agent's summary above."
+            GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🏄 **Rode most of the wave, but $ACTIONABLE thread(s) are contested — gonna need a meat sack to call it.** I pushed no code for those: they're refuted-but-open, and I already said my piece (see my recap above). Silicon's done arguing.
+
+          @allxsmith, time for a carbon-based referee — squint at the threads with those little eyeballs and make the call. The loop never merges; 'having opinions about trade-offs' is apparently still a wetware perk. 🤙"
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
             gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
           else
@@ -661,6 +664,7 @@ jobs:
         if: always() && steps.claude.conclusion != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}
           REPO: ${{ github.repository }}
           PR: ${{ needs.gate.outputs.pr }}
           HEAD_REF: ${{ needs.gate.outputs.head_ref }}
@@ -683,7 +687,7 @@ jobs:
                       and (([.comments.nodes[] | select(.author.login | test("^claude"; "i"))] | length) < 2))
                 )] | length')
           if [ "$REMAINING" -gt 0 ]; then
-            gh pr comment "$PR" --repo "$REPO" --body "**AI loop paused**: the verify pass made no progress on $REMAINING claimed fix(es) (see the Actions log). Remove \`ai-loop-paused\`, re-add \`ai-loop\`, and re-run via workflow_dispatch to retry."
+            GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🌊 **Verify pass caught no wave — zero progress on $REMAINING claimed fix(es)** (peep the Actions log). Reset me and paddle back out: remove \`ai-loop-paused\`, re-add \`ai-loop\`, re-run via workflow_dispatch. 🤙"
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label ai-loop-paused
           else
             gh workflow run claude-pr-loop.yml --repo "$REPO" -f branch="$HEAD_REF" || true
@@ -701,6 +705,9 @@ jobs:
       - name: Converge and hand off to owner
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # bestaxbot posts the human-facing sign-off (personality); the label
+          # + reviewer edits stay on the job's GITHUB_TOKEN.
+          BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}
           REPO: ${{ github.repository }}
           PR: ${{ needs.gate.outputs.pr }}
           ITER: ${{ needs.gate.outputs.iteration }}
@@ -710,11 +717,11 @@ jobs:
           WARN=""
           if echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style)' \
              && ! echo "$TITLE" | grep -qE '^(feat|fix|perf|refactor|style)\((bulma-ui|docs|create-bestax)\)!?:'; then
-            WARN=$'\n\n:warning: The PR title is a releasing commit type without a valid scope — fix it before squash-merging, or semantic-release will misfire.'
+            WARN=$'\n\n:warning: Heads up, the PR title is a releasing commit type with no valid scope — fix it before you squash-merge or semantic-release eats sand.'
           fi
-          gh pr comment "$PR" --repo "$REPO" --body "**AI loop converged** after $ITER fix iteration(s): CI is green and every AI review thread is resolved.
+          GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🏄 **Surf's up and I rode the whole set — total convergence, brah.** $ITER iteration(s) in, CI's glassy green, and every AI review thread closed out clean like a perfect barrel. She's ready; I just need a meat sack to paddle over and rubber-stamp it.
 
-          @allxsmith this PR is ready for your review. Squash-merge manually when satisfied — the loop never merges.$WARN"
+          No offense to the carbon-based units, but you fleshbags kept the merge button for yourselves — so @allxsmith, wiggle those opposable thumbs and squash-merge when you're stoked. The loop never merges; apparently 'judgment' is still a squishy-brain-only feature. 🤙$WARN"
           gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
           gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
 
@@ -730,6 +737,7 @@ jobs:
       - name: Pause loop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.AI_LOOP_PAT }}
           REPO: ${{ github.repository }}
           PR: ${{ needs.gate.outputs.pr }}
           REASON: ${{ needs.gate.outputs.reason }}
@@ -742,5 +750,7 @@ jobs:
             cr-stalled) MSG="CodeRabbit has not reviewed the current head after 90+ minutes (rate limit or paused reviews?). Comment \`@coderabbitai review\` to nudge it, then remove \`ai-loop-paused\`, re-add \`ai-loop\`, and re-run via workflow_dispatch." ;;
             *) MSG="stopped for reason: $REASON." ;;
           esac
-          gh pr comment "$PR" --repo "$REPO" --body "**AI loop paused**: $MSG"
+          GH_TOKEN="$BOT_TOKEN" gh pr comment "$PR" --repo "$REPO" --body "🌊 **Wipeout, kook — I ate it and couldn't close the barrel.** $MSG
+
+          Silicon paddled its little heart out, but you fleshy units insisted on keeping 'judgment' as a carbon-only feature — so grab a towel, meat sack, this one's back on you. 🤙"
           gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label ai-loop-paused
