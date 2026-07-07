@@ -195,6 +195,21 @@ export const IoniconSharp: Story = {
   },
 };
 
+export const NameWithRedundantPrefix: Story = {
+  args: {
+    name: 'fa-check',
+    ariaLabel: 'Check icon (passed with redundant fa- prefix)',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Passing the icon name with its library prefix (as Font Awesome’s own docs show it, e.g. `fa-check`) renders the same as `name="check"` — the redundant prefix is stripped instead of silently producing a blank icon.',
+      },
+    },
+  },
+};
+
 export const MaterialIconsWithFeatures: Story = {
   args: {
     name: 'star',

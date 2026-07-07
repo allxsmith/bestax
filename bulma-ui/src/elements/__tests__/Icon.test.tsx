@@ -10,6 +10,22 @@ describe('Icon', () => {
     expect(i).toHaveClass('fas', 'fa-star');
   });
 
+  describe('Redundant library prefix in name', () => {
+    it('strips a redundant leading "fa-" so name="fa-check" behaves like name="check"', () => {
+      const { container } = render(<Icon name="fa-check" />);
+      const i = container.querySelector('i');
+      expect(i).toHaveClass('fas', 'fa-check');
+      expect(i?.className).not.toMatch(/fa-fa-/);
+    });
+
+    it('strips a redundant leading "mdi-" so name="mdi-account" behaves like name="account"', () => {
+      const { container } = render(<Icon name="mdi-account" library="mdi" />);
+      const i = container.querySelector('i');
+      expect(i).toHaveClass('mdi', 'mdi-account');
+      expect(i?.className).not.toMatch(/mdi-mdi-/);
+    });
+  });
+
   it('respects Font Awesome libraryFeatures', () => {
     const { container } = render(
       <Icon name="star" libraryFeatures={['fas', 'fa-lg', 'fa-fw']} />
