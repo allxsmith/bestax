@@ -39,7 +39,6 @@ $reveal-easing: cv.getVar('easing') !default;
   transition-property: opacity, transform;
   transition-duration: cv.getVar('reveal-duration');
   transition-timing-function: cv.getVar('reveal-easing');
-  will-change: opacity, transform;
 }
 
 .#{iv.$class-prefix}reveal-fade-up {
