@@ -1,0 +1,121 @@
+// Avatar component styles
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
+
+// Avatar-specific SCSS variables
+$avatar-size: 48px !default;
+$avatar-background: cv.getVar('background') !default;
+$avatar-color: cv.getVar('text') !default;
+$avatar-weight: cv.getVar('weight-semibold') !default;
+$avatar-rounded-radius: cv.getVar('radius-large') !default;
+
+.#{iv.$class-prefix}avatar {
+  @include cv.register-vars(
+    (
+      'avatar-size': #{$avatar-size},
+      'avatar-background': #{$avatar-background},
+      'avatar-color': #{$avatar-color},
+      'avatar-weight': #{$avatar-weight},
+      'avatar-rounded-radius': #{$avatar-rounded-radius},
+    )
+  );
+}
+
+.#{iv.$class-prefix}avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  width: cv.getVar('avatar-size');
+  height: cv.getVar('avatar-size');
+  background-color: cv.getVar('avatar-background');
+  color: cv.getVar('avatar-color');
+  font-weight: cv.getVar('avatar-weight');
+  vertical-align: middle;
+  user-select: none;
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+a.#{iv.$class-prefix}avatar,
+button.#{iv.$class-prefix}avatar {
+  cursor: pointer;
+  border: none;
+  padding: 0;
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+.#{iv.$class-prefix}avatar-initials {
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+// Shapes
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-circle {
+  border-radius: 9999px;
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-rounded {
+  border-radius: cv.getVar('avatar-rounded-radius');
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-square {
+  border-radius: 0;
+}
+
+// Preset sizes (mirrors Bulma's image fixed-size list)
+@each $size in 16, 24, 32, 48, 64, 96, 128 {
+  .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-#{$size}x#{$size} {
+    width: #{$size}px;
+    height: #{$size}px;
+    font-size: calc(#{$size}px / 2.5);
+  }
+}
+
+// Color variants — background + a contrasting foreground (mirrors Toast's approach).
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-#{$name} {
+    background-color: cv.getVar($name);
+    color: hsl(
+      cv.getVar($name, '', '-h'),
+      cv.getVar($name, '', '-s'),
+      cv.getVar($name, '', '-invert-l')
+    );
+  }
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-black {
+  background-color: cv.getVar('black');
+  color: cv.getVar('white');
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-dark {
+  background-color: cv.getVar('dark');
+  color: cv.getVar('light');
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-light {
+  background-color: cv.getVar('light');
+  color: cv.getVar('dark');
+}
+
+.#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-white {
+  background-color: cv.getVar('white');
+  color: cv.getVar('black');
+}

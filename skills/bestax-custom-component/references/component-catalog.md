@@ -19,7 +19,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-82 documented components. Generated from the API docs — every exported
+85 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -57,6 +57,9 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 ## Components
 
+- [Avatar](https://bestax.io/docs/api/components/avatar) — The `Avatar` component represents a person or entity as a compact image.
+- [Avatars](https://bestax.io/docs/api/components/avatars) — The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
+- [Badge](https://bestax.io/docs/api/components/badge) — The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
 - [Breadcrumb](https://bestax.io/docs/api/components/breadcrumb) — The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.
 - [Card](https://bestax.io/docs/api/components/card) — The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.

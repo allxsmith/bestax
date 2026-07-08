@@ -1,0 +1,43 @@
+// Avatars component styles — an overlapping/stacked Avatar group
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// Avatars-specific SCSS variables
+$avatars-ring-color: cv.getVar('scheme-main') !default;
+$avatars-ring-width: 2px !default;
+$avatars-overlap-sm: 0.5rem !default;
+$avatars-overlap-md: 0.75rem !default;
+$avatars-overlap-lg: 1rem !default;
+
+.#{iv.$class-prefix}avatars {
+  @include cv.register-vars(
+    (
+      'avatars-ring-color': #{$avatars-ring-color},
+      'avatars-ring-width': #{$avatars-ring-width},
+    )
+  );
+}
+
+.#{iv.$class-prefix}avatars {
+  display: inline-flex;
+  align-items: center;
+
+  .#{iv.$class-prefix}avatar {
+    box-shadow: 0 0 0 cv.getVar('avatars-ring-width')
+      cv.getVar('avatars-ring-color');
+
+    &:not(:first-child) {
+      margin-left: calc(-1 * #{$avatars-overlap-md});
+    }
+  }
+
+  &.#{iv.$class-prefix}is-spacing-sm
+    .#{iv.$class-prefix}avatar:not(:first-child) {
+    margin-left: calc(-1 * #{$avatars-overlap-sm});
+  }
+
+  &.#{iv.$class-prefix}is-spacing-lg
+    .#{iv.$class-prefix}avatar:not(:first-child) {
+    margin-left: calc(-1 * #{$avatars-overlap-lg});
+  }
+}
