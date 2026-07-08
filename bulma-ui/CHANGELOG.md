@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.2.1...@allxsmith/bestax-bulma@5.3.0) (2026-07-08)
+
+
+### Features
+
+* **bulma-ui:** add Reveal component for scroll-triggered animations ([#255](https://github.com/allxsmith/bestax/issues/255)) ([a89c574](https://github.com/allxsmith/bestax/commit/a89c5747c24969dff04ffd663d7281353abfa5d6))
+
 ## [5.2.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.2.0...@allxsmith/bestax-bulma@5.2.1) (2026-07-07)
 
 
