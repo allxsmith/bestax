@@ -1,8 +1,10 @@
 name: Bestaxbot Reply
 
 # bestaxbot responds to a TRUSTED human on a PR or issue:
-#   - a review SUBMITTED on a bestaxbot-authored PR (no mention needed), or
-#   - an "@bestaxbot" mention in a comment or a review.
+#   - a review SUBMITTED on a bestaxbot-authored PR (no mention needed),
+#   - a plain top-level comment on a bestaxbot-authored PR (no mention needed —
+#     a reviewer just talking on the bot's own PR is talking to the bot), or
+#   - an "@bestaxbot" mention in a comment or a review (anywhere else).
 # It can answer a question, refute a finding with reasoning, or push a small
 # in-scope code fix — all as the bestaxbot machine account.
 #
@@ -39,11 +41,13 @@ jobs:
   respond:
     # Layer 1 (cheap pre-gate): a real user that is NOT bestaxbot itself (it is
     # a User-type machine account, so `sender.type == 'User'` does not exclude
-    # it — without this it could answer its own comments in a loop), the system
-    # enabled, and either a review on a bestaxbot-authored PR, or an
-    # "@bestaxbot" mention — from someone already associated as
-    # OWNER/MEMBER/COLLABORATOR. Anyone else is a silent no-op that spends no
-    # usage.
+    # it — and now that ANY trusted comment on a bestaxbot PR fires this, the
+    # self-exclusion is what stops its own recap/reply comments from looping),
+    # the system enabled, and one of: a review on a bestaxbot-authored PR, a
+    # top-level comment on a bestaxbot-authored PR (issue.pull_request set and
+    # the PR author is bestaxbot), or an "@bestaxbot" mention — all from someone
+    # already associated as OWNER/MEMBER/COLLABORATOR. Anyone else is a silent
+    # no-op that spends no usage.
     if: |
       github.event.sender.type == 'User' &&
       github.event.sender.login != 'bestaxbot' &&
@@ -53,8 +57,12 @@ jobs:
           github.event.pull_request.user.login == 'bestaxbot' &&
           contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association)) ||
         (github.event_name == 'issue_comment' &&
-          contains(github.event.comment.body, '@bestaxbot') &&
-          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+          (
+            contains(github.event.comment.body, '@bestaxbot') ||
+            (github.event.issue.pull_request != null &&
+              github.event.issue.user.login == 'bestaxbot')
+          )) ||
         (github.event_name == 'pull_request_review_comment' &&
           contains(github.event.comment.body, '@bestaxbot') &&
           contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
