@@ -134,4 +134,17 @@ describe('Avatars', () => {
     expect(container.firstChild).toHaveClass('bulma-avatars');
     expect(container.firstChild).not.toHaveClass('avatars');
   });
+
+  it('ignores a fractional max and clamps nothing', () => {
+    render(
+      <Avatars max={2.5}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.getByText('KJ')).toBeInTheDocument();
+  });
 });

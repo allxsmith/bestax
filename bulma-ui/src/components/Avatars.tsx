@@ -67,7 +67,10 @@ export const Avatars: React.FC<AvatarsProps> = ({
     React.isValidElement
   ) as React.ReactElement<AvatarProps>[];
 
-  const maxCount = typeof max === 'number' && max >= 0 ? max : undefined;
+  const maxCount =
+    typeof max === 'number' && Number.isInteger(max) && max >= 0
+      ? max
+      : undefined;
   const visibleChildren =
     maxCount !== undefined ? childArray.slice(0, maxCount) : childArray;
   const overflowCount =
