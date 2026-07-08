@@ -53,11 +53,6 @@ $badge-animation-duration: 1.4s !default;
   white-space: nowrap;
   pointer-events: none;
 
-  &.#{iv.$class-prefix}is-standalone {
-    position: static;
-    display: inline-flex;
-  }
-
   &.#{iv.$class-prefix}is-dot {
     height: cv.getVar('badge-dot-size');
     min-width: cv.getVar('badge-dot-size');
@@ -92,6 +87,16 @@ $badge-animation-duration: 1.4s !default;
   bottom: 0;
   left: 0;
   transform: translate(-50%, 50%);
+}
+
+// Standalone (no children) badges also carry an is-{position} class, so reset
+// the corner positioning here. Declared after the corner rules on purpose: it
+// shares their specificity, so source order decides the cascade - otherwise the
+// later is-{position} transform shifts the standalone badge out of normal flow.
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-standalone {
+  position: static;
+  display: inline-flex;
+  transform: none;
 }
 
 // Overlap adjustment — nudge the badge further in on a round child so it
