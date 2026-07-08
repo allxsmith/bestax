@@ -19,7 +19,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-81 documented components. Generated from the API docs — every exported
+82 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -70,6 +70,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Navbar](https://bestax.io/docs/api/components/navbar) — The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.
 - [Pagination](https://bestax.io/docs/api/components/pagination) — The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.
 - [Panel](https://bestax.io/docs/api/components/panel) — The `Panel` component implements Bulma's versatile panel block for React.
+- [Reveal](https://bestax.io/docs/api/components/reveal) — The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
