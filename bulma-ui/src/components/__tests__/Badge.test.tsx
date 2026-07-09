@@ -28,6 +28,27 @@ describe('Badge', () => {
     expect(screen.getByText('NEW')).toBeInTheDocument();
   });
 
+  it('renders a custom ReactNode as content', () => {
+    render(<Badge content={<span data-testid="node">★</span>} />);
+    expect(screen.getByTestId('node')).toBeInTheDocument();
+  });
+
+  it('ignores max/showZero for non-numeric content and omits the numeric aria-label', () => {
+    render(<Badge content={<i data-testid="icon" />} max={5} />);
+    const status = screen.getByRole('status');
+    expect(status).not.toHaveAttribute('aria-label');
+    expect(screen.getByTestId('icon')).toBeInTheDocument();
+  });
+
+  it('treats null content as no content', () => {
+    const { container } = render(
+      <Badge content={null}>
+        <span>child</span>
+      </Badge>
+    );
+    expect(container.querySelectorAll('.badge')).toHaveLength(0);
+  });
+
   it('hides at content=0 by default', () => {
     const { container } = render(
       <Badge content={0}>

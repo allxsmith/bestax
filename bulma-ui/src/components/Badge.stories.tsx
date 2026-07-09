@@ -121,3 +121,13 @@ export const Standalone: Story = {
     return <Badge content={5} color="info" />;
   },
 };
+
+export const CustomNodeContent: Story = {
+  render: function CustomNodeExample() {
+    return (
+      <Badge content={<Icon name="check" />} color="success">
+        <Avatar name="Ada Lovelace" />
+      </Badge>
+    );
+  },
+};

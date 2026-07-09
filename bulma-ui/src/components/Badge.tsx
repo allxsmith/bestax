@@ -30,7 +30,7 @@ export type BadgeOverlap = 'circle' | 'square';
  *
  * @property {string} [className] - Additional CSS classes applied to the root (the wrapper when `children` are present, else the badge pill).
  * @property {string} [badgeClassName] - Additional CSS classes applied to the badge pill itself.
- * @property {number | string} [content] - Count or short text to display; omit with `dot` for a plain dot.
+ * @property {React.ReactNode} [content] - Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content.
  * @property {number} [max] - Numeric `content` above this renders as `"{max}+"`. Default `99`.
  * @property {boolean} [dot] - Render a small dot with no content.
  * @property {boolean} [showZero] - Show the badge when `content` is `0`. Default `false`.
@@ -47,7 +47,7 @@ export interface BadgeProps
     Omit<BulmaClassesProps, 'color'> {
   className?: string;
   badgeClassName?: string;
-  content?: number | string;
+  content?: React.ReactNode;
   max?: number;
   dot?: boolean;
   showZero?: boolean;
@@ -99,16 +99,24 @@ export const Badge: React.FC<BadgeProps> = ({
   const hasChildren = children != null && children !== false;
 
   const isZero = typeof content === 'number' && content === 0;
-  const hasContent = content !== undefined && (!isZero || showZero);
+  const hasContent = content != null && (!isZero || showZero);
   const shouldRender = dot || hasContent || invisible;
 
-  const displayValue = useMemo(() => {
+  const displayValue = useMemo<React.ReactNode>(() => {
     if (dot || !hasContent) return undefined;
+    // max only applies to numeric content; any other node renders verbatim.
     if (typeof content === 'number') {
       return content > max ? `${max}+` : String(content);
     }
     return content;
   }, [dot, hasContent, content, max]);
+
+  // Only primitive content produces a meaningful aria-label; a custom node
+  // supplies its own accessible text, so we leave role="status" unlabeled.
+  const ariaLabel =
+    typeof displayValue === 'string' || typeof displayValue === 'number'
+      ? String(displayValue)
+      : undefined;
 
   // Both prefixed-classname hooks stay above the early returns (Rules of Hooks).
   const wrapperClass = usePrefixedClassNames('badge-wrapper');
@@ -133,7 +141,10 @@ export const Badge: React.FC<BadgeProps> = ({
 
   const a11yProps = dot
     ? { 'aria-hidden': true as const }
-    : { role: 'status' as const, 'aria-label': String(displayValue ?? '') };
+    : {
+        role: 'status' as const,
+        ...(ariaLabel !== undefined ? { 'aria-label': ariaLabel } : {}),
+      };
 
   const indicator = shouldRender ? (
     <span className={pillClass} {...a11yProps} {...(hasChildren ? {} : rest)}>

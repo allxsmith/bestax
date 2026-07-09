@@ -24,20 +24,20 @@ import { Badge } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                                                                             | Default       | Description                                                                   |
-| ----------- | ---------------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------- |
-| `content`   | `number \| string`                                                                                               | —             | Count or short text to display; omit with `dot` for a plain dot.              |
-| `max`       | `number`                                                                                                         | `99`          | Numeric `content` above this renders as `"{max}+"`.                           |
-| `dot`       | `boolean`                                                                                                        | `false`       | Render a small dot with no content.                                           |
-| `showZero`  | `boolean`                                                                                                        | `false`       | Show the badge when `content` is `0`.                                         |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | `'danger'`    | Status color.                                                                 |
-| `position`  | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'`                                                   | `'top-right'` | Corner to overlay the badge on, relative to `children`.                       |
-| `overlap`   | `'circle' \| 'square'`                                                                                           | `'square'`    | Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. |
-| `pulse`     | `boolean`                                                                                                        | `false`       | Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.    |
-| `invisible` | `boolean`                                                                                                        | `false`       | Hide the badge without unmounting it.                                         |
-| `className` | `string`                                                                                                         | —             | Additional CSS classes.                                                       |
-| `children`  | `React.ReactNode`                                                                                                | —             | The element the badge overlays. Omit to render a standalone badge.            |
-| ...         | All standard HTML and Bulma helper props                                                                         |               | (See [Helper Props](../helpers/usebulmaclasses))                              |
+| Prop        | Type                                                                                                             | Default       | Description                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `content`   | `React.ReactNode`                                                                                                | —             | Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. |
+| `max`       | `number`                                                                                                         | `99`          | Numeric `content` above this renders as `"{max}+"`.                                                                              |
+| `dot`       | `boolean`                                                                                                        | `false`       | Render a small dot with no content.                                                                                              |
+| `showZero`  | `boolean`                                                                                                        | `false`       | Show the badge when `content` is `0`.                                                                                            |
+| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | `'danger'`    | Status color.                                                                                                                    |
+| `position`  | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'`                                                   | `'top-right'` | Corner to overlay the badge on, relative to `children`.                                                                          |
+| `overlap`   | `'circle' \| 'square'`                                                                                           | `'square'`    | Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child.                                                    |
+| `pulse`     | `boolean`                                                                                                        | `false`       | Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.                                                       |
+| `invisible` | `boolean`                                                                                                        | `false`       | Hide the badge without unmounting it.                                                                                            |
+| `className` | `string`                                                                                                         | —             | Additional CSS classes.                                                                                                          |
+| `children`  | `React.ReactNode`                                                                                                | —             | The element the badge overlays. Omit to render a standalone badge.                                                               |
+| ...         | All standard HTML and Bulma helper props                                                                         |               | (See [Helper Props](../helpers/usebulmaclasses))                                                                                 |
 
 ---
 
@@ -97,6 +97,17 @@ Numeric `content` above `max` renders as `"{max}+"`.
 
 ```tsx live
 <Badge content={5} color="info" />
+```
+
+### Custom node content
+
+`content` accepts any `React.ReactNode` — pass an icon or element instead of a count. `max` and
+`showZero` are ignored for non-numeric content.
+
+```tsx live
+<Badge content={<Icon name="check" />} color="success">
+  <Avatar name="Ada Lovelace" />
+</Badge>
 ```
 
 ---
