@@ -25,14 +25,18 @@ import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                     | Default | Description                                                                        |
-| ----------- | ---------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
-| `max`       | `number`                                 | —       | Show only the first `max` children, replacing the rest with a "+N" surplus avatar. |
-| `size`      | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).             |
-| `spacing`   | `'sm' \| 'md' \| 'lg'`                   | `'md'`  | Overlap amount between avatars.                                                    |
-| `className` | `string`                                 | —       | Additional CSS classes.                                                            |
-| `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                      |
-| ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                   |
+| Prop        | Type                                     | Default | Description                                                                                                                                                        |
+| ----------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `max`       | `number`                                 | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". |
+| `size`      | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                             |
+| `shape`     | `'circle' \| 'rounded' \| 'square'`      | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                             |
+| `spacing`   | `'sm' \| 'md' \| 'lg'`                   | `'md'`  | Overlap amount between avatars.                                                                                                                                    |
+| `className` | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
+| `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
+| ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
+
+`Avatar` is also attached as a compound static (`Avatars.Avatar`), so you can import just the
+container.
 
 ---
 
@@ -57,6 +61,30 @@ import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
   <Avatar name="Katherine Johnson" />
   <Avatar name="Margaret Hamilton" />
   <Avatar name="Radia Perlman" />
+</Avatars>
+```
+
+### Uniform shape
+
+`shape` applies to every child (and the surplus avatar); a child that sets its own `shape` keeps it.
+
+```tsx live
+<Avatars max={4} shape="square">
+  <Avatar name="Ada Lovelace" />
+  <Avatar name="Grace Hopper" />
+  <Avatar name="Katherine Johnson" />
+  <Avatar name="Margaret Hamilton" />
+  <Avatar name="Radia Perlman" />
+</Avatars>
+```
+
+### Compound static
+
+```tsx live
+<Avatars>
+  <Avatars.Avatar name="Ada Lovelace" />
+  <Avatars.Avatar name="Grace Hopper" />
+  <Avatars.Avatar name="Katherine Johnson" />
 </Avatars>
 ```
 

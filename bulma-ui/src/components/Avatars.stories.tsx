@@ -32,6 +32,10 @@ const meta: Meta<typeof Avatars> = {
       control: 'select',
       options: ['16x16', '24x24', '32x32', '48x48', '64x64'],
     },
+    shape: {
+      control: 'select',
+      options: ['circle', 'rounded', 'square'],
+    },
   },
 };
 export default meta;
@@ -56,6 +60,32 @@ export const WithSurplus: Story = {
         {members.map(m => (
           <Avatar key={m.id} name={m.name} />
         ))}
+      </Avatars>
+    );
+  },
+};
+
+export const UniformShape: Story = {
+  render: function UniformShapeExample() {
+    return (
+      <Avatars max={4} shape="square">
+        {members.map(m => (
+          <Avatar key={m.id} name={m.name} />
+        ))}
+      </Avatars>
+    );
+  },
+};
+
+export const CompoundStatic: Story = {
+  render: function CompoundStaticExample() {
+    // `Avatars.Avatar` is the same component as `Avatar`, handy when importing
+    // only the container.
+    return (
+      <Avatars>
+        <Avatars.Avatar name="Ada Lovelace" />
+        <Avatars.Avatar name="Grace Hopper" />
+        <Avatars.Avatar name="Katherine Johnson" />
       </Avatars>
     );
   },

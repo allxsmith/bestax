@@ -10,8 +10,9 @@ export type AvatarsSpacing = 'sm' | 'md' | 'lg';
  * Props for the Avatars component.
  *
  * @property {string} [className] - Additional CSS classes to apply.
- * @property {number} [max] - Show only the first `max` children, replacing the rest with a "+N" surplus avatar.
+ * @property {number} [max] - Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1".
  * @property {AvatarProps['size']} [size] - Uniform size applied to every child `Avatar` (and the surplus avatar).
+ * @property {AvatarProps['shape']} [shape] - Uniform shape applied to every child `Avatar` (and the surplus avatar).
  * @property {AvatarsSpacing} [spacing] - Overlap amount between avatars. Default `'md'`.
  * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group.
  */
@@ -22,6 +23,7 @@ export interface AvatarsProps
   className?: string;
   max?: number;
   size?: AvatarProps['size'];
+  shape?: AvatarProps['shape'];
   spacing?: AvatarsSpacing;
   children?: React.ReactNode;
 }
@@ -41,10 +43,11 @@ export interface AvatarsProps
  *   {members.map(m => <Avatar key={m.id} src={m.photo} name={m.name} />)}
  * </Avatars>
  */
-export const Avatars: React.FC<AvatarsProps> = ({
+export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
   className,
   max,
   size,
+  shape,
   spacing = 'md',
   children,
   ...props
@@ -71,16 +74,22 @@ export const Avatars: React.FC<AvatarsProps> = ({
     typeof max === 'number' && Number.isInteger(max) && max >= 0
       ? max
       : undefined;
-  const visibleChildren =
-    maxCount !== undefined ? childArray.slice(0, maxCount) : childArray;
-  const overflowCount =
-    maxCount !== undefined ? Math.max(childArray.length - maxCount, 0) : 0;
+  const overshoot = maxCount !== undefined ? childArray.length - maxCount : 0;
+  // A "+1" surplus bubble occupies the same slot the hidden avatar would, so
+  // only collapse into a surplus when it stands in for two or more avatars; a
+  // single overflow avatar is shown directly.
+  const clamp = maxCount !== undefined && overshoot >= 2;
+  const visibleChildren = clamp ? childArray.slice(0, maxCount) : childArray;
+  const overflowCount = clamp ? overshoot : 0;
 
   return (
     <div className={combinedClasses} {...rest}>
       {visibleChildren.map(child =>
+        // Conditional-spread so an unset group size/shape doesn't clobber a
+        // child that set its own.
         React.cloneElement(child, {
-          size: size ?? child.props.size,
+          ...(size !== undefined ? { size } : {}),
+          ...(shape !== undefined ? { shape } : {}),
         })
       )}
       {overflowCount > 0 && (
@@ -88,6 +97,7 @@ export const Avatars: React.FC<AvatarsProps> = ({
           initials={`+${overflowCount}`}
           alt={`${overflowCount} more`}
           size={size}
+          shape={shape}
           color="light"
           className={surplusClass}
         />
@@ -97,5 +107,6 @@ export const Avatars: React.FC<AvatarsProps> = ({
 };
 
 Avatars.displayName = 'Avatars';
+Avatars.Avatar = Avatar;
 
 export default Avatars;

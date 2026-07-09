@@ -45,10 +45,23 @@ describe('Avatars', () => {
       <Avatars max={1} size="64x64">
         <Avatar name="Ada Lovelace" data-testid="first" />
         <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
       </Avatars>
     );
     expect(screen.getByTestId('first')).toHaveClass('is-64x64');
-    expect(screen.getByText('+1').closest('figure')).toHaveClass('is-64x64');
+    expect(screen.getByText('+2').closest('figure')).toHaveClass('is-64x64');
+  });
+
+  it('applies a uniform shape to every child and the surplus avatar', () => {
+    render(
+      <Avatars max={1} shape="square">
+        <Avatar name="Ada Lovelace" data-testid="first" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+      </Avatars>
+    );
+    expect(screen.getByTestId('first')).toHaveClass('is-square');
+    expect(screen.getByText('+2').closest('figure')).toHaveClass('is-square');
   });
 
   it('lets a child keep its own size when the group size is unset', () => {
@@ -58,6 +71,34 @@ describe('Avatars', () => {
       </Avatars>
     );
     expect(screen.getByTestId('first')).toHaveClass('is-32x32');
+  });
+
+  it('lets a child keep its own shape when the group shape is unset', () => {
+    render(
+      <Avatars>
+        <Avatar name="Ada Lovelace" shape="square" data-testid="first" />
+      </Avatars>
+    );
+    expect(screen.getByTestId('first')).toHaveClass('is-square');
+  });
+
+  it('shows a single overflow avatar directly instead of a pointless "+1"', () => {
+    render(
+      <Avatars max={3}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+        <Avatar name="Margaret Hamilton" />
+      </Avatars>
+    );
+    // Four children, max 3 — collapsing to "+1" saves no space, so the fourth
+    // avatar renders directly and no surplus bubble appears.
+    expect(screen.getByText('MH')).toBeInTheDocument();
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+  });
+
+  it('exposes Avatar as a compound static', () => {
+    expect(Avatars.Avatar).toBe(Avatar);
   });
 
   it('applies the spacing class (defaults to md)', () => {
