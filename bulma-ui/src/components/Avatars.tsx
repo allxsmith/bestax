@@ -13,7 +13,8 @@ export type AvatarsSpacing = 'sm' | 'md' | 'lg';
  * @property {number} [max] - Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1".
  * @property {AvatarProps['size']} [size] - Uniform size applied to every child `Avatar` (and the surplus avatar).
  * @property {AvatarProps['shape']} [shape] - Uniform shape applied to every child `Avatar` (and the surplus avatar).
- * @property {AvatarsSpacing} [spacing] - Overlap amount between avatars. Default `'md'`.
+ * @property {AvatarsSpacing | number} [spacing] - Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`.
+ * @property {boolean} [spaced] - Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.
  * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group.
  */
 export interface AvatarsProps
@@ -24,7 +25,8 @@ export interface AvatarsProps
   max?: number;
   size?: AvatarProps['size'];
   shape?: AvatarProps['shape'];
-  spacing?: AvatarsSpacing;
+  spacing?: AvatarsSpacing | number;
+  spaced?: boolean;
   children?: React.ReactNode;
 }
 
@@ -49,14 +51,24 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
   size,
   shape,
   spacing = 'md',
+  spaced = false,
+  style,
   children,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
+  // A preset spacing maps to a class; a numeric spacing sets the CSS var inline
+  // (mirrors Sidebar's inline --bulma-* width var).
+  const isPresetSpacing = typeof spacing === 'string';
   const avatarsClasses = usePrefixedClassNames('avatars', {
-    [`is-spacing-${spacing}`]: spacing,
+    [`is-spacing-${spacing}`]: isPresetSpacing,
+    'is-spaced': spaced,
   });
+  const spacingStyle: React.CSSProperties | undefined =
+    typeof spacing === 'number'
+      ? ({ '--bulma-avatars-spacing': `${spacing}px` } as React.CSSProperties)
+      : undefined;
 
   const surplusClass = usePrefixedClassNames('is-surplus');
 
@@ -83,7 +95,11 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
   const overflowCount = clamp ? overshoot : 0;
 
   return (
-    <div className={combinedClasses} {...rest}>
+    <div
+      className={combinedClasses}
+      style={{ ...spacingStyle, ...style }}
+      {...rest}
+    >
       {visibleChildren.map(child =>
         // Conditional-spread so an unset group size/shape doesn't clobber a
         // child that set its own.

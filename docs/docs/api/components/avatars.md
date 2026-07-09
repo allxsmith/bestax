@@ -30,7 +30,8 @@ import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
 | `max`       | `number`                                 | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". |
 | `size`      | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                             |
 | `shape`     | `'circle' \| 'rounded' \| 'square'`      | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                             |
-| `spacing`   | `'sm' \| 'md' \| 'lg'`                   | `'md'`  | Overlap amount between avatars.                                                                                                                                    |
+| `spacing`   | `'sm' \| 'md' \| 'lg' \| number`         | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.                                                               |
+| `spaced`    | `boolean`                                | `false` | Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.                                                                                    |
 | `className` | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
 | `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
 | ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
@@ -103,6 +104,28 @@ container.
     <Avatar name="Katherine Johnson" />
   </Avatars>
 </Block>
+```
+
+A `number` sets a pixel overlap directly:
+
+```tsx live
+<Avatars spacing={4}>
+  <Avatar name="Ada Lovelace" />
+  <Avatar name="Grace Hopper" />
+  <Avatar name="Katherine Johnson" />
+</Avatars>
+```
+
+### Non-overlapping (spaced)
+
+`spaced` lays the avatars out side by side, using `spacing` as the gap instead of an overlap.
+
+```tsx live
+<Avatars spaced>
+  <Avatar name="Ada Lovelace" />
+  <Avatar name="Grace Hopper" />
+  <Avatar name="Katherine Johnson" />
+</Avatars>
 ```
 
 ---

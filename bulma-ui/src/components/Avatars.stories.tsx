@@ -36,6 +36,7 @@ const meta: Meta<typeof Avatars> = {
       control: 'select',
       options: ['circle', 'rounded', 'square'],
     },
+    spaced: { control: 'boolean' },
   },
 };
 export default meta;
@@ -111,6 +112,30 @@ export const Spacing: Story = {
           ))}
         </Avatars>
       </div>
+    );
+  },
+};
+
+export const NumericSpacing: Story = {
+  render: function NumericSpacingExample() {
+    return (
+      <Avatars spacing={4}>
+        {members.map(m => (
+          <Avatar key={m.id} name={m.name} />
+        ))}
+      </Avatars>
+    );
+  },
+};
+
+export const Spaced: Story = {
+  render: function SpacedExample() {
+    return (
+      <Avatars spaced>
+        {members.map(m => (
+          <Avatar key={m.id} name={m.name} />
+        ))}
+      </Avatars>
     );
   },
 };

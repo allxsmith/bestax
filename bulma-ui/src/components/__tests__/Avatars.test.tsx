@@ -119,6 +119,38 @@ describe('Avatars', () => {
     expect(container.firstChild).toHaveClass('is-spacing-lg');
   });
 
+  it('sets an inline spacing var and no spacing class for a numeric spacing', () => {
+    const { container } = render(
+      <Avatars spacing={16}>
+        <Avatar name="Ada Lovelace" />
+      </Avatars>
+    );
+    const el = container.firstChild as HTMLElement;
+    expect(el).not.toHaveClass('is-spacing-16');
+    expect(el.style.getPropertyValue('--bulma-avatars-spacing')).toBe('16px');
+  });
+
+  it('applies the is-spaced class for the non-overlapping mode', () => {
+    const { container } = render(
+      <Avatars spaced>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+      </Avatars>
+    );
+    expect(container.firstChild).toHaveClass('is-spaced');
+  });
+
+  it('preserves a caller style alongside the spacing var', () => {
+    const { container } = render(
+      <Avatars spacing={12} style={{ marginTop: '4px' }}>
+        <Avatar name="Ada Lovelace" />
+      </Avatars>
+    );
+    const el = container.firstChild as HTMLElement;
+    expect(el.style.getPropertyValue('--bulma-avatars-spacing')).toBe('12px');
+    expect(el).toHaveStyle({ marginTop: '4px' });
+  });
+
   it('passes Bulma helper props through', () => {
     const { container } = render(
       <Avatars m="3">
