@@ -32,9 +32,6 @@ const categories = [
     blurb:
       'Reusable UI widgets and navigation components for building interactive applications.',
     items: [
-      { name: 'Avatar', link: '/docs/api/components/avatar' },
-      { name: 'Avatars', link: '/docs/api/components/avatars' },
-      { name: 'Badge', link: '/docs/api/components/badge' },
       { name: 'Breadcrumb', link: '/docs/api/components/breadcrumb' },
       { name: 'Card', link: '/docs/api/components/card' },
       { name: 'Dropdown', link: '/docs/api/components/dropdown' },

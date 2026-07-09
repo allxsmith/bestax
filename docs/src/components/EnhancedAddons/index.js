@@ -13,6 +13,18 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'Avatar',
+    icon: 'avatar',
+    link: '/docs/api/components/avatar',
+    desc: 'User images with automatic initials and icon fallbacks, in any size or shape.',
+  },
+  {
+    name: 'Badge',
+    icon: 'badge',
+    link: '/docs/api/components/badge',
+    desc: 'Corner status dots and counts overlaid on any element.',
+  },
+  {
     name: 'Carousel',
     icon: 'carousel',
     link: '/docs/api/components/carousel',

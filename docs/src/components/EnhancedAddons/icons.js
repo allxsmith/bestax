@@ -20,6 +20,26 @@ function LinkButtonIcon() {
   );
 }
 
+// Person in a frame — avatar
+function AvatarIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="9" r="3.2" />
+      <path d="M5.5 19a6.6 6.6 0 0 1 13 0" />
+    </svg>
+  );
+}
+
+// Corner count indicator — badge
+function BadgeIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="6" width="12" height="12" rx="2" />
+      <circle cx="18" cy="6" r="3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 // Sliding frames — carousel
 function CarouselIcon() {
   return (
@@ -106,6 +126,8 @@ function TooltipIcon() {
 
 const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
+  avatar: AvatarIcon,
+  badge: BadgeIcon,
   carousel: CarouselIcon,
   collapse: CollapseIcon,
   dialog: DialogIcon,
