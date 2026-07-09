@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from './Badge';
 import { Avatar } from './Avatar';
+import { Block } from '../elements/Block';
 import { Icon } from '../elements/Icon';
 
 const meta: Meta<typeof Badge> = {
@@ -103,20 +104,20 @@ export const UnreadCount: Story = {
 export const Positions: Story = {
   render: function PositionsExample() {
     return (
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <Badge content={1} position="top-right">
+      <Block display="flex">
+        <Badge content={1} position="top-right" mr="5">
           <Avatar name="A" shape="square" />
         </Badge>
-        <Badge content={2} position="top-left">
+        <Badge content={2} position="top-left" mr="5">
           <Avatar name="B" shape="square" />
         </Badge>
-        <Badge content={3} position="bottom-right">
+        <Badge content={3} position="bottom-right" mr="5">
           <Avatar name="C" shape="square" />
         </Badge>
         <Badge content={4} position="bottom-left">
           <Avatar name="D" shape="square" />
         </Badge>
-      </div>
+      </Block>
     );
   },
 };
@@ -134,14 +135,14 @@ export const Pulse: Story = {
 export const ZeroHiddenByDefault: Story = {
   render: function ZeroHiddenExample() {
     return (
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <Badge content={0}>
+      <Block display="flex">
+        <Badge content={0} mr="5">
           <Icon name="bell" />
         </Badge>
         <Badge content={0} showZero>
           <Icon name="bell" />
         </Badge>
-      </div>
+      </Block>
     );
   },
 };
@@ -181,14 +182,14 @@ export const StandaloneDot: Story = {
 export const Invisible: Story = {
   render: function InvisibleExample() {
     return (
-      <div style={{ display: 'flex', gap: '2rem' }}>
-        <Badge content={4} color="danger">
+      <Block display="flex">
+        <Badge content={4} color="danger" mr="5">
           <Icon name="bell" ariaLabel="Notifications" />
         </Badge>
         <Badge content={4} color="danger" invisible>
           <Icon name="bell" ariaLabel="Notifications" />
         </Badge>
-      </div>
+      </Block>
     );
   },
 };

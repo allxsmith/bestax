@@ -95,20 +95,20 @@ Each badge is translated outside its anchor, so a flex row with a gap keeps neig
 colliding.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '2rem' }}>
-  <Badge content={1} position="top-right">
+<Block display="flex">
+  <Badge content={1} position="top-right" mr="5">
     <Avatar name="A" shape="square" />
   </Badge>
-  <Badge content={2} position="top-left">
+  <Badge content={2} position="top-left" mr="5">
     <Avatar name="B" shape="square" />
   </Badge>
-  <Badge content={3} position="bottom-right">
+  <Badge content={3} position="bottom-right" mr="5">
     <Avatar name="C" shape="square" />
   </Badge>
   <Badge content={4} position="bottom-left">
     <Avatar name="D" shape="square" />
   </Badge>
-</div>
+</Block>
 ```
 
 ### Overlap: Circle vs Square
@@ -116,14 +116,14 @@ colliding.
 `overlap` nudges the offset inward for a round child so the badge doesn't float off the edge.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '2rem' }}>
-  <Badge content={5} overlap="square">
+<Block display="flex">
+  <Badge content={5} overlap="square" mr="5">
     <Avatar name="Square" shape="square" />
   </Badge>
   <Badge content={5} overlap="circle">
     <Avatar name="Circle" shape="circle" />
   </Badge>
-</div>
+</Block>
 ```
 
 ### Colors
@@ -131,23 +131,23 @@ colliding.
 `color` accepts any Bulma color for the pill background.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '2rem' }}>
-  <Badge content={1} color="primary">
+<Block display="flex">
+  <Badge content={1} color="primary" mr="5">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
-  <Badge content={2} color="info">
+  <Badge content={2} color="info" mr="5">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
-  <Badge content={3} color="success">
+  <Badge content={3} color="success" mr="5">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
-  <Badge content={4} color="warning">
+  <Badge content={4} color="warning" mr="5">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
   <Badge content={5} color="danger">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
-</div>
+</Block>
 ```
 
 ### Pulse
@@ -169,14 +169,14 @@ function example() {
   const [muted, setMuted] = useState(false);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-      <Badge content={4} color="danger" invisible={muted}>
+    <Block display="flex" alignItems="center">
+      <Badge content={4} color="danger" invisible={muted} mr="5">
         <Icon name="bell" ariaLabel="Notifications" size="large" />
       </Badge>
       <Button onClick={() => setMuted(m => !m)}>
         {muted ? 'Show badge' : 'Hide badge'}
       </Button>
-    </div>
+    </Block>
   );
 }
 ```
@@ -186,14 +186,14 @@ function example() {
 A numeric `content` of `0` hides the badge by default; pass `showZero` to keep it.
 
 ```tsx live
-<div style={{ display: 'flex', gap: '2rem' }}>
-  <Badge content={0}>
+<Block display="flex">
+  <Badge content={0} mr="5">
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
   <Badge content={0} showZero>
     <Icon name="bell" ariaLabel="Notifications" size="large" />
   </Badge>
-</div>
+</Block>
 ```
 
 ### Standalone

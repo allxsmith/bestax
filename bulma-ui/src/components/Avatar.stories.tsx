@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatar } from './Avatar';
+import { Block } from '../elements/Block';
 import { Icon } from '../elements/Icon';
 
 const meta: Meta<typeof Avatar> = {
@@ -101,12 +102,12 @@ export const BrokenImageFallsBackToInitials: Story = {
 export const Initials: Story = {
   render: function InitialsExample() {
     return (
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <Avatar name="Ada Lovelace" />
-        <Avatar name="Grace Hopper" />
-        <Avatar name="Katherine Johnson" />
+      <Block display="flex">
+        <Avatar name="Ada Lovelace" mr="3" />
+        <Avatar name="Grace Hopper" mr="3" />
+        <Avatar name="Katherine Johnson" mr="3" />
         <Avatar initials="XY" color="info" />
-      </div>
+      </Block>
     );
   },
 };
@@ -126,11 +127,11 @@ export const DefaultFallback: Story = {
 export const Shapes: Story = {
   render: function ShapesExample() {
     return (
-      <div style={{ display: 'flex', gap: '0.75rem' }}>
-        <Avatar name="Circle Shape" shape="circle" />
-        <Avatar name="Rounded Shape" shape="rounded" />
+      <Block display="flex">
+        <Avatar name="Circle Shape" shape="circle" mr="3" />
+        <Avatar name="Rounded Shape" shape="rounded" mr="3" />
         <Avatar name="Square Shape" shape="square" />
-      </div>
+      </Block>
     );
   },
 };
@@ -138,14 +139,14 @@ export const Shapes: Story = {
 export const Sizes: Story = {
   render: function SizesExample() {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <Avatar name="Ada Lovelace" size="16x16" />
-        <Avatar name="Ada Lovelace" size="24x24" />
-        <Avatar name="Ada Lovelace" size="32x32" />
-        <Avatar name="Ada Lovelace" size="48x48" />
-        <Avatar name="Ada Lovelace" size="64x64" />
+      <Block display="flex" alignItems="center">
+        <Avatar name="Ada Lovelace" size="16x16" mr="3" />
+        <Avatar name="Ada Lovelace" size="24x24" mr="3" />
+        <Avatar name="Ada Lovelace" size="32x32" mr="3" />
+        <Avatar name="Ada Lovelace" size="48x48" mr="3" />
+        <Avatar name="Ada Lovelace" size="64x64" mr="3" />
         <Avatar name="Ada Lovelace" size={20} />
-      </div>
+      </Block>
     );
   },
 };

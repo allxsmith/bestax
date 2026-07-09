@@ -101,8 +101,8 @@ A `'sm' | 'md' | 'lg'` preset controls how far the avatars overlap; each group i
 so they read as separate rows.
 
 ```tsx live
-<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-  <Avatars spacing="sm">
+<Block display="flex" flexDirection="column">
+  <Avatars spacing="sm" mb="4">
     <Avatar name="Ada Lovelace" />
     <Avatar name="Grace Hopper" />
     <Avatar name="Katherine Johnson" />
@@ -112,7 +112,7 @@ so they read as separate rows.
     <Avatar name="Grace Hopper" />
     <Avatar name="Katherine Johnson" />
   </Avatars>
-</div>
+</Block>
 ```
 
 A `number` sets a pixel overlap directly:

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatars } from './Avatars';
 import { Avatar } from './Avatar';
+import { Block } from '../elements/Block';
 
 const members = [
   { id: 1, name: 'Ada Lovelace' },
@@ -115,13 +116,13 @@ export const CompoundStatic: Story = {
 export const Spacing: Story = {
   render: function SpacingExample() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <Avatars spacing="sm">
+      <Block display="flex" flexDirection="column">
+        <Avatars spacing="sm" mb="4">
           {members.map(m => (
             <Avatar key={m.id} name={m.name} />
           ))}
         </Avatars>
-        <Avatars spacing="md">
+        <Avatars spacing="md" mb="4">
           {members.map(m => (
             <Avatar key={m.id} name={m.name} />
           ))}
@@ -131,7 +132,7 @@ export const Spacing: Story = {
             <Avatar key={m.id} name={m.name} />
           ))}
         </Avatars>
-      </div>
+      </Block>
     );
   },
 };
