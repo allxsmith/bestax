@@ -30,6 +30,44 @@ describe('Avatars', () => {
     expect(screen.getByText('+2')).toBeInTheDocument();
   });
 
+  it('collapses every child into the surplus when max is 0', () => {
+    render(
+      <Avatars max={0}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+      </Avatars>
+    );
+    expect(screen.queryByText('AL')).not.toBeInTheDocument();
+    expect(screen.getByText('+3')).toBeInTheDocument();
+  });
+
+  it('ignores a negative max and clamps nothing', () => {
+    render(
+      <Avatars max={-1}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.getByText('KJ')).toBeInTheDocument();
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+  });
+
+  it('gives the surplus avatar an accessible name of "{N} more"', () => {
+    render(
+      <Avatars max={2}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+        <Avatar name="Margaret Hamilton" />
+      </Avatars>
+    );
+    expect(screen.getByRole('img', { name: '2 more' })).toBeInTheDocument();
+  });
+
   it('renders no surplus avatar when max is not exceeded', () => {
     render(
       <Avatars max={5}>

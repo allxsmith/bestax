@@ -23,20 +23,40 @@ const meta: Meta<typeof Avatars> = {
     },
   },
   argTypes: {
-    max: { control: 'number' },
+    max: {
+      control: 'number',
+      description:
+        'Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than a pointless "+1".',
+    },
     spacing: {
       control: 'select',
       options: ['sm', 'md', 'lg'],
+      description:
+        'Overlap amount between avatars — or the gap when `spaced`. A `sm`/`md`/`lg` preset or a pixel number. Default `md`.',
     },
     size: {
       control: 'select',
-      options: ['16x16', '24x24', '32x32', '48x48', '64x64'],
+      options: [
+        '16x16',
+        '24x24',
+        '32x32',
+        '48x48',
+        '64x64',
+        '96x96',
+        '128x128',
+      ],
+      description: 'Uniform size applied to every child Avatar.',
     },
     shape: {
       control: 'select',
       options: ['circle', 'rounded', 'square'],
+      description: 'Uniform shape applied to every child Avatar.',
     },
-    spaced: { control: 'boolean' },
+    spaced: {
+      control: 'boolean',
+      description:
+        'Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.',
+    },
   },
 };
 export default meta;

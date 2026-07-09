@@ -16,10 +16,28 @@ const meta: Meta<typeof Badge> = {
     },
   },
   argTypes: {
-    content: { control: 'text' },
-    max: { control: 'number' },
-    dot: { control: 'boolean' },
-    showZero: { control: 'boolean' },
+    content: {
+      control: 'text',
+      description:
+        'Count, short text, or a custom node to display; max/showZero apply only to numeric content.',
+    },
+    badgeClassName: {
+      control: 'text',
+      description: 'Additional CSS classes applied to the badge pill itself.',
+    },
+    max: {
+      control: 'number',
+      description:
+        'Numeric content above this renders as "{max}+". Default 99.',
+    },
+    dot: {
+      control: 'boolean',
+      description: 'Render a small dot with no content.',
+    },
+    showZero: {
+      control: 'boolean',
+      description: 'Show the badge when content is 0. Default false.',
+    },
     color: {
       control: 'select',
       options: [
@@ -34,17 +52,29 @@ const meta: Meta<typeof Badge> = {
         'light',
         'white',
       ],
+      description: 'Status color. Default danger.',
     },
     position: {
       control: 'select',
       options: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
+      description:
+        'Corner to overlay the badge on, relative to children. Ignored for standalone badges. Default top-right.',
     },
     overlap: {
       control: 'select',
       options: ['circle', 'square'],
+      description:
+        'Nudges the offset for a round (circle) vs rectangular (square) child. Ignored for standalone badges. Default square.',
     },
-    pulse: { control: 'boolean' },
-    invisible: { control: 'boolean' },
+    pulse: {
+      control: 'boolean',
+      description:
+        'Processing/pulse animation; no-ops under prefers-reduced-motion: reduce.',
+    },
+    invisible: {
+      control: 'boolean',
+      description: 'Hide the badge pill without unmounting it.',
+    },
   },
 };
 export default meta;
@@ -128,6 +158,37 @@ export const CustomNodeContent: Story = {
       <Badge content={<Icon name="check" />} color="success">
         <Avatar name="Ada Lovelace" />
       </Badge>
+    );
+  },
+};
+
+export const StringContent: Story = {
+  render: function StringContentExample() {
+    return (
+      <Badge content="NEW" color="primary">
+        <Icon name="envelope" ariaLabel="Messages" />
+      </Badge>
+    );
+  },
+};
+
+export const StandaloneDot: Story = {
+  render: function StandaloneDotExample() {
+    return <Badge dot color="success" />;
+  },
+};
+
+export const Invisible: Story = {
+  render: function InvisibleExample() {
+    return (
+      <div style={{ display: 'flex', gap: '2rem' }}>
+        <Badge content={4} color="danger">
+          <Icon name="bell" ariaLabel="Notifications" />
+        </Badge>
+        <Badge content={4} color="danger" invisible>
+          <Icon name="bell" ariaLabel="Notifications" />
+        </Badge>
+      </div>
     );
   },
 };

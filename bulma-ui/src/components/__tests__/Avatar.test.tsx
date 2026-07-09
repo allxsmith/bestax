@@ -195,6 +195,15 @@ describe('Avatar', () => {
     expect(container.firstChild?.nodeName).toBe('DIV');
   });
 
+  it('renders as a button without a redundant role but keeps the aria-label', () => {
+    render(<Avatar name="Ada Lovelace" as="button" />);
+    // A button is already interactive, so no role="img" is added, but the
+    // accessible name still comes from the aria-label.
+    const button = screen.getByRole('button', { name: 'Ada Lovelace' });
+    expect(button.tagName).toBe('BUTTON');
+    expect(button).not.toHaveAttribute('role', 'img');
+  });
+
   it('passes Bulma helper props through', () => {
     render(<Avatar name="Ada" m="3" data-testid="avatar" />);
     expect(screen.getByTestId('avatar')).toHaveClass('m-3');

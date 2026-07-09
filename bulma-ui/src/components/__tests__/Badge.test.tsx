@@ -23,6 +23,12 @@ describe('Badge', () => {
     expect(screen.getByText('42')).toBeInTheDocument();
   });
 
+  it('renders numeric content equal to max as-is (boundary)', () => {
+    render(<Badge content={99} max={99} />);
+    expect(screen.getByText('99')).toBeInTheDocument();
+    expect(screen.queryByText('99+')).not.toBeInTheDocument();
+  });
+
   it('renders string content as-is, ignoring max', () => {
     render(<Badge content="NEW" />);
     expect(screen.getByText('NEW')).toBeInTheDocument();

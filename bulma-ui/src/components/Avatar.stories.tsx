@@ -15,10 +15,25 @@ const meta: Meta<typeof Avatar> = {
     },
   },
   argTypes: {
-    src: { control: 'text' },
-    alt: { control: 'text' },
-    name: { control: 'text' },
-    initials: { control: 'text' },
+    src: {
+      control: 'text',
+      description:
+        'Image URL. On load error (or if absent), falls back to initials, then icon.',
+    },
+    alt: {
+      control: 'text',
+      description:
+        'Alternate text for the image (required for meaningful images).',
+    },
+    name: {
+      control: 'text',
+      description:
+        'Derives initials and a deterministic background color when no src/initials is shown.',
+    },
+    initials: {
+      control: 'text',
+      description: 'Explicit initials override (else derived from name).',
+    },
     size: {
       control: 'select',
       options: [
@@ -30,10 +45,12 @@ const meta: Meta<typeof Avatar> = {
         '96x96',
         '128x128',
       ],
+      description: 'Preset size, or a pixel size when a number.',
     },
     shape: {
       control: 'select',
       options: ['circle', 'rounded', 'square'],
+      description: 'Avatar shape. Default circle.',
     },
     color: {
       control: 'select',
@@ -49,8 +66,13 @@ const meta: Meta<typeof Avatar> = {
         'light',
         'white',
       ],
+      description:
+        'Background color for initials/icon avatars (else auto-derived from name).',
     },
-    href: { control: 'text' },
+    href: {
+      control: 'text',
+      description: 'When set, renders the avatar as a link.',
+    },
   },
 };
 export default meta;
