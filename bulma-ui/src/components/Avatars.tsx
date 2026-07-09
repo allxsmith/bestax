@@ -114,7 +114,6 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
           alt={`${overflowCount} more`}
           size={size}
           shape={shape}
-          color="light"
           className={surplusClass}
         />
       )}

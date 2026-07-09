@@ -68,7 +68,7 @@ button.#{iv.$class-prefix}avatar {
 
 // Shapes
 .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-circle {
-  border-radius: 9999px;
+  border-radius: cv.getVar('radius-rounded');
 }
 
 .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-rounded {

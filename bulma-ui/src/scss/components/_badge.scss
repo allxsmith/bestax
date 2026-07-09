@@ -11,7 +11,6 @@ $badge-radius: cv.getVar('radius-rounded') !default;
 $badge-ring-color: cv.getVar('scheme-main') !default;
 $badge-ring-width: 2px !default;
 $badge-dot-size: 0.65em !default;
-$badge-inset-square: 0 !default;
 $badge-inset-circle: 12% !default;
 $badge-animation-duration: 1.4s !default;
 
@@ -32,6 +31,8 @@ $badge-animation-duration: 1.4s !default;
       'badge-ring-color': #{$badge-ring-color},
       'badge-ring-width': #{$badge-ring-width},
       'badge-dot-size': #{$badge-dot-size},
+      'badge-inset-circle': #{$badge-inset-circle},
+      'badge-animation-duration': #{$badge-animation-duration},
     )
   );
 }
@@ -101,23 +102,23 @@ $badge-animation-duration: 1.4s !default;
 // Overlap adjustment — nudge the badge further in on a round child so it
 // doesn't float off the visible edge.
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-top-right {
-  top: $badge-inset-circle;
-  right: $badge-inset-circle;
+  top: cv.getVar('badge-inset-circle');
+  right: cv.getVar('badge-inset-circle');
 }
 
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-top-left {
-  top: $badge-inset-circle;
-  left: $badge-inset-circle;
+  top: cv.getVar('badge-inset-circle');
+  left: cv.getVar('badge-inset-circle');
 }
 
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-bottom-right {
-  bottom: $badge-inset-circle;
-  right: $badge-inset-circle;
+  bottom: cv.getVar('badge-inset-circle');
+  right: cv.getVar('badge-inset-circle');
 }
 
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-bottom-left {
-  bottom: $badge-inset-circle;
-  left: $badge-inset-circle;
+  bottom: cv.getVar('badge-inset-circle');
+  left: cv.getVar('badge-inset-circle');
 }
 
 // Color variants — background + a contrasting foreground (mirrors Toast/Avatar).
@@ -159,7 +160,7 @@ $badge-animation-duration: 1.4s !default;
   inset: 0;
   border-radius: inherit;
   background-color: inherit;
-  animation: extras-badge-pulse #{$badge-animation-duration}
+  animation: extras-badge-pulse cv.getVar('badge-animation-duration')
     cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 

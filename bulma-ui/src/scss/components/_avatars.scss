@@ -63,4 +63,11 @@ $avatars-spacing-lg: 1rem !default;
       }
     }
   }
+
+  // The "+N" surplus avatar uses scheme-aware tokens so it flips in dark mode
+  // (a fixed light color would stay pale on a dark scheme).
+  .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-surplus {
+    background-color: cv.getVar('background');
+    color: cv.getVar('text');
+  }
 }
