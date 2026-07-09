@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Avatar } from '../Avatar';
 import { ConfigProvider } from '../../helpers/Config';
@@ -45,6 +46,25 @@ describe('Avatar', () => {
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();
+  });
+
+  it('derives initials by code point for astral-plane names', () => {
+    render(<Avatar name="😀🎉" />);
+    // Array.from keeps whole code points, so no half-surrogate initials.
+    expect(screen.getByText('😀🎉')).toBeInTheDocument();
+  });
+
+  it('falls back to initials when the image already failed before hydration', () => {
+    const completeSpy = jest
+      .spyOn(HTMLImageElement.prototype, 'complete', 'get')
+      .mockReturnValue(true);
+    const widthSpy = jest
+      .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
+      .mockReturnValue(0);
+    render(<Avatar src="/broken.jpg" name="Ada Lovelace" />);
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    completeSpy.mockRestore();
+    widthSpy.mockRestore();
   });
 
   it('prefers explicit initials over a derived name', () => {
@@ -110,6 +130,45 @@ describe('Avatar', () => {
     render(<Avatar name="Ada" href="https://example.com" />);
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', 'https://example.com');
+  });
+
+  it('forwards target and rel when rendering a link', () => {
+    render(
+      <Avatar
+        name="Ada"
+        href="https://example.com"
+        target="_blank"
+        rel="noopener"
+      />
+    );
+    const link = screen.getByRole('link');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener');
+  });
+
+  it('does not forward href to a non-anchor element rendered via as', () => {
+    const { container } = render(
+      <Avatar name="Ada" as="div" href="https://example.com" />
+    );
+    const el = container.firstChild as HTMLElement;
+    expect(el.nodeName).toBe('DIV');
+    expect(el).not.toHaveAttribute('href');
+  });
+
+  it('forwards href to a custom component rendered via as', () => {
+    const CustomLink: React.FC<{
+      href?: string;
+      children?: React.ReactNode;
+    }> = ({ href, children, ...rest }) => (
+      <a data-testid="custom" href={href} {...rest}>
+        {children}
+      </a>
+    );
+    render(<Avatar name="Ada" as={CustomLink} href="https://example.com" />);
+    expect(screen.getByTestId('custom')).toHaveAttribute(
+      'href',
+      'https://example.com'
+    );
   });
 
   it('respects an explicit as override', () => {

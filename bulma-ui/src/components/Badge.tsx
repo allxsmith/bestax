@@ -28,7 +28,8 @@ export type BadgeOverlap = 'circle' | 'square';
 /**
  * Props for the Badge component.
  *
- * @property {string} [className] - Additional CSS classes to apply.
+ * @property {string} [className] - Additional CSS classes applied to the root (the wrapper when `children` are present, else the badge pill).
+ * @property {string} [badgeClassName] - Additional CSS classes applied to the badge pill itself.
  * @property {number | string} [content] - Count or short text to display; omit with `dot` for a plain dot.
  * @property {number} [max] - Numeric `content` above this renders as `"{max}+"`. Default `99`.
  * @property {boolean} [dot] - Render a small dot with no content.
@@ -45,6 +46,7 @@ export interface BadgeProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color'> {
   className?: string;
+  badgeClassName?: string;
   content?: number | string;
   max?: number;
   dot?: boolean;
@@ -79,6 +81,7 @@ export interface BadgeProps
  */
 export const Badge: React.FC<BadgeProps> = ({
   className,
+  badgeClassName,
   content,
   max = 99,
   dot = false,
@@ -93,6 +96,8 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
+  const hasChildren = children != null && children !== false;
+
   const isZero = typeof content === 'number' && content === 0;
   const hasContent = content !== undefined && (!isZero || showZero);
   const shouldRender = dot || hasContent || invisible;
@@ -105,43 +110,49 @@ export const Badge: React.FC<BadgeProps> = ({
     return content;
   }, [dot, hasContent, content, max]);
 
+  // Both prefixed-classname hooks stay above the early returns (Rules of Hooks).
   const wrapperClass = usePrefixedClassNames('badge-wrapper');
   const badgeClasses = usePrefixedClassNames('badge', {
     [`is-${color}`]: !!color && badgeColors.includes(color),
-    [`is-${position}`]: !!position,
-    [`is-overlap-${overlap}`]: !!overlap,
-    'is-standalone': !children,
+    // Corner position / overlap only mean anything inside a wrapper; emitting
+    // them on a standalone badge shifts it out of normal flow via the transform.
+    [`is-${position}`]: !!position && hasChildren,
+    [`is-overlap-${overlap}`]: !!overlap && hasChildren,
+    'is-standalone': !hasChildren,
     'is-dot': dot,
     'is-pulse': pulse,
     'is-invisible': invisible,
   });
 
-  const combinedBadgeClasses = classNames(
-    badgeClasses,
-    bulmaHelperClasses,
-    className
-  );
+  // badgeClassName is a plain (unprefixed) slot merged onto the pill, mirroring
+  // Tooltip's tooltipClassName. Standalone badges have no wrapper, so the pill
+  // is the root and takes className/helpers/rest directly.
+  const pillClass = hasChildren
+    ? classNames(badgeClasses, badgeClassName)
+    : classNames(badgeClasses, badgeClassName, bulmaHelperClasses, className);
 
   const a11yProps = dot
     ? { 'aria-hidden': true as const }
     : { role: 'status' as const, 'aria-label': String(displayValue ?? '') };
 
   const indicator = shouldRender ? (
-    <span className={combinedBadgeClasses} {...a11yProps} {...rest}>
+    <span className={pillClass} {...a11yProps} {...(hasChildren ? {} : rest)}>
       {!dot && displayValue}
     </span>
   ) : null;
 
-  if (!children) {
+  if (!hasChildren) {
     return indicator;
   }
 
-  if (!indicator) {
-    return <>{children}</>;
-  }
-
+  // Always render the wrapper when there are children so the root keeps
+  // className/helpers/rest (data-testid, id, onClick, ...) even when the badge
+  // itself is hidden.
   return (
-    <span className={wrapperClass}>
+    <span
+      className={classNames(wrapperClass, bulmaHelperClasses, className)}
+      {...rest}
+    >
       {children}
       {indicator}
     </span>

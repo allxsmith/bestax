@@ -89,10 +89,9 @@ $badge-animation-duration: 1.4s !default;
   transform: translate(-50%, 50%);
 }
 
-// Standalone (no children) badges also carry an is-{position} class, so reset
-// the corner positioning here. Declared after the corner rules on purpose: it
-// shares their specificity, so source order decides the cascade - otherwise the
-// later is-{position} transform shifts the standalone badge out of normal flow.
+// Standalone (no children) badges no longer emit an is-{position} class, but
+// keep this reset as belt-and-braces so a standalone badge always sits inline
+// in normal flow regardless of any position/overlap class a caller adds.
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-standalone {
   position: static;
   display: inline-flex;

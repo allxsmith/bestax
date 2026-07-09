@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Badge } from '../Badge';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -100,21 +100,41 @@ describe('Badge', () => {
   });
 
   it('applies the default color (danger) and position (top-right)', () => {
-    render(<Badge content={1} data-testid="badge" />);
-    expect(screen.getByTestId('badge')).toHaveClass(
+    const { container } = render(
+      <Badge content={1}>
+        <span>child</span>
+      </Badge>
+    );
+    expect(container.querySelector('.badge')).toHaveClass(
       'is-danger',
       'is-top-right'
     );
   });
 
   it('applies a custom position', () => {
-    render(<Badge content={1} position="bottom-left" data-testid="badge" />);
-    expect(screen.getByTestId('badge')).toHaveClass('is-bottom-left');
+    const { container } = render(
+      <Badge content={1} position="bottom-left">
+        <span>child</span>
+      </Badge>
+    );
+    expect(container.querySelector('.badge')).toHaveClass('is-bottom-left');
   });
 
   it('applies a custom overlap', () => {
-    render(<Badge content={1} overlap="circle" data-testid="badge" />);
-    expect(screen.getByTestId('badge')).toHaveClass('is-overlap-circle');
+    const { container } = render(
+      <Badge content={1} overlap="circle">
+        <span>child</span>
+      </Badge>
+    );
+    expect(container.querySelector('.badge')).toHaveClass('is-overlap-circle');
+  });
+
+  it('does not emit position/overlap classes on a standalone badge', () => {
+    render(<Badge content={1} data-testid="badge" />);
+    const badge = screen.getByTestId('badge');
+    expect(badge).toHaveClass('is-standalone');
+    expect(badge).not.toHaveClass('is-top-right');
+    expect(badge).not.toHaveClass('is-overlap-square');
   });
 
   it('applies the pulse class', () => {
@@ -123,13 +143,43 @@ describe('Badge', () => {
   });
 
   it('hides the badge without unmounting it when invisible', () => {
-    render(
+    const { container } = render(
       <Badge content={1} invisible data-testid="badge">
         <span data-testid="child">child</span>
       </Badge>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
-    expect(screen.getByTestId('badge')).toHaveClass('is-invisible');
+    // The pass-through data-testid lands on the wrapper root; the pill itself
+    // carries is-invisible.
+    expect(screen.getByTestId('badge')).toHaveClass('badge-wrapper');
+    expect(container.querySelector('.badge')).toHaveClass('is-invisible');
+  });
+
+  it('keeps the wrapper (and its rest props) when the badge is hidden', () => {
+    const onClick = jest.fn();
+    render(
+      <Badge content={0} data-testid="badge" id="root" onClick={onClick}>
+        <span data-testid="child">child</span>
+      </Badge>
+    );
+    const wrapper = screen.getByTestId('badge');
+    expect(wrapper).toHaveClass('badge-wrapper');
+    expect(wrapper).toHaveAttribute('id', 'root');
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+    fireEvent.click(wrapper);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes className and rest to the wrapper, badgeClassName to the pill', () => {
+    const { container } = render(
+      <Badge content={3} className="wrap-extra" badgeClassName="pill-extra">
+        <span>child</span>
+      </Badge>
+    );
+    expect(container.querySelector('.badge-wrapper')).toHaveClass('wrap-extra');
+    const pill = container.querySelector('.badge');
+    expect(pill).toHaveClass('pill-extra');
+    expect(pill).not.toHaveClass('wrap-extra');
   });
 
   it('renders when invisible even without content or dot', () => {

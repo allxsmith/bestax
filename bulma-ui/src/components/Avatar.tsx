@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
@@ -49,8 +49,14 @@ export type AvatarShape = 'circle' | 'rounded' | 'square';
 function getInitialsFromName(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '';
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  // Iterate by code point (Array.from) so astral-plane characters (emoji, some
+  // CJK) don't get split into half surrogates.
+  if (words.length === 1) {
+    return Array.from(words[0]).slice(0, 2).join('').toUpperCase();
+  }
+  const first = Array.from(words[0])[0];
+  const last = Array.from(words[words.length - 1])[0];
+  return (first + last).toUpperCase();
 }
 
 /**
@@ -94,6 +100,8 @@ function DefaultAvatarIcon() {
  * @property {AvatarColor} [color] - Background color for initials/icon avatars (else auto-derived from `name`).
  * @property {React.ElementType} [as] - Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.
  * @property {string} [href] - When set, renders the avatar as a link.
+ * @property {string} [target] - Anchor target (forwarded only when rendering a link).
+ * @property {string} [rel] - Anchor rel (forwarded only when rendering a link).
  */
 export interface AvatarProps
   extends
@@ -110,6 +118,8 @@ export interface AvatarProps
   color?: AvatarColor;
   as?: React.ElementType;
   href?: string;
+  target?: string;
+  rel?: string;
 }
 
 /**
@@ -140,16 +150,30 @@ export const Avatar: React.FC<AvatarProps> = ({
   color,
   as,
   href,
+  target,
+  rel,
   style,
   ...props
 }) => {
   // Tracks the src that failed to load (rather than a plain boolean) so a
   // new src is shown again without needing an effect to reset the flag.
   const [erroredSrc, setErroredSrc] = useState<string | undefined>(undefined);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
   const showImage = !!src && src !== erroredSrc;
+
+  // Catch images that failed before hydration: in SSR/static pages a broken
+  // image can finish loading before React attaches its onError, so it never
+  // fires. A complete image with no intrinsic width is a load failure.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth === 0) {
+      setErroredSrc(src);
+    }
+  }, [src]);
+
   const resolvedInitials = initials
     ? initials.toUpperCase()
     : name
@@ -185,6 +209,11 @@ export const Avatar: React.FC<AvatarProps> = ({
   const Tag: React.ElementType = as ?? (href ? 'a' : 'figure');
   const isInteractive = Tag === 'a' || Tag === 'button';
 
+  // Only forward link attributes when rendering an anchor or a custom (non-DOM)
+  // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
+  const isLinkLike = Tag === 'a' || typeof Tag !== 'string';
+  const linkProps = isLinkLike ? { href, target, rel } : {};
+
   const a11yProps = showImage
     ? {}
     : {
@@ -194,14 +223,15 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <Tag
-      href={href}
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
+      {...linkProps}
       {...a11yProps}
       {...rest}
     >
       {showImage && (
         <img
+          ref={imgRef}
           src={src}
           alt={alt || name || ''}
           onError={() => setErroredSrc(src)}
