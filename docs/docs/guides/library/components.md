@@ -321,6 +321,38 @@ Expandable/collapsible content panels with smooth animation. Works in controlled
 
 ---
 
+## Media
+
+### Avatar
+
+A person/entity image primitive that falls back to initials, then an icon, when no image is available. Supports sizes, shapes, and rendering as a link. [View full documentation.](../../api/components/avatar.md)
+
+```tsx live
+<Avatars spaced>
+  <Avatar src="https://github.com/allxsmith.png" name="Al Smith" size="64x64" />
+  <Avatar name="Grace Hopper" size="64x64" />
+  <Avatar name="Katherine Johnson" size="64x64" shape="square" />
+</Avatars>
+```
+
+---
+
+### Avatars
+
+An overlapping (or `spaced`) group of `Avatar`s that clamps to `max` and renders the overflow as a single `+N` surplus avatar. [View full documentation.](../../api/components/avatars.md)
+
+```tsx live
+<Avatars max={3}>
+  <Avatar name="Ada Lovelace" />
+  <Avatar name="Grace Hopper" />
+  <Avatar name="Katherine Johnson" />
+  <Avatar name="Dorothy Vaughan" />
+  <Avatar name="Mary Jackson" />
+</Avatars>
+```
+
+---
+
 ## Overlays
 
 ### Modal
@@ -509,6 +541,26 @@ A versatile dropdown menu for navigation, actions, or pop-up lists. [View full d
 ---
 
 ## Feedback
+
+### Badge
+
+A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. [View full documentation.](../../api/components/badge.md)
+
+```tsx live
+<div style={{ display: 'flex', gap: '2rem' }}>
+  <Badge content={4} color="danger">
+    <Avatar name="Ada Lovelace" />
+  </Badge>
+  <Badge content={128} max={99} color="info">
+    <Avatar name="Grace Hopper" shape="square" />
+  </Badge>
+  <Badge dot color="success" overlap="circle">
+    <Avatar name="Katherine Johnson" />
+  </Badge>
+</div>
+```
+
+---
 
 ### Message
 
