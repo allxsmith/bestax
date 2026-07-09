@@ -110,7 +110,7 @@ jobs:
           claude_args: |
             --max-turns 150
             --model claude-sonnet-5
-            --allowedTools "Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
+            --allowedTools "Edit,MultiEdit,Write,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
             ISSUE NUMBER: ${{ github.event.issue.number }}
