@@ -36,6 +36,8 @@ import { Avatar } from '@allxsmith/bestax-bulma';
 | `color`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | —          | Background color for initials/icon avatars (else auto-derived from `name`).                                                          |
 | `as`         | `React.ElementType`                                                                                              | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                               |
 | `href`       | `string`                                                                                                         | —          | When set, renders the avatar as a link.                                                                                              |
+| `target`     | `string`                                                                                                         | —          | Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).                                            |
+| `rel`        | `string`                                                                                                         | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                               |
 | `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                                      | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. |
 | `className`  | `string`                                                                                                         | —          | Additional CSS classes.                                                                                                              |
 | ...          | All standard HTML and Bulma helper props                                                                         |            | (See [Helper Props](../helpers/usebulmaclasses))                                                                                     |
@@ -44,31 +46,37 @@ import { Avatar } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
-### Photo with automatic fallback
+### Photo with Automatic Fallback
 
-If the image fails to load, `Avatar` swaps to initials derived from `name` automatically.
+A working photo renders as an image; if the `src` fails to load, `Avatar` swaps to initials
+derived from `name` automatically — no broken-image icon.
 
 ```tsx live
-<Avatar
-  src="https://bulma.io/assets/images/placeholders/128x128.png"
-  name="Ada Lovelace"
-  size="64x64"
-/>
+<Avatars spaced>
+  <Avatar src="https://github.com/allxsmith.png" name="Al Smith" size="64x64" />
+  <Avatar
+    src="https://example.invalid/missing.jpg"
+    name="Grace Hopper"
+    size="64x64"
+  />
+</Avatars>
 ```
 
 ### Initials
 
-No `src` — initials render on a deterministic auto background color derived from `name`.
+With no `src`, initials render on a deterministic auto background color derived from `name`.
 
 ```tsx live
-<Block>
+<Avatars spaced>
   <Avatar name="Ada Lovelace" />
   <Avatar name="Grace Hopper" />
   <Avatar name="Katherine Johnson" />
-</Block>
+</Avatars>
 ```
 
-### Icon fallback
+### Icon Fallback
+
+Pass an `icon` to control the final fallback when there is no photo, name, or initials.
 
 ```tsx live
 <Avatar icon={<Icon name="user" />} color="info" shape="rounded" />
@@ -76,12 +84,14 @@ No `src` — initials render on a deterministic auto background color derived fr
 
 ### Shapes
 
+The `shape` prop switches between a circle, a rounded square, and a plain square.
+
 ```tsx live
-<Block>
+<Avatars spaced>
   <Avatar name="Circle" shape="circle" />
   <Avatar name="Rounded" shape="rounded" />
   <Avatar name="Square" shape="square" />
-</Block>
+</Avatars>
 ```
 
 ### Sizes
@@ -89,22 +99,24 @@ No `src` — initials render on a deterministic auto background color derived fr
 Preset sizes mirror `Image`'s fixed-size list; a `number` renders a pixel size.
 
 ```tsx live
-<Block>
+<Avatars spaced>
   <Avatar name="Ada Lovelace" size="24x24" />
   <Avatar name="Ada Lovelace" size="32x32" />
   <Avatar name="Ada Lovelace" size="48x48" />
   <Avatar name="Ada Lovelace" size="64x64" />
   <Avatar name="Ada Lovelace" size={20} />
-</Block>
+</Avatars>
 ```
 
-### Clickable avatar
+### Clickable Avatar
+
+Set `href` to render the avatar as a link (or pass `as` for a custom element).
 
 ```tsx live
 <Avatar name="Ada Lovelace" href="https://bestax.io" />
 ```
 
-### Forwarding props to the image
+### Forwarding Props to the Image
 
 `imageProps` is spread onto the underlying `<img>` — handy for native attributes like
 `loading`, `crossOrigin`, or `referrerPolicy`. A custom `onError` is chained _before_ the
@@ -112,8 +124,8 @@ automatic initials/icon fallback runs.
 
 ```tsx live
 <Avatar
-  src="https://bulma.io/assets/images/placeholders/128x128.png"
-  name="Ada Lovelace"
+  src="https://github.com/allxsmith.png"
+  name="Al Smith"
   size="64x64"
   imageProps={{ loading: 'lazy' }}
 />
@@ -131,7 +143,15 @@ automatic initials/icon fallback runs.
 
 ---
 
-## See also
+## Related Components
 
-- [Avatars](./avatars) — an overlapping group of `Avatar`s with a surplus bubble.
-- [Badge](./badge) — a status/count indicator that overlays an `Avatar` (or any element).
+- [`Avatars`](./avatars.md): An overlapping group of `Avatar`s with a "+N" surplus bubble.
+- [`Badge`](./badge.md): A status/count indicator that overlays an `Avatar` (or any element).
+- [`Image`](../elements/image.md): Bulma's fixed-ratio image container.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
+
+---
+
+## Additional Resources
+
+- [Storybook: Avatar Stories](https://bestax.io/storybook/?path=/story/components-avatar--photo)

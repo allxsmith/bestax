@@ -45,6 +45,8 @@ container.
 
 ### Default
 
+Children overlap left-to-right, each ringed against the one beneath it.
+
 ```tsx live
 <Avatars>
   <Avatar name="Ada Lovelace" />
@@ -53,7 +55,9 @@ container.
 </Avatars>
 ```
 
-### Clamped with a surplus bubble
+### Clamped with a Surplus Bubble
+
+Set `max` to cap the visible avatars; the remainder collapse into a single `+N` surplus bubble.
 
 ```tsx live
 <Avatars max={3} size="48x48">
@@ -65,7 +69,7 @@ container.
 </Avatars>
 ```
 
-### Uniform shape
+### Uniform Shape
 
 `shape` applies to every child (and the surplus avatar); a child that sets its own `shape` keeps it.
 
@@ -79,7 +83,9 @@ container.
 </Avatars>
 ```
 
-### Compound static
+### Compound Static
+
+`Avatars.Avatar` is the same component as `Avatar`, handy when you import only the container.
 
 ```tsx live
 <Avatars>
@@ -91,8 +97,11 @@ container.
 
 ### Spacing
 
+A `'sm' | 'md' | 'lg'` preset controls how far the avatars overlap; each group is stacked here
+so they read as separate rows.
+
 ```tsx live
-<Block>
+<div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
   <Avatars spacing="sm">
     <Avatar name="Ada Lovelace" />
     <Avatar name="Grace Hopper" />
@@ -103,7 +112,7 @@ container.
     <Avatar name="Grace Hopper" />
     <Avatar name="Katherine Johnson" />
   </Avatars>
-</Block>
+</div>
 ```
 
 A `number` sets a pixel overlap directly:
@@ -116,7 +125,7 @@ A `number` sets a pixel overlap directly:
 </Avatars>
 ```
 
-### Non-overlapping (spaced)
+### Non-overlapping (Spaced)
 
 `spaced` lays the avatars out side by side, using `spacing` as the gap instead of an overlap.
 
@@ -130,7 +139,26 @@ A `number` sets a pixel overlap directly:
 
 ---
 
-## See also
+## Accessibility
 
-- [Avatar](./avatar) — the individual avatar this component groups.
-- [Badge](./badge) — a status/count indicator overlay.
+- `Avatars` is a plain container — each child `Avatar` carries its own accessible name (see
+  [Avatar's accessibility notes](./avatar.md#accessibility)).
+- The `+N` surplus avatar gets an accessible name of `"{N} more"` (via its `alt`), so assistive
+  tech announces how many members are hidden.
+- When the group represents a labelled set (e.g. "Project members"), give the container a
+  `role="group"` and an `aria-label` describing it.
+
+---
+
+## Related Components
+
+- [`Avatar`](./avatar.md): The individual avatar this component groups.
+- [`Badge`](./badge.md): A status/count indicator overlay.
+- [`Tags`](../elements/tags.md): The same sibling-plural-container convention for tags.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
+
+---
+
+## Additional Resources
+
+- [Storybook: Avatars Stories](https://bestax.io/storybook/?path=/story/components-avatars--default)
