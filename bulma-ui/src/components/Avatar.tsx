@@ -102,6 +102,7 @@ function DefaultAvatarIcon() {
  * @property {string} [href] - When set, renders the avatar as a link.
  * @property {string} [target] - Anchor target (forwarded only when rendering a link).
  * @property {string} [rel] - Anchor rel (forwarded only when rendering a link).
+ * @property {React.ImgHTMLAttributes<HTMLImageElement>} [imageProps] - Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.
  */
 export interface AvatarProps
   extends
@@ -120,6 +121,7 @@ export interface AvatarProps
   href?: string;
   target?: string;
   rel?: string;
+  imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
 }
 
 /**
@@ -152,6 +154,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   href,
   target,
   rel,
+  imageProps,
   style,
   ...props
 }) => {
@@ -231,10 +234,14 @@ export const Avatar: React.FC<AvatarProps> = ({
     >
       {showImage && (
         <img
+          {...imageProps}
           ref={imgRef}
           src={src}
           alt={alt || name || ''}
-          onError={() => setErroredSrc(src)}
+          onError={e => {
+            imageProps?.onError?.(e);
+            setErroredSrc(src);
+          }}
         />
       )}
       {showInitials && (

@@ -67,6 +67,25 @@ describe('Avatar', () => {
     widthSpy.mockRestore();
   });
 
+  it('forwards imageProps to the underlying img', () => {
+    render(
+      <Avatar src="/photo.jpg" name="Ada" imageProps={{ loading: 'lazy' }} />
+    );
+    const img = screen.getByRole('img', { name: 'Ada' });
+    expect(img).toHaveAttribute('loading', 'lazy');
+  });
+
+  it('chains imageProps.onError before falling back', () => {
+    const onError = jest.fn();
+    render(
+      <Avatar src="/broken.jpg" name="Ada Lovelace" imageProps={{ onError }} />
+    );
+    const img = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
+    fireEvent.error(img);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('AL')).toBeInTheDocument();
+  });
+
   it('prefers explicit initials over a derived name', () => {
     render(<Avatar name="Ada Lovelace" initials="xy" />);
     expect(screen.getByText('XY')).toBeInTheDocument();

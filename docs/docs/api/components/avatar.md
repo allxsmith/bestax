@@ -24,20 +24,21 @@ import { Avatar } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                                                                                             | Default    | Description                                                                            |
-| ----------- | ---------------------------------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |
-| `src`       | `string`                                                                                                         | —          | Image URL. On load error (or if absent), falls back to initials, then `icon`.          |
-| `alt`       | `string`                                                                                                         | —          | Alternate text for the image (used for the accessible name in every render mode).      |
-| `name`      | `string`                                                                                                         | —          | Derives initials and a deterministic background color when no `src` is shown.          |
-| `initials`  | `string`                                                                                                         | —          | Explicit initials override (else derived from `name`).                                 |
-| `icon`      | `React.ReactNode`                                                                                                | —          | Final fallback, rendered when there is no `src`, `name`, or `initials`.                |
-| `size`      | `'16x16' \| '24x24' \| '32x32' \| '48x48' \| '64x64' \| '96x96' \| '128x128' \| number`                          | —          | Preset size, or a pixel size when a number.                                            |
-| `shape`     | `'circle' \| 'rounded' \| 'square'`                                                                              | `'circle'` | Avatar shape.                                                                          |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | —          | Background color for initials/icon avatars (else auto-derived from `name`).            |
-| `as`        | `React.ElementType`                                                                                              | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. |
-| `href`      | `string`                                                                                                         | —          | When set, renders the avatar as a link.                                                |
-| `className` | `string`                                                                                                         | —          | Additional CSS classes.                                                                |
-| ...         | All standard HTML and Bulma helper props                                                                         |            | (See [Helper Props](../helpers/usebulmaclasses))                                       |
+| Prop         | Type                                                                                                             | Default    | Description                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `src`        | `string`                                                                                                         | —          | Image URL. On load error (or if absent), falls back to initials, then `icon`.                                                        |
+| `alt`        | `string`                                                                                                         | —          | Alternate text for the image (used for the accessible name in every render mode).                                                    |
+| `name`       | `string`                                                                                                         | —          | Derives initials and a deterministic background color when no `src` is shown.                                                        |
+| `initials`   | `string`                                                                                                         | —          | Explicit initials override (else derived from `name`).                                                                               |
+| `icon`       | `React.ReactNode`                                                                                                | —          | Final fallback, rendered when there is no `src`, `name`, or `initials`.                                                              |
+| `size`       | `'16x16' \| '24x24' \| '32x32' \| '48x48' \| '64x64' \| '96x96' \| '128x128' \| number`                          | —          | Preset size, or a pixel size when a number.                                                                                          |
+| `shape`      | `'circle' \| 'rounded' \| 'square'`                                                                              | `'circle'` | Avatar shape.                                                                                                                        |
+| `color`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | —          | Background color for initials/icon avatars (else auto-derived from `name`).                                                          |
+| `as`         | `React.ElementType`                                                                                              | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                               |
+| `href`       | `string`                                                                                                         | —          | When set, renders the avatar as a link.                                                                                              |
+| `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                                      | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. |
+| `className`  | `string`                                                                                                         | —          | Additional CSS classes.                                                                                                              |
+| ...          | All standard HTML and Bulma helper props                                                                         |            | (See [Helper Props](../helpers/usebulmaclasses))                                                                                     |
 
 ---
 
@@ -101,6 +102,21 @@ Preset sizes mirror `Image`'s fixed-size list; a `number` renders a pixel size.
 
 ```tsx live
 <Avatar name="Ada Lovelace" href="https://bestax.io" />
+```
+
+### Forwarding props to the image
+
+`imageProps` is spread onto the underlying `<img>` — handy for native attributes like
+`loading`, `crossOrigin`, or `referrerPolicy`. A custom `onError` is chained _before_ the
+automatic initials/icon fallback runs.
+
+```tsx live
+<Avatar
+  src="https://bulma.io/assets/images/placeholders/128x128.png"
+  name="Ada Lovelace"
+  size="64x64"
+  imageProps={{ loading: 'lazy' }}
+/>
 ```
 
 ---

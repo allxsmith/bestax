@@ -133,3 +133,16 @@ export const Clickable: Story = {
     return <Avatar name="Ada Lovelace" href="https://bestax.io" />;
   },
 };
+
+export const LazyLoadedImage: Story = {
+  render: function LazyLoadedExample() {
+    return (
+      <Avatar
+        src="https://bulma.io/assets/images/placeholders/128x128.png"
+        name="Ada Lovelace"
+        size="64x64"
+        imageProps={{ loading: 'lazy' }}
+      />
+    );
+  },
+};
