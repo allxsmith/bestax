@@ -30,6 +30,7 @@ import {
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
+  type ClaudeMdOptions,
 } from './constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -101,7 +102,11 @@ export class ProjectCreator {
     await copyDirectory(templatePath, targetPath);
   }
 
-  async setupSkills(targetPath: string, projectName: string): Promise<void> {
+  async setupSkills(
+    targetPath: string,
+    projectName: string,
+    options: ClaudeMdOptions
+  ): Promise<void> {
     const skillsSrc = path.join(this.templatesDir, 'skills');
     if (!(await checkDirectoryExists(skillsSrc))) {
       console.log(
@@ -113,7 +118,7 @@ export class ProjectCreator {
     await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
     await fs.writeFile(
       path.join(targetPath, 'CLAUDE.md'),
-      CLAUDE_MD(projectName)
+      CLAUDE_MD(projectName, options)
     );
     console.log(chalk.green(MESSAGES.SKILLS_ADDED));
   }
@@ -557,7 +562,10 @@ export class ProjectCreator {
         template
       );
       if (installSkills) {
-        await this.setupSkills(targetPath, projectName);
+        await this.setupSkills(targetPath, projectName, {
+          bulmaFlavor,
+          iconLibrary,
+        });
       }
       displaySuccess(targetDir);
     } catch (error) {

@@ -221,7 +221,10 @@ describe('ProjectCreator', () => {
         >
       ).mockResolvedValue(true);
 
-      await projectCreator.setupSkills('/target/path', 'my-app');
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
 
       expect(fs.default.copy).toHaveBeenCalledWith(
         expect.stringContaining('skills'),
@@ -231,6 +234,32 @@ describe('ProjectCreator', () => {
         expect.stringContaining('CLAUDE.md'),
         expect.stringContaining('my-app')
       );
+      const written = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      expect(written).toContain('Bulma flavor: **complete**');
+      expect(written).toContain('No icon library is installed');
+      expect(written).not.toContain('classPrefix');
+    });
+
+    it('documents the prefix caveat and icon library for a prefixed scaffold', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'prefixed',
+        iconLibrary: 'fontawesome',
+      });
+
+      const written = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      expect(written).toContain('classPrefix="bestax-"');
+      expect(written).toContain('bestax-prefixed.css');
+      expect(written).toContain('Icon library: **Font Awesome**');
     });
 
     it('skips when the skills bundle is missing', async () => {
@@ -240,7 +269,10 @@ describe('ProjectCreator', () => {
         >
       ).mockResolvedValue(false);
 
-      await projectCreator.setupSkills('/target/path', 'my-app');
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
 
       expect(fs.default.copy).not.toHaveBeenCalled();
       expect(fs.default.writeFile).not.toHaveBeenCalled();
