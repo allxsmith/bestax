@@ -1,3 +1,10 @@
+# [5.4.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.3.0...@allxsmith/bestax-bulma@5.4.0) (2026-07-10)
+
+
+### Features
+
+* **bulma-ui:** add Avatar, Avatars, and Badge components ([#257](https://github.com/allxsmith/bestax/issues/257)) ([0817018](https://github.com/allxsmith/bestax/commit/081701874bec730b0ede42a71a69e831310df76b)), closes [#256](https://github.com/allxsmith/bestax/issues/256)
+
 # [5.3.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.2.1...@allxsmith/bestax-bulma@5.3.0) (2026-07-08)
 
 
