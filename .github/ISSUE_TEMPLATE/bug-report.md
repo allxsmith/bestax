@@ -68,3 +68,12 @@ If applicable, add screenshots or code snippets to help explain your problem.
 ## Additional Context
 
 Add any other context about the problem here.
+
+---
+
+## Definition of Done
+
+- Fix + a regression test (failing before the fix, passing after)
+- Coverage stays ≥ 99% (bulma-ui)
+- Docs/story updates if the behavior is visible
+- `pnpm check:conformance` green

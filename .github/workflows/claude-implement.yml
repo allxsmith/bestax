@@ -113,7 +113,7 @@ jobs:
           claude_args: |
             --max-turns 150
             --model claude-sonnet-5
-            --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/jest.config.*),MultiEdit(**/jest.config.*),Write(**/jest.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*)"
+            --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/jest.config.*),MultiEdit(**/jest.config.*),Write(**/jest.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*),Edit(scripts/check-conformance.mjs),MultiEdit(scripts/check-conformance.mjs),Write(scripts/check-conformance.mjs),Edit(scripts/conformance-baseline.json),MultiEdit(scripts/conformance-baseline.json),Write(scripts/conformance-baseline.json)"
             --allowedTools "Edit,MultiEdit,Write,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
@@ -129,7 +129,11 @@ jobs:
 
             1. Read the issue with `gh issue view` (title, body, comments)
                and the repo conventions in AGENTS.md and the layered
-               CLAUDE.md files.
+               CLAUDE.md files. If the issue adds or changes a component,
+               `/CONTRIBUTING-COMPONENTS.md` is the definition of complete —
+               follow it end-to-end (it forks on stock-Bulma vs extra and
+               lists the docs listing surfaces and skills sync reviewers
+               will check).
             2. Implement the smallest complete change that resolves the
                issue, on the claude/* branch created for this task:
                - bulma-ui changes need a matching Storybook story and Jest
@@ -143,7 +147,10 @@ jobs:
                  requires one, stop and explain in an issue comment instead.
                - Never touch .github/**, jest configs, commitlint/release
                  configs, pnpm-workspace.yaml, .npmrc, .coderabbit.yaml, or
-                 turbo.json (the loop's gate rejects PRs that do).
+                 turbo.json (the loop's gate rejects PRs that do), and never
+                 edit scripts/check-conformance.mjs or
+                 scripts/conformance-baseline.json to get the conformance
+                 gate green.
                - REGRESSION-TEST GATE (bug fixes): if the issue reports a
                  BUG, FIRST write a test that reproduces it and FAILS against
                  the current code; run it and confirm it fails for the
@@ -157,8 +164,13 @@ jobs:
             3. Before opening the PR, run the gates for what you touched:
                `pnpm --filter <pkg> run lint`, `... typecheck`,
                `... test:coverage`, `pnpm run format:check`,
-               `pnpm run gen:catalog:check`. Fix failures; full CI is the
-               backstop.
+               `pnpm run gen:catalog:check`, `pnpm run check:conformance`;
+               for bulma-ui changes also `pnpm run build` and
+               `pnpm --filter @allxsmith/bestax-bulma run build-storybook`.
+               Fix failures; full CI is the backstop. CI additionally runs
+               bundle:stats, a high-severity audit, and a React 18/19
+               compatibility matrix — write code that works on both React
+               majors.
             4. COMMIT + PUSH with the git CLI — create the branch and push it
                yourself with plain git:
                  git checkout -b claude/issue-${{ github.event.issue.number }}-<short-timestamp>
@@ -173,6 +185,10 @@ jobs:
                the types feat|fix|perf|refactor|style REQUIRE a scope of
                bulma-ui, docs, or create-bestax. The PR title becomes the
                squash commit and drives semantic-release — release-critical.
+               Before opening the PR, re-read your full diff against the
+               self-review checklist at the end of
+               /CONTRIBUTING-COMPONENTS.md and fix every miss — each miss a
+               reviewer catches costs one of the loop's 4 iterations.
             5. Open the PR yourself. This is REQUIRED and is the definition
                of "done" — the task is NOT complete until a real PR exists.
                Do NOT merely post a "Create a PR" / compare link; a link does

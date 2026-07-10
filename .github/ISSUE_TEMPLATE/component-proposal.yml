@@ -1,0 +1,93 @@
+name: '🧩 Component Proposal'
+description: Propose a new component for the bestax monorepo or bestax-bulma package.
+title: '[Component Proposal] <component name>'
+labels: ['component proposal', 'enhancement', 'triage']
+assignees:
+  - allxsmith
+body:
+  - type: markdown
+    attributes:
+      value: >
+        If this proposal enters the AI loop, the issue body becomes the
+        implementing agent's task description — the more precise the Behavior
+        spec and Accessibility sections, the fewer review rounds the PR needs.
+  - type: input
+    id: component-name
+    attributes:
+      label: Component name
+      description: What is the name of the new component you are proposing?
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Which package?
+      options:
+        - bulma-ui (`@allxsmith/bestax-bulma`)
+        - create-bestax (`create-bestax`)
+        - docs (`@allxsmith/bestax-docs`)
+        - Other (please specify in the use cases)
+    validations:
+      required: true
+  - type: dropdown
+    id: stock-or-extra
+    attributes:
+      label: Stock Bulma or Beyond-Bulma extra?
+      options:
+        - Stock Bulma (in the Bulma v1 spec)
+        - Extra / Beyond Bulma (needs SCSS partial + register-vars)
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Use cases
+      description: Describe the use cases or scenarios where this component would be helpful.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API
+      description: A TypeScript interface sketch of the component's props, plus any slots or events.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior-spec
+    attributes:
+      label: Behavior spec
+      description: States, interactions, fallbacks, keyboard/focus behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: accessibility
+    attributes:
+      label: Accessibility requirements
+      description: Roles/aria, announcements, prefers-reduced-motion.
+    validations:
+      required: true
+  - type: textarea
+    id: example-usage
+    attributes:
+      label: Example usage
+      description: Provide an example of how the component might be used by consumers.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternatives or existing components? Why is this new component needed?
+    validations:
+      required: false
+  - type: checkboxes
+    id: definition-of-done
+    attributes:
+      label: Definition of done (implementer checklist)
+      description: For the implementer, not the filer — leave these unchecked when filing.
+      options:
+        - label: The five artifacts (component, tests, story, docs page, export) plus `pnpm gen:catalog` — per bulma-ui/CLAUDE.md
+        - label: Docs listing surfaces and skills sync — per /CONTRIBUTING-COMPONENTS.md
+        - label: '`pnpm check:conformance` and `pnpm all` green'
+        - label: Works on React 18 and 19
