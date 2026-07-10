@@ -1,0 +1,155 @@
+name: AI Triage
+
+# Opt-in, label-triggered triage — an adaptation of oven-sh/bun's always-on
+# claude-find-issues-for-pr.yml + claude-dedupe-issues.yml. A maintainer
+# applies the `ai-triage` label to a PR or issue; one cheap sonnet session
+# searches for related issues / likely duplicates and posts a single summary
+# comment; the label is then auto-removed so it works like a re-pressable
+# button.
+#
+# SECURITY — two layers gate every run:
+#   1. Job `if:` requires the `ai-triage` label from a real user
+#      (GitHub already restricts labeling to triage+ collaborators).
+#   2. A live permission re-check step requires admin/maintain/write/triage,
+#      so an automated or stale-association label can never spend usage.
+# This never checks out PR head code — only the base repo's default branch —
+# so `pull_request_target` is safe here.
+#
+# Usage posture: one sonnet session per label application, always human-gated.
+# Kill switch: repo variable AI_LOOP_ENABLED=false.
+#
+# Label to create at rollout: `ai-triage`, color #0e8a16, description
+# "Run one-shot AI triage: related issues + duplicates (sonnet; triage+ only)".
+
+on:
+  pull_request_target:
+    types: [labeled]
+  issues:
+    types: [labeled]
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+concurrency:
+  group: ai-triage-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    # Layer 1 (cheap pre-gate): only the ai-triage label, applied by a real
+    # user, with the system enabled. Anything else is a silent no-op that
+    # spends no usage.
+    if: |
+      github.event.label.name == 'ai-triage' &&
+      github.event.sender.type == 'User' &&
+      vars.AI_LOOP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read # checkout of the base default branch
+      pull-requests: write # post the triage comment on PRs; remove the label
+      issues: write # post the triage comment on issues; remove the label
+      id-token: write # OIDC exchange for the Claude OAuth token
+    steps:
+      # Layer 2 (authoritative): GitHub already restricts labeling to triage+;
+      # re-verify the labeler's LIVE role defensively so an automated or
+      # template-applied label can never trigger a session. All later steps
+      # gate on this output.
+      - name: Check labeler permission
+        id: perm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          set -euo pipefail
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "$SENDER has $ROLE access — running triage" ;;
+            *)
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "$SENDER lacks triage access ($ROLE) — ignoring" ;;
+          esac
+
+      # Check out ONLY the base repo's default branch — never the PR head.
+      # Under pull_request_target that keeps untrusted PR code out of the
+      # workspace; the triage agent reads PR content via the gh API instead.
+      # No pnpm/node setup and no dependency install: this job never runs
+      # project code, it only gives the Claude action a workspace.
+      - name: Checkout base default branch
+        if: steps.perm.outputs.allowed == 'true'
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Run Claude (triage)
+        if: steps.perm.outputs.allowed == 'true'
+        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        with:
+          # OAuth token only — posts as claude[bot]. Safe: this is a plain
+          # top-level comment; the loop's state machine only classifies
+          # review threads.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --max-turns 30
+            --model claude-sonnet-5
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*),Bash(gh api:*),Bash(gh pr comment:*),Bash(gh issue comment:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+            IS_PR: ${{ github.event.pull_request != null }}
+
+            You are a one-shot TRIAGE agent. A maintainer applied the
+            `ai-triage` label to the PR or issue above; your entire job is to
+            find related and duplicate items and post EXACTLY ONE comment.
+
+            1. Read the target:
+               - If IS_PR is true: `gh pr view NUMBER --repo REPO` for the
+                 title/body, then `gh pr diff NUMBER --repo REPO` (or the
+                 files endpoint via `gh api`) for a summary of what it
+                 changes. Do NOT check out or execute any of its code.
+               - If IS_PR is false: `gh issue view NUMBER --repo REPO` for
+                 the title/body and existing comments.
+            2. Search THIS repo for connections, using several keyword
+               variations from the title, body, and (for PRs) the changed
+               file paths — `gh search issues`, `gh issue list`,
+               `gh pr list`, and `gh api` as needed. Look for:
+               - If a PR: (a) existing issues this PR likely resolves or
+                 relates to (especially ones it should say "Closes #N" for),
+                 and (b) other PRs — open or recently closed — that look like
+                 duplicates or overlapping work.
+               - If an issue: likely duplicate issues (open or closed) and
+                 closely related issues or PRs.
+            3. Judge each candidate before including it: same root cause or
+               clearly the same feature = duplicate; same area or blocking
+               relationship = related. Drop weak keyword-only matches.
+            4. Post EXACTLY ONE comment — `gh pr comment` if IS_PR is true,
+               `gh issue comment` otherwise — formatted as scannable
+               Markdown:
+               - A short heading, e.g. `### AI triage`.
+               - A `**Likely duplicates**` list and/or a `**Related**` list,
+                 each entry as `#N — <title>` plus a one-line reason why it
+                 qualifies.
+               - If nothing credible turns up, post the single line
+                 "No related issues or duplicates found." under the heading
+                 instead.
+            5. HARD RULES: never apply or remove labels; never close, merge,
+               push, or resolve anything; never write "@claude" or
+               "@coderabbitai" in any text; post one comment and nothing
+               else.
+
+      # Always remove the trigger label — even when the Claude step failed —
+      # so the label stays a re-pressable button and never wedges "on".
+      - name: Remove ai-triage label
+        if: always() && steps.perm.outputs.allowed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: |
+          # The issues labels API covers both issues and PRs.
+          gh api -X DELETE "repos/$REPO/issues/$NUMBER/labels/ai-triage" || true

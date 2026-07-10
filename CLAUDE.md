@@ -92,3 +92,5 @@ deep review on it (once ever per PR). Kill switches: remove `ai-loop` (per PR) o
 variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
+Separately, labeling any PR or issue `ai-triage` (triage+ only) runs a one-shot sonnet triage
+session that comments with related issues/duplicates and then removes the label.
