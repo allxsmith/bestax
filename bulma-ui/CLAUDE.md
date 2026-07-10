@@ -27,6 +27,8 @@ A new or changed component is **five artifacts, not one**. Touch all of:
 
 …then run `pnpm gen:catalog` (CI's `gen:catalog:check` fails if the skill catalog is stale).
 If the change invalidates guidance in `skills/`, update the skill in the same PR.
+For a **new** component, `/CONTRIBUTING-COMPONENTS.md` is the complete checklist — it adds the
+docs listing surfaces and skills sync that CI's `check:conformance` enforces.
 
 The full worked walkthrough (including the SCSS side for extras) is
 `skills/bestax-custom-component/SKILL.md` — follow it rather than improvising.
@@ -42,5 +44,11 @@ The full worked walkthrough (including the SCSS side for extras) is
   widget) need an issue discussion first, and pair with SCSS in `src/scss/`.
 - Tests: jest + ts-jest + Testing Library, in each folder's `__tests__/`. Run one file with
   `pnpm --filter @allxsmith/bestax-bulma exec jest src/elements/__tests__/Button.test.tsx`.
+  The 99% bar is reachable with the techniques in `src/components/__tests__/Reveal.test.tsx`
+  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`).
+- Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
+  `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
+  props (no `gap` helper — space with `m*`/`p*`); legacy inline styles exist, don't copy them.
+- Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
   (writes `dist/stats.html`) when adding anything with real runtime weight.
