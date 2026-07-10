@@ -13,7 +13,10 @@ name: AI Triage
 #   2. A live permission re-check step requires admin/maintain/write/triage,
 #      so an automated or stale-association label can never spend usage.
 # This never checks out PR head code — only the base repo's default branch —
-# so `pull_request_target` is safe here.
+# so `pull_request_target` is safe here. The Claude tool allowlist is
+# deliberately GET-only gh commands (view/diff/list/search) plus the two
+# comment commands — no `gh api`, which could also POST/PATCH/DELETE —
+# because the session ingests untrusted issue/PR text.
 #
 # Usage posture: one sonnet session per label application, always human-gated.
 # Kill switch: repo variable AI_LOOP_ENABLED=false.
@@ -76,7 +79,7 @@ jobs:
 
       # Check out ONLY the base repo's default branch — never the PR head.
       # Under pull_request_target that keeps untrusted PR code out of the
-      # workspace; the triage agent reads PR content via the gh API instead.
+      # workspace; the triage agent reads PR content via read-only gh commands.
       # No pnpm/node setup and no dependency install: this job never runs
       # project code, it only gives the Claude action a workspace.
       - name: Checkout base default branch
@@ -97,7 +100,7 @@ jobs:
           claude_args: |
             --max-turns 30
             --model claude-sonnet-5
-            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*),Bash(gh api:*),Bash(gh pr comment:*),Bash(gh issue comment:*)"
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*),Bash(gh pr comment:*),Bash(gh issue comment:*)"
           prompt: |
             REPO: ${{ github.repository }}
             NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
@@ -109,15 +112,15 @@ jobs:
 
             1. Read the target:
                - If IS_PR is true: `gh pr view NUMBER --repo REPO` for the
-                 title/body, then `gh pr diff NUMBER --repo REPO` (or the
-                 files endpoint via `gh api`) for a summary of what it
-                 changes. Do NOT check out or execute any of its code.
+                 title/body, then `gh pr diff NUMBER --repo REPO` for a
+                 summary of what it changes. Do NOT check out or execute
+                 any of its code.
                - If IS_PR is false: `gh issue view NUMBER --repo REPO` for
                  the title/body and existing comments.
             2. Search THIS repo for connections, using several keyword
                variations from the title, body, and (for PRs) the changed
-               file paths — `gh search issues`, `gh issue list`,
-               `gh pr list`, and `gh api` as needed. Look for:
+               file paths — `gh search issues`, `gh search prs`,
+               `gh issue list`, and `gh pr list`. Look for:
                - If a PR: (a) existing issues this PR likely resolves or
                  relates to (especially ones it should say "Closes #N" for),
                  and (b) other PRs — open or recently closed — that look like
