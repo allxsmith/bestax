@@ -547,17 +547,17 @@ A versatile dropdown menu for navigation, actions, or pop-up lists. [View full d
 A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. [View full documentation.](../../api/components/badge.md)
 
 ```tsx live
-<div style={{ display: 'flex', gap: '2rem' }}>
-  <Badge content={4} color="danger">
+<Block display="flex">
+  <Badge content={4} color="danger" mr="6">
     <Avatar name="Ada Lovelace" />
   </Badge>
-  <Badge content={128} max={99} color="info">
+  <Badge content={128} max={99} color="info" mr="6">
     <Avatar name="Grace Hopper" shape="square" />
   </Badge>
   <Badge dot color="success" overlap="circle">
     <Avatar name="Katherine Johnson" />
   </Badge>
-</div>
+</Block>
 ```
 
 ---
