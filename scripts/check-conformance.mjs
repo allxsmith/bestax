@@ -182,9 +182,15 @@ async function checkListingsSync() {
 
   for (const [cat, comps] of byCat) {
     for (const { title } of comps) {
-      // Homepage cards: everything except form controls (form inputs are not
-      // part of the homepage-cards convention) and HOME_EXEMPT.
-      if (cat !== 'form' && !HOME_EXEMPT.has(title) && !homeNames.has(title)) {
+      // Homepage cards: everything except form controls and helpers (neither
+      // is part of the homepage-cards convention — form inputs are grouped,
+      // helpers are reference pages) and HOME_EXEMPT.
+      if (
+        cat !== 'form' &&
+        cat !== 'helpers' &&
+        !HOME_EXEMPT.has(title) &&
+        !homeNames.has(title)
+      ) {
         violations.push(
           `${title} (${cat}) is not on any homepage surface. Add it to ` +
             `docs/src/data/componentCategories.js (stock Bulma / gap element) ` +
