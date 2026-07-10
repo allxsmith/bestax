@@ -4,6 +4,10 @@ name: Close Stale bestaxbot PRs
 # oven-sh/bun's close-stale-robobun-prs.yml. Zero Claude usage — plain
 # shell + gh, so it can never spend AI budget or act on untrusted content.
 #
+# PRs labeled `neverstale` are exempt from this closer too — the label means
+# "exempt from stale automation", and that covers the 90-day bot sweep as
+# well as the generic 30/14-day stale.yml layer.
+#
 # Loop labels (ai-loop / ai-loop-paused / needs-human-review) are stripped
 # BEFORE the close (same pattern as on-slop.yml) so the PR exits the AI
 # loop's state machine cleanly instead of lingering as a closed-but-labeled
@@ -37,9 +41,9 @@ jobs:
           echo "Closing bestaxbot PRs not updated since $CUTOFF"
 
           gh pr list --repo "$REPO" --author bestaxbot --state open \
-            --json number,updatedAt \
+            --json number,updatedAt,labels \
           | jq -r --arg cutoff "$CUTOFF" \
-              '.[] | select(.updatedAt < $cutoff) | .number' \
+              '.[] | select(.updatedAt < $cutoff) | select(([.labels[].name] | index("neverstale")) | not) | .number' \
           | while read -r PR; do
               echo "Closing stale PR #$PR"
               gh pr comment "$PR" --repo "$REPO" --body "Closing this PR after 90 days of inactivity. If it's still wanted, reopen it — or restart the loop per the instructions in the PR's \`ai-loop-state\` status comment."
