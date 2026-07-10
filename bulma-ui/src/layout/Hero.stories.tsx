@@ -12,6 +12,7 @@ import Image from '../elements/Image';
 const meta: Meta<typeof Hero> = {
   title: 'Layout/Hero',
   component: Hero,
+  tags: ['autodocs'],
 };
 
 export default meta;

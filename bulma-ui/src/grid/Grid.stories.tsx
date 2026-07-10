@@ -13,6 +13,7 @@ import { Notification } from '../elements/Notification';
 export default {
   title: 'Grid/Grid',
   component: Grid,
+  tags: ['autodocs'],
 };
 
 const cellCount = 24;

@@ -7,6 +7,7 @@ import { Notification } from '../elements/Notification';
 const meta: Meta<typeof Columns> = {
   title: 'Columns/Columns',
   component: Columns,
+  tags: ['autodocs'],
 };
 
 export default meta;

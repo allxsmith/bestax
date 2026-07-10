@@ -5,6 +5,7 @@ import { Notification } from '../elements/Notification';
 const meta: Meta<typeof Container> = {
   title: 'Layout/Container',
   component: Container,
+  tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },

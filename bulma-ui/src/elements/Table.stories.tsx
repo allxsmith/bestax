@@ -10,6 +10,7 @@ import { Tfoot } from './Tfoot';
 const meta: Meta<typeof Table> = {
   title: 'Elements/Table',
   component: Table,
+  tags: ['autodocs'],
   argTypes: {
     isBordered: { control: 'boolean' },
     isStriped: { control: 'boolean' },

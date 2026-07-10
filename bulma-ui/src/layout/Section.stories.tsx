@@ -6,6 +6,7 @@ import { SubTitle } from '../elements/SubTitle';
 const meta: Meta<typeof Section> = {
   title: 'Layout/Section',
   component: Section,
+  tags: ['autodocs'],
 };
 
 export default meta;

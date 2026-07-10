@@ -29,6 +29,7 @@ const DismissibleTagWithDeleteWrapper: React.FC = () => {
 const meta: Meta<typeof Tags> = {
   title: 'Elements/Tags',
   component: Tags,
+  tags: ['autodocs'],
   argTypes: {
     hasAddons: { control: 'boolean' },
     isMultiline: { control: 'boolean' },

@@ -7,6 +7,7 @@ const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis
 const meta: Meta<ModalProps> = {
   title: 'Components/Modal',
   component: Modal,
+  tags: ['autodocs'],
   parameters: {
     controls: { expanded: true },
   },
