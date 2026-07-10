@@ -1,0 +1,73 @@
+// Avatars component styles — an overlapping/stacked Avatar group
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// Avatars-specific SCSS variables
+$avatars-ring-color: cv.getVar('scheme-main') !default;
+$avatars-ring-width: 2px !default;
+$avatars-spacing-sm: 0.5rem !default;
+$avatars-spacing-md: 0.75rem !default;
+$avatars-spacing-lg: 1rem !default;
+
+.#{iv.$class-prefix}avatars {
+  @include cv.register-vars(
+    (
+      'avatars-ring-color': #{$avatars-ring-color},
+      'avatars-ring-width': #{$avatars-ring-width},
+      'avatars-spacing': #{$avatars-spacing-md},
+    )
+  );
+}
+
+// Re-register the single spacing var per preset. A numeric `spacing` prop sets
+// --bulma-avatars-spacing inline instead (mirrors Sidebar's inline width var).
+.#{iv.$class-prefix}avatars.#{iv.$class-prefix}is-spacing-sm {
+  @include cv.register-vars(
+    (
+      'avatars-spacing': #{$avatars-spacing-sm},
+    )
+  );
+}
+
+.#{iv.$class-prefix}avatars.#{iv.$class-prefix}is-spacing-lg {
+  @include cv.register-vars(
+    (
+      'avatars-spacing': #{$avatars-spacing-lg},
+    )
+  );
+}
+
+.#{iv.$class-prefix}avatars {
+  display: inline-flex;
+  align-items: center;
+
+  .#{iv.$class-prefix}avatar {
+    box-shadow: 0 0 0 cv.getVar('avatars-ring-width')
+      cv.getVar('avatars-ring-color');
+
+    &:not(:first-child) {
+      margin-left: calc(-1 * #{cv.getVar('avatars-spacing')});
+    }
+  }
+
+  // Non-overlapping: a positive gap of the same spacing var instead of a
+  // negative margin, and no ring (there is nothing to separate from).
+  &.#{iv.$class-prefix}is-spaced {
+    gap: cv.getVar('avatars-spacing');
+
+    .#{iv.$class-prefix}avatar {
+      box-shadow: none;
+
+      &:not(:first-child) {
+        margin-left: 0;
+      }
+    }
+  }
+
+  // The "+N" surplus avatar uses scheme-aware tokens so it flips in dark mode
+  // (a fixed light color would stay pale on a dark scheme).
+  .#{iv.$class-prefix}avatar.#{iv.$class-prefix}is-surplus {
+    background-color: cv.getVar('background');
+    color: cv.getVar('text');
+  }
+}

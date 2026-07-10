@@ -96,6 +96,28 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 | `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
 | `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
 
+## Extras component variables (Avatar / Avatars / Badge)
+
+These are registered on the component's own selector (`.avatar`, `.avatars`, `.badge`), not on
+`:root`, so override them with a scoped rule, the component's `style`/`className`, or `Theme`'s
+`bulmaVars` on a wrapping `Theme`. Several default to core theme vars above, so they already flow
+through a custom theme.
+
+| Variable                                                          | Default                          |
+| ----------------------------------------------------------------- | -------------------------------- |
+| `--bulma-avatar-size`                                             | `48px`                           |
+| `--bulma-avatar-background` / `--bulma-avatar-color`              | `background` / `text`            |
+| `--bulma-avatar-weight`                                           | `weight-semibold`                |
+| `--bulma-avatar-rounded-radius`                                   | `radius-large`                   |
+| `--bulma-avatars-ring-color` / `--bulma-avatars-ring-width`       | `scheme-main` / `2px`            |
+| `--bulma-avatars-spacing`                                         | `0.75rem` (`sm` 0.5 / `lg` 1rem) |
+| `--bulma-badge-height` / `--bulma-badge-min-width`                | `1.25em` / `1.25em`              |
+| `--bulma-badge-padding` / `--bulma-badge-font-size`               | `0 0.4em` / `0.7rem`             |
+| `--bulma-badge-radius`                                            | `radius-rounded`                 |
+| `--bulma-badge-ring-color` / `--bulma-badge-ring-width`           | `scheme-main` / `2px`            |
+| `--bulma-badge-dot-size`                                          | `0.65em`                         |
+| `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
+
 ## Dark mode (`Theme colorMode`)
 
 Drive the light/dark scheme with the `Theme` component's **`colorMode`** prop —

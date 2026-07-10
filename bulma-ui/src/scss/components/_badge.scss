@@ -1,0 +1,183 @@
+// Badge component styles — a small status/count indicator overlaid on a corner
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// Badge-specific SCSS variables
+$badge-height: 1.25em !default;
+$badge-min-width: 1.25em !default;
+$badge-padding: 0 0.4em !default;
+$badge-font-size: 0.7rem !default;
+$badge-radius: cv.getVar('radius-rounded') !default;
+$badge-ring-color: cv.getVar('scheme-main') !default;
+$badge-ring-width: 2px !default;
+$badge-dot-size: 0.65em !default;
+$badge-inset-circle: 12% !default;
+$badge-animation-duration: 1.4s !default;
+
+.#{iv.$class-prefix}badge-wrapper {
+  position: relative;
+  display: inline-flex;
+  line-height: 0;
+}
+
+.#{iv.$class-prefix}badge {
+  @include cv.register-vars(
+    (
+      'badge-height': #{$badge-height},
+      'badge-min-width': #{$badge-min-width},
+      'badge-padding': #{$badge-padding},
+      'badge-font-size': #{$badge-font-size},
+      'badge-radius': #{$badge-radius},
+      'badge-ring-color': #{$badge-ring-color},
+      'badge-ring-width': #{$badge-ring-width},
+      'badge-dot-size': #{$badge-dot-size},
+      'badge-inset-circle': #{$badge-inset-circle},
+      'badge-animation-duration': #{$badge-animation-duration},
+    )
+  );
+}
+
+.#{iv.$class-prefix}badge {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: cv.getVar('badge-height');
+  min-width: cv.getVar('badge-min-width');
+  padding: cv.getVar('badge-padding');
+  border-radius: cv.getVar('badge-radius');
+  box-shadow: 0 0 0 cv.getVar('badge-ring-width') cv.getVar('badge-ring-color');
+  font-size: cv.getVar('badge-font-size');
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+
+  &.#{iv.$class-prefix}is-dot {
+    height: cv.getVar('badge-dot-size');
+    min-width: cv.getVar('badge-dot-size');
+    padding: 0;
+  }
+
+  &.#{iv.$class-prefix}is-invisible {
+    visibility: hidden;
+  }
+}
+
+// Corner positions (relative to the .badge-wrapper, unless is-standalone)
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-top-right {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-top-left {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-bottom-right {
+  bottom: 0;
+  right: 0;
+  transform: translate(50%, 50%);
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-bottom-left {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+}
+
+// Standalone (no children) badges no longer emit an is-{position} class, but
+// keep this reset as belt-and-braces so a standalone badge always sits inline
+// in normal flow regardless of any position/overlap class a caller adds.
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-standalone {
+  position: static;
+  display: inline-flex;
+  transform: none;
+}
+
+// Overlap adjustment — nudge the badge further in on a round child so it
+// doesn't float off the visible edge.
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-top-right {
+  top: cv.getVar('badge-inset-circle');
+  right: cv.getVar('badge-inset-circle');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-top-left {
+  top: cv.getVar('badge-inset-circle');
+  left: cv.getVar('badge-inset-circle');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-bottom-right {
+  bottom: cv.getVar('badge-inset-circle');
+  right: cv.getVar('badge-inset-circle');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-overlap-circle.#{iv.$class-prefix}is-bottom-left {
+  bottom: cv.getVar('badge-inset-circle');
+  left: cv.getVar('badge-inset-circle');
+}
+
+// Color variants — background + a contrasting foreground (mirrors Toast/Avatar).
+@each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-#{$name} {
+    background-color: cv.getVar($name);
+    color: hsl(
+      cv.getVar($name, '', '-h'),
+      cv.getVar($name, '', '-s'),
+      cv.getVar($name, '', '-invert-l')
+    );
+  }
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-black {
+  background-color: cv.getVar('black');
+  color: cv.getVar('white');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-dark {
+  background-color: cv.getVar('dark');
+  color: cv.getVar('light');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-light {
+  background-color: cv.getVar('light');
+  color: cv.getVar('dark');
+}
+
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-white {
+  background-color: cv.getVar('white');
+  color: cv.getVar('black');
+}
+
+// Pulse animation for "processing" badges.
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: inherit;
+  animation: extras-badge-pulse cv.getVar('badge-animation-duration')
+    cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes extras-badge-pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-pulse::after {
+    animation: none;
+    display: none;
+  }
+}

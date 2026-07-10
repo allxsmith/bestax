@@ -1,6 +1,9 @@
 export * from './columns/Column';
 export * from './columns/Columns';
 
+export * from './components/Avatar';
+export * from './components/Avatars';
+export * from './components/Badge';
 export * from './components/Breadcrumb';
 export * from './components/Card';
 export * from './components/Dropdown';
