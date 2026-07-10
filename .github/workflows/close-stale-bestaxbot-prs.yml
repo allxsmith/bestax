@@ -1,0 +1,55 @@
+name: Close Stale bestaxbot PRs
+
+# Closes bot-authored (bestaxbot) PRs untouched for 90 days. Mirrors
+# oven-sh/bun's close-stale-robobun-prs.yml. Zero Claude usage — plain
+# shell + gh, so it can never spend AI budget or act on untrusted content.
+#
+# Loop labels (ai-loop / ai-loop-paused / needs-human-review) are stripped
+# BEFORE the close (same pattern as on-slop.yml) so the PR exits the AI
+# loop's state machine cleanly instead of lingering as a closed-but-labeled
+# zombie the watchdog might still try to sweep.
+
+on:
+  schedule:
+    # 03:41 UTC daily — deliberately offset from the loop watchdog's
+    # `23 */2 * * *` so the closer never races a sweep re-dispatch.
+    - cron: '41 3 * * *'
+  workflow_dispatch:
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write # comment, edit labels, close
+      issues: write # issue-comment API for the PR conversation
+    steps:
+      - name: Close bestaxbot PRs inactive for 90+ days
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          CUTOFF=$(date -u -d '90 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          echo "Closing bestaxbot PRs not updated since $CUTOFF"
+
+          gh pr list --repo "$REPO" --author bestaxbot --state open \
+            --json number,updatedAt \
+          | jq -r --arg cutoff "$CUTOFF" \
+              '.[] | select(.updatedAt < $cutoff) | .number' \
+          | while read -r PR; do
+              echo "Closing stale PR #$PR"
+              gh pr comment "$PR" --repo "$REPO" --body "Closing this PR after 90 days of inactivity. If it's still wanted, reopen it — or restart the loop per the instructions in the PR's \`ai-loop-state\` status comment."
+
+              # Strip loop labels FIRST so the PR leaves the loop's state
+              # machine cleanly; ignore any that are not present.
+              gh pr edit "$PR" --repo "$REPO" \
+                --remove-label ai-loop \
+                --remove-label ai-loop-paused \
+                --remove-label needs-human-review || true
+
+              gh pr close "$PR" --repo "$REPO"
+            done
