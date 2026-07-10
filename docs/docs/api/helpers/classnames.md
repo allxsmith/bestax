@@ -14,7 +14,7 @@ sidebar_label: classNames
 ## Import
 
 ```tsx
-import { classNames } from '@allxsmith/bestax-bulma;
+import { classNames } from '@allxsmith/bestax-bulma';
 ```
 
 ---
