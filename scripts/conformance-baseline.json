@@ -75,5 +75,9 @@
   "docs/docs/guides/helpers/visibility.md": 4,
   "docs/docs/guides/library/components.md": 13,
   "docs/docs/guides/library/helpers.md": 10,
-  "docs/docs/guides/library/index.md": 6
+  "docs/docs/guides/library/index.md": 6,
+  "docs/docs/skills/custom-component.mdx": 1,
+  "docs/docs/skills/form.mdx": 4,
+  "docs/docs/skills/theming.mdx": 1,
+  "docs/docs/tutorial-basics/markdown-features.mdx": 2
 }

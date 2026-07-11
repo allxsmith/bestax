@@ -98,7 +98,7 @@ async function mdFiles(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
+    else if (/\.mdx?$/.test(entry.name)) out.push(full);
   }
   return out;
 }
@@ -373,7 +373,7 @@ async function checkAutodocsTag() {
   const stories = await walk(join(REPO, 'bulma-ui', 'src'), '.stories.tsx');
   for (const file of stories) {
     const src = await readFile(file, 'utf8');
-    if (!/tags:\s*\[\s*'autodocs'\s*\]/.test(src)) {
+    if (!/tags:\s*\[[^\]]*'autodocs'[^\]]*\]/.test(src)) {
       violations.push(
         `${relative(REPO, file)} is missing \`tags: ['autodocs']\` in its ` +
           `meta — the component gets no generated docs page in Storybook.`
