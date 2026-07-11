@@ -65,19 +65,70 @@ const {
 
 // Mock console methods
 const originalConsole = { ...console };
+const originalIsTTY = process.stdin.isTTY;
+
+function setStdinTTY(value: boolean | undefined): void {
+  Object.defineProperty(process.stdin, 'isTTY', {
+    value,
+    configurable: true,
+    writable: true,
+  });
+}
 
 beforeEach(() => {
   console.log = jest.fn();
   console.error = jest.fn();
+  // Prompts are only reachable on an interactive terminal (#192); jest's
+  // stdin is not a TTY, so simulate one for the interactive tests.
+  setStdinTTY(true);
   jest.clearAllMocks();
 });
 
 afterEach(() => {
   console.log = originalConsole.log;
   console.error = originalConsole.error;
+  setStdinTTY(originalIsTTY);
 });
 
 describe('prompts', () => {
+  describe('non-interactive guard (#192)', () => {
+    const promptFns: Array<[string, () => Promise<unknown>]> = [
+      ['promptProjectName', () => promptProjectName()],
+      ['promptOverwriteDirectory', () => promptOverwriteDirectory('project')],
+      ['promptInstallSkills', () => promptInstallSkills()],
+      ['promptTemplate', () => promptTemplate()],
+      ['promptIconLibrary', () => promptIconLibrary()],
+      ['promptBulmaFlavor', () => promptBulmaFlavor()],
+    ];
+
+    it.each(promptFns)(
+      '%s exits with code 1 and guidance when stdin is not a TTY',
+      async (_name, fn) => {
+        setStdinTTY(undefined);
+        const originalExit = process.exit;
+        const exitMock = jest.fn((code?: number | string | null) => {
+          throw new Error(`process.exit(${code})`);
+        });
+        process.exit = exitMock as unknown as typeof process.exit;
+
+        try {
+          await expect(fn()).rejects.toThrow('process.exit(1)');
+          expect(exitMock).toHaveBeenCalledWith(1);
+          expect(console.error).toHaveBeenCalledWith(
+            expect.stringContaining('No interactive terminal detected')
+          );
+          expect(console.error).toHaveBeenCalledWith(
+            expect.stringContaining('-t vite-ts -b complete -i none -y')
+          );
+          // The underlying prompt must never start (it would hang forever).
+          expect(prompts).not.toHaveBeenCalled();
+        } finally {
+          process.exit = originalExit;
+        }
+      }
+    );
+  });
+
   describe('promptProjectName', () => {
     it('should prompt for project name', async () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
