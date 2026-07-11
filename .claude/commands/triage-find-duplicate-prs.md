@@ -39,10 +39,12 @@ numbers + titles + a one-line justification.
 
 A duplicate solves the same problem or implements the same feature — same
 files alone is NOT enough. Compare diffs (`gh pr diff`) when unsure. Drop
-weak matches. Zero credible duplicates → stop SILENTLY: no comment, no
-marker.
+weak matches. Zero credible duplicates: on `TRIGGER=opened`, stop SILENTLY
+— no comment, no marker; on `TRIGGER=labeled` (an explicit human request),
+post/refresh the comment with the single line "No duplicate PRs found."
+plus the marker (matches the pre-check refresh path).
 
-## Post ONE comment (only when duplicates exist)
+## Post ONE comment (when duplicates exist, or on a labeled rerun)
 
 Via `gh pr comment NUMBER --repo REPO --body ...` (or the refresh path):
 

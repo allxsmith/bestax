@@ -44,7 +44,11 @@ Rules for every agent: scope EVERY search to this repository
 Keep only issues this PR plausibly resolves (the diff addresses the issue's
 root cause) or directly relates to. Exclude everything already linked in
 the PR body (pre-check 3). Drop weak keyword-only matches. If nothing
-credible remains, stop SILENTLY — no comment, no marker.
+credible remains: on `TRIGGER=opened`, stop SILENTLY — no comment, no
+marker; on `TRIGGER=labeled` (an explicit human request — silence would
+read as a malfunction), post/refresh the comment with the single line
+"No open issues found that this PR resolves." plus the marker (matches
+pre-check 2's refresh path).
 
 ## Post ONE comment
 

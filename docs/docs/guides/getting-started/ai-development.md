@@ -65,7 +65,8 @@ New issues and PRs can get an automatic triage comment: likely duplicates (issue
 issues a PR probably resolves, and overlapping PRs. Three repository variables control it:
 
 - **`AI_TRIAGE_MODE`** — `auto` (new issues/PRs are triaged automatically and the label still
-  works), `label` (opt-in only; the default when unset), or `off` (label included).
+  works), `label` (opt-in only; the default when unset), or `off` (disables both automatic
+  triage **and** the label).
 - **`AI_TRIAGE_DAILY_LIMIT`** — maximum auto-triggered triage sessions per UTC day (default
   10). Label-triggered runs are exempt — each one is already human-metered by the click.
 - **`AI_TRIAGE_AUTOCLOSE`** — `on`, `dry-run`, or `off` (the default). When active, an issue
