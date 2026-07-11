@@ -35,12 +35,13 @@ Enforced by CI (`.github/workflows/ci.yml`):
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
   create-bestax 95% (78% branches).
 - Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
+- House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
+  a **React 18/19 matrix** builds and tests bulma-ui on both majors.
 
 Enforced in review (a green CI does **not** check these):
 
-- Every visible/interactive UI change needs a **Storybook story**.
-- Every public API change needs a **docs page update** (`docs/docs/api/...`) before approval.
-- Component/prop changes that affect the skills update `skills/` **in the same PR**.
+- CI only checks that a story and docs page **exist** per component — prop-level changes still
+  need both updated, and skill-affecting changes update `skills/` **in the same PR**.
 - Run `pnpm all` locally before opening a PR.
 
 ## Commits — release-affecting, not cosmetic
@@ -73,8 +74,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 ## Workflow
 
 PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
-`CONTRIBUTING.md`. New components should stay within the Bulma spec — propose anything beyond
-it in an issue first.
+`CONTRIBUTING.md`; for a new component, `CONTRIBUTING-COMPONENTS.md` is the end-to-end
+checklist. New components should stay within the Bulma spec — propose anything beyond it in
+an issue first.
 
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
 shipped product (see `skills/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
