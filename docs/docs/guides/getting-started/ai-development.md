@@ -47,15 +47,15 @@ the review-time requirements (Storybook story for UI changes, docs page for API 
 
 PRs authored by the loop move through a small label lifecycle:
 
-| Label                | Where  | Meaning                                                                                               |
-| -------------------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| `claude-fix`         | issues | Maintainer-approved: Claude implements this issue and opens a PR                                      |
-| `ai-loop`            | PRs    | The PR is inside the autonomous review/fix loop                                                       |
-| `needs-human-review` | PRs    | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                         |
-| `ai-loop-paused`     | PRs    | The loop hit its iteration cap or a guardrail — a maintainer must intervene                           |
-| `deep-review`        | PRs    | Opt-in: a triage+ user applies it to run the one-shot Claude deep review on any PR (once ever per PR) |
-| `stale`              | PRs    | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes                |
-| `neverstale`         | PRs    | Exempts a PR from stale automation                                                                    |
+| Label                | Where  | Meaning                                                                                                                                                                           |
+| -------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-fix`         | issues | Maintainer-approved: Claude implements this issue and opens a PR                                                                                                                  |
+| `ai-loop`            | PRs    | The PR is inside the autonomous review/fix loop                                                                                                                                   |
+| `needs-human-review` | PRs    | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                     |
+| `ai-loop-paused`     | PRs    | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                       |
+| `deep-review`        | PRs    | Opt-in: a triage+ user applies it to run the one-shot Claude deep review on any PR (once ever per PR)                                                                             |
+| `stale`              | PRs    | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead |
+| `neverstale`         | PRs    | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                           |
 
 The loop itself: Claude implements the issue and opens the PR → CodeRabbit reviews it and a
 second, independent Claude review (a stronger model than the implementer) does a deep pass →

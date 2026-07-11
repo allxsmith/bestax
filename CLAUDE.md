@@ -92,5 +92,6 @@ deep review on it (once ever per PR). Kill switches: remove `ai-loop` (per PR) o
 variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
-Stale automation: bestaxbot PRs close after 90 days of inactivity; all PRs go `stale` at 30 days
-and close 14 days later; `neverstale` exempts a PR.
+Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
+PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close
+after 90 days of inactivity; `neverstale` exempts a PR from both layers.

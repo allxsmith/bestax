@@ -8,6 +8,12 @@ name: Stale
 # permanently. Any activity (commit, comment, review) also removes `stale`
 # and resets the clock.
 #
+# Claude-assisted PRs (the `claude-assisted` label, auto-applied by
+# auto-label-claude-prs.yml) are exempt from this sweep: they get the longer
+# 90-day leash enforced by close-stale-bestaxbot-prs.yml instead, since they
+# routinely sit waiting on human review. Without this exemption the 30/14
+# sweep would close them at day 44 and the 90-day closer could never fire.
+#
 # Labels: `stale` is auto-created by actions/stale on first application
 # (suggested color #ededed). `neverstale` (#c2e0c6) is human-applied and
 # created at rollout.
@@ -39,7 +45,7 @@ jobs:
           days-before-pr-stale: 30
           days-before-pr-close: 14
           stale-pr-label: stale
-          exempt-pr-labels: neverstale
+          exempt-pr-labels: neverstale,claude-assisted
           remove-stale-when-updated: true
           stale-pr-message: >
             This PR has had no activity for 30 days and has been marked
