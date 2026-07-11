@@ -33,6 +33,7 @@ const CombinedTagWithDeleteWrapper: React.FC<TagProps> = props => {
 const meta: Meta<typeof Tag> = {
   title: 'Elements/Tag',
   component: Tag,
+  tags: ['autodocs'],
   argTypes: {
     color: {
       control: 'select',

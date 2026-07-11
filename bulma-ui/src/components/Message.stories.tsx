@@ -7,6 +7,7 @@ const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis
 const meta: Meta<MessageProps> = {
   title: 'Components/Message',
   component: Message,
+  tags: ['autodocs'],
 };
 export default meta;
 

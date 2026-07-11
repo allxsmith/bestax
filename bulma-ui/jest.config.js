@@ -4,6 +4,9 @@ export default {
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
     '\\.(css|scss)$': 'identity-obj-proxy',
+    '\\.(svg|png|jpe?g|gif|webp)$': '<rootDir>/src/__mocks__/fileMock.js',
+    // ESM-only; only used inside story `play` functions, never in tests.
+    '^storybook/test$': '<rootDir>/src/__mocks__/storybookTest.js',
     '^@allxsmith/bestax$': '<rootDir>/src/index.ts',
   },
   collectCoverage: false,

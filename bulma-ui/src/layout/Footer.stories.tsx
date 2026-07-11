@@ -5,6 +5,7 @@ import Content from '../elements/Content';
 const meta: Meta<typeof Footer> = {
   title: 'Layout/Footer',
   component: Footer,
+  tags: ['autodocs'],
 };
 export default meta;
 

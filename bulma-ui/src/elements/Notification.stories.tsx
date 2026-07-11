@@ -20,6 +20,7 @@ const DismissibleNotification: React.FC<NotificationProps> = props => {
 const meta: Meta<typeof Notification> = {
   title: 'Elements/Notification',
   component: Notification,
+  tags: ['autodocs'],
   argTypes: {
     color: {
       control: 'select',

@@ -81,6 +81,17 @@ function LoadingIcon() {
   );
 }
 
+// Element rising into view over motion lines — reveal on scroll
+function RevealIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="5" y="3" width="14" height="11" rx="1.5" />
+      <path d="M9.5 9.5 12 7l2.5 2.5" />
+      <path d="M5 18h14M8 21h8" />
+    </svg>
+  );
+}
+
 // Slide-out panel — sidebar
 function SidebarIcon() {
   return (
@@ -132,6 +143,7 @@ const ADDON_ICONS = {
   collapse: CollapseIcon,
   dialog: DialogIcon,
   loading: LoadingIcon,
+  reveal: RevealIcon,
   sidebar: SidebarIcon,
   steps: StepsIcon,
   toast: ToastIcon,

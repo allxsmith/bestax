@@ -7,6 +7,7 @@ import { Notification } from '../elements/Notification';
 export default {
   title: 'Helpers/ConfigProvider',
   component: ConfigProvider,
+  tags: ['autodocs'],
 };
 
 // Prefixed Bulma example

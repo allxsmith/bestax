@@ -9,6 +9,7 @@ import {
 const meta: Meta<typeof Delete> = {
   title: 'Elements/Delete',
   component: Delete,
+  tags: ['autodocs'],
   argTypes: {
     className: { control: 'text' },
     textColor: {
