@@ -11,7 +11,10 @@ name: Close Stale Claude-Assisted PRs
 # The sweep is the union of author:bestaxbot and label:claude-assisted —
 # the label (auto-applied by auto-label-claude-prs.yml) also covers
 # human-authored PRs with Claude attribution, and the author query covers
-# bot PRs opened before the labeler existed.
+# bot PRs opened before the labeler existed. A first step backfills the
+# claude-assisted label onto any unlabeled bestaxbot PR so the generic
+# sweep can't close pre-labeler bot PRs at day 44: this job's 03:41 cron
+# fires before stale.yml's 04:17 sweep.
 #
 # PRs labeled `neverstale` are exempt from this closer too — the label means
 # "exempt from stale automation", and that covers the 90-day sweep as well
@@ -40,6 +43,26 @@ jobs:
       pull-requests: write # comment, edit labels, close
       issues: write # issue-comment API for the PR conversation
     steps:
+      # Self-heal: bestaxbot PRs opened before auto-label-claude-prs.yml
+      # existed (or where it misfired) lack the claude-assisted label, so
+      # stale.yml's generic 30/14-day sweep would close them at day 44 before
+      # this 90-day closer ever saw them. Label them here; the REST call
+      # auto-creates the label on first use, same as the labeler.
+      - name: Backfill claude-assisted onto unlabeled bestaxbot PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh pr list --repo "$REPO" --author bestaxbot --state open \
+            --json number,labels \
+          | jq -r '.[] | select(([.labels[].name] | index("claude-assisted")) | not) | .number' \
+          | while read -r PR; do
+              echo "Labeling PR #$PR claude-assisted"
+              gh api -X POST "repos/$REPO/issues/$PR/labels" \
+                -f "labels[]=claude-assisted" || true
+            done
+
       - name: Close Claude-assisted PRs inactive for 90+ days
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,7 +74,7 @@ jobs:
 
           # Union of the two selectors, deduped by PR number. A label with
           # no matches (or that doesn't exist yet) yields an empty list from
-          # `gh pr list`, not an error.
+          # `gh pr list`, not an error. <= makes the 90-day cutoff inclusive.
           {
             gh pr list --repo "$REPO" --author bestaxbot --state open \
               --json number,updatedAt,labels
@@ -59,8 +82,24 @@ jobs:
               --json number,updatedAt,labels
           } \
           | jq -rs --arg cutoff "$CUTOFF" \
-              'add | unique_by(.number) | .[] | select(.updatedAt < $cutoff) | select(([.labels[].name] | index("neverstale")) | not) | .number' \
+              'add | unique_by(.number) | .[] | select(.updatedAt <= $cutoff) | select(([.labels[].name] | index("neverstale")) | not) | .number' \
           | while read -r PR; do
+              # Re-check eligibility immediately before acting: the listing
+              # snapshot ages while earlier PRs in the loop are processed,
+              # and a maintainer may have pushed activity or applied
+              # neverstale in the meantime. Any fetch failure counts as
+              # not-eligible — closing on stale data is worse than retrying
+              # tomorrow.
+              ELIGIBLE=$(gh pr view "$PR" --repo "$REPO" \
+                  --json state,updatedAt,labels \
+                | jq -r --arg cutoff "$CUTOFF" \
+                    'if .state == "OPEN" and .updatedAt <= $cutoff and (([.labels[].name] | index("neverstale")) | not) then "yes" else "no" end' \
+                || echo no)
+              if [ "$ELIGIBLE" != "yes" ]; then
+                echo "Skipping PR #$PR — no longer eligible"
+                continue
+              fi
+
               echo "Closing stale PR #$PR"
               gh pr comment "$PR" --repo "$REPO" --body "Closing this PR after 90 days of inactivity. If it's still wanted, reopen it — for AI-loop PRs, you can instead restart the loop per the instructions in the PR's \`ai-loop-state\` status comment."
 
