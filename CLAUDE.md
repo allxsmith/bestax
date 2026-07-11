@@ -96,6 +96,8 @@ label. Kill switches: remove `ai-loop` (per PR) or set repo
 variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
+Separately, labeling any PR or issue `ai-triage` (triage+ only) runs a one-shot sonnet triage
+session that comments with related issues/duplicates and then removes the label.
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
 PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close
 after 90 days of inactivity; `neverstale` exempts a PR from both layers.
