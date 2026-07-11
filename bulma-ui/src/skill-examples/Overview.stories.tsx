@@ -10,6 +10,7 @@ const FORM_SKILL_HREF = `${SKILLS_REPO}/bestax-form/SKILL.md`;
 
 const meta: Meta = {
   title: 'Skills/Overview',
+  tags: ['autodocs'],
   parameters: { layout: 'padded' },
 };
 export default meta;

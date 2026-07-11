@@ -9,12 +9,12 @@ directory the agent reads on demand.
 
 ## Skills
 
-| Skill                                                           | Use it when…                                                                                                                                                   |
-| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`bestax-custom-component`](./bestax-custom-component/SKILL.md) | Building a **new custom component** beyond stock Bulma — React + TS, the Bulma v1 SCSS CSS-variable pattern, stories, tests, docs, and export/build wiring.    |
-| [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).               |
-| [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.           |
-| [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes. |
+| Skill                                                           | Use it when…                                                                                                                                                                               |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`bestax-custom-component`](./bestax-custom-component/SKILL.md) | Building a **custom component** beyond stock Bulma — in an app: composition, helper props, public hooks, `--bulma-*` CSS vars; in the monorepo: the full SCSS/stories/tests/docs pipeline. |
+| [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).                                           |
+| [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.                                       |
+| [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                             |
 
 ## Install
 
@@ -32,11 +32,14 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffol
 ```
 skills/
   bestax-custom-component/
-    SKILL.md
+    SKILL.md                # app context (compose + public hooks + --bulma-* vars)
     references/
       api.md                # helper hooks, classNames, valid-value constants, SCSS utilities
-      patterns.md           # Dialog — the canonical worked example
+      patterns.md           # Dialog — the canonical library-contributor worked example
       component-catalog.md  # generated: every exported component + one-line purpose
+      library-contributor.md # monorepo pipeline: SCSS partial, stories, tests, docs, wiring
+    examples/
+      stat-card.tsx          # app-side worked example (composition + helper props + scoped CSS)
   bestax-form/
     SKILL.md
     references/

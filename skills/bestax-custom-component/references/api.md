@@ -1,6 +1,11 @@
 # Reference: helper APIs for building components
 
-The shared helpers live in `bulma-ui/src/helpers/`. Import them from there in components.
+Everything below is public API. Where to import from depends on your context:
+
+| Context                                       | Import from                                      |
+| --------------------------------------------- | ------------------------------------------------ |
+| An app depending on `@allxsmith/bestax-bulma` | `'@allxsmith/bestax-bulma'`                      |
+| Inside the bestax monorepo (`bulma-ui/src/`)  | Relative paths — `'../helpers/classNames'`, etc. |
 
 ## `useBulmaClasses(props)` — `helpers/useBulmaClasses.tsx`
 
@@ -71,6 +76,10 @@ hard-coding values.
 @use 'bulma/sass/utilities/initial-variables' as iv; // iv.$class-prefix
 @use 'bulma/sass/utilities/css-variables' as cv; // cv.getVar, cv.register-vars
 ```
+
+In an app these work too (styling-ladder rung 3 in `SKILL.md`): `npm i -D sass` and Vite
+compiles imported `.scss` zero-config — `bulma` resolves because it's a runtime dependency of
+bestax-bulma.
 
 - `iv.$class-prefix` — the configurable class prefix; prepend to every selector.
 - `cv.getVar("name")` — emits `var(--bulma-name)`; use for both Bulma vars (`"primary"`,

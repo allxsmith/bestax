@@ -6,6 +6,7 @@ import { Notification } from '../elements/Notification';
 export default {
   title: 'Grid/Cell',
   component: Cell,
+  tags: ['autodocs'],
 };
 
 export const ColumnStart = () => (

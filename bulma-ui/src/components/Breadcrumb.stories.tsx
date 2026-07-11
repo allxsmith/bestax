@@ -5,6 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 const meta: Meta<typeof Breadcrumb> = {
   title: 'Components/Breadcrumb',
   component: Breadcrumb,
+  tags: ['autodocs'],
   argTypes: {
     alignment: { control: 'select', options: ['', 'centered', 'right'] },
     separator: {

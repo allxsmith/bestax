@@ -1,0 +1,63 @@
+name: Stale
+
+# Marks PRs with no activity for 30 days as `stale`, then closes them 14
+# days later if the inactivity continues. Mirrors oven-sh/bun's stale.yaml.
+# Zero Claude usage — just actions/stale.
+#
+# Escape hatch: a maintainer applies the `neverstale` label to exempt a PR
+# permanently. Any activity (commit, comment, review) also removes `stale`
+# and resets the clock.
+#
+# Claude-assisted PRs (the `claude-assisted` label, auto-applied by
+# auto-label-claude-prs.yml) are exempt from this sweep: they get the longer
+# 90-day leash enforced by close-stale-bestaxbot-prs.yml instead, since they
+# routinely sit waiting on human review. Without this exemption the 30/14
+# sweep would close them at day 44 and the 90-day closer could never fire.
+#
+# Labels: `stale` is auto-created by actions/stale on first application
+# (suggested color #ededed). `neverstale` (#c2e0c6) is human-applied and
+# created at rollout.
+#
+# Issues are deliberately NOT processed (a deviation from bun, whose issue
+# side keys off a needs-repro/waiting-for-author triage process this repo
+# doesn't run).
+
+on:
+  schedule:
+    # 04:17 UTC daily — a distinct minute from both the loop watchdog
+    # (`23 */2 * * *`) and the bestaxbot closer (`41 3 * * *`).
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write # label, comment, close PRs
+      issues: write # actions/stale needs both even with issues disabled
+    steps:
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
+        with:
+          days-before-pr-stale: 30
+          days-before-pr-close: 14
+          stale-pr-label: stale
+          exempt-pr-labels: neverstale,claude-assisted
+          remove-stale-when-updated: true
+          stale-pr-message: >
+            This PR has had no activity for 30 days and has been marked
+            `stale`. It will close in 14 days unless activity resumes — any
+            commit, comment, or review removes the label and resets the
+            clock. If this PR should never be swept, ask a maintainer to
+            apply the `neverstale` label.
+          close-pr-message: >
+            Closing after 14 further days of inactivity. If this is still
+            wanted, reopen it or open a fresh PR — and consider asking a
+            maintainer for the `neverstale` label to exempt it from stale
+            automation.
+          # Issues disabled — see the header comment.
+          days-before-issue-stale: -1
+          days-before-issue-close: -1

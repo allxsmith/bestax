@@ -7,6 +7,7 @@ import { Block } from './Block';
 const meta: Meta<typeof Title> = {
   title: 'Elements/Title',
   component: Title,
+  tags: ['autodocs'],
   argTypes: {
     size: {
       control: 'select',

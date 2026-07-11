@@ -1,0 +1,51 @@
+name: Auto-label Claude PRs
+
+# Applies the `claude-assisted` provenance label to PRs that are AI-assisted:
+# authored by the bot account, or carrying the Claude Code attribution footer
+# in the PR body. Mirrors oven-sh/bun's auto-label-claude-prs.yml. This never
+# checks out or executes PR code — it is a single labeling API call — so
+# `pull_request_target` is safe here (same rationale as on-slop.yml).
+#
+# The addLabels API auto-creates the label on first application; suggested
+# cosmetics once it exists: color #7057ff, description "PR authored or
+# assisted by Claude (auto-applied)".
+#
+# Deliberately NOT gated on vars.AI_LOOP_ENABLED: this workflow uses zero
+# Claude/AI itself, and provenance labeling must survive the AI-loop kill
+# switch.
+
+on:
+  pull_request_target:
+    types: [opened]
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+concurrency:
+  group: auto-label-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  label:
+    if: |
+      github.event.pull_request.user.login == 'bestaxbot' ||
+      contains(github.event.pull_request.body, '🤖 Generated with')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write # apply the label to the PR
+      # Labels on PRs go through the issues API, and auto-creating a missing
+      # repo label requires it.
+      issues: write
+    steps:
+      - name: Add claude-assisted label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # addLabels endpoint: creates the label if it does not exist yet
+          # (unlike `gh pr edit --add-label`, which rejects unknown labels).
+          gh api "repos/$REPO/issues/$PR/labels" -f "labels[]=claude-assisted"
+          echo "Labeled PR #$PR as claude-assisted"
