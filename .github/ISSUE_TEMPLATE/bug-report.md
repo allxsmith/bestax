@@ -68,3 +68,14 @@ If applicable, add screenshots or code snippets to help explain your problem.
 ## Additional Context
 
 Add any other context about the problem here.
+
+---
+
+## Definition of Done
+
+_For the implementer, not the filer:_
+
+- [ ] Fix + a regression test (failing before the fix, passing after)
+- [ ] Coverage holds the affected package's threshold (bulma-ui ≥ 99%, create-bestax ≥ 95%)
+- [ ] Docs/story updates if the behavior is visible
+- [ ] `pnpm check:conformance` green

@@ -182,6 +182,14 @@ jobs:
                - missing Storybook story, missing docs page for API changes,
                  missing skills/ update for component/prop changes
                - meaningful coverage gaps in the new code
+               - conformance misses for new components: missing listing
+                 surfaces (components guide page, home-page cards or Beyond
+                 Bulma strip), missing theming-skill rows, inline `style={{}}`
+                 in stories or docs examples, unregistered SCSS variables
+               - CSS-interaction bugs invisible to jsdom: pointer-events/
+                 position resets under modifier classes (e.g. a standalone/
+                 overlay mode), physical margins that break RTL, `||`-vs-`??`
+                 on a11y attributes like alt/aria-label
             3. Do NOT post nitpicks, style, or formatting comments —
                CodeRabbit and the linters cover those.
 
