@@ -55,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           gh pr list --repo "$REPO" --author bestaxbot --state open \
-            --json number,labels \
+            --limit 1000 --json number,labels \
           | jq -r '.[] | select(([.labels[].name] | index("claude-assisted")) | not) | .number' \
           | while read -r PR; do
               echo "Labeling PR #$PR claude-assisted"
@@ -77,9 +77,9 @@ jobs:
           # `gh pr list`, not an error. <= makes the 90-day cutoff inclusive.
           {
             gh pr list --repo "$REPO" --author bestaxbot --state open \
-              --json number,updatedAt,labels
+              --limit 1000 --json number,updatedAt,labels
             gh pr list --repo "$REPO" --label claude-assisted --state open \
-              --json number,updatedAt,labels
+              --limit 1000 --json number,updatedAt,labels
           } \
           | jq -rs --arg cutoff "$CUTOFF" \
               'add | unique_by(.number) | .[] | select(.updatedAt <= $cutoff) | select(([.labels[].name] | index("neverstale")) | not) | .number' \
@@ -104,11 +104,14 @@ jobs:
               gh pr comment "$PR" --repo "$REPO" --body "Closing this PR after 90 days of inactivity. If it's still wanted, reopen it — for AI-loop PRs, you can instead restart the loop per the instructions in the PR's \`ai-loop-state\` status comment."
 
               # Strip loop labels FIRST so the PR leaves the loop's state
-              # machine cleanly; ignore any that are not present.
+              # machine cleanly. gh succeeds when a label is absent, so a
+              # failure here is a real API/auth error — let it abort (set -e)
+              # rather than close the PR with loop labels still attached;
+              # the daily cron retries tomorrow.
               gh pr edit "$PR" --repo "$REPO" \
                 --remove-label ai-loop \
                 --remove-label ai-loop-paused \
-                --remove-label needs-human-review || true
+                --remove-label needs-human-review
 
               gh pr close "$PR" --repo "$REPO"
             done
