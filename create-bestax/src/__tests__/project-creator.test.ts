@@ -260,6 +260,46 @@ describe('ProjectCreator', () => {
       expect(written).toContain('classPrefix="bestax-"');
       expect(written).toContain('bestax-prefixed.css');
       expect(written).toContain('Icon library: **Font Awesome**');
+      // fontawesome is the Icon default — no provider wrapper, no caveat
+      expect(written).not.toContain('iconLibrary=');
+    });
+
+    it('documents the ConfigProvider iconLibrary caveat for a non-default icon library', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'mdi',
+      });
+
+      const written = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      expect(written).toContain('iconLibrary="mdi"');
+      expect(written).toContain('extend that provider');
+    });
+
+    it('names the mapped provider value for ionicons in the caveat', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'ionicons',
+      });
+
+      const written = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      // the scaffolder writes iconLibrary="ion" (not "ionicons") into main.tsx
+      expect(written).toContain('iconLibrary="ion"');
     });
 
     it('skips when the skills bundle is missing', async () => {

@@ -43,6 +43,18 @@ export const PROMPTS = {
     'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
 } as const;
 
+// Icon libraries that require a `ConfigProvider iconLibrary` wrapper, mapped
+// to the exact prop value the scaffolder writes into main.tsx/jsx ('none' and
+// 'fontawesome' are the defaults and need no provider). Shared with
+// project-creator.setupConfigProvider AND the CLAUDE_MD template below so the
+// generated docs can never drift from the generated code.
+export const CONFIG_PROVIDER_ICON_VALUES: Record<string, string> = {
+  mdi: 'mdi',
+  ionicons: 'ion',
+  'material-icons': 'material-icons',
+  'material-symbols': 'material-symbols',
+};
+
 // Minimal CLAUDE.md scaffolded alongside the skills so an AI agent knows the
 // stack, this app's scaffold choices, and where the skills live. Kept short:
 // it loads into every agent session.
@@ -68,11 +80,16 @@ export const CLAUDE_MD = (
         `\`<ConfigProvider classPrefix="bestax-">\` — custom CSS selectors must match the prefix.`
     );
   }
+  const providerIconValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
   setupLines.push(
     iconLibrary === 'none'
       ? `- No icon library is installed — add one before using \`<Icon>\` ` +
           `(https://bestax.io/docs/api/elements/icon).`
-      : `- Icon library: **${icon?.display ?? iconLibrary}** — use \`<Icon name="..." />\`.`
+      : `- Icon library: **${icon?.display ?? iconLibrary}** — use \`<Icon name="..." />\`.` +
+          (providerIconValue
+            ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
+              `— extend that provider rather than adding a second one.`
+            : '')
   );
   return `# ${projectName}
 
@@ -87,7 +104,8 @@ ${setupLines.join('\n')}
 
 - Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
   spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
-  There is no \`gap\` helper — space children with margins.
+  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` has a real
+  \`gap\` prop and \`Columns\` has \`gapSize\`, so prefer those there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - There is no test runner or Storybook in this app — don't assume one.

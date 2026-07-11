@@ -30,6 +30,7 @@ import {
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
+  CONFIG_PROVIDER_ICON_VALUES,
   type ClaudeMdOptions,
 } from './constants.js';
 
@@ -409,14 +410,9 @@ export class ProjectCreator {
         configProps.push('classPrefix="bestax-"');
       }
       if (needsIconLibrary) {
-        // Map the icon library name to the correct value for ConfigProvider
-        const iconLibraryMap: Record<string, string> = {
-          mdi: 'mdi',
-          ionicons: 'ion',
-          'material-icons': 'material-icons',
-          'material-symbols': 'material-symbols',
-        };
-        const iconLibraryValue = iconLibraryMap[iconLibrary];
+        // Shared with the CLAUDE_MD template so the generated docs always
+        // name the same provider value the scaffolder writes here.
+        const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
         if (iconLibraryValue) {
           configProps.push(`iconLibrary="${iconLibraryValue}"`);
         }
