@@ -35,6 +35,13 @@ on:
 # No workflow-level grants; the single job takes exactly what it needs.
 permissions: {}
 
+# One sweep at a time: a manual workflow_dispatch overlapping the daily cron
+# must not race a second closer over the same PRs (double comments, or a
+# second `gh pr close` aborting under set -e).
+concurrency:
+  group: close-stale-bestaxbot-prs
+  cancel-in-progress: false
+
 jobs:
   close:
     runs-on: ubuntu-latest
