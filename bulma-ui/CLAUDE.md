@@ -29,7 +29,8 @@ A new or changed component is **five artifacts, not one**. Touch all of:
 If the change invalidates guidance in `skills/`, update the skill in the same PR.
 
 The full worked walkthrough (including the SCSS side for extras) is
-`skills/bestax-custom-component/SKILL.md` — follow it rather than improvising.
+`skills/bestax-custom-component/references/library-contributor.md` — follow it rather than
+improvising.
 
 ## Conventions
 

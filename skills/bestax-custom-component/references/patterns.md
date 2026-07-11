@@ -1,5 +1,8 @@
 # Reference: Dialog, the canonical worked example
 
+**Library-contributor worked example** — the in-monorepo counterpart to `examples/stat-card.tsx`;
+follow it together with `library-contributor.md`.
+
 `Dialog` is the library's reference implementation of the custom-component pattern. Read the
 real files alongside this:
 
@@ -121,8 +124,8 @@ Dialog also shows optional patterns you can borrow when relevant:
 - **Accessibility**: `role="alertdialog"`, Escape-to-cancel, and focus management on open.
 - **Body scroll lock** via a module-level ref count so chained/overlapping dialogs behave.
 
-These are not required for every component — start from the simple template in `SKILL.md` and
-add only what your component needs.
+These are not required for every component — start from the simple template in
+`library-contributor.md` and add only what your component needs.
 
 ## Other components worth reading for variety
 

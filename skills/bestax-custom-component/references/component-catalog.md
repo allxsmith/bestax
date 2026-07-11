@@ -19,7 +19,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-85 documented components. Generated from the API docs — every exported
+87 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -125,5 +125,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 - [ConfigProvider](https://bestax.io/docs/api/helpers/config) — The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.
 - [Theme](https://bestax.io/docs/api/helpers/theme) — The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).
+- [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The `valid*` constant arrays enumerate every accepted value for the shared Bulma helper props — public API you can import to build prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
+- [usePrefixedClassNames](https://bestax.io/docs/api/helpers/useprefixedclassnames) — `usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…
