@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 const meta: Meta<typeof SubTitle> = {
   title: 'Elements/SubTitle',
   component: SubTitle,
+  tags: ['autodocs'],
   argTypes: {
     size: {
       control: 'select',

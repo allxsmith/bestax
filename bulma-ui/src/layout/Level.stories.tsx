@@ -9,6 +9,7 @@ import { Input } from '../form/Input';
 const meta: Meta<typeof Level> = {
   title: 'Layout/Level',
   component: Level,
+  tags: ['autodocs'],
 };
 export default meta;
 

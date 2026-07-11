@@ -38,6 +38,11 @@ jobs:
       - name: Component catalog up to date
         run: pnpm run gen:catalog:check
 
+      # House-convention gates (listings, docs sections, SCSS pattern,
+      # stories, inline-style ratchet). Error messages name the file and fix.
+      - name: Conformance checks
+        run: pnpm run check:conformance
+
       - name: Build
         run: pnpm run build
 

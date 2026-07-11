@@ -98,10 +98,15 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 
 ## Extras component variables (Avatar / Avatars / Badge)
 
-These are registered on the component's own selector (`.avatar`, `.avatars`, `.badge`), not on
-`:root`, so override them with a scoped rule, the component's `style`/`className`, or `Theme`'s
-`bulmaVars` on a wrapping `Theme`. Several default to core theme vars above, so they already flow
-through a custom theme.
+These are registered on the component's **own selector** (`.avatar`, `.avatars`, `.badge` —
+`.bestax-avatar` etc. with the prefixed CSS flavor), not on `:root`. A value set on a wrapping
+ancestor — including `Theme`'s `bulmaVars` on a wrapping `Theme` — is only _inherited_ and
+always loses to the component-level declaration, so it will NOT take effect. Working overrides
+target the component's own element instead: redeclare on the component's own class in your CSS
+(mind the class prefix), e.g. `.avatar { --bulma-avatar-size: 3.5rem; }`, or pass a
+`className` and scope the override under it
+(`.avatar.big-avatar { --bulma-avatar-size: 3.5rem; }`), or set it via the component's `style`
+prop. Several default to core theme vars above, so they already flow through a custom theme.
 
 | Variable                                                          | Default                          |
 | ----------------------------------------------------------------- | -------------------------------- |

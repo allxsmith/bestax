@@ -3,6 +3,7 @@ import { Dropdown } from './Dropdown';
 export default {
   title: 'Components/Dropdown',
   component: Dropdown,
+  tags: ['autodocs'],
   subcomponents: { Item: Dropdown.Item, Divider: Dropdown.Divider },
 };
 

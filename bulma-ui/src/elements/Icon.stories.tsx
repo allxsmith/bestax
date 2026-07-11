@@ -9,6 +9,7 @@ import {
 const meta: Meta<typeof Icon> = {
   title: 'Elements/Icon',
   component: Icon,
+  tags: ['autodocs'],
   argTypes: {
     className: { control: 'text' },
     name: { control: 'text' },

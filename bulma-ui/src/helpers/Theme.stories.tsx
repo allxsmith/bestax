@@ -7,6 +7,7 @@ import Button from '../elements/Button';
 export default {
   title: 'Helpers/Theme',
   component: Theme,
+  tags: ['autodocs'],
 };
 
 // Sunset-inspired scheme variables (full list)
