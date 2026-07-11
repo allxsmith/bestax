@@ -160,6 +160,10 @@ jobs:
           out pr "$PR"; out head_ref "$HEAD_REF"; out head_sha "$HEAD_SHA"
 
           # ---- Protected paths: the loop may never modify its own gates ----
+          # scripts/check-conformance.mjs + its baseline are listed here AND
+          # in the write agents' --disallowedTools: the deny rules stop
+          # Edit/Write, this gate is the backstop for anything else (a Bash
+          # redirect, sed -i, node -e) that lands in the diff.
           TOUCHED=$(jq -r '[.files[].path | select(
               startswith(".github/")
               or endswith("jest.config.js")
@@ -169,6 +173,8 @@ jobs:
               or . == ".npmrc"
               or . == ".coderabbit.yaml"
               or . == "turbo.json"
+              or . == "scripts/check-conformance.mjs"
+              or . == "scripts/conformance-baseline.json"
             )] | length' <<<"$PR_JSON")
           if [ "$TOUCHED" -gt 0 ]; then
             out mode halt; out reason protected-path; out iteration 0

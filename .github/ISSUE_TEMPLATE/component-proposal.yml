@@ -33,9 +33,11 @@ body:
     id: stock-or-extra
     attributes:
       label: Stock Bulma or Beyond-Bulma extra?
+      description: Pick "Not applicable" for create-bestax, docs, or Other proposals.
       options:
         - Stock Bulma (in the Bulma v1 spec)
         - Extra / Beyond Bulma (needs SCSS partial + register-vars)
+        - Not applicable (not a bulma-ui component)
         - Not sure
     validations:
       required: true
@@ -85,9 +87,9 @@ body:
     id: definition-of-done
     attributes:
       label: Definition of done (implementer checklist)
-      description: For the implementer, not the filer — leave these unchecked when filing.
+      description: For the implementer, not the filer — leave these unchecked when filing. The first two apply to bulma-ui components only; for create-bestax/docs/Other, follow that package's CLAUDE.md instead.
       options:
-        - label: The five artifacts (component, tests, story, docs page, export) plus `pnpm gen:catalog` — per bulma-ui/CLAUDE.md
-        - label: Docs listing surfaces and skills sync — per /CONTRIBUTING-COMPONENTS.md
+        - label: 'bulma-ui only: the five artifacts (component, tests, story, docs page, export) plus `pnpm gen:catalog` — per bulma-ui/CLAUDE.md'
+        - label: 'bulma-ui only: docs listing surfaces and skills sync — per /CONTRIBUTING-COMPONENTS.md'
         - label: '`pnpm check:conformance` and `pnpm all` green'
-        - label: Works on React 18 and 19
+        - label: 'Works on React 18 and 19 (bulma-ui); package gates green per its CLAUDE.md otherwise'
