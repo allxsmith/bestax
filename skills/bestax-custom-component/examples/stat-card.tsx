@@ -69,10 +69,12 @@ export function StatCard({
       )}
       {/* No `gap` helper exists — space siblings with margin props (mr above). */}
       <div>
-        <Title size="6" textColor="grey" mb="1">
+        {/* as="p": the sizes are visual scale, not document structure — a bare
+            <Title size> renders a heading and breaks the page outline. */}
+        <Title as="p" size="6" textColor="grey" mb="1">
           {label}
         </Title>
-        <Title size="3" mb="0">
+        <Title as="p" size="3" mb="0">
           {value}
         </Title>
       </div>
