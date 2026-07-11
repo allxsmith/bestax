@@ -65,7 +65,10 @@ const {
 
 // Mock console methods
 const originalConsole = { ...console };
-const originalIsTTY = process.stdin.isTTY;
+const originalIsTTYDescriptor = Object.getOwnPropertyDescriptor(
+  process.stdin,
+  'isTTY'
+);
 
 function setStdinTTY(value: boolean | undefined): void {
   Object.defineProperty(process.stdin, 'isTTY', {
@@ -73,6 +76,14 @@ function setStdinTTY(value: boolean | undefined): void {
     configurable: true,
     writable: true,
   });
+}
+
+function restoreStdinTTY(): void {
+  if (originalIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, 'isTTY', originalIsTTYDescriptor);
+  } else {
+    delete (process.stdin as { isTTY?: boolean }).isTTY;
+  }
 }
 
 beforeEach(() => {
@@ -87,7 +98,7 @@ beforeEach(() => {
 afterEach(() => {
   console.log = originalConsole.log;
   console.error = originalConsole.error;
-  setStdinTTY(originalIsTTY);
+  restoreStdinTTY();
 });
 
 describe('prompts', () => {
