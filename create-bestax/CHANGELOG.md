@@ -1,3 +1,18 @@
+# [3.2.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.4...create-bestax@3.2.0) (2026-07-11)
+
+
+### Bug Fixes
+
+* **bulma-ui:** strip redundant library prefix from Icon name ([#242](https://github.com/allxsmith/bestax/issues/242)) ([dbe3622](https://github.com/allxsmith/bestax/commit/dbe36221af3db5be729dd65a3d528042986ee3ec)), closes [#189](https://github.com/allxsmith/bestax/issues/189)
+
+
+### Features
+
+* **bulma-ui:** add Avatar, Avatars, and Badge components ([#257](https://github.com/allxsmith/bestax/issues/257)) ([0817018](https://github.com/allxsmith/bestax/commit/081701874bec730b0ede42a71a69e831310df76b)), closes [#256](https://github.com/allxsmith/bestax/issues/256)
+* **bulma-ui:** add Reveal component for scroll-triggered animations ([#255](https://github.com/allxsmith/bestax/issues/255)) ([a89c574](https://github.com/allxsmith/bestax/commit/a89c5747c24969dff04ffd663d7281353abfa5d6))
+* **bulma-ui:** make Button and Link as prop polymorphic (React.ElementType) ([#238](https://github.com/allxsmith/bestax/issues/238)) ([ce90304](https://github.com/allxsmith/bestax/commit/ce90304091872c44c4041035672629b8b7e9fca6)), closes [#188](https://github.com/allxsmith/bestax/issues/188)
+* **create-bestax:** scaffold-aware CLAUDE.md with setup facts and house style ([#271](https://github.com/allxsmith/bestax/issues/271)) ([c1681b0](https://github.com/allxsmith/bestax/commit/c1681b0f1e87b65f6614e564b0878bc6d7217757))
+
 ## [3.1.4](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.3...create-bestax@3.1.4) (2026-07-04)
 
 
