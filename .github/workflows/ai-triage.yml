@@ -145,10 +145,12 @@ jobs:
                "@coderabbitai" in any text; post one comment and nothing
                else.
 
-      # Always remove the trigger label — even when the Claude step failed —
-      # so the label stays a re-pressable button and never wedges "on".
+      # Always remove the trigger label — even when the Claude step failed or
+      # the permission re-check errored — so the label stays a re-pressable
+      # button and never wedges "on". Removal uses only GITHUB_TOKEN, so an
+      # unauthorized labeling still spends zero Claude usage.
       - name: Remove ai-triage label
-        if: always() && steps.perm.outputs.allowed == 'true'
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
