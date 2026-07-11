@@ -69,6 +69,12 @@ jobs:
           #   anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # and set a monthly spend limit in the Anthropic console.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 60 turns + read-only diff tools so review-sized asks fit: at 20
+          # turns with no diff access, PR-review requests burned turns on
+          # permission denials and died on error_max_turns (runs 29136350689,
+          # 29147803092). The extra tools are read-only; the write surface is
+          # unchanged.
           claude_args: |
-            --max-turns 20
+            --max-turns 60
             --model claude-sonnet-5
+            --allowedTools "Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*)"
