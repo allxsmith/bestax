@@ -37,6 +37,7 @@
  *             1 API or close failure, 2 bad usage.
  */
 import process from 'node:process';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
 
 export const MARKER = '<!-- ai-triage:dedupe -->';
@@ -45,6 +46,9 @@ export const DUPLICATE_RE = /Duplicate of #(\d+)/;
 const API_BASE = 'https://api.github.com';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RATE_LIMIT_FLOOR = 20;
+const FETCH_TIMEOUT_MS = 30_000;
+const RETRY_AFTER_FALLBACK_MS = 30_000;
+const RATE_LIMIT_RETRIES = 2;
 
 // ---------------------------------------------------------------------------
 // Pure helpers (exported for tests).
@@ -125,28 +129,52 @@ async function api(pathOrUrl, { method = 'GET', body, okStatuses } = {}) {
   const url = pathOrUrl.startsWith('https://')
     ? pathOrUrl
     : `${API_BASE}${pathOrUrl}`;
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'bestax-auto-close-duplicates',
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const remaining = res.headers.get('x-ratelimit-remaining');
-  if (remaining !== null) rateLimitRemaining = Number(remaining);
-  if (!res.ok && !okStatuses?.includes(res.status)) {
-    const text = await res.text().catch(() => '');
-    const err = new Error(
-      `${method} ${url} failed: ${res.status} ${res.statusText} ${text.slice(0, 300)}`
-    );
-    err.status = res.status;
-    throw err;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'bestax-auto-close-duplicates',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      // A hung request must not stall the whole cron run.
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    const remaining = res.headers.get('x-ratelimit-remaining');
+    if (remaining !== null) rateLimitRemaining = Number(remaining);
+    // 403/429 is (usually) a primary/secondary rate limit: honor Retry-After
+    // (falling back to a fixed pause when absent) and retry before failing.
+    if (
+      (res.status === 403 || res.status === 429) &&
+      !okStatuses?.includes(res.status) &&
+      attempt < RATE_LIMIT_RETRIES
+    ) {
+      const retryAfterSec = Number(res.headers.get('retry-after'));
+      const delayMs =
+        Number.isFinite(retryAfterSec) && retryAfterSec > 0
+          ? retryAfterSec * 1000
+          : RETRY_AFTER_FALLBACK_MS;
+      console.log(
+        `${method} ${url}: HTTP ${res.status} (rate limited?), retrying in ` +
+          `${delayMs / 1000}s (attempt ${attempt + 1}/${RATE_LIMIT_RETRIES})`
+      );
+      await res.text().catch(() => ''); // drain the body before retrying
+      await sleep(delayMs);
+      continue;
+    }
+    if (!res.ok && !okStatuses?.includes(res.status)) {
+      const text = await res.text().catch(() => '');
+      const err = new Error(
+        `${method} ${url} failed: ${res.status} ${res.statusText} ${text.slice(0, 300)}`
+      );
+      err.status = res.status;
+      throw err;
+    }
+    return res;
   }
-  return res;
 }
 
 /** Paginate a GET endpoint by following Link rel="next" headers. */
@@ -196,7 +224,7 @@ async function main() {
   }
 
   const now = Date.now();
-  const counts = { scanned: 0, closed: 0, deferred: 0, vetoed: 0 };
+  const counts = { scanned: 0, closed: 0, deferred: 0, vetoed: 0, failed: 0 };
 
   console.log(
     `auto-close-duplicates: repo=${repo} mode=${mode} wait-days=${waitDays}`
@@ -211,121 +239,133 @@ async function main() {
       // (e.g. bestaxbot automation) are out of scope for auto-close.
       if (issue.pull_request || isBot(issue.user)) continue;
       counts.scanned++;
-      checkRateBudget();
 
-      const comments = await getAllPages(
-        `/repos/${repo}/issues/${issue.number}/comments?per_page=100`
-      );
-      const marker = findMarkerComment(comments);
-      if (!marker) continue; // no dedupe verdict on this issue — skip silently
-
-      const { comment, target } = marker;
-      const age = ageInDays(comment.created_at, now);
-
-      // Age gate: the objection window must have fully elapsed.
-      if (age < waitDays) {
-        console.log(`#${issue.number}: deferred (age ${age}d < ${waitDays}d)`);
-        counts.deferred++;
-        continue;
-      }
-
-      // Veto (a): any non-bot comment after the marker is an objection.
-      const objection = humanCommentAfter(comments, comment);
-      if (objection) {
-        console.log(
-          `#${issue.number}: vetoed (comment by @${objection.user?.login} ` +
-            `after the dedupe marker)`
-        );
-        counts.vetoed++;
-        continue;
-      }
-
-      // Veto (b): a 👎 on the marker comment is an objection.
-      checkRateBudget();
-      const reactions = await getAllPages(
-        `/repos/${repo}/issues/comments/${comment.id}/reactions?per_page=100`
-      );
-      if (reactions.some(r => r.content === '-1')) {
-        console.log(
-          `#${issue.number}: vetoed (👎 reaction on the dedupe marker comment)`
-        );
-        counts.vetoed++;
-        continue;
-      }
-
-      // Veto (c): a previously reopened issue is never auto-closed again.
-      checkRateBudget();
-      const timeline = await getAllPages(
-        `/repos/${repo}/issues/${issue.number}/timeline?per_page=100`
-      );
-      if (timeline.some(e => e.event === 'reopened')) {
-        console.log(
-          `#${issue.number}: vetoed (issue was reopened at some point)`
-        );
-        counts.vetoed++;
-        continue;
-      }
-
-      // Sanity: the duplicate target must be a real, different issue.
-      if (target === issue.number) {
-        console.log(
-          `#${issue.number}: vetoed (marker points at the issue itself)`
-        );
-        counts.vetoed++;
-        continue;
-      }
-      checkRateBudget();
-      const targetRes = await api(`/repos/${repo}/issues/${target}`, {
-        okStatuses: [404, 410],
-      });
-      if (!targetRes.ok) {
-        console.log(
-          `#${issue.number}: vetoed (duplicate target #${target} does not ` +
-            `exist: HTTP ${targetRes.status})`
-        );
-        counts.vetoed++;
-        continue;
-      }
-
-      if (mode === 'dry-run') {
-        console.log(
-          `WOULD CLOSE #${issue.number} as duplicate of #${target} ` +
-            `(marker age ${age}d)`
-        );
-        counts.closed++;
-        continue;
-      }
-
-      // mode === 'on': comment, then close.
-      checkRateBudget();
-      await api(`/repos/${repo}/issues/${issue.number}/comments`, {
-        method: 'POST',
-        body: {
-          body:
-            `Duplicate of #${target} — automatically closed after ` +
-            `${waitDays} days with no objection. If this is wrong, comment ` +
-            `here or reopen and it will never be auto-closed again.`,
-        },
-      });
+      // Isolate per-issue failures: one bad issue (transferred target, a
+      // stray 5xx, …) must not abort the scan of every remaining issue.
+      // Only the polite rate-limit abort escapes to the outer catch.
       try {
-        await api(`/repos/${repo}/issues/${issue.number}`, {
-          method: 'PATCH',
-          body: { state: 'closed', state_reason: 'duplicate' },
-        });
-      } catch (err) {
-        if (err.status !== 422) throw err;
-        // Older/limited APIs reject state_reason=duplicate; fall back.
-        console.log(
-          `#${issue.number}: state_reason=duplicate rejected (422), ` +
-            `falling back to not_planned`
+        checkRateBudget();
+
+        const comments = await getAllPages(
+          `/repos/${repo}/issues/${issue.number}/comments?per_page=100`
         );
-        await api(`/repos/${repo}/issues/${issue.number}`, {
-          method: 'PATCH',
-          body: { state: 'closed', state_reason: 'not_planned' },
+        const marker = findMarkerComment(comments);
+        if (!marker) continue; // no dedupe verdict on this issue — skip silently
+
+        const { comment, target } = marker;
+        const age = ageInDays(comment.created_at, now);
+
+        // Age gate: the objection window must have fully elapsed.
+        if (age < waitDays) {
+          console.log(
+            `#${issue.number}: deferred (age ${age}d < ${waitDays}d)`
+          );
+          counts.deferred++;
+          continue;
+        }
+
+        // Veto (a): any non-bot comment after the marker is an objection.
+        const objection = humanCommentAfter(comments, comment);
+        if (objection) {
+          console.log(
+            `#${issue.number}: vetoed (comment by @${objection.user?.login} ` +
+              `after the dedupe marker)`
+          );
+          counts.vetoed++;
+          continue;
+        }
+
+        // Veto (b): a 👎 on the marker comment is an objection.
+        checkRateBudget();
+        const reactions = await getAllPages(
+          `/repos/${repo}/issues/comments/${comment.id}/reactions?per_page=100`
+        );
+        if (reactions.some(r => r.content === '-1')) {
+          console.log(
+            `#${issue.number}: vetoed (👎 reaction on the dedupe marker comment)`
+          );
+          counts.vetoed++;
+          continue;
+        }
+
+        // Veto (c): a previously reopened issue is never auto-closed again.
+        checkRateBudget();
+        const timeline = await getAllPages(
+          `/repos/${repo}/issues/${issue.number}/timeline?per_page=100`
+        );
+        if (timeline.some(e => e.event === 'reopened')) {
+          console.log(
+            `#${issue.number}: vetoed (issue was reopened at some point)`
+          );
+          counts.vetoed++;
+          continue;
+        }
+
+        // Sanity: the duplicate target must be a real, different issue.
+        if (target === issue.number) {
+          console.log(
+            `#${issue.number}: vetoed (marker points at the issue itself)`
+          );
+          counts.vetoed++;
+          continue;
+        }
+        checkRateBudget();
+        const targetRes = await api(`/repos/${repo}/issues/${target}`, {
+          okStatuses: [404, 410],
         });
+        if (!targetRes.ok) {
+          console.log(
+            `#${issue.number}: vetoed (duplicate target #${target} does not ` +
+              `exist: HTTP ${targetRes.status})`
+          );
+          counts.vetoed++;
+          continue;
+        }
+
+        if (mode === 'dry-run') {
+          console.log(
+            `WOULD CLOSE #${issue.number} as duplicate of #${target} ` +
+              `(marker age ${age}d)`
+          );
+          counts.closed++;
+          continue;
+        }
+
+        // mode === 'on': comment, then close.
+        checkRateBudget();
+        await api(`/repos/${repo}/issues/${issue.number}/comments`, {
+          method: 'POST',
+          body: {
+            body:
+              `Duplicate of #${target} — automatically closed after ` +
+              `${waitDays} days with no objection. If this is wrong, comment ` +
+              `here or reopen and it will never be auto-closed again.`,
+          },
+        });
+        try {
+          await api(`/repos/${repo}/issues/${issue.number}`, {
+            method: 'PATCH',
+            body: { state: 'closed', state_reason: 'duplicate' },
+          });
+        } catch (err) {
+          if (err.status !== 422) throw err;
+          // Older/limited APIs reject state_reason=duplicate; fall back.
+          console.log(
+            `#${issue.number}: state_reason=duplicate rejected (422), ` +
+              `falling back to not_planned`
+          );
+          await api(`/repos/${repo}/issues/${issue.number}`, {
+            method: 'PATCH',
+            body: { state: 'closed', state_reason: 'not_planned' },
+          });
+        }
+        console.log(`CLOSED #${issue.number} as duplicate of #${target}`);
+        counts.closed++;
+      } catch (err) {
+        if (err instanceof RateLimitAbort) throw err;
+        console.error(`#${issue.number}: skipped after error: ${err.message}`);
+        counts.failed++;
       }
-      console.log(`CLOSED #${issue.number} as duplicate of #${target}`);
-      counts.closed++;
     }
   } catch (err) {
     if (err instanceof RateLimitAbort) {
@@ -344,7 +384,8 @@ function printSummary(mode, counts) {
   const closedLabel = mode === 'on' ? 'closed' : 'would-close';
   console.log(
     `Summary: scanned=${counts.scanned} ${closedLabel}=${counts.closed} ` +
-      `deferred=${counts.deferred} vetoed=${counts.vetoed}`
+      `deferred=${counts.deferred} vetoed=${counts.vetoed} ` +
+      `failed=${counts.failed}`
   );
 }
 

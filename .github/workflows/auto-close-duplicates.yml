@@ -40,6 +40,12 @@ on:
 # No workflow-level grants; the single job takes exactly what it needs.
 permissions: {}
 
+# One sweep at a time: a manual workflow_dispatch overlapping the daily cron
+# must not race a second closer over the same issues (double comments/closes).
+concurrency:
+  group: auto-close-duplicates
+  cancel-in-progress: false
+
 jobs:
   auto-close:
     # Fail closed: unset (or 'off') AI_TRIAGE_AUTOCLOSE means this never runs.
