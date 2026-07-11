@@ -13,6 +13,7 @@ import Control from '../form/Control';
 const meta: Meta<typeof Media> = {
   title: 'Layout/Media',
   component: Media,
+  tags: ['autodocs'],
 };
 export default meta;
 

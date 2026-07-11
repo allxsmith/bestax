@@ -12,6 +12,7 @@ import {
 const meta: Meta<typeof Buttons> = {
   title: 'Elements/Buttons',
   component: Buttons,
+  tags: ['autodocs'],
   argTypes: {
     className: { control: 'text' },
     textColor: {

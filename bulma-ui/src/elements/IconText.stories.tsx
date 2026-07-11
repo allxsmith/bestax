@@ -10,6 +10,7 @@ import {
 const meta: Meta<typeof IconText> = {
   title: 'Elements/IconText',
   component: IconText,
+  tags: ['autodocs'],
   argTypes: {
     className: { control: 'text' },
     textColor: {

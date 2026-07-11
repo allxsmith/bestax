@@ -4,6 +4,7 @@ import { Image } from './Image';
 const meta: Meta<typeof Image> = {
   title: 'Elements/Image',
   component: Image,
+  tags: ['autodocs'],
   argTypes: {
     size: {
       control: 'select',

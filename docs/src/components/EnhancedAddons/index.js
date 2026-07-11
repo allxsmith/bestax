@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Spinner overlays for full pages or single containers.',
   },
   {
+    name: 'Reveal',
+    icon: 'reveal',
+    link: '/docs/api/components/reveal',
+    desc: 'Scroll-triggered entrance animations, solo or cascading, that respect reduced motion.',
+  },
+  {
     name: 'Sidebar',
     icon: 'sidebar',
     link: '/docs/api/components/sidebar',

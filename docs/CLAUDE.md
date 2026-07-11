@@ -33,8 +33,11 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 
 ## Conventions
 
-- Pages carry frontmatter (`title`, `sidebar_position`); API pages use consistent sections
-  (props table, examples) — mirror a sibling page, don't invent a new structure.
+- API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
+  `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
+  name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).
+- No inline `style={{}}` in examples — use `Block`/helper props; there is no `gap` helper,
+  space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).

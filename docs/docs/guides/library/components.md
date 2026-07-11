@@ -321,6 +321,20 @@ Expandable/collapsible content panels with smooth animation. Works in controlled
 
 ---
 
+### Reveal
+
+Animates content into view as it scrolls onto screen, powered by IntersectionObserver. Supports cascading children and respects `prefers-reduced-motion`. [View full documentation.](../../api/components/reveal.md)
+
+```tsx live
+<Reveal animation="fade-up" cascade>
+  <Box>This box fades up as it scrolls into view.</Box>
+  <Box>Then this one follows.</Box>
+  <Box>And this one finishes the cascade.</Box>
+</Reveal>
+```
+
+---
+
 ## Media
 
 ### Avatar

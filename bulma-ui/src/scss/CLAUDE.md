@@ -49,7 +49,12 @@ Rules the pattern encodes:
 - **Never a raw color/size value** in declarations — derive from Bulma tokens via `cv.getVar()`
   so the extra is themeable exactly like stock Bulma (`--bulma-collapse-border-color: …`).
   This is the contract the `Theme` component and the `bestax-theming` skill rely on.
+- **Register every themable value** — durations, offsets, and insets included, not just colors.
+  Prefer an existing Bulma token (`cv.getVar('radius-rounded')`, never `9999px`); dark mode
+  works only through scheme tokens (`scheme-main`, `text`, `border`) — a hardcoded grey is a
+  dark-mode bug.
 - **Reuse `extras-*` mixins** for transitions, focus outlines, and screen-reader-only content
   instead of re-rolling them (focus style consistency is an a11y requirement).
 - New CSS variables should be documented in
-  `skills/bestax-theming/references/css-variables.md` alongside the docs page.
+  `skills/bestax-theming/references/css-variables.md`, and the component's rows added to
+  `skills/bestax-theming/references/themeable-components.md`, in the same PR.

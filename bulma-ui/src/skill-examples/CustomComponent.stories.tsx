@@ -11,6 +11,7 @@ const SKILL_HREF =
 
 const meta: Meta = {
   title: 'Skills/Custom Component',
+  tags: ['autodocs'],
   parameters: { layout: 'padded' },
 };
 export default meta;
