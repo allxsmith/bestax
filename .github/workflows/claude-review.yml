@@ -95,6 +95,13 @@ jobs:
       # serializes the double-fire; the marker probe catches the second run.
       # (The marker, not just any claude[bot] activity: the fix agent posts
       # claude[bot] thread replies too, which must not count as "reviewed".)
+      #
+      # EXCEPTION — deep-review `labeled` events skip the probe: a triage+
+      # human re-applying the label (verified live by the perm step above)
+      # is an explicit "run a fresh review" request, e.g. after new commits
+      # or a prompt upgrade. Usage stays human-metered: one opus session per
+      # deliberate label application. The ai-loop path and label-at-creation
+      # double-fires keep the one-review invariant.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
@@ -102,8 +109,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
         run: |
           set -euo pipefail
+          if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "deep-review label applied by a verified triage+ user — running a fresh review"
+            exit 0
+          fi
           MARKER=$(gh api "repos/$REPO/pulls/$PR/reviews?per_page=100" --jq \
             '[.[] | select((.user.login | test("^claude(\\[bot\\])?$"))
                            and (.body | contains("<!-- claude-deep-review -->")))] | length')
