@@ -43,12 +43,72 @@ export const PROMPTS = {
     'Install the bestax AI skills (.claude/skills) for Claude Code and other agents?',
 } as const;
 
+// Icon libraries that require a `ConfigProvider iconLibrary` wrapper, mapped
+// to the exact prop value the scaffolder writes into main.tsx/jsx ('none' and
+// 'fontawesome' are the defaults and need no provider). Shared with
+// project-creator.setupConfigProvider AND the CLAUDE_MD template below so the
+// generated docs can never drift from the generated code.
+export const CONFIG_PROVIDER_ICON_VALUES: Record<string, string> = {
+  mdi: 'mdi',
+  ionicons: 'ion',
+  'material-icons': 'material-icons',
+  'material-symbols': 'material-symbols',
+};
+
 // Minimal CLAUDE.md scaffolded alongside the skills so an AI agent knows the
-// stack and where the skills live.
-export const CLAUDE_MD = (projectName: string): string => `# ${projectName}
+// stack, this app's scaffold choices, and where the skills live. Kept short:
+// it loads into every agent session.
+export interface ClaudeMdOptions {
+  bulmaFlavor: string;
+  iconLibrary: string;
+}
+
+export const CLAUDE_MD = (
+  projectName: string,
+  { bulmaFlavor, iconLibrary }: ClaudeMdOptions
+): string => {
+  const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
+  const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
+  const setupLines = [
+    `- Bulma flavor: **${bulmaFlavor}** — the app imports **prebuilt** CSS` +
+      (flavor ? ` (\`${flavor.importStatement.trim()}\`)` : '') +
+      `; there is no Sass pipeline unless you add \`sass\`.`,
+  ];
+  if (flavor?.needsPrefix) {
+    setupLines.push(
+      `- Every Bulma class carries the \`bestax-\` prefix and the app is wrapped in ` +
+        `\`<ConfigProvider classPrefix="bestax-">\` — custom CSS selectors must match the prefix.`
+    );
+  }
+  const providerIconValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
+  setupLines.push(
+    iconLibrary === 'none'
+      ? `- No icon library is installed — add one before using \`<Icon>\` ` +
+          `(https://bestax.io/docs/api/elements/icon).`
+      : `- Icon library: **${icon?.display ?? iconLibrary}** — use \`<Icon name="..." />\`.` +
+          (providerIconValue
+            ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
+              `— extend that provider rather than adding a second one.`
+            : '')
+  );
+  return `# ${projectName}
 
 This app is built with [\`@allxsmith/bestax-bulma\`](https://bestax.io) — React components for
 Bulma 1.x.
+
+## This app's setup
+
+${setupLines.join('\n')}
+
+## House style
+
+- Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
+  spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
+  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` has a real
+  \`gap\` prop and \`Columns\` has \`gapSize\`, so prefer those there).
+- Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
+  variables, never hardcoded colors.
+- There is no test runner or Storybook in this app — don't assume one.
 
 ## AI skills
 
@@ -68,6 +128,7 @@ Prefer the library's components and these skills over hand-written Bulma markup 
 - LLM-ready docs: https://bestax.io/llms.txt (curated index) and https://bestax.io/llms-full.txt
 - Using bestax with AI tools: https://bestax.io/docs/guides/llms
 `;
+};
 
 export interface IconLibrary {
   name: string;

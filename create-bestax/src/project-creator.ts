@@ -30,6 +30,8 @@ import {
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
+  CONFIG_PROVIDER_ICON_VALUES,
+  type ClaudeMdOptions,
 } from './constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -101,7 +103,11 @@ export class ProjectCreator {
     await copyDirectory(templatePath, targetPath);
   }
 
-  async setupSkills(targetPath: string, projectName: string): Promise<void> {
+  async setupSkills(
+    targetPath: string,
+    projectName: string,
+    options: ClaudeMdOptions
+  ): Promise<void> {
     const skillsSrc = path.join(this.templatesDir, 'skills');
     if (!(await checkDirectoryExists(skillsSrc))) {
       console.log(
@@ -113,7 +119,7 @@ export class ProjectCreator {
     await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
     await fs.writeFile(
       path.join(targetPath, 'CLAUDE.md'),
-      CLAUDE_MD(projectName)
+      CLAUDE_MD(projectName, options)
     );
     console.log(chalk.green(MESSAGES.SKILLS_ADDED));
   }
@@ -404,14 +410,9 @@ export class ProjectCreator {
         configProps.push('classPrefix="bestax-"');
       }
       if (needsIconLibrary) {
-        // Map the icon library name to the correct value for ConfigProvider
-        const iconLibraryMap: Record<string, string> = {
-          mdi: 'mdi',
-          ionicons: 'ion',
-          'material-icons': 'material-icons',
-          'material-symbols': 'material-symbols',
-        };
-        const iconLibraryValue = iconLibraryMap[iconLibrary];
+        // Shared with the CLAUDE_MD template so the generated docs always
+        // name the same provider value the scaffolder writes here.
+        const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
         if (iconLibraryValue) {
           configProps.push(`iconLibrary="${iconLibraryValue}"`);
         }
@@ -557,7 +558,10 @@ export class ProjectCreator {
         template
       );
       if (installSkills) {
-        await this.setupSkills(targetPath, projectName);
+        await this.setupSkills(targetPath, projectName, {
+          bulmaFlavor,
+          iconLibrary,
+        });
       }
       displaySuccess(targetDir);
     } catch (error) {
