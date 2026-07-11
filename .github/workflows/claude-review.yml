@@ -7,6 +7,15 @@ name: Claude Deep Review
 # claude-pr-loop.yml's verify mode and resolves only what is genuinely fixed
 # (mirroring CodeRabbit's "✅ Addressed" verification).
 #
+# Second trigger path: a triage+ collaborator applies the `deep-review`
+# label to ANY same-repo PR (any branch) to run the same one-shot review —
+# e.g. Claude-Code-authored but human-opened PRs that never enter the loop.
+# Security posture: same-repo PRs only (never forks), the labeler's live
+# role is re-verified via the collaborators API (triage+ required, so a
+# label applied by automation on behalf of an outsider is a silent no-op),
+# and the dedupe marker still caps usage at one review per PR ever —
+# re-labeling never re-fires it.
+#
 # Deliberately does NOT trigger on `synchronize`: one review per PR, so
 # Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
 # ping-pong, no claude-code-action#1299-style self-trigger failures).
@@ -27,18 +36,60 @@ concurrency:
 
 jobs:
   review:
-    # Only AI-loop PRs from claude/* branches in this repo. For `labeled`
-    # events, only the ai-loop label itself may fire the review.
+    # Two ways in, both same-repo PRs only: (a) AI-loop PRs from claude/*
+    # branches, or (b) any PR a triage+ user opts in via the `deep-review`
+    # label (role re-verified live in the perm step below). For `labeled`
+    # events, only the matching label itself may fire the review.
     if: |
-      contains(github.event.pull_request.labels.*.name, 'ai-loop') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'ai-loop') &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.event.pull_request.head.ref, 'claude/') &&
       github.event.pull_request.state == 'open' &&
-      vars.AI_LOOP_ENABLED == 'true'
+      vars.AI_LOOP_ENABLED == 'true' &&
+      (
+        (
+          contains(github.event.pull_request.labels.*.name, 'ai-loop') &&
+          startsWith(github.event.pull_request.head.ref, 'claude/') &&
+          (github.event.action != 'labeled' || github.event.label.name == 'ai-loop')
+        ) ||
+        (
+          contains(github.event.pull_request.labels.*.name, 'deep-review') &&
+          (github.event.action != 'labeled' || github.event.label.name == 'deep-review')
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # For the opt-in `deep-review` label only: GitHub already restricts
+      # labeling to triage+, but re-verify the labeler's live role
+      # defensively (same belt-and-braces pattern as on-slop.yml and
+      # claude-implement.yml) so an automated/template label can never spend
+      # Claude usage. Every other event shape is the unchanged ai-loop trust
+      # model and passes through as allowed.
+      - name: Check labeler permission
+        id: perm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SENDER: ${{ github.event.sender.login }}
+          ACTION: ${{ github.event.action }}
+          LABEL: ${{ github.event.label.name }}
+        run: |
+          set -euo pipefail
+          if [ "$ACTION" != "labeled" ] || [ "$LABEL" != "deep-review" ]; then
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+            echo "not a deep-review labeling event — no extra check needed"
+            exit 0
+          fi
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "$SENDER has $ROLE access — running the deep review" ;;
+            *)
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "$SENDER lacks triage access ($ROLE) — not running" ;;
+          esac
+
       # `opened` and `labeled` both fire when a PR is created with the label
       # already attached — review exactly once. The concurrency group
       # serializes the double-fire; the marker probe catches the second run.
@@ -46,6 +97,7 @@ jobs:
       # claude[bot] thread replies too, which must not count as "reviewed".)
       - name: Skip if already reviewed
         id: dedupe
+        if: steps.perm.outputs.allowed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -63,7 +115,7 @@ jobs:
           fi
 
       - name: Checkout PR head
-        if: steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           ref: ${{ github.event.pull_request.head.ref }}
@@ -71,26 +123,27 @@ jobs:
           persist-credentials: false
 
       - name: Setup pnpm
-        if: steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       - name: Setup Node.js
-        if: steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
-        if: steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         run: pnpm install --frozen-lockfile
 
       - name: Run Claude (deep review)
-        if: steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # The PR opener/labeler is claude[bot] (the implementer) by design.
+          # On loop PRs the opener/labeler is claude[bot] (the implementer)
+          # by design.
           allowed_bots: 'claude'
           claude_args: |
             --max-turns 120
@@ -100,9 +153,10 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            You are the independent DEEP REVIEWER for this AI-authored PR.
-            The PR branch is checked out and dependencies are installed. You
-            did not write this code — review it adversarially.
+            You are the independent DEEP REVIEWER for this PR (typically
+            AI-authored or AI-assisted). The PR branch is checked out and
+            dependencies are installed. You did not write this code — review
+            it adversarially.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
             2. Verify every candidate finding against the actual code before
@@ -138,10 +192,10 @@ jobs:
                - Include a ```mermaid diagram when a control-/data-flow picture
                  makes the bug clearer than prose (GitHub renders it).
             5. ALWAYS finish — findings or not — by submitting ONE summary
-               review that certifies the deep review ran (the loop's gate
-               requires it before it may hand the PR to a human). Write the
-               body to a file first so the Markdown/tables survive intact,
-               then post it:
+               review that certifies the deep review ran (for AI-loop PRs,
+               the loop's gate requires it before it may hand the PR to a
+               human). Write the body to a file first so the Markdown/tables
+               survive intact, then post it:
 
                  (write this to /tmp/deep-review.md, filling in the values)
                  <!-- claude-deep-review -->
