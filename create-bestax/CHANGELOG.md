@@ -1,3 +1,10 @@
+## [3.2.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.2.0...create-bestax@3.2.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* **create-bestax:** fail fast with guidance instead of hanging when stdin is not a TTY ([#293](https://github.com/allxsmith/bestax/issues/293)) ([46a172d](https://github.com/allxsmith/bestax/commit/46a172d503bb283a5fc168f397261f8afa558b19)), closes [#192](https://github.com/allxsmith/bestax/issues/192)
+
 # [3.2.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.1.4...create-bestax@3.2.0) (2026-07-11)
 
 
