@@ -1,0 +1,92 @@
+name: Auto-close duplicates
+
+# Daily cron that closes issues the AI triage marked as duplicates, once the
+# objection window has elapsed with silence (#289, PR B). Ported from
+# oven-sh/bun's scripts/auto-close-duplicates.ts, with the window widened
+# from Bun's 3 days to 14.
+#
+# A candidate is an open issue whose latest claude[bot] comment carries the
+# `<!-- ai-triage:dedupe -->` marker and a `Duplicate of #N` line, aged >= 14
+# days. Three vetoes, any one of which blocks the close forever or until it
+# clears: a non-bot comment after the marker, a 👎 reaction on the marker
+# comment, or a `reopened` event in the issue timeline (a reopened issue is
+# never auto-closed again).
+#
+# Rollout is gated on the AI_TRIAGE_AUTOCLOSE repo variable (fail closed —
+# unset means this job never runs): start with `dry-run` (logs the
+# would-close list, changes nothing), flip to `on` after a week of sane logs.
+#
+# Deliberately NOT gated on vars.AI_LOOP_ENABLED: this workflow uses zero
+# Claude/AI itself — the script is plain REST calls — and zero-Claude
+# workflows ignore the AI-spend kill switch (house rule, same as
+# auto-label-claude-prs.yml).
+
+on:
+  schedule:
+    # 06:37 UTC daily — a slot clear of the other crons in this repo
+    # (0 2 / 41 3 / 17 4 / 23 */2).
+    - cron: '37 6 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: >-
+          Override the run mode for this dispatch only. De-escalation is
+          always allowed; escalation to "on" is honored only if
+          AI_TRIAGE_AUTOCLOSE itself is "on".
+        required: false
+        type: choice
+        options: ['dry-run', 'on']
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+# One sweep at a time: a manual workflow_dispatch overlapping the daily cron
+# must not race a second closer over the same issues (double comments/closes).
+concurrency:
+  group: auto-close-duplicates
+  cancel-in-progress: false
+
+jobs:
+  auto-close:
+    # Fail closed: unset (or 'off') AI_TRIAGE_AUTOCLOSE means this never runs.
+    if: vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write # comment on + close duplicate issues
+      contents: read # checkout to run the script
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      # No pnpm, no cache: the script is dependency-free (node: builtins +
+      # global fetch), so plain Node 24 is all it needs.
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+
+      - name: Auto-close silence-approved duplicates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          VAR_MODE: ${{ vars.AI_TRIAGE_AUTOCLOSE }}
+          INPUT_MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          # Effective mode: the repo variable, optionally overridden by a
+          # workflow_dispatch input. A dispatch may always DE-escalate
+          # (on -> dry-run, e.g. to preview after rollout), but never
+          # ESCALATE dry-run -> on: turning closing on is a deliberate
+          # repo-variable change, not something a stray manual dispatch
+          # should be able to do while the rollout is still in dry-run.
+          MODE="$VAR_MODE"
+          if [ -n "${INPUT_MODE:-}" ]; then
+            if [ "$INPUT_MODE" = "on" ] && [ "$VAR_MODE" != "on" ]; then
+              echo "Refusing to escalate: dispatch requested mode=on but AI_TRIAGE_AUTOCLOSE=$VAR_MODE. Running dry-run."
+              MODE="dry-run"
+            else
+              MODE="$INPUT_MODE"
+            fi
+          fi
+          node scripts/auto-close-duplicates.mjs --repo="$REPO" --mode="$MODE"
