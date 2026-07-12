@@ -16,9 +16,9 @@ allowed-tools: Read, Bash(pnpm all), Bash(pnpm run:*), Bash(pnpm exec:*), Bash(g
    - prop-level changes without matching story/docs/skills updates
    - missing listing surfaces (guide page section, homepage card — step 2)
    - skills sync for themeable or shared-helper changes (step 3)
-   For diffs that don't touch components (docs-only, tooling, workflows),
-   SKIP the component checklist and just review the diff generally.
-   Always check commit message type/scope (`feat|fix|perf|refactor|style`
-   need scope `bulma-ui|docs|create-bestax`).
+     For diffs that don't touch components (docs-only, tooling, workflows),
+     SKIP the component checklist and just review the diff generally.
+     Always check commit message type/scope (`feat|fix|perf|refactor|style`
+     need scope `bulma-ui|docs|create-bestax`).
 3. Report a short summary: gate result, then each checklist gap with the
    file to touch. Do not fix anything — this command only reviews.
