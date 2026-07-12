@@ -54,10 +54,25 @@ PRs authored by the loop move through a small label lifecycle:
 | `needs-human-review` | PRs          | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                     |
 | `ai-loop-paused`     | PRs          | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                       |
 | `deep-review`        | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run)                                                                                    |
-| `ai-triage`          | PRs & issues | Opt-in: a triage+ user applies it to run one-shot AI triage (related issues + duplicates); the label auto-removes after the run                                                   |
+| `ai-triage`          | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)  |
 | `claude-assisted`    | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                      |
 | `stale`              | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead |
 | `neverstale`         | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                           |
+
+### AI triage
+
+New issues and PRs can get an automatic triage comment: likely duplicates (issues), the open
+issues a PR probably resolves, and overlapping PRs. Three repository variables control it:
+
+- **`AI_TRIAGE_MODE`** — `auto` (new issues/PRs are triaged automatically and the label still
+  works), `label` (opt-in only; the default when unset), or `off` (disables both automatic
+  triage **and** the label).
+- **`AI_TRIAGE_DAILY_LIMIT`** — maximum auto-triggered triage sessions per UTC day (default
+  10). Label-triggered runs are exempt — each one is already human-metered by the click.
+- **`AI_TRIAGE_AUTOCLOSE`** — `on`, `dry-run`, or `off` (the default). When active, an issue
+  whose triage comment names a `Duplicate of #N` is auto-closed after **14 days** — unless
+  anyone objects: a human comment after the triage comment, a 👎 reaction on it, or reopening
+  the issue each veto the close.
 
 The loop itself: Claude implements the issue and opens the PR → CodeRabbit reviews it and a
 second, independent Claude review (a stronger model than the implementer) does a deep pass →
