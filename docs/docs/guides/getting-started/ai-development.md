@@ -68,7 +68,9 @@ issues a PR probably resolves, and overlapping PRs. Three repository variables c
   works), `label` (opt-in only; the default when unset), or `off` (disables both automatic
   triage **and** the label).
 - **`AI_TRIAGE_DAILY_LIMIT`** — maximum auto-triggered triage sessions per UTC day (default
-  10). Label-triggered runs are exempt — each one is already human-metered by the click.
+  10). The cap only meters outside authors: label-triggered runs are exempt (each one is
+  already human-metered by the click), and so are issues/PRs opened by collaborators with
+  triage access or higher (their role is verified live against the repository).
 - **`AI_TRIAGE_AUTOCLOSE`** — `on`, `dry-run`, or `off` (the default). When active, an issue
   whose triage comment names a `Duplicate of #N` is auto-closed after **14 days** — unless
   anyone objects: a human comment after the triage comment, a 👎 reaction on it, or reopening
