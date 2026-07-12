@@ -21,6 +21,11 @@ export const MESSAGES = {
   PROJECT_NAME_INVALID_CHARS:
     'Project name can only contain letters, numbers, dots, dashes and underscores',
   OPERATION_CANCELLED: '✖ Operation cancelled',
+  NO_TTY:
+    'No interactive terminal detected — cannot prompt for input.\n' +
+    'Re-run non-interactively with a project name and flags, e.g.:\n' +
+    '  npm create bestax@latest my-app -- -t vite-ts -b complete -i none -y\n' +
+    'Run with --help to see all options.',
   DIRECTORY_NOT_EMPTY: (dir: string) =>
     `Directory ${chalk.yellow(dir)} is not empty. Remove existing files and continue?`,
   EMPTYING_DIRECTORY: (dir: string) => `\n  Emptying ${dir}...`,
