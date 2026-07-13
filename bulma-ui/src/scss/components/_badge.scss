@@ -17,7 +17,6 @@ $badge-animation-duration: 1.4s !default;
 .#{iv.$class-prefix}badge-wrapper {
   position: relative;
   display: inline-flex;
-  line-height: 0;
 }
 
 .#{iv.$class-prefix}badge {
@@ -93,10 +92,17 @@ $badge-animation-duration: 1.4s !default;
 // Standalone (no children) badges no longer emit an is-{position} class, but
 // keep this reset as belt-and-braces so a standalone badge always sits inline
 // in normal flow regardless of any position/overlap class a caller adds.
+// - position: relative (not static) so the pill is the positioned ancestor
+//   .is-pulse::after resolves against, instead of the halo escaping to cover
+//   whatever positioned container the badge sits in.
+// - pointer-events: auto overrides the base .badge reset (needed for the
+//   anchored overlay so clicks pass through to the child) because in
+//   standalone mode the pill itself is the interactive root.
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-standalone {
-  position: static;
+  position: relative;
   display: inline-flex;
   transform: none;
+  pointer-events: auto;
 }
 
 // Overlap adjustment — nudge the badge further in on a round child so it
