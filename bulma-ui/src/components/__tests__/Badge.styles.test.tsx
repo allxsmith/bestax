@@ -7,6 +7,7 @@ import { render } from '@testing-library/react';
 import { Badge } from '../Badge';
 
 let styleEl: HTMLStyleElement;
+let compiledCss: string;
 
 beforeAll(() => {
   const result = sass.compile(
@@ -17,6 +18,7 @@ beforeAll(() => {
       logger: sass.Logger.silent,
     }
   );
+  compiledCss = result.css;
   styleEl = document.createElement('style');
   styleEl.textContent = result.css;
   document.head.appendChild(styleEl);
@@ -37,5 +39,17 @@ describe('Badge standalone styles', () => {
       <Badge content={5} pulse data-testid="badge" />
     );
     expect(getComputedStyle(getByTestId('badge')).position).toBe('relative');
+  });
+
+  // jsdom can't resolve computed style for `::after` (getComputedStyle ignores
+  // the pseudo-element argument), so assert against the compiled CSS text: the
+  // pulse halo rule must declare pointer-events: none or it inherits the
+  // standalone pill's `auto` and its 1.75×-scaled box swallows adjacent clicks.
+  it('keeps the decorative pulse halo from intercepting clicks (pointer-events: none)', () => {
+    const pulseRule = compiledCss
+      .replace(/\s+/g, ' ')
+      .match(/\.badge\.is-pulse::after\s*\{([^}]*)\}/);
+    expect(pulseRule).not.toBeNull();
+    expect(pulseRule?.[1]).toContain('pointer-events: none');
   });
 });

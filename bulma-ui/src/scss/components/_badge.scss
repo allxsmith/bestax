@@ -164,6 +164,10 @@ $badge-animation-duration: 1.4s !default;
   content: '';
   position: absolute;
   inset: 0;
+  // Decorative halo only — never intercept clicks. pointer-events is inherited,
+  // so without this the halo picks up the standalone pill's `auto` and its
+  // 1.75×-scaled box (opacity 0 still hit-tests) swallows adjacent clicks.
+  pointer-events: none;
   border-radius: inherit;
   background-color: inherit;
   animation: extras-badge-pulse cv.getVar('badge-animation-duration')
