@@ -16,6 +16,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-compone
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
+npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills** into the
@@ -32,3 +33,5 @@ Then explore each skill — what it does, how to install it, and live examples:
   `--bulma-*` variables with the `Theme` component.
 - **[Layout scaffold](./layout-scaffold)** — go from "build me a dashboard / landing page / catalog"
   to a complete responsive page using the layout archetypes.
+- **[Icons](./icons)** — use `Icon`/`IconText` with any of the five supported icon libraries:
+  per-library setup, name formats, variants, and decorative-vs-labeled accessibility.

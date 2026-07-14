@@ -1,0 +1,72 @@
+---
+title: Icons
+sidebar_label: Icons
+sidebar_position: 5
+---
+
+# Icons skill
+
+The [`bestax-icons`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-icons/SKILL.md)
+skill teaches an agent to use icons in an app built with `@allxsmith/bestax-bulma`: the
+`Icon`/`IconText` components, the five supported icon libraries and their setup, the
+per-library name formats and variants, and decorative-vs-labeled accessibility.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+```
+
+## What it teaches
+
+- **One library, set once** — `ConfigProvider iconLibrary` (`'fa' | 'mdi' | 'ion' |
+'material-icons' | 'material-symbols'`), so no per-`Icon` `library` prop. Including the
+  classic trap: the Ionicons value is **`'ion'`, not `'ionicons'`**.
+- **Per-library name formats** — the same glyph is `rocket` (Font Awesome),
+  `rocket-launch` (MDI), and `rocket_launch` (Material Icons/Symbols, which render the name
+  as a font-ligature text node). The wrong format is the #1 cause of blank icons.
+- **Variants and features** — Font Awesome's `solid`/`regular`/`brands`, Material Icons'
+  `round` vs Material Symbols' `rounded`, Ionicons' `outline`/`sharp` name suffixes, and
+  glyph scaling via `features` (`'fa-2x'`, `'fa-spin'`).
+- **Accessibility** — a descriptive `ariaLabel` for meaningful standalone icons;
+  `aria-hidden` for decorative icons that sit next to visible text.
+
+## Meaningful vs decorative
+
+```tsx live
+<Block>
+  <Icon name="triangle-exclamation" textColor="warning" ariaLabel="Warning" />
+  <IconText iconProps={{ name: 'star', 'aria-hidden': 'true' }}>
+    Starred
+  </IconText>
+</Block>
+```
+
+## Sizes, variants, features
+
+```tsx live
+<Block>
+  <Icon name="rocket" size="large" features="fa-2x" ariaLabel="Launch" />
+  <Icon name="bell" variant="regular" ariaLabel="Notifications" />
+  <Icon name="github" variant="brands" ariaLabel="GitHub" />
+  <Icon
+    name="spinner"
+    features="fa-spin"
+    textColor="info"
+    ariaLabel="Loading"
+  />
+</Block>
+```
+
+## Reference material the agent reads on demand
+
+- [`references/icon-libraries.md`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-icons/references/icon-libraries.md)
+  — per-library setup (npm package / CDN script), full name-format and variant tables, and
+  the blank-icon troubleshooting checklist.
+- [`examples/icon-usage.tsx`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-icons/examples/icon-usage.tsx)
+  — the canonical runnable example.
+
+## Related
+
+- [Icon API reference](../api/elements/icon.md) · [IconText API reference](../api/elements/icontext.md)
+- [Configuration guide](../guides/features/configuration.md) — `ConfigProvider` in depth.

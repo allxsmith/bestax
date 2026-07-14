@@ -15,6 +15,7 @@ directory the agent reads on demand.
 | [`bestax-form`](./bestax-form/SKILL.md)                         | Building **forms** — Field/Control composition, the full input inventory, and the validate-it-yourself error pattern (there is no form library).                                           |
 | [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.                                       |
 | [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                             |
+| [`bestax-icons`](./bestax-icons/SKILL.md)                       | **Icons** — the `Icon`/`IconText` components and the five supported libraries (Font Awesome, MDI, Ionicons, Material Icons/Symbols): setup, name formats, variants, and accessibility.     |
 
 ## Install
 
@@ -25,6 +26,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-compone
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
+npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
 ```
 
 ## Layout
@@ -64,6 +66,12 @@ skills/
       centered.tsx             # centered single column
       card-grid.tsx            # multiline columns of cards
       content-page.tsx         # hero + cards + CTA, helper props (no inline style)
+  bestax-icons/
+    SKILL.md
+    references/
+      icon-libraries.md        # per-library setup, name formats, variants, troubleshooting
+    examples/
+      icon-usage.tsx           # ConfigProvider + sizes/variants/colors + a11y patterns
 ```
 
 > `component-catalog.md` is generated from the API docs by `scripts/gen-component-catalog.mjs`
