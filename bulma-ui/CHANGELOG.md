@@ -1,3 +1,10 @@
+## [5.4.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.1...@allxsmith/bestax-bulma@5.4.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** retry failed Avatar src, flatten Fragment children in Avatars, RTL-safe overlap ([#297](https://github.com/allxsmith/bestax/issues/297)) ([c00b9db](https://github.com/allxsmith/bestax/commit/c00b9db6aa21fab055302fd3320dccd4c0cbc824))
+
 ## [5.4.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.0...@allxsmith/bestax-bulma@5.4.1) (2026-07-14)
 
 
