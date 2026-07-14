@@ -129,12 +129,14 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       bulmaHelperClasses,
       className
     );
+    const checkClass = usePrefixedClassNames('check');
+    const controlLabelClass = usePrefixedClassNames('control-label');
 
     return (
       <label className={labelClasses}>
         <input ref={ref} type="checkbox" disabled={disabled} {...rest} />
-        <span className="check" />
-        {children && <span className="control-label">{children}</span>}
+        <span className={checkClass} />
+        {children && <span className={controlLabelClass}>{children}</span>}
       </label>
     );
   }

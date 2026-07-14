@@ -196,6 +196,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       bulmaHelperClasses,
       className
     );
+    const toastMessageClass = usePrefixedClassNames('toast-message');
+    const toastActionsClass = usePrefixedClassNames('toast-actions');
+    const toastCancelClass = usePrefixedClassNames('toast-cancel');
+    const toastActionClass = usePrefixedClassNames('toast-action');
+    const toastButtonClass = usePrefixedClassNames('button');
+    const toastCloseClass = usePrefixedClassNames('delete', 'is-small');
 
     if (!isVisible) {
       return null;
@@ -235,14 +241,14 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         onClick={dismissible ? handleClose : undefined}
         {...rest}
       >
-        <span className="toast-message">{message}</span>
+        <span className={toastMessageClass}>{message}</span>
         {(cancelText || actionText) && (
-          <div className="toast-actions">
+          <div className={toastActionsClass}>
             {cancelText && (
-              <span className="toast-cancel">
+              <span className={toastCancelClass}>
                 <button
                   type="button"
-                  className="button"
+                  className={toastButtonClass}
                   onClick={e => {
                     e.stopPropagation();
                     handleClose();
@@ -253,10 +259,10 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
               </span>
             )}
             {actionText && (
-              <span className="toast-action">
+              <span className={toastActionClass}>
                 <button
                   type="button"
-                  className="button"
+                  className={toastButtonClass}
                   onClick={e => {
                     e.stopPropagation();
                     handleAction();
@@ -271,7 +277,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         {closable && (
           <button
             type="button"
-            className="delete is-small"
+            className={toastCloseClass}
             onClick={e => {
               e.stopPropagation();
               handleClose();

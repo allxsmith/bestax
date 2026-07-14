@@ -136,6 +136,8 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       [`is-${size}`]: size && radioSizes.includes(size),
     });
     const radioClass = classNames(mainClass, bulmaHelperClasses, className);
+    const checkClass = usePrefixedClassNames('check');
+    const controlLabelClass = usePrefixedClassNames('control-label');
 
     return (
       <label className={radioClass}>
@@ -150,8 +152,8 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
           onChange={handleChange}
           {...rest}
         />
-        <span className="check" />
-        {children && <span className="control-label">{children}</span>}
+        <span className={checkClass} />
+        {children && <span className={controlLabelClass}>{children}</span>}
       </label>
     );
   }

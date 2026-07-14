@@ -6,8 +6,13 @@ import React, {
   useMemo,
   useLayoutEffect,
 } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  prefixedClassNames,
+  usePrefixedClassNames,
+} from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useClassPrefix } from '../helpers/Config';
 import { useInsideField, useInsideControl } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -438,6 +443,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     };
 
     // Generate wrapper classes
+    const classPrefix = useClassPrefix();
     const sliderClasses = usePrefixedClassNames('slider', {
       [`is-${size}`]: size,
       [`is-${color}`]: color,
@@ -574,7 +580,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const renderTicks = () => {
       if (tickPositions.length === 0) return null;
       return (
-        <div className="slider-ticks">
+        <div className={prefixedClassNames(classPrefix, 'slider-ticks')}>
           {tickPositions.map((tick, i) => {
             const pct = ((tick.value - min) / (max - min)) * 100;
             const posStyle = isVertical
@@ -584,13 +590,20 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             return (
               <span
                 key={i}
-                className={classNames('slider-tick', {
+                className={prefixedClassNames(classPrefix, 'slider-tick', {
                   'is-endpoint': isEndpoint,
                 })}
                 style={posStyle}
               >
                 {tick.label !== undefined && (
-                  <span className="slider-tick-label">{tick.label}</span>
+                  <span
+                    className={prefixedClassNames(
+                      classPrefix,
+                      'slider-tick-label'
+                    )}
+                  >
+                    {tick.label}
+                  </span>
                 )}
               </span>
             );
@@ -621,7 +634,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
           onBlur={() => setShowTooltip(false)}
-          className="slider-input"
+          className={prefixedClassNames(classPrefix, 'slider-input')}
           style={
             {
               '--slider-progress': `${progressSingle}%`,
@@ -638,7 +651,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
-            className={classNames('slider-output', {
+            className={prefixedClassNames(classPrefix, 'slider-output', {
               'is-visible': showTipLow,
               'is-flipped': flipped,
               'is-flipped-left': isVertical && verticalFlippedLeft,
@@ -673,7 +686,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       <div ref={wrapperRef} className={combinedClasses} style={wrapperStyle}>
         {/* Visible track background */}
         <div
-          className="slider-track"
+          className={prefixedClassNames(classPrefix, 'slider-track')}
           style={
             isVertical
               ? ({
@@ -701,7 +714,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
           onBlur={() => setShowTooltip(false)}
-          className="slider-input slider-input-low"
+          className={prefixedClassNames(
+            classPrefix,
+            'slider-input',
+            'slider-input-low'
+          )}
           aria-valuenow={currentRange[0]}
           aria-valuemin={min}
           aria-valuemax={max}
@@ -727,7 +744,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           onMouseLeave={() => setShowTooltipHigh(false)}
           onFocus={() => setShowTooltipHigh(true)}
           onBlur={() => setShowTooltipHigh(false)}
-          className="slider-input slider-input-high"
+          className={prefixedClassNames(
+            classPrefix,
+            'slider-input',
+            'slider-input-high'
+          )}
           aria-valuenow={currentRange[1]}
           aria-valuemin={min}
           aria-valuemax={max}
@@ -742,11 +763,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
-            className={classNames('slider-output slider-output-low', {
-              'is-visible': showTipLow,
-              'is-flipped': flipped,
-              'is-flipped-left': isVertical && verticalFlippedLeft,
-            })}
+            className={prefixedClassNames(
+              classPrefix,
+              'slider-output',
+              'slider-output-low',
+              {
+                'is-visible': showTipLow,
+                'is-flipped': flipped,
+                'is-flipped-left': isVertical && verticalFlippedLeft,
+              }
+            )}
             style={
               isVertical
                 ? ((verticalFlippedLeft
@@ -774,11 +800,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputHighRef}
-            className={classNames('slider-output slider-output-high', {
-              'is-visible': showTipHigh,
-              'is-flipped': flippedHigh,
-              'is-flipped-left': isVertical && verticalFlippedLeft,
-            })}
+            className={prefixedClassNames(
+              classPrefix,
+              'slider-output',
+              'slider-output-high',
+              {
+                'is-visible': showTipHigh,
+                'is-flipped': flippedHigh,
+                'is-flipped-left': isVertical && verticalFlippedLeft,
+              }
+            )}
             style={
               isVertical
                 ? ((verticalFlippedLeft

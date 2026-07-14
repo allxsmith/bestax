@@ -608,7 +608,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                   {closable && !disabled && !readonly && (
                     <button
                       type="button"
-                      className="delete is-small"
+                      className={pcn('delete', 'is-small')}
                       onClick={e => {
                         e.stopPropagation();
                         removeTag(index);

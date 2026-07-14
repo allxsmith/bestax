@@ -168,7 +168,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       [`is-${position}`]: position,
       'is-fullwidth': fullWidth,
     });
-    const backgroundClass = usePrefixedClassNames('sidebar-background');
+    const backgroundClass = usePrefixedClassNames('sidebar-background', {
+      'is-active': isOpen,
+    });
     const contentClass = usePrefixedClassNames('sidebar-content');
 
     const combinedClasses = classNames(
@@ -187,9 +189,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       <>
         {overlay && (
           <div
-            className={classNames(backgroundClass, {
-              'is-active': isOpen,
-            })}
+            className={backgroundClass}
             onClick={handleOverlayClick}
             aria-hidden="true"
           />

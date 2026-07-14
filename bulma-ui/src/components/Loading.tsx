@@ -115,10 +115,14 @@ export const Loading: React.FC<LoadingProps> = ({
     className
   );
   const combinedOverlayClasses = classNames(
-    'loading-overlay',
+    usePrefixedClassNames('loading-overlay'),
     overlayClassName
   );
   const combinedIconClasses = classNames(iconClasses, iconClassName);
+  const loadingContentClass = usePrefixedClassNames('loading-content');
+  const loadingIconCustomClass = usePrefixedClassNames('loading-icon-custom');
+  const loadingTextClass = usePrefixedClassNames('loading-text');
+  const loadingCancelClass = usePrefixedClassNames('loading-cancel');
 
   // Handle cancel click
   const handleOverlayClick = () => {
@@ -169,17 +173,17 @@ export const Loading: React.FC<LoadingProps> = ({
         onClick={handleOverlayClick}
         aria-hidden="true"
       />
-      <div className="loading-content">
+      <div className={loadingContentClass}>
         {indicator ? (
-          <span className="loading-icon-custom">{indicator}</span>
+          <span className={loadingIconCustomClass}>{indicator}</span>
         ) : (
           <span className={combinedIconClasses} />
         )}
-        {children && <div className="loading-text">{children}</div>}
+        {children && <div className={loadingTextClass}>{children}</div>}
         {canCancel && (
           <button
             type="button"
-            className="loading-cancel"
+            className={loadingCancelClass}
             onClick={onCancel}
             aria-label="Cancel loading"
           >

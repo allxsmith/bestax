@@ -179,15 +179,14 @@ export const Collapse: React.FC<CollapseProps> = ({
     className
   );
   const combinedTriggerClasses = classNames(
-    'collapse-trigger',
+    usePrefixedClassNames('collapse-trigger'),
     triggerClassName
   );
   const combinedContentClasses = classNames(
-    'collapse-content',
-    contentClassName,
-    {
+    usePrefixedClassNames('collapse-content', {
       'is-active': isOpen,
-    }
+    }),
+    contentClassName
   );
 
   // Content wrapper styles based on animation type

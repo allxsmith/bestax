@@ -8,8 +8,13 @@ import React, {
   isValidElement,
   cloneElement,
 } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  prefixedClassNames,
+  usePrefixedClassNames,
+} from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useClassPrefix } from '../helpers/Config';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -33,9 +38,10 @@ export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> 
  */
 export const CarouselItem = forwardRef<HTMLDivElement, CarouselItemProps>(
   ({ active, className, children, ...props }, ref) => {
-    const itemClasses = classNames('carousel-item', className, {
-      'is-active': active,
-    });
+    const itemClasses = classNames(
+      usePrefixedClassNames('carousel-item', { 'is-active': active }),
+      className
+    );
 
     return (
       <div ref={ref} className={itemClasses} {...props}>
@@ -455,6 +461,23 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [`is-indicator-${indicatorStyle}`]: indicatorStyle !== 'dots',
       [`is-arrow-${arrowColor}`]: !!arrowColor,
     });
+    const classPrefix = useClassPrefix();
+    const carouselContainerClass = usePrefixedClassNames('carousel-container');
+    const carouselSlidesClass = usePrefixedClassNames('carousel-slides');
+    const carouselArrowPrevClass = usePrefixedClassNames(
+      'carousel-arrow',
+      'is-prev',
+      { 'is-transparent': !arrowBackground }
+    );
+    const carouselArrowNextClass = usePrefixedClassNames(
+      'carousel-arrow',
+      'is-next',
+      { 'is-transparent': !arrowBackground }
+    );
+    const carouselIndicatorClass = usePrefixedClassNames('carousel-indicator', {
+      'is-inside': indicatorInside,
+      'is-top': indicatorPosition === 'top',
+    });
 
     const combinedClasses = classNames(
       carouselClasses,
@@ -512,7 +535,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       >
         <div
           ref={containerRef}
-          className="carousel-container"
+          className={carouselContainerClass}
           onMouseDown={hasDrag ? handleMouseDown : undefined}
           onMouseMove={hasDrag && isDragging ? handleMouseMove : undefined}
           onMouseUp={hasDrag ? handleMouseUp : undefined}
@@ -526,7 +549,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           }}
         >
           <div
-            className="carousel-slides"
+            className={carouselSlidesClass}
             style={{
               // When repeat is enabled, account for the prepended clone (+1 offset)
               transform: `translateX(-${(repeat && itemCount > 1 ? displayIndex + 1 : displayIndex) * 100}%)`,
@@ -543,9 +566,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           {arrow && itemCount > 1 && (
             <>
               <Button
-                className={classNames('carousel-arrow is-prev', {
-                  'is-transparent': !arrowBackground,
-                })}
+                className={carouselArrowPrevClass}
                 onClick={goToPrev}
                 isDisabled={!canGoPrev}
                 aria-label="Previous slide"
@@ -563,9 +584,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 )}
               </Button>
               <Button
-                className={classNames('carousel-arrow is-next', {
-                  'is-transparent': !arrowBackground,
-                })}
+                className={carouselArrowNextClass}
                 onClick={goToNext}
                 isDisabled={!canGoNext}
                 aria-label="Next slide"
@@ -587,17 +606,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         </div>
 
         {indicator && itemCount > 1 && (
-          <div
-            className={classNames('carousel-indicator', {
-              'is-inside': indicatorInside,
-              'is-top': indicatorPosition === 'top',
-            })}
-            role="tablist"
-          >
+          <div className={carouselIndicatorClass} role="tablist">
             {items.map((_, index) => (
               <Button
                 key={index}
-                className={classNames('indicator-item', {
+                className={prefixedClassNames(classPrefix, 'indicator-item', {
                   'is-active': index === activeIndex,
                 })}
                 onClick={() => goToSlide(index)}
