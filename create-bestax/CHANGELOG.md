@@ -1,3 +1,10 @@
+## [3.3.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.0...create-bestax@3.3.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **create-bestax:** dark-mode contrast rules in theming/layout skills and docs ([#303](https://github.com/allxsmith/bestax/issues/303)) ([490bf21](https://github.com/allxsmith/bestax/commit/490bf21ad9ee101e4f2630bf53f5b3e8ef22fc9e)), closes [#194](https://github.com/allxsmith/bestax/issues/194) [#195](https://github.com/allxsmith/bestax/issues/195)
+
 # [3.3.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.2.1...create-bestax@3.3.0) (2026-07-14)
 
 
