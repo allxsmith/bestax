@@ -20,6 +20,8 @@ export const MESSAGES = {
   PROJECT_NAME_TOO_LONG: 'Project name too long',
   PROJECT_NAME_INVALID_CHARS:
     'Project name can only contain letters, numbers, dots, dashes and underscores',
+  PROJECT_NAME_DOT:
+    'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
   OPERATION_CANCELLED: '✖ Operation cancelled',
   NO_TTY:
     'No interactive terminal detected — cannot prompt for input.\n' +

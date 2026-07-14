@@ -112,6 +112,16 @@ describe('ProjectCreator', () => {
       );
     });
 
+    it('should return null for dot names that would target the current or parent directory', async () => {
+      for (const name of ['.', '..', '.hidden']) {
+        const result = await projectCreator.getProjectName(name);
+        expect(result).toBeNull();
+        expect(console.log).toHaveBeenCalledWith(
+          expect.stringContaining('Project name cannot start with a dot')
+        );
+      }
+    });
+
     it('should prompt for project name when not provided', async () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
         projectName: 'prompted-project',
