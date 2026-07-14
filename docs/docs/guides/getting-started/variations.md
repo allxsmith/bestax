@@ -8,6 +8,10 @@ sidebar_position: 2
 
 Bestax ships pre-built CSS variations that combine Bulma with bestax extras into a single file. Each variation mirrors a Bulma variation but includes all bestax extra component styles, so you only need one CSS import.
 
+The variations also differ in **size** — from ~82 KB gzipped (`complete`) down to ~67 KB
+(`no-helpers`). For the measured size table, an opt-in PurgeCSS recipe, and guidance on
+choosing, see [Optimizing CSS Size](./optimizing-css.md).
+
 ---
 
 ## Complete (Recommended)
