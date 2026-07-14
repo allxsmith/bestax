@@ -25,16 +25,17 @@ import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop        | Type                                     | Default | Description                                                                                                                                                        |
-| ----------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `max`       | `number`                                 | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". |
-| `size`      | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                             |
-| `shape`     | `'circle' \| 'rounded' \| 'square'`      | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                             |
-| `spacing`   | `'sm' \| 'md' \| 'lg' \| number`         | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.                                                               |
-| `spaced`    | `boolean`                                | `false` | Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.                                                                                    |
-| `className` | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
-| `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
-| ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
+| Prop           | Type                                     | Default | Description                                                                                                                                                        |
+| -------------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `max`          | `number`                                 | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". |
+| `size`         | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                             |
+| `shape`        | `'circle' \| 'rounded' \| 'square'`      | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                             |
+| `spacing`      | `'sm' \| 'md' \| 'lg' \| number`         | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.                                                               |
+| `spaced`       | `boolean`                                | `false` | Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.                                                                                    |
+| `surplusLabel` | `(count: number) => string`              | —       | Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.                                               |
+| `className`    | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
+| `children`     | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
+| ...            | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
 
 `Avatar` is also attached as a compound static (`Avatars.Avatar`), so you can import just the
 container.
@@ -61,6 +62,21 @@ Set `max` to cap the visible avatars; the remainder collapse into a single `+N` 
 
 ```tsx live
 <Avatars max={3} size="48x48">
+  <Avatar name="Ada Lovelace" />
+  <Avatar name="Grace Hopper" />
+  <Avatar name="Katherine Johnson" />
+  <Avatar name="Margaret Hamilton" />
+  <Avatar name="Radia Perlman" />
+</Avatars>
+```
+
+### Localized Surplus Label
+
+The surplus bubble always shows `+N`, but its accessible name defaults to English
+(`"{N} more"`). Pass `surplusLabel` to localize what screen readers announce.
+
+```tsx live
+<Avatars max={3} surplusLabel={count => `${count} weitere`}>
   <Avatar name="Ada Lovelace" />
   <Avatar name="Grace Hopper" />
   <Avatar name="Katherine Johnson" />
@@ -144,7 +160,10 @@ A `number` sets a pixel overlap directly:
 - `Avatars` is a plain container — each child `Avatar` carries its own accessible name (see
   [Avatar's accessibility notes](./avatar.md#accessibility)).
 - The `+N` surplus avatar gets an accessible name of `"{N} more"` (via its `alt`), so assistive
-  tech announces how many members are hidden.
+  tech announces how many members are hidden. Localize it with `surplusLabel`, e.g.
+  ``surplusLabel={count => `${count} weitere`}``.
+- A focused clickable avatar is lifted above its overlapping neighbours so its focus outline
+  is never partially covered.
 - When the group represents a labelled set (e.g. "Project members"), give the container a
   `role="group"` and an `aria-label` describing it.
 

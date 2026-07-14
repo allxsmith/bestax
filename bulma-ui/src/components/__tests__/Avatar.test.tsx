@@ -77,6 +77,81 @@ describe('Avatar', () => {
     expect(second).not.toBe(first);
   });
 
+  it('respects an explicit empty alt as decorative on the image', () => {
+    const { container } = render(
+      <Avatar src="/photo.jpg" alt="" name="Ada Lovelace" />
+    );
+    // alt="" must not be overridden by name — the img stays decorative.
+    expect(container.querySelector('img')).toHaveAttribute('alt', '');
+  });
+
+  it('hides a decorative non-image avatar from screen readers', () => {
+    render(<Avatar alt="" name="Ada Lovelace" data-testid="avatar" />);
+    const avatar = screen.getByTestId('avatar');
+    expect(avatar).toHaveAttribute('aria-hidden', 'true');
+    expect(avatar).not.toHaveAttribute('role');
+    expect(avatar).not.toHaveAttribute('aria-label');
+    // Still visible to sighted users.
+    expect(screen.getByText('AL')).toBeInTheDocument();
+  });
+
+  it('gives a nameless interactive image avatar an aria-label fallback', () => {
+    render(<Avatar src="/photo.jpg" href="https://example.com" />);
+    expect(screen.getByRole('link', { name: 'Avatar' })).toBeInTheDocument();
+  });
+
+  it('names an interactive image avatar from name when alt is explicitly empty', () => {
+    render(
+      <Avatar
+        src="/photo.jpg"
+        alt=""
+        name="Ada Lovelace"
+        href="https://example.com"
+      />
+    );
+    // A link must have a name, so the decorative opt-out yields to name.
+    expect(
+      screen.getByRole('link', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps a custom link-like avatar interactive when alt is explicitly empty', () => {
+    const CustomLink: React.FC<{
+      href?: string;
+      children?: React.ReactNode;
+    }> = ({ href, children, ...rest }) => (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+    render(
+      <Avatar
+        as={CustomLink}
+        href="https://example.com"
+        alt=""
+        name="Ada Lovelace"
+      />
+    );
+    // A custom `as` component with href is a link (the same condition that
+    // forwards href to it) — the decorative opt-out must not aria-hide it,
+    // and it keeps an accessible name.
+    expect(
+      screen.getByRole('link', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
+  it('names an interactive non-image avatar from name when alt is explicitly empty', () => {
+    render(<Avatar alt="" name="Ada Lovelace" as="button" />);
+    expect(
+      screen.getByRole('button', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
+  it('defaults an as="button" avatar to type="button"', () => {
+    render(<Avatar name="Ada Lovelace" as="button" />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();

@@ -15,6 +15,7 @@ export type AvatarsSpacing = 'sm' | 'md' | 'lg';
  * @property {AvatarProps['shape']} [shape] - Uniform shape applied to every child `Avatar` (and the surplus avatar).
  * @property {AvatarsSpacing | number} [spacing] - Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`.
  * @property {boolean} [spaced] - Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.
+ * @property {(count: number) => string} [surplusLabel] - Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.
  * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group.
  */
 export interface AvatarsProps
@@ -27,6 +28,7 @@ export interface AvatarsProps
   shape?: AvatarProps['shape'];
   spacing?: AvatarsSpacing | number;
   spaced?: boolean;
+  surplusLabel?: (count: number) => string;
   children?: React.ReactNode;
 }
 
@@ -78,6 +80,7 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
   shape,
   spacing = 'md',
   spaced = false,
+  surplusLabel,
   style,
   children,
   ...props
@@ -135,7 +138,12 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
       {overflowCount > 0 && (
         <Avatar
           initials={`+${overflowCount}`}
-          alt={`${overflowCount} more`}
+          alt={
+            // `||` (not a plain ternary): an empty string from surplusLabel
+            // would make the bubble decorative (alt="") and hide the count
+            // from assistive tech — fall back to the default label instead.
+            surplusLabel?.(overflowCount) || `${overflowCount} more`
+          }
           size={size}
           shape={shape}
           className={surplusClass}

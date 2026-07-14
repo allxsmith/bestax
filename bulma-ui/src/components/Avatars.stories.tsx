@@ -58,6 +58,11 @@ const meta: Meta<typeof Avatars> = {
       description:
         'Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.',
     },
+    surplusLabel: {
+      control: false,
+      description:
+        "Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.",
+    },
   },
 };
 export default meta;
@@ -79,6 +84,20 @@ export const WithSurplus: Story = {
   render: function WithSurplusExample() {
     return (
       <Avatars max={3} size="48x48">
+        {members.map(m => (
+          <Avatar key={m.id} name={m.name} />
+        ))}
+      </Avatars>
+    );
+  },
+};
+
+export const LocalizedSurplus: Story = {
+  render: function LocalizedSurplusExample() {
+    // surplusLabel localizes the surplus bubble's accessible name ("+2" stays
+    // the visible text; screen readers hear "2 weitere").
+    return (
+      <Avatars max={3} surplusLabel={count => `${count} weitere`}>
         {members.map(m => (
           <Avatar key={m.id} name={m.name} />
         ))}

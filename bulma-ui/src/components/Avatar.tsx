@@ -91,7 +91,7 @@ function DefaultAvatarIcon() {
  *
  * @property {string} [className] - Additional CSS classes to apply.
  * @property {string} [src] - Image URL. On load error (or if absent), falls back to initials, then icon.
- * @property {string} [alt] - Alternate text for the image (required for meaningful images).
+ * @property {string} [alt] - Alternate text for the image (required for meaningful images). An explicit `alt=""` marks a non-interactive avatar as decorative (skipped by screen readers).
  * @property {string} [name] - Derives initials and a deterministic background color when no `src`/`initials` is shown.
  * @property {string} [initials] - Explicit initials override (else derived from `name`).
  * @property {React.ReactNode} [icon] - Final fallback rendered when there is no `src`, `name`, or `initials`.
@@ -219,24 +219,49 @@ export const Avatar: React.FC<AvatarProps> = ({
   const initialsClass = usePrefixedClassNames('avatar-initials');
 
   const Tag: React.ElementType = as ?? (href ? 'a' : 'figure');
-  const isInteractive = Tag === 'a' || Tag === 'button';
+  // A custom `as` component given an href is being used as a link — the same
+  // condition under which isLinkLike forwards href/target/rel below — so it
+  // counts as interactive too. Otherwise alt="" would mark a real link
+  // decorative (aria-hidden) and it could render nameless.
+  const isInteractive =
+    Tag === 'a' ||
+    Tag === 'button' ||
+    (typeof Tag !== 'string' && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.
   const isLinkLike = Tag === 'a' || typeof Tag !== 'string';
   const linkProps = isLinkLike ? { href, target, rel } : {};
 
+  // alt coalesces with ?? (not ||) so an explicit alt="" survives as the
+  // standard decorative marker instead of being overridden by name.
+  const accessibleName = alt ?? name;
+  // The decorative opt-out never applies to an interactive avatar — a link or
+  // button must always expose an accessible name.
+  const isDecorative = alt === '' && !isInteractive;
+
   const a11yProps = showImage
-    ? {}
-    : {
-        ...(isInteractive ? {} : { role: 'img' as const }),
-        'aria-label': alt || name || 'Avatar',
-      };
+    ? isInteractive && !accessibleName
+      ? // The img alt normally names the control; with no alt/name (an API
+        // returning only a photo URL) the link/button would be nameless.
+        { 'aria-label': name || 'Avatar' }
+      : {}
+    : isDecorative
+      ? { 'aria-hidden': true as const }
+      : {
+          ...(isInteractive ? {} : { role: 'img' as const }),
+          'aria-label': accessibleName || name || 'Avatar',
+        };
+
+  // A clickable avatar inside a form must not submit it; default the native
+  // button type (an explicit type passed through rest still wins).
+  const buttonTypeProps = Tag === 'button' ? { type: 'button' as const } : {};
 
   return (
     <Tag
       className={combinedClasses}
       style={{ ...sizeStyle, ...style }}
+      {...buttonTypeProps}
       {...linkProps}
       {...a11yProps}
       {...rest}
@@ -247,7 +272,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           {...imageProps}
           ref={imgRef}
           src={src}
-          alt={alt || name || ''}
+          alt={accessibleName ?? ''}
           onError={e => {
             imageProps?.onError?.(e);
             setErroredSrc(src);
