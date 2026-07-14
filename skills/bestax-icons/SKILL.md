@@ -22,7 +22,7 @@ import { ConfigProvider, Icon, IconText } from '@allxsmith/bestax-bulma';
 
 // Inside the app:
 <Icon name="rocket" ariaLabel="Launch" />;
-<IconText iconProps={{ name: 'star', ariaLabel: 'Favorite' }}>
+<IconText iconProps={{ name: 'star', 'aria-hidden': 'true' }}>
   Starred
 </IconText>;
 ```
