@@ -56,6 +56,20 @@ describe('Avatars', () => {
     expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
   });
 
+  it('builds the surplus accessible name with surplusLabel for localization', () => {
+    render(
+      <Avatars max={2} surplusLabel={count => `${count} weitere`}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+        <Avatar name="Margaret Hamilton" />
+      </Avatars>
+    );
+    expect(screen.getByRole('img', { name: '2 weitere' })).toBeInTheDocument();
+    // The visible bubble text stays numeric regardless of the label.
+    expect(screen.getByText('+2')).toBeInTheDocument();
+  });
+
   it('gives the surplus avatar an accessible name of "{N} more"', () => {
     render(
       <Avatars max={2}>
