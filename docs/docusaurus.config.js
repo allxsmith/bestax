@@ -232,6 +232,10 @@ const config = {
                 label: 'NPM',
                 href: 'https://www.npmjs.com/package/@allxsmith/bestax-bulma',
               },
+              {
+                label: 'Security',
+                to: '/docs/guides/security',
+              },
             ],
           },
         ],
