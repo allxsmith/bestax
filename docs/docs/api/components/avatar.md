@@ -49,7 +49,9 @@ import { Avatar } from '@allxsmith/bestax-bulma';
 ### Photo with Automatic Fallback
 
 A working photo renders as an image; if the `src` fails to load, `Avatar` swaps to initials
-derived from `name` automatically — no broken-image icon.
+derived from `name` automatically — no broken-image icon. The failure is remembered per URL
+only while `src` is unchanged: changing `src` (including back to a URL that failed before)
+retries the load.
 
 ```tsx live
 <Avatars spaced>

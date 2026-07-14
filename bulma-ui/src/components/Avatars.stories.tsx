@@ -160,3 +160,25 @@ export const Spaced: Story = {
     );
   },
 };
+
+export const RTLOverlap: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The overlap uses a logical margin (`margin-inline-start`), so under `dir="rtl"` the stack still overlaps instead of the avatars being pulled apart.',
+      },
+    },
+  },
+  render: function RTLOverlapExample() {
+    return (
+      <div dir="rtl">
+        <Avatars max={4}>
+          {members.map(m => (
+            <Avatar key={m.id} name={m.name} />
+          ))}
+        </Avatars>
+      </div>
+    );
+  },
+};

@@ -161,6 +161,15 @@ export const Avatar: React.FC<AvatarProps> = ({
   // Tracks the src that failed to load (rather than a plain boolean) so a
   // new src is shown again without needing an effect to reset the flag.
   const [erroredSrc, setErroredSrc] = useState<string | undefined>(undefined);
+  // Forget the failure whenever `src` changes (render-time state adjustment):
+  // without this, switching away and back to a previously failed URL would
+  // stay latched to the fallback forever — the error is per-mount history,
+  // not per-URL truth (a transient failure may well succeed on retry).
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setErroredSrc(undefined);
+  }
   const imgRef = useRef<HTMLImageElement>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);

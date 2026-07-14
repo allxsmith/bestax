@@ -6,6 +6,32 @@ import { Avatar, AvatarProps } from './Avatar';
 /** Valid overlap spacing values for the Avatars component. */
 export type AvatarsSpacing = 'sm' | 'md' | 'lg';
 
+// React.Children.toArray does not descend into Fragments, so a fragment
+// wrapper (natural when interleaving a static avatar with a mapped list)
+// would count as ONE child: `max` never clamps, and the group's size/shape
+// would be cloned onto the fragment and silently dropped. Flatten fragments
+// (recursively) before counting. Flattened elements are re-keyed with their
+// fragment's key as a prefix so children hoisted from different levels can
+// never collide with same-position siblings.
+const flattenChildren = (
+  nodes: React.ReactNode,
+  keyPrefix = ''
+): React.ReactElement[] =>
+  React.Children.toArray(nodes).flatMap(node => {
+    if (!React.isValidElement(node)) return [];
+    if (node.type === React.Fragment) {
+      return flattenChildren(
+        (node.props as { children?: React.ReactNode }).children,
+        `${keyPrefix}${node.key ?? ''}`
+      );
+    }
+    return [
+      keyPrefix
+        ? React.cloneElement(node, { key: `${keyPrefix}${node.key}` })
+        : node,
+    ];
+  });
+
 /**
  * Props for the Avatars component.
  *
@@ -15,7 +41,7 @@ export type AvatarsSpacing = 'sm' | 'md' | 'lg';
  * @property {AvatarProps['shape']} [shape] - Uniform shape applied to every child `Avatar` (and the surplus avatar).
  * @property {AvatarsSpacing | number} [spacing] - Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`.
  * @property {boolean} [spaced] - Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.
- * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group.
+ * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group. Fragments are flattened, so `max` counting and the group `size`/`shape` work through them.
  */
 export interface AvatarsProps
   extends
@@ -78,8 +104,8 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
     className
   );
 
-  const childArray = React.Children.toArray(children).filter(
-    React.isValidElement
+  const childArray = flattenChildren(
+    children
   ) as React.ReactElement<AvatarProps>[];
 
   const maxCount =

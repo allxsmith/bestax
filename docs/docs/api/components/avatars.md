@@ -33,11 +33,15 @@ import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
 | `spacing`   | `'sm' \| 'md' \| 'lg' \| number`         | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.                                                               |
 | `spaced`    | `boolean`                                | `false` | Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.                                                                                    |
 | `className` | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
-| `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
+| `children`  | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group. Fragments are flattened, so `max` counting and the group `size`/`shape` work through them.                           |
 | ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
 
 `Avatar` is also attached as a compound static (`Avatars.Avatar`), so you can import just the
 container.
+
+Fragments count individually: wrapping children in `<>…</>` — natural when interleaving a
+static avatar with a mapped list — behaves exactly like passing them directly. The overlap
+also uses logical CSS margins, so right-to-left layouts (`dir="rtl"`) stack correctly.
 
 ---
 

@@ -232,6 +232,82 @@ describe('Avatars', () => {
       </Avatars>
     );
     expect(screen.getByText('AL')).toBeInTheDocument();
+    // The text node must actually be dropped, not just coexist with the
+    // avatar — without this assertion the test passes with or without the
+    // isValidElement filter.
+    expect(screen.queryByText('text node')).not.toBeInTheDocument();
+  });
+
+  it('counts Fragment children individually for max', () => {
+    render(
+      <Avatars max={2}>
+        <>
+          <Avatar name="Ada Lovelace" />
+          <Avatar name="Grace Hopper" />
+          <Avatar name="Alan Turing" />
+          <Avatar name="Katherine Johnson" />
+        </>
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(screen.queryByText('AT')).not.toBeInTheDocument();
+    expect(screen.queryByText('KJ')).not.toBeInTheDocument();
+  });
+
+  it('injects the group size through Fragment children', () => {
+    const { container } = render(
+      <Avatars size="48x48">
+        <>
+          <Avatar name="Ada Lovelace" />
+        </>
+      </Avatars>
+    );
+    expect(container.querySelector('.avatar')).toHaveClass('is-48x48');
+  });
+
+  it('flattens a keyed mapped list inside a Fragment next to a sibling without key collisions', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <Avatars max={2}>
+        <Avatar name="Zz Static" />
+        <>
+          {['Ada Lovelace', 'Grace Hopper', 'Alan Turing'].map(n => (
+            <Avatar key={n} name={n} />
+          ))}
+        </>
+      </Avatars>
+    );
+    // 4 children, max 2 → 2 visible + "+2" surplus.
+    expect(screen.getByText('ZS')).toBeInTheDocument();
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
+    // Re-keying flattened fragment children must not produce React's
+    // duplicate-key warning.
+    const keyWarnings = errorSpy.mock.calls.filter(args =>
+      String(args[0]).includes('same key')
+    );
+    expect(keyWarnings).toHaveLength(0);
+    errorSpy.mockRestore();
+  });
+
+  it('flattens nested Fragments', () => {
+    render(
+      <Avatars max={2}>
+        <>
+          <Avatar name="Ada Lovelace" />
+          <>
+            <Avatar name="Grace Hopper" />
+            <Avatar name="Alan Turing" />
+            <Avatar name="Katherine Johnson" />
+          </>
+        </>
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
   });
 
   it('applies the classPrefix from ConfigProvider', () => {

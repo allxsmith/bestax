@@ -43,6 +43,27 @@ describe('Avatar', () => {
     );
   });
 
+  it('retries a previously failed src when switching back to it', () => {
+    const { rerender } = render(<Avatar src="/a.jpg" name="Ada Lovelace" />);
+    fireEvent.error(screen.getByRole('img', { hidden: true }));
+    expect(screen.getByText('AL')).toBeInTheDocument();
+
+    rerender(<Avatar src="/b.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/b.jpg'
+    );
+
+    // Back to the URL that failed once — must retry (mount the img again),
+    // not stay latched to initials: the failure may have been transient.
+    rerender(<Avatar src="/a.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/a.jpg'
+    );
+    expect(screen.queryByText('AL')).not.toBeInTheDocument();
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();
