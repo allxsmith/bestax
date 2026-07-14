@@ -149,6 +149,22 @@ export const NumericSpacing: Story = {
   },
 };
 
+export const Rtl: Story = {
+  render: function RtlExample() {
+    // The overlap uses margin-inline-start, so under dir="rtl" the stack
+    // overlaps toward the reading direction instead of spreading apart.
+    return (
+      <div dir="rtl">
+        <Avatars max={3} size="48x48">
+          {members.map(m => (
+            <Avatar key={m.id} name={m.name} />
+          ))}
+        </Avatars>
+      </div>
+    );
+  },
+};
+
 export const Spaced: Story = {
   render: function SpacedExample() {
     return (
