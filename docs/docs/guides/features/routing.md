@@ -40,36 +40,27 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ## Navbar items as router links
 
-`Navbar.Item` accepts `as={Link}` the same way, and at runtime every extra prop (including
-`to`) is forwarded to your link component. In **TypeScript**, however, `to` isn't part of
-`Navbar.Item`'s prop type (it extends anchor attributes), so `<Navbar.Item as={Link} to="…">`
-is a type error today. The recommended pattern is a one-line typed alias, declared once:
+`Navbar.Item` works the same way — pass the router's link component via `as`, and `to` (or
+any other router prop) is forwarded to it. Like `Menu.Item`, its prop type accepts extra
+keys, so this compiles without errors or casts:
 
 ```tsx
-import { Link, LinkProps } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Navbar } from '@allxsmith/bestax-bulma';
-
-// One cast, reused everywhere — runtime behavior is unchanged.
-const NavbarLink = Navbar.Item as React.FC<
-  React.ComponentProps<typeof Navbar.Item> & LinkProps
->;
 
 <Navbar color="dark">
   <Navbar.Menu active={open}>
     <Navbar.Start>
-      <NavbarLink as={Link} to="/">
+      <Navbar.Item as={Link} to="/">
         Home
-      </NavbarLink>
-      <NavbarLink as={Link} to="/pricing">
+      </Navbar.Item>
+      <Navbar.Item as={Link} to="/pricing">
         Pricing
-      </NavbarLink>
+      </Navbar.Item>
     </Navbar.Start>
   </Navbar.Menu>
 </Navbar>;
 ```
-
-(Plain-JavaScript apps can skip the alias — `<Navbar.Item as={Link} to="/pricing">` just
-works.)
 
 ## Buttons that navigate
 
@@ -164,5 +155,5 @@ On Next.js **before 13**, `<Link>` required an `<a>` child by default — wrap i
 - [Navbar](../../api/components/navbar.md) · [Menu](../../api/components/menu.md) ·
   [Button](../../api/elements/button.md)
 - `Button`/`Link` polymorphism landed in [#238](https://github.com/allxsmith/bestax/pull/238);
-  first-class `to` typing on `Navbar.Item` (dropping the cast alias above) is tracked in
+  first-class `to` typing on `Navbar.Item` landed via
   [#306](https://github.com/allxsmith/bestax/issues/306).

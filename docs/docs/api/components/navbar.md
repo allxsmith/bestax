@@ -196,6 +196,33 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 
 ---
 
+### Custom Link Component
+
+Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Extra props like `to` are forwarded to the link component and type-check without casts, so client-side routing libraries integrate directly. See the [Routing guide](../../guides/features/routing.md) for the full patterns.
+
+```tsx live
+// import { Link } from 'react-router-dom';
+function example() {
+  const Link = props => <a>{props.children}</a>;
+  return (
+    <Navbar>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          <Navbar.Item as={Link} to="/">
+            Home
+          </Navbar.Item>
+          <Navbar.Item as={Link} to="/pricing">
+            Pricing
+          </Navbar.Item>
+        </Navbar.Start>
+      </Navbar.Menu>
+    </Navbar>
+  );
+}
+```
+
+---
+
 ### Transparent Navbar
 
 Example of a navbar with a transparent background. This is often used for navbars that overlay content, like images or videos, giving a more integrated look.

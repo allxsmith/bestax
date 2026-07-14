@@ -150,7 +150,7 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
  * Props for the NavbarItem component.
  *
  * @property {string} [className] - Additional CSS classes.
- * @property {React.ElementType} [as] - Render as a custom component.
+ * @property {React.ElementType} [as] - Render as a custom component (e.g., a router link).
  * @property {boolean} [active] - Whether the item is active.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the item.
  * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the item.
@@ -166,6 +166,8 @@ export interface NavbarItemProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   children?: React.ReactNode;
+  // Allow router props like `to` when rendering via `as` (matches MenuItemProps)
+  [key: string]: unknown;
 }
 
 /**
