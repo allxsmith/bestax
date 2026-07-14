@@ -147,8 +147,9 @@ Offsets are useful for centering or right-aligning columns, but can cause layout
 **Equal-Height Cards**
 
 Columns themselves are equal height (flexbox), but a `Card` inside a `Column` ends at its own
-content — and `height: 100%` on the card does nothing, because `100%` resolves against the
-column's _auto_ height. Make the column a flex container and let the card grow:
+content — and `height: 100%` on the card doesn't help here, because `100%` resolves against
+the column's _auto_ height (percentage heights only resolve against a definite size). The
+robust pattern: make the column a flex container and let the card grow:
 
 ```tsx live
 <Columns>

@@ -41,7 +41,7 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `Grid`/`Cell`: CSS Grid gives equal-height cells for free. Use `Columns`/`Column` for
   proportional or per-breakpoint column layouts — and when cards there must be equal height,
   apply the flex recipe (`Column display="flex" flexDirection="column"` + `Card flexGrow="1"`;
-  `height: 100%` on the card does nothing).
+  `height: 100%` on the card doesn't help — the column's height is auto).
 - Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not

@@ -188,7 +188,8 @@ search results, "a grid of cards".
 
 **Equal heights:** the `display="flex" flexDirection="column"` on each `Column` plus
 `flexGrow="1"` on the `Card` stretches every card to its row's height — without it, cards end
-at their content and rows look ragged (`height: 100%` on the card does nothing). Alternatively
+at their content and rows look ragged (`height: 100%` on the card doesn't help — it resolves
+against the column's auto height). Alternatively
 build the whole grid with `Grid`/`Cell` (`<Grid isFixed fixedColsMobile={1} fixedColsTablet={2}
 fixedColsDesktop={3} gap={4}>`) — CSS Grid keeps cells equal-height for free; see the
 `Grid / Cell` section in `layout-components.md`.

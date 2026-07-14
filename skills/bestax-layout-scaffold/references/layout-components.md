@@ -132,8 +132,8 @@ type BulmaColumnSize =
 > Use the per-breakpoint `size*` props to control how many cells share a row at each width.
 
 **Equal-height cards inside Columns** — columns are equal height, but a card inside one does
-**not** stretch to fill it (and `height: 100%` on the card resolves against auto height, so it
-does nothing). Make the `Column` a flex container and let the card grow:
+**not** stretch to fill it (and `height: 100%` on the card doesn't help — it resolves against
+the column's auto height). Make the `Column` a flex container and let the card grow:
 
 ```tsx
 <Columns isMultiline>
