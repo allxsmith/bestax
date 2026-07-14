@@ -224,6 +224,38 @@ describe('Badge', () => {
     expect(screen.getByTestId('badge')).toHaveClass('extra');
   });
 
+  it('treats content=false as no content', () => {
+    const { container } = render(<Badge content={false} data-testid="badge" />);
+    expect(container.querySelectorAll('.badge')).toHaveLength(0);
+  });
+
+  it('treats content=true as no content', () => {
+    const { container } = render(<Badge content={true} data-testid="badge" />);
+    expect(container.querySelectorAll('.badge')).toHaveLength(0);
+  });
+
+  it('treats content="" as no content', () => {
+    const { container } = render(<Badge content="" data-testid="badge" />);
+    expect(container.querySelectorAll('.badge')).toHaveLength(0);
+  });
+
+  it('sanitizes a negative max back to the default', () => {
+    render(<Badge content={0} max={-1} showZero />);
+    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.queryByText('-1+')).not.toBeInTheDocument();
+  });
+
+  it('sanitizes a non-integer max back to the default', () => {
+    render(<Badge content={128} max={1.5} />);
+    expect(screen.getByText('99+')).toBeInTheDocument();
+  });
+
+  it('renders content equal to a sanitized max as-is (boundary)', () => {
+    render(<Badge content={99} max={-1} />);
+    expect(screen.getByText('99')).toBeInTheDocument();
+    expect(screen.queryByText('99+')).not.toBeInTheDocument();
+  });
+
   it('applies the classPrefix from ConfigProvider', () => {
     render(
       <ConfigProvider classPrefix="bulma-">

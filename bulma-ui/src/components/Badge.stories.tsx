@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from './Badge';
 import { Avatar } from './Avatar';
@@ -150,6 +151,31 @@ export const ZeroHiddenByDefault: Story = {
 export const Standalone: Story = {
   render: function StandaloneExample() {
     return <Badge content={5} color="info" />;
+  },
+};
+
+export const StandaloneInteractive: Story = {
+  render: function StandaloneInteractiveExample() {
+    const [clicks, setClicks] = useState(0);
+    return (
+      <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />
+    );
+  },
+};
+
+export const StandalonePulse: Story = {
+  render: function StandalonePulseExample() {
+    return <Badge content={5} color="danger" pulse />;
+  },
+};
+
+export const TextChild: Story = {
+  render: function TextChildExample() {
+    return (
+      <Badge content={3} color="primary">
+        Inbox
+      </Badge>
+    );
   },
 };
 

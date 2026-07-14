@@ -27,7 +27,7 @@ import { Badge } from '@allxsmith/bestax-bulma';
 | Prop             | Type                                                                                                             | Default       | Description                                                                                                                      |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `content`        | `React.ReactNode`                                                                                                | —             | Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. |
-| `max`            | `number`                                                                                                         | `99`          | Numeric `content` above this renders as `"{max}+"`.                                                                              |
+| `max`            | `number`                                                                                                         | `99`          | Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default.                   |
 | `dot`            | `boolean`                                                                                                        | `false`       | Render a small dot with no content.                                                                                              |
 | `showZero`       | `boolean`                                                                                                        | `false`       | Show the badge when `content` is `0`.                                                                                            |
 | `color`          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | `'danger'`    | Status color.                                                                                                                    |
@@ -202,6 +202,40 @@ Omit `children` to render the pill inline in normal flow; `position`/`overlap` a
 
 ```tsx live
 <Badge content={5} color="info" />
+```
+
+### Standalone, Interactive
+
+A standalone badge is itself the interactive root — helper props like `onClick` land directly on
+the pill, which stays clickable (`pointer-events: auto`).
+
+```tsx live
+function example() {
+  const [clicks, setClicks] = useState(0);
+
+  return (
+    <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />
+  );
+}
+```
+
+### Standalone, Pulse
+
+`pulse` on a standalone badge anchors its halo to the pill itself rather than the nearest
+positioned ancestor.
+
+```tsx live
+<Badge content={5} color="danger" pulse />
+```
+
+### Text Child
+
+A plain-text `children` value renders at its natural height alongside the badge.
+
+```tsx live
+<Badge content={3} color="primary">
+  Inbox
+</Badge>
 ```
 
 ### Custom Node Content
