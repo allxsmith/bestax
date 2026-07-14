@@ -17,7 +17,9 @@ end.
 ## Menu items as router links
 
 `Menu.Item` supports routers out of the box — pass the router's link component via `as`, and
-`to` (or any other router prop) is forwarded to it, fully type-checked:
+`to` (or any other router prop) is forwarded to it. Its prop type accepts extra keys, so this
+compiles without errors or casts (though the extra props aren't validated against the router's
+own types):
 
 ```tsx
 import { Link } from 'react-router-dom';
@@ -118,7 +120,9 @@ function SideNav() {
         <Menu.Item
           as={Link}
           to="/customers"
-          active={pathname.startsWith('/customers')}
+          active={
+            pathname === '/customers' || pathname.startsWith('/customers/')
+          }
         >
           Customers
         </Menu.Item>
@@ -145,8 +149,15 @@ import NextLink from 'next/link';
 </Navbar.Item>;
 ```
 
-On Next.js versions before 13, `<Link>` required an `<a>` child (`legacyBehavior` +
-`passHref`) — upgrade or wrap accordingly.
+Version notes: Next.js 13–15 also still accepted the deprecated `legacyBehavior`/`passHref`
+props; **Next.js 16 removes them**, so the `as={NextLink}` pattern above is the way forward.
+On Next.js **before 13**, `<Link>` required an `<a>` child by default — wrap instead:
+
+```tsx
+<NextLink href="/pricing" passHref>
+  <Navbar.Item as="a">Pricing</Navbar.Item>
+</NextLink>
+```
 
 ## Related
 
