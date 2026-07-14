@@ -1,3 +1,10 @@
+## [5.6.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.0...@allxsmith/bestax-bulma@5.6.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** route every hardcoded class through the prefix helpers; add classPrefix sweep test ([#301](https://github.com/allxsmith/bestax/issues/301)) ([a50b134](https://github.com/allxsmith/bestax/commit/a50b134949e08c9c4a207dbd1890213cc3389cd5)), closes [#286](https://github.com/allxsmith/bestax/issues/286)
+
 # [5.6.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.5.0...@allxsmith/bestax-bulma@5.6.0) (2026-07-14)
 
 
