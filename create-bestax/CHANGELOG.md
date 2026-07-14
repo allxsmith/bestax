@@ -1,3 +1,19 @@
+# [3.3.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.2.1...create-bestax@3.3.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** fix standalone Badge pointer-events, pulse halo, and falsy content ([#295](https://github.com/allxsmith/bestax/issues/295)) ([a9db031](https://github.com/allxsmith/bestax/commit/a9db03189c087eb0a61f56357e179296bd4cebf9)), closes [#264](https://github.com/allxsmith/bestax/issues/264)
+* **bulma-ui:** retry failed Avatar src, flatten Fragment children in Avatars, RTL-safe overlap ([#297](https://github.com/allxsmith/bestax/issues/297)) ([c00b9db](https://github.com/allxsmith/bestax/commit/c00b9db6aa21fab055302fd3320dccd4c0cbc824))
+* **bulma-ui:** route every hardcoded class through the prefix helpers; add classPrefix sweep test ([#301](https://github.com/allxsmith/bestax/issues/301)) ([a50b134](https://github.com/allxsmith/bestax/commit/a50b134949e08c9c4a207dbd1890213cc3389cd5)), closes [#286](https://github.com/allxsmith/bestax/issues/286)
+
+
+### Features
+
+* **bulma-ui:** add consistent gap prop to Columns, aliasing gapSize ([#300](https://github.com/allxsmith/bestax/issues/300)) ([6c36455](https://github.com/allxsmith/bestax/commit/6c36455931367d8422516c5fbca227319d4552d5)), closes [#282](https://github.com/allxsmith/bestax/issues/282)
+* **bulma-ui:** avatar/badge a11y batch — decorative alt, accessible names, live region, button type, surplus i18n, focus ring ([#298](https://github.com/allxsmith/bestax/issues/298)) ([508477f](https://github.com/allxsmith/bestax/commit/508477fcc79a07d6b960563e919e7a94d7da3b42)), closes [#266](https://github.com/allxsmith/bestax/issues/266) [#266](https://github.com/allxsmith/bestax/issues/266)
+* **create-bestax:** bestax-icons skill — teach agents the icon system ([#302](https://github.com/allxsmith/bestax/issues/302)) ([61c8ef2](https://github.com/allxsmith/bestax/commit/61c8ef2d60bb4a1ae21c673d2bfaec89e87cf21f)), closes [#287](https://github.com/allxsmith/bestax/issues/287)
+
 ## [3.2.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.2.0...create-bestax@3.2.1) (2026-07-12)
 
 
