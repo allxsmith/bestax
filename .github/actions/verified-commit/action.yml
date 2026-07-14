@@ -17,15 +17,21 @@ runs:
   steps:
     - name: Commit files via GitHub API
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+      env:
+        # Inputs must reach the script as env vars, never via ${{ }} template
+        # interpolation into the JS source — a quote in an input would
+        # otherwise become script injection.
+        FILE_PATTERN: ${{ inputs.file-pattern }}
+        COMMIT_MESSAGE: ${{ inputs.message }}
       with:
         github-token: ${{ inputs.token }}
         script: |
           const fs = require('fs');
           const path = require('path');
-          const { execSync } = require('child_process');
+          const { execFileSync } = require('child_process');
 
           // Get all files matching the pattern using find command
-          const pattern = '${{ inputs.file-pattern }}';
+          const pattern = process.env.FILE_PATTERN;
           let files = [];
 
           // Extract base directory and file pattern
@@ -33,8 +39,8 @@ runs:
           const basePath = pattern.replace(/\/\*\*\/.*$/, '');  // "create-bestax/e2e/tests"
 
           try {
-            const output = execSync(
-              `find ${basePath} -type f -name "*.png"`,
+            const output = execFileSync(
+              'find', [basePath, '-type', 'f', '-name', '*.png'],
               { cwd: process.env.GITHUB_WORKSPACE, encoding: 'utf-8' }
             );
             files = output.trim().split('\n').filter(Boolean).map(f =>
@@ -53,7 +59,7 @@ runs:
           console.log(`Found ${files.length} files to commit`);
 
           const branch = context.ref.replace('refs/heads/', '');
-          const commitMessage = '${{ inputs.message }}';
+          const commitMessage = process.env.COMMIT_MESSAGE;
 
           // Get the current commit SHA
           const { data: refData } = await github.rest.git.getRef({

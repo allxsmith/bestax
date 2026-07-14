@@ -37,13 +37,25 @@ jobs:
           mkdir -p docs/build/storybook
           cp -r bulma-ui/storybook-static/* docs/build/storybook/
 
+      # github.head_ref is attacker-chosen text (the PR branch name) — never
+      # interpolate it into a command. Reduce it to [A-Za-z0-9-] first; the
+      # sanitized output is safe to interpolate by construction and matches
+      # Cloudflare's branch-alias charset.
+      - name: Sanitize preview branch name
+        id: branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          SAFE=$(printf '%s' "$HEAD_REF" | tr -cs 'a-zA-Z0-9-' '-' | cut -c1-63)
+          echo "safe=$SAFE" >> "$GITHUB_OUTPUT"
+
       - name: Deploy Preview to Cloudflare Pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
         id: deploy
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy docs/build --project-name=bestax --branch=${{ github.head_ref }} --commit-dirty=true
+          command: pages deploy docs/build --project-name=bestax --branch=${{ steps.branch.outputs.safe }} --commit-dirty=true
 
       - name: Comment Preview URL
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
