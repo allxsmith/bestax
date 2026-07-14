@@ -1,3 +1,16 @@
+## [5.4.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.0...@allxsmith/bestax-bulma@5.4.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **bulma-ui:** fix standalone Badge pointer-events, pulse halo, and falsy content ([#295](https://github.com/allxsmith/bestax/issues/295)) ([a9db031](https://github.com/allxsmith/bestax/commit/a9db03189c087eb0a61f56357e179296bd4cebf9)), closes [#264](https://github.com/allxsmith/bestax/issues/264)
+* **create-bestax:** fail fast with guidance instead of hanging when stdin is not a TTY ([#293](https://github.com/allxsmith/bestax/issues/293)) ([46a172d](https://github.com/allxsmith/bestax/commit/46a172d503bb283a5fc168f397261f8afa558b19)), closes [#192](https://github.com/allxsmith/bestax/issues/192)
+
+
+### Features
+
+* **create-bestax:** scaffold-aware CLAUDE.md with setup facts and house style ([#271](https://github.com/allxsmith/bestax/issues/271)) ([c1681b0](https://github.com/allxsmith/bestax/commit/c1681b0f1e87b65f6614e564b0878bc6d7217757))
+
 # [5.4.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.3.0...@allxsmith/bestax-bulma@5.4.0) (2026-07-10)
 
 
