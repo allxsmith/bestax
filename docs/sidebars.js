@@ -36,6 +36,7 @@ const sidebars = {
         'skills/form',
         'skills/theming',
         'skills/layout-scaffold',
+        'skills/icons',
       ],
     },
   ],

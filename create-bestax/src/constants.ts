@@ -124,6 +124,7 @@ automatically when the task matches:
 - **bestax-form** — build forms with the bestax form components (no form library).
 - **bestax-theming** — colors, branding, and dark mode via the \`Theme\` component (\`colorMode\`).
 - **bestax-layout-scaffold** — scaffold full pages (app shell, landing, centered, card grid).
+- **bestax-icons** — icons via \`Icon\`/\`IconText\`: library setup, name formats, variants, a11y.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
 
