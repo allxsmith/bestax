@@ -289,20 +289,23 @@ describe('Avatars', () => {
     const consoleError = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
-    render(
-      <Avatars>
-        <Avatar name="Ada Lovelace" />
-        <>
-          <Avatar name="Grace Hopper" />
-          <Avatar name="Katherine Johnson" />
-        </>
-      </Avatars>
-    );
-    expect(screen.getByText('AL')).toBeInTheDocument();
-    expect(screen.getByText('GH')).toBeInTheDocument();
-    expect(screen.getByText('KJ')).toBeInTheDocument();
-    expect(consoleError).not.toHaveBeenCalled();
-    consoleError.mockRestore();
+    try {
+      render(
+        <Avatars>
+          <Avatar name="Ada Lovelace" />
+          <>
+            <Avatar name="Grace Hopper" />
+            <Avatar name="Katherine Johnson" />
+          </>
+        </Avatars>
+      );
+      expect(screen.getByText('AL')).toBeInTheDocument();
+      expect(screen.getByText('GH')).toBeInTheDocument();
+      expect(screen.getByText('KJ')).toBeInTheDocument();
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it('applies the classPrefix from ConfigProvider', () => {

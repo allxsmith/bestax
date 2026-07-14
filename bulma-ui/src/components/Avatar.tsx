@@ -160,9 +160,10 @@ export const Avatar: React.FC<AvatarProps> = ({
 }) => {
   // Tracks the src that failed to load. A src change clears the latch during
   // render (React's "reset state when props change" pattern) so a previously
-  // failed src is retried when switched back to; keeping the failed *string*
-  // (not a boolean) additionally guards against a stale onError from an
-  // already-replaced image re-latching the new src.
+  // failed src is retried when switched back to. The img is additionally
+  // keyed by src so a swap discards the old DOM node — a late error event
+  // from the previous request can't fire on a retained node and latch the
+  // replacement src as failed.
   const [erroredSrc, setErroredSrc] = useState<string | undefined>(undefined);
   const [prevSrc, setPrevSrc] = useState(src);
   if (src !== prevSrc) {
@@ -242,6 +243,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     >
       {showImage && (
         <img
+          key={src}
           {...imageProps}
           ref={imgRef}
           src={src}
