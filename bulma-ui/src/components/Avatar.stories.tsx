@@ -83,8 +83,8 @@ export const Photo: Story = {
   render: function PhotoExample() {
     return (
       <Avatar
-        src="https://bulma.io/assets/images/placeholders/128x128.png"
-        name="Ada Lovelace"
+        src="https://github.com/allxsmith.png"
+        name="Al Smith"
         size="64x64"
       />
     );
@@ -161,8 +161,8 @@ export const LazyLoadedImage: Story = {
   render: function LazyLoadedExample() {
     return (
       <Avatar
-        src="https://bulma.io/assets/images/placeholders/128x128.png"
-        name="Ada Lovelace"
+        src="https://github.com/allxsmith.png"
+        name="Al Smith"
         size="64x64"
         imageProps={{ loading: 'lazy' }}
       />
