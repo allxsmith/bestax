@@ -1,8 +1,12 @@
 import React, { forwardRef, useState, useCallback } from 'react';
-import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import {
+  classNames,
+  prefixedClassNames,
+  usePrefixedClassNames,
+} from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
-import { useIconLibrary } from '../helpers/Config';
+import { useClassPrefix, useIconLibrary } from '../helpers/Config';
 import { useInsideField, useInsideControl } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -324,6 +328,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     };
 
     // Generate classes
+    const classPrefix = useClassPrefix();
     const rateClasses = usePrefixedClassNames('rate', {
       [`is-${size}`]: size,
       'is-disabled': disabled,
@@ -387,14 +392,14 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       if (iconName) {
         return (
           <span
-            className="rate-icon-partial"
+            className={prefixedClassNames(classPrefix, 'rate-icon-partial')}
             style={
               {
                 '--rate-fill-percent': `${fillPercent}%`,
               } as React.CSSProperties
             }
           >
-            <span className="rate-icon-bg">
+            <span className={prefixedClassNames(classPrefix, 'rate-icon-bg')}>
               <Icon
                 name={iconName}
                 library={resolvedLibrary}
@@ -402,7 +407,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
                 features={iconFeatures}
               />
             </span>
-            <span className="rate-icon-fg">
+            <span className={prefixedClassNames(classPrefix, 'rate-icon-fg')}>
               <Icon
                 name={iconName}
                 library={resolvedLibrary}
@@ -469,7 +474,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         icons.push(
           <span
             key={iconIndex}
-            className={classNames('rate-item', {
+            className={prefixedClassNames(classPrefix, 'rate-item', {
               'is-active': isActive,
               'is-hovered': isHovered,
             })}
@@ -506,6 +511,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     });
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
+    const rateItemsClass = usePrefixedClassNames('rate-items');
+    const rateScoreClass = usePrefixedClassNames('rate-score');
+    const rateTextClass = usePrefixedClassNames('rate-text');
+    const rateCustomTextClass = usePrefixedClassNames('rate-custom-text');
+
     const rateElement = (
       <div
         ref={ref}
@@ -520,10 +530,14 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         onKeyDown={handleKeyDown}
         {...rest}
       >
-        <div className="rate-items">{renderIcons()}</div>
-        {showScore && <span className="rate-score">{getScoreDisplay()}</span>}
-        {text && <span className="rate-text">{text}</span>}
-        {customText && <span className="rate-custom-text">{customText}</span>}
+        <div className={rateItemsClass}>{renderIcons()}</div>
+        {showScore && (
+          <span className={rateScoreClass}>{getScoreDisplay()}</span>
+        )}
+        {text && <span className={rateTextClass}>{text}</span>}
+        {customText && (
+          <span className={rateCustomTextClass}>{customText}</span>
+        )}
         {name && (
           <input type="hidden" name={name} value={currentValue} form={form} />
         )}

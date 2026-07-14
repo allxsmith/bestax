@@ -132,14 +132,17 @@ export const Step: React.FC<StepProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
 
   const stepClasses = classNames(
-    'steps-segment',
-    {
+    usePrefixedClassNames('steps-segment', {
       'is-active': isActive,
       'is-completed': isCompleted,
-    },
+    }),
     bulmaHelperClasses,
     className
   );
+  const stepsLinkClass = usePrefixedClassNames('steps-link');
+  const stepsMarkerClass = usePrefixedClassNames('steps-marker');
+  const stepsContentClass = usePrefixedClassNames('steps-content');
+  const stepsTitleClass = usePrefixedClassNames('steps-title');
 
   const handleClick = () => {
     if (clickable && onClick) {
@@ -172,11 +175,11 @@ export const Step: React.FC<StepProps> = ({
       aria-current={isActive ? 'step' : undefined}
       {...rest}
     >
-      <div className="steps-link">
-        <span className="steps-marker">{markerContent}</span>
+      <div className={stepsLinkClass}>
+        <span className={stepsMarkerClass}>{markerContent}</span>
         {(label || children) && (
-          <div className="steps-content">
-            <p className="steps-title">{label || children}</p>
+          <div className={stepsContentClass}>
+            <p className={stepsTitleClass}>{label || children}</p>
           </div>
         )}
       </div>
@@ -262,8 +265,13 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
   );
 
   // Generate classes for the ul (list)
-  const listClasses = classNames('steps-list', {
+  const listClasses = usePrefixedClassNames('steps-list', {
     'is-vertical': vertical,
+  });
+  const stepsNavigationClass = usePrefixedClassNames('steps-navigation');
+  const prevButtonClass = usePrefixedClassNames('button');
+  const nextButtonClass = usePrefixedClassNames('button', {
+    'is-primary': true,
   });
 
   // Count total steps for navigation
@@ -315,16 +323,16 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
     <div className={combinedClasses} {...rest}>
       <ul className={listClasses}>{renderSteps()}</ul>
       {hasNavigation && (
-        <div className="steps-navigation">
+        <div className={stepsNavigationClass}>
           <button
-            className="button"
+            className={prevButtonClass}
             disabled={value === 0}
             onClick={onPrev ?? (() => onStepClick?.(value - 1))}
           >
             {prevLabel ?? 'Previous'}
           </button>
           <button
-            className="button is-primary"
+            className={nextButtonClass}
             disabled={value === totalSteps - 1}
             onClick={onNext ?? (() => onStepClick?.(value + 1))}
           >
