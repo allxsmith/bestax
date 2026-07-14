@@ -219,7 +219,14 @@ export const Avatar: React.FC<AvatarProps> = ({
   const initialsClass = usePrefixedClassNames('avatar-initials');
 
   const Tag: React.ElementType = as ?? (href ? 'a' : 'figure');
-  const isInteractive = Tag === 'a' || Tag === 'button';
+  // A custom `as` component given an href is being used as a link — the same
+  // condition under which isLinkLike forwards href/target/rel below — so it
+  // counts as interactive too. Otherwise alt="" would mark a real link
+  // decorative (aria-hidden) and it could render nameless.
+  const isInteractive =
+    Tag === 'a' ||
+    Tag === 'button' ||
+    (typeof Tag !== 'string' && href != null);
 
   // Only forward link attributes when rendering an anchor or a custom (non-DOM)
   // component; a plain `as="div"` must not receive a stray `href`/`target`/`rel`.

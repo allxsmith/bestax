@@ -139,7 +139,10 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
         <Avatar
           initials={`+${overflowCount}`}
           alt={
-            surplusLabel ? surplusLabel(overflowCount) : `${overflowCount} more`
+            // `||` (not a plain ternary): an empty string from surplusLabel
+            // would make the bubble decorative (alt="") and hide the count
+            // from assistive tech — fall back to the default label instead.
+            surplusLabel?.(overflowCount) || `${overflowCount} more`
           }
           size={size}
           shape={shape}

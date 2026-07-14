@@ -70,6 +70,20 @@ describe('Avatars', () => {
     expect(screen.getByText('+2')).toBeInTheDocument();
   });
 
+  it('falls back to the default surplus name when surplusLabel returns an empty string', () => {
+    render(
+      <Avatars max={2} surplusLabel={() => ''}>
+        <Avatar name="Ada Lovelace" />
+        <Avatar name="Grace Hopper" />
+        <Avatar name="Katherine Johnson" />
+        <Avatar name="Margaret Hamilton" />
+      </Avatars>
+    );
+    // An empty label would make the bubble decorative (alt="") and hide the
+    // count from assistive tech — the default name must win instead.
+    expect(screen.getByRole('img', { name: '2 more' })).toBeInTheDocument();
+  });
+
   it('gives the surplus avatar an accessible name of "{N} more"', () => {
     render(
       <Avatars max={2}>

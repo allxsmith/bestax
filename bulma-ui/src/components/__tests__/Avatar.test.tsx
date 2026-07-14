@@ -115,6 +115,31 @@ describe('Avatar', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps a custom link-like avatar interactive when alt is explicitly empty', () => {
+    const CustomLink: React.FC<{
+      href?: string;
+      children?: React.ReactNode;
+    }> = ({ href, children, ...rest }) => (
+      <a href={href} {...rest}>
+        {children}
+      </a>
+    );
+    render(
+      <Avatar
+        as={CustomLink}
+        href="https://example.com"
+        alt=""
+        name="Ada Lovelace"
+      />
+    );
+    // A custom `as` component with href is a link (the same condition that
+    // forwards href to it) — the decorative opt-out must not aria-hide it,
+    // and it keeps an accessible name.
+    expect(
+      screen.getByRole('link', { name: 'Ada Lovelace' })
+    ).toBeInTheDocument();
+  });
+
   it('names an interactive non-image avatar from name when alt is explicitly empty', () => {
     render(<Avatar alt="" name="Ada Lovelace" as="button" />);
     expect(
