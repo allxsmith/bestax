@@ -592,7 +592,7 @@ describe('ProjectCreator', () => {
         packageJsonPath,
         expect.objectContaining({
           dependencies: expect.objectContaining({
-            '@fortawesome/fontawesome-free': 'latest',
+            '@fortawesome/fontawesome-free': '^7.2.0',
           }),
         }),
         { spaces: 2 }
@@ -629,7 +629,7 @@ describe('ProjectCreator', () => {
         packageJsonPath,
         expect.objectContaining({
           dependencies: expect.objectContaining({
-            '@mdi/font': 'latest',
+            '@mdi/font': '^7.4.47',
           }),
         }),
         { spaces: 2 }
@@ -1517,7 +1517,7 @@ describe('ProjectCreator', () => {
         packageJsonPath,
         expect.objectContaining({
           dependencies: expect.objectContaining({
-            '@fortawesome/fontawesome-free': 'latest',
+            '@fortawesome/fontawesome-free': '^7.2.0',
           }),
         }),
         { spaces: 2 }

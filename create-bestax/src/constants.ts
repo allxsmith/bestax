@@ -143,6 +143,10 @@ export interface IconLibrary {
   display: string;
   color: typeof chalk.yellow;
   packageName?: string;
+  // Version range written into the generated app's package.json. Keep in sync
+  // with the ranges bulma-ui/docs are tested against — never 'latest', which
+  // would make scaffolded installs non-reproducible.
+  packageVersion?: string;
   importStatement?: string;
   setupInstructions?: string;
 }
@@ -158,6 +162,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Font Awesome',
     color: chalk.blue,
     packageName: '@fortawesome/fontawesome-free',
+    packageVersion: '^7.2.0',
     importStatement: "import '@fortawesome/fontawesome-free/css/all.min.css';",
   },
   {
@@ -165,6 +170,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Material Design Icons',
     color: chalk.cyan,
     packageName: '@mdi/font',
+    packageVersion: '^7.4.47',
     importStatement: "import '@mdi/font/css/materialdesignicons.min.css';",
   },
   {
@@ -179,6 +185,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Google Material Icons',
     color: chalk.yellow,
     packageName: 'material-icons',
+    packageVersion: '^1.13.14',
     importStatement: "import 'material-icons';",
   },
   {
@@ -186,6 +193,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Material Symbols',
     color: chalk.magenta,
     packageName: 'material-symbols',
+    packageVersion: '^0.45.2',
     importStatement: "import 'material-symbols';",
   },
 ];

@@ -120,6 +120,15 @@ describe('constants', () => {
         }
       });
     });
+
+    it('should pin an explicit caret version for every npm-installed library', () => {
+      ICON_LIBRARIES.forEach(library => {
+        if (library.packageName) {
+          expect(library.packageVersion).toMatch(/^\^\d+\.\d+\.\d+$/);
+          expect(library.packageVersion).not.toBe('latest');
+        }
+      });
+    });
   });
 
   describe('BULMA_FLAVORS', () => {
