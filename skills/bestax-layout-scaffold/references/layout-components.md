@@ -12,6 +12,8 @@ import {
   Level,
   Columns,
   Column,
+  Grid,
+  Cell,
   Navbar,
   Menu,
   Card,
@@ -26,7 +28,9 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 > `textColor="grey"` / `bgColor="light"` not `style={{ color }}`. Spacing scale is `0`–`6` | `auto`
 > (`4` = 1rem). Reserve `style`/CSS vars only for values the design system doesn't tokenize.
 
-> **There is no `Tile` component.** Build grids and nested layouts with `Columns` / `Column`.
+> **There is no `Tile` component.** For uniform grids (cards, galleries) use `Grid` / `Cell` —
+> equal-height cells for free; for proportional or per-breakpoint layouts use
+> `Columns` / `Column`.
 
 ## Container
 
@@ -126,6 +130,76 @@ type BulmaColumnSize =
 
 > Columns **stack on mobile** by default and go side-by-side at the tablet breakpoint and up.
 > Use the per-breakpoint `size*` props to control how many cells share a row at each width.
+
+**Equal-height cards inside Columns** — columns are equal height, but a card inside one does
+**not** stretch to fill it (and `height: 100%` on the card resolves against auto height, so it
+does nothing). Make the `Column` a flex container and let the card grow:
+
+```tsx
+<Columns isMultiline>
+  {items.map(item => (
+    <Column
+      key={item.id}
+      sizeTablet="half"
+      sizeDesktop="one-third"
+      display="flex"
+      flexDirection="column"
+    >
+      <Card flexGrow="1">{item.blurb}</Card>
+    </Column>
+  ))}
+</Columns>
+```
+
+`display`, `flexDirection`, and `flexGrow` are helper props every component accepts;
+`flexGrow` takes a string (`"1"`).
+
+## Grid / Cell
+
+Bulma's CSS Grid. **Preferred for uniform grids** — same-shaped items in a repeating pattern
+(card grids, galleries, dashboards): CSS Grid gives **equal-height cells for free**, with no
+flex recipe needed. Reach for `Columns`/`Column` instead when you need proportional or
+per-breakpoint column _sizes_ (a 2/3 + 1/3 split, different counts per breakpoint).
+
+**Grid**
+
+| Prop                                                                                                                   | Type                                                         |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `gap` / `columnGap` / `rowGap`                                                                                         | `0`–`8` (number or string, same scale as Columns' `gap`)     |
+| `minCol`                                                                                                               | `1`–`32` (smart grid: min column width step, `is-col-min-X`) |
+| `isFixed`                                                                                                              | `boolean` (fixed column count instead of auto-fill)          |
+| `fixedCols` (+ `fixedColsMobile` / `fixedColsTablet` / `fixedColsDesktop` / `fixedColsWidescreen` / `fixedColsFullhd`) | `0`–`12` or `'auto'` (fixed grid only)                       |
+
+**Cell**
+
+| Prop                                  | Type                                    |
+| ------------------------------------- | --------------------------------------- |
+| `colStart` / `colFromEnd` / `colSpan` | `number` (manual column placement/span) |
+| `rowStart` / `rowFromEnd` / `rowSpan` | `number` (manual row placement/span)    |
+
+By default the smart grid **auto-fills**: cells flow into as many columns as fit (tune the
+minimum width with `minCol`). `isFixed` + `fixedCols*` pins an exact column count per
+breakpoint instead.
+
+```tsx
+// Uniform card grid — equal heights for free, responsive column count for free.
+<Grid
+  isFixed
+  fixedColsMobile={1}
+  fixedColsTablet={2}
+  fixedColsDesktop={3}
+  gap={4}
+>
+  {items.map(item => (
+    <Cell key={item.id}>
+      <Card header={item.name}>{item.blurb}</Card>
+    </Cell>
+  ))}
+</Grid>
+```
+
+> To stretch each card to its cell's full (equal) height, the same `display="flex"
+flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 
 ## Navbar
 
