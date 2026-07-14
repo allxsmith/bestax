@@ -58,14 +58,21 @@ export default {
     ...(process.env.NODE_ENV === 'production'
       ? [
           purgecss({
-            content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
-            // Bulma builds class names dynamically (is-active, has-*, data-theme
-            // scheme flips) and bestax composes them at runtime — safelist by
-            // pattern so state/scheme classes survive:
+            content: [
+              './index.html',
+              './src/**/*.{js,jsx,ts,tsx}',
+              // bestax's static class literals (button, card, …) live in the
+              // library bundle, not your source — scan it too:
+              './node_modules/@allxsmith/bestax-bulma/dist/**/*.js',
+            ],
+            // Classes bestax assembles at runtime (helper props like mt="4"
+            // → mt-4, is-active state flips, [data-theme] scheme switching)
+            // never appear verbatim in any scanned file — safelist them by
+            // pattern:
             safelist: {
-              standard: [/^is-/, /^has-/],
-              deep: [/theme-dark/, /theme-light/],
-              greedy: [/^bestax-/],
+              standard: [/^is-/, /^has-/, /^m[trblxy]?-/, /^p[trblxy]?-/],
+              deep: [/data-theme/, /theme-dark/, /theme-light/],
+              greedy: [/^bestax-/, /data-theme/],
             },
           }),
         ]
