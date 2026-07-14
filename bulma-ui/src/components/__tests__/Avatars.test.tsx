@@ -232,6 +232,80 @@ describe('Avatars', () => {
       </Avatars>
     );
     expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.queryByText('text node')).not.toBeInTheDocument();
+  });
+
+  it('counts fragment-wrapped children toward max clamping', () => {
+    render(
+      <Avatars max={2}>
+        <Avatar name="Ada Lovelace" />
+        <>
+          <Avatar name="Grace Hopper" />
+          <Avatar name="Katherine Johnson" />
+          <Avatar name="Margaret Hamilton" />
+        </>
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.queryByText('KJ')).not.toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
+  });
+
+  it('injects the group size and shape into fragment-wrapped children', () => {
+    render(
+      <Avatars size="64x64" shape="square">
+        <>
+          <Avatar name="Ada Lovelace" data-testid="wrapped" />
+        </>
+      </Avatars>
+    );
+    const wrapped = screen.getByTestId('wrapped');
+    expect(wrapped).toHaveClass('is-64x64');
+    expect(wrapped).toHaveClass('is-square');
+  });
+
+  it('flattens nested fragments and ignores non-elements inside them', () => {
+    render(
+      <Avatars max={2}>
+        <>
+          <Avatar name="Ada Lovelace" />
+          {'stray text'}
+          <>
+            <Avatar name="Grace Hopper" />
+            <Avatar name="Katherine Johnson" />
+            <Avatar name="Margaret Hamilton" />
+          </>
+        </>
+      </Avatars>
+    );
+    expect(screen.getByText('AL')).toBeInTheDocument();
+    expect(screen.getByText('GH')).toBeInTheDocument();
+    expect(screen.getByText('+2')).toBeInTheDocument();
+    expect(screen.queryByText('stray text')).not.toBeInTheDocument();
+  });
+
+  it('renders mixed direct and fragment children without duplicate-key warnings', () => {
+    const consoleError = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    try {
+      render(
+        <Avatars>
+          <Avatar name="Ada Lovelace" />
+          <>
+            <Avatar name="Grace Hopper" />
+            <Avatar name="Katherine Johnson" />
+          </>
+        </Avatars>
+      );
+      expect(screen.getByText('AL')).toBeInTheDocument();
+      expect(screen.getByText('GH')).toBeInTheDocument();
+      expect(screen.getByText('KJ')).toBeInTheDocument();
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it('applies the classPrefix from ConfigProvider', () => {

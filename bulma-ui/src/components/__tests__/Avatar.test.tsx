@@ -43,6 +43,40 @@ describe('Avatar', () => {
     );
   });
 
+  it('retries a previously failed src after switching away and back', () => {
+    const { rerender } = render(
+      <Avatar src="/broken.jpg" name="Ada Lovelace" />
+    );
+    const img = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
+    fireEvent.error(img);
+    expect(screen.getByText('AL')).toBeInTheDocument();
+
+    rerender(<Avatar src="/fixed.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/fixed.jpg'
+    );
+
+    // Switching back to the once-failed src must remount the img and retry it,
+    // not permanently latch onto the old failure.
+    rerender(<Avatar src="/broken.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/broken.jpg'
+    );
+  });
+
+  it('remounts the img node when src changes', () => {
+    const { rerender } = render(<Avatar src="/a.jpg" name="Ada Lovelace" />);
+    const first = screen.getByRole('img', { name: 'Ada Lovelace' });
+    rerender(<Avatar src="/b.jpg" name="Ada Lovelace" />);
+    const second = screen.getByRole('img', { name: 'Ada Lovelace' });
+    expect(second).toHaveAttribute('src', '/b.jpg');
+    // A fresh DOM node (via key={src}) means a late error event from the old
+    // request cannot fire on a retained node and latch the new src as failed.
+    expect(second).not.toBe(first);
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();

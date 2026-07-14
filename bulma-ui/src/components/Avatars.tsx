@@ -31,6 +31,32 @@ export interface AvatarsProps
 }
 
 /**
+ * Flattens Fragment children (recursively) into a flat element array so they
+ * participate in max clamping and size/shape injection. Children.toArray keys
+ * restart at ".0" inside each fragment, so fragment children are re-keyed by
+ * prefixing the fragment's own key — otherwise a fragment sibling of a direct
+ * child would collide (both ".0") and trigger duplicate-key warnings.
+ */
+function flattenChildren(
+  children: React.ReactNode,
+  keyPrefix = ''
+): React.ReactElement<AvatarProps>[] {
+  return React.Children.toArray(children).flatMap(child => {
+    if (!React.isValidElement(child)) return [];
+    if (child.type === React.Fragment) {
+      return flattenChildren(
+        (child.props as { children?: React.ReactNode }).children,
+        keyPrefix + child.key
+      );
+    }
+    const el = child as React.ReactElement<AvatarProps>;
+    return [
+      keyPrefix ? React.cloneElement(el, { key: keyPrefix + el.key }) : el,
+    ];
+  });
+}
+
+/**
  * Avatars component for rendering an overlapping/stacked group of `Avatar`s.
  *
  * Clamps to `max`, rendering the overflow as a single "+N" surplus avatar. Mirrors the
@@ -78,9 +104,7 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
     className
   );
 
-  const childArray = React.Children.toArray(children).filter(
-    React.isValidElement
-  ) as React.ReactElement<AvatarProps>[];
+  const childArray = flattenChildren(children);
 
   const maxCount =
     typeof max === 'number' && Number.isInteger(max) && max >= 0

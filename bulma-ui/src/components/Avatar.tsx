@@ -158,9 +158,18 @@ export const Avatar: React.FC<AvatarProps> = ({
   style,
   ...props
 }) => {
-  // Tracks the src that failed to load (rather than a plain boolean) so a
-  // new src is shown again without needing an effect to reset the flag.
+  // Tracks the src that failed to load. A src change clears the latch during
+  // render (React's "reset state when props change" pattern) so a previously
+  // failed src is retried when switched back to. The img is additionally
+  // keyed by src so a swap discards the old DOM node — a late error event
+  // from the previous request can't fire on a retained node and latch the
+  // replacement src as failed.
   const [erroredSrc, setErroredSrc] = useState<string | undefined>(undefined);
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setErroredSrc(undefined);
+  }
   const imgRef = useRef<HTMLImageElement>(null);
 
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
@@ -234,6 +243,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     >
       {showImage && (
         <img
+          key={src}
           {...imageProps}
           ref={imgRef}
           src={src}

@@ -46,7 +46,9 @@ $avatars-spacing-lg: 1rem !default;
       cv.getVar('avatars-ring-color');
 
     &:not(:first-child) {
-      margin-left: calc(-1 * #{cv.getVar('avatars-spacing')});
+      // Logical property so the stack overlaps toward the reading direction
+      // (a physical margin-left pulls avatars apart under dir="rtl").
+      margin-inline-start: calc(-1 * #{cv.getVar('avatars-spacing')});
     }
   }
 
@@ -59,7 +61,7 @@ $avatars-spacing-lg: 1rem !default;
       box-shadow: none;
 
       &:not(:first-child) {
-        margin-left: 0;
+        margin-inline-start: 0;
       }
     }
   }
