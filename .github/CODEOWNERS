@@ -1,0 +1,5 @@
+# The workflows, AI-loop guardrails, and composite actions under .github/ are
+# the repo's security boundary — changes require the owner's review.
+# (Enforced only once "Require review from Code Owners" is enabled in the
+# branch protection / ruleset for main.)
+/.github/ @allxsmith
