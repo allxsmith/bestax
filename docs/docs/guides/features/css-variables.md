@@ -323,7 +323,8 @@ $family-primary: 'Helvetica Neue', sans-serif;
 ## Dark Mode & Contrast
 
 Bulma's scheme variables (`--bulma-text`, `--bulma-scheme-main`, …) flip automatically when
-`data-theme="dark"` is present — and with no explicit `colorMode`, they follow the visitor's OS
+`data-theme="dark"` is present — and when no `data-theme` attribute has been set at all (the
+usual case for an app that never configured `colorMode`), they follow the visitor's OS
 `prefers-color-scheme`. **Dark mode is effectively on by default**, even for designs that never
 intended to support it.
 

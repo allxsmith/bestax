@@ -408,7 +408,8 @@ Use `'system'` to follow the OS preference.
 
 :::warning Single-mode designs should pin `colorMode`
 
-With no explicit `colorMode`, the scheme follows the visitor's OS — Bulma's text colors flip on a
+Omitting `colorMode` preserves whatever `data-theme` is already set — and when nothing has set
+one (the usual case), the scheme follows the visitor's OS: Bulma's text colors flip on a
 dark-mode machine even if your design is light-only, breaking contrast against any fixed custom
 backgrounds. If you support only one mode, pin it (`<Theme isRoot colorMode="light">`); if you
 support both, don't hardcode surface/text colors — see

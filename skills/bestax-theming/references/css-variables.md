@@ -149,7 +149,8 @@ channels directly.
 
 ### The single-mode contrast trap
 
-Because the OS preference applies **by default**, a light-only design silently breaks for any
+Because the OS preference applies whenever no `data-theme` attribute is set — the default state
+of every app that never configured `colorMode` — a light-only design silently breaks for any
 dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
 white text on cream. The failure is invisible unless the author's own OS is in dark mode.
 

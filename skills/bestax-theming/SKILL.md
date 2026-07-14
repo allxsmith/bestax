@@ -37,7 +37,8 @@ For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). 
 
 ## Contrast rules (dark mode is on by default)
 
-With no explicit `colorMode`, Bulma follows the visitor's OS: `--bulma-text`,
+When nothing sets a `data-theme` attribute (omitting `colorMode` preserves an existing one, but
+apps that never configured it have none), Bulma follows the visitor's OS: `--bulma-text`,
 `--bulma-scheme-main`, etc. flip on a dark-mode machine even if the design never intended a dark
 theme. Custom fixed tokens (`--my-canvas: #f6f4ec`) do **not** flip — producing near-white Bulma
 text on the author's fixed light background. Apply exactly one of these rules whenever custom
