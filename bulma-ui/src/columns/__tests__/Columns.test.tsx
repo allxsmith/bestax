@@ -71,6 +71,88 @@ describe('Columns', () => {
     );
   });
 
+  it('applies custom gap classes via the preferred gap* props', () => {
+    const { container } = render(
+      <Columns
+        gap={2}
+        gapMobile={1}
+        gapTablet={0}
+        gapDesktop={3}
+        gapWidescreen={8}
+        gapFullhd={2}
+      />
+    );
+    expect(container.firstChild).toHaveClass(
+      'is-2',
+      'is-1-mobile',
+      'is-0-tablet',
+      'is-3-desktop',
+      'is-8-widescreen',
+      'is-2-fullhd'
+    );
+  });
+
+  it('accepts gap values as strings, matching BulmaGapValue', () => {
+    const { container } = render(<Columns gap="4" gapMobile="1" />);
+    expect(container.firstChild).toHaveClass('is-4', 'is-1-mobile');
+  });
+
+  it('prefers gap* props over the deprecated gapSize* props when both are set', () => {
+    const { container } = render(
+      <Columns
+        gap={5}
+        gapSize={1}
+        gapMobile={6}
+        gapSizeMobile={2}
+        gapTablet={7}
+        gapSizeTablet={3}
+        gapDesktop={8}
+        gapSizeDesktop={4}
+        gapWidescreen={0}
+        gapSizeWidescreen={5}
+        gapFullhd={1}
+        gapSizeFullhd={6}
+      />
+    );
+    expect(container.firstChild).toHaveClass(
+      'is-5',
+      'is-6-mobile',
+      'is-7-tablet',
+      'is-8-desktop',
+      'is-0-widescreen',
+      'is-1-fullhd'
+    );
+    expect(container.firstChild).not.toHaveClass(
+      'is-1',
+      'is-2-mobile',
+      'is-3-tablet',
+      'is-4-desktop',
+      'is-5-widescreen',
+      'is-6-fullhd'
+    );
+  });
+
+  it('falls back to the deprecated gapSize* props when gap* is not set', () => {
+    const { container } = render(
+      <Columns
+        gapSize={4}
+        gapSizeMobile={3}
+        gapSizeTablet={2}
+        gapSizeDesktop={1}
+        gapSizeWidescreen={0}
+        gapSizeFullhd={4}
+      />
+    );
+    expect(container.firstChild).toHaveClass(
+      'is-4',
+      'is-3-mobile',
+      'is-2-tablet',
+      'is-1-desktop',
+      'is-0-widescreen',
+      'is-4-fullhd'
+    );
+  });
+
   it('applies custom className', () => {
     const { container } = render(<Columns className="custom-class" />);
     expect(container.firstChild).toHaveClass('custom-class');

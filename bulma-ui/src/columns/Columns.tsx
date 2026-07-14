@@ -5,29 +5,14 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import type { BulmaGapValue } from '../grid/Grid';
 
 /**
  * Possible values for the Bulma columns gap size.
+ * @deprecated Use {@link BulmaGapValue} instead — `gapSize*` and `gap*` share
+ * the same 0-8 scale.
  */
-export type BulmaGapSize =
-  | 0
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | '0'
-  | '1'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8';
+export type BulmaGapSize = BulmaGapValue;
 
 /**
  * Props for the Columns component.
@@ -42,12 +27,18 @@ export type BulmaGapSize =
  * @property {boolean} [isVCentered] - Vertically center columns.
  * @property {boolean} [isMobile] - Only apply columns styles on mobile.
  * @property {boolean} [isDesktop] - Only apply columns styles on desktop.
- * @property {BulmaGapSize} [gapSize] - Gap size for all breakpoints.
- * @property {BulmaGapSize} [gapSizeMobile] - Gap size for mobile.
- * @property {BulmaGapSize} [gapSizeTablet] - Gap size for tablet.
- * @property {BulmaGapSize} [gapSizeDesktop] - Gap size for desktop.
- * @property {BulmaGapSize} [gapSizeWidescreen] - Gap size for widescreen.
- * @property {BulmaGapSize} [gapSizeFullhd] - Gap size for fullhd.
+ * @property {BulmaGapValue} [gap] - Gap size for all breakpoints. Wins over `gapSize` if both are set.
+ * @property {BulmaGapValue} [gapMobile] - Gap size for mobile. Wins over `gapSizeMobile` if both are set.
+ * @property {BulmaGapValue} [gapTablet] - Gap size for tablet. Wins over `gapSizeTablet` if both are set.
+ * @property {BulmaGapValue} [gapDesktop] - Gap size for desktop. Wins over `gapSizeDesktop` if both are set.
+ * @property {BulmaGapValue} [gapWidescreen] - Gap size for widescreen. Wins over `gapSizeWidescreen` if both are set.
+ * @property {BulmaGapValue} [gapFullhd] - Gap size for fullhd. Wins over `gapSizeFullhd` if both are set.
+ * @property {BulmaGapSize} [gapSize] - Gap size for all breakpoints. @deprecated Use `gap` instead.
+ * @property {BulmaGapSize} [gapSizeMobile] - Gap size for mobile. @deprecated Use `gapMobile` instead.
+ * @property {BulmaGapSize} [gapSizeTablet] - Gap size for tablet. @deprecated Use `gapTablet` instead.
+ * @property {BulmaGapSize} [gapSizeDesktop] - Gap size for desktop. @deprecated Use `gapDesktop` instead.
+ * @property {BulmaGapSize} [gapSizeWidescreen] - Gap size for widescreen. @deprecated Use `gapWidescreen` instead.
+ * @property {BulmaGapSize} [gapSizeFullhd] - Gap size for fullhd. @deprecated Use `gapFullhd` instead.
  * @property {React.ReactNode} [children] - Columns to render within the container.
  */
 export interface ColumnsProps
@@ -65,11 +56,24 @@ export interface ColumnsProps
   isMobile?: boolean;
   isDesktop?: boolean;
 
+  gap?: BulmaGapValue;
+  gapMobile?: BulmaGapValue;
+  gapTablet?: BulmaGapValue;
+  gapDesktop?: BulmaGapValue;
+  gapWidescreen?: BulmaGapValue;
+  gapFullhd?: BulmaGapValue;
+
+  /** @deprecated Use `gap` instead — `gap` wins if both are set. */
   gapSize?: BulmaGapSize;
+  /** @deprecated Use `gapMobile` instead — `gapMobile` wins if both are set. */
   gapSizeMobile?: BulmaGapSize;
+  /** @deprecated Use `gapTablet` instead — `gapTablet` wins if both are set. */
   gapSizeTablet?: BulmaGapSize;
+  /** @deprecated Use `gapDesktop` instead — `gapDesktop` wins if both are set. */
   gapSizeDesktop?: BulmaGapSize;
+  /** @deprecated Use `gapWidescreen` instead — `gapWidescreen` wins if both are set. */
   gapSizeWidescreen?: BulmaGapSize;
+  /** @deprecated Use `gapFullhd` instead — `gapFullhd` wins if both are set. */
   gapSizeFullhd?: BulmaGapSize;
 
   children?: React.ReactNode;
@@ -94,6 +98,12 @@ export const Columns: React.FC<ColumnsProps> = ({
   isVCentered,
   isMobile,
   isDesktop,
+  gap,
+  gapMobile,
+  gapTablet,
+  gapDesktop,
+  gapWidescreen,
+  gapFullhd,
   gapSize,
   gapSizeMobile,
   gapSizeTablet,
@@ -103,6 +113,13 @@ export const Columns: React.FC<ColumnsProps> = ({
   children,
   ...props
 }) => {
+  const resolvedGap = gap ?? gapSize;
+  const resolvedGapMobile = gapMobile ?? gapSizeMobile;
+  const resolvedGapTablet = gapTablet ?? gapSizeTablet;
+  const resolvedGapDesktop = gapDesktop ?? gapSizeDesktop;
+  const resolvedGapWidescreen = gapWidescreen ?? gapSizeWidescreen;
+  const resolvedGapFullhd = gapFullhd ?? gapSizeFullhd;
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -113,17 +130,17 @@ export const Columns: React.FC<ColumnsProps> = ({
 
   // Build gap classes with prefixes
   const gapClasses = usePrefixedClassNames('', {
-    [`is-${gapSize}`]: gapSize !== undefined && gapSize !== null,
-    [`is-${gapSizeMobile}-mobile`]:
-      gapSizeMobile !== undefined && gapSizeMobile !== null,
-    [`is-${gapSizeTablet}-tablet`]:
-      gapSizeTablet !== undefined && gapSizeTablet !== null,
-    [`is-${gapSizeDesktop}-desktop`]:
-      gapSizeDesktop !== undefined && gapSizeDesktop !== null,
-    [`is-${gapSizeWidescreen}-widescreen`]:
-      gapSizeWidescreen !== undefined && gapSizeWidescreen !== null,
-    [`is-${gapSizeFullhd}-fullhd`]:
-      gapSizeFullhd !== undefined && gapSizeFullhd !== null,
+    [`is-${resolvedGap}`]: resolvedGap !== undefined && resolvedGap !== null,
+    [`is-${resolvedGapMobile}-mobile`]:
+      resolvedGapMobile !== undefined && resolvedGapMobile !== null,
+    [`is-${resolvedGapTablet}-tablet`]:
+      resolvedGapTablet !== undefined && resolvedGapTablet !== null,
+    [`is-${resolvedGapDesktop}-desktop`]:
+      resolvedGapDesktop !== undefined && resolvedGapDesktop !== null,
+    [`is-${resolvedGapWidescreen}-widescreen`]:
+      resolvedGapWidescreen !== undefined && resolvedGapWidescreen !== null,
+    [`is-${resolvedGapFullhd}-fullhd`]:
+      resolvedGapFullhd !== undefined && resolvedGapFullhd !== null,
     'is-centered': !!isCentered,
     'is-gapless': !!isGapless,
     'is-multiline': !!isMultiline,

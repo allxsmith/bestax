@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { BulmaGapSize, Columns } from './Columns';
+import { Columns } from './Columns';
+import type { BulmaGapValue } from '../grid/Grid';
 import { Column } from './Column';
 import { Notification } from '../elements/Notification';
 
@@ -158,34 +159,35 @@ export const GapSizes: StoryObj = {
   render: () => (
     <>
       <p style={{ marginBottom: 16 }}>
-        You can control the gap between columns using <code>gapSize</code> and
-        responsive gap props.
+        You can control the gap between columns using <code>gap</code> and
+        responsive gap props (the same 0-8 scale as <code>Grid</code>&apos;s{' '}
+        <code>gap</code> prop).
       </p>
-      <Columns gapSize={0}>
+      <Columns gap={0}>
         <Column>
-          <Notification color="primary">gapSize=0</Notification>
+          <Notification color="primary">gap=0</Notification>
         </Column>
         <Column>
-          <Notification color="primary">gapSize=0</Notification>
-        </Column>
-      </Columns>
-      <Columns gapSize={3}>
-        <Column>
-          <Notification color="primary">gapSize=3</Notification>
-        </Column>
-        <Column>
-          <Notification color="primary">gapSize=3</Notification>
+          <Notification color="primary">gap=0</Notification>
         </Column>
       </Columns>
-      <Columns gapSizeMobile={1} gapSizeTablet={3} gapSizeDesktop={6}>
+      <Columns gap={3}>
+        <Column>
+          <Notification color="primary">gap=3</Notification>
+        </Column>
+        <Column>
+          <Notification color="primary">gap=3</Notification>
+        </Column>
+      </Columns>
+      <Columns gapMobile={1} gapTablet={3} gapDesktop={6}>
         <Column>
           <Notification color="primary">
-            gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+            gapMobile=1 gapTablet=3 gapDesktop=6
           </Notification>
         </Column>
         <Column>
           <Notification color="primary">
-            gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+            gapMobile=1 gapTablet=3 gapDesktop=6
           </Notification>
         </Column>
       </Columns>
@@ -323,24 +325,24 @@ export const MultilineGapless: StoryObj = {
 };
 
 // --- VARIABLE GAP STORY ---
-export const VariableGap: StoryObj<{ gapSize: number }> = {
+export const VariableGap: StoryObj<{ gap: number }> = {
   args: {
-    gapSize: 2,
+    gap: 2,
   },
   argTypes: {
-    gapSize: {
+    gap: {
       control: { type: 'number', min: 0, max: 8, step: 1 },
       description: 'Bulma gap size (0-8)',
     },
   },
-  render: ({ gapSize }) => (
+  render: ({ gap }) => (
     <>
       <p style={{ marginBottom: 16 }}>
-        The <code>gapSize</code> property controls the variable gap between
-        columns. Change the value of the storybook control for{' '}
-        <code>gapSize</code> to adjust spacing.
+        The <code>gap</code> property controls the variable gap between columns.
+        Change the value of the storybook control for <code>gap</code> to adjust
+        spacing.
       </p>
-      <Columns gapSize={gapSize as BulmaGapSize}>
+      <Columns gap={gap as BulmaGapValue}>
         <Column size={3}>
           <Notification color="primary" className="has-text-centered">
             Side
@@ -352,7 +354,7 @@ export const VariableGap: StoryObj<{ gapSize: number }> = {
           </Notification>
         </Column>
       </Columns>
-      <Columns gapSize={gapSize as BulmaGapSize}>
+      <Columns gap={gap as BulmaGapValue}>
         <Column size={4}>
           <Notification color="primary" className="has-text-centered">
             Three columns
@@ -369,7 +371,7 @@ export const VariableGap: StoryObj<{ gapSize: number }> = {
           </Notification>
         </Column>
       </Columns>
-      <Columns gapSize={gapSize as BulmaGapSize}>
+      <Columns gap={gap as BulmaGapValue}>
         {Array.from({ length: 12 }).map((_, i) => (
           <Column key={i + 1}>
             <Notification color="primary" className="has-text-centered">
@@ -391,16 +393,16 @@ export const BreakpointBasedColumnGaps: StoryObj = {
         to see this in action
         <br />
         <code>
-          gapSizeMobile={1} gapSizeTablet={4} gapSizeDesktop={3}{' '}
-          gapSizeWidescreen={8} gapSizeFullhd={2}
+          gapMobile={1} gapTablet={4} gapDesktop={3} gapWidescreen={8}{' '}
+          gapFullhd={2}
         </code>
       </p>
       <Columns
-        gapSizeMobile={1}
-        gapSizeTablet={4}
-        gapSizeDesktop={3}
-        gapSizeWidescreen={8}
-        gapSizeFullhd={2}
+        gapMobile={1}
+        gapTablet={4}
+        gapDesktop={3}
+        gapWidescreen={8}
+        gapFullhd={2}
       >
         {[...Array(6)].map((_, idx) => (
           <Column key={idx}>

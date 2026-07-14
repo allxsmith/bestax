@@ -7,9 +7,28 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Allowed gap values for Bulma grid.
+ * Allowed gap values for Bulma's 0-8 spacing scale, shared by `Grid` and
+ * `Columns`. Accepts the value as a number or a numeric string.
  */
-export type BulmaGapValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type BulmaGapValue =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8';
 /**
  * Allowed minimum column values for Bulma grid.
  */
