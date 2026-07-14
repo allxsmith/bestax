@@ -43,6 +43,29 @@ describe('Avatar', () => {
     );
   });
 
+  it('retries a previously failed src after switching away and back', () => {
+    const { rerender } = render(
+      <Avatar src="/broken.jpg" name="Ada Lovelace" />
+    );
+    const img = screen.getByRole('img', { hidden: true }) as HTMLImageElement;
+    fireEvent.error(img);
+    expect(screen.getByText('AL')).toBeInTheDocument();
+
+    rerender(<Avatar src="/fixed.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/fixed.jpg'
+    );
+
+    // Switching back to the once-failed src must remount the img and retry it,
+    // not permanently latch onto the old failure.
+    rerender(<Avatar src="/broken.jpg" name="Ada Lovelace" />);
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute(
+      'src',
+      '/broken.jpg'
+    );
+  });
+
   it('derives initials from a single-word name', () => {
     render(<Avatar name="Cher" />);
     expect(screen.getByText('CH')).toBeInTheDocument();
