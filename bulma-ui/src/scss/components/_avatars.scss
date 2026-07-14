@@ -50,6 +50,13 @@ $avatars-spacing-lg: 1rem !default;
       // (a physical margin-left pulls avatars apart under dir="rtl").
       margin-inline-start: calc(-1 * #{cv.getVar('avatars-spacing')});
     }
+
+    // The next avatar in the stack covers part of this one's focus outline;
+    // lift the focused avatar so its ring paints above both neighbours.
+    &:focus-visible {
+      position: relative;
+      z-index: 1;
+    }
   }
 
   // Non-overlapping: a positive gap of the same spacing var instead of a

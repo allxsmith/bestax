@@ -1,6 +1,7 @@
 // Badge component styles — a small status/count indicator overlaid on a corner
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../mixins' as *;
 
 // Badge-specific SCSS variables
 $badge-height: 1.25em !default;
@@ -103,6 +104,15 @@ $badge-animation-duration: 1.4s !default;
   display: inline-flex;
   transform: none;
   pointer-events: auto;
+}
+
+// Hidden-zero placeholder: the empty pill stays in the DOM (and the
+// accessibility tree) so the role="status" live region already exists when the
+// count changes from 0 — sr-only, not display/visibility, which would drop it
+// from the accessibility tree. Placed after is-standalone so the sr-only
+// positioning wins for standalone zero badges too.
+.#{iv.$class-prefix}badge.#{iv.$class-prefix}is-zero {
+  @include extras-sr-only;
 }
 
 // Overlap adjustment — nudge the badge further in on a round child so it

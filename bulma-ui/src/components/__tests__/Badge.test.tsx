@@ -55,13 +55,43 @@ describe('Badge', () => {
     expect(container.querySelectorAll('.badge')).toHaveLength(0);
   });
 
-  it('hides at content=0 by default', () => {
+  it('visually hides at content=0 by default but keeps the live region mounted', () => {
     const { container } = render(
       <Badge content={0}>
         <span>child</span>
       </Badge>
     );
-    expect(container.querySelectorAll('.badge')).toHaveLength(0);
+    const pill = container.querySelector('.badge');
+    // The pill stays in the DOM as an empty role="status" node (sr-only via
+    // is-zero) so a later 0 -> 1 change is announced.
+    expect(pill).toHaveClass('is-zero');
+    expect(pill).toHaveAttribute('role', 'status');
+    expect(pill).toHaveTextContent('');
+  });
+
+  it('keeps the same live region node across a 0 -> 1 transition', () => {
+    const { container, rerender } = render(
+      <Badge content={0}>
+        <span>child</span>
+      </Badge>
+    );
+    const region = container.querySelector('.badge');
+    rerender(
+      <Badge content={1}>
+        <span>child</span>
+      </Badge>
+    );
+    const after = container.querySelector('.badge');
+    expect(after).toBe(region);
+    expect(after).not.toHaveClass('is-zero');
+    expect(after).toHaveTextContent('1');
+  });
+
+  it('renders a standalone zero badge as a hidden live region', () => {
+    const { container } = render(<Badge content={0} />);
+    const pill = container.querySelector('.badge');
+    expect(pill).toHaveClass('is-zero');
+    expect(pill).toHaveAttribute('role', 'status');
   });
 
   it('shows at content=0 when showZero is set', () => {

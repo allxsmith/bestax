@@ -254,6 +254,9 @@ A plain-text `children` value renders at its natural height alongside the badge.
 ## Accessibility
 
 - A count/text badge exposes `role="status"` and an `aria-label` announcing its content.
+- At `content={0}` without `showZero`, the pill is visually hidden but stays mounted as an
+  empty `role="status"` node, so a later `0 -> 1` change mutates an existing live region and
+  is reliably announced (a live region inserted already populated often isn't).
 - A bare number in a `role="status"` span is not enough context on its own — put the full
   meaning on the anchor itself, e.g. `<Icon ariaLabel="Inbox, 4 unread messages" />` rather than
   relying on the badge to read out just "4".

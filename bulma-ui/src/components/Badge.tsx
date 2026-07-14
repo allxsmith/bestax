@@ -64,8 +64,10 @@ export interface BadgeProps
  * Badge component for a small status/count indicator overlaid on the corner of another
  * element (or rendered standalone).
  *
- * Renders `{max}+` when a numeric `content` exceeds `max`, hides at `0` unless `showZero`,
- * and no-ops its `pulse` animation under `prefers-reduced-motion: reduce`.
+ * Renders `{max}+` when a numeric `content` exceeds `max` and no-ops its `pulse` animation
+ * under `prefers-reduced-motion: reduce`. At `0` without `showZero` the pill is visually
+ * hidden but stays mounted, so its `role="status"` live region announces a later `0 -> 1`
+ * change.
  *
  * @function
  * @param {BadgeProps} props - Props for the Badge component.
@@ -106,7 +108,12 @@ export const Badge: React.FC<BadgeProps> = ({
     content !== true &&
     content !== '' &&
     (!isZero || showZero);
-  const shouldRender = dot || hasContent || invisible;
+  // A hidden zero keeps the pill mounted (visually hidden via .is-zero) so the
+  // role="status" live region exists before a 0 -> 1 change — mutating text in
+  // an existing region is reliably announced, inserting an already-populated
+  // region is not.
+  const zeroPlaceholder = isZero && !showZero && !dot && !invisible;
+  const shouldRender = dot || hasContent || invisible || zeroPlaceholder;
 
   // A negative or non-integer max is nonsensical; fall back to the default
   // rather than render e.g. "-1+" (mirrors Avatars' max sanitization).
@@ -140,6 +147,7 @@ export const Badge: React.FC<BadgeProps> = ({
     'is-dot': dot,
     'is-pulse': pulse,
     'is-invisible': invisible,
+    'is-zero': zeroPlaceholder,
   });
 
   // badgeClassName is a plain (unprefixed) slot merged onto the pill, mirroring
