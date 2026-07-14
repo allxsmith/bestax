@@ -35,6 +35,23 @@ For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). 
 `Theme`; `'system'` follows the OS `prefers-color-scheme`. Drive it from state on the app-root
 `Theme`: `<Theme isRoot colorMode={mode}>`.
 
+## Contrast rules (dark mode is on by default)
+
+With no explicit `colorMode`, Bulma follows the visitor's OS: `--bulma-text`,
+`--bulma-scheme-main`, etc. flip on a dark-mode machine even if the design never intended a dark
+theme. Custom fixed tokens (`--my-canvas: #f6f4ec`) do **not** flip — producing near-white Bulma
+text on the author's fixed light background. Apply exactly one of these rules whenever custom
+color tokens or fixed-color surfaces exist:
+
+- **Single-mode design → pin the scheme.** `<Theme isRoot colorMode="light">` (or `"dark"`), so
+  an OS preference can never invert text out from under the fixed palette.
+- **Both modes → no exposed fixed tokens.** Derive custom tokens from scheme variables
+  (`--my-canvas: var(--bulma-scheme-main)`) or give each one a
+  `[data-theme='dark'] { --my-canvas: …; }` override.
+- **Fixed-color surface → fixed-color content.** On a surface that never changes (a dark hero,
+  a brand banner), pin the content's colors too: solid/filled buttons and explicit text colors,
+  never scheme-derived defaults or thin outlines that depend on the flipping scheme.
+
 Reach for the helper props (`color` / `textColor` / `bgColor` / `colorShade`, `textSize`,
 `textWeight`, `fontFamily`) to apply themed colors and type to individual components.
 

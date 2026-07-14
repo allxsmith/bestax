@@ -147,6 +147,41 @@ Under dark mode Bulma flips the scheme/text/border/background lightness variable
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
 channels directly.
 
+### The single-mode contrast trap
+
+Because the OS preference applies **by default**, a light-only design silently breaks for any
+dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
+white text on cream. The failure is invisible unless the author's own OS is in dark mode.
+
+**If the design is single-mode, pin the scheme** so text can't flip out from under the palette:
+
+```tsx
+<Theme isRoot colorMode="light">
+  <App />
+</Theme>
+```
+
+**If both modes are supported, never expose a fixed custom token to the flip** — derive it from
+scheme variables, or flip it yourself:
+
+```css
+/* Preferred: track the scheme automatically. */
+:root {
+  --my-canvas: var(--bulma-scheme-main);
+  --my-ink: var(--bulma-text);
+}
+/* Or, when custom values must be kept, provide the dark pair: */
+[data-theme='dark'] {
+  --my-canvas: #14251b;
+  --my-ink: #eef3e7;
+}
+```
+
+The same reasoning applies to **fixed-color surfaces** inside either kind of page (a dark hero,
+a brand banner): content sitting on a surface that never flips must use pinned colors — filled
+buttons and explicit text colors — not scheme-derived defaults (see the layout skill's hero CTA
+rule).
+
 ## `Theme` props (named)
 
 Color trios: `primaryH/primaryS/primaryL`, `linkH/linkS/linkL`, `infoH/S/L`, `successH/S/L`,

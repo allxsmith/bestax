@@ -406,6 +406,16 @@ function GlobalTheme() {
 The `colorMode` prop sets Bulma's `data-theme` on `<html>`, flipping the light/dark scheme globally.
 Use `'system'` to follow the OS preference.
 
+:::warning Single-mode designs should pin `colorMode`
+
+With no explicit `colorMode`, the scheme follows the visitor's OS — Bulma's text colors flip on a
+dark-mode machine even if your design is light-only, breaking contrast against any fixed custom
+backgrounds. If you support only one mode, pin it (`<Theme isRoot colorMode="light">`); if you
+support both, don't hardcode surface/text colors — see
+[Dark Mode & Contrast](../../guides/features/css-variables.md#dark-mode--contrast).
+
+:::
+
 ```tsx
 import { useState } from 'react';
 
