@@ -33,11 +33,16 @@ export default function LandingPage() {
             <SubTitle size="3">
               The all-in-one platform for modern teams.
             </SubTitle>
+            {/* Both CTAs are FILLED: on a fixed-color hero a thin outlined
+                button (light outline + light label) reads washed out, and
+                worse under OS dark mode. isInverted (no isOutlined) gives a
+                solid white button with primary text — high contrast in both
+                schemes. */}
             <Buttons isCentered mt="5">
               <Button color="light" size="large">
                 Get started
               </Button>
-              <Button color="primary" isInverted isOutlined size="large">
+              <Button color="primary" isInverted size="large">
                 Live demo
               </Button>
             </Buttons>

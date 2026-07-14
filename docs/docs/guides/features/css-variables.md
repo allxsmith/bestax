@@ -320,6 +320,64 @@ $family-primary: 'Helvetica Neue', sans-serif;
 5. **Testing**: Easy to test different color schemes
 6. **Debugging**: Modify values in DevTools for instant feedback
 
+## Dark Mode & Contrast
+
+Bulma's scheme variables (`--bulma-text`, `--bulma-scheme-main`, …) flip automatically when
+`data-theme="dark"` is present — and when no `data-theme` attribute has been set at all (the
+usual case for an app that never configured `colorMode`), they follow the visitor's OS
+`prefers-color-scheme`. **Dark mode is effectively on by default**, even for designs that never
+intended to support it.
+
+That creates a silent contrast trap the moment you introduce your own fixed color tokens: on a
+dark-mode machine, Bulma's text goes near-white while your fixed light backgrounds stay light —
+white text on cream, unreadable, and invisible to you unless your own OS is in dark mode.
+
+Apply exactly one of these rules:
+
+**Rule 1 — single-mode design: lock the scheme.** If the design is light-only (or dark-only),
+pin it at the app root so an OS preference can never invert text out from under your palette:
+
+```tsx
+<Theme isRoot colorMode="light">
+  <App />
+</Theme>
+```
+
+**Rule 2 — both modes: never expose a fixed token to the flip.** Derive your tokens from
+Bulma's scheme variables, or provide the dark-mode pair yourself:
+
+```css
+/* Preferred: your tokens track the scheme automatically. */
+:root {
+  --my-canvas: var(--bulma-scheme-main);
+  --my-ink: var(--bulma-text);
+}
+
+/* Or keep custom values, but flip them for BOTH ways dark mode arrives:
+   the explicit attribute (colorMode="dark")… */
+[data-theme='dark'] {
+  --my-canvas: #14251b;
+  --my-ink: #eef3e7;
+}
+
+/* …and the OS preference, which applies when no data-theme is set
+   (colorMode="system" removes the attribute): */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --my-canvas: #14251b;
+    --my-ink: #eef3e7;
+  }
+}
+```
+
+This is exactly why deriving from the scheme variables is the preferred form — one line, and
+both dark-mode paths are covered automatically.
+
+**Corollary — fixed-color surfaces need fixed-color content.** A surface that never flips (a
+dark hero, a brand banner) must pin its content's colors too: filled buttons
+(`color="light"`, or `color="primary" isInverted`) and explicit text colors — not thin
+outlined buttons or scheme-derived defaults, which wash out when the surrounding scheme flips.
+
 ## Best Practices
 
 ### Organization

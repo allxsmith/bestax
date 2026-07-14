@@ -147,6 +147,55 @@ Under dark mode Bulma flips the scheme/text/border/background lightness variable
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
 channels directly.
 
+### The single-mode contrast trap
+
+Because the OS preference applies whenever no `data-theme` attribute is set — the default state
+of every app that never configured `colorMode` — a light-only design silently breaks for any
+dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
+white text on cream. The failure is invisible unless the author's own OS is in dark mode.
+
+**If the design is single-mode, pin the scheme** so text can't flip out from under the palette:
+
+```tsx
+<Theme isRoot colorMode="light">
+  <App />
+</Theme>
+```
+
+**If both modes are supported, never expose a fixed custom token to the flip** — derive it from
+scheme variables, or flip it yourself:
+
+```css
+/* Preferred: track the scheme automatically. */
+:root {
+  --my-canvas: var(--bulma-scheme-main);
+  --my-ink: var(--bulma-text);
+}
+/* Or, when custom values must be kept, provide the dark pair for BOTH
+   ways dark mode arrives — the explicit attribute (colorMode="dark")… */
+[data-theme='dark'] {
+  --my-canvas: #14251b;
+  --my-ink: #eef3e7;
+}
+
+/* …and the OS preference, which applies when no data-theme is set
+   (colorMode="system" removes the attribute): */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --my-canvas: #14251b;
+    --my-ink: #eef3e7;
+  }
+}
+```
+
+Deriving from scheme variables is preferred precisely because it covers both dark-mode paths
+with no extra selector.
+
+The same reasoning applies to **fixed-color surfaces** inside either kind of page (a dark hero,
+a brand banner): content sitting on a surface that never flips must use pinned colors — filled
+buttons and explicit text colors — not scheme-derived defaults (see the layout skill's hero CTA
+rule).
+
 ## `Theme` props (named)
 
 Color trios: `primaryH/primaryS/primaryL`, `linkH/linkS/linkL`, `infoH/S/L`, `successH/S/L`,

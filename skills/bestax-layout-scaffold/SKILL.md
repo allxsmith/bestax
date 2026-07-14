@@ -46,6 +46,13 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `textAlign="centered"`, and `textColor`/`bgColor` instead of `style={{ marginTop, textAlign,
 color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
   rather than `library` on every `<Icon>`.
+- **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
+  (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
+  `color="primary" isInverted` — never a thin `isOutlined` secondary: a light outline + light
+  label on a dark surface is low-contrast and gets worse under OS dark mode. And when the page's
+  design is single-mode (a fixed light or dark look), pin it at the root —
+  `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
+  colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
 
 ## References
 

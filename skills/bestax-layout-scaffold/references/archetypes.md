@@ -116,6 +116,12 @@ pricing page. The default for "build me a site/page".
 **Responsive:** `Section`s already stack vertically. The feature `Columns` collapse to one feature
 per row on mobile. Use `Hero size="large"` / `"fullheight"` for a taller hero.
 
+**Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
+CTA and `color="primary" isInverted` (solid white, primary text) for a secondary. A thin
+`isOutlined` button on a fixed-color surface is low-contrast and degrades further under OS dark
+mode. Single-mode page designs should also pin the scheme at the root
+(`<Theme isRoot colorMode="light">`) — see the `bestax-theming` skill's contrast rules.
+
 ---
 
 ## 3. Centered single-column
