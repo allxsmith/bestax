@@ -15,8 +15,10 @@ name: AI Triage
 #   label | opt-in only — the label is the sole trigger (today's behavior)
 #   off   | everything dead, label included
 #
-# BUDGET (auto runs only; label runs are exempt — already human-metered by
-# the click): a repo-wide daily counter kept as ONE marker comment on
+# BUDGET (auto runs by outside authors only; label runs are exempt — already
+# human-metered by the click — and so are items opened by collaborators with
+# triage+ access, verified live: trusted authors always get triage, the cap
+# only meters strangers): a repo-wide daily counter kept as ONE marker comment on
 # tracking issue #290 (`<!-- ai-triage-budget date=YYYY-MM-DD count=N -->`),
 # edited in place. Same fail-closed pattern as claude-pr-loop.yml's
 # iteration cap: the probe is author-filtered to github-actions[bot] so
@@ -114,8 +116,10 @@ jobs:
       #             template-applied label can never trigger a session.
       #             Budget is BYPASSED — each run is human-metered.
       #   opened  → skip bot authors, AI-loop PRs (claude/* heads or bodies
-      #             that already link an issue), then charge the daily
-      #             budget BEFORE any Claude spend.
+      #             that already link an issue); then triage+ collaborators
+      #             bypass the budget (same live role check as labeled runs),
+      #             and everyone else charges the daily budget BEFORE any
+      #             Claude spend.
       # All later steps gate on `run`.
       - name: Gate (permissions / budget)
         id: gate
@@ -173,6 +177,20 @@ jobs:
             fi
           fi
 
+          # ---- Collaborator bypass: items OPENED by triage+ collaborators
+          #      always get triage — the budget only meters outside authors.
+          #      Same live role check as the labeled path (the opened
+          #      event's sender IS the author), so a stale association or
+          #      revoked collaborator can never bypass the cap. ----
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              out run true
+              echo "$SENDER has $ROLE access — running triage (budget exempt)"
+              exit 0 ;;
+          esac
+
           # ---- Daily budget (single marker comment on the tracking issue,
           #      edited in place). Author-filtered probe over ALL comment
           #      pages (--paginate applies --jq per page, so a second
@@ -210,7 +228,7 @@ jobs:
           # ---- Charge the budget BEFORE Claude runs (crashes still count) ----
           NEXT=$((COUNT + 1))
           BODY="<!-- ai-triage-budget date=$TODAY count=$NEXT -->
-          **AI triage budget**: $NEXT/$LIMIT auto-triggered session(s) on $TODAY (UTC). Label-triggered runs are exempt.
+          **AI triage budget**: $NEXT/$LIMIT auto-triggered session(s) on $TODAY (UTC). Label-triggered runs and triage+ collaborators' items are exempt.
           _Managed by ai-triage.yml — never reformat the first line; a new UTC day resets the count._"
           if [ -n "$COMMENT_ID" ]; then
             gh api "repos/$REPO/issues/comments/$COMMENT_ID" -X PATCH -f body="$BODY" >/dev/null
