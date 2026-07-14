@@ -1,3 +1,10 @@
+# [5.5.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.2...@allxsmith/bestax-bulma@5.5.0) (2026-07-14)
+
+
+### Features
+
+* **bulma-ui:** avatar/badge a11y batch — decorative alt, accessible names, live region, button type, surplus i18n, focus ring ([#298](https://github.com/allxsmith/bestax/issues/298)) ([508477f](https://github.com/allxsmith/bestax/commit/508477fcc79a07d6b960563e919e7a94d7da3b42)), closes [#266](https://github.com/allxsmith/bestax/issues/266) [#266](https://github.com/allxsmith/bestax/issues/266)
+
 ## [5.4.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.1...@allxsmith/bestax-bulma@5.4.2) (2026-07-14)
 
 
