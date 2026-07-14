@@ -144,6 +144,40 @@ Offsets are useful for centering or right-aligning columns, but can cause layout
 </Columns>
 ```
 
+**Equal-Height Cards**
+
+Columns themselves are equal height (flexbox), but a `Card` inside a `Column` ends at its own
+content — and `height: 100%` on the card doesn't help here, because `100%` resolves against
+the column's _auto_ height (percentage heights only resolve against a definite size). The
+robust pattern: make the column a flex container and let the card grow:
+
+```tsx live
+<Columns>
+  <Column display="flex" flexDirection="column">
+    <Card flexGrow="1" header="Basic">
+      Short blurb.
+    </Card>
+  </Column>
+  <Column display="flex" flexDirection="column">
+    <Card flexGrow="1" header="Featured">
+      A much longer description that would normally make this card taller than
+      its neighbors — now they all match.
+    </Card>
+  </Column>
+  <Column display="flex" flexDirection="column">
+    <Card flexGrow="1" header="Pro">
+      Medium-length blurb here.
+    </Card>
+  </Column>
+</Columns>
+```
+
+:::tip
+For **uniform grids** of same-shaped cards, [`Grid`/`Cell`](./grid.md) gives equal-height cells
+for free (CSS Grid stretches every cell to its row's height) — no flex recipe needed. Both
+approaches equalize per row: cards match their own row's tallest card.
+:::
+
 [View full documentation.](../../api/columns/column)
 
 ---

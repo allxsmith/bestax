@@ -1,6 +1,10 @@
 // Card grid / catalog page — a collection of similar items.
 // `<Columns isMultiline>` wraps cards onto new rows; the responsive column sizes
 // give 1 card per row on mobile, 2 on tablet, 3 on desktop.
+// Equal heights: each Column is a flex container and its Card grows to fill
+// it (flexGrow="1"), so short blurbs don't leave ragged card bottoms.
+// (`height: 100%` on the card would NOT work — it resolves against auto
+// height. For uniform grids, Grid/Cell gives equal heights for free.)
 import React from 'react';
 import {
   Section,
@@ -78,8 +82,11 @@ export default function CatalogPage() {
               sizeMobile="full"
               sizeTablet="half"
               sizeDesktop="one-third"
+              display="flex"
+              flexDirection="column"
             >
               <Card
+                flexGrow="1"
                 image={product.image}
                 imageAlt={product.name}
                 header={product.name}

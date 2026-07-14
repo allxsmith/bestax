@@ -15,7 +15,10 @@ This page summarizes the Bulma-styled grid system in Bestax, with a brief descri
 Provides Bulma's advanced CSS Grid layout for complex, modern layouts. Supports responsive and fixed grid modes, gap and min column controls, fixed column counts per breakpoint, and full color/background/utility helpers. Use with `Cell` for granular grid placement.
 
 :::info
-Use `Grid` for advanced layouts where you need more control than Columns can provide. It supports both auto-fit and fixed column counts.
+Use `Grid` for advanced layouts where you need more control than Columns can provide — and for
+**uniform card grids**: CSS Grid keeps every cell in a row equal height for free (each row
+matches its tallest cell), so cards line up without the flex recipe [`Columns` needs](./columns.md#column). It supports both auto-fit
+and fixed column counts.
 :::
 
 ```tsx live
