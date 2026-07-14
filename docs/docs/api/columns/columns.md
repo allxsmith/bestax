@@ -22,26 +22,32 @@ import { Columns, Column } from '@allxsmith/bestax-bulma';
 
 ## Props
 
-| Prop                | Type                                                                                                                                                                                                                                                                                     | Description                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `className`         | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes for the columns container.    |
-| `textColor`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color.                                          |
-| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Bulma color modifier for all columns.                |
-| `bgColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color for all columns.                    |
-| `isCentered`        | `boolean`                                                                                                                                                                                                                                                                                | Horizontally center columns within the container.    |
-| `isGapless`         | `boolean`                                                                                                                                                                                                                                                                                | Remove gap between columns.                          |
-| `isMultiline`       | `boolean`                                                                                                                                                                                                                                                                                | Allow columns to wrap to multiple lines.             |
-| `isVCentered`       | `boolean`                                                                                                                                                                                                                                                                                | Vertically center columns within the container.      |
-| `isMobile`          | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on mobile and up.               |
-| `isDesktop`         | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on desktop and up.              |
-| `gapSize`           | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for all breakpoints.                        |
-| `gapSizeMobile`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for mobile.                                 |
-| `gapSizeTablet`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for tablet.                                 |
-| `gapSizeDesktop`    | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for desktop.                                |
-| `gapSizeWidescreen` | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for widescreen.                             |
-| `gapSizeFullhd`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for fullhd.                                 |
-| `children`          | `React.ReactNode`                                                                                                                                                                                                                                                                        | Columns to render within the container.              |
-| ...                 | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | (See [Helper Props](../api/helpers/usebulmaclasses)) |
+| Prop                | Type                                                                                                                                                                                                                                                                                     | Description                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `className`         | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes for the columns container.                                                     |
+| `textColor`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color.                                                                                           |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Bulma color modifier for all columns.                                                                 |
+| `bgColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color for all columns.                                                                     |
+| `isCentered`        | `boolean`                                                                                                                                                                                                                                                                                | Horizontally center columns within the container.                                                     |
+| `isGapless`         | `boolean`                                                                                                                                                                                                                                                                                | Remove gap between columns.                                                                           |
+| `isMultiline`       | `boolean`                                                                                                                                                                                                                                                                                | Allow columns to wrap to multiple lines.                                                              |
+| `isVCentered`       | `boolean`                                                                                                                                                                                                                                                                                | Vertically center columns within the container.                                                       |
+| `isMobile`          | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on mobile and up.                                                                |
+| `isDesktop`         | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on desktop and up.                                                               |
+| `gap`               | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for all breakpoints. Same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. |
+| `gapMobile`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for mobile. Wins over `gapSizeMobile` if both are set.                                       |
+| `gapTablet`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for tablet. Wins over `gapSizeTablet` if both are set.                                       |
+| `gapDesktop`        | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for desktop. Wins over `gapSizeDesktop` if both are set.                                     |
+| `gapWidescreen`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for widescreen. Wins over `gapSizeWidescreen` if both are set.                               |
+| `gapFullhd`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for fullhd. Wins over `gapSizeFullhd` if both are set.                                       |
+| `gapSize`           | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gap` instead.                                                                    |
+| `gapSizeMobile`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapMobile` instead.                                                              |
+| `gapSizeTablet`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapTablet` instead.                                                              |
+| `gapSizeDesktop`    | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapDesktop` instead.                                                             |
+| `gapSizeWidescreen` | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapWidescreen` instead.                                                          |
+| `gapSizeFullhd`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapFullhd` instead.                                                              |
+| `children`          | `React.ReactNode`                                                                                                                                                                                                                                                                        | Columns to render within the container.                                                               |
+| ...                 | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | (See [Helper Props](../api/helpers/usebulmaclasses))                                                  |
 
 ---
 
@@ -202,39 +208,39 @@ This example shows how columns can be nested within each other. Nested columns i
 
 ### Gap Sizes & Responsive Gaps
 
-This example demonstrates the use of the `gapSize` prop to control the space between columns. Responsive gap sizes can also be set for different screen sizes.
+This example demonstrates the use of the `gap` prop to control the space between columns (the same 0-8 scale as `Grid`'s `gap` prop). Responsive gap sizes can also be set for different screen sizes.
 
 ```tsx live
 <>
-  <Columns gapSize={0}>
+  <Columns gap={0}>
     <Column>
       <Notification color="primary" radius="radiusless">
-        gapSize=0
+        gap=0
       </Notification>
     </Column>
     <Column>
       <Notification color="info" radius="radiusless">
-        gapSize=0
+        gap=0
       </Notification>
     </Column>
   </Columns>
-  <Columns gapSize={3}>
+  <Columns gap={3}>
     <Column>
-      <Notification color="primary">gapSize=3</Notification>
+      <Notification color="primary">gap=3</Notification>
     </Column>
     <Column>
-      <Notification color="info">gapSize=3</Notification>
+      <Notification color="info">gap=3</Notification>
     </Column>
   </Columns>
-  <Columns gapSizeMobile={1} gapSizeTablet={3} gapSizeDesktop={6}>
+  <Columns gapMobile={1} gapTablet={3} gapDesktop={6}>
     <Column>
       <Notification color="primary">
-        gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+        gapMobile=1 gapTablet=3 gapDesktop=6
       </Notification>
     </Column>
     <Column>
       <Notification color="info">
-        gapSizeMobile=1 gapSizeTablet=3 gapSizeDesktop=6
+        gapMobile=1 gapTablet=3 gapDesktop=6
       </Notification>
     </Column>
   </Columns>
@@ -398,11 +404,11 @@ This example demonstrates using the `isMultiline` and `isGapless` props together
 
 ### Variable Gap
 
-This example demonstrates how to use the `gapSize` prop to create columns with variable widths. This can be useful for creating layouts with sidebars or varying content widths.
+This example demonstrates how to use the `gap` prop to create columns with variable widths. This can be useful for creating layouts with sidebars or varying content widths.
 
 ```tsx live
 <>
-  <Columns gapSize={2}>
+  <Columns gap={2}>
     <Column size={3}>
       <Notification color="primary" textAlign="centered">
         Side
@@ -414,7 +420,7 @@ This example demonstrates how to use the `gapSize` prop to create columns with v
       </Notification>
     </Column>
   </Columns>
-  <Columns gapSize={2}>
+  <Columns gap={2}>
     <Column size={4}>
       <Notification color="primary" textAlign="centered">
         Three columns
@@ -431,7 +437,7 @@ This example demonstrates how to use the `gapSize` prop to create columns with v
       </Notification>
     </Column>
   </Columns>
-  <Columns gapSize={2}>
+  <Columns gap={2}>
     {Array.from({ length: 6 }).map((_, i) => (
       <Column key={i + 1}>
         <Notification color="primary" textAlign="centered">
@@ -451,11 +457,11 @@ This example shows how to set different gap sizes for different breakpoints. Thi
 
 ```tsx live
 <Columns
-  gapSizeMobile={1}
-  gapSizeTablet={4}
-  gapSizeDesktop={3}
-  gapSizeWidescreen={8}
-  gapSizeFullhd={2}
+  gapMobile={1}
+  gapTablet={4}
+  gapDesktop={3}
+  gapWidescreen={8}
+  gapFullhd={2}
 >
   {[...Array(3)].map((_, idx) => (
     <Column key={idx}>
@@ -608,6 +614,9 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 
 - Use `Column` as a direct child of `Columns` for proper grid behavior.
 - All gap, centering, and alignment props support responsive variants.
+- The `gapSize*` props are deprecated aliases for `gap*` and are kept for backwards
+  compatibility; if both are set on the same breakpoint, `gap*` wins. `Grid` uses the same
+  `gap` prop name and 0-8 value scale.
 - Combine with [Bulma helper props](../api/helpers/usebulmaclasses) for utility-first styling.
 - All standard `<div>` HTML props are supported.
 

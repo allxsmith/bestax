@@ -109,8 +109,8 @@ ${setupLines.join('\n')}
 
 - Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
   spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
-  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` has a real
-  \`gap\` prop and \`Columns\` has \`gapSize\`, so prefer those there).
+  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
+  take a \`gap\` prop, so prefer that there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - There is no test runner or Storybook in this app — don't assume one.

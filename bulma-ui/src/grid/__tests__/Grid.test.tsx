@@ -33,6 +33,18 @@ describe('Grid', () => {
     expect(grid).toHaveClass('is-col-min-4');
   });
 
+  it('accepts gap, columnGap, rowGap as strings, matching BulmaGapValue', () => {
+    const { container } = render(
+      <Grid gap="3" columnGap="2" rowGap="1">
+        <TestCell />
+      </Grid>
+    );
+    const grid = container.querySelector('.grid')!;
+    expect(grid).toHaveClass('is-gap-3');
+    expect(grid).toHaveClass('is-column-gap-2');
+    expect(grid).toHaveClass('is-row-gap-1');
+  });
+
   it('renders as fixed-grid wrapper with grid inside', () => {
     const { container } = render(
       <Grid isFixed>
