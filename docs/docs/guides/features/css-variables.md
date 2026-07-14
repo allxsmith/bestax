@@ -353,12 +353,25 @@ Bulma's scheme variables, or provide the dark-mode pair yourself:
   --my-ink: var(--bulma-text);
 }
 
-/* Or keep custom values, but flip them too: */
+/* Or keep custom values, but flip them for BOTH ways dark mode arrives:
+   the explicit attribute (colorMode="dark")… */
 [data-theme='dark'] {
   --my-canvas: #14251b;
   --my-ink: #eef3e7;
 }
+
+/* …and the OS preference, which applies when no data-theme is set
+   (colorMode="system" removes the attribute): */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --my-canvas: #14251b;
+    --my-ink: #eef3e7;
+  }
+}
 ```
+
+This is exactly why deriving from the scheme variables is the preferred form — one line, and
+both dark-mode paths are covered automatically.
 
 **Corollary — fixed-color surfaces need fixed-color content.** A surface that never flips (a
 dark hero, a brand banner) must pin its content's colors too: filled buttons

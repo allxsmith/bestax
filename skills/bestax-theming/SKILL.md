@@ -47,8 +47,10 @@ color tokens or fixed-color surfaces exist:
 - **Single-mode design → pin the scheme.** `<Theme isRoot colorMode="light">` (or `"dark"`), so
   an OS preference can never invert text out from under the fixed palette.
 - **Both modes → no exposed fixed tokens.** Derive custom tokens from scheme variables
-  (`--my-canvas: var(--bulma-scheme-main)`) or give each one a
-  `[data-theme='dark'] { --my-canvas: …; }` override.
+  (`--my-canvas: var(--bulma-scheme-main)`) — or flip them yourself under **both** dark-mode
+  paths: `[data-theme='dark']` **and** `@media (prefers-color-scheme: dark)` scoped to
+  `:root:not([data-theme])`, since `colorMode="system"` removes the attribute (snippets in
+  `references/css-variables.md`).
 - **Fixed-color surface → fixed-color content.** On a surface that never changes (a dark hero,
   a brand banner), pin the content's colors too: solid/filled buttons and explicit text colors,
   never scheme-derived defaults or thin outlines that depend on the flipping scheme.
