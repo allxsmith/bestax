@@ -1,3 +1,10 @@
+# [5.6.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.5.0...@allxsmith/bestax-bulma@5.6.0) (2026-07-14)
+
+
+### Features
+
+* **bulma-ui:** add consistent gap prop to Columns, aliasing gapSize ([#300](https://github.com/allxsmith/bestax/issues/300)) ([6c36455](https://github.com/allxsmith/bestax/commit/6c36455931367d8422516c5fbca227319d4552d5)), closes [#282](https://github.com/allxsmith/bestax/issues/282)
+
 # [5.5.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.4.2...@allxsmith/bestax-bulma@5.5.0) (2026-07-14)
 
 
