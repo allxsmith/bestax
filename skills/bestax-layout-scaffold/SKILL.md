@@ -38,7 +38,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - Compose pages from the shipped layout components — `Container`, `Section`, `Hero`, `Footer`,
   `Level`, `Columns`/`Column`, `Grid`/`Cell`, `Navbar`, `Menu`, `Card`. There is **no `Tile`
   component**. For **uniform grids** (card grids, galleries — same-shaped items) prefer
-  `Grid`/`Cell`: CSS Grid gives equal-height cells for free. Use `Columns`/`Column` for
+  `Grid`/`Cell`: CSS Grid gives equal-height cells for free (per row — each row's cells match
+  its tallest, same row-level behavior as the flex recipe). Use `Columns`/`Column` for
   proportional or per-breakpoint column layouts — and when cards there must be equal height,
   apply the flex recipe (`Column display="flex" flexDirection="column"` + `Card flexGrow="1"`;
   `height: 100%` on the card doesn't help — the column's height is auto).
@@ -78,8 +79,9 @@ color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary=
 
 - [ ] Map the request to one archetype; do not ask layout questions.
 - [ ] Wrap page content in `Container` (+ `Section` for vertical rhythm).
-- [ ] Use `Grid`/`Cell` for uniform grids (equal heights free); `Columns`/`Column` for
-      proportional side-by-side layout — with the flex recipe when its cards must match height.
+- [ ] Use `Grid`/`Cell` for uniform grids (equal heights per row, free); `Columns`/`Column`
+      for proportional or per-breakpoint side-by-side layout — with the flex recipe when its
+      cards must match height.
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props (`mt`/`p`, `textAlign`, `textColor`), not inline `style`.

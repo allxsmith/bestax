@@ -16,8 +16,8 @@ Provides Bulma's advanced CSS Grid layout for complex, modern layouts. Supports 
 
 :::info
 Use `Grid` for advanced layouts where you need more control than Columns can provide — and for
-**uniform card grids**: CSS Grid keeps every cell in a row equal height for free, so cards line
-up without the flex recipe [`Columns` needs](./columns.md#column). It supports both auto-fit
+**uniform card grids**: CSS Grid keeps every cell in a row equal height for free (each row
+matches its tallest cell), so cards line up without the flex recipe [`Columns` needs](./columns.md#column). It supports both auto-fit
 and fixed column counts.
 :::
 

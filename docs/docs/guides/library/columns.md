@@ -174,7 +174,8 @@ robust pattern: make the column a flex container and let the card grow:
 
 :::tip
 For **uniform grids** of same-shaped cards, [`Grid`/`Cell`](./grid.md) gives equal-height cells
-for free (CSS Grid stretches every cell to its row) — no flex recipe needed.
+for free (CSS Grid stretches every cell to its row's height) — no flex recipe needed. Both
+approaches equalize per row: cards match their own row's tallest card.
 :::
 
 [View full documentation.](../../api/columns/column)
