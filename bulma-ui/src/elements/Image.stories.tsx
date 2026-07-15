@@ -128,7 +128,7 @@ export const Retina: Story = {
 
 export const AspectRatio16by9: Story = {
   args: {
-    src: '/logo.png',
+    src: '/img/logo.png',
     alt: '16:9 aspect ratio image',
     size: '16by9',
   },
@@ -136,7 +136,7 @@ export const AspectRatio16by9: Story = {
 
 export const AspectRatio4by3: Story = {
   args: {
-    src: '/logo.png',
+    src: '/img/logo.png',
     alt: '4:3 aspect ratio image',
     size: '4by3',
   },
