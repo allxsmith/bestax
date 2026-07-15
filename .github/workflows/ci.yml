@@ -67,9 +67,22 @@ jobs:
       - name: Audit (high severity)
         run: pnpm audit --audit-level=high
 
+      # Always build: the smoke pass below needs the static build, and the old
+      # changed-files condition never matched on PRs (changed_files is an
+      # integer count, not a path list).
       - name: Build Storybook (bulma-ui)
-        if: github.event_name == 'push' || contains(github.event.pull_request.changed_files, 'bulma-ui/**')
         run: pnpm --filter @allxsmith/bestax-bulma run build-storybook
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @allxsmith/bestax-bulma exec playwright install --with-deps chromium
+
+      # Smoke gate (#283): every story renders without errors and without
+      # console errors, once in light and once with data-theme="dark" —
+      # dark-mode-only CSS bugs are invisible to jsdom, so this is the only
+      # automated coverage for that defect class. Not visual regression
+      # (no screenshot baselines); see visual-regression.yml for that.
+      - name: Storybook smoke test (light + dark)
+        run: pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci
 
       - name: Archive Coverage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

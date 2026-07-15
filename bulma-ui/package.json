@@ -31,7 +31,10 @@
     "storybook": "storybook dev -p 6006",
     "start": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "release": "npx semantic-release"
+    "release": "npx semantic-release",
+    "test-storybook": "test-storybook",
+    "test-storybook:dark": "STORYBOOK_THEME=dark test-storybook",
+    "test-storybook:ci": "node scripts/test-storybook-ci.mjs"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
@@ -43,6 +46,7 @@
     "@storybook/addon-docs": "^10.1.11",
     "@storybook/addon-onboarding": "^10.1.11",
     "@storybook/react-vite": "^10.1.11",
+    "@storybook/test-runner": "^0.24.4",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.5.2",
@@ -61,6 +65,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "material-icons": "^1.13.14",
     "material-symbols": "^0.45.2",
+    "playwright": "^1.61.1",
     "prettier": "^3.9.4",
     "rimraf": "^6.0.1",
     "rollup": "^4.55.1",
