@@ -62,7 +62,11 @@ PRs authored by the loop move through a small label lifecycle:
 ### AI triage
 
 New issues and PRs can get an automatic triage comment: likely duplicates (issues), the open
-issues a PR probably resolves, and overlapping PRs. Three repository variables control it:
+issues a PR probably resolves, and overlapping PRs. Triage comments are posted by
+`github-actions[bot]`. **Only same-repo PRs are triaged** — PRs opened from forks are always
+skipped, automatic and label alike (the workflow deliberately avoids GitHub's
+`pull_request_target` trigger, so fork-originated events can never run with repository
+secrets); issues have no such restriction. Three repository variables control it:
 
 - **`AI_TRIAGE_MODE`** — `auto` (new issues/PRs are triaged automatically and the label still
   works), `label` (opt-in only; the default when unset), or `off` (disables both automatic

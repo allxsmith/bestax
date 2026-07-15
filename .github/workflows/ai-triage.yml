@@ -42,12 +42,26 @@ name: AI Triage
 #   - auto runs skip bot authors (bestaxbot, *[bot]), claude/* heads, and
 #     PRs whose body already links an issue — AI-loop PRs self-link by
 #     construction, so auto-triage would only duplicate the loop.
+#   - SAME-REPO PRs ONLY (both the auto and label paths). This uses plain
+#     `pull_request`, NOT `pull_request_target`, and the job `if` skips
+#     fork heads explicitly. Fork PRs therefore never get triage — the
+#     same trade-off oven-sh/bun makes. Deliberate, two reasons:
+#       1. `pull_request_target` hands fork-triggered runs our secrets and
+#          a write token; the no-PR-checkout + allowlist hardening below
+#          made that survivable, but same-repo-only removes the risk class
+#          instead of mitigating it.
+#       2. The Claude action's OIDC→app-token exchange 401s under
+#          `pull_request_target` anyway (#312) — it was never exercisable.
+#     Do not switch this back to `pull_request_target` without reading
+#     #312. Fork runs would also lack secrets under `pull_request`; the
+#     explicit guard just turns that failure into a clean, silent skip.
 #   - This never checks out PR head code — only the base repo's default
-#     branch — so `pull_request_target` is safe here. The Claude tool
-#     allowlist is GET-only gh commands + the two comment commands + Task
-#     (the fan-out sub-agents) — no `gh api`, which could also
-#     POST/PATCH/DELETE, and no file-editing tools, because the session
-#     ingests untrusted issue/PR text.
+#     branch (defense in depth, and it keeps the job honest if the fork
+#     guard is ever loosened). The Claude tool allowlist is GET-only gh
+#     commands + the two comment commands + Task (the fan-out sub-agents)
+#     — no `gh api`, which could also POST/PATCH/DELETE, and no
+#     file-editing tools, because the session ingests untrusted issue/PR
+#     text.
 #
 # KILL SWITCHES: AI_TRIAGE_MODE=off (this workflow only) or
 # AI_LOOP_ENABLED=false (all Claude spend, repo-wide).
@@ -56,7 +70,7 @@ name: AI Triage
 # "Run one-shot AI triage: related issues + duplicates (sonnet; triage+ only)".
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, labeled]
   issues:
     types: [opened, labeled]
@@ -92,9 +106,14 @@ jobs:
     #   - 'auto' ⇒ both paths live.
     # labeled events additionally require the ai-triage label from a real
     # user; anything else is a silent no-op that spends no usage.
+    # The head-repo guard kills fork PRs (auto AND label paths) before any
+    # step runs — see SECURITY above; issue events have no pull_request and
+    # pass the null arm.
     if: |
       vars.AI_LOOP_ENABLED == 'true' &&
       vars.AI_TRIAGE_MODE != 'off' &&
+      (github.event.pull_request == null ||
+       github.event.pull_request.head.repo.full_name == github.repository) &&
       (
         (github.event.action == 'labeled' &&
          github.event.label.name == 'ai-triage' &&
@@ -108,7 +127,8 @@ jobs:
       contents: read # checkout of the base default branch
       pull-requests: write # post the triage comment on PRs; remove the label
       issues: write # post the triage comment on issues; budget marker; remove the label
-      id-token: write # OIDC exchange for the Claude OAuth token
+      # No id-token: the Claude step gets github_token explicitly, which
+      # short-circuits the action's OIDC→app-token exchange (#312).
     steps:
       # Layer 2 (authoritative, zero Claude usage). Two shapes:
       #   labeled → GitHub already restricts labeling to triage+; re-verify
@@ -238,12 +258,12 @@ jobs:
           echo "budget charged: $NEXT/$LIMIT for $TODAY — running triage"
           out run true
 
-      # Check out ONLY the base repo's default branch — never the PR head.
-      # Under pull_request_target that keeps untrusted PR code out of the
-      # workspace; the triage agent reads PR content via read-only gh
-      # commands. The checkout also provides the .claude/commands/ triage
-      # commands the session runs. No pnpm/node setup and no dependency
-      # install: this job never runs project code.
+      # Check out ONLY the base repo's default branch — never the PR head
+      # (untrusted PR code stays out of the workspace; the triage agent
+      # reads PR content via read-only gh commands). The checkout also
+      # provides the .claude/commands/ triage commands the session runs.
+      # No pnpm/node setup and no dependency install: this job never runs
+      # project code.
       - name: Checkout base default branch
         if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -255,10 +275,14 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
-          # OAuth token only — posts as claude[bot]. Safe: these are plain
-          # top-level comments; the loop's state machine only classifies
-          # review threads.
+          # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
+          # passed explicitly (Bun-style) so the action skips its OIDC→app
+          # token exchange (#312); triage comments therefore post as
+          # github-actions[bot] — anything probing for them must match the
+          # marker + a Bot-type author, never a specific login. Bonus:
+          # GITHUB_TOKEN-authored comments can't re-trigger workflows.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Task is required for the commands' fan-out search sub-agents
           # (they inherit this same allowlist). Still no `gh api` and no
           # Edit/Write — the session ingests untrusted issue/PR text.
@@ -309,6 +333,14 @@ jobs:
       # re-pressable button and never wedges "on". Removal uses only
       # GITHUB_TOKEN, so an unauthorized labeling still spends zero Claude
       # usage. Opened runs have no label to remove.
+      #
+      # Known residual: labeling a FORK PR wedges the label (the job-level
+      # fork guard skips this step too), and it is not fixable under plain
+      # `pull_request` — fork-triggered runs cap GITHUB_TOKEN at read-only,
+      # so even a standalone unlabel job's DELETE would 403. Accepted:
+      # fork PRs are never triaged anyway, the stuck label is inert, and a
+      # maintainer removes it by hand. Unwedging would need
+      # `pull_request_target`, which this workflow deliberately dropped.
       - name: Remove ai-triage label
         if: always() && github.event.action == 'labeled'
         env:

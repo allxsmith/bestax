@@ -14,8 +14,9 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,files,comments` —
    if the PR is not open, stop.
-2. Marker check — a claude-bot comment containing
-   `<!-- ai-triage:find-duplicate-prs -->`:
+2. Marker check — a bot-authored comment containing
+   `<!-- ai-triage:find-duplicate-prs -->` (match marker + bot author, not
+   a specific login — the workflow posts as github-actions[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
      that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`
