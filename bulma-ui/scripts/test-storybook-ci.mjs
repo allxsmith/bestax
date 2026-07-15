@@ -65,14 +65,15 @@ function runPass(theme) {
   return new Promise(done => {
     const label = theme === 'dark' ? 'dark' : 'light';
     console.log(`\n=== Storybook smoke pass (${label}) ===`);
+    // Build the env explicitly both ways so an ambient STORYBOOK_THEME can't
+    // silently turn the light pass into a second dark pass.
+    const env = { ...process.env };
+    if (theme === 'dark') env.STORYBOOK_THEME = 'dark';
+    else delete env.STORYBOOK_THEME;
     const child = spawn(
       'pnpm',
       ['exec', 'test-storybook', '--url', url, '--maxWorkers', '50%'],
-      {
-        cwd: root,
-        stdio: 'inherit',
-        env: theme === 'dark' ? { ...process.env, STORYBOOK_THEME: 'dark' } : process.env,
-      }
+      { cwd: root, stdio: 'inherit', env }
     );
     child.on('close', code => done(code ?? 1));
   });
