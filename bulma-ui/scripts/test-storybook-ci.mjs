@@ -76,6 +76,12 @@ function runPass(theme) {
       { cwd: root, stdio: 'inherit', env }
     );
     child.on('close', code => done(code ?? 1));
+    // A failed spawn (e.g. ENOENT) emits 'error' without 'close' — resolve
+    // instead of hanging the CI job forever.
+    child.on('error', err => {
+      console.error(`Failed to start test-storybook (${label}):`, err);
+      done(1);
+    });
   });
 }
 
