@@ -20,9 +20,13 @@ on:
       - 'create-bestax/**'
       - '.github/workflows/visual-regression.yml'
 
+# Read-only by default: the matrix job executes PR-controlled code, and the
+# scaffolded-app installs run with --ignore-workspace — i.e. OUTSIDE
+# pnpm-workspace.yaml's supply-chain hardening (blocked install scripts,
+# minimumReleaseAge) — so the token in reach must not be able to write. Only
+# the workflow_dispatch-gated commit job below gets contents: write.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   visual-regression:
@@ -55,6 +59,9 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
+          # This job runs PR-controlled code; don't leave the token in
+          # .git/config.
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -169,6 +176,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: visual-regression
     if: inputs.update_snapshots && github.event_name == 'workflow_dispatch'
+    permissions:
+      # verified-commit pushes the updated baselines via the git data API.
+      # workflow_dispatch-only (never reachable from a pull_request event).
+      contents: write
 
     steps:
       - name: Checkout code

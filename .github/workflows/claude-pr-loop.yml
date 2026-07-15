@@ -333,6 +333,18 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Stage the review-thread helper onto PATH from origin/main — NEVER
+      # from the PR branch (an older claude/* branch may predate it, and the
+      # branch's own copy must never be the one that runs). The Claude
+      # session below ingests untrusted review-thread text, so it gets NO
+      # raw `gh api`: gh-thread (list/reply/resolve) is its entire GraphQL
+      # surface (fetch-depth: 0 above guarantees origin/main exists).
+      - name: Stage gh-thread helper
+        run: |
+          set -euo pipefail
+          git show origin/main:.github/scripts/gh-thread.sh > /tmp/gh-thread
+          sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
+
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
@@ -373,11 +385,14 @@ jobs:
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the
           # Edit/MultiEdit/Write allows in --allowedTools.
+          # No Bash(gh api:*): this session reads review threads that anyone
+          # on a public repo can reply into, and it holds the bestaxbot PAT —
+          # thread ops go through the pinned gh-thread helper instead.
           claude_args: |
             --max-turns 120
             --model claude-opus-4-8[1m]
             --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/jest.config.*),MultiEdit(**/jest.config.*),Write(**/jest.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*),Edit(scripts/check-conformance.mjs),MultiEdit(scripts/check-conformance.mjs),Write(scripts/check-conformance.mjs),Edit(scripts/conformance-baseline.json),MultiEdit(scripts/conformance-baseline.json),Write(scripts/conformance-baseline.json)"
-            --allowedTools "Edit,MultiEdit,Write,mcp__github_inline_comment__create_inline_comment,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checks:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(gh api:*)"
+            --allowedTools "Edit,MultiEdit,Write,mcp__github_inline_comment__create_inline_comment,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checks:*),Bash(gh pr comment:*),Bash(gh issue view:*),Bash(gh-thread:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ needs.gate.outputs.pr }}
@@ -436,7 +451,7 @@ jobs:
             conversation unfold in real time: a reply should land on each
             thread as you address it, not 15 minutes later.
             1. List them with:
-               gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved path line comments(first:50){nodes{author{login} body url}}}}}}}' -f o=<owner> -f r=<repo> -F n=<PR>
+               gh-thread list <PR>
                Work only on threads with isResolved=false whose FIRST comment
                author is coderabbitai, copilot*, or claude. Skip claude
                threads whose last reply already starts with "Fixed in ". ALSO
@@ -446,12 +461,13 @@ jobs:
                re-engage such a thread once the REVIEWER has replied to your
                refutation (then answer that rebuttal: fix if it convinced you,
                or hold your ground once and let the loop escalate to a human).
-               HOW TO REPLY — reply INSIDE the review thread with `gh api`, not
-               an MCP tool. The ONLY MCP tool available here is
-               mcp__github_inline_comment__create_inline_comment (a NEW inline
-               comment); there is NO MCP "reply" tool, so reaching for one just
-               burns denials. Use the thread id from the query above:
-                 gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id}}}' -f t=<thread-id> -f b="<your reply>"
+               HOW TO REPLY — reply INSIDE the review thread with the
+               gh-thread helper, not an MCP tool. The ONLY MCP tool available
+               here is mcp__github_inline_comment__create_inline_comment (a
+               NEW inline comment); there is NO MCP "reply" tool and NO raw
+               `gh api`, so reaching for either just burns denials. Use the
+               thread id from the listing above:
+                 gh-thread reply <thread-id> "<your reply>"
                (A brand-new top-level note is `gh pr comment`.)
             2. Handle threads ONE AT A TIME and FINISH each — including its
                reply — before starting the next. Do NOT defer replies to the
@@ -485,9 +501,9 @@ jobs:
                - CodeRabbit threads: reply conversationally (fix explanation or
                  refutation); never resolve them — CodeRabbit verifies and
                  resolves its own on its next review.
-               - Copilot threads: after replying, resolve them with the
-                 resolveReviewThread GraphQL mutation (Copilot never resolves
-                 its own).
+               - Copilot threads: after replying, resolve them with
+                 `gh-thread resolve <thread-id>` (Copilot never resolves its
+                 own).
             4. Once every thread is handled, commit any remaining changes
                (conventional; feat|fix|perf|refactor|style require scope
                bulma-ui|docs|create-bestax), run the gates for what you
@@ -601,6 +617,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Same rationale as the fix job: the verifier reads untrusted thread
+      # replies, so its only GraphQL surface is the pinned gh-thread helper,
+      # staged from origin/main rather than the PR branch.
+      - name: Stage gh-thread helper
+        run: |
+          set -euo pipefail
+          git show origin/main:.github/scripts/gh-thread.sh > /tmp/gh-thread
+          sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
+
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
@@ -625,7 +650,7 @@ jobs:
           claude_args: |
             --max-turns 25
             --model claude-opus-4-8
-            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*)"
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh-thread:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ needs.gate.outputs.pr }}
@@ -639,18 +664,20 @@ jobs:
             you conclude. Do not rubber-stamp.
 
             1. List unresolved review threads whose FIRST comment author is
-               claude (your earlier review) using the reviewThreads GraphQL
-               query (fetch id, path, and every comment's author + body).
-               Reply INSIDE a thread with `gh api` (you have no MCP tools here):
-                 gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id}}}' -f t=<thread-id> -f b="<your reply>"
-               Resolve with the resolveReviewThread mutation.
+               claude (your earlier review) with:
+                 gh-thread list <PR>
+               Reply INSIDE a thread with the gh-thread helper (you have no
+               MCP tools and no raw `gh api` here):
+                 gh-thread reply <thread-id> "<your reply>"
+               Resolve with:
+                 gh-thread resolve <thread-id>
 
             2. VERIFY — for a thread whose LAST reply STARTS WITH "Fixed in"
                (the fix agent claims a fix): re-examine the current code there
                and run the relevant test.
                - Genuinely fixed → reply "Verified fixed — <one plain sentence
-                 on what you checked>." then resolve it with the
-                 resolveReviewThread mutation.
+                 on what you checked>." then resolve it with
+                 `gh-thread resolve <thread-id>`.
                - NOT actually fixed → reply precisely what is still wrong, with
                  a code citation; do NOT resolve. The fix agent gets another
                  round.
