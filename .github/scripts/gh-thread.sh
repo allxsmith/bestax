@@ -16,6 +16,9 @@
 #
 # Usage:
 #   gh-thread list <pr-number>            # unresolved+resolved threads, JSON
+#                                         # (paginated: output is an ARRAY of
+#                                         # response pages; read every page's
+#                                         # ...reviewThreads.nodes)
 #   gh-thread reply <thread-id> <body>    # reply inside a review thread
 #   gh-thread resolve <thread-id>         # resolve a review thread
 set -euo pipefail
@@ -37,12 +40,19 @@ case "$CMD" in
     case "$PR" in
       *[!0-9]*) echo "gh-thread: pr-number must be numeric, got: $PR" >&2; exit 64 ;;
     esac
-    gh api graphql \
-      -f query='query($o:String!,$r:String!,$n:Int!){
+    # --paginate follows reviewThreads.pageInfo so >100 threads can't be
+    # silently dropped (the convergence gate reads this list); --slurp wraps
+    # the pages in a JSON array. comments(first:100) is the per-thread API
+    # maximum — a thread longer than that is pathological, and the tail is
+    # the part that matters least.
+    gh api graphql --paginate --slurp \
+      -f query='query($o:String!,$r:String!,$n:Int!,$endCursor:String){
         repository(owner:$o,name:$r){pullRequest(number:$n){
-          reviewThreads(first:100){nodes{
-            id isResolved path line
-            comments(first:50){nodes{author{login} body url}}}}}}}' \
+          reviewThreads(first:100,after:$endCursor){
+            pageInfo{hasNextPage endCursor}
+            nodes{
+              id isResolved path line
+              comments(first:100){nodes{author{login} body url}}}}}}}' \
       -f o="${REPO%/*}" -f r="${REPO#*/}" -F n="$PR"
     ;;
   reply)
