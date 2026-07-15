@@ -333,6 +333,14 @@ jobs:
       # re-pressable button and never wedges "on". Removal uses only
       # GITHUB_TOKEN, so an unauthorized labeling still spends zero Claude
       # usage. Opened runs have no label to remove.
+      #
+      # Known residual: labeling a FORK PR wedges the label (the job-level
+      # fork guard skips this step too), and it is not fixable under plain
+      # `pull_request` — fork-triggered runs cap GITHUB_TOKEN at read-only,
+      # so even a standalone unlabel job's DELETE would 403. Accepted:
+      # fork PRs are never triaged anyway, the stuck label is inert, and a
+      # maintainer removes it by hand. Unwedging would need
+      # `pull_request_target`, which this workflow deliberately dropped.
       - name: Remove ai-triage label
         if: always() && github.event.action == 'labeled'
         env:
