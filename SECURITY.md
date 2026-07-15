@@ -20,9 +20,10 @@ Measures active in this repository and its release pipeline:
 - **Install scripts blocked by default** — pnpm refuses dependency
   install/postinstall scripts unless explicitly allow-listed
   (`allowBuilds` in `pnpm-workspace.yaml`).
-- **Dependency cooldown** — versions published less than 3 days ago won't
-  install (`minimumReleaseAge`), defending against just-published malicious
-  releases.
+- **Dependency cooldown** — by default, versions published less than 3 days
+  ago won't install (`minimumReleaseAge`), defending against just-published
+  malicious releases. One dev-only exception: `prettier` is excluded (and
+  pinned) so formatting stays deterministic; it is never shipped to users.
 - **Isolated `node_modules`** — pnpm's isolated linker prevents phantom
   (undeclared) dependencies from being imported.
 - **Frozen lockfile in CI** — builds and releases install with
@@ -45,8 +46,9 @@ Measures active in this repository and its release pipeline:
 - **Dependabot** — weekly, grouped dependency update PRs.
 
 Consumers can verify provenance themselves: the npm package pages show the
-attestation ("Provenance" section), and `npm audit signatures` checks
-registry signatures and provenance attestations for everything in your tree.
+attestation ("Provenance" section), and — in projects installed with the npm
+CLI — `npm audit signatures` checks registry signatures and provenance
+attestations for everything in your tree.
 
 ## Reporting a Vulnerability
 

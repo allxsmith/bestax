@@ -31,9 +31,11 @@ the full policy.
   [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
   and [`create-bestax`](https://www.npmjs.com/package/create-bestax) show a
   _Provenance_ section linking each version to its source commit and build.
-- **`npm audit signatures`** — run it in your project to check registry
-  signatures and provenance attestations for every package in your tree,
-  Bestax included.
+- **`npm audit signatures`** — in projects installed with the npm CLI, run it
+  to check registry signatures and provenance attestations for every package
+  in your tree, Bestax included. (It's an npm command — for pnpm or yarn
+  projects, rely on the lockfile guidance below and the provenance UI on
+  npmjs.com.)
 - **Lockfiles** — commit your lockfile and install with a frozen/ci install
   (`npm ci`, `pnpm install --frozen-lockfile`) so your builds resolve exactly
   what you reviewed. Bestax's own CI does the same.
@@ -44,10 +46,11 @@ The monorepo applies defense-in-depth against supply-chain attacks:
 
 - **Dependency install scripts are blocked by default.** pnpm only runs
   install/postinstall scripts for an explicit allow-list of native builders —
-  a compromised transitive dependency can't execute code at install time.
-- **A 3-day dependency cooldown.** Versions published less than 3 days ago
-  refuse to install, which defeats the common pattern where a hijacked
-  package's malicious release is yanked within hours.
+  any dependency outside that short list can't execute code at install time.
+- **A 3-day dependency cooldown.** By default, versions published less than 3
+  days ago refuse to install, which defeats the common pattern where a
+  hijacked package's malicious release is yanked within hours. (The dev-only
+  `prettier` formatter is the one pinned exclusion.)
 - **Isolated `node_modules`.** pnpm's isolated linker makes undeclared
   (phantom) dependencies fail loudly instead of silently resolving.
 - **Frozen-lockfile CI.** Build and release jobs install with
@@ -70,6 +73,6 @@ Please report privately — don't open a public issue:
   vulnerability** on the
   [repository](https://github.com/allxsmith/bestax/security).
 
-You'll get an acknowledgment within 48 hours and triage within 7 days; the
-full disclosure process is in
+You'll get an acknowledgment within 48 hours, and we aim to triage and
+confirm within 7 days; the full disclosure process is in
 [SECURITY.md](https://github.com/allxsmith/bestax/blob/main/SECURITY.md).
