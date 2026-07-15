@@ -1,3 +1,16 @@
+## [5.6.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.1...@allxsmith/bestax-bulma@5.6.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept router props like `to` on Navbar.Item without casts ([#311](https://github.com/allxsmith/bestax/issues/311)) ([b78856b](https://github.com/allxsmith/bestax/commit/b78856ba62986c693e13e545dd86746f206c3ab9)), closes [#306](https://github.com/allxsmith/bestax/issues/306)
+* **create-bestax:** dark-mode contrast rules in theming/layout skills and docs ([#303](https://github.com/allxsmith/bestax/issues/303)) ([490bf21](https://github.com/allxsmith/bestax/commit/490bf21ad9ee101e4f2630bf53f5b3e8ef22fc9e)), closes [#194](https://github.com/allxsmith/bestax/issues/194) [#195](https://github.com/allxsmith/bestax/issues/195)
+
+
+### Features
+
+* **create-bestax:** bestax-icons skill — teach agents the icon system ([#302](https://github.com/allxsmith/bestax/issues/302)) ([61c8ef2](https://github.com/allxsmith/bestax/commit/61c8ef2d60bb4a1ae21c673d2bfaec89e87cf21f)), closes [#287](https://github.com/allxsmith/bestax/issues/287)
+
 ## [5.6.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.0...@allxsmith/bestax-bulma@5.6.1) (2026-07-14)
 
 
