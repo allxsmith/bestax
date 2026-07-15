@@ -100,7 +100,8 @@ Separately, `ai-triage` runs a one-shot sonnet triage session that comments with
 issues/duplicates: automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
 capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by
 triage+ collaborators are uncapped), or on demand via the label
-(triage+ only, budget-exempt; auto-removed after the run). Flagged duplicates may be
+(triage+ only, budget-exempt; auto-removed after the run). Fork PRs are never triaged
+(same-repo `pull_request` only — never `pull_request_target`; see #312). Flagged duplicates may be
 auto-closed after 14 days per `AI_TRIAGE_AUTOCLOSE` (see the ai-development docs guide).
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
 PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close

@@ -5,7 +5,7 @@
  * Ported from oven-sh/bun's scripts/auto-close-duplicates.ts, with the
  * objection window widened from 3 to 14 days (deliberate owner choice).
  *
- * An issue is a close candidate when its LATEST claude[bot] comment carries
+ * An issue is a close candidate when its LATEST bot-authored comment carries
  * the `<!-- ai-triage:dedupe -->` idempotency marker AND a machine-parseable
  * `Duplicate of #N` line (posted by the ai-triage workflow, PR A of #289).
  * The candidate is closed only if ALL of these hold:
@@ -81,15 +81,17 @@ export function isBot(user) {
 }
 
 /**
- * Find the LATEST comment authored by claude[bot] that carries the dedupe
- * marker and a parseable `Duplicate of #N`. Returns
- * { comment, target } or null. `comments` must be in ascending created order
- * (the REST API default for issue comments).
+ * Find the LATEST bot-authored comment that carries the dedupe marker and a
+ * parseable `Duplicate of #N`. Matched by marker + Bot author, never a
+ * specific login (Bun's convention): the triage workflow posts via
+ * GITHUB_TOKEN as github-actions[bot] since #312, while pre-#312 comments
+ * are claude[bot]. Returns { comment, target } or null. `comments` must be
+ * in ascending created order (the REST API default for issue comments).
  */
 export function findMarkerComment(comments) {
   for (let i = comments.length - 1; i >= 0; i--) {
     const c = comments[i];
-    if (c.user?.login !== 'claude[bot]' || c.user?.type !== 'Bot') continue;
+    if (!isBot(c.user)) continue;
     if (!c.body?.includes(MARKER)) continue;
     const m = c.body.match(DUPLICATE_RE);
     if (!m) continue;

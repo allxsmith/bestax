@@ -16,8 +16,9 @@ run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
 
 1. `gh issue view NUMBER --repo REPO --json state,title,body,comments` — if
    the issue is not open, stop.
-2. Marker check — does any existing comment by a claude bot account contain
-   `<!-- ai-triage:dedupe -->`?
+2. Marker check — does any existing bot-authored comment contain
+   `<!-- ai-triage:dedupe -->`? (Match the marker + a bot author, not a
+   specific login — the workflow posts as github-actions[bot].)
    - `TRIGGER=opened` and marker present → stop (already triaged).
    - `TRIGGER=labeled` and marker present → continue; at the end REFRESH
      that comment instead of posting a new one: if it is your most recent
