@@ -24,11 +24,7 @@ on:
   pull_request:
     types: [opened, labeled]
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: claude-review-${{ github.event.pull_request.number }}
@@ -36,6 +32,11 @@ concurrency:
 
 jobs:
   review:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
     # Two ways in, both same-repo PRs only: (a) AI-loop PRs from claude/*
     # branches, or (b) any PR a triage+ user opts in via the `deep-review`
     # label (role re-verified live in the perm step below). For `labeled`

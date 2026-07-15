@@ -20,14 +20,15 @@ on:
   issues:
     types: [opened, assigned]
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  id-token: write
+permissions: {}
 
 jobs:
   claude:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
     # Only OWNER / MEMBER / COLLABORATOR may trigger Claude, and only when the
     # relevant body actually contains the "@claude" trigger phrase. Anyone else
     # mentioning @claude is a no-op — the job never starts, so no usage is spent.
@@ -43,23 +44,49 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # Layer 2 (authoritative): author_association can be COLLABORATOR with
+      # only read access. Re-check the LIVE role and require write/triage+.
+      - name: Check trigger permission
+        id: perm
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          set -euo pipefail
+          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
+            --jq '.role_name' || echo none)
+          case "$ROLE" in
+            admin|maintain|write|triage)
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "$SENDER has $ROLE access — responding" ;;
+            *)
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "$SENDER lacks write/triage access ($ROLE) — ignoring" ;;
+          esac
+
       - name: Checkout code
+        if: steps.perm.outputs.allowed == 'true'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # Pre-provision the toolchain so @claude can run tests/lint/build without
       # burning turns bootstrapping the environment.
       - name: Setup pnpm
+        if: steps.perm.outputs.allowed == 'true'
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       - name: Setup Node.js
+        if: steps.perm.outputs.allowed == 'true'
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24'
           cache: 'pnpm'
 
       - name: Run Claude
+        if: steps.perm.outputs.allowed == 'true'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           # OAuth token from a Claude Pro/Max subscription (flat cost, no

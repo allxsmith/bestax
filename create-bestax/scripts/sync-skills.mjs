@@ -18,6 +18,7 @@ const SKILLS = [
   'bestax-form',
   'bestax-theming',
   'bestax-layout-scaffold',
+  'bestax-icons',
 ];
 
 if (!fs.existsSync(skillsSrc)) {

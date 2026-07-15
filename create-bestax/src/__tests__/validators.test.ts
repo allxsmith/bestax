@@ -68,6 +68,16 @@ describe('validators', () => {
       expect(validateProjectName('v1.0.0')).toBe(true);
     });
 
+    it('should reject project names that start with a dot', () => {
+      const dotMessage =
+        'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name';
+      expect(validateProjectName('.')).toBe(dotMessage);
+      expect(validateProjectName('..')).toBe(dotMessage);
+      expect(validateProjectName('...')).toBe(dotMessage);
+      expect(validateProjectName('.hidden')).toBe(dotMessage);
+      expect(validateProjectName('.dotfile')).toBe(dotMessage);
+    });
+
     it('should accept project names with underscores', () => {
       expect(validateProjectName('my_project')).toBe(true);
       expect(validateProjectName('my_awesome_project')).toBe(true);
@@ -115,6 +125,13 @@ describe('validators', () => {
       expect(isValidProjectName('my$project')).toBe(false);
       expect(isValidProjectName('my%project')).toBe(false);
       expect(isValidProjectName('my&project')).toBe(false);
+    });
+
+    it('should return false for dot and leading-dot project names', () => {
+      expect(isValidProjectName('.')).toBe(false);
+      expect(isValidProjectName('..')).toBe(false);
+      expect(isValidProjectName('...')).toBe(false);
+      expect(isValidProjectName('.hidden')).toBe(false);
     });
 
     it('should be consistent with validateProjectName', () => {

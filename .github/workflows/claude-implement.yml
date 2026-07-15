@@ -14,11 +14,7 @@ on:
   issues:
     types: [labeled]
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  id-token: write
+permissions: {}
 
 concurrency:
   group: claude-implement-${{ github.event.issue.number }}
@@ -26,6 +22,11 @@ concurrency:
 
 jobs:
   implement:
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
     # Label + human-labeler gate. GitHub only lets triage+ users apply
     # labels, and the permission step below re-verifies the labeler's role
     # live (belt and braces — e.g. against a template auto-applying the

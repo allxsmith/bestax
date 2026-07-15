@@ -237,6 +237,10 @@ export class ProjectCreator {
         const headEndMatch = htmlContent.match(/<\/head>/);
         if (headEndMatch) {
           const insertPosition = headEndMatch.index!;
+          // The ionicons version is pinned to an immutable unpkg URL. SRI
+          // integrity attributes are deliberately not added: the ionicons ESM
+          // loader dynamically imports per-icon chunks that cannot carry
+          // integrity hashes, so entry-file SRI would give false assurance.
           const ioniconScripts = `    <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js"></script>
@@ -261,7 +265,8 @@ export class ProjectCreator {
           packageJson.dependencies = {};
         }
         if (library.packageName) {
-          packageJson.dependencies[library.packageName] = 'latest';
+          packageJson.dependencies[library.packageName] =
+            library.packageVersion ?? 'latest';
         }
         await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
 

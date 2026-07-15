@@ -13,6 +13,13 @@ export function validateProjectName(value: string): boolean | string {
     return MESSAGES.PROJECT_NAME_TOO_LONG;
   }
 
+  // The regex below allows dots, so "." and ".." would pass and resolve to
+  // the current/parent directory — which --yes would then empty. Rejecting
+  // every leading-dot name closes that hole ("/" and "\" are already blocked).
+  if (value.startsWith('.')) {
+    return MESSAGES.PROJECT_NAME_DOT;
+  }
+
   if (!PROJECT_NAME_REGEX.test(value)) {
     return MESSAGES.PROJECT_NAME_INVALID_CHARS;
   }
