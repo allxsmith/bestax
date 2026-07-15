@@ -34,13 +34,14 @@ runs:
           const pattern = process.env.FILE_PATTERN;
           let files = [];
 
-          // Extract base directory and file pattern
-          // Pattern like "create-bestax/e2e/tests/**/*.png"
+          // Extract base directory and filename glob from a pattern like
+          // "create-bestax/e2e/tests/**/*.png"
           const basePath = pattern.replace(/\/\*\*\/.*$/, '');  // "create-bestax/e2e/tests"
+          const nameGlob = pattern.slice(pattern.lastIndexOf('/') + 1) || '*';  // "*.png"
 
           try {
             const output = execFileSync(
-              'find', [basePath, '-type', 'f', '-name', '*.png'],
+              'find', [basePath, '-type', 'f', '-name', nameGlob],
               { cwd: process.env.GITHUB_WORKSPACE, encoding: 'utf-8' }
             );
             files = output.trim().split('\n').filter(Boolean).map(f =>
