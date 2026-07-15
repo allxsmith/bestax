@@ -1,3 +1,11 @@
+## [3.3.2](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.1...create-bestax@3.3.2) (2026-07-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept router props like `to` on Navbar.Item without casts ([#311](https://github.com/allxsmith/bestax/issues/311)) ([b78856b](https://github.com/allxsmith/bestax/commit/b78856ba62986c693e13e545dd86746f206c3ab9)), closes [#306](https://github.com/allxsmith/bestax/issues/306)
+* **create-bestax:** reject dot-only project names, pin icon versions, bundle bestax-icons skill ([#310](https://github.com/allxsmith/bestax/issues/310)) ([ddff8e5](https://github.com/allxsmith/bestax/commit/ddff8e5c54b08f669aa0c34aa5a466050f8929e5))
+
 ## [3.3.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.0...create-bestax@3.3.1) (2026-07-14)
 
 
