@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { ComponentProps } from 'react';
 import Navbar from '../Navbar';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -184,6 +185,22 @@ describe('Navbar.Item', () => {
     );
     const item = screen.getByTestId('item');
     expect(item.tagName).toBe('SPAN');
+    expect(item).toHaveClass('navbar-item');
+  });
+
+  it('forwards router props like "to" to a custom "as" component', () => {
+    // Stand-in for a router link (e.g. react-router-dom's Link)
+    const RouterLink = ({
+      to,
+      ...rest
+    }: { to: string } & ComponentProps<'a'>) => <a href={to} {...rest} />;
+    render(
+      <Navbar.Item as={RouterLink} to="/pricing" data-testid="item">
+        Pricing
+      </Navbar.Item>
+    );
+    const item = screen.getByTestId('item');
+    expect(item).toHaveAttribute('href', '/pricing');
     expect(item).toHaveClass('navbar-item');
   });
 

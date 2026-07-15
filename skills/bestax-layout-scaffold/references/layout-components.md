@@ -225,11 +225,9 @@ document.documentElement.classList.add('has-navbar-fixed-top');
 ```
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
-component. `Menu.Item as={Link} to="/x"` compiles without casts (its props allow extra keys);
-`Navbar.Item as={Link}` forwards `to`
-at runtime but needs a one-line typed alias in TypeScript (`Navbar.Item as React.FC<…Props &
-LinkProps>`). Drive `active` from `useLocation().pathname`. Full patterns (including Buttons
-that navigate and Next.js `href`): the docs guide at
+component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile
+without casts (their props allow extra keys). Drive `active` from `useLocation().pathname`.
+Full patterns (including Buttons that navigate and Next.js `href`): the docs guide at
 https://bestax.io/docs/guides/features/routing.
 
 ## Menu
