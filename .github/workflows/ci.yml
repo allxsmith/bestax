@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Read-only by default: the test jobs execute PR-authored code (pnpm install,
+# tests, builds) — including AI-pushed claude/* branches — so the token they
+# can reach must not be able to write. The publish job re-declares the write
+# scopes semantic-release needs.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   build-and-test:
@@ -20,6 +23,8 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -122,6 +127,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
