@@ -293,12 +293,15 @@ jobs:
           # (they inherit this same allowlist). Still no `gh api` and no
           # Edit/Write — the session ingests untrusted issue/PR text.
           # Read/Glob/Grep are read-only and always available — the prompt
-          # relies on Read for the command files; SlashCommand is NOT
-          # allowed, which is why the prompt forbids slash invocation.
+          # relies on Read for the command files. --disallowedTools is
+          # defense-in-depth on top of the allowlist: it hard-blocks the
+          # mutating tools and SlashCommand (whose availability caused the
+          # #317 silent no-op) instead of leaving them to per-call denials.
           claude_args: |
             --max-turns 50
             --model claude-sonnet-5
             --allowedTools "Task,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr list:*),Bash(gh search:*),Bash(gh pr comment:*),Bash(gh issue comment:*)"
+            --disallowedTools "Edit,Write,MultiEdit,NotebookEdit,SlashCommand,WebFetch,WebSearch"
           prompt: |
             REPO: ${{ github.repository }}
             NUMBER: ${{ steps.gate.outputs.number }}
