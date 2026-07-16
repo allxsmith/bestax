@@ -3,9 +3,9 @@ name: AI Triage
 # AI triage v2 — fan-out duplicate/related search on issues and PRs. An
 # adaptation of oven-sh/bun's claude-dedupe-issues.yml +
 # claude-find-issues-for-pr.yml, budget-capped for a metered Claude plan.
-# One sonnet session per run drives the repo's triage slash commands
-# (.claude/commands/triage-*.md): issues get /triage-dedupe; PRs get
-# /triage-find-issues + /triage-find-duplicate-prs. Each command fans out
+# One sonnet session per run reads and follows the repo's triage command
+# files (.claude/commands/triage-*.md): issues get triage-dedupe; PRs get
+# triage-find-issues + triage-find-duplicate-prs. Each command fans out
 # parallel read-only search sub-agents and posts at most ONE marker-tagged
 # comment, so re-runs are idempotent.
 #
@@ -283,9 +283,18 @@ jobs:
           # GITHUB_TOKEN-authored comments can't re-trigger workflows.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Full session output in the public job log (#317): the session
+          # only ever sees public issue/PR text and GET-only gh output, so
+          # nothing sensitive can leak, and without it a session that ends
+          # early (e.g. on permission denials) is indistinguishable from a
+          # healthy one.
+          show_full_output: true
           # Task is required for the commands' fan-out search sub-agents
           # (they inherit this same allowlist). Still no `gh api` and no
           # Edit/Write — the session ingests untrusted issue/PR text.
+          # Read/Glob/Grep are read-only and always available — the prompt
+          # relies on Read for the command files; SlashCommand is NOT
+          # allowed, which is why the prompt forbids slash invocation.
           claude_args: |
             --max-turns 50
             --model claude-sonnet-5
@@ -298,17 +307,19 @@ jobs:
             AUTOCLOSE: ${{ (vars.AI_TRIAGE_AUTOCLOSE == 'on' || vars.AI_TRIAGE_AUTOCLOSE == 'dry-run') && 'active' || 'off' }}
 
             You are the TRIAGE agent for this repository. Your entire job is
-            to run this repo's triage slash commands against the item above:
+            to carry out this repo's triage procedures against the item
+            above. The procedures are markdown files in .claude/commands/ in
+            this checkout:
 
-            - If IS_PR is false: run the /triage-dedupe command.
-            - If IS_PR is true: run /triage-find-issues, then
-              /triage-find-duplicate-prs.
+            - If IS_PR is false: .claude/commands/triage-dedupe.md
+            - If IS_PR is true: .claude/commands/triage-find-issues.md,
+              then .claude/commands/triage-find-duplicate-prs.md
 
-            The command definitions live in .claude/commands/ in this
-            checkout (triage-dedupe.md, triage-find-issues.md,
-            triage-find-duplicate-prs.md). Read the matching file(s) and
-            follow them exactly — they consume the REPO / NUMBER / TRIGGER /
-            AUTOCLOSE context lines above.
+            Open the matching file(s) with the Read tool and follow their
+            instructions exactly — they consume the REPO / NUMBER / TRIGGER /
+            AUTOCLOSE context lines above. Do NOT invoke them as slash
+            commands and do NOT use the SlashCommand tool — it is not
+            permitted in this session and every attempt will be denied.
 
             Idempotency (the commands restate this; it is binding):
             - TRIGGER is opened: if a command's marker comment already
