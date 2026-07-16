@@ -357,15 +357,21 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
-            echo "no execution file to check — skipping"
+            echo "no execution file — the action ran no session; skipping check"
             exit 0
           fi
-          if jq -e 'map(select(.type == "result")) | last | .is_error == true' \
-              "$EXEC_FILE" >/dev/null; then
-            echo "::error::Claude triage session errored (is_error: true) — no triage comment was posted. See the session output above."
+          # Fail closed: accept a JSON array or NDJSON, and require a final
+          # result record whose is_error is exactly false. Malformed JSON,
+          # a missing result record, or any other shape fails the job.
+          if jq -es '[.[] | if type == "array" then .[] else . end]
+                     | map(select(type == "object" and .type == "result"))
+                     | last | .is_error == false' \
+              "$EXEC_FILE" >/dev/null 2>&1; then
+            echo "session result is_error: false — triage session completed"
+          else
+            echo "::error::Claude triage session did not complete cleanly (is_error true, missing result record, or unparsable execution file) — no triage comment was posted. See the session output above."
             exit 1
           fi
-          echo "session result is_error: false — triage session completed"
 
       # Always remove the trigger label on labeled runs — even when the
       # Claude step failed or the gate said no — so the label stays a

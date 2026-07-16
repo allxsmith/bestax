@@ -161,13 +161,15 @@ jobs:
           # On loop PRs the opener/labeler is claude[bot] (the implementer)
           # by design.
           allowed_bots: 'claude'
-          # Full session output in the public job log (same rationale as
-          # ai-triage.yml): the session reads the public PR and repo only,
-          # and an API-level session error is otherwise invisible — the
-          # 2026-07-16 run on PR #319 died on its first API call
-          # (is_error: true, $0) yet the job stayed green and no review
-          # was posted.
-          show_full_output: true
+          # Full session output ONLY on debug re-runs (the "Enable debug
+          # logging" checkbox). Unlike ai-triage (GET-only public surface),
+          # this session runs pnpm against untrusted PR-head code, whose
+          # output enters the transcript — a malicious test printing
+          # transformed env values would evade GitHub's secret masking, so
+          # the transcript stays out of normal public logs. The is_error
+          # gate below still turns silent session failures red; a debug
+          # re-run then reveals the actual error.
+          show_full_output: ${{ runner.debug == '1' }}
           claude_args: |
             --max-turns 120
             --model claude-opus-4-8
@@ -269,12 +271,18 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
-            echo "no execution file to check — skipping"
+            echo "no execution file — the action ran no session; skipping check"
             exit 0
           fi
-          if jq -e 'map(select(.type == "result")) | last | .is_error == true' \
-              "$EXEC_FILE" >/dev/null; then
-            echo "::error::Claude deep-review session errored (is_error: true) — no review was posted. See the session output above for the API error."
+          # Fail closed: accept a JSON array or NDJSON, and require a final
+          # result record whose is_error is exactly false. Malformed JSON,
+          # a missing result record, or any other shape fails the job.
+          if jq -es '[.[] | if type == "array" then .[] else . end]
+                     | map(select(type == "object" and .type == "result"))
+                     | last | .is_error == false' \
+              "$EXEC_FILE" >/dev/null 2>&1; then
+            echo "session result is_error: false — review session completed"
+          else
+            echo "::error::Claude deep-review session did not complete cleanly (is_error true, missing result record, or unparsable execution file) — no review was posted. Re-run with debug logging for the full session output."
             exit 1
           fi
-          echo "session result is_error: false — review session completed"
