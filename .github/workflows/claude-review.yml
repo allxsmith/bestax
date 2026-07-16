@@ -153,6 +153,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Claude (deep review)
+        id: claude
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
@@ -160,6 +161,15 @@ jobs:
           # On loop PRs the opener/labeler is claude[bot] (the implementer)
           # by design.
           allowed_bots: 'claude'
+          # Full session output ONLY on debug re-runs (the "Enable debug
+          # logging" checkbox). Unlike ai-triage (GET-only public surface),
+          # this session runs pnpm against untrusted PR-head code, whose
+          # output enters the transcript — a malicious test printing
+          # transformed env values would evade GitHub's secret masking, so
+          # the transcript stays out of normal public logs. The is_error
+          # gate below still turns silent session failures red; a debug
+          # re-run then reveals the actual error.
+          show_full_output: ${{ runner.debug == '1' }}
           claude_args: |
             --max-turns 120
             --model claude-opus-4-8
@@ -245,3 +255,34 @@ jobs:
                still include the Overall line and the surfer blurb.
             6. Never push, merge, close, or label anything, and never write
                "@claude" or "@coderabbitai" in any text.
+
+      # The action reports step success even when the Claude session itself
+      # errors (result message has is_error: true — e.g. an API auth or
+      # usage-limit failure on the very first call). The PR then silently
+      # gets no review while the run shows green, and the AI loop's
+      # deep-review gate waits on a review that never comes. Fail loudly.
+      # An empty/missing execution file is tolerated: the action skips
+      # without a session when the PR modifies this workflow file (its
+      # OIDC exchange requires the file to match the default branch).
+      - name: Fail on silent session error
+        if: steps.claude.outcome == 'success'
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          set -euo pipefail
+          if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
+            echo "no execution file — the action ran no session; skipping check"
+            exit 0
+          fi
+          # Fail closed: accept a JSON array or NDJSON, and require a final
+          # result record whose is_error is exactly false. Malformed JSON,
+          # a missing result record, or any other shape fails the job.
+          if jq -es '[.[] | if type == "array" then .[] else . end]
+                     | map(select(type == "object" and .type == "result"))
+                     | last | .is_error == false' \
+              "$EXEC_FILE" >/dev/null 2>&1; then
+            echo "session result is_error: false — review session completed"
+          else
+            echo "::error::Claude deep-review session did not complete cleanly (is_error true, missing result record, or unparsable execution file) — no review was posted. Re-run with debug logging for the full session output."
+            exit 1
+          fi
