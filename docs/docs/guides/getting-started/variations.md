@@ -268,18 +268,31 @@ This approach allows you to:
 
 ## File Size Comparison
 
-| Variation            | Gzipped Size | Description                      |
-| -------------------- | ------------ | -------------------------------- |
-| Complete             | ~78KB        | Full-featured, recommended       |
-| Prefixed (`bestax-`) | ~80KB        | Full + `bestax-` class prefix    |
-| No Helpers           | ~63KB        | No helper utilities              |
-| No Helpers, Prefixed | ~64KB        | No helpers + `bestax-` prefix    |
-| No Dark Mode         | ~66KB        | Light theme only                 |
-| Custom Brand         | ~78KB        | Custom prefix, built from source |
+Measured from the published `dist/` output (minified, then gzipped). Sizes drift a little between releases — treat them as close approximations.
+
+| Variation            | Raw (minified) | Gzipped | Description                      |
+| -------------------- | -------------- | ------- | -------------------------------- |
+| Complete             | ~800KB         | ~82KB   | Full-featured, recommended       |
+| Prefixed (`bestax-`) | ~875KB         | ~84KB   | Full + `bestax-` class prefix    |
+| No Helpers           | ~595KB         | ~67KB   | No helper utilities              |
+| No Helpers, Prefixed | ~655KB         | ~69KB   | No helpers + `bestax-` prefix    |
+| No Dark Mode         | ~680KB         | ~70KB   | Light theme only                 |
+| Custom Brand         | varies         | ~82KB   | Custom prefix, built from source |
 
 :::tip
-All sizes are approximate gzipped transfer sizes. Enable gzip compression on your server to achieve these transfer sizes.
+**Both columns matter, for different reasons.** The raw size is what lands in your `dist/` folder and what bundlers like Vite report at build time — seeing `~800KB` of CSS there is expected with the Complete variation, not a build misconfiguration. The gzipped size is what users actually download, provided your server or CDN has compression enabled (most do by default; Brotli compresses a little further).
 :::
+
+### What ends up in your build
+
+Bundlers don't tree-shake CSS: the variation you import lands in your production build essentially as-is, no matter how many components you use. That makes the numbers above your floor, and there are two levers to lower it:
+
+1. **Pick a leaner variation** (this page) — a one-line change to your import. Skipping helpers saves ~15KB gzipped; skipping dark mode saves ~12KB.
+2. **Build only what you use with modular Sass** — see [Modular](/docs/guides/getting-started/modular) for importing individual Bulma and bestax partials.
+
+For the full playbook — including an opt-in PurgeCSS step that strips unused selectors — see [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css).
+
+The bestax React library itself is a separate, much smaller cost: ~49KB min+gzip of JS for the _entire_ library, and tree-shaking means your app only ships the components it imports.
 
 ---
 
