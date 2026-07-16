@@ -259,6 +259,9 @@ jobs:
       # usage-limit failure on the very first call). The PR then silently
       # gets no review while the run shows green, and the AI loop's
       # deep-review gate waits on a review that never comes. Fail loudly.
+      # An empty/missing execution file is tolerated: the action skips
+      # without a session when the PR modifies this workflow file (its
+      # OIDC exchange requires the file to match the default branch).
       - name: Fail on silent session error
         if: steps.claude.outcome == 'success'
         env:

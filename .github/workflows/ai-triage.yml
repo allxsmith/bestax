@@ -272,6 +272,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Claude (triage)
+        id: claude
         if: steps.gate.outputs.run == 'true'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
@@ -341,6 +342,30 @@ jobs:
             push, or resolve anything; never write "@claude" or
             "@coderabbitai" in any text; keep every search scoped to REPO;
             post nothing beyond what the commands specify.
+
+      # The action reports step success even when the Claude session itself
+      # errors (result message has is_error: true — e.g. an API auth or
+      # usage-limit failure on the very first call). The item then silently
+      # gets no triage comment while the run shows green — the exact #317
+      # failure shape. Fail loudly instead. An empty/missing execution file
+      # (e.g. the action's workflow-validation skip) is tolerated: there was
+      # no session to judge.
+      - name: Fail on silent session error
+        if: steps.claude.outcome == 'success'
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          set -euo pipefail
+          if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
+            echo "no execution file to check — skipping"
+            exit 0
+          fi
+          if jq -e 'map(select(.type == "result")) | last | .is_error == true' \
+              "$EXEC_FILE" >/dev/null; then
+            echo "::error::Claude triage session errored (is_error: true) — no triage comment was posted. See the session output above."
+            exit 1
+          fi
+          echo "session result is_error: false — triage session completed"
 
       # Always remove the trigger label on labeled runs — even when the
       # Claude step failed or the gate said no — so the label stays a
