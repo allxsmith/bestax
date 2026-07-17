@@ -145,7 +145,6 @@ export const AllColors: Story = {
       <Paragraph textColor="danger">Danger paragraph</Paragraph>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const StackedParagraphs: Story = {
@@ -165,7 +164,6 @@ export const StackedParagraphs: Story = {
       </Paragraph>
     </div>
   ),
-  name: 'Stacked Paragraphs',
 };
 
 export const HighlightedParagraph: Story = {
@@ -175,5 +173,4 @@ export const HighlightedParagraph: Story = {
     textColor: 'white',
     p: '4',
   },
-  name: 'Highlighted Paragraph',
 };

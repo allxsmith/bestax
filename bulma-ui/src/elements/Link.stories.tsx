@@ -179,7 +179,6 @@ export const AllColors: Story = {
       </Link>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const InlineWithText: Story = {

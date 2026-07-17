@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Section } from './Section';
 import { Title } from '../elements/Title';
 import { SubTitle } from '../elements/SubTitle';

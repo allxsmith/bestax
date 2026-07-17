@@ -210,7 +210,6 @@ export const AllColors: Story = {
       )}
     </Buttons>
   ),
-  name: 'All Colors',
 };
 
 // Sizes
@@ -224,7 +223,6 @@ export const AllSizes: Story = {
       ))}
     </Buttons>
   ),
-  name: 'All Sizes',
 };
 
 // Light variant
@@ -385,7 +383,6 @@ export const ButtonGroup: Story = {
       <Button color="primary">Right</Button>
     </Buttons>
   ),
-  name: 'Button Group',
 };
 
 // Ghost — renders a button that looks like a link

@@ -149,7 +149,6 @@ export const AllColors: Story = {
       ))}
     </Buttons>
   ),
-  name: 'All Colors',
 };
 
 // All colors in ghost variant
@@ -188,7 +187,6 @@ export const AllSizes: Story = {
       ))}
     </Buttons>
   ),
-  name: 'All Sizes',
 };
 
 // Click counter showing all variants fire onClick
@@ -220,7 +218,6 @@ const LinkButtonStateDemo = () => {
 
 export const ClickCounter: Story = {
   render: () => <LinkButtonStateDemo />,
-  name: 'Click Counter',
 };
 
 // In-form context
@@ -276,7 +273,6 @@ const LinkButtonInFormDemo = () => {
 
 export const InFormContext: Story = {
   render: () => <LinkButtonInFormDemo />,
-  name: 'In Form Context',
 };
 
 // Polymorphic `as` — render as a custom component (e.g. a router Link)

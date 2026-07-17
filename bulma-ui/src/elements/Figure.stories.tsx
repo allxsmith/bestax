@@ -77,7 +77,6 @@ export const WithCaption: Story = {
       <Figure.Caption>This is a caption for the image</Figure.Caption>
     </Figure>
   ),
-  name: 'With Caption',
 };
 
 export const CaptionWithColor: Story = {
@@ -99,7 +98,6 @@ export const WithBackground: Story = {
       <Figure.Caption mt="2">Figure with background and padding</Figure.Caption>
     </Figure>
   ),
-  name: 'With Background',
 };
 
 export const CenteredCaption: Story = {
@@ -115,7 +113,6 @@ export const CenteredCaption: Story = {
       </Figure.Caption>
     </Figure>
   ),
-  name: 'Centered Caption',
 };
 
 export const MultipleFigures: Story = {
@@ -135,7 +132,6 @@ export const MultipleFigures: Story = {
       </Figure>
     </div>
   ),
-  name: 'Multiple Figures',
 };
 
 export const CodeFigure: Story = {
@@ -151,5 +147,4 @@ export const CodeFigure: Story = {
       </Figure.Caption>
     </Figure>
   ),
-  name: 'Code Figure',
 };

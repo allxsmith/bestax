@@ -130,7 +130,6 @@ export const AllColors: Story = {
       <Span textColor="danger">Danger Span</Span>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const InlineWithText: Story = {
@@ -150,5 +149,4 @@ export const HighlightedText: Story = {
     textColor: 'dark',
     p: '1',
   },
-  name: 'Highlighted Text',
 };

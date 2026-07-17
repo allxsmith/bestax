@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import Hero from './Hero';
 import Navbar from '../components/Navbar';
 import Tabs from '../components/Tabs';
@@ -33,7 +33,6 @@ export const Default: StoryObj<typeof Hero> = {
 
 // Colors stories
 export const Link: StoryObj<typeof Hero> = {
-  name: 'Link',
   render: () => (
     <Hero color="link">
       <Hero.Body>
@@ -47,7 +46,6 @@ export const Link: StoryObj<typeof Hero> = {
 };
 
 export const Primary: StoryObj<typeof Hero> = {
-  name: 'Primary',
   render: () => (
     <Hero color="primary">
       <Hero.Body>
@@ -61,7 +59,6 @@ export const Primary: StoryObj<typeof Hero> = {
 };
 
 export const Info: StoryObj<typeof Hero> = {
-  name: 'Info',
   render: () => (
     <Hero color="info">
       <Hero.Body>
@@ -75,7 +72,6 @@ export const Info: StoryObj<typeof Hero> = {
 };
 
 export const Success: StoryObj<typeof Hero> = {
-  name: 'Success',
   render: () => (
     <Hero color="success">
       <Hero.Body>
@@ -89,7 +85,6 @@ export const Success: StoryObj<typeof Hero> = {
 };
 
 export const Warning: StoryObj<typeof Hero> = {
-  name: 'Warning',
   render: () => (
     <Hero color="warning">
       <Hero.Body>
@@ -103,7 +98,6 @@ export const Warning: StoryObj<typeof Hero> = {
 };
 
 export const Danger: StoryObj<typeof Hero> = {
-  name: 'Danger',
   render: () => (
     <Hero color="danger">
       <Hero.Body>
@@ -118,7 +112,6 @@ export const Danger: StoryObj<typeof Hero> = {
 
 // Sizes stories
 export const Small: StoryObj<typeof Hero> = {
-  name: 'Small',
   render: () => (
     <Hero color="info" size="small">
       <Hero.Body>
@@ -132,7 +125,6 @@ export const Small: StoryObj<typeof Hero> = {
 };
 
 export const Medium: StoryObj<typeof Hero> = {
-  name: 'Medium',
   render: () => (
     <Hero color="primary" size="medium">
       <Hero.Body>
@@ -146,7 +138,6 @@ export const Medium: StoryObj<typeof Hero> = {
 };
 
 export const Large: StoryObj<typeof Hero> = {
-  name: 'Large',
   render: () => (
     <Hero color="success" size="large">
       <Hero.Body>

@@ -248,7 +248,6 @@ export const Colors: Story = {
       <Button color="danger">Danger</Button>
     </Buttons>
   ),
-  name: 'Colors',
 };
 
 export const BackgroundColors: Story = {
@@ -280,7 +279,6 @@ export const BackgroundColors: Story = {
       </Column>
     </Columns>
   ),
-  name: 'Background Colors',
 };
 
 export const ColorShades: Story = {
@@ -303,7 +301,6 @@ export const ColorShades: Story = {
       </Button>
     </Buttons>
   ),
-  name: 'Color Shades',
 };
 
 export const BackgroundColorShades: Story = {
@@ -336,7 +333,6 @@ export const BackgroundColorShades: Story = {
       </Column>
     </Columns>
   ),
-  name: 'Background Color Shades',
 };
 
 export const CombinedColorShades: Story = {
@@ -384,7 +380,6 @@ export const CombinedColorShades: Story = {
       </Column>
     </Columns>
   ),
-  name: 'Combined Color Shades',
 };
 
 export const Margin: Story = {
@@ -401,7 +396,6 @@ export const Margin: Story = {
       </Buttons>
     </>
   ),
-  name: 'Margin',
 };
 
 export const TextSize: Story = {
@@ -413,7 +407,6 @@ export const TextSize: Story = {
       <Notification textSize="7">Size 7</Notification>
     </>
   ),
-  name: 'Text Size',
 };
 
 export const TextAlign: Story = {
@@ -424,7 +417,6 @@ export const TextAlign: Story = {
       <Box textAlign="left">Left aligned text</Box>
     </>
   ),
-  name: 'Text Align',
 };
 
 export const TextTransform: Story = {
@@ -456,7 +448,6 @@ export const TextTransform: Story = {
       </Content>
     </>
   ),
-  name: 'Text Transform',
 };
 
 export const TextWeight: Story = {
@@ -488,7 +479,6 @@ export const TextWeight: Story = {
       </Content>
     </>
   ),
-  name: 'Text Weight',
 };
 
 export const FontFamily: Story = {
@@ -526,7 +516,6 @@ export const FontFamily: Story = {
       </Content>
     </>
   ),
-  name: 'Font Family',
 };
 
 export const Visibility: Story = {
@@ -538,7 +527,6 @@ export const Visibility: Story = {
       <Button>Visible</Button>
     </Buttons>
   ),
-  name: 'Visibility',
 };
 
 export const Overflow: Story = {
@@ -548,7 +536,6 @@ export const Overflow: Story = {
       box.
     </Box>
   ),
-  name: 'Overflow',
 };
 
 export const Overlay: Story = {
@@ -568,7 +555,6 @@ export const Overlay: Story = {
       />
     </Box>
   ),
-  name: 'Overlay',
 };
 
 export const Interaction: Story = {
@@ -578,7 +564,6 @@ export const Interaction: Story = {
       <Box interaction="clickable">This box is clickable.</Box>
     </>
   ),
-  name: 'Interaction',
 };
 
 export const Cursor: Story = {
@@ -588,7 +573,6 @@ export const Cursor: Story = {
       <Box cursor="help">Cursor: help</Box>
     </>
   ),
-  name: 'Cursor',
 };
 
 export const Radius: Story = {
@@ -598,12 +582,10 @@ export const Radius: Story = {
       <Button>Normal</Button>
     </Buttons>
   ),
-  name: 'Radius',
 };
 
 export const Shadowless: Story = {
   render: () => <Box shadow="shadowless">This box has no shadow.</Box>,
-  name: 'Shadowless',
 };
 
 export const ClassName: Story = {
@@ -715,7 +697,6 @@ export const DisplayValues: Story = {
       </Block>
     </Box>
   ),
-  name: 'Display Values',
 };
 
 export const ViewportSpecificDisplay: Story = {
@@ -1204,7 +1185,6 @@ export const ComplexResponsiveLayout: Story = {
       </Box>
     </Box>
   ),
-  name: 'Complex Responsive Layout',
 };
 
 export const Float: Story = {
@@ -1427,7 +1407,6 @@ export const ClearfixDemo: Story = {
       </div>
     </Box>
   ),
-  name: 'Clearfix Demo',
 };
 
 export const RelativePosition: Story = {
@@ -1579,7 +1558,6 @@ export const RelativePosition: Story = {
       </div>
     </Box>
   ),
-  name: 'Relative Position',
 };
 
 // --- Viewport-Specific Properties Stories ---
@@ -1953,5 +1931,4 @@ export const FlexItemProperties: Story = {
       </Block>
     </Box>
   ),
-  name: 'Flex Item Properties',
 };

@@ -25,8 +25,6 @@ const cellNodes = Array.from({ length: cellCount }, (_, i) => (
 
 export const SmartGrid = () => <Grid>{cellNodes}</Grid>;
 
-SmartGrid.storyName = 'Smart Grid';
-
 export const MinimumColumnWidth = () => {
   const [minCol, setMinCol] = useState<number>(4);
 
@@ -48,8 +46,6 @@ export const MinimumColumnWidth = () => {
     </div>
   );
 };
-
-MinimumColumnWidth.storyName = 'Minimum Column Width';
 
 export const Gap = () => {
   const [gap, setGap] = useState<number>(2);
@@ -73,8 +69,6 @@ export const Gap = () => {
   );
 };
 
-Gap.storyName = 'Gap';
-
 export const ColumnGap = () => {
   const [columnGap, setColumnGap] = useState<number>(2);
 
@@ -96,8 +90,6 @@ export const ColumnGap = () => {
     </div>
   );
 };
-
-ColumnGap.storyName = 'Column Gap';
 
 export const RowGap = () => {
   const [rowGap, setRowGap] = useState<number>(2);
@@ -121,8 +113,6 @@ export const RowGap = () => {
   );
 };
 
-RowGap.storyName = 'Row Gap';
-
 export const FixedGrid = () => {
   // Only 12 cells for this story
   const fixedCellNodes = Array.from({ length: 12 }, (_, i) => (
@@ -133,7 +123,6 @@ export const FixedGrid = () => {
 
   return <Grid isFixed>{fixedCellNodes}</Grid>;
 };
-FixedGrid.storyName = 'Fixed Grid';
 
 export const FixedGridCols = () => {
   const [fixedCols, setFixedCols] = useState<number>(4);
@@ -165,7 +154,6 @@ export const FixedGridCols = () => {
     </div>
   );
 };
-FixedGridCols.storyName = 'Fixed Grid Cols';
 
 const breakpoints = [
   { label: 'Mobile', key: 'Mobile', prop: 'fixedColsMobile' },
@@ -247,7 +235,6 @@ export const FixedGridColsByBreakpoint = () => {
     </div>
   );
 };
-FixedGridColsByBreakpoint.storyName = 'Fixed Grid Cols By Breakpoint';
 
 export const FixedGridAutoCount = () => {
   // 16 cells for this story
@@ -265,4 +252,3 @@ export const FixedGridAutoCount = () => {
     </Grid>
   );
 };
-FixedGridAutoCount.storyName = 'Fixed Grid Auto Count';

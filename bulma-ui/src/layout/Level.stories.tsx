@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import Level from './Level';
 import { Title } from '../elements/Title';
 import { Button } from '../elements/Button';
