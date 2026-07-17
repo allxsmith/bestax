@@ -337,9 +337,9 @@ pnpm dlx webpack-bundle-analyzer stats.json
 
 ### Expected Sizes
 
-- **bestax-bulma**: ~40KB (gzipped)
-- **Bulma CSS**: ~30KB (gzipped)
-- **With PurgeCSS**: Can reduce Bulma CSS further
+- **bestax-bulma JS**: ~49KB min+gzip for the _entire_ library — with named imports, tree shaking means your app ships only the components it uses.
+- **CSS (`bestax.css`, the combined Bulma + extras bundle)**: ~800KB minified on disk, ~82KB gzipped over the wire. CSS is not tree-shaken — the whole file ships regardless of which components you use. Leaner prebuilt variations and a modular Sass path exist; see [CSS Variations](/docs/guides/getting-started/variations#file-size-comparison) for measured sizes and [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css) for the full trimming playbook.
+- **PurgeCSS** can strip unused selectors further, but it is not wired into any scaffold or template — [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css#lever-2--purge-unused-selectors-build-step-biggest-win) covers the opt-in setup and the safelist patterns dynamic class names need to survive the purge.
 
 ---
 

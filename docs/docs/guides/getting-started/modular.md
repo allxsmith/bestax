@@ -278,15 +278,15 @@ These require no SCSS toolchain — swap the import path and you're done.
 
 ## Bundle size expectations
 
-- **`bestax.css`**: ~80KB gzipped (Bulma + extras, minified). Fine for most apps.
-- **Hand-rolled modular SCSS**: can cut that significantly if you only use a handful of components, but expect diminishing returns after gzip.
-- **JS bundle**: tree shaking is automatic with named imports — you don't need to do anything beyond avoiding `import * as ...`.
+- **`bestax.css`**: ~800KB minified on disk, **~82KB gzipped** over the wire (Bulma + extras). The raw number is what your bundler reports at build time; the gzipped number is what users download. Fine for most apps — but it ships in full regardless of how many components you use, because bundlers don't tree-shake CSS. See the full [File Size Comparison](/docs/guides/getting-started/variations#file-size-comparison) for every prebuilt variation, and [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css) for the complete trimming playbook.
+- **Hand-rolled modular SCSS**: can cut the CSS significantly if you only use a handful of components, but expect diminishing returns after gzip.
+- **JS bundle**: the entire library is ~49KB min+gzip, and tree shaking is automatic with named imports — you don't need to do anything beyond avoiding `import * as ...`.
 
 ## When to go modular
 
 Use this checklist before switching away from `bestax.css`:
 
 1. **Ship first with `bestax.css`.** Don't premature-optimize — many apps never need anything else.
-2. **Measure.** Use `webpack-bundle-analyzer`, `rollup-plugin-visualizer`, or your bundler's built-in stats to confirm CSS size is actually a problem.
-3. **Try a prebuilt variant** (`bestax-no-helpers.css`, `bestax-no-dark-mode.css`) before reaching for SCSS — often enough to hit the target.
+2. **Measure.** Use `webpack-bundle-analyzer`, `rollup-plugin-visualizer`, or your bundler's built-in stats to confirm CSS size is actually a problem — and judge by the **gzipped** transfer size, not the raw `dist/` number.
+3. **Try a prebuilt variant** (`bestax-no-helpers.css` saves ~15KB gzipped, `bestax-no-dark-mode.css` ~12KB) before reaching for SCSS — often enough to hit the target.
 4. **Only then reach for modular SCSS**, and keep the imports in a single entry file so they're easy to audit as the app grows.
