@@ -5,6 +5,7 @@ import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import storybookPlugin from 'eslint-plugin-storybook';
 import globals from 'globals';
 
 function cleanGlobals(obj) {
@@ -160,4 +161,9 @@ export default [
       },
     },
   },
+
+  // Storybook CSF hygiene for story files (story-exports, await-interactions,
+  // no-renderer-packages, no-redundant-story-name, etc.). Also scoped to
+  // .storybook/main.* — inert today since lint only covers src.
+  ...storybookPlugin.configs['flat/recommended'],
 ];

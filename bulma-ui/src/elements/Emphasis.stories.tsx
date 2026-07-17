@@ -78,7 +78,6 @@ export const PrimaryColor: Story = {
     children: 'Primary emphasized text',
     textColor: 'primary',
   },
-  name: 'Primary Color',
 };
 
 export const InfoColor: Story = {
@@ -86,7 +85,6 @@ export const InfoColor: Story = {
     children: 'Note this important detail',
     textColor: 'info',
   },
-  name: 'Info Color',
 };
 
 export const WithBackground: Story = {
@@ -96,7 +94,6 @@ export const WithBackground: Story = {
     textColor: 'dark',
     p: '1',
   },
-  name: 'With Background',
 };
 
 export const InlineWithText: Story = {
@@ -121,7 +118,6 @@ export const AllColors: Story = {
       <Emphasis textColor="danger">Danger emphasis</Emphasis>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const QuotationStyle: Story = {
@@ -130,7 +126,6 @@ export const QuotationStyle: Story = {
       As the saying goes, <Emphasis>actions speak louder than words</Emphasis>.
     </Paragraph>
   ),
-  name: 'Quotation Style',
 };
 
 export const TechnicalTerm: Story = {
@@ -140,5 +135,4 @@ export const TechnicalTerm: Story = {
       times without changing the result beyond the initial application.
     </Paragraph>
   ),
-  name: 'Technical Term',
 };

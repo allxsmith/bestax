@@ -73,7 +73,6 @@ export const WithVerticalMargin: Story = {
       </div>
     ),
   ],
-  name: 'With Vertical Margin',
 };
 
 export const PrimaryBackground: Story = {
@@ -89,7 +88,6 @@ export const PrimaryBackground: Story = {
       </div>
     ),
   ],
-  name: 'Primary Background',
 };
 
 export const AllColors: Story = {
@@ -110,7 +108,6 @@ export const AllColors: Story = {
       <Block>End</Block>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const SeparatingSections: Story = {
@@ -126,5 +123,4 @@ export const SeparatingSections: Story = {
       <p>This is the third section of content.</p>
     </div>
   ),
-  name: 'Separating Sections',
 };

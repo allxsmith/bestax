@@ -99,7 +99,6 @@ export const AlphabeticLowercase: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'Alphabetic Lowercase',
 };
 
 export const AlphabeticUppercase: Story = {
@@ -112,7 +111,6 @@ export const AlphabeticUppercase: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'Alphabetic Uppercase',
 };
 
 export const RomanNumerals: Story = {
@@ -125,7 +123,6 @@ export const RomanNumerals: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'Roman Numerals',
 };
 
 export const StartingNumber: Story = {
@@ -177,7 +174,6 @@ export const WithBackground: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'With Background',
 };
 
 export const NestedList: Story = {
@@ -196,5 +192,4 @@ export const NestedList: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'Nested List',
 };

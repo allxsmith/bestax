@@ -32,8 +32,6 @@ export const ColumnStart = () => (
   </Grid>
 );
 
-ColumnStart.storyName = 'Column Start';
-
 export const ColumnFromEnd = () => (
   <Grid isFixed fixedCols={4}>
     <Cell>
@@ -56,8 +54,6 @@ export const ColumnFromEnd = () => (
     </Cell>
   </Grid>
 );
-
-ColumnFromEnd.storyName = 'Column From End';
 
 export const ColumnSpan = () => (
   <Grid isFixed fixedCols={4}>
@@ -82,8 +78,6 @@ export const ColumnSpan = () => (
   </Grid>
 );
 
-ColumnSpan.storyName = 'Column Span';
-
 export const RowStart = () => (
   <Grid isFixed fixedCols={4}>
     <Cell>
@@ -106,8 +100,6 @@ export const RowStart = () => (
     </Cell>
   </Grid>
 );
-
-RowStart.storyName = 'Row Start';
 
 export const RowSpan = () => (
   <Grid isFixed fixedCols={4}>
@@ -133,5 +125,3 @@ export const RowSpan = () => (
     </Cell>
   </Grid>
 );
-
-RowSpan.storyName = 'Row Span';

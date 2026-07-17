@@ -109,5 +109,4 @@ function DemoApp() {
 
 export const InteractiveDemo: Story = {
   render: () => <DemoApp />,
-  name: 'Interactive Demo',
 };

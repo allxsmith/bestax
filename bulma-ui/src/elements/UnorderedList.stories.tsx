@@ -99,7 +99,6 @@ export const WithBackground: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'With Background',
 };
 
 export const NestedList: Story = {
@@ -118,7 +117,6 @@ export const NestedList: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'Nested List',
 };
 
 export const ColoredItems: Story = {
@@ -132,7 +130,6 @@ export const ColoredItems: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'Colored Items',
 };
 
 export const WithSpacing: Story = {
@@ -145,5 +142,4 @@ export const WithSpacing: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'With Spacing',
 };

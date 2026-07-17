@@ -80,7 +80,6 @@ const name = "World";
 console.log(\`\${greeting}, \${name}!\`);`}</Code>
     </Pre>
   ),
-  name: 'With Code Element',
 };
 
 export const DarkBackground: Story = {
@@ -91,7 +90,6 @@ npm run build`,
     textColor: 'white',
     p: '4',
   },
-  name: 'Dark Background',
 };
 
 export const LightBackground: Story = {
@@ -103,7 +101,6 @@ export const LightBackground: Story = {
     bgColor: 'light',
     p: '4',
   },
-  name: 'Light Background',
 };
 
 export const PrimaryAccent: Story = {
@@ -116,7 +113,6 @@ const config = {
     textColor: 'primary',
     p: '3',
   },
-  name: 'Primary Accent',
 };
 
 export const TerminalOutput: Story = {
@@ -132,7 +128,6 @@ dist/index.js  45.23 kB
 ✓ built in 2.34s`}
     </Pre>
   ),
-  name: 'Terminal Output',
 };
 
 export const MultipleCodeBlocks: Story = {
@@ -148,7 +143,6 @@ const add = (a: number, b: number): number => a + b;`}</Code>
       </Pre>
     </div>
   ),
-  name: 'Multiple Code Blocks',
 };
 
 export const AsciiArt: Story = {

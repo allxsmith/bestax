@@ -117,7 +117,6 @@ export const WithBackground: Story = {
       </Content>
     ),
   ],
-  name: 'With Background',
 };
 
 export const AllColors: Story = {
@@ -133,7 +132,6 @@ export const AllColors: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'All Colors',
 };
 
 export const InOrderedList: Story = {
@@ -146,7 +144,6 @@ export const InOrderedList: Story = {
       </OrderedList>
     </Content>
   ),
-  name: 'In Ordered List',
 };
 
 export const WithValue: Story = {
@@ -178,5 +175,4 @@ export const WithSpacing: Story = {
       </UnorderedList>
     </Content>
   ),
-  name: 'With Spacing',
 };

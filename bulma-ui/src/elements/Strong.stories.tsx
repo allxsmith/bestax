@@ -78,7 +78,6 @@ export const PrimaryColor: Story = {
     children: 'Primary strong text',
     textColor: 'primary',
   },
-  name: 'Primary Color',
 };
 
 export const DangerColor: Story = {
@@ -86,7 +85,6 @@ export const DangerColor: Story = {
     children: 'Important warning!',
     textColor: 'danger',
   },
-  name: 'Danger Color',
 };
 
 export const WithBackground: Story = {
@@ -96,7 +94,6 @@ export const WithBackground: Story = {
     textColor: 'dark',
     p: '1',
   },
-  name: 'With Background',
 };
 
 export const InlineWithText: Story = {
@@ -121,7 +118,6 @@ export const AllColors: Story = {
       <Strong textColor="danger">Danger strong</Strong>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const Emphasis: Story = {

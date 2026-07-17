@@ -79,7 +79,6 @@ export const VariableName: Story = {
       The <Code>userName</Code> variable stores the current user&apos;s name.
     </Paragraph>
   ),
-  name: 'Variable Name',
 };
 
 export const FunctionCall: Story = {
@@ -88,7 +87,6 @@ export const FunctionCall: Story = {
       Use <Code>Array.map()</Code> to transform each element in the array.
     </Paragraph>
   ),
-  name: 'Function Call',
 };
 
 export const CommandLine: Story = {
@@ -97,7 +95,6 @@ export const CommandLine: Story = {
       Run <Code>npm install</Code> to install the dependencies.
     </Paragraph>
   ),
-  name: 'Command Line',
 };
 
 export const WithPrimaryColor: Story = {
@@ -115,7 +112,6 @@ export const WithBackground: Story = {
     textColor: 'dark',
     p: '1',
   },
-  name: 'With Background',
 };
 
 export const AllColors: Story = {
@@ -129,7 +125,6 @@ export const AllColors: Story = {
       <Code textColor="danger">danger code</Code>
     </div>
   ),
-  name: 'All Colors',
 };
 
 export const FilePath: Story = {
@@ -139,7 +134,6 @@ export const FilePath: Story = {
       change the default values.
     </Paragraph>
   ),
-  name: 'File Path',
 };
 
 export const KeyboardShortcut: Story = {
@@ -148,5 +142,4 @@ export const KeyboardShortcut: Story = {
       Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.
     </Paragraph>
   ),
-  name: 'Keyboard Shortcut',
 };

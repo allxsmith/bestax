@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Columns } from './Columns';
 import { Column } from './Column';
 import { Notification } from '../elements/Notification';
