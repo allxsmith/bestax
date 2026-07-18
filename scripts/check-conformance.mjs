@@ -384,11 +384,6 @@ const COLOR_MODIFIER_RE =
 // one-directional by design (#285): every registered CSS var / detected
 // color-prop component must be named, but a documented entry the detector no
 // longer matches (Box, Title, SubTitle) is never flagged.
-//
-// Borderline detections stay in scope deliberately (owner call on #326): Hero
-// and Tr/Td/Th read as layout/markup, but they expose genuine public
-// `is-<color>` props, so they are documented like any other component — do
-// not carve them out with an exempt set.
 async function checkSkillsSync() {
   const violations = [];
   const refsRel = 'skills/bestax-theming/references';
