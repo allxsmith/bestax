@@ -19,6 +19,8 @@
  *   inline-style         no NEW inline style={{}} in stories/docs (ratcheted
  *                        against scripts/conformance-baseline.json; after
  *                        removing styles, shrink it with `--update-baseline`)
+ *   skills-sync          the theming skill's references name every registered
+ *                        CSS variable and every color-prop component
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
@@ -86,7 +88,12 @@ const SCSS_LEGACY_COLOR_EXEMPT = new Set([
 // hatches are excluded by rule, like in gen-component-catalog.mjs.)
 const STORY_EXEMPT = new Set([
   'FormContext', // context plumbing, no visual surface
-  'Tbody', 'Td', 'Tfoot', 'Th', 'Thead', 'Tr', // covered by Table.stories.tsx
+  'Tbody',
+  'Td',
+  'Tfoot',
+  'Th',
+  'Thead',
+  'Tr', // covered by Table.stories.tsx
 ]);
 
 // ---------------------------------------------------------------------------
@@ -147,6 +154,29 @@ async function apiComponents() {
 
 function hasHeading(src, text) {
   return new RegExp(`^#{2,3}[ \\t]+${text}[ \\t]*$`, 'm').test(src);
+}
+
+// All keys registered via `@include cv.register-vars((...))` in a partial.
+// A paren-depth scan finds each call's closing paren (values like
+// `#{hsl(cv.getVar(...))}` nest parens, so a lazy regex to `))` stops short);
+// keys are always static quoted strings, so the map-key regex is enough.
+function registerVarsKeys(src) {
+  const keys = new Set();
+  const re = /cv\.register-vars\s*\(/g;
+  while (re.exec(src)) {
+    let depth = 1;
+    let i = re.lastIndex;
+    while (i < src.length && depth > 0) {
+      if (src[i] === '(') depth++;
+      else if (src[i] === ')') depth--;
+      i++;
+    }
+    const block = src.slice(re.lastIndex, i);
+    for (const m of block.matchAll(/['"]([a-z0-9-]+)['"][ \t]*:/g)) {
+      keys.add(m[1]);
+    }
+  }
+  return keys;
 }
 
 // ---------------------------------------------------------------------------
@@ -340,6 +370,96 @@ async function checkScssConformance() {
   return violations;
 }
 
+// A component "has its own color modifier" when it interpolates a color prop
+// into a modifier class itself (`is-${color}`, Avatar's `is-${resolvedColor}`,
+// LinkButton's `link-button-${color}`) instead of only passing it to the
+// has-text-* helper. Wrapper-level unions like `is-${messageColor}` /
+// `is-${tagColor}` deliberately don't match — those files re-enter via their
+// `*Base` module.
+const COLOR_MODIFIER_RE =
+  /\b(?:is|has-background|link-button)-\$\{(?:resolved)?[cC]olor\}/;
+
+// The theming skill ships to users (bundled into create-bestax), so its two
+// reference inventories must track the library. Name-presence only, and
+// one-directional by design (#285): every registered CSS var / detected
+// color-prop component must be named, but a documented entry the detector no
+// longer matches (Box, Title, SubTitle) is never flagged.
+async function checkSkillsSync() {
+  const violations = [];
+  const refsRel = 'skills/bestax-theming/references';
+  const refsDir = join(REPO, 'skills', 'bestax-theming', 'references');
+
+  // 1. Every registered component-scoped CSS variable is named (as its full
+  //    `--bulma-*` form) in css-variables.md.
+  const varsDoc = await readFile(join(refsDir, 'css-variables.md'), 'utf8');
+  for (const dir of ['components', 'elements', 'form']) {
+    const dirPath = join(REPO, 'bulma-ui', 'src', 'scss', dir);
+    let files;
+    try {
+      files = (await readdir(dirPath)).filter(
+        f => f.endsWith('.scss') && f !== '_index.scss'
+      );
+    } catch {
+      continue;
+    }
+    for (const f of files) {
+      const keys = registerVarsKeys(await readFile(join(dirPath, f), 'utf8'));
+      // The lookahead keeps `--bulma-foo-bar` in the doc from satisfying a
+      // lookup for `--bulma-foo`.
+      const missing = [...keys]
+        .filter(k => !new RegExp(`--bulma-${k}(?![a-z0-9-])`).test(varsDoc))
+        .sort();
+      if (missing.length) {
+        violations.push(
+          `bulma-ui/src/scss/${dir}/${f} registers ${missing.length} CSS ` +
+            `variable(s) missing from ${refsRel}/css-variables.md: ` +
+            `${missing.map(k => `--bulma-${k}`).join(', ')}. Name each one ` +
+            `in that component's "Extras component variables" list — it is ` +
+            `the shipped inventory the theming skill relies on.`
+        );
+      }
+    }
+  }
+
+  // 2. Every public component with its own color modifier prop is named (as a
+  //    backticked code span) in themeable-components.md.
+  const compDoc = await readFile(
+    join(refsDir, 'themeable-components.md'),
+    'utf8'
+  );
+  const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
+  const detected = new Map(); // public name -> source rel path
+  for (const { cat, mod } of modules) {
+    let src;
+    try {
+      src = await readFile(
+        join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`),
+        'utf8'
+      );
+    } catch {
+      continue; // .ts modules (helpers) have no component surface
+    }
+    if (!COLOR_MODIFIER_RE.test(src)) continue;
+    const name = mod.replace(/Base$/, ''); // InputBase -> Input, etc.
+    if (!detected.has(name)) {
+      detected.set(name, `bulma-ui/src/${cat}/${mod}.tsx`);
+    }
+  }
+  for (const [name, rel] of [...detected].sort(([a], [b]) =>
+    a < b ? -1 : 1
+  )) {
+    if (!compDoc.includes(`\`${name}\``)) {
+      violations.push(
+        `${name} (from ${rel}) has its own \`color\` modifier prop but is ` +
+          `not named in ${refsRel}/themeable-components.md. Add a ` +
+          `\`${name}\` row to the "Component \`color\` / \`size\` props" ` +
+          `table with the verbatim color union.`
+      );
+    }
+  }
+  return violations;
+}
+
 async function checkStoryPerComponent() {
   const violations = [];
   const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
@@ -441,6 +561,7 @@ const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
   'scss-conformance': checkScssConformance,
+  'skills-sync': checkSkillsSync,
   'story-per-component': checkStoryPerComponent,
   'autodocs-tag': checkAutodocsTag,
   'inline-style': null, // handled below (takes the flag)
