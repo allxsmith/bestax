@@ -33,11 +33,19 @@ The output will appear in the `build/` directory.
 
 Contributions are welcome! Please open issues or pull requests in the [main repo](https://github.com/allxsmith/bestax-bulma).
 
-## Attribution
+## 🙏 Attribution
 
-- The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
-- Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
+bestax-bulma is built on top of the incredible [Bulma](https://bulma.io) CSS framework,
+© [Jeremy Thomas](https://github.com/jgthms) and licensed under the
+[MIT License](https://github.com/jgthms/bulma/blob/main/LICENSE). Some example content and
+documentation is adapted from the Bulma website
+([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
 
-See [Bulma’s license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
+If you find Bulma useful, please consider
+[sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support its continued
+development.
+
+_We are not affiliated with Bulma or Jeremy Thomas in any way — we're just big fans of the
+Bulma framework!_
 
 ---

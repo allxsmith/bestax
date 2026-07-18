@@ -193,24 +193,20 @@ This is a pnpm + Turborepo monorepo; contributor-facing AI context lives in [`CL
 
 ---
 
-## 🙏 Special Thanks
+## 🙏 Attribution
 
-### [Bulma](https://github.com/jgthms/bulma)
+bestax-bulma is built on top of the incredible [Bulma](https://bulma.io) CSS framework,
+© [Jeremy Thomas](https://github.com/jgthms) and licensed under the
+[MIT License](https://github.com/jgthms/bulma/blob/main/LICENSE). Some example content and
+documentation is adapted from the Bulma website
+([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
 
-bestax-bulma is built on top of the incredible [@jgthms/bulma](https://github.com/jgthms/bulma) CSS framework.
+If you find Bulma useful, please consider
+[sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support its continued
+development.
 
-If you find Bulma useful, please consider [sponsoring Jeremy Thomas](https://github.com/sponsors/jgthms) to support the continued development of Bulma.
-
-_Note: We are not affiliated with Bulma or Jeremy Thomas in any way...We're just big fans of the Bulma framework!_
-
----
-
-## Attribution
-
-- The [Bulma CSS framework](https://bulma.io) is © Jeremy Thomas and licensed under the [MIT License](https://github.com/jgthms/bulma/blob/master/LICENSE).
-- Some example content and documentation in this site is adapted from the Bulma website ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)), © Jeremy Thomas.
-
-See [Bulma's license page](https://github.com/jgthms/bulma/blob/main/LICENSE) for more details.
+_We are not affiliated with Bulma or Jeremy Thomas in any way — we're just big fans of the
+Bulma framework!_
 
 ---
 
