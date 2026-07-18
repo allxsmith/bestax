@@ -96,9 +96,10 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 | `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars` |
 | `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars` |
 
-## Extras component variables (Avatar / Avatars / Badge)
+## Extras component variables
 
-These are registered on the component's **own selector** (`.avatar`, `.avatars`, `.badge` —
+Every "Beyond Bulma" extra registers its own `--bulma-<component>-*` variables. They are
+registered on the component's **own selector** (`.avatar`, `.dialog`, `.tooltip`, … —
 `.bestax-avatar` etc. with the prefixed CSS flavor), not on `:root`. A value set on a wrapping
 ancestor — including `Theme`'s `bulmaVars` on a wrapping `Theme` — is only _inherited_ and
 always loses to the component-level declaration, so it will NOT take effect. Working overrides
@@ -107,6 +108,8 @@ target the component's own element instead: redeclare on the component's own cla
 `className` and scope the override under it
 (`.avatar.big-avatar { --bulma-avatar-size: 3.5rem; }`), or set it via the component's `style`
 prop. Several default to core theme vars above, so they already flow through a custom theme.
+
+### Avatar / Avatars / Badge
 
 | Variable                                                          | Default                          |
 | ----------------------------------------------------------------- | -------------------------------- |
@@ -122,6 +125,238 @@ prop. Several default to core theme vars above, so they already flow through a c
 | `--bulma-badge-ring-color` / `--bulma-badge-ring-width`           | `scheme-main` / `2px`            |
 | `--bulma-badge-dot-size`                                          | `0.65em`                         |
 | `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
+
+The remaining extras register the variables below — names only; each default lives in the
+component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
+own-selector override rule applies.
+
+### Autocomplete
+
+`--bulma-autocomplete-border-color`, `--bulma-autocomplete-border-hover-color`,
+`--bulma-autocomplete-dropdown-background`, `--bulma-autocomplete-dropdown-offset`,
+`--bulma-autocomplete-dropdown-padding-y`, `--bulma-autocomplete-dropdown-radius`,
+`--bulma-autocomplete-dropdown-shadow`, `--bulma-autocomplete-dropdown-z-index`,
+`--bulma-autocomplete-empty-color`, `--bulma-autocomplete-header-footer-color`,
+`--bulma-autocomplete-header-footer-padding`, `--bulma-autocomplete-header-footer-size`,
+`--bulma-autocomplete-icon-hover-color`, `--bulma-autocomplete-item-color`,
+`--bulma-autocomplete-item-disabled-color`, `--bulma-autocomplete-item-disabled-opacity`,
+`--bulma-autocomplete-item-hover-background`, `--bulma-autocomplete-item-hover-color`,
+`--bulma-autocomplete-item-large-padding`, `--bulma-autocomplete-item-medium-padding`,
+`--bulma-autocomplete-item-padding`, `--bulma-autocomplete-item-small-padding`,
+`--bulma-autocomplete-loader-active-color`, `--bulma-autocomplete-loader-border-color`,
+`--bulma-autocomplete-loader-duration`, `--bulma-autocomplete-scrollbar-thumb`,
+`--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
+`--bulma-autocomplete-scrollbar-width`
+
+### Carousel
+
+`--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
+`--bulma-carousel-arrow-color`, `--bulma-carousel-arrow-disabled-opacity`,
+`--bulma-carousel-arrow-icon-size`, `--bulma-carousel-arrow-icon-size-mobile`,
+`--bulma-carousel-arrow-offset`, `--bulma-carousel-arrow-offset-mobile`,
+`--bulma-carousel-arrow-radius`, `--bulma-carousel-arrow-size`,
+`--bulma-carousel-arrow-size-mobile`, `--bulma-carousel-fade-duration`,
+`--bulma-carousel-indicator-background`, `--bulma-carousel-indicator-background-active`,
+`--bulma-carousel-indicator-background-hover`, `--bulma-carousel-indicator-bar-height`,
+`--bulma-carousel-indicator-bar-height-mobile`, `--bulma-carousel-indicator-bar-width`,
+`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-circle-size`,
+`--bulma-carousel-indicator-gap`, `--bulma-carousel-indicator-gap-mobile`,
+`--bulma-carousel-indicator-line-height`, `--bulma-carousel-indicator-line-height-mobile`,
+`--bulma-carousel-indicator-line-radius`, `--bulma-carousel-indicator-line-width`,
+`--bulma-carousel-indicator-line-width-mobile`, `--bulma-carousel-indicator-size`,
+`--bulma-carousel-indicator-size-mobile`, `--bulma-carousel-overlay-arrow-background`,
+`--bulma-carousel-overlay-arrow-background-hover`, `--bulma-carousel-overlay-arrow-color`,
+`--bulma-carousel-overlay-indicator-background`,
+`--bulma-carousel-overlay-indicator-background-active`,
+`--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
+
+### Checkbox
+
+`--bulma-checkbox-active-color`, `--bulma-checkbox-background`, `--bulma-checkbox-border-color`,
+`--bulma-checkbox-border-width`, `--bulma-checkbox-check-color`,
+`--bulma-checkbox-focus-shadow-size`, `--bulma-checkbox-indeterminate-color`,
+`--bulma-checkbox-label-gap`, `--bulma-checkbox-radius`, `--bulma-checkbox-size`,
+`--bulma-checkbox-transition-duration`
+
+### Collapse
+
+`--bulma-collapse-border-color`, `--bulma-collapse-group-gap`, `--bulma-collapse-header-weight`,
+`--bulma-collapse-margin-bottom`, `--bulma-collapse-radius`,
+`--bulma-collapse-trigger-icon-margin`, `--bulma-collapse-trigger-icon-size`
+
+### DateInput
+
+`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
+`--bulma-dateinput-cell-hover-bg`, `--bulma-dateinput-cell-other-month-color`,
+`--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-selected-color`, `--bulma-dateinput-cell-size`,
+`--bulma-dateinput-cell-today-color`, `--bulma-dateinput-day-name-color`,
+`--bulma-dateinput-day-name-size`, `--bulma-dateinput-header-padding`,
+`--bulma-dateinput-min-width`, `--bulma-dateinput-nav-button-size`
+
+### DateTimeInput
+
+`--bulma-datetimeinput-gap`, `--bulma-datetimeinput-time-card-background`,
+`--bulma-datetimeinput-time-card-border-color`, `--bulma-datetimeinput-time-card-padding`,
+`--bulma-datetimeinput-time-card-radius`, `--bulma-datetimeinput-time-card-shadow`,
+`--bulma-datetimeinput-time-overlay-background`, `--bulma-datetimeinput-time-overlay-blur`
+
+### Dialog
+
+`--bulma-dialog-animation-duration`, `--bulma-dialog-background`, `--bulma-dialog-body-color`,
+`--bulma-dialog-body-line-height`, `--bulma-dialog-body-padding`, `--bulma-dialog-border-color`,
+`--bulma-dialog-footer-gap`, `--bulma-dialog-footer-padding`, `--bulma-dialog-header-padding`,
+`--bulma-dialog-icon-margin`, `--bulma-dialog-icon-size`, `--bulma-dialog-max-width`,
+`--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
+`--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
+
+### LinkButton
+
+`--bulma-link-button-ghost-color`, `--bulma-link-button-ghost-hover-color`,
+`--bulma-link-button-transition-duration`, `--bulma-link-button-underline-offset`
+
+### Loading
+
+`--bulma-loading-animation-duration`, `--bulma-loading-cancel-background`,
+`--bulma-loading-cancel-border-color`, `--bulma-loading-cancel-color`,
+`--bulma-loading-cancel-hover-border-color`, `--bulma-loading-cancel-hover-color`,
+`--bulma-loading-cancel-radius`, `--bulma-loading-cancel-size`, `--bulma-loading-content-gap`,
+`--bulma-loading-icon-border-width`, `--bulma-loading-icon-border-width-large`,
+`--bulma-loading-icon-border-width-medium`, `--bulma-loading-icon-border-width-small`,
+`--bulma-loading-icon-size`, `--bulma-loading-icon-size-large`,
+`--bulma-loading-icon-size-medium`, `--bulma-loading-icon-size-small`,
+`--bulma-loading-icon-spin-color`, `--bulma-loading-overlay-background`,
+`--bulma-loading-overlay-fullpage-opacity`, `--bulma-loading-overlay-opacity`,
+`--bulma-loading-overlay-opacity-dark`, `--bulma-loading-overlay-opacity-light`,
+`--bulma-loading-overlay-opacity-opaque`, `--bulma-loading-text-color`,
+`--bulma-loading-text-size`
+
+### Numberinput
+
+`--bulma-numberinput-disabled-opacity`, `--bulma-numberinput-rounded-button-size`,
+`--bulma-numberinput-stepper-border-color`, `--bulma-numberinput-stepper-button-color`,
+`--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
+`--bulma-numberinput-stepper-width`
+
+### Picker popover (DateInput / TimeInput / DateTimeInput)
+
+`--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
+`--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
+`--bulma-picker-popover-padding`, `--bulma-picker-popover-radius`,
+`--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
+`--bulma-picker-trigger-color`, `--bulma-picker-trigger-hover-color`,
+`--bulma-picker-trigger-width`
+
+### Radio
+
+`--bulma-radio-active-color`, `--bulma-radio-background`, `--bulma-radio-border-color`,
+`--bulma-radio-border-width`, `--bulma-radio-dot-color`, `--bulma-radio-focus-shadow-size`,
+`--bulma-radio-label-gap`, `--bulma-radio-size`, `--bulma-radio-transition-duration`
+
+### Rate
+
+`--bulma-rate-color-active`, `--bulma-rate-color-hover`, `--bulma-rate-color-inactive`,
+`--bulma-rate-disabled-opacity`, `--bulma-rate-font-icon-size`,
+`--bulma-rate-font-icon-size-large`, `--bulma-rate-font-icon-size-medium`,
+`--bulma-rate-font-icon-size-small`, `--bulma-rate-gap`, `--bulma-rate-icon-size`,
+`--bulma-rate-icon-size-large`, `--bulma-rate-icon-size-medium`, `--bulma-rate-icon-size-small`,
+`--bulma-rate-pop-scale`, `--bulma-rate-score-color`, `--bulma-rate-score-weight`,
+`--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
+`--bulma-rate-transition-duration`
+
+### Reveal
+
+`--bulma-reveal-duration`, `--bulma-reveal-easing`, `--bulma-reveal-flip-angle`,
+`--bulma-reveal-offset`, `--bulma-reveal-offset-large`, `--bulma-reveal-scale`
+
+### Sidebar
+
+`--bulma-sidebar-background`, `--bulma-sidebar-close-color`,
+`--bulma-sidebar-close-hover-background`, `--bulma-sidebar-close-line-width`,
+`--bulma-sidebar-close-radius`, `--bulma-sidebar-close-size`, `--bulma-sidebar-content-padding`,
+`--bulma-sidebar-footer-border-color`, `--bulma-sidebar-footer-margin-top`,
+`--bulma-sidebar-footer-padding`, `--bulma-sidebar-header-border-color`,
+`--bulma-sidebar-header-margin-bottom`, `--bulma-sidebar-header-padding`,
+`--bulma-sidebar-menu-item-active-background`, `--bulma-sidebar-menu-item-active-color`,
+`--bulma-sidebar-menu-item-hover-background`, `--bulma-sidebar-menu-item-padding`,
+`--bulma-sidebar-menu-item-radius`, `--bulma-sidebar-overlay-background`,
+`--bulma-sidebar-scrollbar-color`, `--bulma-sidebar-scrollbar-color-hover`,
+`--bulma-sidebar-scrollbar-width`, `--bulma-sidebar-shadow`,
+`--bulma-sidebar-static-border-color`, `--bulma-sidebar-title-color`,
+`--bulma-sidebar-title-size`, `--bulma-sidebar-title-weight`,
+`--bulma-sidebar-transition-duration`, `--bulma-sidebar-width`
+
+### Slider
+
+`--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
+`--bulma-slider-output-background`, `--bulma-slider-output-color`,
+`--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
+`--bulma-slider-thumb-border`, `--bulma-slider-thumb-color`, `--bulma-slider-thumb-shadow`,
+`--bulma-slider-thumb-size`, `--bulma-slider-thumb-size-large`,
+`--bulma-slider-thumb-size-medium`, `--bulma-slider-thumb-size-small`,
+`--bulma-slider-tick-color`, `--bulma-slider-tick-height`, `--bulma-slider-tick-label-color`,
+`--bulma-slider-tick-label-font-size`, `--bulma-slider-tick-opacity`,
+`--bulma-slider-tick-width`, `--bulma-slider-track-color`, `--bulma-slider-track-height`,
+`--bulma-slider-track-height-large`, `--bulma-slider-track-height-medium`,
+`--bulma-slider-track-height-small`, `--bulma-slider-transition-duration`,
+`--bulma-slider-vertical-height`
+
+### Steps
+
+`--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,
+`--bulma-steps-default-color`, `--bulma-steps-divider-height`, `--bulma-steps-marker-background`,
+`--bulma-steps-marker-font-size`, `--bulma-steps-marker-font-weight`,
+`--bulma-steps-marker-size`, `--bulma-steps-marker-size-large`,
+`--bulma-steps-marker-size-medium`, `--bulma-steps-marker-size-small`,
+`--bulma-steps-navigation-margin-top`, `--bulma-steps-title-active-color`,
+`--bulma-steps-title-active-weight`, `--bulma-steps-title-color`, `--bulma-steps-title-size`,
+`--bulma-steps-title-weight`, `--bulma-steps-vertical-content-margin-left`,
+`--bulma-steps-vertical-padding`
+
+### Switch
+
+`--bulma-switch-active-color`, `--bulma-switch-background`, `--bulma-switch-border-width`,
+`--bulma-switch-circle-color`, `--bulma-switch-circle-shadow`, `--bulma-switch-focus-shadow`,
+`--bulma-switch-height`, `--bulma-switch-label-gap`, `--bulma-switch-padding`,
+`--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
+`--bulma-switch-transition-duration`, `--bulma-switch-width`
+
+### Tabs
+
+`--bulma-tabs-content-padding`, `--bulma-tabs-vertical-border-color`,
+`--bulma-tabs-vertical-border-width`, `--bulma-tabs-vertical-min-width`
+
+### Taginput
+
+`--bulma-taginput-background`, `--bulma-taginput-border-color`, `--bulma-taginput-border-radius`,
+`--bulma-taginput-dropdown-max-height`, `--bulma-taginput-height`, `--bulma-taginput-min-height`,
+`--bulma-taginput-padding`, `--bulma-taginput-tag-gap`, `--bulma-taginput-transition-duration`
+
+### TimeInput
+
+`--bulma-timeinput-footer-padding`, `--bulma-timeinput-separator-color`,
+`--bulma-timeinput-separator-size`, `--bulma-timeinput-wheel-bg`,
+`--bulma-timeinput-wheel-color`, `--bulma-timeinput-wheel-dim-color`,
+`--bulma-timeinput-wheel-gap`, `--bulma-timeinput-wheel-hover-bg`,
+`--bulma-timeinput-wheel-item-height`, `--bulma-timeinput-wheel-mask`,
+`--bulma-timeinput-wheel-radius`, `--bulma-timeinput-wheel-selected-bg`,
+`--bulma-timeinput-wheel-selected-color`, `--bulma-timeinput-wheel-width`
+
+### Toast
+
+`--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
+`--bulma-toast-action-weight`, `--bulma-toast-animation-duration`, `--bulma-toast-background`,
+`--bulma-toast-color`, `--bulma-toast-gap`, `--bulma-toast-max-width`,
+`--bulma-toast-message-size`, `--bulma-toast-min-width`, `--bulma-toast-padding`,
+`--bulma-toast-radius`, `--bulma-toast-shadow`
+
+### Tooltip
+
+`--bulma-tooltip-arrow-margin`, `--bulma-tooltip-arrow-size`, `--bulma-tooltip-background`,
+`--bulma-tooltip-color`, `--bulma-tooltip-dashed-color`, `--bulma-tooltip-font-size`,
+`--bulma-tooltip-font-weight`, `--bulma-tooltip-line-height`, `--bulma-tooltip-max-width`,
+`--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
+`--bulma-tooltip-z-index`
 
 ## Dark mode (`Theme colorMode`)
 
