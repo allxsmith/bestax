@@ -108,6 +108,9 @@ of maintaining the import list as your usage grows.
 
 ## Related
 
+- [Optimize skill](../../skills/optimize.mdx) — an Agent Skill that applies this guide's
+  levers to your app (measure, flavor switch, modular build) via Claude Code or any
+  skills.sh-compatible agent.
 - [CSS Variations](./variations.md) — what each flavor includes.
 - [Modular](./modular.md) — JS tree-shaking and the three CSS loading strategies.
 - [Dark Mode & Contrast](../features/css-variables.md#dark-mode--contrast) — pin the scheme

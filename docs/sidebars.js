@@ -37,6 +37,7 @@ const sidebars = {
         'skills/theming',
         'skills/layout-scaffold',
         'skills/icons',
+        'skills/optimize',
       ],
     },
   ],
