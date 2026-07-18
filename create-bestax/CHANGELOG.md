@@ -1,3 +1,10 @@
+## [3.3.3](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.2...create-bestax@3.3.3) (2026-07-18)
+
+
+### Bug Fixes
+
+* **create-bestax:** skills-sync conformance gate + theming skill reference backfill ([#326](https://github.com/allxsmith/bestax/issues/326)) ([9584133](https://github.com/allxsmith/bestax/commit/95841337838139f2e32c482641d7d6c6305800fb)), closes [#285](https://github.com/allxsmith/bestax/issues/285)
+
 ## [3.3.2](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.1...create-bestax@3.3.2) (2026-07-15)
 
 
