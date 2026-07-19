@@ -43,8 +43,8 @@ export function Chrome({ page, setPage }: { page: number; setPage: (p: number) =
       </Menu>
       <Tabs align="centered" fullwidth toggle rounded>
         <Tabs.List>
-          <Tabs.Item active>Pictures</Tabs.Item>
-          <Tabs.Item>Music</Tabs.Item>
+          <Tabs.Item active><a>Pictures</a></Tabs.Item>
+          <Tabs.Item><a>Music</a></Tabs.Item>
         </Tabs.List>
       </Tabs>
       <Panel color="info">

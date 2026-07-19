@@ -25,7 +25,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 | `Icon`         | `Icon`                                       | `<i class="fas fa-x">` children → `name`/`library`/`variant` props; else flagged      |
 | `Image`        | `Image`                                      | Auto; numeric `size={128}` → `size="128x128"`, `rounded`→`isRounded`                  |
 | `Level`        | `Level`                                      | Auto; `breakpoint="mobile"`→`isMobile`                                                |
-| `Loader`       | `Loading`                                    | Auto (adds `active`)                                                                  |
+| `Loader`       | plain `<div className="loader">`             | Auto (Bulma v1 still ships the class)                                                 |
 | `Media`        | `Media`                                      | Auto                                                                                  |
 | `Menu`         | `Menu`                                       | Auto                                                                                  |
 | `Message`      | `Message`                                    | Auto; `size` flagged                                                                  |

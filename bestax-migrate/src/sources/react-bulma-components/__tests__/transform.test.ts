@@ -106,7 +106,22 @@ describe('react-bulma-components transform fixtures', () => {
       add: entry => todos.push(entry),
     });
     expect(todos.some(t => t.rule === 'imports')).toBe(true);
-    expect(output).toContain('<Input />');
+    // The unresolved destructure keeps its `Input` binding, so the new
+    // import is aliased and the JSX points at the alias.
+    expect(output).toContain('Input as BulmaInput');
+    expect(output).toContain('<BulmaInput />');
+  });
+
+  it('aliases imports that collide with local bindings', () => {
+    const source = [
+      "import { Form } from 'react-bulma-components';",
+      'export const Field = (args) => <Form.Field {...args} />;',
+    ].join('\n');
+    const { output } = runTransform(transform, 'collision.tsx', source);
+    expect(output).toContain(
+      'import { Field as BulmaField } from "@allxsmith/bestax-bulma";'
+    );
+    expect(output).toContain('<BulmaField {...args} />');
   });
 
   it('prunes only the RBC declarator from multi-declarator statements', () => {

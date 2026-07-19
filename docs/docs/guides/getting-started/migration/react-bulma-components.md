@@ -36,7 +36,7 @@ in place:
 - **Components** — all 32 components and their compound sub-components are mapped, e.g.
   `Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` →
   `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading subtitle` → `SubTitle`,
-  `Level.Side align="right"` → `Level.Right`, `Loader` → `Loading`.
+  `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
 - **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullWidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped

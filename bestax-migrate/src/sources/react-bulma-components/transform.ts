@@ -16,7 +16,7 @@
 
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
-import { resolveMapping } from './mapping.js';
+import { MAPPING, resolveMapping } from './mapping.js';
 import {
   addTodo,
   attributesOf,
@@ -47,7 +47,8 @@ export default function transform(
     file: fileInfo.path,
     collector: options.collector,
     retained: new Set<string>(),
-    needed: new Set<string>(),
+    needed: new Map<string, string>(),
+    reserve: root => root, // replaced below once local bindings are known
     overrides: new WeakMap<object, string>(),
     dirty: false,
   };
@@ -163,6 +164,85 @@ export default function transform(
 
   ctx.resolve = resolveJsxPath;
 
+  // ---- 1c. Collect local bindings so new imports never collide -----------
+  // A file may already bind names like `Field` or `Control` (components,
+  // variables, function params); importing the bestax component under the
+  // same name would redeclare it, so those imports get a Bulma* alias.
+  const bound = new Set<string>();
+  const collectPattern = (node: any): void => {
+    if (!node) return;
+    switch (node.type) {
+      case 'Identifier':
+        bound.add(node.name);
+        break;
+      case 'ObjectPattern':
+        for (const prop of node.properties ?? []) {
+          collectPattern(prop.value ?? prop.argument);
+        }
+        break;
+      case 'ArrayPattern':
+        for (const el of node.elements ?? []) collectPattern(el);
+        break;
+      case 'RestElement':
+        collectPattern(node.argument);
+        break;
+      case 'AssignmentPattern':
+        collectPattern(node.left);
+        break;
+    }
+  };
+  root.find(j.VariableDeclarator).forEach(path => collectPattern(path.node.id));
+  root.find(j.FunctionDeclaration).forEach(path => {
+    if (path.node.id) bound.add(nameOf(path.node.id));
+    for (const param of path.node.params ?? []) collectPattern(param);
+  });
+  root
+    .find(j.ClassDeclaration)
+    .forEach(path => path.node.id && bound.add(nameOf(path.node.id)));
+  root.find(j.FunctionExpression).forEach(path => {
+    for (const param of path.node.params ?? []) collectPattern(param);
+  });
+  root.find(j.ArrowFunctionExpression).forEach(path => {
+    for (const param of path.node.params ?? []) collectPattern(param);
+  });
+  root.find(j.ImportDeclaration).forEach(path => {
+    if (String(path.node.source.value) === RBC) return; // pruned later
+    for (const spec of path.node.specifiers ?? []) {
+      if (spec.local) bound.add(nameOf(spec.local));
+    }
+  });
+
+  ctx.reserve = (importedName: string): string => {
+    const existing = ctx.needed.get(importedName);
+    if (existing) return existing;
+    let local = importedName;
+    if (bound.has(local)) {
+      local = `Bulma${importedName}`;
+      let suffix = 2;
+      const locals = new Set(ctx.needed.values());
+      while (bound.has(local) || locals.has(local)) {
+        local = `Bulma${importedName}${suffix}`;
+        suffix += 1;
+      }
+    }
+    ctx.needed.set(importedName, local);
+    return local;
+  };
+
+  // Merge with an existing bestax import: reuse its locals verbatim.
+  const existingBestax = root
+    .find(j.ImportDeclaration, { source: { value: BESTAX } })
+    .paths()[0];
+  const preExistingImports = new Set<string>();
+  if (existingBestax) {
+    for (const spec of existingBestax.node.specifiers ?? []) {
+      if (spec.type === 'ImportSpecifier' && spec.local) {
+        ctx.needed.set(nameOf(spec.imported), nameOf(spec.local));
+        preExistingImports.add(nameOf(spec.imported));
+      }
+    }
+  }
+
   // ---- 2. Transform JSX elements ----------------------------------------
   root.find(j.JSXElement).forEach(path => {
     const element = path.node;
@@ -209,13 +289,14 @@ export default function transform(
 
     if (!target) return;
 
-    // Rename to the bestax name and register the import root.
+    // Rename to the bestax name, aliasing the import root on collision.
+    const [targetRoot, ...targetRest] = target.split('.');
+    const localTarget = [ctx.reserve(targetRoot), ...targetRest].join('.');
     const currentParts = jsxNameParts(element.openingElement.name);
-    if (!currentParts || currentParts.join('.') !== target) {
-      renameElement(j, element, target);
+    if (!currentParts || currentParts.join('.') !== localTarget) {
+      renameElement(j, element, localTarget);
       ctx.dirty = true;
     }
-    ctx.needed.add(target.split('.')[0]);
 
     // Responsive breakpoint objects (with Columns/Column extensions).
     const kind = mapping.special
@@ -236,39 +317,138 @@ export default function transform(
     applyUniversalProps(ctx, path, element, handled);
   });
 
+  // ---- 2b. Value references to RBC components ---------------------------
+  // Components can be referenced as plain values too (`renderAs={Block}`,
+  // passed to helpers, …). JSX usages were renamed above; map the leftover
+  // identifier references so the pruned RBC import doesn't strand them.
+  root.find(j.Identifier).forEach(path => {
+    // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
+    // were already handled by the element walker above.
+    if (path.node.type !== 'Identifier') return;
+    const name = path.node.name;
+    const imported = imports.get(name);
+    if (imported === undefined || imported === '*') return;
+    const parentNode = path.parent?.node;
+    const parentType = parentNode?.type;
+    if (
+      parentType === 'ImportSpecifier' ||
+      parentType === 'ImportDefaultSpecifier' ||
+      parentType === 'ImportNamespaceSpecifier' ||
+      parentType === 'JSXOpeningElement' ||
+      parentType === 'JSXClosingElement' ||
+      parentType === 'JSXMemberExpression'
+    ) {
+      return;
+    }
+    // Non-reference positions: member property names and object keys.
+    if (
+      parentType === 'MemberExpression' &&
+      parentNode.property === path.node &&
+      !parentNode.computed
+    ) {
+      return;
+    }
+    // Member-expression value references (`Icon.Text`, `Columns.Column` used
+    // as expressions): resolve the full chain; when the bestax target is the
+    // same dotted chain the runtime compound still exists — only flag (or
+    // rewrite, for flat single-name targets) when it differs.
+    if (
+      parentType === 'MemberExpression' &&
+      parentNode.object === path.node &&
+      !parentNode.computed
+    ) {
+      const memberPath = [imported, nameOf(parentNode.property)];
+      const memberMapping = resolveMapping(memberPath);
+      const dotted = memberPath.join('.');
+      if (
+        memberMapping &&
+        memberMapping.status !== 'todo' &&
+        memberMapping.target &&
+        !memberMapping.special
+      ) {
+        if (memberMapping.target === dotted) {
+          // Same compound exists on the bestax component at runtime.
+          const rootMapping = MAPPING[imported];
+          if (rootMapping?.target) {
+            const local = ctx.reserve(rootMapping.target);
+            if (local !== name) path.node.name = local;
+            ctx.dirty = true;
+          }
+          return;
+        }
+        if (!memberMapping.target.includes('.')) {
+          // Flat target (Icon.Text → IconText): swap the member expression.
+          const local = ctx.reserve(memberMapping.target);
+          path.parent.replace(j.identifier(local));
+          ctx.dirty = true;
+          return;
+        }
+      }
+      addTodo(
+        ctx,
+        path.parent,
+        'value-reference',
+        `\`${dotted}\` is referenced as a value; migrate this usage by hand`
+      );
+      ctx.retained.add(imported);
+      return;
+    }
+    if (
+      (parentType === 'ObjectProperty' || parentType === 'Property') &&
+      parentNode.key === path.node &&
+      !parentNode.shorthand
+    ) {
+      return;
+    }
+    const mapping = MAPPING[imported];
+    if (
+      mapping &&
+      mapping.status !== 'todo' &&
+      mapping.target &&
+      !mapping.target.includes('.')
+    ) {
+      const local = ctx.reserve(mapping.target);
+      if (local !== name) path.node.name = local;
+      ctx.dirty = true;
+    } else {
+      ctx.retained.add(imported);
+      addTodo(
+        ctx,
+        path,
+        'value-reference',
+        `\`${name}\` is referenced as a value; migrate this usage by hand`
+      );
+    }
+  });
+
   // ---- 3. Rewrite imports -----------------------------------------------
   if (imports.size > 0) {
     const retainedNames = [...ctx.retained].sort((a, b) => a.localeCompare(b));
 
-    // Merge with an existing bestax import if the file already has one.
-    const existingBestax = root
-      .find(j.ImportDeclaration, { source: { value: BESTAX } })
-      .paths()[0];
-    if (existingBestax) {
-      for (const spec of existingBestax.node.specifiers ?? []) {
-        if (spec.type === 'ImportSpecifier')
-          ctx.needed.delete(nameOf(spec.imported));
-      }
-    }
-
-    const freshNames = [...ctx.needed].sort((a, b) => a.localeCompare(b));
+    const freshNames = [...ctx.needed.entries()]
+      .filter(([imported]) => !preExistingImports.has(imported))
+      .sort((a, b) => a[0].localeCompare(b[0]));
     const bestaxImport =
       freshNames.length > 0
         ? j.importDeclaration(
-            freshNames.map(name =>
-              j.importSpecifier(j.identifier(name), j.identifier(name))
+            freshNames.map(([imported, local]) =>
+              j.importSpecifier(j.identifier(imported), j.identifier(local))
             ),
             j.stringLiteral(BESTAX)
           )
         : null;
 
     let inserted = false;
+    // A retained RBC specifier must never collide with a bestax import local
+    // (possible when one component is both JSX-migrated and value-retained).
+    const bestaxLocals = new Set(ctx.needed.values());
     for (const path of rbcImportPaths) {
       const node = path.node;
       const keepSpecifiers = (node.specifiers ?? []).filter(
         (spec: any) =>
           spec.type === 'ImportSpecifier' &&
-          ctx.retained.has(nameOf(spec.imported))
+          ctx.retained.has(nameOf(spec.imported)) &&
+          !bestaxLocals.has(nameOf(spec.local))
       );
       if (!inserted) {
         if (existingBestax && bestaxImport) {

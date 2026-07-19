@@ -18,8 +18,14 @@ export interface TransformContext {
   collector: TodoCollector | undefined;
   /** RBC top-level import names that must survive the import rewrite. */
   retained: Set<string>;
-  /** bestax-bulma root names to import. */
-  needed: Set<string>;
+  /** bestax-bulma imports: imported name → local name (aliased on conflict). */
+  needed: Map<string, string>;
+  /**
+   * Registers a bestax root name for import and returns the local name to use
+   * in JSX — an alias like `BulmaField` when the plain name collides with an
+   * existing binding in the file.
+   */
+  reserve: (root: string) => string;
   /**
    * Target overrides set by a parent's structural handler for child elements
    * it has contextual knowledge about (e.g. a Navbar.Dropdown inside a

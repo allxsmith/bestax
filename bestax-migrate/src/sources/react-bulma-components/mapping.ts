@@ -515,10 +515,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
   },
   Loader: {
-    // RBC Loader is an inline spinner; bestax Loading needs active to render.
+    // RBC Loader is literally <div class="loader"> and Bulma v1 still ships
+    // that class — a plain element is the faithful conversion (bestax
+    // Loading is an overlay-style component, not an inline spinner).
     status: 'mapped',
-    target: 'Loading',
-    special: 'loader',
+    special: 'plain-loader',
   },
   Media: {
     // bestax Media has no attached compounds; the parts are flat exports.
@@ -749,7 +750,12 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
     },
     subs: {
-      Tab: { status: 'mapped', target: 'Tabs.Item', props: activeKept },
+      Tab: {
+        status: 'mapped',
+        target: 'Tabs.Item',
+        special: 'tab-item',
+        props: activeKept,
+      },
     },
   },
   Tag: {

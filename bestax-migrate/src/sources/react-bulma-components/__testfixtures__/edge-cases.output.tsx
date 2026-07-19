@@ -35,7 +35,7 @@ export function EdgeCases({
       <Block tablet={{ only: true }} mobile={{ flexWrap: 'wrap' }} visibilityDesktop="hidden">
         Odd responsive keys
       </Block>
-      <Columns touch={{ gap: 2 }} gapTablet={3}>
+      <Columns touch={{ gap: 2 }} isMultiline gapTablet={3}>
         <Column isNarrowWidescreen>One</Column>
       </Columns>
       <Level>

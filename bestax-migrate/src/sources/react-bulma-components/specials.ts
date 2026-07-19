@@ -138,12 +138,47 @@ function parseIconClasses(
 }
 
 const SPECIALS: Record<string, SpecialHandler> = {
+  /**
+   * RBC defaults Columns `multiline` to TRUE (Bulma and bestax default to
+   * false). Absent → inject isMultiline; dynamic → `expr ?? true` so an
+   * undefined value keeps falling back to the RBC default.
+   */
+  columns(ctx, _path, element) {
+    const attr = findAttr(element, 'multiline');
+    if (!attr) {
+      if (!findAttr(element, 'isMultiline')) {
+        addAttr(element, makeAttr(ctx.j, 'isMultiline'));
+        ctx.dirty = true;
+      }
+      return { handledProps: ['multiline'] };
+    }
+    const literal = literalValueOf(attr);
+    if (literal.kind === 'boolean') {
+      if (literal.value) {
+        attr.name = ctx.j.jsxIdentifier('isMultiline');
+        attr.value = null;
+      } else {
+        removeAttr(element, attr);
+      }
+    } else if (literal.kind === 'expression') {
+      attr.name = ctx.j.jsxIdentifier('isMultiline');
+      attr.value = ctx.j.jsxExpressionContainer(
+        ctx.j.logicalExpression(
+          '??',
+          attr.value.expression,
+          ctx.j.booleanLiteral(true)
+        )
+      );
+    }
+    ctx.dirty = true;
+    return { handledProps: ['multiline'] };
+  },
+
   /** `<Button remove />` is Bulma's delete cross → bestax `<Delete />`. */
   button(ctx, _path, element) {
     const attr = findAttr(element, 'remove');
     if (!attr) return {};
     removeAttr(element, attr);
-    ctx.needed.add('Delete');
     ctx.dirty = true;
     return { target: 'Delete' };
   },
@@ -245,7 +280,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     const inner = ctx.j.jsxElement(
-      ctx.j.jsxOpeningElement(ctx.j.jsxIdentifier('Image'), imageAttrs, true),
+      ctx.j.jsxOpeningElement(
+        ctx.j.jsxIdentifier(ctx.reserve('Image')),
+        imageAttrs,
+        true
+      ),
       null,
       []
     );
@@ -254,10 +293,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     element.children = [inner];
     element.openingElement.selfClosing = false;
+    // The walker's rename pass rewrites both names to the final (possibly
+    // aliased) Card.Image afterwards.
     element.closingElement = ctx.j.jsxClosingElement(
       buildJsxName(ctx.j, 'Card.Image')
     );
-    ctx.needed.add('Image');
     ctx.dirty = true;
     return {};
   },
@@ -496,13 +536,30 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** RBC Loader renders unconditionally; bestax Loading needs `active`. */
-  loader(ctx, _path, element) {
-    if (!findAttr(element, 'active')) {
-      addAttr(element, makeAttr(ctx.j, 'active'));
-      ctx.dirty = true;
+  /** RBC Loader is a plain <div class="loader"> — keep exactly that. */
+  'plain-loader'(ctx, path, element) {
+    const clsAttr = findAttr(element, 'className');
+    let className = 'loader';
+    if (clsAttr) {
+      const literal = literalValueOf(clsAttr);
+      if (literal.kind === 'string') {
+        className = `loader ${literal.value}`;
+      } else {
+        addTodo(
+          ctx,
+          path,
+          'prop:className',
+          'dynamic Loader className; merge it with the `loader` class by hand'
+        );
+      }
+      removeAttr(element, clsAttr);
     }
-    return {};
+    const rest = stripModifierProps(ctx, path, attributesOf(element), 'Loader');
+    path.replace(
+      plainElement(ctx.j, 'div', className, rest, element.children ?? [])
+    );
+    ctx.dirty = true;
+    return { replaced: true };
   },
 
   /** Menu.List title="X" → a <Menu.Label>X</Menu.Label> sibling before the list. */
@@ -520,23 +577,21 @@ const SPECIALS: Record<string, SpecialHandler> = {
       return {};
     }
     const j = ctx.j;
+    const menuLocal = ctx.reserve('Menu');
     const labelChildren =
       attr.value == null
         ? []
         : attr.value.type === 'StringLiteral'
           ? [j.jsxText(attr.value.value)]
           : [attr.value]; // JSXExpressionContainer carries over as a child
+    const labelName = () =>
+      j.jsxMemberExpression(
+        j.jsxIdentifier(menuLocal),
+        j.jsxIdentifier('Label')
+      );
     const label = j.jsxElement(
-      j.jsxOpeningElement(
-        j.jsxMemberExpression(
-          j.jsxIdentifier('Menu'),
-          j.jsxIdentifier('Label')
-        ),
-        []
-      ),
-      j.jsxClosingElement(
-        j.jsxMemberExpression(j.jsxIdentifier('Menu'), j.jsxIdentifier('Label'))
-      ),
+      j.jsxOpeningElement(labelName(), []),
+      j.jsxClosingElement(labelName()),
       labelChildren
     );
     removeAttr(element, attr);
@@ -544,7 +599,6 @@ const SPECIALS: Record<string, SpecialHandler> = {
     if (index !== -1) {
       parent.children.splice(index, 0, label, j.jsxText('\n'));
     }
-    ctx.needed.add('Menu');
     ctx.dirty = true;
     return {};
   },
@@ -665,6 +719,43 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { replaced: true };
   },
 
+  /**
+   * RBC Tabs.Tab renders its own anchor; bestax Tabs.Item is the bare <li>
+   * and Bulma styles `.tabs li a` — wrap the children in an <a> unless one
+   * is already there.
+   */
+  'tab-item'(ctx, path, element) {
+    const children = element.children ?? [];
+    const solid = children.filter(
+      (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
+    );
+    if (solid.length === 0) return {};
+    const alreadyAnchor =
+      solid.length === 1 &&
+      solid[0].type === 'JSXElement' &&
+      solid[0].openingElement.name.type === 'JSXIdentifier' &&
+      solid[0].openingElement.name.name === 'a';
+    if (alreadyAnchor) return {};
+    const anchorAttrs = stripModifierProps(
+      ctx,
+      path,
+      attributesOf(element).filter(
+        a => !['active', 'className'].includes(a.name.name)
+      ),
+      'Tabs.Tab'
+    );
+    for (const attr of attributesOf(element)) {
+      if (!['active', 'className'].includes(attr.name.name)) {
+        removeAttr(element, attr);
+      }
+    }
+    element.children = [
+      plainElement(ctx.j, 'a', undefined, anchorAttrs, children),
+    ];
+    ctx.dirty = true;
+    return {};
+  },
+
   /** RBC Tabs children sit directly under .tabs; bestax needs a Tabs.List. */
   tabs(ctx, _path, element) {
     const children = element.children ?? [];
@@ -673,8 +764,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     if (!hasContent) return {};
     const j = ctx.j;
+    const tabsLocal = ctx.reserve('Tabs');
     const listName = () =>
-      j.jsxMemberExpression(j.jsxIdentifier('Tabs'), j.jsxIdentifier('List'));
+      j.jsxMemberExpression(
+        j.jsxIdentifier(tabsLocal),
+        j.jsxIdentifier('List')
+      );
     const list = j.jsxElement(
       j.jsxOpeningElement(listName(), []),
       j.jsxClosingElement(listName()),

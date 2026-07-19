@@ -1,4 +1,4 @@
-import { Icon, IconText, Loading, Message, Modal, Progress, Table } from "@allxsmith/bestax-bulma";
+import { Icon, IconText, Message, Modal, Progress, Table } from "@allxsmith/bestax-bulma";
 
 export function Overlays({ show, close }: { show: boolean; close: () => void }) {
   // TODO(bestax-migrate): `closeOnBlur` — bestax Modal background click closes when onClose is set; remove
@@ -16,7 +16,7 @@ export function Overlays({ show, close }: { show: boolean; close: () => void }) 
               <Message.Body>Read carefully</Message.Body>
             </Message>
             <Progress value={30} max={100} color="info" size="small" />
-            <Loading active />
+            <div className="loader"></div>
           </Modal.Card.Body>
           <Modal.Card.Foot>
             <Icon color="success" name="check" library="fa" variant="solid" />
