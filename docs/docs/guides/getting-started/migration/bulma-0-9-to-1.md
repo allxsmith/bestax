@@ -252,23 +252,14 @@ Consider migrating to CSS variables for runtime flexibility:
 
 ## Migration tool
 
-:::info Coming soon
-The migration tool described below is in development and not yet published. The command will eventually be `pnpm dlx bestax-bulma-migrate`. In the meantime, the manual steps in this guide cover the same ground.
-:::
-
-We're developing a migration tool to help you transition from older React Bulma libraries to bestax-bulma:
+If you're coming from **react-bulma-components**, the [`bestax-migrate`](./react-bulma-components.md) codemod automates the component-level migration:
 
 ```bash
-# Coming soon: Automated migration tool
-pnpm dlx bestax-bulma-migrate
+pnpm dlx bestax-migrate react-bulma-components src/ --dry   # preview
+pnpm dlx bestax-migrate react-bulma-components src/         # apply
 ```
 
-This tool will use jscodeshift to:
-
-- Update imports from older React Bulma packages.
-- Migrate from Bulma v0.9.4 class patterns to v1.x.
-- Convert deprecated Tile usage to Grid components.
-- Update theme and configuration patterns.
+It uses jscodeshift to rewrite imports, component names, and props onto bestax-bulma, flattens responsive breakpoint objects, and leaves a `TODO(bestax-migrate)` comment (plus an end-of-run report) at every site it can't convert safely — including deprecated Tile usage, which maps to the new [Grid](/docs/api/grid/grid) components. See the [full guide](./react-bulma-components.md); the CSS-level steps on this page still apply afterwards.
 
 ### Request migration support
 

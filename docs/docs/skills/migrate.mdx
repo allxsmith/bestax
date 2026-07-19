@@ -1,0 +1,53 @@
+---
+title: Migrate
+sidebar_label: Migrate
+sidebar_position: 7
+---
+
+# Migrate skill
+
+The [`bestax-migrate`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/SKILL.md)
+skill teaches an agent to move an existing app from
+[`react-bulma-components`](https://github.com/couds/react-bulma-components) (unmaintained since
+2022, Bulma 0.9.x) to `@allxsmith/bestax-bulma` on Bulma v1. It drives the
+[`bestax-migrate` codemod](../guides/getting-started/migration/react-bulma-components.md) and then
+resolves everything the codemod flags.
+
+Unlike the other skills, this one is **not** bundled by `create-bestax` — it's for existing sites,
+not new ones.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
+```
+
+## What the agent does with it
+
+1. Installs `@allxsmith/bestax-bulma` and `bulma@^1`.
+2. Runs `pnpm dlx bestax-migrate react-bulma-components src/ --dry`, reviews the report, then
+   applies the codemod for real.
+3. Greps for `TODO(bestax-migrate)` comments and resolves each one using the skill's reference
+   tables — the component map, the universal prop map, and per-case recipes for the patterns the
+   codemod deliberately refuses to guess at (`Tile` → `Grid`, controlled `Dropdown`, `touch`
+   breakpoints, dynamic prop values, …).
+4. Migrates the CSS layer from Bulma 0.9 to v1 and removes `react-bulma-components`.
+
+## Example prompt
+
+```text
+This app uses react-bulma-components. Migrate it to @allxsmith/bestax-bulma
+following the bestax-migrate skill, and make sure the build passes when you're done.
+```
+
+## References bundled with the skill
+
+- `references/component-map.md` — all 32 react-bulma-components components (and every compound
+  sub-component) with their bestax targets.
+- `references/prop-map.md` — the universal modifier-prop conversions and responsive
+  breakpoint-object flattening.
+- `references/unmappables.md` — a recipe for every `TODO(bestax-migrate)` the codemod can leave.
+- `references/css-migration.md` — the Bulma 0.9 → 1 CSS step.
+
+See the full [migration guide](../guides/getting-started/migration/react-bulma-components.md) for
+the codemod itself.

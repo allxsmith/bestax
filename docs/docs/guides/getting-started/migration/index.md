@@ -29,6 +29,12 @@ Also notable but not breaking: new optional context-driven APIs in `<Tabs>`, `<C
 
 [Read the full 2.x to 3.x guide →](./bulma-ui-2-to-3.md)
 
+## [Migrating from react-bulma-components](./react-bulma-components.md)
+
+Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-migrate`** codemod converts imports, component names, props, and responsive objects to bestax-bulma automatically, and flags everything it can't convert with `TODO(bestax-migrate)` comments plus a report. An [Agent Skill](/docs/skills/migrate) packages the whole workflow for coding agents.
+
+[Read the react-bulma-components guide →](./react-bulma-components.md)
+
 ## [Migrating from Bulma v0.9.x → v1](./bulma-0-9-to-1.md)
 
 bestax-bulma itself has always required Bulma v1 — there's no "bestax on Bulma 0.9" path. This guide is for two adjacent scenarios: (1) you're migrating off **another** React + Bulma library (`react-bulma-components`, Buefy, etc.) that was pinned to Bulma 0.9.x, or (2) you have **plain Bulma 0.9.x** in your own project that you want to upgrade alongside (or before) adopting bestax.

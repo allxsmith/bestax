@@ -16,6 +16,7 @@ directory the agent reads on demand.
 | [`bestax-theming`](./bestax-theming/SKILL.md)                   | **Theming** — customize colors, branding, fonts/radius tokens, and dark mode by overriding Bulma's `--bulma-*` variables with the `Theme` component.                                       |
 | [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                             |
 | [`bestax-icons`](./bestax-icons/SKILL.md)                       | **Icons** — the `Icon`/`IconText` components and the five supported libraries (Font Awesome, MDI, Ionicons, Material Icons/Symbols): setup, name formats, variants, and accessibility.     |
+| [`bestax-migrate`](./bestax-migrate/SKILL.md)                   | **Migrating** an existing app from `react-bulma-components` — drive the `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves using the mapping references.        |
 
 ## Install
 
@@ -27,6 +28,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ```
 
 ## Layout
@@ -72,6 +74,13 @@ skills/
       icon-libraries.md        # per-library setup, name formats, variants, troubleshooting
     examples/
       icon-usage.tsx           # ConfigProvider + sizes/variants/colors + a11y patterns
+  bestax-migrate/
+    SKILL.md                   # the codemod-then-resolve-TODOs workflow
+    references/
+      component-map.md         # every react-bulma-components component → bestax target
+      prop-map.md              # universal modifier-prop + responsive-object conversions
+      unmappables.md           # recipes for every TODO(bestax-migrate) the codemod leaves
+      css-migration.md         # the Bulma 0.9 → 1 CSS step
 ```
 
 > `component-catalog.md` is generated from the API docs by `scripts/gen-component-catalog.mjs`
