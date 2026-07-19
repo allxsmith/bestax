@@ -3,8 +3,18 @@ import os from 'node:os';
 import path from 'node:path';
 import { collectFiles, createCLI, findPackageJsons } from '../cli.js';
 
+let tempDirs: string[] = [];
+
+afterEach(() => {
+  for (const dir of tempDirs) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  tempDirs = [];
+});
+
 function makeTempProject(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-test-'));
+  tempDirs.push(dir);
   fs.mkdirSync(path.join(dir, 'src', 'node_modules'), { recursive: true });
   fs.writeFileSync(
     path.join(dir, 'src', 'App.tsx'),
@@ -68,7 +78,6 @@ describe('collectFiles', () => {
       'App.tsx',
       'untouched.ts',
     ]);
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('throws for missing paths', () => {
@@ -84,7 +93,6 @@ describe('findPackageJsons', () => {
     expect(findPackageJsons([path.join(dir, 'src')])).toEqual([
       path.join(dir, 'package.json'),
     ]);
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 });
 
@@ -100,7 +108,6 @@ describe('CLI', () => {
     expect(transformed).toContain('isLoading');
     // App.tsx + theme.scss + package.json all change
     expect(logs.join('\n')).toContain('3 transformed');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('leaves files untouched with --dry and prints with --print', () => {
@@ -117,7 +124,6 @@ describe('CLI', () => {
     );
     expect(logs.join('\n')).toContain('@allxsmith/bestax-bulma');
     expect(logs.join('\n')).toContain('(dry run)');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('reports files that fail to parse and continues', () => {
@@ -129,7 +135,6 @@ describe('CLI', () => {
     ]);
     expect(errors.join('\n')).toContain('broken.tsx');
     expect(logs.join('\n')).toContain('3 transformed');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('migrates SCSS files and updates package.json dependencies', () => {
@@ -147,7 +152,6 @@ describe('CLI', () => {
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('honors --no-deps and --dry for the package.json step', () => {
@@ -161,7 +165,6 @@ describe('CLI', () => {
     expect(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).toBe(
       before
     );
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('says "Would update" for the manifest in dry mode', () => {
@@ -175,7 +178,6 @@ describe('CLI', () => {
     expect(dry.logs.join('\n')).not.toContain('Updated ');
     const wet = runCli(['react-bulma-components', path.join(dir, 'src')]);
     expect(wet.logs.join('\n')).toContain('Updated ');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('preserves the manifest indentation style', () => {
@@ -188,7 +190,6 @@ describe('CLI', () => {
     const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
     expect(raw).toContain('\t"dependencies"');
     expect(raw).toContain('\t\t"@allxsmith/bestax-bulma"');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('flags unparseable component formats that import the source library', () => {
@@ -206,7 +207,6 @@ describe('CLI', () => {
     expect(text).toContain('unsupported-file');
     expect(text).toContain('Card.astro');
     expect(text).not.toContain('plain.astro');
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('threads --css keep through to the transforms', () => {
@@ -219,7 +219,6 @@ describe('CLI', () => {
     expect(
       fs.readFileSync(path.join(dir, 'src', 'style-entry.ts'), 'utf8')
     ).toBe("import 'bulma/css/bulma.min.css';\n");
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('rejects unknown --css modes', () => {
@@ -227,13 +226,11 @@ describe('CLI', () => {
     expect(() =>
       runCli(['react-bulma-components', path.join(dir, 'src'), '--css', 'nope'])
     ).toThrow();
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('rejects unknown sources', () => {
     const dir = makeTempProject();
     expect(() => runCli(['not-a-library', path.join(dir, 'src')])).toThrow();
-    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it('rejects missing paths', () => {
