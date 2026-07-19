@@ -17,6 +17,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills** into the
@@ -35,3 +36,5 @@ Then explore each skill — what it does, how to install it, and live examples:
   to a complete responsive page using the layout archetypes.
 - **[Icons](./icons)** — use `Icon`/`IconText` with any of the five supported icon libraries:
   per-library setup, name formats, variants, and decorative-vs-labeled accessibility.
+- **[Optimize](./optimize)** — reduce the built CSS size: measure raw+gzip, then the cheapest
+  first-party lever that fits (lighter flavor, modular Sass build, import/asset hygiene).

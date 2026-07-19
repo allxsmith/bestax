@@ -1,0 +1,77 @@
+---
+title: Optimize
+sidebar_label: Optimize
+sidebar_position: 6
+---
+
+# Optimize skill
+
+The [`bestax-optimize`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-optimize/SKILL.md)
+skill teaches an agent to reduce the built CSS size of an app using
+`@allxsmith/bestax-bulma`: measure raw and gzip size first, then apply the cheapest lever
+that fits — a lighter prebuilt CSS flavor, a hand-rolled modular Sass build, or import and
+icon-asset hygiene. First-party levers only: it uses the library's own shipped CSS builds and
+SCSS sources, never third-party build plugins.
+
+## Install
+
+```bash
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
+```
+
+## What it teaches
+
+- **Measure first, and know when to stop** — build, then measure the CSS raw (`wc -c`) and
+  gzipped (`gzip -c … | wc -c`), and judge by the **gzip** number: the ~800&nbsp;KB of CSS in
+  `dist/` is ~82&nbsp;KB over the wire. If that's within budget, the honest answer is "your
+  CSS is already fine" — and the skill says so instead of inventing work.
+- **Lever 1: a lighter prebuilt flavor** — a one-line import change between the shipped
+  builds, with the measured size table and the hard gate: `no-helpers` may only be
+  recommended after checking the app uses **no helper props** (`mt="4"`,
+  `textColor="primary"`, `display="flex"`, …), because that flavor drops the classes those
+  props compile to.
+
+  ```tsx
+  // before
+  import '@allxsmith/bestax-bulma/bestax.css'; // ~82 KB gzip
+  // after — the app pins a single color scheme
+  import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css'; // ~70 KB gzip
+  ```
+
+- **Lever 2: a modular Sass build** — compile only the Bulma modules and bestax extras
+  partials the app actually imports, derived component-by-component:
+
+  ```scss
+  // src/styles.scss
+  // Configure shared variables FIRST — omit this and is-primary reverts
+  // to Bulma's default turquoise instead of the bestax brand color:
+  @use 'bulma/sass/utilities' with (
+    $primary: #1e6b99
+  );
+
+  @use 'bulma/sass/base';
+  @use 'bulma/sass/themes';
+  @use 'bulma/sass/elements/button';
+  @use 'bulma/sass/components/card';
+  @use '@allxsmith/bestax-bulma/scss/components/dialog';
+  @use 'bulma/sass/helpers/flexbox';
+  ```
+
+- **Lever 3: import & icon-asset hygiene** — convert `import * as` to named imports so JS
+  tree shaking works, and delete icon-library packages/CDN scripts the app never renders —
+  icon fonts often outweigh Bulma itself.
+
+## Reference material the agent reads on demand
+
+- [`references/modular-build.md`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-optimize/references/modular-build.md)
+  — the full Lever&nbsp;2 procedure: the component→partial mapping rule, the authoritative
+  bestax extras partial inventory (more complete than the docs example), Bulma helper
+  categories, and a worked `styles.scss` for the starter app.
+
+## Related
+
+- [Optimizing CSS Size](../guides/getting-started/optimizing-css.md) — the guide this skill
+  acts on, with the measured flavor table.
+- [Modular](../guides/getting-started/modular.md) — JS tree-shaking and the three CSS loading
+  strategies (Option C is the modular Sass pattern).
+- [CSS Variations](../guides/getting-started/variations.md) — what each flavor includes.
