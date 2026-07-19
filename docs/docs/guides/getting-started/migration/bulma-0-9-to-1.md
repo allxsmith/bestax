@@ -259,7 +259,7 @@ pnpm dlx bestax-migrate react-bulma-components src/ --dry   # preview
 pnpm dlx bestax-migrate react-bulma-components src/         # apply
 ```
 
-It uses jscodeshift to rewrite imports, component names, and props onto bestax-bulma, flattens responsive breakpoint objects, and leaves a `TODO(bestax-migrate)` comment (plus an end-of-run report) at every site it can't convert safely — including deprecated Tile usage, which maps to the new [Grid](/docs/api/grid/grid) components. See the [full guide](./react-bulma-components.md); the CSS-level steps on this page still apply afterwards.
+It uses jscodeshift to rewrite imports, component names, and props onto bestax-bulma, flattens responsive breakpoint objects, and leaves a `TODO(bestax-migrate)` comment (plus an end-of-run report) at every site it can't convert safely — including deprecated Tile usage, which maps to the new [Grid](../../../api/grid/grid.md) components. See the [full guide](./react-bulma-components.md); the CSS-level steps on this page still apply afterwards.
 
 ### Request migration support
 

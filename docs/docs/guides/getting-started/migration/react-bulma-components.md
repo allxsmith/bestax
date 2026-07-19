@@ -61,7 +61,7 @@ errors. The recurring cases:
 
 | Flagged                                           | What to do                                                                                           |
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](/docs/api/grid/grid) components |
+| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components |
 | `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                       |
 | `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                        |
 | Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                              |
