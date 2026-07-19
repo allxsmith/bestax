@@ -17,6 +17,7 @@
     "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
     "lint": "eslint src e2e",
     "typecheck": "tsc --noEmit",
+    "validate:corpus": "pnpm run build && node scripts/validate-corpus.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"e2e/**/*.ts\"",
     "clean": "rimraf dist",

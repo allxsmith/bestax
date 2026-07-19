@@ -59,14 +59,14 @@ Anything without a safe automatic conversion is left in place with an inline com
 and the run ends with a summary of every TODO by file and line. TODOs are expected output, not
 errors. The recurring cases:
 
-| Flagged                                           | What to do                                                                                           |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Flagged                                           | What to do                                                                                                 |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components |
-| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                       |
-| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                        |
-| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                              |
-| `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                         |
-| `Modal closeOnEsc/closeOnBlur/showClose`          | bestax defaults already do this when `onClose` is set — delete the props                             |
+| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                             |
+| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                              |
+| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                    |
+| `Pagination` extras (`delta`, custom labels, …)   | bestax Pagination windows itself; render conditionally instead of `autoHide`                               |
+| `Modal closeOnEsc/closeOnBlur/showClose`          | bestax defaults already do this when `onClose` is set — delete the props                                   |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,

@@ -43,6 +43,12 @@ each source library registers in `src/sources/registry.ts`; the first is
   supported ones go in the other fixture files, which must stay TODO-free.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
+- Real-world corpus: `pnpm --filter bestax-migrate validate:corpus` fetches the
+  react-bulma-components repo's own MIT-licensed Storybook stories (pinned SHA, text only,
+  into `.e2e-tmp/`) and scores the transform over them — fails on any crash or
+  unknown-component TODO. Deliberately NOT in CI (no third-party fetches in the pipeline);
+  run it before releases and after mapping changes, and eyeball the before/after diffs it
+  writes to `.e2e-tmp/corpus-out/`.
 
 ## Releases
 
