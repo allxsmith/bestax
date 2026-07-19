@@ -59,6 +59,10 @@ in place:
   `@allxsmith/bestax-bulma`, moves `bulma` to `^1.0.4`, and swaps the dead `node-sass` for
   dart `sass`. The codemod never runs an install — do that yourself afterwards.
 
+Files in formats the codemod can't parse (`.astro`, `.vue`, `.svelte`, `.mdx`) that import
+react-bulma-components are reported as `unsupported-file` — migrate those by hand with the
+same component/prop mapping.
+
 ## The TODO report
 
 Anything without a safe automatic conversion is left in place with an inline comment:
@@ -93,11 +97,18 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ## Finish the migration
 
 1. **Install** — the codemod already rewrote `package.json`; apply it with
-   `npm install` (or pnpm/yarn).
+   `npm install` (or pnpm/yarn). The report's `peer-deps` entries predict the two common
+   install blockers: bestax-bulma needs **React 18 or 19** (react-bulma-components also ran
+   on 17 — upgrade `react`/`react-dom` first), and its optional Font Awesome peer wants
+   **FA ≥ 6.7** — an app pinned to FA 5 either upgrades or installs with
+   `npm install --legacy-peer-deps`.
 2. **Styling follow-ups** — pick a different [CSS flavor](../installation.md) if you need
    prefixed/no-helpers/light-only builds, and read the
    [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes that aren't
    code-level (Tiles → Grid, `is-bold` gradients removed, automatic dark mode).
+   One deliberate visual change: `bestax.css` ships `$primary` as bestax blue
+   (`#1e6b99`) rather than Bulma's stock turquoise — keep the stock look with
+   `--css bulma`, or set your own brand color via the `--bulma-primary-*` CSS variables.
 3. **Verify** — typecheck, build, and compare the rendered app against the pre-migration UI.
 
 ## Version support

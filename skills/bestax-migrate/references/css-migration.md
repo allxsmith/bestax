@@ -11,6 +11,11 @@ finish what it flagged.
   `@allxsmith/bestax-bulma/bestax.css` (Bulma v1 + the bestax extras that themed
   Radio/Checkbox and the advanced form controls need). A separate `extras.css` import
   next to it is collapsed.
+  **Visual note**: `bestax.css` ships with `$primary` set to bestax blue (`#1e6b99`),
+  not Bulma's stock turquoise — `is-primary` surfaces (hero, navbar, buttons) change
+  color. Keep the stock Bulma look with `--css bulma`, or set your own brand color via
+  `--bulma-primary-*` CSS variables / a Sass build.
+
 - **SCSS files**: Bulma 0.9's `@import 'bulma/bulma.sass'` (plus preceding
   `$var: value !default;` overrides) became Bulma v1 module syntax, with simple literal
   overrides folded in:
@@ -25,7 +30,13 @@ finish what it flagged.
   ```
 
   0.9 `_all` aggregator imports (`bulma/sass/elements/_all`) became directory modules
-  (`@use 'bulma/sass/elements';`).
+  (`@use 'bulma/sass/elements';`). Relative node_modules paths
+  (`@import '../../node_modules/bulma/bulma'`, common under Parcel) keep their prefix,
+  and the extras `@use` then points at the shipped file
+  (`…/node_modules/@allxsmith/bestax-bulma/src/scss/extras`) since such toolchains
+  resolve raw paths, not package specifiers. Building Bulma v1 from Sass needs
+  **dart-sass ≥ 1.79** — the codemod's node-sass replacement installs that, but check
+  bundler-pinned older versions (Parcel's sass transformer pins 1.66).
 
 - **package.json**: `react-bulma-components` removed, `@allxsmith/bestax-bulma` added,
   `bulma` bumped to `^1.0.4` (or added when sources still import `bulma/…` directly),
@@ -47,6 +58,11 @@ Flag reference: `--css bulma` keeps plain `bulma/css/bulma.min.css` and adds a s
 - **Unknown 0.9 partial paths**: the v1 sass tree is `bulma/sass/{utilities,base,
 elements,form,components,grid,layout,helpers,themes}` with leaf partials like
   `bulma/sass/utilities/initial-variables` — find the equivalent module and `@use` it.
+- **Third-party Bulma extensions** (`bulma-checkradio`, `bulma-switch`, `bulma-tooltip`,
+  …): flagged, left in place. These are 0.9-era add-ons — check each one's Bulma v1
+  compatibility. Class-based usage (`className="is-checkradio"`) keeps needing the
+  extension; usage that migrated to bestax components (Radio, Checkbox, the advanced
+  form controls) is already styled by the bestax extras, so the import can go.
 
 ## Choosing a CSS flavor (optional)
 

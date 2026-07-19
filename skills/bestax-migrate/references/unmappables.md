@@ -3,6 +3,20 @@
 Work through `grep -rn "TODO(bestax-migrate)" src/` with these. Delete each comment once
 the site is converted.
 
+## `unsupported-file` — `.astro` / `.vue` / `.svelte` / `.mdx` imports
+
+The codemod can't parse these formats, so files in them that import
+react-bulma-components are reported (not rewritten). Migrate them by hand: swap the
+import to `@allxsmith/bestax-bulma` and apply the same renames the component/prop maps
+describe — the mapping is identical, only the rewriting is manual.
+
+## `peer-deps` — install-blocking version conflicts
+
+Reported from package.json, not a code TODO. bestax-bulma's peers: **React ^18 || ^19**
+(upgrade react/react-dom before installing — RBC v4 also ran on 17) and optional
+**@fortawesome/fontawesome-free ^6.7 || ^7** (FA 5 apps: upgrade, or
+`npm install --legacy-peer-deps` and keep FA 5 for your own `<i>` tags).
+
 ## `Element` — no generic element
 
 bestax has no `Element`. Pick the semantic component (`Block`, `Box`, `Content`, …) that

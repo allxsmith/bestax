@@ -36,6 +36,11 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    npm install   # or pnpm/yarn
    ```
 
+   The report's `peer-deps` entries predict install failures: bestax-bulma needs
+   **React 18/19** (RBC also ran on 17 — upgrade react/react-dom first) and its optional
+   Font Awesome peer wants **FA ≥ 6.7** (an app pinned to FA 5 either upgrades or
+   installs with `npm install --legacy-peer-deps`).
+
 4. **Resolve every TODO**: `grep -rn "TODO(bestax-migrate)" src/`. Each comment names the
    prop/component and a hint. Recipes for every recurring case are in
    [references/unmappables.md](references/unmappables.md); the full component and prop
@@ -58,7 +63,9 @@ convert automatically. It flags with
 `TODO(bestax-migrate)` instead of guessing: `Element` and `Tile` (no bestax equivalent —
 Tile is replaced by Bulma v1's Grid), controlled `Dropdown`/`Dropdown.Item value`,
 `touch`/`until*` breakpoints, dynamic prop values it can't rewrite, and props with no
-bestax counterpart. Never "fix" a TODO by silencing it — convert the code per the
+bestax counterpart. Files in formats it can't parse (`.astro`, `.vue`, `.svelte`, `.mdx`)
+that import react-bulma-components are reported as `unsupported-file` — migrate those by
+hand with the component map. Never "fix" a TODO by silencing it — convert the code per the
 references, or deliberately keep the old markup with `className` styling.
 
 ## Rules
