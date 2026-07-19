@@ -32,6 +32,12 @@ const SKIP_DIRS = new Set([
 const STYLE_EXTENSIONS = new Set(['scss', 'sass']);
 const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
 
+/**
+ * Component formats the codemod cannot parse (no jscodeshift grammar) but
+ * that can still import the source library — flagged, never rewritten.
+ */
+const UNSUPPORTED_EXTENSIONS = ['astro', 'vue', 'svelte', 'mdx'];
+
 export function collectFiles(
   targets: string[],
   extensions: string[]
@@ -130,6 +136,38 @@ function migrateFiles(
   return bulmaReferenced;
 }
 
+/**
+ * Surface files in unparseable formats (.astro, .vue, …) that import the
+ * source library, so a migration never silently skips them.
+ */
+function reportUnsupportedFiles(
+  source: MigrationSource,
+  targets: string[],
+  reporter: Reporter,
+  extensions: string[]
+): void {
+  const unsupported = UNSUPPORTED_EXTENSIONS.filter(
+    ext => !extensions.includes(ext)
+  );
+  if (unsupported.length === 0) return;
+  for (const file of collectFiles(targets, unsupported)) {
+    const text = fs.readFileSync(file, 'utf8');
+    if (!text.includes(source.name)) continue;
+    const collector = reporter.startFile();
+    const line =
+      text.split('\n').findIndex(l => l.includes(source.name)) + 1 || null;
+    collector.add({
+      file,
+      line,
+      rule: 'unsupported-file',
+      message: `imports ${source.name}, but ${path.extname(
+        file
+      )} files cannot be parsed by the codemod — migrate this file by hand`,
+    });
+    reporter.finishFile(file, false, collector.entries);
+  }
+}
+
 function migrateDependencies(
   source: MigrationSource,
   targets: string[],
@@ -143,7 +181,8 @@ function migrateDependencies(
     const collector = reporter.startFile();
     let changed = false;
     try {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      const raw = fs.readFileSync(pkgPath, 'utf8');
+      const pkg = JSON.parse(raw);
       const next = source.updateDependencies(pkgPath, pkg, collector, {
         cssMode: options.cssMode,
         bulmaReferenced,
@@ -151,7 +190,10 @@ function migrateDependencies(
       if (next !== null) {
         changed = true;
         if (!options.dry) {
-          fs.writeFileSync(pkgPath, `${JSON.stringify(next, null, 2)}\n`);
+          // Keep the manifest's own indentation (tabs, 4-space, …) so the
+          // diff stays limited to the dependency changes.
+          const indent = raw.match(/^([ \t]+)"/m)?.[1] ?? '  ';
+          fs.writeFileSync(pkgPath, `${JSON.stringify(next, null, indent)}\n`);
         }
       }
     } catch (error) {
@@ -161,7 +203,9 @@ function migrateDependencies(
     if (changed) {
       io.log(
         chalk.yellow(
-          `Updated ${pkgPath} — run your package manager's install to apply.`
+          options.dry
+            ? `Would update ${pkgPath}.`
+            : `Updated ${pkgPath} — run your package manager's install to apply.`
         )
       );
     }
@@ -245,6 +289,7 @@ export function createCLI(
         io,
         runOptions
       );
+      reportUnsupportedFiles(source, targets, reporter, extensions);
       migrateDependencies(
         source,
         targets,

@@ -5,11 +5,54 @@
  * per-file results, which the report needs.
  */
 
+import { parse, type ParserOptions } from '@babel/parser';
 import jscodeshift from 'jscodeshift';
 import type { API } from 'jscodeshift';
 import type { TodoCollector, Transform } from './types.js';
 
-const j = jscodeshift.withParser('tsx');
+/**
+ * jscodeshift's stock `tsx` parser options plus `deprecatedImportAssert`,
+ * so files using the legacy `import x from 'y' assert { type: 'json' }`
+ * syntax (still emitted by many tools) parse instead of crashing the run.
+ */
+const PARSER_OPTIONS: ParserOptions = {
+  sourceType: 'module',
+  allowImportExportEverywhere: true,
+  allowReturnOutsideFunction: true,
+  startLine: 1,
+  tokens: true,
+  plugins: [
+    'jsx',
+    'asyncGenerators',
+    'decoratorAutoAccessors',
+    'bigInt',
+    'classPrivateMethods',
+    'classPrivateProperties',
+    'classProperties',
+    'decorators-legacy',
+    'doExpressions',
+    'dynamicImport',
+    'exportDefaultFrom',
+    'exportNamespaceFrom',
+    'functionBind',
+    'functionSent',
+    'importAttributes',
+    'deprecatedImportAssert',
+    'importMeta',
+    'nullishCoalescingOperator',
+    'numericSeparator',
+    'objectRestSpread',
+    'optionalCatchBinding',
+    'optionalChaining',
+    ['pipelineOperator', { proposal: 'minimal' }],
+    'throwExpressions',
+    'typescript',
+  ],
+};
+
+const j = jscodeshift.withParser({
+  parse: (code: string) => parse(code, PARSER_OPTIONS),
+});
 
 /** A jscodeshift `api` object for direct transform invocation. */
 export function makeApi(): API {

@@ -549,6 +549,20 @@ export default function transform(
 
   if (!ctx.dirty) return undefined;
   // Double quotes match the dominant JSX-attribute convention; users run
-  // their own formatter afterwards anyway.
-  return root.toSource({ quote: 'double' });
+  // their own formatter afterwards anyway. Tab-indented sources keep tabs so
+  // reprinted nodes don't drift from the untouched lines around them.
+  return root.toSource({
+    quote: 'double',
+    useTabs: prefersTabs(fileInfo.source),
+  });
+}
+
+function prefersTabs(source: string): boolean {
+  let tabs = 0;
+  let spaces = 0;
+  for (const line of source.split('\n')) {
+    if (line.startsWith('\t')) tabs += 1;
+    else if (line.startsWith(' ')) spaces += 1;
+  }
+  return tabs > spaces;
 }

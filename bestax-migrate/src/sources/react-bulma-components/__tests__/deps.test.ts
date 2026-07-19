@@ -66,7 +66,7 @@ describe('updateDependencies', () => {
     });
     const dev = next!.devDependencies as Record<string, string>;
     expect(dev['node-sass']).toBeUndefined();
-    expect(dev.sass).toBe('^1.71.0');
+    expect(dev.sass).toBe('^1.79.0');
   });
 
   it('does not add sass twice when already declared', () => {
@@ -76,6 +76,38 @@ describe('updateDependencies', () => {
     const dev = next!.devDependencies as Record<string, string>;
     expect(dev.sass).toBe('^1.60.0');
     expect(dev['node-sass']).toBeUndefined();
+  });
+
+  it('warns when react predates the bestax peer range', () => {
+    const { todos } = run({
+      dependencies: { 'react-bulma-components': '4.1.0', react: '^17.0.2' },
+    });
+    const peer = todos.filter(t => t.rule === 'peer-deps');
+    expect(peer).toHaveLength(1);
+    expect(peer[0].message).toContain('react ^17.0.2');
+    const modern = run({
+      dependencies: { 'react-bulma-components': '4.1.0', react: '^18.3.1' },
+    });
+    expect(modern.todos.some(t => t.rule === 'peer-deps')).toBe(false);
+  });
+
+  it('warns when font awesome predates the optional peer range', () => {
+    const { todos } = run({
+      dependencies: {
+        'react-bulma-components': '4.1.0',
+        '@fortawesome/fontawesome-free': '5',
+      },
+    });
+    const peer = todos.filter(t => t.rule === 'peer-deps');
+    expect(peer).toHaveLength(1);
+    expect(peer[0].message).toContain('--legacy-peer-deps');
+    const modern = run({
+      dependencies: {
+        'react-bulma-components': '4.1.0',
+        '@fortawesome/fontawesome-free': '^6.7.2',
+      },
+    });
+    expect(modern.todos.some(t => t.rule === 'peer-deps')).toBe(false);
   });
 
   it('returns null when nothing needs to change', () => {

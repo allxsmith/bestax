@@ -146,7 +146,7 @@ describe('CLI', () => {
     expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
-    expect(pkg.devDependencies.sass).toBe('^1.71.0');
+    expect(pkg.devDependencies.sass).toBe('^1.79.0');
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
@@ -161,6 +161,51 @@ describe('CLI', () => {
     expect(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).toBe(
       before
     );
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('says "Would update" for the manifest in dry mode', () => {
+    const dir = makeTempProject();
+    const dry = runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--dry',
+    ]);
+    expect(dry.logs.join('\n')).toContain('Would update');
+    expect(dry.logs.join('\n')).not.toContain('Updated ');
+    const wet = runCli(['react-bulma-components', path.join(dir, 'src')]);
+    expect(wet.logs.join('\n')).toContain('Updated ');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('preserves the manifest indentation style', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      '{\n\t"name": "tabbed-app",\n\t"dependencies": {\n\t\t"react-bulma-components": "^4.1.0"\n\t}\n}\n'
+    );
+    runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
+    expect(raw).toContain('\t"dependencies"');
+    expect(raw).toContain('\t\t"@allxsmith/bestax-bulma"');
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('flags unparseable component formats that import the source library', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(
+      path.join(dir, 'src', 'Card.astro'),
+      '---\nimport { Card } from "react-bulma-components";\n---\n<Card />\n'
+    );
+    fs.writeFileSync(
+      path.join(dir, 'src', 'plain.astro'),
+      '---\nconst x = 1;\n---\n<p>{x}</p>\n'
+    );
+    const { logs } = runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const text = logs.join('\n');
+    expect(text).toContain('unsupported-file');
+    expect(text).toContain('Card.astro');
+    expect(text).not.toContain('plain.astro');
     fs.rmSync(dir, { recursive: true, force: true });
   });
 

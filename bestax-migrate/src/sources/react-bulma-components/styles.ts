@@ -44,16 +44,34 @@ const V1_LEAVES = new Set([
   'themes/setup',
 ]);
 
-/** The 0.9 root imports that become `@use "bulma/sass"`. */
+/**
+ * The 0.9 root imports that become `@use "bulma/sass"`. The specifier may be
+ * bare (`bulma/bulma`), tilde-prefixed (webpack), or a relative path into
+ * node_modules (`../../node_modules/bulma/bulma`, common under Parcel) —
+ * relative prefixes are preserved in the emitted `@use`.
+ */
 const ROOT_IMPORT =
-  /^(\s*)@import\s+(['"])~?bulma\/(?:bulma(?:\.sass|\.scss)?|css\/bulma(?:\.min)?\.css)\2\s*;?\s*$/;
+  /^(\s*)@import\s+(['"])((?:\.\.?\/)+node_modules\/|~)?bulma\/(?:bulma(?:\.sass|\.scss)?|css\/bulma(?:\.min)?\.css)\2\s*;?\s*$/;
 
-/** 0.9 partial imports under bulma/sass/… */
+/** 0.9 partial imports under bulma/sass/… (same prefix forms as the root). */
 const PARTIAL_IMPORT =
-  /^(\s*)@import\s+(['"])~?bulma\/sass\/([\w/-]+)\2\s*;?\s*$/;
+  /^(\s*)@import\s+(['"])((?:\.\.?\/)+node_modules\/|~)?bulma\/sass\/([\w/-]+)\2\s*;?\s*$/;
+
+/** A preserved path prefix for the rewritten `@use` (tilde never survives). */
+function keptPrefix(prefix: string | undefined): string {
+  return prefix && prefix !== '~' ? prefix : '';
+}
 
 /** Any other line that still `@import`s something bulma-ish. */
 const OTHER_BULMA_IMPORT = /^\s*@import\s+['"][^'"]*bulma[^'"]*['"]/;
+
+/**
+ * Third-party Bulma extension packages (`bulma-checkradio`, `bulma-switch`,
+ * …) — 0.9-era add-ons whose v1 compatibility varies; several are covered
+ * by the bestax extras.
+ */
+const EXTENSION_IMPORT =
+  /^\s*@import\s+['"][^'"]*\bbulma-([\w-]+?)(?:\/|\.|['"])/;
 
 /** Any `$name: value;` declaration (with or without `!default`). */
 const VAR_DECL = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(!default)?\s*;\s*$/;
@@ -126,16 +144,18 @@ export const transformStyles: StylesTransform = (
     const line = lines[i];
 
     if (i === rootImportIndex) {
-      const indent = line.match(ROOT_IMPORT)?.[1] ?? '';
+      const rootMatch = line.match(ROOT_IMPORT);
+      const indent = rootMatch?.[1] ?? '';
+      const bulmaSass = `${keptPrefix(rootMatch?.[3])}bulma/sass`;
       if (foldableVars.length > 0) {
-        out.push(`${indent}@use 'bulma/sass' with (`);
+        out.push(`${indent}@use '${bulmaSass}' with (`);
         foldableVars.forEach(({ name, value }, index) => {
           const comma = index < foldableVars.length - 1 ? ',' : '';
           out.push(`${indent}  $${name}: ${value}${comma}`);
         });
         out.push(`${indent});`);
       } else {
-        out.push(`${indent}@use 'bulma/sass';`);
+        out.push(`${indent}@use '${bulmaSass}';`);
       }
       if (unsafeVarLines.length > 0) {
         out.push(
@@ -150,7 +170,14 @@ export const transformStyles: StylesTransform = (
         );
       }
       if (cssMode === 'bestax' && !extrasAdded) {
-        out.push(`${indent}${EXTRAS_USE}`);
+        // A path-prefixed root import means the toolchain resolves raw file
+        // paths, not package specifiers — point at the shipped file directly.
+        const extrasPrefix = keptPrefix(rootMatch?.[3]);
+        out.push(
+          extrasPrefix
+            ? `${indent}@use '${extrasPrefix}@allxsmith/bestax-bulma/src/scss/extras';`
+            : `${indent}${EXTRAS_USE}`
+        );
         extrasAdded = true;
       }
       changed = true;
@@ -164,18 +191,19 @@ export const transformStyles: StylesTransform = (
 
     const partial = line.match(PARTIAL_IMPORT);
     if (partial) {
-      const [, indent, , importPath] = partial;
+      const [, indent, , rawPrefix, importPath] = partial;
+      const prefix = keptPrefix(rawPrefix);
       const segments = importPath.split('/');
       const last = segments[segments.length - 1].replace(/^_/, '');
       const dir = segments[0];
       if ((last === 'all' || last === 'index') && V1_DIRS.has(dir)) {
-        out.push(`${indent}@use 'bulma/sass/${dir}';`);
+        out.push(`${indent}@use '${prefix}bulma/sass/${dir}';`);
         changed = true;
         continue;
       }
       const leaf = segments.map(s => s.replace(/^_/, '')).join('/');
       if (V1_DIRS.has(leaf) || V1_LEAVES.has(leaf)) {
-        out.push(`${indent}@use 'bulma/sass/${leaf}';`);
+        out.push(`${indent}@use '${prefix}bulma/sass/${leaf}';`);
         changed = true;
         continue;
       }
@@ -195,6 +223,22 @@ export const transformStyles: StylesTransform = (
     }
 
     if (OTHER_BULMA_IMPORT.test(line) && !line.includes(TODO)) {
+      const extension = line.match(EXTENSION_IMPORT);
+      if (extension) {
+        out.push(
+          `// ${TODO}: bulma-${extension[1]} is a Bulma 0.9-era extension — check its Bulma v1 compatibility; the bestax extras already style Radio/Checkbox and the advanced form controls — see ${GUIDE}`
+        );
+        out.push(line);
+        report(
+          collector,
+          filePath,
+          i + 1,
+          'sass',
+          `third-party Bulma extension \`bulma-${extension[1]}\` left in place; verify it against Bulma v1 or replace it with the bestax extras`
+        );
+        changed = true;
+        continue;
+      }
       out.push(
         `// ${TODO}: Bulma v1 uses @use instead of @import — see ${GUIDE}`
       );

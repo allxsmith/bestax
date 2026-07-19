@@ -58,6 +58,35 @@ describe('react-bulma-components transform fixtures', () => {
     expect(output).toBeNull();
   });
 
+  it('keeps tabs in tab-indented sources', () => {
+    const source = [
+      "import { Button } from 'react-bulma-components';",
+      'export function App() {',
+      '\treturn (',
+      '\t\t<Button color="primary" loading>',
+      '\t\t\tGo',
+      '\t\t</Button>',
+      '\t);',
+      '}',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'tabbed.tsx', source);
+    expect(output).toContain('\t\t<Button color="primary" isLoading>');
+    expect(output).not.toMatch(/\n {2,}</);
+  });
+
+  it('parses the legacy import-assert syntax', () => {
+    const source = [
+      "import data from './data.json' assert { type: 'json' };",
+      "import { Block } from 'react-bulma-components';",
+      'export const A = () => <Block>{data}</Block>;',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'assert.tsx', source);
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    expect(output).toContain("assert { type: 'json' }");
+  });
+
   it('collects TODO entries with rules and line numbers', () => {
     const source = [
       "import { Tile } from 'react-bulma-components';",

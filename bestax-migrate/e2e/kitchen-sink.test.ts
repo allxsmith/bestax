@@ -145,7 +145,7 @@ describe('kitchen-sink e2e', () => {
     expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
-    expect(pkg.devDependencies.sass).toBe('^1.71.0');
+    expect(pkg.devDependencies.sass).toBe('^1.79.0');
     expect(pkg.dependencies.react).toBe('^18.2.0');
   });
 

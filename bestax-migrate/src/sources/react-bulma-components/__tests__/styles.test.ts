@@ -87,6 +87,37 @@ describe('transformStyles (.scss)', () => {
     expect(todos.some(t => t.message.includes('animations'))).toBe(true);
   });
 
+  it('preserves a relative node_modules prefix on the root import', () => {
+    const source = [
+      '$primary: #123456;',
+      '@import "../../../../node_modules/bulma/bulma";',
+    ].join('\n');
+    const { output } = run('deep/nested.scss', source);
+    expect(output).toContain(
+      "@use '../../../../node_modules/bulma/sass' with ("
+    );
+    expect(output).toContain(
+      "@use '../../../../node_modules/@allxsmith/bestax-bulma/src/scss/extras';"
+    );
+  });
+
+  it('preserves a relative node_modules prefix on partial imports', () => {
+    const { output } = run(
+      'partial.scss',
+      '@import "../../node_modules/bulma/sass/utilities/_all";\n'
+    );
+    expect(output).toContain("@use '../../node_modules/bulma/sass/utilities';");
+  });
+
+  it('flags third-party bulma extension imports with a targeted hint', () => {
+    const { output, todos } = run(
+      'checkradio.scss',
+      '@import "../node_modules/bulma-checkradio/dist/css/bulma-checkradio.min.css";\n'
+    );
+    expect(output).toContain('bulma-checkradio is a Bulma 0.9-era extension');
+    expect(todos[0].message).toContain('bulma-checkradio');
+  });
+
   it('flags any other bulma @import it does not recognize', () => {
     const { output, todos } = run(
       'other.scss',

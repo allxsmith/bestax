@@ -9,7 +9,8 @@ import type { DependenciesUpdate } from '../../types.js';
 
 const BESTAX_RANGE = '^5';
 const BULMA_RANGE = '^1.0.4';
-const SASS_RANGE = '^1.71.0';
+// Bulma v1's sass tree uses `color.channel(…)` — needs dart-sass ≥ 1.79.
+const SASS_RANGE = '^1.79.0';
 
 const DEP_SECTIONS = ['dependencies', 'devDependencies'] as const;
 
@@ -70,6 +71,35 @@ export const updateDependencies: DependenciesUpdate = (
     note(
       `added bulma ${BULMA_RANGE} to dependencies (sources import bulma/… directly)`
     );
+  }
+
+  // bestax-bulma requires React 18/19; RBC v4 also ran on 17. Report only —
+  // a React major upgrade is the app's own migration step.
+  for (const name of DEP_SECTIONS) {
+    const range = section(name)?.react;
+    if (range && /^[~^]?(?:[0-9]|1[0-7])(?:[.x]|$)/.test(range.trim())) {
+      collector?.add({
+        file: filePath,
+        line: null,
+        rule: 'peer-deps',
+        message: `react ${range} predates bestax-bulma's peer range (^18 || ^19) — upgrade react and react-dom to 18 or 19 before installing`,
+      });
+    }
+  }
+
+  // Font Awesome older than 6 conflicts with bestax-bulma's optional peer
+  // range and makes `npm install` fail with ERESOLVE. Report only — icon
+  // names change across FA majors, so upgrading is the app's decision.
+  for (const name of DEP_SECTIONS) {
+    const range = section(name)?.['@fortawesome/fontawesome-free'];
+    if (range && /^[~^]?[0-5](?:[.x]|$)/.test(range.trim())) {
+      collector?.add({
+        file: filePath,
+        line: null,
+        rule: 'peer-deps',
+        message: `@fortawesome/fontawesome-free ${range} predates bestax-bulma's optional peer range (^6.7.2 || ^7.0.0) — upgrade it, or install with \`npm install --legacy-peer-deps\``,
+      });
+    }
   }
 
   // node-sass is dead; dart-sass replaces it in the same section.
