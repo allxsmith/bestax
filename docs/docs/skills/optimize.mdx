@@ -43,6 +43,12 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 
   ```scss
   // src/styles.scss
+  // Configure shared variables FIRST — omit this and is-primary reverts
+  // to Bulma's default turquoise instead of the bestax brand color:
+  @use 'bulma/sass/utilities' with (
+    $primary: #1e6b99
+  );
+
   @use 'bulma/sass/base';
   @use 'bulma/sass/themes';
   @use 'bulma/sass/elements/button';
