@@ -88,10 +88,27 @@ export interface TodoCollector {
   add(entry: TodoEntry): void;
 }
 
+/**
+ * Which stylesheet target CSS/SCSS rewrites aim at:
+ * - `bestax` (default): the recommended `@allxsmith/bestax-bulma/bestax.css`
+ *   combined bundle (Bulma v1 + extras; bulma comes as a transitive dep).
+ * - `bulma`: plain `bulma/css/bulma.min.css` plus a separate extras import.
+ * - `keep`: leave existing bulma stylesheet imports untouched.
+ */
+export type CssMode = 'bestax' | 'bulma' | 'keep';
+
 /** Options threaded through to transforms by the CLI and the tests. */
 export interface TransformOptions {
   collector?: TodoCollector;
+  cssMode?: CssMode;
   [key: string]: unknown;
+}
+
+/** Options for the package.json dependency updater. */
+export interface DepsOptions {
+  cssMode?: CssMode;
+  /** True when migrated sources still reference `bulma/…` specifiers. */
+  bulmaReferenced?: boolean;
 }
 
 /** The standard jscodeshift transform contract. */
@@ -101,6 +118,22 @@ export type Transform = (
   options: TransformOptions
 ) => string | undefined;
 
+/** Text-level transform for stylesheet files (.scss/.sass). */
+export type StylesTransform = (
+  filePath: string,
+  source: string,
+  collector: TodoCollector | undefined,
+  options: TransformOptions
+) => string | null;
+
+/** package.json updater; returns the changed manifest or null. */
+export type DependenciesUpdate = (
+  filePath: string,
+  pkg: Record<string, unknown>,
+  collector: TodoCollector | undefined,
+  options: DepsOptions
+) => Record<string, unknown> | null;
+
 /** A migration source registered with the CLI. */
 export interface MigrationSource {
   /** CLI name, e.g. `react-bulma-components`. */
@@ -108,4 +141,6 @@ export interface MigrationSource {
   /** Human-readable label for the report header. */
   label: string;
   transform: Transform;
+  transformStyles?: StylesTransform;
+  updateDependencies?: DependenciesUpdate;
 }

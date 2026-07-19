@@ -112,6 +112,36 @@ describe('react-bulma-components transform fixtures', () => {
     expect(output).toContain('<BulmaInput />');
   });
 
+  it('collects bindings from classes, function expressions, and patterns', () => {
+    const source = [
+      "import { Form } from 'react-bulma-components';",
+      'class Control {}',
+      'const helper = function (Field: string) {',
+      '  return Field;',
+      '};',
+      'const [Input = null, ...rest] = [] as unknown[];',
+      'export const A = () => (',
+      '  <div>',
+      '    {helper(String(Control))}',
+      '    {String(Input)}',
+      '    {rest.length}',
+      '    <Form.Field>',
+      '      <Form.Control>',
+      '        <Form.Input />',
+      '      </Form.Control>',
+      '    </Form.Field>',
+      '  </div>',
+      ');',
+    ].join('\n');
+    const { output } = runTransform(transform, 'bindings.tsx', source);
+    expect(output).toContain('Field as BulmaField');
+    expect(output).toContain('Control as BulmaControl');
+    expect(output).toContain('Input as BulmaInput');
+    expect(output).toContain('<BulmaField>');
+    expect(output).toContain('<BulmaControl>');
+    expect(output).toContain('<BulmaInput />');
+  });
+
   it('aliases imports that collide with local bindings', () => {
     const source = [
       "import { Form } from 'react-bulma-components';",
@@ -154,11 +184,159 @@ describe('react-bulma-components transform fixtures', () => {
     expect(output).not.toContain('react-bulma-components');
   });
 
-  it('rewrites v3 bundled CSS imports to bulma', () => {
-    const source =
+  describe('value references', () => {
+    it('rewrites flat-target member values (Icon.Text → IconText)', () => {
+      const source = [
+        "import { Icon } from 'react-bulma-components';",
+        'const Wrapper = Icon.Text;',
+        'export const A = () => <Wrapper>x</Wrapper>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'member.tsx', source);
+      expect(output).toContain('const Wrapper = IconText;');
+      expect(output).toContain('IconText');
+      expect(output).not.toContain('react-bulma-components');
+    });
+
+    it('keeps same-compound member values on the bestax root', () => {
+      const source = [
+        "import { Card } from 'react-bulma-components';",
+        'const Body = Card.Content;',
+        'export const A = () => <Body>x</Body>;',
+      ].join('\n');
+      const { output } = runTransform(transform, 'compound.tsx', source);
+      expect(output).toContain('const Body = Card.Content;');
+      expect(output).toContain(
+        'import { Card } from "@allxsmith/bestax-bulma"'
+      );
+    });
+
+    it('flags member values whose target needs restructuring', () => {
+      const source = [
+        "import { Media } from 'react-bulma-components';",
+        'const Item = Media.Item;',
+        'export const A = () => <Item>x</Item>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'special.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(todos.some(t => t.rule === 'value-reference')).toBe(true);
+      expect(output).toContain("from 'react-bulma-components'");
+    });
+  });
+
+  describe('behavior-preserving specials', () => {
+    it('converts dynamic Columns multiline with the RBC default fallback', () => {
+      const source = [
+        "import { Columns } from 'react-bulma-components';",
+        'export const A = ({ wrap }: { wrap?: boolean }) => (',
+        '  <Columns multiline={wrap}>x</Columns>',
+        ');',
+      ].join('\n');
+      const { output } = runTransform(transform, 'columns.tsx', source);
+      expect(output).toContain('isMultiline={wrap ?? true}');
+    });
+
+    it('does not double-wrap Tabs items that already contain an anchor', () => {
+      const source = [
+        "import { Tabs } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <Tabs>',
+        '    <Tabs.Tab active>',
+        '      <a href="#one">One</a>',
+        '    </Tabs.Tab>',
+        '  </Tabs>',
+        ');',
+      ].join('\n');
+      const { output } = runTransform(transform, 'tabs.tsx', source);
+      expect(output).toContain('<a href="#one">One</a>');
+      expect((output ?? '').match(/<a /g)).toHaveLength(1);
+    });
+
+    it('flags a Menu.List title it cannot lift to a sibling', () => {
+      const source = [
+        "import { Menu } from 'react-bulma-components';",
+        'export const A = () => (',
+        '  <Menu.List title="Orphan">',
+        '    <Menu.List.Item>x</Menu.List.Item>',
+        '  </Menu.List>',
+        ');',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      runTransform(transform, 'menu.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(todos.some(t => t.rule === 'prop:title')).toBe(true);
+    });
+  });
+
+  describe('stylesheet imports', () => {
+    const RBC_CSS =
       "import 'react-bulma-components/dist/react-bulma-components.min.css';\n";
-    const { output } = runTransform(transform, 'styles.ts', source);
-    expect(output).toContain('import "bulma/css/bulma.min.css";');
-    expect(output).toContain('TODO(bestax-migrate)');
+    const BULMA_CSS_IMPORT = "import 'bulma/css/bulma.min.css';\n";
+
+    it('default (bestax): converges on the combined bestax.css bundle', () => {
+      const { output } = runTransform(transform, 'styles.ts', RBC_CSS);
+      expect(output).toContain('import "@allxsmith/bestax-bulma/bestax.css";');
+      expect(output).not.toContain('TODO');
+    });
+
+    it('bestax: rewrites plain bulma css and collapses a separate extras import', () => {
+      const source =
+        BULMA_CSS_IMPORT + "import '@allxsmith/bestax-bulma/extras.css';\n";
+      const { output } = runTransform(transform, 'styles.ts', source);
+      expect(output).toContain('import "@allxsmith/bestax-bulma/bestax.css";');
+      expect(output).not.toContain('extras.css');
+      expect(output).not.toContain('bulma/css');
+    });
+
+    it('bestax: dedupes when both RBC and bulma css imports exist', () => {
+      const { output } = runTransform(
+        transform,
+        'styles.ts',
+        RBC_CSS + BULMA_CSS_IMPORT
+      );
+      const matches = (output ?? '').match(/bestax\.css/g) ?? [];
+      expect(matches).toHaveLength(1);
+    });
+
+    it('bulma mode: rewrites the RBC v3 css and adds the extras import', () => {
+      const { output } = runTransform(
+        transform,
+        'styles.ts',
+        RBC_CSS,
+        undefined,
+        { cssMode: 'bulma' }
+      );
+      expect(output).toContain('import "bulma/css/bulma.min.css";');
+      expect(output).toContain('import "@allxsmith/bestax-bulma/extras.css";');
+    });
+
+    it('bulma mode: keeps plain bulma css and adds the extras import', () => {
+      const { output } = runTransform(
+        transform,
+        'styles.ts',
+        BULMA_CSS_IMPORT,
+        undefined,
+        { cssMode: 'bulma' }
+      );
+      expect(output).toContain("import 'bulma/css/bulma.min.css';");
+      expect(output).toContain('import "@allxsmith/bestax-bulma/extras.css";');
+    });
+
+    it('keep mode: only fixes the dead RBC v3 css path, with a TODO', () => {
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(
+        transform,
+        'styles.ts',
+        RBC_CSS + BULMA_CSS_IMPORT,
+        { add: entry => todos.push(entry) },
+        { cssMode: 'keep' }
+      );
+      expect(output).toContain('import "bulma/css/bulma.min.css";');
+      expect(output).toContain("import 'bulma/css/bulma.min.css';");
+      expect(output).not.toContain('bestax.css');
+      expect(todos.some(t => t.rule === 'css')).toBe(true);
+    });
   });
 });

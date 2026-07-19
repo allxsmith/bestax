@@ -2,11 +2,13 @@
  * The bestax-migrate CLI:
  *
  *   bestax-migrate <source> <paths...> [--dry] [--print] [--extensions ...]
+ *                  [--css bestax|bulma|keep] [--no-deps]
  *
- * Walks the given files/directories, runs the selected source transform on
- * every matching file in-process, writes results back (unless --dry), and
- * prints the run report. TODO annotations are expected output — the exit code
- * is 0 whenever the run itself succeeds.
+ * Walks the given files/directories, routes each file by type (JS/TSX →
+ * jscodeshift transform, .scss/.sass → the source's stylesheet transform),
+ * updates the nearest package.json (unless --no-deps), writes results back
+ * (unless --dry), and prints the run report. TODO annotations are expected
+ * output — the exit code is 0 whenever the run itself succeeds.
  */
 
 import fs from 'node:fs';
@@ -16,6 +18,7 @@ import { Command } from 'commander';
 import { Reporter } from './report.js';
 import { runTransform } from './runner.js';
 import { getSource, sourceNames } from './sources/registry.js';
+import type { CssMode, MigrationSource } from './types.js';
 
 const SKIP_DIRS = new Set([
   'node_modules',
@@ -25,6 +28,9 @@ const SKIP_DIRS = new Set([
   'coverage',
   '.next',
 ]);
+
+const STYLE_EXTENSIONS = new Set(['scss', 'sass']);
+const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
 
 export function collectFiles(
   targets: string[],
@@ -49,9 +55,117 @@ export function collectFiles(
   return files;
 }
 
+/** Nearest package.json for each target, walking up to the filesystem root. */
+export function findPackageJsons(targets: string[]): string[] {
+  const found = new Set<string>();
+  for (const target of targets) {
+    const stat = fs.statSync(target, { throwIfNoEntry: false });
+    if (!stat) continue;
+    let dir = path.resolve(stat.isDirectory() ? target : path.dirname(target));
+    for (;;) {
+      const candidate = path.join(dir, 'package.json');
+      if (fs.existsSync(candidate)) {
+        found.add(candidate);
+        break;
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  }
+  return [...found].sort();
+}
+
 export interface CliIo {
   log: (message: string) => void;
   error: (message: string) => void;
+}
+
+interface RunOptions {
+  dry: boolean;
+  print: boolean;
+  deps: boolean;
+  cssMode: CssMode;
+}
+
+function migrateFiles(
+  source: MigrationSource,
+  files: string[],
+  reporter: Reporter,
+  io: CliIo,
+  options: RunOptions
+): boolean {
+  let bulmaReferenced = false;
+  for (const file of files) {
+    const sourceText = fs.readFileSync(file, 'utf8');
+    const collector = reporter.startFile();
+    const extension = path.extname(file).replace(/^\./, '');
+    let output: string | null;
+    try {
+      if (STYLE_EXTENSIONS.has(extension)) {
+        output = source.transformStyles
+          ? source.transformStyles(file, sourceText, collector, {
+              cssMode: options.cssMode,
+            })
+          : null;
+      } else {
+        output = runTransform(source.transform, file, sourceText, collector, {
+          cssMode: options.cssMode,
+        }).output;
+      }
+    } catch (error) {
+      io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+      reporter.finishFile(file, false, collector.entries);
+      continue;
+    }
+    if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
+      bulmaReferenced = true;
+    }
+    if (output !== null) {
+      if (options.print) io.log(output);
+      if (!options.dry) fs.writeFileSync(file, output);
+    }
+    reporter.finishFile(file, output !== null, collector.entries);
+  }
+  return bulmaReferenced;
+}
+
+function migrateDependencies(
+  source: MigrationSource,
+  targets: string[],
+  reporter: Reporter,
+  io: CliIo,
+  options: RunOptions,
+  bulmaReferenced: boolean
+): void {
+  if (!options.deps || !source.updateDependencies) return;
+  for (const pkgPath of findPackageJsons(targets)) {
+    const collector = reporter.startFile();
+    let changed = false;
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      const next = source.updateDependencies(pkgPath, pkg, collector, {
+        cssMode: options.cssMode,
+        bulmaReferenced,
+      });
+      if (next !== null) {
+        changed = true;
+        if (!options.dry) {
+          fs.writeFileSync(pkgPath, `${JSON.stringify(next, null, 2)}\n`);
+        }
+      }
+    } catch (error) {
+      io.error(chalk.red(`✖ ${pkgPath}: ${(error as Error).message}`));
+    }
+    reporter.finishFile(pkgPath, changed, collector.entries);
+    if (changed) {
+      io.log(
+        chalk.yellow(
+          `Updated ${pkgPath} — run your package manager's install to apply.`
+        )
+      );
+    }
+  }
 }
 
 export function createCLI(
@@ -77,13 +191,26 @@ export function createCLI(
     .option(
       '-e, --extensions <list>',
       'comma-separated file extensions to include',
-      'js,jsx,ts,tsx'
+      'js,jsx,ts,tsx,scss,sass'
     )
+    .option(
+      '--css <mode>',
+      `stylesheet target: ${CSS_MODES.join(', ')}`,
+      'bestax'
+    )
+    .option('--no-deps', 'skip updating package.json dependencies')
     .action((sourceName: string, targets: string[], options) => {
       const source = getSource(sourceName);
       if (!source) {
         io.error(
           `${chalk.red('Unknown source')} "${sourceName}". Available sources: ${sourceNames().join(', ')}`
+        );
+        program.error('', { exitCode: 1 });
+        return;
+      }
+      if (!CSS_MODES.includes(options.css)) {
+        io.error(
+          `${chalk.red('Unknown --css mode')} "${options.css}". Valid modes: ${CSS_MODES.join(', ')}`
         );
         program.error('', { exitCode: 1 });
         return;
@@ -103,31 +230,33 @@ export function createCLI(
         return;
       }
 
-      const reporter = new Reporter();
-      for (const file of files) {
-        const sourceText = fs.readFileSync(file, 'utf8');
-        const collector = reporter.startFile();
-        let output: string | null;
-        try {
-          output = runTransform(
-            source.transform,
-            file,
-            sourceText,
-            collector
-          ).output;
-        } catch (error) {
-          io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
-          reporter.finishFile(file, false, collector.entries);
-          continue;
-        }
-        if (output !== null) {
-          if (options.print) io.log(output);
-          if (!options.dry) fs.writeFileSync(file, output);
-        }
-        reporter.finishFile(file, output !== null, collector.entries);
-      }
+      const runOptions: RunOptions = {
+        dry: Boolean(options.dry),
+        print: Boolean(options.print),
+        deps: options.deps !== false,
+        cssMode: options.css as CssMode,
+      };
 
-      io.log(reporter.render(source.label + (options.dry ? ' (dry run)' : '')));
+      const reporter = new Reporter();
+      const bulmaReferenced = migrateFiles(
+        source,
+        files,
+        reporter,
+        io,
+        runOptions
+      );
+      migrateDependencies(
+        source,
+        targets,
+        reporter,
+        io,
+        runOptions,
+        bulmaReferenced
+      );
+
+      io.log(
+        reporter.render(source.label + (runOptions.dry ? ' (dry run)' : ''))
+      );
     });
   return program;
 }

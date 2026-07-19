@@ -26,7 +26,9 @@ pnpm dlx bestax-migrate react-bulma-components src/
 ```
 
 (`npx bestax-migrate …` works the same.) Useful flags: `--print` echoes transformed files to
-stdout; `--extensions js,jsx,ts,tsx` controls which files are considered.
+stdout; `--extensions` controls which files are considered (default
+`js,jsx,ts,tsx,scss,sass`); `--css bestax|bulma|keep` picks the stylesheet target
+(default `bestax`); `--no-deps` skips the package.json update.
 
 The codemod uses [jscodeshift](https://github.com/facebook/jscodeshift) to rewrite your source
 in place:
@@ -47,6 +49,15 @@ in place:
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
   `Menu.Label` sibling.
+- **Stylesheets** — CSS imports converge on the recommended
+  `@allxsmith/bestax-bulma/bestax.css` bundle (Bulma v1 + the bestax extras); SCSS files move
+  from Bulma 0.9's `@import 'bulma/bulma'` + `$var !default` overrides to
+  `@use 'bulma/sass' with ($var: …)` plus `@use '@allxsmith/bestax-bulma/scss/extras'`, and
+  the dead `_all` partial paths map onto the v1 module tree. Computed variables and
+  indented-syntax `.sass` files are flagged instead of guessed at.
+- **Dependencies** — the nearest `package.json` drops `react-bulma-components`, gains
+  `@allxsmith/bestax-bulma`, moves `bulma` to `^1.0.4`, and swaps the dead `node-sass` for
+  dart `sass`. The codemod never runs an install — do that yourself afterwards.
 
 ## The TODO report
 
@@ -81,12 +92,12 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 
 ## Finish the migration
 
-1. **Dependencies** — `npm uninstall react-bulma-components && npm install @allxsmith/bestax-bulma bulma`.
-2. **CSS** — react-bulma-components apps run Bulma 0.9; make sure the stylesheet import is
-   Bulma v1 (`import 'bulma/css/bulma.min.css'`) or one of the
-   [bundled bestax flavors](../installation.md), and read the
-   [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the CSS-level changes (Sass variables → CSS
-   variables, Tiles → Grid, automatic dark mode).
+1. **Install** — the codemod already rewrote `package.json`; apply it with
+   `npm install` (or pnpm/yarn).
+2. **Styling follow-ups** — pick a different [CSS flavor](../installation.md) if you need
+   prefixed/no-helpers/light-only builds, and read the
+   [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes that aren't
+   code-level (Tiles → Grid, `is-bold` gradients removed, automatic dark mode).
 3. **Verify** — typecheck, build, and compare the rendered app against the pre-migration UI.
 
 ## Version support

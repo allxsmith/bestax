@@ -30,9 +30,13 @@ export function runTransform(
   transform: Transform,
   path: string,
   source: string,
-  collector?: TodoCollector
+  collector?: TodoCollector,
+  options: Record<string, unknown> = {}
 ): RunResult {
-  const result = transform({ path, source }, makeApi(), { collector });
+  const result = transform({ path, source }, makeApi(), {
+    collector,
+    ...options,
+  });
   if (result === undefined || result === null || result === source) {
     return { output: null };
   }

@@ -1,0 +1,8 @@
+$primary: #1e6b99;
+$family-primary: 'Nunito', sans-serif;
+
+@import 'bulma/bulma.sass';
+
+.app-shell {
+  min-height: 100vh;
+}

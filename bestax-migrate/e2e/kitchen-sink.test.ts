@@ -53,6 +53,31 @@ function migrateKitchenSink(): MigratedApp {
     if (output !== null) fs.writeFileSync(filePath, output);
     todosByFile.set(file, todos);
   }
+
+  // Stylesheets and the manifest go through their dedicated transforms.
+  const scssPath = path.join(srcDir, 'styles.scss');
+  const scssTodos: TodoEntry[] = [];
+  const scssOut = reactBulmaComponents.transformStyles!(
+    'styles.scss',
+    fs.readFileSync(scssPath, 'utf8'),
+    { add: entry => scssTodos.push(entry) },
+    { cssMode: 'bestax' }
+  );
+  if (scssOut !== null) fs.writeFileSync(scssPath, scssOut);
+  todosByFile.set('styles.scss', scssTodos);
+
+  const pkgPath = path.join(tmpDir, 'package.json');
+  const pkgTodos: TodoEntry[] = [];
+  const pkgNext = reactBulmaComponents.updateDependencies!(
+    'package.json',
+    JSON.parse(fs.readFileSync(pkgPath, 'utf8')),
+    { add: entry => pkgTodos.push(entry) },
+    { cssMode: 'bestax', bulmaReferenced: true }
+  );
+  if (pkgNext !== null) {
+    fs.writeFileSync(pkgPath, `${JSON.stringify(pkgNext, null, 2)}\n`);
+  }
+
   return { todosByFile, files };
 }
 
@@ -88,6 +113,40 @@ describe('kitchen-sink e2e', () => {
       if (file === 'leftovers.tsx') continue;
       expect({ file, todos }).toEqual({ file, todos: [] });
     }
+  });
+
+  it('adopts the bestax combined CSS bundle in App.tsx', () => {
+    const migrated = fs.readFileSync(
+      path.join(tmpDir, 'src', 'App.tsx'),
+      'utf8'
+    );
+    expect(migrated).toContain('import "@allxsmith/bestax-bulma/bestax.css";');
+    expect(migrated).not.toContain('bulma/css');
+  });
+
+  it('migrates the SCSS entry to Bulma v1 modules with folded variables', () => {
+    const scss = fs.readFileSync(
+      path.join(tmpDir, 'src', 'styles.scss'),
+      'utf8'
+    );
+    expect(scss).toContain("@use 'bulma/sass' with (");
+    expect(scss).toContain('$primary: #1e6b99,');
+    expect(scss).toContain("$family-primary: 'Nunito', sans-serif");
+    expect(scss).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+    expect(scss).not.toContain('@import');
+    expect(scss).toContain('.app-shell');
+  });
+
+  it('migrates the package.json dependency set', () => {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
+    );
+    expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(pkg.dependencies.bulma).toBe('^1.0.4');
+    expect(pkg.devDependencies['node-sass']).toBeUndefined();
+    expect(pkg.devDependencies.sass).toBe('^1.71.0');
+    expect(pkg.dependencies.react).toBe('^18.2.0');
   });
 
   it('annotates every intentionally unsupported pattern in leftovers.tsx', () => {

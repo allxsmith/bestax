@@ -15,21 +15,26 @@ finishes what it flags.
 
 Run these steps in order. Don't hand-convert what the codemod converts automatically.
 
-1. **Swap dependencies** (keep `react-bulma-components` installed until the end if the app
-   must keep building during migration):
-
-   ```sh
-   npm install @allxsmith/bestax-bulma bulma
-   ```
-
-2. **Dry-run the codemod** on the source directory and review the report:
+1. **Dry-run the codemod** on the source directory and review the report:
 
    ```sh
    pnpm dlx bestax-migrate react-bulma-components src/ --dry
    ```
 
-3. **Apply it** (same command without `--dry`), then run the project's formatter — the
+2. **Apply it** (same command without `--dry`), then run the project's formatter — the
    codemod preserves surrounding formatting but doesn't prettify what it rewrites.
+   Besides the components, it also migrates **stylesheets** (CSS imports →
+   `@allxsmith/bestax-bulma/bestax.css`; SCSS `@import 'bulma/bulma'` + `$var` overrides
+   → `@use 'bulma/sass' with (…)` plus the bestax extras) and **package.json**
+   (react-bulma-components removed, bestax-bulma added, bulma → ^1, node-sass → sass).
+   Flags: `--css bulma|keep` for other stylesheet targets, `--no-deps` to leave
+   package.json alone.
+
+3. **Install** — the codemod edits package.json but never runs a package manager:
+
+   ```sh
+   npm install   # or pnpm/yarn
+   ```
 
 4. **Resolve every TODO**: `grep -rn "TODO(bestax-migrate)" src/`. Each comment names the
    prop/component and a hint. Recipes for every recurring case are in
@@ -37,17 +42,19 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    tables are in [references/component-map.md](references/component-map.md) and
    [references/prop-map.md](references/prop-map.md). Delete each comment as you resolve it.
 
-5. **Migrate the CSS to Bulma v1** — react-bulma-components apps run Bulma 0.9, and some
-   class patterns changed. Follow [references/css-migration.md](references/css-migration.md).
+5. **Finish the stylesheet layer** — flagged Sass cases (computed variables,
+   indented-syntax `.sass` files), CSS flavor choice, and Bulma 0.9→1 styling changes:
+   follow [references/css-migration.md](references/css-migration.md).
 
-6. **Finish**: remove `react-bulma-components` from package.json, typecheck/build, and
-   review the rendered app side by side against the pre-migration UI.
+6. **Finish**: typecheck/build, and review the rendered app side by side against the
+   pre-migration UI.
 
 ## What the codemod handles vs. flags
 
 All 32 react-bulma-components v4 components have a mapping. Imports (named, namespace, and
 `const { Input } = Form` destructuring), component renames, prop renames/value conversions,
-and responsive breakpoint objects convert automatically. It flags with
+responsive breakpoint objects, CSS/SCSS stylesheet imports, and package.json dependencies
+convert automatically. It flags with
 `TODO(bestax-migrate)` instead of guessing: `Element` and `Tile` (no bestax equivalent —
 Tile is replaced by Bulma v1's Grid), controlled `Dropdown`/`Dropdown.Item value`,
 `touch`/`until*` breakpoints, dynamic prop values it can't rewrite, and props with no

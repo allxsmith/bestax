@@ -21,12 +21,17 @@ each source library registers in `src/sources/registry.ts`; the first is
 
 ## Architecture
 
-- `src/cli.ts` — file walk + in-process runner (NOT jscodeshift's worker Runner: fragile
-  from ESM, hides per-file stats). `src/runner.ts` is shared by CLI and tests.
-- `src/sources/react-bulma-components/`: `transform.ts` (orchestration: imports →
+- `src/cli.ts` — file walk + per-type routing (js-ish → jscodeshift transform,
+  .scss/.sass → `transformStyles`, nearest package.json → `updateDependencies`) with an
+  in-process runner (NOT jscodeshift's worker Runner: fragile from ESM, hides per-file
+  stats). `src/runner.ts` is shared by CLI and tests. `--css bestax|bulma|keep` picks the
+  stylesheet target; `--no-deps` skips the manifest step.
+- `src/sources/react-bulma-components/`: `transform.ts` (orchestration: imports + css →
   per-element special/rename/responsive/props → import rewrite), `mapping.ts` (data),
   `specials.ts` (structural handlers), `props.ts` (PropAction interpreter), `responsive.ts`
-  (breakpoint-object flattening), `jsx-utils.ts` (AST helpers).
+  (breakpoint-object flattening), `styles.ts` (line-based SCSS/SASS transform — Sass has
+  no jscodeshift parser, so it only rewrites provably-safe patterns), `deps.ts`
+  (package.json updater; never runs an install), `jsx-utils.ts` (AST helpers).
 - Components with no bestax equivalent (Element, Tile) keep a trimmed, TODO-annotated RBC
   import so the code still runs during gradual migration.
 

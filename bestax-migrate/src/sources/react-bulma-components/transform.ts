@@ -33,6 +33,23 @@ import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 const RBC = 'react-bulma-components';
 const BESTAX = '@allxsmith/bestax-bulma';
 const BULMA_CSS = 'bulma/css/bulma.min.css';
+const BESTAX_CSS = '@allxsmith/bestax-bulma/bestax.css';
+const EXTRAS_CSS = '@allxsmith/bestax-bulma/extras.css';
+
+const BULMA_CSS_SPECIFIERS = new Set([
+  'bulma/css/bulma.css',
+  'bulma/css/bulma.min.css',
+]);
+const BESTAX_CSS_SPECIFIERS = new Set([
+  BESTAX_CSS,
+  '@allxsmith/bestax-bulma/bestax.min.css',
+  '@allxsmith/bestax-bulma/dist/bestax.css',
+  '@allxsmith/bestax-bulma/dist/bestax.min.css',
+]);
+const EXTRAS_CSS_SPECIFIERS = new Set([
+  EXTRAS_CSS,
+  '@allxsmith/bestax-bulma/dist/extras.css',
+]);
 
 export default function transform(
   fileInfo: FileInfo,
@@ -83,20 +100,73 @@ export default function transform(
         }
       }
     } else if (source.startsWith(`${RBC}/`) && source.endsWith('.css')) {
-      // v3-era bundled CSS import.
-      path.node.source = j.stringLiteral(BULMA_CSS);
-      addTodo(
-        ctx,
-        path,
-        'css',
-        `replaced the react-bulma-components CSS import with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
-      );
+      // v3-era bundled CSS import — handled by the CSS pass below.
     } else if (source.startsWith(`${RBC}/`)) {
       addTodo(
         ctx,
         path,
         'imports',
         'deep react-bulma-components import paths are a v3 pattern; move to v4 named root imports first'
+      );
+    }
+  });
+
+  // ---- 1a. Stylesheet imports (mode-driven) -----------------------------
+  // `bestax` (default): everything converges on the recommended combined
+  // bundle. `bulma`: plain Bulma v1 CSS plus the separate extras file.
+  // `keep`: only the dead RBC v3 CSS import is touched.
+  const cssMode = options.cssMode ?? 'bestax';
+  let sawBestaxCss = root
+    .find(j.ImportDeclaration)
+    .paths()
+    .some(p => BESTAX_CSS_SPECIFIERS.has(String(p.node.source.value)));
+  root.find(j.ImportDeclaration).forEach(path => {
+    const source = String(path.node.source.value);
+    const isRbcCss = source.startsWith(`${RBC}/`) && source.endsWith('.css');
+    const isBulmaCss = BULMA_CSS_SPECIFIERS.has(source);
+    const isExtrasCss = EXTRAS_CSS_SPECIFIERS.has(source);
+    if (!isRbcCss && !isBulmaCss && !isExtrasCss) return;
+
+    if (cssMode === 'bestax') {
+      if (isRbcCss || isBulmaCss) {
+        if (sawBestaxCss) {
+          path.prune(); // bestax.css already imported elsewhere in this file
+        } else {
+          path.node.source = j.stringLiteral(BESTAX_CSS);
+          sawBestaxCss = true;
+        }
+        ctx.dirty = true;
+      } else if (isExtrasCss && sawBestaxCss) {
+        // bestax.css already contains the extras.
+        path.prune();
+        ctx.dirty = true;
+      }
+    } else if (cssMode === 'bulma') {
+      if (isRbcCss) {
+        path.node.source = j.stringLiteral(BULMA_CSS);
+        ctx.dirty = true;
+      }
+      if ((isRbcCss || isBulmaCss) && !sawBestaxCss) {
+        const hasExtras = root
+          .find(j.ImportDeclaration)
+          .paths()
+          .some(p => EXTRAS_CSS_SPECIFIERS.has(String(p.node.source.value)));
+        if (!hasExtras) {
+          // Themed Radio/Checkbox need the bestax extras next to plain Bulma.
+          path.insertAfter(
+            j.importDeclaration([], j.stringLiteral(EXTRAS_CSS))
+          );
+          ctx.dirty = true;
+        }
+      }
+    } else if (isRbcCss) {
+      // keep: minimal fix — the v3 bundled CSS no longer exists at all.
+      path.node.source = j.stringLiteral(BULMA_CSS);
+      addTodo(
+        ctx,
+        path,
+        'css',
+        `replaced the react-bulma-components CSS import with '${BULMA_CSS}'; install bulma@^1 (see https://bestax.io/docs/guides/getting-started/installation)`
       );
     }
   });
