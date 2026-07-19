@@ -1,0 +1,8 @@
+# Codemod fixtures are byte-exact expected transform output; reformatting them
+# would change what the tests assert. Mirrors the repo-root .prettierignore for
+# package-local prettier runs (pnpm --filter bestax-migrate format:check).
+src/sources/*/__testfixtures__/
+fixtures/
+.e2e-tmp/
+dist/
+coverage/

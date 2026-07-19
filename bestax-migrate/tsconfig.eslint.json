@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/**/*", "e2e/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/__testfixtures__/**",
+    "fixtures/**",
+    ".e2e-tmp/**"
+  ]
+}
