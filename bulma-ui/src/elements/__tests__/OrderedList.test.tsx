@@ -141,3 +141,20 @@ describe('OrderedList Component', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('OrderedList.Item is the ListItem component', () => {
+    expect(OrderedList.Item).toBe(ListItem);
+  });
+
+  test('renders items through the dot path', () => {
+    render(
+      <OrderedList>
+        <OrderedList.Item>First</OrderedList.Item>
+        <OrderedList.Item>Second</OrderedList.Item>
+      </OrderedList>
+    );
+    expect(screen.getByText('First').tagName).toBe('LI');
+    expect(screen.getByRole('list').tagName).toBe('OL');
+  });
+});

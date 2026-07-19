@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Field from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Field', () => {
@@ -317,5 +318,27 @@ describe('Field', () => {
       expect(field).toHaveClass('has-addons');
       expect(field).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Compound components', () => {
+  test('Field.Control is the Control component', () => {
+    expect(Field.Control).toBe(Control);
+  });
+
+  test('renders a horizontal field through Field.Label and Field.Body', () => {
+    const { container } = render(
+      <Field horizontal>
+        <Field.Label>Name</Field.Label>
+        <Field.Body>
+          <Field.Control>
+            <input className="input" />
+          </Field.Control>
+        </Field.Body>
+      </Field>
+    );
+    expect(container.querySelector('.field-label')).toBeInTheDocument();
+    expect(container.querySelector('.field-body')).toBeInTheDocument();
+    expect(container.querySelector('.control')).toBeInTheDocument();
   });
 });

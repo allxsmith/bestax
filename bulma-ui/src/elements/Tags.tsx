@@ -1,6 +1,8 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { Tag } from './Tag';
 
 /**
  * Props for the Tags component.
@@ -30,7 +32,7 @@ export interface TagsProps
  * @returns {JSX.Element} The rendered tags container.
  * @see {@link https://bulma.io/documentation/elements/tag/#list-of-tags | Bulma Tags documentation}
  */
-export const Tags: React.FC<TagsProps> = ({
+const TagsComponent: React.FC<TagsProps> = ({
   className,
   hasAddons,
   isMultiline,
@@ -55,3 +57,5 @@ export const Tags: React.FC<TagsProps> = ({
     </div>
   );
 };
+
+export const Tags = withSubComponents(TagsComponent, { Tag }, 'Tags');

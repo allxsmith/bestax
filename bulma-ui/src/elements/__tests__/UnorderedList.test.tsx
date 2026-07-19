@@ -128,3 +128,20 @@ describe('UnorderedList Component', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('UnorderedList.Item is the ListItem component', () => {
+    expect(UnorderedList.Item).toBe(ListItem);
+  });
+
+  test('renders items through the dot path', () => {
+    render(
+      <UnorderedList>
+        <UnorderedList.Item>First</UnorderedList.Item>
+        <UnorderedList.Item>Second</UnorderedList.Item>
+      </UnorderedList>
+    );
+    expect(screen.getByText('First').tagName).toBe('LI');
+    expect(screen.getByRole('list').tagName).toBe('UL');
+  });
+});

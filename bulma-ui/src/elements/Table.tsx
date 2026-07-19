@@ -3,7 +3,14 @@
  */
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { Thead } from './Thead';
+import { Tbody } from './Tbody';
+import { Tfoot } from './Tfoot';
+import { Tr } from './Tr';
+import { Th } from './Th';
+import { Td } from './Td';
 
 /**
  * Props for the Table component.
@@ -41,7 +48,7 @@ export interface TableProps
  * @returns {JSX.Element} The rendered table element.
  * @see {@link https://bulma.io/documentation/elements/table/ | Bulma Table documentation}
  */
-export const Table: React.FC<TableProps> = ({
+const TableComponent: React.FC<TableProps> = ({
   className,
   isBordered,
   isStriped,
@@ -80,3 +87,16 @@ export const Table: React.FC<TableProps> = ({
 
   return tableElement;
 };
+
+export const Table = withSubComponents(
+  TableComponent,
+  {
+    Thead,
+    Tbody,
+    Tfoot,
+    Tr,
+    Th,
+    Td,
+  },
+  'Table'
+);

@@ -190,3 +190,19 @@ describe('Radios', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('Radios.Radio is the Radio component', () => {
+    expect(Radios.Radio).toBe(Radio);
+  });
+
+  test('renders radios through the dot path', () => {
+    render(
+      <Radios name="color">
+        <Radios.Radio value="red">Red</Radios.Radio>
+        <Radios.Radio value="green">Green</Radios.Radio>
+      </Radios>
+    );
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+  });
+});

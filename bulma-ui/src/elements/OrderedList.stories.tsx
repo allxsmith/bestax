@@ -193,3 +193,14 @@ export const NestedList: Story = {
     </Content>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Content>
+      <OrderedList>
+        <OrderedList.Item>First item via dot notation</OrderedList.Item>
+        <OrderedList.Item>Second item via dot notation</OrderedList.Item>
+      </OrderedList>
+    </Content>
+  ),
+};

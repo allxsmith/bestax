@@ -354,3 +354,32 @@ export const AllModifiers: Story = {
     ),
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Table isStriped>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Team</Table.Th>
+          <Table.Th>Points</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        <Table.Tr>
+          <Table.Td>Maple Leafs</Table.Td>
+          <Table.Td>98</Table.Td>
+        </Table.Tr>
+        <Table.Tr>
+          <Table.Td>Canadiens</Table.Td>
+          <Table.Td>91</Table.Td>
+        </Table.Tr>
+      </Table.Tbody>
+      <Table.Tfoot>
+        <Table.Tr>
+          <Table.Td>Total</Table.Td>
+          <Table.Td>189</Table.Td>
+        </Table.Tr>
+      </Table.Tfoot>
+    </Table>
+  ),
+};

@@ -1,5 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { Table, TableProps } from '../Table';
+import { Thead } from '../Thead';
+import { Tbody } from '../Tbody';
+import { Tfoot } from '../Tfoot';
+import { Tr } from '../Tr';
+import { Th } from '../Th';
+import { Td } from '../Td';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Table Component', () => {
@@ -168,5 +174,42 @@ describe('Table Component', () => {
       expect(table).toHaveClass('is-hoverable');
       expect(table).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Compound components', () => {
+  test('statics are the separately exported components', () => {
+    expect(Table.Thead).toBe(Thead);
+    expect(Table.Tbody).toBe(Tbody);
+    expect(Table.Tfoot).toBe(Tfoot);
+    expect(Table.Tr).toBe(Tr);
+    expect(Table.Th).toBe(Th);
+    expect(Table.Td).toBe(Td);
+  });
+
+  test('renders a full table through the dot path', () => {
+    render(
+      <Table>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Name</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr>
+            <Table.Td>Alice</Table.Td>
+          </Table.Tr>
+        </Table.Tbody>
+        <Table.Tfoot>
+          <Table.Tr>
+            <Table.Td>Total</Table.Td>
+          </Table.Tr>
+        </Table.Tfoot>
+      </Table>
+    );
+    expect(screen.getByRole('table')).toHaveClass('table');
+    expect(screen.getByText('Name').tagName).toBe('TH');
+    expect(screen.getByText('Alice').closest('tbody')).not.toBeNull();
+    expect(screen.getByText('Total').closest('tfoot')).not.toBeNull();
   });
 });

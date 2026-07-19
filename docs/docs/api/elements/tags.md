@@ -122,6 +122,19 @@ You can combine `hasAddons` with a delete tag to create a tightly grouped, dismi
 
 ---
 
+### Compound (dot-notation) usage
+
+`Tag` is also available as `Tags.Tag`, so a tag group can be composed from the single `Tags` import.
+
+```tsx live
+<Tags>
+  <Tags.Tag color="primary">React</Tags.Tag>
+  <Tags.Tag color="info">TypeScript</Tags.Tag>
+</Tags>
+```
+
+---
+
 ## Accessibility
 
 - **Grouping:** The container is a `<div class="tags">`, which is semantically neutral.

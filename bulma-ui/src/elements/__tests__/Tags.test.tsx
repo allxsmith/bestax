@@ -137,3 +137,20 @@ describe('Tags Component', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('Tags.Tag is the Tag component', () => {
+    expect(Tags.Tag).toBe(Tag);
+  });
+
+  test('renders tags through the dot path', () => {
+    render(
+      <Tags>
+        <Tags.Tag>alpha</Tags.Tag>
+        <Tags.Tag>beta</Tags.Tag>
+      </Tags>
+    );
+    expect(screen.getByText('alpha')).toHaveClass('tag');
+    expect(screen.getByText('beta')).toHaveClass('tag');
+  });
+});

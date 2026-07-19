@@ -143,3 +143,14 @@ export const WithSpacing: Story = {
     </Content>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Content>
+      <UnorderedList>
+        <UnorderedList.Item>First item via dot notation</UnorderedList.Item>
+        <UnorderedList.Item>Second item via dot notation</UnorderedList.Item>
+      </UnorderedList>
+    </Content>
+  ),
+};

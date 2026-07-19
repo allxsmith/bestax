@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
   useInsideField,
@@ -10,6 +11,7 @@ import {
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
+import { Radio } from './Radio';
 
 /**
  * Props for the Radios component.
@@ -69,7 +71,7 @@ export interface RadiosProps
  *   <Radio value="green">Green</Radio>
  * </Radios>
  */
-export const Radios: React.FC<RadiosProps> = ({
+const RadiosComponent: React.FC<RadiosProps> = ({
   label,
   labelSize,
   labelProps,
@@ -161,5 +163,7 @@ export const Radios: React.FC<RadiosProps> = ({
     </>
   );
 };
+
+export const Radios = withSubComponents(RadiosComponent, { Radio }, 'Radios');
 
 export default Radios;

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Buttons } from '../Buttons';
 import { Button } from '../Button';
+import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Buttons Component', () => {
@@ -160,5 +161,23 @@ describe('Buttons Component', () => {
       expect(buttons).toHaveClass('has-addons');
       expect(buttons).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Compound components', () => {
+  test('Buttons.Button and Buttons.LinkButton are the exported components', () => {
+    expect(Buttons.Button).toBe(Button);
+    expect(Buttons.LinkButton).toBe(LinkButton);
+  });
+
+  test('renders buttons through the dot path', () => {
+    render(
+      <Buttons>
+        <Buttons.Button>Save</Buttons.Button>
+        <Buttons.LinkButton>Docs</Buttons.LinkButton>
+      </Buttons>
+    );
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('button');
+    expect(screen.getByRole('button', { name: 'Docs' })).toHaveClass('button');
   });
 });

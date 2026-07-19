@@ -120,6 +120,21 @@ Apply different colors to individual list items.
 
 ---
 
+### Compound (dot-notation) usage
+
+`ListItem` is also available as `UnorderedList.Item`, so a list can be composed from the single `UnorderedList` import.
+
+```tsx live
+<Content>
+  <UnorderedList>
+    <UnorderedList.Item>First item</UnorderedList.Item>
+    <UnorderedList.Item>Second item</UnorderedList.Item>
+  </UnorderedList>
+</Content>
+```
+
+---
+
 ## Accessibility
 
 - **List Structure:** Screen readers announce the list and the number of items, helping users understand the content structure.

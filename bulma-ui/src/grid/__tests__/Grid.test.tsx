@@ -244,3 +244,20 @@ describe('Grid', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('Grid.Cell is the Cell component', () => {
+    expect(Grid.Cell).toBe(Cell);
+  });
+
+  test('renders cells through the dot path', () => {
+    const { container } = render(
+      <Grid>
+        <Grid.Cell>One</Grid.Cell>
+        <Grid.Cell>Two</Grid.Cell>
+      </Grid>
+    );
+    expect(container.querySelector('.grid')).toBeInTheDocument();
+    expect(container.querySelectorAll('.cell')).toHaveLength(2);
+  });
+});

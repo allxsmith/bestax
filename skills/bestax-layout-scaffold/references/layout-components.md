@@ -91,7 +91,8 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 
 ## Columns / Column
 
-The responsive grid. `Columns` is the row; `Column` is a cell.
+The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
+`Columns.Column`).
 
 **Columns**
 
@@ -156,7 +157,7 @@ the column's auto height). Make the `Column` a flex container and let the card g
 
 ## Grid / Cell
 
-Bulma's CSS Grid. **Preferred for uniform grids** — same-shaped items in a repeating pattern
+Bulma's CSS Grid (`Cell` is also reachable as `Grid.Cell`). **Preferred for uniform grids** — same-shaped items in a repeating pattern
 (card grids, galleries, dashboards): CSS Grid gives **equal-height cells for free** (per row —
 each row's cells match its tallest), with no flex recipe needed. Reach for `Columns`/`Column` instead when you need proportional or
 per-breakpoint column _sizes_ (a 2/3 + 1/3 split, different counts per breakpoint).

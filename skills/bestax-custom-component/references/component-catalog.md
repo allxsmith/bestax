@@ -14,8 +14,8 @@ instead of hand-writing markup.
   (`m`/`p` spacing, `textColor`/`bgColor`, `textAlign`, `display`, flex, …) —
   documented once in `references/api.md`.
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,
-  `Navbar.Item`, `Tabs.Tab`, `Hero.Body`); see the component's linked page for the
-  full set.
+  `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
+  component's linked page for the full set.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 

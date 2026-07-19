@@ -307,3 +307,12 @@ export const IconTextWithFlex: Story = {
     },
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <IconText>
+      <IconText.Icon name="star" ariaLabel="star icon" />
+      <span>Starred via dot notation</span>
+    </IconText>
+  ),
+};

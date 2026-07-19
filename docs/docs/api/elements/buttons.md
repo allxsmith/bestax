@@ -117,6 +117,20 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 ---
 
+### Compound (dot-notation) usage
+
+`Button` and `LinkButton` are also available as `Buttons.Button` and `Buttons.LinkButton`, so a button group can be composed from the single `Buttons` import.
+
+```tsx live
+<Buttons>
+  <Buttons.Button color="primary">Save</Buttons.Button>
+  <Buttons.Button>Cancel</Buttons.Button>
+  <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+</Buttons>
+```
+
+---
+
 ## Accessibility
 
 - Grouping buttons in a `<div class="buttons">` has no negative impact on accessibility.

@@ -1,5 +1,8 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
+import { Button } from './Button';
+import { LinkButton } from './LinkButton';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -40,7 +43,7 @@ interface ButtonsProps
  * @returns {JSX.Element} The rendered group of buttons.
  * @see {@link https://bulma.io/documentation/elements/button/#group | Bulma Button Group documentation}
  */
-export const Buttons: React.FC<ButtonsProps> = ({
+const ButtonsComponent: React.FC<ButtonsProps> = ({
   className,
   textColor,
   bgColor,
@@ -77,3 +80,12 @@ export const Buttons: React.FC<ButtonsProps> = ({
     </div>
   );
 };
+
+export const Buttons = withSubComponents(
+  ButtonsComponent,
+  {
+    Button,
+    LinkButton,
+  },
+  'Buttons'
+);
