@@ -24,14 +24,19 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 
 ## What the agent does with it
 
-1. Installs `@allxsmith/bestax-bulma` and `bulma@^1`.
-2. Runs `pnpm dlx bestax-migrate react-bulma-components src/ --dry`, reviews the report, then
-   applies the codemod for real.
+1. Runs `pnpm dlx bestax-migrate react-bulma-components src/ --dry`, reviews the report, then
+   applies the codemod for real — that rewrites the components, the stylesheets (CSS/SCSS onto
+   Bulma v1 + the bestax extras), **and** `package.json` (`react-bulma-components` removed,
+   `@allxsmith/bestax-bulma` added, `bulma` → `^1`, `node-sass` → `sass`).
+2. Installs the rewritten dependencies (`npm install` / `pnpm install`) — the codemod never runs
+   a package manager itself, and its `peer-deps` report entries call out React <18 or Font
+   Awesome <6 blockers first.
 3. Greps for `TODO(bestax-migrate)` comments and resolves each one using the skill's reference
    tables — the component map, the universal prop map, and per-case recipes for the patterns the
    codemod deliberately refuses to guess at (`Tile` → `Grid`, controlled `Dropdown`, `touch`
    breakpoints, dynamic prop values, …).
-4. Migrates the CSS layer from Bulma 0.9 to v1 and removes `react-bulma-components`.
+4. Finishes the flagged CSS cases (computed Sass variables, indented-syntax files, third-party
+   Bulma extensions) and verifies the build.
 
 ## Example prompt
 
