@@ -17,6 +17,7 @@ directory the agent reads on demand.
 | [`bestax-layout-scaffold`](./bestax-layout-scaffold/SKILL.md)   | **Layout scaffolding** — turn a high-level request (dashboard, landing page, auth page, catalog) into a complete responsive page from named layout archetypes.                             |
 | [`bestax-icons`](./bestax-icons/SKILL.md)                       | **Icons** — the `Icon`/`IconText` components and the five supported libraries (Font Awesome, MDI, Ionicons, Material Icons/Symbols): setup, name formats, variants, and accessibility.     |
 | [`bestax-migrate`](./bestax-migrate/SKILL.md)                   | **Migrating** an existing app from `react-bulma-components` — drive the `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves using the mapping references.        |
+| [`bestax-optimize`](./bestax-optimize/SKILL.md)                 | **CSS size** — measure raw+gzip and shrink the built stylesheet: a lighter prebuilt flavor, a hand-rolled modular Sass build, and import/icon-asset hygiene. First-party levers only.      |
 
 ## Install
 
@@ -29,6 +30,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 ```
 
 ## Layout
@@ -81,6 +83,10 @@ skills/
       prop-map.md              # universal modifier-prop + responsive-object conversions
       unmappables.md           # recipes for every TODO(bestax-migrate) the codemod leaves
       css-migration.md         # the Bulma 0.9 → 1 CSS step
+  bestax-optimize/
+    SKILL.md
+    references/
+      modular-build.md         # component→partial mapping, extras inventory, worked styles.scss
 ```
 
 > `component-catalog.md` is generated from the API docs by `scripts/gen-component-catalog.mjs`

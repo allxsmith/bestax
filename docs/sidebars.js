@@ -38,6 +38,7 @@ const sidebars = {
         'skills/layout-scaffold',
         'skills/icons',
         'skills/migrate',
+        'skills/optimize',
       ],
     },
   ],

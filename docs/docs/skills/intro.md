@@ -18,6 +18,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
 npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills** into the
@@ -39,3 +40,5 @@ Then explore each skill — what it does, how to install it, and live examples:
 - **[Migrate](./migrate)** — move an existing app off `react-bulma-components`: run the
   `bestax-migrate` codemod, then resolve every `TODO(bestax-migrate)` it leaves. Not bundled by
   `create-bestax` (it's for existing sites, not new ones).
+- **[Optimize](./optimize)** — reduce the built CSS size: measure raw+gzip, then the cheapest
+  first-party lever that fits (lighter flavor, modular Sass build, import/asset hygiene).

@@ -127,6 +127,7 @@ automatically when the task matches:
 - **bestax-theming** — colors, branding, and dark mode via the \`Theme\` component (\`colorMode\`).
 - **bestax-layout-scaffold** — scaffold full pages (app shell, landing, centered, card grid).
 - **bestax-icons** — icons via \`Icon\`/\`IconText\`: library setup, name formats, variants, a11y.
+- **bestax-optimize** — shrink the built CSS: measure raw+gzip, then flavor switch or a modular Sass build.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
 
