@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 
@@ -93,12 +94,7 @@ export interface TabsProps
  *   </Tabs.Content>
  * </Tabs>
  */
-export const Tabs: React.FC<TabsProps> & {
-  List: typeof TabList;
-  Tab: typeof Tab;
-  Item: typeof TabItem;
-  Content: typeof TabsContent & { Item: typeof TabContentItem };
-} = ({
+const TabsComponent: React.FC<TabsProps> = ({
   align,
   size,
   fullwidth,
@@ -425,9 +421,11 @@ export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
  * @param {TabsContentProps} props - Props for the TabsContent component.
  * @returns {JSX.Element} The rendered tabs content wrapper.
  */
-export const TabsContent: React.FC<TabsContentProps> & {
-  Item: typeof TabContentItem;
-} = ({ className, children, ...props }) => {
+const TabsContentComponent: React.FC<TabsContentProps> = ({
+  className,
+  children,
+  ...props
+}) => {
   const contentClass = usePrefixedClassNames('tabs-content');
   return (
     <div className={classNames(contentClass, className)} {...props}>
@@ -489,11 +487,19 @@ export const TabContentItem: React.FC<TabContentItemProps> = ({
 // Static property attachment
 // ---------------------------------------------------------------------------
 
-TabsContent.Item = TabContentItem;
+export const TabsContent = withSubComponents(TabsContentComponent, {
+  Item: TabContentItem,
+});
 
-Tabs.List = TabList;
-Tabs.Tab = Tab;
-Tabs.Item = TabItem;
-Tabs.Content = Object.assign(TabsContent, { Item: TabContentItem });
+export const Tabs = withSubComponents(
+  TabsComponent,
+  {
+    List: TabList,
+    Tab,
+    Item: TabItem,
+    Content: TabsContent,
+  },
+  'Tabs'
+);
 
 export default Tabs;

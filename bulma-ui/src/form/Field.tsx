@@ -1,11 +1,13 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
 import { FieldProvider } from './FormContext';
+import { Control } from './Control';
 
 /**
  * Props for the Field component.
@@ -175,10 +177,7 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
  *   <input className="input" />
  * </Field>
  */
-export const Field: React.FC<FieldProps> & {
-  Label: typeof FieldLabel;
-  Body: typeof FieldBody;
-} = ({
+const FieldComponent: React.FC<FieldProps> = ({
   horizontal,
   grouped,
   hasAddons,
@@ -284,7 +283,15 @@ export const Field: React.FC<FieldProps> & {
 
 FieldLabel.displayName = 'FieldLabel';
 FieldBody.displayName = 'FieldBody';
-Field.Label = FieldLabel;
-Field.Body = FieldBody;
+
+export const Field = withSubComponents(
+  FieldComponent,
+  {
+    Label: FieldLabel,
+    Body: FieldBody,
+    Control,
+  },
+  'Field'
+);
 
 export default Field;

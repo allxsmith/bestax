@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -48,18 +49,7 @@ export interface NavbarProps
  * @returns {JSX.Element} The rendered navbar.
  * @see {@link https://bulma.io/documentation/components/navbar/ | Bulma Navbar documentation}
  */
-export const Navbar: React.FC<NavbarProps> & {
-  Brand: typeof NavbarBrand;
-  Item: typeof NavbarItem;
-  Link: typeof NavbarLink;
-  Burger: typeof NavbarBurger;
-  Menu: typeof NavbarMenu;
-  Start: typeof NavbarStart;
-  End: typeof NavbarEnd;
-  Dropdown: typeof NavbarDropdown;
-  DropdownMenu: typeof NavbarDropdownMenu;
-  Divider: typeof NavbarDivider;
-} = ({
+const NavbarComponent: React.FC<NavbarProps> = ({
   className,
   textColor,
   bgColor,
@@ -573,15 +563,21 @@ export const NavbarDivider: React.FC<
 );
 
 // Attach subcomponents
-Navbar.Brand = NavbarBrand;
-Navbar.Item = NavbarItem;
-Navbar.Link = NavbarLink;
-Navbar.Burger = NavbarBurger;
-Navbar.Menu = NavbarMenu;
-Navbar.Start = NavbarStart;
-Navbar.End = NavbarEnd;
-Navbar.Dropdown = NavbarDropdown;
-Navbar.DropdownMenu = NavbarDropdownMenu;
-Navbar.Divider = NavbarDivider;
+export const Navbar = withSubComponents(
+  NavbarComponent,
+  {
+    Brand: NavbarBrand,
+    Item: NavbarItem,
+    Link: NavbarLink,
+    Burger: NavbarBurger,
+    Menu: NavbarMenu,
+    Start: NavbarStart,
+    End: NavbarEnd,
+    Dropdown: NavbarDropdown,
+    DropdownMenu: NavbarDropdownMenu,
+    Divider: NavbarDivider,
+  },
+  'Navbar'
+);
 
 export default Navbar;

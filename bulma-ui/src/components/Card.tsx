@@ -4,6 +4,7 @@ import {
   usePrefixedClassNames,
   prefixedClassNames,
 } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -463,37 +464,24 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   </span>
 );
 
-/** Card component type with Header, Image, Content, Footer, and FooterItem sub-components. */
-type CardWithCompounds = typeof CardComponent & {
-  Header: typeof CardHeader & {
-    Title: typeof CardHeaderTitle;
-    Icon: typeof CardHeaderIcon;
-  };
-  Image: typeof CardImage;
-  Content: typeof CardContent;
-  Footer: typeof CardFooter;
-  FooterItem: typeof CardFooterItem;
-};
+// Attach nested Title and Icon components to CardHeader
+const CardHeaderCompound = withSubComponents(CardHeader, {
+  Title: CardHeaderTitle,
+  Icon: CardHeaderIcon,
+});
 
-// Cast Card to the compound type and assign compound components
-const CardWithSubComponents = CardComponent as CardWithCompounds;
-
-// Create CardHeader with nested Title and Icon components
-const CardHeaderWithTitle = CardHeader as typeof CardHeader & {
-  Title: typeof CardHeaderTitle;
-  Icon: typeof CardHeaderIcon;
-};
-CardHeaderWithTitle.Title = CardHeaderTitle;
-CardHeaderWithTitle.Icon = CardHeaderIcon;
-
-CardWithSubComponents.Header = CardHeaderWithTitle;
-CardWithSubComponents.Image = CardImage;
-CardWithSubComponents.Content = CardContent;
-CardWithSubComponents.Footer = CardFooter;
-CardWithSubComponents.FooterItem = CardFooterItem;
-
-// Export the compound component
-export { CardWithSubComponents as Card };
+/** Card component with Header, Image, Content, Footer, and FooterItem sub-components. */
+export const Card = withSubComponents(
+  CardComponent,
+  {
+    Header: CardHeaderCompound,
+    Image: CardImage,
+    Content: CardContent,
+    Footer: CardFooter,
+    FooterItem: CardFooterItem,
+  },
+  'Card'
+);
 
 /** Internal test-only exports. Not part of the public API. */
 export const __test_exports__ = { renderFooter };

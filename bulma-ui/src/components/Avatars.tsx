@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Avatar, AvatarProps } from './Avatar';
 
@@ -73,7 +74,7 @@ function flattenChildren(
  *   {members.map(m => <Avatar key={m.id} src={m.photo} name={m.name} />)}
  * </Avatars>
  */
-export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
+const AvatarsComponent: React.FC<AvatarsProps> = ({
   className,
   max,
   size,
@@ -153,7 +154,10 @@ export const Avatars: React.FC<AvatarsProps> & { Avatar: typeof Avatar } = ({
   );
 };
 
-Avatars.displayName = 'Avatars';
-Avatars.Avatar = Avatar;
+export const Avatars = withSubComponents(
+  AvatarsComponent,
+  { Avatar },
+  'Avatars'
+);
 
 export default Avatars;

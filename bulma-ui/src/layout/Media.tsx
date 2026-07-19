@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -36,7 +37,7 @@ export interface MediaProps
  * @returns {JSX.Element} The rendered media container.
  * @see {@link https://bulma.io/documentation/layout/media-object/ | Bulma Media documentation}
  */
-export const Media: React.FC<MediaProps> = ({
+const MediaComponent: React.FC<MediaProps> = ({
   as = 'article',
   className,
   children,
@@ -219,16 +220,15 @@ export const MediaRight: React.FC<MediaRightProps> = ({
   );
 };
 
-/** Media component type with Left, Content, and Right sub-components. */
-interface MediaComponent extends React.FC<MediaProps> {
-  Left: React.FC<MediaLeftProps>;
-  Content: React.FC<MediaContentProps>;
-  Right: React.FC<MediaRightProps>;
-}
+/** Media component with Left, Content, and Right sub-components. */
+export const Media = withSubComponents(
+  MediaComponent,
+  {
+    Left: MediaLeft,
+    Content: MediaContent,
+    Right: MediaRight,
+  },
+  'Media'
+);
 
-const MediaWithSubcomponents = Media as MediaComponent;
-MediaWithSubcomponents.Left = MediaLeft;
-MediaWithSubcomponents.Content = MediaContent;
-MediaWithSubcomponents.Right = MediaRight;
-
-export default MediaWithSubcomponents;
+export default Media;

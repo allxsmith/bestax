@@ -4,6 +4,7 @@ import {
   usePrefixedClassNames,
   prefixedClassNames,
 } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -166,18 +167,14 @@ const MessageBody: React.FC<MessageBodyProps> = ({
   </div>
 );
 
-// Create a type that extends the Message component with compound components
-type MessageWithCompounds = typeof MessageComponent & {
-  Header: typeof MessageHeader;
-  Body: typeof MessageBody;
-};
+// Attach compound components
+export const Message = withSubComponents(
+  MessageComponent,
+  {
+    Header: MessageHeader,
+    Body: MessageBody,
+  },
+  'Message'
+);
 
-// Cast Message to the compound type and assign compound components
-const MessageWithSubComponents = MessageComponent as MessageWithCompounds;
-MessageWithSubComponents.Header = MessageHeader;
-MessageWithSubComponents.Body = MessageBody;
-
-// Export the compound component
-export { MessageWithSubComponents as Message };
-
-export default MessageWithSubComponents;
+export default Message;

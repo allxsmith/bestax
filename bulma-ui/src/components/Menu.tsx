@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { withSubComponents } from '../helpers/withSubComponents';
 
 // Context to track MenuList nesting level
 const MenuListLevelContext = createContext(0);
@@ -216,10 +217,14 @@ export const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 // Attach static subcomponents
-export const Menu = Object.assign(MenuComponent, {
-  Label: MenuLabel,
-  List: MenuList,
-  Item: MenuItem,
-});
+export const Menu = withSubComponents(
+  MenuComponent,
+  {
+    Label: MenuLabel,
+    List: MenuList,
+    Item: MenuItem,
+  },
+  'Menu'
+);
 
 export default Menu;

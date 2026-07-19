@@ -4,6 +4,7 @@ import {
   usePrefixedClassNames,
   prefixedClassNames,
 } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -227,20 +228,20 @@ const ModalCardFoot: React.FC<ModalCardFootProps> = ({
  * @param {ModalCardProps} props - Component props.
  * @returns {JSX.Element} Modal card element.
  */
-const ModalCard: React.FC<ModalCardProps> & {
-  Head: typeof ModalCardHead;
-  Title: typeof ModalCardTitle;
-  Body: typeof ModalCardBody;
-  Foot: typeof ModalCardFoot;
-} = ({ className, ...props }) => {
+const ModalCardComponent: React.FC<ModalCardProps> = ({
+  className,
+  ...props
+}) => {
   const classes = classNames(usePrefixedClassNames('modal-card'), className);
   return <div className={classes} {...props} />;
 };
 
-ModalCard.Head = ModalCardHead;
-ModalCard.Title = ModalCardTitle;
-ModalCard.Body = ModalCardBody;
-ModalCard.Foot = ModalCardFoot;
+const ModalCard = withSubComponents(ModalCardComponent, {
+  Head: ModalCardHead,
+  Title: ModalCardTitle,
+  Body: ModalCardBody,
+  Foot: ModalCardFoot,
+});
 
 /**
  * Modal.Close - Renders modal close button with two variant styles.
@@ -303,12 +304,7 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @see {@link https://bulma.io/documentation/components/modal/ | Bulma Modal documentation}
  */
-const ModalRoot: React.FC<ModalProps> & {
-  Background: typeof ModalBackground;
-  Content: typeof ModalContent;
-  Card: typeof ModalCard;
-  Close: typeof ModalClose;
-} = ({
+const ModalRoot: React.FC<ModalProps> = ({
   active,
   isActive,
   onClose,
@@ -429,10 +425,14 @@ const ModalRoot: React.FC<ModalProps> & {
   );
 };
 
-ModalRoot.Background = ModalBackground;
-ModalRoot.Content = ModalContent;
-ModalRoot.Card = ModalCard;
-ModalRoot.Close = ModalClose;
-
-export const Modal = ModalRoot;
+export const Modal = withSubComponents(
+  ModalRoot,
+  {
+    Background: ModalBackground,
+    Content: ModalContent,
+    Card: ModalCard,
+    Close: ModalClose,
+  },
+  'Modal'
+);
 export default Modal;

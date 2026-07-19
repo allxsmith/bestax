@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -36,11 +37,7 @@ export interface LevelProps
  * @returns {JSX.Element} The rendered level.
  * @see {@link https://bulma.io/documentation/layout/level/ | Bulma Level documentation}
  */
-export const Level: React.FC<LevelProps> & {
-  Left: typeof LevelLeft;
-  Right: typeof LevelRight;
-  Item: typeof LevelItem;
-} = ({
+const LevelComponent: React.FC<LevelProps> = ({
   isMobile,
   className,
   children,
@@ -253,8 +250,14 @@ export const LevelItem: React.FC<LevelItemProps> = ({
   );
 };
 
-Level.Left = LevelLeft;
-Level.Right = LevelRight;
-Level.Item = LevelItem;
+export const Level = withSubComponents(
+  LevelComponent,
+  {
+    Left: LevelLeft,
+    Right: LevelRight,
+    Item: LevelItem,
+  },
+  'Level'
+);
 
 export default Level;
