@@ -87,6 +87,21 @@ describe('transformStyles (.scss)', () => {
     expect(todos.some(t => t.message.includes('animations'))).toBe(true);
   });
 
+  it('adds the extras once to partial-only files in bestax mode', () => {
+    const source = [
+      "@import 'bulma/sass/utilities/_all';",
+      "@import 'bulma/sass/elements/_all';",
+    ].join('\n');
+    const { output } = run('modular.scss', source);
+    const extras = output!.match(/scss\/extras/g) ?? [];
+    expect(extras).toHaveLength(1);
+    expect(output!.indexOf("@use 'bulma/sass/utilities';")).toBeLessThan(
+      output!.indexOf("@use '@allxsmith/bestax-bulma/scss/extras';")
+    );
+    const bulmaMode = run('modular.scss', source, 'bulma');
+    expect(bulmaMode.output).not.toContain('extras');
+  });
+
   it('preserves a relative node_modules prefix on the root import', () => {
     const source = [
       '$primary: #123456;',

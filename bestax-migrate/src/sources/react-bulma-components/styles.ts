@@ -193,17 +193,33 @@ export const transformStyles: StylesTransform = (
     if (partial) {
       const [, indent, , rawPrefix, importPath] = partial;
       const prefix = keptPrefix(rawPrefix);
+      // Partial-only files (modular builds with no root import) still need
+      // the extras for the bestax components' styling; the extras tree only
+      // reads Bulma utilities, never configures them, so this is load-safe.
+      const pushExtras = () => {
+        if (cssMode !== 'bestax' || extrasAdded || rootImportIndex !== -1) {
+          return;
+        }
+        out.push(
+          prefix
+            ? `${indent}@use '${prefix}@allxsmith/bestax-bulma/src/scss/extras';`
+            : `${indent}${EXTRAS_USE}`
+        );
+        extrasAdded = true;
+      };
       const segments = importPath.split('/');
       const last = segments[segments.length - 1].replace(/^_/, '');
       const dir = segments[0];
       if ((last === 'all' || last === 'index') && V1_DIRS.has(dir)) {
         out.push(`${indent}@use '${prefix}bulma/sass/${dir}';`);
+        pushExtras();
         changed = true;
         continue;
       }
       const leaf = segments.map(s => s.replace(/^_/, '')).join('/');
       if (V1_DIRS.has(leaf) || V1_LEAVES.has(leaf)) {
         out.push(`${indent}@use '${prefix}bulma/sass/${leaf}';`);
+        pushExtras();
         changed = true;
         continue;
       }
