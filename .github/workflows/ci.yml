@@ -96,6 +96,7 @@ jobs:
           path: |
             bulma-ui/coverage
             create-bestax/coverage
+            bestax-migrate/coverage
           retention-days: 7
 
       - name: Archive Bundle Stats
@@ -232,6 +233,16 @@ jobs:
 
       - name: Semantic Release (create-bestax)
         working-directory: create-bestax
+        env:
+          GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git log -1 --show-signature
+          pnpm exec semantic-release
+
+      - name: Semantic Release (bestax-migrate)
+        working-directory: bestax-migrate
         env:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}

@@ -4,6 +4,8 @@
     "bulma-ui/src/**/*",
     "create-bestax/src/**/*",
     "create-bestax/e2e/**/*",
+    "bestax-migrate/src/**/*",
+    "bestax-migrate/e2e/**/*",
     "docs/**/*.ts",
     "docs/**/*.tsx"
   ],

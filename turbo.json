@@ -16,6 +16,13 @@
     "test:coverage": {
       "outputs": ["coverage/**"]
     },
+    "bestax-migrate#test": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"]
+    },
+    "bestax-migrate#test:coverage": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "outputs": ["coverage/**"]
+    },
     "bundle:stats": {
       "outputs": ["dist/**"]
     },
