@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.3...create-bestax@3.4.0) (2026-07-19)
+
+
+### Features
+
+* **create-bestax:** add bestax-optimize skill for shrinking built CSS ([#329](https://github.com/allxsmith/bestax/issues/329)) ([f597b9f](https://github.com/allxsmith/bestax/commit/f597b9f4c29274ae42f3d7d95cb2fb42c915024d))
+
 ## [3.3.3](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.2...create-bestax@3.3.3) (2026-07-18)
 
 
