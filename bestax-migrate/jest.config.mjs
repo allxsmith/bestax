@@ -3,7 +3,11 @@ export default {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/e2e'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/e2e/**/*.test.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/__testfixtures__/', '/.e2e-tmp/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__testfixtures__/',
+    '/.e2e-tmp/',
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

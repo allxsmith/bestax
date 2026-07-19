@@ -26,8 +26,16 @@ const REPO_URL = 'https://github.com/couds/react-bulma-components.git';
 // effectively never moves — bump deliberately if it ever does).
 const PINNED_SHA = '3fc281a9823a1f7bce913873e06485b28eb43dcf';
 
-const packageRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const corpusDir = path.join(packageRoot, '.e2e-tmp', 'corpus', 'react-bulma-components');
+const packageRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
+const corpusDir = path.join(
+  packageRoot,
+  '.e2e-tmp',
+  'corpus',
+  'react-bulma-components'
+);
 const outDir = path.join(packageRoot, '.e2e-tmp', 'corpus-out');
 const distTransform = path.join(
   packageRoot,
@@ -49,10 +57,12 @@ if (!fs.existsSync(distTransform)) {
 
 // ---- fetch the corpus (text only) at the pinned commit --------------------
 if (!fs.existsSync(path.join(corpusDir, 'src'))) {
-  console.log(`Fetching react-bulma-components @ ${PINNED_SHA.slice(0, 12)} (text corpus)…`);
+  console.log(
+    `Fetching react-bulma-components @ ${PINNED_SHA.slice(0, 12)} (text corpus)…`
+  );
   fs.rmSync(corpusDir, { recursive: true, force: true });
   fs.mkdirSync(corpusDir, { recursive: true });
-  const run = (args) => {
+  const run = args => {
     const result = spawnSync('git', args, { cwd: corpusDir, encoding: 'utf8' });
     if (result.status !== 0) fail(`git ${args.join(' ')}: ${result.stderr}`);
   };
@@ -101,10 +111,10 @@ for (const file of storyFiles) {
     );
 
   const todos = [];
-  let output = null;
+  let output;
   try {
     output = runTransform(transform, rel, source, {
-      add: (entry) => todos.push(entry),
+      add: entry => todos.push(entry),
     }).output;
   } catch (error) {
     crashes.push({ rel, message: error.message });
@@ -122,12 +132,16 @@ for (const file of storyFiles) {
 }
 
 // ---- scorecard -------------------------------------------------------------
-console.log('\nbestax-migrate corpus validation — react-bulma-components stories');
+console.log(
+  '\nbestax-migrate corpus validation — react-bulma-components stories'
+);
 console.log(`  files:       ${storyFiles.length}`);
 console.log(`  transformed: ${transformed}`);
 console.log(`  crashes:     ${crashes.length}`);
 const rules = [...todosByRule.entries()].sort((a, b) => b[1] - a[1]);
-console.log(`  TODOs:       ${rules.reduce((sum, [, count]) => sum + count, 0)}`);
+console.log(
+  `  TODOs:       ${rules.reduce((sum, [, count]) => sum + count, 0)}`
+);
 for (const [rule, count] of rules) {
   console.log(`    ${rule}: ${count}`);
 }
