@@ -11,6 +11,7 @@ import {
   Input,
   Level,
   Navbar,
+  Panel,
   Table,
   Tabs,
 } from "@allxsmith/bestax-bulma";
@@ -43,6 +44,9 @@ export function MoreEdgeCases({
   // TODO(bestax-migrate): bestax Icon renders from a `name` prop, not children; convert this icon markup by hand
   // TODO(bestax-migrate): dynamic renderAs on a dropdown Navbar.Item; bestax Navbar.Dropdown always renders a div
   // TODO(bestax-migrate): dynamic Breadcrumb.Item active; set the li className={active ? 'is-active' : undefined} by hand
+  // TODO(bestax-migrate): dynamic Panel.Tabs.Tab className; re-apply it to the emitted element by hand
+  // TODO(bestax-migrate): dynamic Loader className; merge it with the `loader` class by hand
+  // TODO(bestax-migrate): Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand
   // TODO(bestax-migrate): Table.Container became a plain element; the Bulma helper prop(s) `textAlign` were dropped — restyle with classes
   return (
     <div>
@@ -53,7 +57,7 @@ export function MoreEdgeCases({
       <Block display="relative" mobile={{ ...JSON.parse(weird) }}>
         Spread responsive
       </Block>
-      <p className="heading">Labelled
+      <p className="heading extra">Labelled
               </p>
       <Level>
         <Level.Left>
@@ -98,7 +102,17 @@ export function MoreEdgeCases({
         <li><a href="/here">Here
                     </a></li>
       </Breadcrumb>
-      <div className="table-container">
+      <Panel>
+        <Panel.Tabs>
+          <a className="custom">All</a>
+          <a>Dyn</a>
+        </Panel.Tabs>
+      </Panel>
+      <div className="loader"></div>
+      <Table isResponsive isStriped>
+        <tbody />
+      </Table>
+      <div className="table-container scroller">
         <p>intro</p>
         <Table isBordered>
           <tbody />

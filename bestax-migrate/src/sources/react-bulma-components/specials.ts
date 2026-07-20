@@ -107,6 +107,36 @@ function stripModifierProps(
   return kept;
 }
 
+/**
+ * Consume the element's `className` so a plain-element rewrite can merge it
+ * with its hard-coded Bulma class instead of dropping it. A dynamic value
+ * can't be merged safely — keep the base class and leave a TODO.
+ */
+function mergeClassName(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  base: string | undefined,
+  where: string
+): string | undefined {
+  const attr = findAttr(element, 'className');
+  if (!attr) return base;
+  const literal = literalValueOf(attr);
+  removeAttr(element, attr);
+  if (literal.kind === 'string') {
+    return base ? `${base} ${literal.value}` : literal.value;
+  }
+  addTodo(
+    ctx,
+    path,
+    'prop:className',
+    base
+      ? `dynamic ${where} className; merge it with the \`${base}\` class by hand`
+      : `dynamic ${where} className; re-apply it to the emitted element by hand`
+  );
+  return base;
+}
+
 /** Parse an icon-font <i className="..."> into bestax Icon name/library/variant. */
 function parseIconClasses(
   className: string
@@ -188,21 +218,25 @@ const SPECIALS: Record<string, SpecialHandler> = {
     const headingAttr = findAttr(element, 'heading');
     if (headingAttr) {
       removeAttr(element, headingAttr);
+      const className = mergeClassName(
+        ctx,
+        path,
+        element,
+        'heading',
+        'Heading'
+      );
       const rest = stripModifierProps(
         ctx,
         path,
         attributesOf(element).filter(
-          a =>
-            !['size', 'weight', 'spaced', 'subtitle', 'className'].includes(
-              a.name.name
-            )
+          a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
         ),
         'Heading'
       );
       const replacement = plainElement(
         ctx.j,
         'p',
-        'heading',
+        className,
         rest,
         element.children ?? []
       );
@@ -415,7 +449,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /** Form.Label → plain <label className="label">. */
   'plain-label'(ctx, path, element) {
     const sizeAttr = findAttr(element, 'size');
-    let className = 'label';
+    let className: string | undefined = 'label';
     if (sizeAttr) {
       const literal = literalValueOf(sizeAttr);
       if (literal.kind === 'string') {
@@ -431,10 +465,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
         removeAttr(element, sizeAttr);
       }
     }
+    className = mergeClassName(ctx, path, element, className, 'Form.Label');
     const rest = stripModifierProps(
       ctx,
       path,
-      attributesOf(element).filter(a => a.name.name !== 'className'),
+      attributesOf(element),
       'Form.Label'
     );
     path.replace(
@@ -447,7 +482,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /** Form.Help → plain <p className="help is-{color}">. */
   'plain-help'(ctx, path, element) {
     const colorAttr = findAttr(element, 'color');
-    let className = 'help';
+    let className: string | undefined = 'help';
     if (colorAttr) {
       const literal = literalValueOf(colorAttr);
       if (literal.kind === 'string') {
@@ -463,10 +498,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
         removeAttr(element, colorAttr);
       }
     }
+    className = mergeClassName(ctx, path, element, className, 'Form.Help');
     const rest = stripModifierProps(
       ctx,
       path,
-      attributesOf(element).filter(a => a.name.name !== 'className'),
+      attributesOf(element),
       'Form.Help'
     );
     path.replace(
@@ -538,22 +574,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /** RBC Loader is a plain <div class="loader"> — keep exactly that. */
   'plain-loader'(ctx, path, element) {
-    const clsAttr = findAttr(element, 'className');
-    let className = 'loader';
-    if (clsAttr) {
-      const literal = literalValueOf(clsAttr);
-      if (literal.kind === 'string') {
-        className = `loader ${literal.value}`;
-      } else {
-        addTodo(
-          ctx,
-          path,
-          'prop:className',
-          'dynamic Loader className; merge it with the `loader` class by hand'
-        );
-      }
-      removeAttr(element, clsAttr);
-    }
+    const className = mergeClassName(ctx, path, element, 'loader', 'Loader');
     const rest = stripModifierProps(ctx, path, attributesOf(element), 'Loader');
     path.replace(
       plainElement(ctx.j, 'div', className, rest, element.children ?? [])
@@ -624,10 +645,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
         removeAttr(element, activeAttr);
       }
     }
+    className = mergeClassName(ctx, path, element, className, 'Panel.Tabs.Tab');
     const rest = stripModifierProps(
       ctx,
       path,
-      attributesOf(element).filter(a => a.name.name !== 'className'),
+      attributesOf(element),
       'Panel.Tabs.Tab'
     );
     path.replace(
@@ -656,10 +678,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       removeAttr(element, activeAttr);
     }
+    liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
     const anchorAttrs = stripModifierProps(
       ctx,
       path,
-      attributesOf(element).filter(a => a.name.name !== 'className'),
+      attributesOf(element),
       'Breadcrumb.Item'
     );
     const children = element.children ?? [];
@@ -694,26 +717,35 @@ const SPECIALS: Record<string, SpecialHandler> = {
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
     );
     if (children.length === 1 && children[0].type === 'JSXElement') {
+      if (findAttr(element, 'className')) {
+        addTodo(
+          ctx,
+          path,
+          'prop:className',
+          'Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand'
+        );
+      }
       const child = children[0];
       addAttr(child, makeAttr(ctx.j, 'isResponsive'));
       path.replace(child);
       ctx.dirty = true;
       return { replaced: true };
     }
+    const className = mergeClassName(
+      ctx,
+      path,
+      element,
+      'table-container',
+      'Table.Container'
+    );
     const rest = stripModifierProps(
       ctx,
       path,
-      attributesOf(element).filter(a => a.name.name !== 'className'),
+      attributesOf(element),
       'Table.Container'
     );
     path.replace(
-      plainElement(
-        ctx.j,
-        'div',
-        'table-container',
-        rest,
-        element.children ?? []
-      )
+      plainElement(ctx.j, 'div', className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };

@@ -8,7 +8,9 @@ import {
   Icon,
   Image,
   Level,
+  Loader,
   Navbar,
+  Panel,
   Table,
   Tabs,
   Whatever,
@@ -85,6 +87,18 @@ export function MoreEdgeCases({
           Here
         </Breadcrumb.Item>
       </Breadcrumb>
+      <Panel>
+        <Panel.Tabs>
+          <Panel.Tabs.Tab className="custom">All</Panel.Tabs.Tab>
+          <Panel.Tabs.Tab className={weird}>Dyn</Panel.Tabs.Tab>
+        </Panel.Tabs>
+      </Panel>
+      <Loader className={weird} />
+      <Table.Container className="wrap">
+        <Table striped>
+          <tbody />
+        </Table>
+      </Table.Container>
       <Table.Container className="scroller" textAlign="center">
         <p>intro</p>
         <Table bordered>
