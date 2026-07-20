@@ -192,3 +192,19 @@ describe('Checkboxes', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('Checkboxes.Checkbox is the Checkbox component', () => {
+    expect(Checkboxes.Checkbox).toBe(Checkbox);
+  });
+
+  test('renders checkboxes through the dot path', () => {
+    render(
+      <Checkboxes name="tags">
+        <Checkboxes.Checkbox value="react">React</Checkboxes.Checkbox>
+        <Checkboxes.Checkbox value="vue">Vue</Checkboxes.Checkbox>
+      </Checkboxes>
+    );
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+  });
+});

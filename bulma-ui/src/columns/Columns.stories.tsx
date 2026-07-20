@@ -556,3 +556,18 @@ export const MultilineCenteredColumns: StoryObj = {
     </>
   ),
 };
+
+export const CompoundUsage: StoryObj = {
+  render: () => (
+    <Columns>
+      <Columns.Column>
+        <Notification color="primary">
+          First column via dot notation
+        </Notification>
+      </Columns.Column>
+      <Columns.Column>
+        <Notification color="info">Second column via dot notation</Notification>
+      </Columns.Column>
+    </Columns>
+  ),
+};

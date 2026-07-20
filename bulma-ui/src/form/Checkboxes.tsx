@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
   useInsideField,
@@ -10,6 +11,7 @@ import {
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
+import { Checkbox } from './Checkbox';
 
 /**
  * Props for the Checkboxes component.
@@ -69,7 +71,7 @@ export interface CheckboxesProps
  *   <Checkbox value="angular">Angular</Checkbox>
  * </Checkboxes>
  */
-export const Checkboxes: React.FC<CheckboxesProps> = ({
+const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   label,
   labelSize,
   labelProps,
@@ -158,5 +160,11 @@ export const Checkboxes: React.FC<CheckboxesProps> = ({
     </>
   );
 };
+
+export const Checkboxes = withSubComponents(
+  CheckboxesComponent,
+  { Checkbox },
+  'Checkboxes'
+);
 
 export default Checkboxes;

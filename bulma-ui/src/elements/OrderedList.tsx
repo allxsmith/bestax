@@ -1,5 +1,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
+import { ListItem } from './ListItem';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -38,7 +40,7 @@ export interface OrderedListProps
  * @param {OrderedListProps} props - Props for the OrderedList component.
  * @returns {JSX.Element} The rendered ol element.
  */
-export const OrderedList: React.FC<OrderedListProps> = ({
+const OrderedListComponent: React.FC<OrderedListProps> = ({
   className,
   textColor,
   bgColor,
@@ -63,3 +65,9 @@ export const OrderedList: React.FC<OrderedListProps> = ({
     </ol>
   );
 };
+
+export const OrderedList = withSubComponents(
+  OrderedListComponent,
+  { Item: ListItem },
+  'OrderedList'
+);

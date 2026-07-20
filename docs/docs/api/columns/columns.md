@@ -610,6 +610,23 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 
 ---
 
+### Compound (dot-notation) usage
+
+`Column` is also available as `Columns.Column`, so the whole layout can be composed from the single `Columns` import.
+
+```tsx live
+<Columns>
+  <Columns.Column>
+    <Notification color="primary">First column</Notification>
+  </Columns.Column>
+  <Columns.Column>
+    <Notification color="info">Second column</Notification>
+  </Columns.Column>
+</Columns>
+```
+
+---
+
 ## Notes
 
 - Use `Column` as a direct child of `Columns` for proper grid behavior.

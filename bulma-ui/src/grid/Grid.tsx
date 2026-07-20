@@ -1,5 +1,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
+import { Cell } from './Cell';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -125,7 +127,7 @@ export interface GridProps
  * @returns {JSX.Element} The rendered grid.
  * @see {@link https://bulma.io/documentation/grid/ | Bulma Grid documentation}
  */
-export const Grid: React.FC<GridProps> = ({
+const GridComponent: React.FC<GridProps> = ({
   isFixed = false,
   gap,
   columnGap,
@@ -202,3 +204,5 @@ export const Grid: React.FC<GridProps> = ({
     </div>
   );
 };
+
+export const Grid = withSubComponents(GridComponent, { Cell }, 'Grid');

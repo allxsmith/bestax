@@ -1,11 +1,13 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
 import type { BulmaGapValue } from '../grid/Grid';
+import { Column } from './Column';
 
 /**
  * Possible values for the Bulma columns gap size.
@@ -87,7 +89,7 @@ export interface ColumnsProps
  * @returns {JSX.Element} The rendered columns container.
  * @see {@link https://bulma.io/documentation/columns/ | Bulma Columns documentation}
  */
-export const Columns: React.FC<ColumnsProps> = ({
+const ColumnsComponent: React.FC<ColumnsProps> = ({
   className,
   textColor,
   color: _fieldColor,
@@ -162,3 +164,9 @@ export const Columns: React.FC<ColumnsProps> = ({
     </div>
   );
 };
+
+export const Columns = withSubComponents(
+  ColumnsComponent,
+  { Column },
+  'Columns'
+);

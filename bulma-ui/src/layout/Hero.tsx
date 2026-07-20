@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -42,11 +43,7 @@ export interface HeroProps
  * @returns {JSX.Element} The rendered hero.
  * @see {@link https://bulma.io/documentation/layout/hero/ | Bulma Hero documentation}
  */
-export const Hero: React.FC<HeroProps> & {
-  Head: typeof HeroHead;
-  Body: typeof HeroBody;
-  Foot: typeof HeroFoot;
-} = ({
+const HeroComponent: React.FC<HeroProps> = ({
   className,
   color,
   size,
@@ -223,8 +220,14 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
 };
 
 // Attach subcomponents
-Hero.Head = HeroHead;
-Hero.Body = HeroBody;
-Hero.Foot = HeroFoot;
+export const Hero = withSubComponents(
+  HeroComponent,
+  {
+    Head: HeroHead,
+    Body: HeroBody,
+    Foot: HeroFoot,
+  },
+  'Hero'
+);
 
 export default Hero;

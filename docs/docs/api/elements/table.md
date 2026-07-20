@@ -248,6 +248,29 @@ To control the alignment and width of table header cells, use the `isAligned` an
 
 ---
 
+### Compound (dot-notation) usage
+
+Every table sub-component is also available as a static on `Table` under its exact export name — `Table.Thead`, `Table.Tbody`, `Table.Tfoot`, `Table.Tr`, `Table.Th`, and `Table.Td` — so a full table can be composed from the single `Table` import.
+
+```tsx live
+<Table isStriped>
+  <Table.Thead>
+    <Table.Tr>
+      <Table.Th>Team</Table.Th>
+      <Table.Th>Points</Table.Th>
+    </Table.Tr>
+  </Table.Thead>
+  <Table.Tbody>
+    <Table.Tr>
+      <Table.Td>Maple Leafs</Table.Td>
+      <Table.Td>98</Table.Td>
+    </Table.Tr>
+  </Table.Tbody>
+</Table>
+```
+
+---
+
 ## Accessibility
 
 - **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.

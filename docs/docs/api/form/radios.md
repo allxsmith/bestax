@@ -126,6 +126,19 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`Radio` is also available as `Radios.Radio`, so a radio group can be composed from the single `Radios` import.
+
+```tsx live
+<Radios name="color" label="Favorite color">
+  <Radios.Radio value="red">Red</Radios.Radio>
+  <Radios.Radio value="green">Green</Radios.Radio>
+</Radios>
+```
+
+---
+
 ## Group State
 
 `Radios` can manage selection state for the entire group, matching the pattern used by MUI's `RadioGroup`, Radix's `RadioGroup`, and React Aria's `RadioGroup`. Three usage modes:

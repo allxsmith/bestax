@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { IconText } from '../IconText';
+import { Icon } from '../Icon';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('IconText Component', () => {
@@ -175,5 +176,22 @@ describe('IconText Component', () => {
       expect(iconText).toHaveClass('icon-text');
       expect(iconText).toHaveClass('has-text-danger');
     });
+  });
+});
+
+describe('Compound components', () => {
+  test('IconText.Icon is the Icon component', () => {
+    expect(IconText.Icon).toBe(Icon);
+  });
+
+  test('renders an icon through the dot path', () => {
+    const { container } = render(
+      <IconText>
+        <IconText.Icon name="star" ariaLabel="star icon" />
+        Starred
+      </IconText>
+    );
+    expect(container.querySelector('.icon-text')).toBeInTheDocument();
+    expect(container.querySelector('.icon')).toBeInTheDocument();
   });
 });

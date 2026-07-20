@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { withSubComponents } from '../helpers/withSubComponents';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -222,8 +223,6 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
   }
 );
 
-SidebarComponent.displayName = 'Sidebar';
-
 // Sub-components
 
 /**
@@ -374,12 +373,16 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
 };
 
 // Attach static subcomponents
-export const Sidebar = Object.assign(SidebarComponent, {
-  Header: SidebarHeader,
-  Title: SidebarTitle,
-  Close: SidebarClose,
-  Body: SidebarBody,
-  Footer: SidebarFooter,
-});
+export const Sidebar = withSubComponents(
+  SidebarComponent,
+  {
+    Header: SidebarHeader,
+    Title: SidebarTitle,
+    Close: SidebarClose,
+    Body: SidebarBody,
+    Footer: SidebarFooter,
+  },
+  'Sidebar'
+);
 
 export default Sidebar;

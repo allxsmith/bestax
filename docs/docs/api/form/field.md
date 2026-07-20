@@ -479,6 +479,23 @@ This example demonstrates using the `Field` component to create a group of contr
 
 ---
 
+### Compound (dot-notation) usage
+
+Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now also available as `Field.Control`, so a field can be composed from the single `Field` import.
+
+```tsx live
+<Field horizontal>
+  <Field.Label>Name</Field.Label>
+  <Field.Body>
+    <Field.Control>
+      <Input placeholder="Jane Doe" />
+    </Field.Control>
+  </Field.Body>
+</Field>
+```
+
+---
+
 ## Accessibility
 
 - Uses `<label>` for accessible field labeling.

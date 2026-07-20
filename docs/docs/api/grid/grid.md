@@ -204,6 +204,23 @@ This example shows how to use `fixedCols="auto"` to let the grid automatically d
 
 ---
 
+### Compound (dot-notation) usage
+
+`Cell` is also available as `Grid.Cell`, so a grid can be composed from the single `Grid` import.
+
+```tsx live
+<Grid>
+  <Grid.Cell>
+    <Notification color="primary">Cell 1</Notification>
+  </Grid.Cell>
+  <Grid.Cell>
+    <Notification color="info">Cell 2</Notification>
+  </Grid.Cell>
+</Grid>
+```
+
+---
+
 ## Cell Placement Examples
 
 See [Cell documentation](./cell.md) for granular placement using `colStart`, `colFromEnd`, `colSpan`, `rowStart`, `rowSpan`, etc.

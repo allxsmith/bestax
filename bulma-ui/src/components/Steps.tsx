@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /** Available size modifiers for the Steps component. */
@@ -221,7 +222,7 @@ export const Step: React.FC<StepProps> = ({
  *   ]}
  * />
  */
-export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
+const StepsComponent: React.FC<StepsProps> = ({
   value = 0,
   items,
   size,
@@ -345,6 +346,6 @@ export const Steps: React.FC<StepsProps> & { Step: typeof Step } = ({
 };
 
 // Attach Step as static property
-Steps.Step = Step;
+export const Steps = withSubComponents(StepsComponent, { Step }, 'Steps');
 
 export default Steps;

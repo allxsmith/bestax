@@ -258,6 +258,19 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
 
 ---
 
+### Compound (dot-notation) usage
+
+`Icon` is also available as `IconText.Icon`, so an icon-and-text pairing can be composed from the single `IconText` import.
+
+```tsx live
+<IconText>
+  <IconText.Icon name="star" ariaLabel="star icon" />
+  <span>Starred</span>
+</IconText>
+```
+
+---
+
 ## Accessibility
 
 - **ARIA labels:** Always set an `ariaLabel` for icons for screen readers.

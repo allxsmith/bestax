@@ -1,5 +1,7 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
+import { ListItem } from './ListItem';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -35,7 +37,7 @@ export interface UnorderedListProps
  * @param {UnorderedListProps} props - Props for the UnorderedList component.
  * @returns {JSX.Element} The rendered ul element.
  */
-export const UnorderedList: React.FC<UnorderedListProps> = ({
+const UnorderedListComponent: React.FC<UnorderedListProps> = ({
   className,
   textColor,
   bgColor,
@@ -60,3 +62,9 @@ export const UnorderedList: React.FC<UnorderedListProps> = ({
     </ul>
   );
 };
+
+export const UnorderedList = withSubComponents(
+  UnorderedListComponent,
+  { Item: ListItem },
+  'UnorderedList'
+);

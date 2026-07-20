@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Columns } from '../Columns';
+import { Column } from '../Column';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Columns', () => {
@@ -225,5 +226,22 @@ describe('Columns', () => {
       expect(columns).toHaveClass('is-1-mobile');
       expect(columns).toHaveClass('p-4');
     });
+  });
+});
+
+describe('Compound components', () => {
+  test('Columns.Column is the Column component', () => {
+    expect(Columns.Column).toBe(Column);
+  });
+
+  test('renders columns through the dot path', () => {
+    const { container } = render(
+      <Columns>
+        <Columns.Column>First</Columns.Column>
+        <Columns.Column>Second</Columns.Column>
+      </Columns>
+    );
+    expect(container.querySelector('.columns')).toBeInTheDocument();
+    expect(container.querySelectorAll('.column')).toHaveLength(2);
   });
 });

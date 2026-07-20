@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -50,7 +51,7 @@ interface IconTextProps
  * @returns {JSX.Element} The rendered icon text element.
  * @see {@link https://bulma.io/documentation/elements/icon/#icon-text | Bulma IconText documentation}
  */
-export const IconText: React.FC<IconTextProps> = ({
+const IconTextComponent: React.FC<IconTextProps> = ({
   className,
   textColor,
   bgColor,
@@ -93,3 +94,9 @@ export const IconText: React.FC<IconTextProps> = ({
     </span>
   );
 };
+
+export const IconText = withSubComponents(
+  IconTextComponent,
+  { Icon },
+  'IconText'
+);

@@ -209,3 +209,13 @@ export const WithIconTextAndAddons: Story = {
     },
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Buttons>
+      <Buttons.Button color="primary">Save</Buttons.Button>
+      <Buttons.Button>Cancel</Buttons.Button>
+      <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+    </Buttons>
+  ),
+};

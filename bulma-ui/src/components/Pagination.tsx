@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -139,13 +140,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
  * @returns {JSX.Element} The rendered pagination.
  * @see {@link https://bulma.io/documentation/components/pagination/ | Bulma Pagination documentation}
  */
-export const Pagination: React.FC<PaginationProps> & {
-  Link: typeof PaginationLink;
-  List: typeof PaginationList;
-  Ellipsis: typeof PaginationEllipsis;
-  Previous: typeof PaginationPrevious;
-  Next: typeof PaginationNext;
-} = ({
+const PaginationComponent: React.FC<PaginationProps> = ({
   color,
   textColor,
   bgColor,
@@ -340,10 +335,16 @@ export const PaginationEllipsis: React.FC<
   </li>
 );
 
-Pagination.Link = PaginationLink;
-Pagination.List = PaginationList;
-Pagination.Ellipsis = PaginationEllipsis;
-Pagination.Previous = PaginationPrevious;
-Pagination.Next = PaginationNext;
+export const Pagination = withSubComponents(
+  PaginationComponent,
+  {
+    Link: PaginationLink,
+    List: PaginationList,
+    Ellipsis: PaginationEllipsis,
+    Previous: PaginationPrevious,
+    Next: PaginationNext,
+  },
+  'Pagination'
+);
 
 export default Pagination;

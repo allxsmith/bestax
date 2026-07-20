@@ -120,3 +120,13 @@ export const AddonsWithDeleteTag: Story = {
     },
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Tags>
+      <Tags.Tag color="primary">React</Tags.Tag>
+      <Tags.Tag color="info">TypeScript</Tags.Tag>
+      <Tags.Tag color="success">Bulma</Tags.Tag>
+    </Tags>
+  ),
+};

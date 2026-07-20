@@ -252,3 +252,13 @@ export const UncontrolledGroup: Story = {
     );
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Checkboxes name="frameworks" label="Frameworks">
+      <Checkboxes.Checkbox value="react">React</Checkboxes.Checkbox>
+      <Checkboxes.Checkbox value="vue">Vue</Checkboxes.Checkbox>
+      <Checkboxes.Checkbox value="svelte">Svelte</Checkboxes.Checkbox>
+    </Checkboxes>
+  ),
+};

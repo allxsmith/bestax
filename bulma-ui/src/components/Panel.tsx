@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon, IconProps } from '../elements/Icon';
 
@@ -118,15 +119,12 @@ export interface PanelButtonBlockProps extends React.ButtonHTMLAttributes<HTMLBu
  * @returns {JSX.Element} The rendered panel.
  * @see {@link https://bulma.io/documentation/components/panel/ | Bulma Panel documentation}
  */
-export const Panel: React.FC<PanelProps> & {
-  Heading: typeof PanelHeading;
-  Tabs: typeof PanelTabs;
-  Block: typeof PanelBlock;
-  Icon: typeof PanelIcon;
-  InputBlock: typeof PanelInputBlock;
-  CheckboxBlock: typeof PanelCheckboxBlock;
-  ButtonBlock: typeof PanelButtonBlock;
-} = ({ color, className, children, ...props }) => {
+const PanelComponent: React.FC<PanelProps> = ({
+  color,
+  className,
+  children,
+  ...props
+}) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color,
     ...props,
@@ -314,12 +312,18 @@ export const PanelButtonBlock: React.FC<PanelButtonBlockProps> = ({
   </div>
 );
 
-Panel.Heading = PanelHeading;
-Panel.Tabs = PanelTabs;
-Panel.Block = PanelBlock;
-Panel.Icon = PanelIcon;
-Panel.InputBlock = PanelInputBlock;
-Panel.CheckboxBlock = PanelCheckboxBlock;
-Panel.ButtonBlock = PanelButtonBlock;
+export const Panel = withSubComponents(
+  PanelComponent,
+  {
+    Heading: PanelHeading,
+    Tabs: PanelTabs,
+    Block: PanelBlock,
+    Icon: PanelIcon,
+    InputBlock: PanelInputBlock,
+    CheckboxBlock: PanelCheckboxBlock,
+    ButtonBlock: PanelButtonBlock,
+  },
+  'Panel'
+);
 
 export default Panel;

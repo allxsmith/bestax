@@ -124,6 +124,19 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`Checkbox` is also available as `Checkboxes.Checkbox`, so a checkbox group can be composed from the single `Checkboxes` import.
+
+```tsx live
+<Checkboxes name="frameworks" label="Frameworks">
+  <Checkboxes.Checkbox value="react">React</Checkboxes.Checkbox>
+  <Checkboxes.Checkbox value="vue">Vue</Checkboxes.Checkbox>
+</Checkboxes>
+```
+
+---
+
 ## Group State
 
 `Checkboxes` can manage the selected-values array for the entire group, matching the pattern used by React Aria's `CheckboxGroup`. Three usage modes:

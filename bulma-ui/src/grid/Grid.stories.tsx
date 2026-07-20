@@ -252,3 +252,14 @@ export const FixedGridAutoCount = () => {
     </Grid>
   );
 };
+
+export const CompoundUsage = () => (
+  <Grid>
+    <Grid.Cell>
+      <Notification color="primary">Cell via dot notation</Notification>
+    </Grid.Cell>
+    <Grid.Cell>
+      <Notification color="info">Another cell via dot notation</Notification>
+    </Grid.Cell>
+  </Grid>
+);

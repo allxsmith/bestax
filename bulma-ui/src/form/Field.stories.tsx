@@ -408,3 +408,16 @@ export const AddonsRight: Story = {
     </Field>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Field horizontal>
+      <Field.Label>Name</Field.Label>
+      <Field.Body>
+        <Field.Control>
+          <Input placeholder="Jane Doe" />
+        </Field.Control>
+      </Field.Body>
+    </Field>
+  ),
+};

@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -122,6 +123,10 @@ const FigureComponent: React.FC<FigureProps> = ({
  *   <Figure.Caption>Image caption text</Figure.Caption>
  * </Figure>
  */
-export const Figure = Object.assign(FigureComponent, {
-  Caption: FigureCaption,
-});
+export const Figure = withSubComponents(
+  FigureComponent,
+  {
+    Caption: FigureCaption,
+  },
+  'Figure'
+);

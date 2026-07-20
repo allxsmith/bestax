@@ -260,3 +260,13 @@ export const UncontrolledGroup: Story = {
     );
   },
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Radios name="color" label="Favorite color">
+      <Radios.Radio value="red">Red</Radios.Radio>
+      <Radios.Radio value="green">Green</Radios.Radio>
+      <Radios.Radio value="blue">Blue</Radios.Radio>
+    </Radios>
+  ),
+};

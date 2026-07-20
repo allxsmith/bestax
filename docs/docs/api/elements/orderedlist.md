@@ -164,6 +164,21 @@ Create nested ordered lists with different numbering types.
 
 ---
 
+### Compound (dot-notation) usage
+
+`ListItem` is also available as `OrderedList.Item`, so a list can be composed from the single `OrderedList` import.
+
+```tsx live
+<Content>
+  <OrderedList>
+    <OrderedList.Item>First item</OrderedList.Item>
+    <OrderedList.Item>Second item</OrderedList.Item>
+  </OrderedList>
+</Content>
+```
+
+---
+
 ## Accessibility
 
 - **List Structure:** Screen readers announce ordered lists with their numbering, helping users understand sequential content.

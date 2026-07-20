@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { withSubComponents } from '../helpers/withSubComponents';
 
 /**
  * Checks if code is running in a browser environment.
@@ -242,9 +243,13 @@ export const DropdownDivider: React.FC = () => (
 );
 
 /** Bulma Dropdown component with Item and Divider sub-components. */
-export const Dropdown = Object.assign(DropdownComponent, {
-  Item: DropdownItem,
-  Divider: DropdownDivider,
-});
+export const Dropdown = withSubComponents(
+  DropdownComponent,
+  {
+    Item: DropdownItem,
+    Divider: DropdownDivider,
+  },
+  'Dropdown'
+);
 
 export default Dropdown;
