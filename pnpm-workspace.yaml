@@ -40,6 +40,11 @@ overrides:
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
   # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
   serialize-javascript: '>=7.0.3'
+  # Force patched brace-expansion (transitive via minimatch across the jest and
+  # eslint toolchains) — DoS advisory GHSA-3jxr-9vmj-r5cp, patched per major.
+  'brace-expansion@<1.1.16': '>=1.1.16 <2'
+  'brace-expansion@>=2.0.0 <2.1.2': '>=2.1.2 <3'
+  'brace-expansion@>=3.0.0 <5.0.7': '>=5.0.7'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
