@@ -179,13 +179,6 @@
     "node": ">=16",
     "npm": ">=7"
   },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/types/*"
-      ]
-    }
-  },
   "author": "Alex Smith",
   "license": "MIT",
   "repository": {

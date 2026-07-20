@@ -25,6 +25,9 @@ export default [
       '**/templates/**', // Exclude templates from linting (they're validated separately)
       'test-apps/**', // Exclude test applications from linting
       'create-bestax/test-results/**', // Exclude test results
+      '**/__testfixtures__/**', // Codemod fixtures are expected-output text, not lintable source
+      'bestax-migrate/fixtures/**', // Source-only migration input app (react-bulma-components imports)
+      'bestax-migrate/.e2e-tmp/**', // Scratch output of the kitchen-sink e2e test
     ],
   },
 

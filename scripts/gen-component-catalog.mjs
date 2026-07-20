@@ -63,7 +63,12 @@ const CATEGORY_ORDER = [
 // here, so it gets flagged by the completeness guard. (`*Base` escape-hatch
 // variants are excluded by rule, not listed here.)
 const UNDOCUMENTED_EXPORTS = new Set([
-  'Tbody', 'Td', 'Tfoot', 'Th', 'Thead', 'Tr', // documented on the Table page
+  'Tbody',
+  'Td',
+  'Tfoot',
+  'Th',
+  'Thead',
+  'Tr', // documented on the Table page
 ]);
 
 // Deterministic, locale-independent comparator (code-point order). localeCompare
@@ -162,7 +167,10 @@ function parseExportedComponents(src) {
     m = line.match(/^export \{ ([^}]+) \} from '\.\/([^/]+)\/([^'/]+)'/);
     if (m) {
       for (const raw of m[1].split(',')) {
-        const name = raw.trim().split(/\s+as\s+/).pop();
+        const name = raw
+          .trim()
+          .split(/\s+as\s+/)
+          .pop();
         if (name) out.push({ name, cat: m[2] });
       }
     }

@@ -1,0 +1,241 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { collectFiles, createCLI, findPackageJsons } from '../cli.js';
+
+let tempDirs: string[] = [];
+
+afterEach(() => {
+  for (const dir of tempDirs) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  tempDirs = [];
+});
+
+function makeTempProject(): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-test-'));
+  tempDirs.push(dir);
+  fs.mkdirSync(path.join(dir, 'src', 'node_modules'), { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, 'src', 'App.tsx'),
+    [
+      "import { Button } from 'react-bulma-components';",
+      'export const App = () => <Button color="primary" loading>Go</Button>;',
+      '',
+    ].join('\n')
+  );
+  fs.writeFileSync(
+    path.join(dir, 'src', 'untouched.ts'),
+    'export const n = 1;\n'
+  );
+  fs.writeFileSync(
+    path.join(dir, 'src', 'ignored.css'),
+    '.a { color: red; }\n'
+  );
+  fs.writeFileSync(
+    path.join(dir, 'src', 'node_modules', 'skipped.tsx'),
+    "import { Button } from 'react-bulma-components';\n"
+  );
+  fs.writeFileSync(
+    path.join(dir, 'src', 'theme.scss'),
+    "$primary: #ff6b35;\n@import 'bulma/bulma';\n"
+  );
+  fs.writeFileSync(
+    path.join(dir, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'sample-app',
+        dependencies: { 'react-bulma-components': '^4.1.0', bulma: '^0.9.4' },
+        devDependencies: { 'node-sass': '^7.0.0' },
+      },
+      null,
+      2
+    )}\n`
+  );
+  return dir;
+}
+
+function runCli(args: string[]): { logs: string[]; errors: string[] } {
+  const logs: string[] = [];
+  const errors: string[] = [];
+  const program = createCLI({
+    log: m => logs.push(m),
+    error: m => errors.push(m),
+  });
+  program.exitOverride();
+  program.parse(['node', 'bestax-migrate', ...args]);
+  return { logs, errors };
+}
+
+describe('collectFiles', () => {
+  it('walks directories, filters extensions, and skips node_modules', () => {
+    const dir = makeTempProject();
+    const files = collectFiles(
+      [path.join(dir, 'src')],
+      ['js', 'jsx', 'ts', 'tsx']
+    );
+    expect(files.map(f => path.basename(f)).sort()).toEqual([
+      'App.tsx',
+      'untouched.ts',
+    ]);
+  });
+
+  it('throws for missing paths', () => {
+    expect(() => collectFiles(['/definitely/not/here'], ['ts'])).toThrow(
+      /no such file or directory/
+    );
+  });
+});
+
+describe('findPackageJsons', () => {
+  it('finds the nearest manifest walking up from each target', () => {
+    const dir = makeTempProject();
+    expect(findPackageJsons([path.join(dir, 'src')])).toEqual([
+      path.join(dir, 'package.json'),
+    ]);
+  });
+});
+
+describe('CLI', () => {
+  it('transforms files in place and reports', () => {
+    const dir = makeTempProject();
+    const { logs } = runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const transformed = fs.readFileSync(
+      path.join(dir, 'src', 'App.tsx'),
+      'utf8'
+    );
+    expect(transformed).toContain('from "@allxsmith/bestax-bulma"');
+    expect(transformed).toContain('isLoading');
+    // App.tsx + theme.scss + package.json all change
+    expect(logs.join('\n')).toContain('3 transformed');
+  });
+
+  it('leaves files untouched with --dry and prints with --print', () => {
+    const dir = makeTempProject();
+    const before = fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8');
+    const { logs } = runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--dry',
+      '--print',
+    ]);
+    expect(fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8')).toBe(
+      before
+    );
+    expect(logs.join('\n')).toContain('@allxsmith/bestax-bulma');
+    expect(logs.join('\n')).toContain('(dry run)');
+  });
+
+  it('reports files that fail to parse and continues', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');
+    const { logs, errors } = runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+    ]);
+    expect(errors.join('\n')).toContain('broken.tsx');
+    expect(logs.join('\n')).toContain('3 transformed');
+  });
+
+  it('migrates SCSS files and updates package.json dependencies', () => {
+    const dir = makeTempProject();
+    runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const scss = fs.readFileSync(path.join(dir, 'src', 'theme.scss'), 'utf8');
+    expect(scss).toContain("@use 'bulma/sass' with (");
+    expect(scss).toContain('$primary: #ff6b35');
+    expect(scss).toContain("@use '@allxsmith/bestax-bulma/scss/extras';");
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+    );
+    expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(pkg.dependencies.bulma).toBe('^1.0.4');
+    expect(pkg.devDependencies['node-sass']).toBeUndefined();
+    expect(pkg.devDependencies.sass).toBe('^1.79.0');
+  });
+
+  it('honors --no-deps and --dry for the package.json step', () => {
+    const dir = makeTempProject();
+    const before = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
+    runCli(['react-bulma-components', path.join(dir, 'src'), '--no-deps']);
+    expect(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).toBe(
+      before
+    );
+    runCli(['react-bulma-components', path.join(dir, 'src'), '--dry']);
+    expect(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).toBe(
+      before
+    );
+  });
+
+  it('says "Would update" for the manifest in dry mode', () => {
+    const dir = makeTempProject();
+    const dry = runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--dry',
+    ]);
+    expect(dry.logs.join('\n')).toContain('Would update');
+    expect(dry.logs.join('\n')).not.toContain('Updated ');
+    const wet = runCli(['react-bulma-components', path.join(dir, 'src')]);
+    expect(wet.logs.join('\n')).toContain('Updated ');
+  });
+
+  it('preserves the manifest indentation style', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      '{\n\t"name": "tabbed-app",\n\t"dependencies": {\n\t\t"react-bulma-components": "^4.1.0"\n\t}\n}\n'
+    );
+    runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf8');
+    expect(raw).toContain('\t"dependencies"');
+    expect(raw).toContain('\t\t"@allxsmith/bestax-bulma"');
+  });
+
+  it('flags unparseable component formats that import the source library', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(
+      path.join(dir, 'src', 'Card.astro'),
+      '---\nimport { Card } from "react-bulma-components";\n---\n<Card />\n'
+    );
+    fs.writeFileSync(
+      path.join(dir, 'src', 'plain.astro'),
+      '---\nconst x = 1;\n---\n<p>{x}</p>\n'
+    );
+    const { logs } = runCli(['react-bulma-components', path.join(dir, 'src')]);
+    const text = logs.join('\n');
+    expect(text).toContain('unsupported-file');
+    expect(text).toContain('Card.astro');
+    expect(text).not.toContain('plain.astro');
+  });
+
+  it('threads --css keep through to the transforms', () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(
+      path.join(dir, 'src', 'style-entry.ts'),
+      "import 'bulma/css/bulma.min.css';\n"
+    );
+    runCli(['react-bulma-components', path.join(dir, 'src'), '--css', 'keep']);
+    expect(
+      fs.readFileSync(path.join(dir, 'src', 'style-entry.ts'), 'utf8')
+    ).toBe("import 'bulma/css/bulma.min.css';\n");
+  });
+
+  it('rejects unknown --css modes', () => {
+    const dir = makeTempProject();
+    expect(() =>
+      runCli(['react-bulma-components', path.join(dir, 'src'), '--css', 'nope'])
+    ).toThrow();
+  });
+
+  it('rejects unknown sources', () => {
+    const dir = makeTempProject();
+    expect(() => runCli(['not-a-library', path.join(dir, 'src')])).toThrow();
+  });
+
+  it('rejects missing paths', () => {
+    expect(() =>
+      runCli(['react-bulma-components', '/definitely/not/here'])
+    ).toThrow();
+  });
+});

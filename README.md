@@ -91,14 +91,15 @@ function Root() {
 
 ## 📦 What's in this repo
 
-| Path                               | Package                                                                            | What it is                                                                                                |
-| ---------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [`bulma-ui/`](bulma-ui/)           | [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) | The component library                                                                                     |
-| [`create-bestax/`](create-bestax/) | [`create-bestax`](https://www.npmjs.com/package/create-bestax)                     | Project scaffolder — `npm create bestax@latest`                                                           |
-| [`docs/`](docs/)                   | —                                                                                  | Docusaurus source of [bestax.io](https://bestax.io)                                                       |
-| [`skills/`](skills/)               | —                                                                                  | [Agent Skills](https://bestax.io/docs/skills/intro) for coding agents (also bundled into `create-bestax`) |
+| Path                                 | Package                                                                            | What it is                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [`bulma-ui/`](bulma-ui/)             | [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) | The component library                                                                                     |
+| [`create-bestax/`](create-bestax/)   | [`create-bestax`](https://www.npmjs.com/package/create-bestax)                     | Project scaffolder — `npm create bestax@latest`                                                           |
+| [`bestax-migrate/`](bestax-migrate/) | [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate)                   | Codemods for migrating existing apps from other React Bulma libraries                                     |
+| [`docs/`](docs/)                     | —                                                                                  | Docusaurus source of [bestax.io](https://bestax.io)                                                       |
+| [`skills/`](skills/)                 | —                                                                                  | [Agent Skills](https://bestax.io/docs/skills/intro) for coding agents (also bundled into `create-bestax`) |
 
-The two packages are versioned and released independently.
+The published packages are versioned and released independently.
 
 ---
 

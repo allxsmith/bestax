@@ -2,6 +2,7 @@ packages:
   - bulma-ui
   - docs
   - create-bestax
+  - bestax-migrate
 
 # --- Supply-chain hardening ---
 
