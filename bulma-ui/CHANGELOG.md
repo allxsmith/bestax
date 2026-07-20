@@ -1,3 +1,17 @@
+# [5.7.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.2...@allxsmith/bestax-bulma@5.7.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **create-bestax:** reject dot-only project names, pin icon versions, bundle bestax-icons skill ([#310](https://github.com/allxsmith/bestax/issues/310)) ([ddff8e5](https://github.com/allxsmith/bestax/commit/ddff8e5c54b08f669aa0c34aa5a466050f8929e5))
+* **create-bestax:** skills-sync conformance gate + theming skill reference backfill ([#326](https://github.com/allxsmith/bestax/issues/326)) ([9584133](https://github.com/allxsmith/bestax/commit/95841337838139f2e32c482641d7d6c6305800fb)), closes [#285](https://github.com/allxsmith/bestax/issues/285)
+
+
+### Features
+
+* **bulma-ui:** compound (dot-notation) sub-components for all parent/child families via shared withSubComponents helper ([#331](https://github.com/allxsmith/bestax/issues/331)) ([07516c5](https://github.com/allxsmith/bestax/commit/07516c5d12d0a09e41980151e68b2bb52ef39865))
+* **create-bestax:** add bestax-optimize skill for shrinking built CSS ([#329](https://github.com/allxsmith/bestax/issues/329)) ([f597b9f](https://github.com/allxsmith/bestax/commit/f597b9f4c29274ae42f3d7d95cb2fb42c915024d))
+
 ## [5.6.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.1...@allxsmith/bestax-bulma@5.6.2) (2026-07-15)
 
 
