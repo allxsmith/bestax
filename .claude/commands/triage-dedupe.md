@@ -32,7 +32,16 @@ run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
 
 Summarize the issue first: symptoms, component/file names, API/prop names,
 exact error strings, and the general area. Then fan out FIVE Task agents in
-a single message, each pursuing ONE distinct strategy:
+a single message, each pursuing ONE distinct strategy.
+
+Sub-agents run SYNCHRONOUSLY: every Task call MUST pass
+`run_in_background: false`. If the runtime backgrounds them anyway, NEVER
+end your turn while any sub-agent is still pending — in the headless CI
+session an ended turn terminates the session immediately, orphaning the
+agents before any comment is posted (#338). Collect every agent's result,
+then continue with the filter pass.
+
+The five strategies:
 
 1. **Error strings** — exact quoted messages, stack-trace lines, warning text.
 2. **Component + file names** — `Button`, `Modal`, `useConfig`, source paths.
@@ -46,6 +55,12 @@ Rules for every agent:
   the `--repo REPO` flag). Never search outside it.
 - Use `gh search issues`, `gh issue list --search`; include closed issues
   (a duplicate of a closed issue is still a duplicate).
+- ONE `gh` command per Bash call, starting with the `gh` binary — no shell
+  loops, `echo` prefixes, `;`/`&&` chains, pipes (`| head`, `| jq`), or
+  command substitution (`$(...)`) (the permission allowlist matches command
+  prefixes; anything else is denied and wastes turns).
+- At most 6 searches per agent — the GitHub API limit is shared across all
+  agents, and a burst of searches 403s the whole session.
 - Return candidate numbers with title and a one-line justification each.
 
 ## Filter pass (you, not the agents)

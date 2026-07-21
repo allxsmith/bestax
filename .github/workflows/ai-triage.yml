@@ -63,6 +63,19 @@ name: AI Triage
 #     file-editing tools, because the session ingests untrusted issue/PR
 #     text.
 #
+# SILENT NO-OPS (#317, #338): the action reports step success even when the
+# session did no useful work, so the "Fail on silent session error" step
+# checks the execution file. Two known shapes: an is_error result record
+# (#317 — API/auth failure on the first call), and a CLEAN result record
+# from a session that ended its turn while background Task sub-agents were
+# still running (#338 — a CLI update made Task background-by-default; an
+# ended turn kills the headless session and orphans the agents). The prompt
+# therefore forbids backgrounded sub-agents AND requires a final
+# `TRIAGE-RESULT:` sentinel line per command; the watchdog fails the job
+# unless the result text is nothing but such lines, exactly one per
+# expected command (one for issues, two for PRs — so finishing the first
+# PR command and bailing during the second still fails).
+#
 # KILL SWITCHES: AI_TRIAGE_MODE=off (this workflow only) or
 # AI_LOOP_ENABLED=false (all Claude spend, repo-wide).
 #
@@ -325,6 +338,27 @@ jobs:
             commands and do NOT use the SlashCommand tool — it is not
             permitted in this session and every attempt will be denied.
 
+            Sub-agents run SYNCHRONOUSLY (#338): every Task call MUST pass
+            run_in_background: false. If the runtime backgrounds them
+            anyway, you MUST NOT end your turn while any sub-agent is still
+            pending — this is a headless one-shot session, and an ended
+            turn terminates it immediately, orphaning the agents with no
+            comment posted. Keep collecting results until every sub-agent
+            has returned, then finish the command's filter/post steps.
+
+            FINAL MESSAGE (machine-checked; the job FAILS without it): your
+            last output message must consist of exactly one line per
+            command listed above — ONE line when IS_PR is false, TWO lines
+            when IS_PR is true (the job verifies the count, so a run that
+            finishes the first command but bails during the second cannot
+            pass) — each of the form
+              TRIAGE-RESULT: <command> commented | refreshed | skipped (<reason>)
+            e.g. `TRIAGE-RESULT: triage-dedupe commented` or
+            `TRIAGE-RESULT: triage-find-duplicate-prs skipped (no credible
+            duplicates)` — and nothing else. A command's silent exit is
+            still reported here as `skipped (<reason>)`; "silent" means no
+            comment on the item, not no sentinel.
+
             Idempotency (the commands restate this; it is binding):
             - TRIGGER is opened: if a command's marker comment already
               exists on the item, that command exits silently — post
@@ -344,16 +378,24 @@ jobs:
             post nothing beyond what the commands specify.
 
       # The action reports step success even when the Claude session itself
-      # errors (result message has is_error: true — e.g. an API auth or
-      # usage-limit failure on the very first call). The item then silently
-      # gets no triage comment while the run shows green — the exact #317
-      # failure shape. Fail loudly instead. An empty/missing execution file
-      # (e.g. the action's workflow-validation skip) is tolerated: there was
-      # no session to judge.
+      # did no useful work. Two known silent-no-op shapes (see header):
+      #   #317 — the result record has is_error: true (e.g. an API auth or
+      #          usage-limit failure on the very first call).
+      #   #338 — the result record is a CLEAN success, but the session
+      #          ended its turn while background Task sub-agents were still
+      #          running ("I'll wait for them to finish…"), so nothing was
+      #          ever posted. Session status alone cannot catch this, which
+      #          is why the prompt demands the TRIAGE-RESULT sentinel: a
+      #          session that actually finished its commands ends with only
+      #          sentinel lines; any other final text fails here.
+      # Fail loudly on both. An empty/missing execution file (e.g. the
+      # action's workflow-validation skip) is tolerated: there was no
+      # session to judge.
       - name: Fail on silent session error
         if: steps.claude.outcome == 'success'
         env:
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+          IS_PR: ${{ steps.gate.outputs.is_pr }}
         run: |
           set -euo pipefail
           if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
@@ -361,15 +403,27 @@ jobs:
             exit 0
           fi
           # Fail closed: accept a JSON array or NDJSON, and require a final
-          # result record whose is_error is exactly false. Malformed JSON,
-          # a missing result record, or any other shape fails the job.
-          if jq -es '[.[] | if type == "array" then .[] else . end]
+          # result record whose is_error is exactly false AND whose result
+          # text is nothing but TRIAGE-RESULT sentinel lines — exactly one
+          # per expected command (issues run one command, PRs run two), so
+          # a session that finishes the first PR command but bails during
+          # the second cannot pass on the strength of one sentinel.
+          # Malformed JSON, a missing result record, a mid-task bailout
+          # message, or any other shape fails the job.
+          if [ "$IS_PR" = "true" ]; then EXPECTED=2; else EXPECTED=1; fi
+          if jq -es --argjson n "$EXPECTED" \
+                    '[.[] | if type == "array" then .[] else . end]
                      | map(select(type == "object" and .type == "result"))
-                     | last | .is_error == false' \
+                     | last
+                     | (.is_error == false)
+                       and ((.result // "") | split("\n")
+                            | map(select(length > 0))
+                            | (length == $n)
+                              and all(startswith("TRIAGE-RESULT:")))' \
               "$EXEC_FILE" >/dev/null 2>&1; then
-            echo "session result is_error: false — triage session completed"
+            echo "session ended cleanly with $EXPECTED TRIAGE-RESULT sentinel(s) — triage completed"
           else
-            echo "::error::Claude triage session did not complete cleanly (is_error true, missing result record, or unparsable execution file) — no triage comment was posted. See the session output above."
+            echo "::error::Claude triage session did not complete its commands (is_error true, wrong sentinel count for the item type, non-sentinel final message, or unparsable execution file — see #317/#338). The item likely got no (or incomplete) triage. See the session output above."
             exit 1
           fi
 
