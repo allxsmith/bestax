@@ -44,10 +44,11 @@ Rules for every agent: EVERY search scoped
 `repo:REPO is:pr is:open is:unmerged` (via `gh search prs` or
 `gh pr list --search`); exclude the target PR itself and draft PRs; ONE
 `gh` command per Bash call, starting with the `gh` binary — no shell
-loops, `echo` prefixes, or `;`/`&&` chains (the permission allowlist
-matches command prefixes; anything else is denied and wastes turns); at
-most 6 searches per agent (the shared API limit 403s on bursts); return
-numbers + titles + a one-line justification.
+loops, `echo` prefixes, `;`/`&&` chains, pipes, or command substitution
+(the permission allowlist matches command prefixes; anything else is
+denied and wastes turns); at most 6 searches per agent (the shared API
+limit 403s on bursts); return numbers + titles + a one-line
+justification.
 
 ## Filter pass
 

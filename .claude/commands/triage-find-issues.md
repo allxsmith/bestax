@@ -48,10 +48,11 @@ The five strategies:
 Rules for every agent: scope EVERY search to this repository
 (`repo:REPO` or `--repo REPO`); OPEN issues only (`is:open` /
 `--state open`); ONE `gh` command per Bash call, starting with the `gh`
-binary — no shell loops, `echo` prefixes, or `;`/`&&` chains (the
-permission allowlist matches command prefixes; anything else is denied and
-wastes turns); at most 6 searches per agent (the shared API limit 403s on
-bursts); return numbers + titles + a one-line justification.
+binary — no shell loops, `echo` prefixes, `;`/`&&` chains, pipes, or
+command substitution (the permission allowlist matches command prefixes;
+anything else is denied and wastes turns); at most 6 searches per agent
+(the shared API limit 403s on bursts); return numbers + titles + a
+one-line justification.
 
 ## Filter pass
 

@@ -56,8 +56,9 @@ Rules for every agent:
 - Use `gh search issues`, `gh issue list --search`; include closed issues
   (a duplicate of a closed issue is still a duplicate).
 - ONE `gh` command per Bash call, starting with the `gh` binary — no shell
-  loops, `echo` prefixes, or `;`/`&&` chains (the permission allowlist
-  matches command prefixes; anything else is denied and wastes turns).
+  loops, `echo` prefixes, `;`/`&&` chains, pipes (`| head`, `| jq`), or
+  command substitution (`$(...)`) (the permission allowlist matches command
+  prefixes; anything else is denied and wastes turns).
 - At most 6 searches per agent — the GitHub API limit is shared across all
   agents, and a burst of searches 403s the whole session.
 - Return candidate numbers with title and a one-line justification each.

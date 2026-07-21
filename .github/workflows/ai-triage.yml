@@ -72,7 +72,9 @@ name: AI Triage
 # ended turn kills the headless session and orphans the agents). The prompt
 # therefore forbids backgrounded sub-agents AND requires a final
 # `TRIAGE-RESULT:` sentinel line per command; the watchdog fails the job
-# unless the result text is nothing but such lines.
+# unless the result text is nothing but such lines, exactly one per
+# expected command (one for issues, two for PRs — so finishing the first
+# PR command and bailing during the second still fails).
 #
 # KILL SWITCHES: AI_TRIAGE_MODE=off (this workflow only) or
 # AI_LOOP_ENABLED=false (all Claude spend, repo-wide).
@@ -346,7 +348,10 @@ jobs:
 
             FINAL MESSAGE (machine-checked; the job FAILS without it): your
             last output message must consist of exactly one line per
-            command you ran, each of the form
+            command listed above — ONE line when IS_PR is false, TWO lines
+            when IS_PR is true (the job verifies the count, so a run that
+            finishes the first command but bails during the second cannot
+            pass) — each of the form
               TRIAGE-RESULT: <command> commented | refreshed | skipped (<reason>)
             e.g. `TRIAGE-RESULT: triage-dedupe commented` or
             `TRIAGE-RESULT: triage-find-duplicate-prs skipped (no credible
@@ -390,6 +395,7 @@ jobs:
         if: steps.claude.outcome == 'success'
         env:
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+          IS_PR: ${{ steps.gate.outputs.is_pr }}
         run: |
           set -euo pipefail
           if [ -z "$EXEC_FILE" ] || [ ! -f "$EXEC_FILE" ]; then
@@ -398,21 +404,26 @@ jobs:
           fi
           # Fail closed: accept a JSON array or NDJSON, and require a final
           # result record whose is_error is exactly false AND whose result
-          # text is nothing but TRIAGE-RESULT sentinel lines (at least
-          # one). Malformed JSON, a missing result record, a mid-task
-          # bailout message, or any other shape fails the job.
-          if jq -es '[.[] | if type == "array" then .[] else . end]
+          # text is nothing but TRIAGE-RESULT sentinel lines — exactly one
+          # per expected command (issues run one command, PRs run two), so
+          # a session that finishes the first PR command but bails during
+          # the second cannot pass on the strength of one sentinel.
+          # Malformed JSON, a missing result record, a mid-task bailout
+          # message, or any other shape fails the job.
+          if [ "$IS_PR" = "true" ]; then EXPECTED=2; else EXPECTED=1; fi
+          if jq -es --argjson n "$EXPECTED" \
+                    '[.[] | if type == "array" then .[] else . end]
                      | map(select(type == "object" and .type == "result"))
                      | last
                      | (.is_error == false)
                        and ((.result // "") | split("\n")
                             | map(select(length > 0))
-                            | (length > 0)
+                            | (length == $n)
                               and all(startswith("TRIAGE-RESULT:")))' \
               "$EXEC_FILE" >/dev/null 2>&1; then
-            echo "session ended cleanly with TRIAGE-RESULT sentinel(s) — triage completed"
+            echo "session ended cleanly with $EXPECTED TRIAGE-RESULT sentinel(s) — triage completed"
           else
-            echo "::error::Claude triage session did not complete its commands (is_error true, missing/non-sentinel final message, or unparsable execution file — see #317/#338). The item likely got no triage comment. See the session output above."
+            echo "::error::Claude triage session did not complete its commands (is_error true, wrong sentinel count for the item type, non-sentinel final message, or unparsable execution file — see #317/#338). The item likely got no (or incomplete) triage. See the session output above."
             exit 1
           fi
 
