@@ -141,8 +141,7 @@ jobs:
       contents: read # checkout of the base default branch
       pull-requests: write # post the triage comment on PRs; remove the label
       issues: write # post the triage comment on issues; budget marker; remove the label
-      # No id-token: the Claude step gets github_token explicitly, which
-      # short-circuits the action's OIDC→app-token exchange (#312).
+      id-token: write # OIDC→app-token exchange in the Claude step, so comments post as claude[bot]
     steps:
       # Layer 2 (authoritative, zero Claude usage). Two shapes:
       #   labeled → GitHub already restricts labeling to triage+; re-verify
@@ -290,14 +289,21 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
-          # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
-          # passed explicitly (Bun-style) so the action skips its OIDC→app
-          # token exchange (#312); triage comments therefore post as
-          # github-actions[bot] — anything probing for them must match the
-          # marker + a Bot-type author, never a specific login. Bonus:
-          # GITHUB_TOKEN-authored comments can't re-trigger workflows.
+          # CLAUDE_CODE_OAUTH_TOKEN pays for the session. No github_token:
+          # the action exchanges the job's OIDC token (id-token: write
+          # above) for a Claude-app installation token, so triage comments
+          # post as claude[bot] — the same auth claude.yml and
+          # claude-review.yml use. #312's 401 was specific to
+          # pull_request_target, which v2 dropped, so the exchange works
+          # under the plain pull_request/issues events here. Comments from
+          # the github_token era are github-actions[bot] — anything probing
+          # for triage comments must match the marker + a Bot-type author,
+          # never a specific login. Unlike GITHUB_TOKEN-authored comments,
+          # claude[bot] comments CAN trigger issue_comment workflows; safe
+          # here because every comment-triggered workflow in this repo
+          # gates on a human sender (User type / author_association) and
+          # the prompt bans @-trigger phrases in the comment text.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Full session output in the public job log (#317): the session
           # only ever sees public issue/PR text and GET-only gh output, so
           # nothing sensitive can leak, and without it a session that ends

@@ -18,7 +18,8 @@ run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
    the issue is not open, stop.
 2. Marker check — does any existing bot-authored comment contain
    `<!-- ai-triage:dedupe -->`? (Match the marker + a bot author, not a
-   specific login — the workflow posts as github-actions[bot].)
+   specific login — the workflow posts as claude[bot]; comments from
+   before the identity switch are github-actions[bot].)
    - `TRIGGER=opened` and marker present → stop (already triaged).
    - `TRIGGER=labeled` and marker present → continue; at the end REFRESH
      that comment instead of posting a new one: if it is your most recent

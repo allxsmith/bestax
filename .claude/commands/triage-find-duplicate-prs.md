@@ -16,7 +16,8 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
    if the PR is not open, stop.
 2. Marker check — a bot-authored comment containing
    `<!-- ai-triage:find-duplicate-prs -->` (match marker + bot author, not
-   a specific login — the workflow posts as github-actions[bot]):
+   a specific login — the workflow posts as claude[bot]; comments from
+   before the identity switch are github-actions[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
      that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`

@@ -83,9 +83,10 @@ export function isBot(user) {
 /**
  * Find the LATEST bot-authored comment that carries the dedupe marker and a
  * parseable `Duplicate of #N`. Matched by marker + Bot author, never a
- * specific login (Bun's convention): the triage workflow posts via
- * GITHUB_TOKEN as github-actions[bot] since #312, while pre-#312 comments
- * are claude[bot]. Returns { comment, target } or null. `comments` must be
+ * specific login (Bun's convention): the triage workflow posts as
+ * claude[bot] via the OIDC app-token exchange, but the github_token era
+ * (#312 until the identity switch) left github-actions[bot] comments.
+ * Returns { comment, target } or null. `comments` must be
  * in ascending created order (the REST API default for issue comments).
  */
 export function findMarkerComment(comments) {
