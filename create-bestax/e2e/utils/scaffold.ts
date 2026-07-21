@@ -64,6 +64,13 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
     stdio: 'inherit',
   });
 
+  // -y implies the AI-skills opt-in, so every real scaffold must contain the
+  // browser-preview manifest (#337) — fail loudly if the write path regresses.
+  const launchJsonPath = path.join(outputDir, '.claude', 'launch.json');
+  if (!(await fs.pathExists(launchJsonPath))) {
+    throw new Error(`Expected scaffold to contain ${launchJsonPath}`);
+  }
+
   // Install dependencies in the scaffolded app with a fresh pnpm resolve.
   // --ignore-workspace: the app may live inside the monorepo tree, so treat it
   // as a standalone project rather than a workspace member.

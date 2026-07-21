@@ -276,6 +276,37 @@ describe('ProjectCreator', () => {
       expect(written).not.toContain('classPrefix');
     });
 
+    it('writes .claude/launch.json for the browser preview alongside the skills', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+
+      await projectCreator.setupSkills('/target/path', 'my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
+
+      const written = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('launch.json'))?.[1];
+      expect(written).toBeDefined();
+      const launch = JSON.parse(String(written));
+      expect(launch.configurations).toHaveLength(1);
+      expect(launch.configurations[0]).toEqual({
+        name: 'dev',
+        runtimeExecutable: 'npm',
+        runtimeArgs: ['run', 'dev', '--', '--strictPort'],
+        port: 5173,
+      });
+      // the scaffolded CLAUDE.md points agents at the launch config
+      const claudeMd = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).includes('CLAUDE.md'))?.[1];
+      expect(claudeMd).toContain('.claude/launch.json');
+    });
+
     it('documents the prefix caveat and icon library for a prefixed scaffold', async () => {
       (
         fileSystem.checkDirectoryExists as jest.MockedFunction<
@@ -931,6 +962,55 @@ describe('ProjectCreator', () => {
 
       expect(fileSystem.copyDirectory).toHaveBeenCalled();
       expect(fileSystem.updatePackageJson).toHaveBeenCalled();
+    });
+
+    it('writes launch.json when the skills opt-in is accepted', async () => {
+      // target dir does not exist; the bundled skills dir does
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockImplementation(async p => String(p).includes('skills'));
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(true);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.create('test-project', { yes: true, skills: true });
+
+      expect(
+        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(([p]) =>
+          String(p).includes('launch.json')
+        )
+      ).toBe(true);
+    });
+
+    it('does not write launch.json when the skills opt-in is declined', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockImplementation(async p => String(p).includes('skills'));
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(true);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.create('test-project', { yes: true, skills: false });
+
+      expect(
+        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(([p]) =>
+          String(p).includes('launch.json')
+        )
+      ).toBe(false);
     });
 
     it('should prompt for missing template option', async () => {

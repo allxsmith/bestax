@@ -103,3 +103,11 @@ machine.
   reading it.
 - **Kill switches**: removing the `ai-loop` label stops one PR; a repository variable turns
   the whole system off.
+
+## AI-ready scaffolds
+
+New apps can start AI-ready too: accepting the AI-skills prompt in `npm create bestax@latest`
+installs the bestax Agent Skills and a `CLAUDE.md`, plus a `.claude/launch.json` that tells
+Claude Code's browser preview how to start the app's dev server (`npm run dev` on port 5173,
+with `--strictPort` so a busy port fails loudly instead of silently drifting to another port).
+See the [LLMs guide](/docs/guides/llms) for the full AI tooling story.

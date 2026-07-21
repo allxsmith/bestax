@@ -24,6 +24,7 @@ const {
   PROJECT_NAME_REGEX,
   MESSAGES,
   PROMPTS,
+  LAUNCH_JSON,
 } = await import('../constants.js');
 
 describe('constants', () => {
@@ -203,6 +204,26 @@ describe('constants', () => {
         expect(typeof item.display).toBe('string');
         expect(typeof item.color).toBe('function');
       });
+    });
+  });
+
+  describe('LAUNCH_JSON', () => {
+    it('is valid JSON with a single dev configuration', () => {
+      const launch = JSON.parse(LAUNCH_JSON);
+      expect(launch.version).toBe('0.0.1');
+      expect(launch.configurations).toHaveLength(1);
+      expect(launch.configurations[0].name).toBe('dev');
+    });
+
+    it('uses package-manager-neutral npm and pins the Vite port with --strictPort', () => {
+      const config = JSON.parse(LAUNCH_JSON).configurations[0];
+      expect(config.runtimeExecutable).toBe('npm');
+      expect(config.runtimeArgs).toEqual(['run', 'dev', '--', '--strictPort']);
+      expect(config.port).toBe(5173);
+    });
+
+    it('is mentioned in the skills success message', () => {
+      expect(MESSAGES.SKILLS_ADDED).toContain('launch.json');
     });
   });
 

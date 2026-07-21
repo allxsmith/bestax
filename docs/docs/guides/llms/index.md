@@ -35,9 +35,10 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffol
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills**
-into the generated app's `.claude/skills/` (alongside a `CLAUDE.md`), so a Claude Code
-session picks them up automatically. See the [Skills overview](/docs/skills/intro) for
-what each one does.
+into the generated app's `.claude/skills/` (alongside a `CLAUDE.md` and a
+`.claude/launch.json` that lets Claude Code's browser preview start the dev server by
+name), so a Claude Code session picks them up automatically. See the
+[Skills overview](/docs/skills/intro) for what each one does.
 
 ## MCP server (coming soon)
 
