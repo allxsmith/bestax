@@ -172,7 +172,7 @@ describe('Modal', () => {
     });
   });
 
-  describe('Compound Components API', () => {
+  describe('Compound components', () => {
     it('defines all compound statics', () => {
       expect(Modal.Background).toBeDefined();
       expect(Modal.Content).toBeDefined();

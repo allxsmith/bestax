@@ -386,7 +386,7 @@ describe('Card Component', () => {
     });
   });
 
-  describe('Compound Components', () => {
+  describe('Compound components', () => {
     test('all compound statics are defined', () => {
       expect(Card.Header).toBeDefined();
       expect(Card.Header.Title).toBeDefined();

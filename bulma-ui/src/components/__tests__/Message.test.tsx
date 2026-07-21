@@ -118,7 +118,7 @@ describe('Message', () => {
     });
   });
 
-  describe('Compound Components', () => {
+  describe('Compound components', () => {
     test('all compound statics are defined', () => {
       expect(Message.Header).toBeDefined();
       expect(Message.Body).toBeDefined();
