@@ -163,8 +163,20 @@ describe('Avatars', () => {
     expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
   });
 
-  it('exposes Avatar as a compound static', () => {
-    expect(Avatars.Avatar).toBe(Avatar);
+  describe('Compound components', () => {
+    it('exposes Avatar as a compound static', () => {
+      expect(Avatars.Avatar).toBe(Avatar);
+    });
+
+    it('renders avatars through the dot path', () => {
+      const { container } = render(
+        <Avatars>
+          <Avatars.Avatar name="Ada Lovelace" />
+        </Avatars>
+      );
+      expect(container.querySelector('.avatars')).toBeInTheDocument();
+      expect(screen.getByText('AL')).toBeInTheDocument();
+    });
   });
 
   it('applies the spacing class (defaults to md)', () => {
