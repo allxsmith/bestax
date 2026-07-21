@@ -14,6 +14,9 @@ const scssBase = {
   watch: 'src/scss',
 };
 
+const aiBanner =
+  '/* @allxsmith/bestax-bulma — AI agents: see AGENTS.md in the package root, or https://bestax.io/llms.txt */';
+
 const variationBuild = name => ({
   input: `src/scss/versions/${name}.scss`,
   output: { file: `dist/versions/${name}.js`, format: 'es' },
@@ -36,12 +39,14 @@ export default commandLineArgs => {
           format: 'cjs',
           sourcemap: true,
           entryFileNames: 'index.cjs.js',
+          banner: aiBanner,
         },
         {
           dir: 'dist',
           format: 'esm',
           sourcemap: true,
           entryFileNames: 'index.esm.js',
+          banner: aiBanner,
         },
       ],
       plugins: [
@@ -52,7 +57,6 @@ export default commandLineArgs => {
           declaration: true,
           declarationDir: 'dist/types',
           rootDir: 'src',
-          removeComments: true,
           exclude: ['**/__tests__/**/*', '**/*.test.tsx'],
         }),
         isVisualizerEnabled &&

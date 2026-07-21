@@ -69,6 +69,9 @@ jobs:
       - name: Format Check
         run: pnpm run format:check
 
+      - name: Pointer file URLs resolve
+        run: pnpm run check:urls
+
       - name: Audit (high severity)
         run: pnpm audit --audit-level=high
 

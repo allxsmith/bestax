@@ -14,6 +14,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,md,mdx}\"",
     "lint": "turbo run lint",
     "check:conformance": "node scripts/check-conformance.mjs",
+    "check:urls": "node scripts/check-pointer-urls.mjs",
     "gen:catalog": "node scripts/gen-component-catalog.mjs",
     "gen:catalog:check": "node scripts/gen-component-catalog.mjs && git diff --exit-code -- skills/bestax-custom-component/references/component-catalog.md",
     "all": "turbo run build typecheck test test:coverage bundle:stats lint format:check && turbo run build-storybook --filter=@allxsmith/bestax-bulma",

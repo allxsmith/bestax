@@ -149,6 +149,7 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 
 - 📘 **[LLMs guide](https://bestax.io/docs/guides/llms)** — how to use the library with AI tools
 - 📄 **[llms.txt](https://bestax.io/llms.txt)** — curated index · **[llms-full.txt](https://bestax.io/llms-full.txt)** — the full docs in one file · every docs page is also served as raw markdown
+- 📦 **In the npm package** — the tarball ships `llms.txt`, `AGENTS.md`, and `CLAUDE.md` pointer files, so agents exploring `node_modules` land on these resources by filename
 - 🧩 **[Agent Skills](https://bestax.io/docs/skills/intro)** — teach your agent the bestax way:
 
   | Skill                     | Use it when…                                                                     |
@@ -157,6 +158,9 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
   | `bestax-form`             | Building forms — Field/Control composition and the full input inventory          |
   | `bestax-theming`          | Customizing colors, fonts, dark mode via `Theme` and `--bulma-*` variables       |
   | `bestax-custom-component` | Building a new custom component beyond stock Bulma, the bestax way               |
+  | `bestax-icons`            | Adding icons — Icon/IconText and the five supported icon libraries               |
+  | `bestax-optimize`         | Shrinking the built CSS — flavor builds, modular Sass, import hygiene            |
+  | `bestax-migrate`          | Moving an app off react-bulma-components (v4) onto bestax-bulma                  |
 
   ```bash
   npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold

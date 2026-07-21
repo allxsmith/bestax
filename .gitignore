@@ -71,6 +71,7 @@ web_modules/
 
 # Output of 'npm pack'
 *.tgz
+bulma-ui/CLAUDE.md.bak
 
 # Yarn Integrity file
 .yarn-integrity
