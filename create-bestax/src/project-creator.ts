@@ -30,6 +30,7 @@ import {
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
+  LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
   type ClaudeMdOptions,
 } from './constants.js';
@@ -117,6 +118,10 @@ export class ProjectCreator {
     }
 
     await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
+    await fs.writeFile(
+      path.join(targetPath, '.claude', 'launch.json'),
+      LAUNCH_JSON
+    );
     await fs.writeFile(
       path.join(targetPath, 'CLAUDE.md'),
       CLAUDE_MD(projectName, options)

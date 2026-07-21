@@ -38,8 +38,32 @@ export const MESSAGES = {
   NEXT_STEPS: 'Next steps:',
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
-    '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md)',
+    '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
 } as const;
+
+// Dev-server manifest written into .claude/ with the skills opt-in so Claude
+// Code's browser preview (`preview_start`) can boot the app by name instead of
+// rediscovering the dev command from package.json. `npm` is deliberately
+// package-manager-neutral (`npm run dev` works whichever PM installed the
+// project), and `--strictPort` stops Vite from silently auto-incrementing to
+// 5174 when 5173 is busy — a mismatch with the declared `port` must fail
+// loudly, not point the preview at nothing.
+export const LAUNCH_JSON =
+  JSON.stringify(
+    {
+      version: '0.0.1',
+      configurations: [
+        {
+          name: 'dev',
+          runtimeExecutable: 'npm',
+          runtimeArgs: ['run', 'dev', '--', '--strictPort'],
+          port: 5173,
+        },
+      ],
+    },
+    null,
+    2
+  ) + '\n';
 
 export const PROMPTS = {
   PROJECT_NAME: 'Project name:',
@@ -130,6 +154,10 @@ automatically when the task matches:
 - **bestax-optimize** — shrink the built CSS: measure raw+gzip, then flavor switch or a modular Sass build.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+
+\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
+(\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering
+the command.
 
 ## Docs
 
