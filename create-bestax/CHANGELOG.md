@@ -1,3 +1,12 @@
+# [3.5.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.4.0...create-bestax@3.5.0) (2026-07-21)
+
+
+### Features
+
+* **bestax-migrate:** react-bulma-components → bestax-bulma codemod CLI, skill, and docs ([#333](https://github.com/allxsmith/bestax/issues/333)) ([e04a12b](https://github.com/allxsmith/bestax/commit/e04a12b52a473265395cd1d3fa41ac1fb55886b3)), closes [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99)
+* **bulma-ui:** compound (dot-notation) sub-components for all parent/child families via shared withSubComponents helper ([#331](https://github.com/allxsmith/bestax/issues/331)) ([07516c5](https://github.com/allxsmith/bestax/commit/07516c5d12d0a09e41980151e68b2bb52ef39865))
+* **create-bestax:** scaffold .claude/launch.json with the AI skills opt-in ([#343](https://github.com/allxsmith/bestax/issues/343)) ([189135a](https://github.com/allxsmith/bestax/commit/189135ad54675b6ade7931a8c63a03d5eb0e2549))
+
 # [3.4.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.3.3...create-bestax@3.4.0) (2026-07-19)
 
 
