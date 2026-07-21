@@ -231,6 +231,25 @@ This example combines the `Pagination.Previous` and `Pagination.Next` subcompone
 
 ---
 
+### Compound (dot-notation) usage
+
+Every subcomponent is exported by name (`PaginationLink`, `PaginationList`, …) and attached to `Pagination` as a static, so a full pagination can be composed from the single `Pagination` import.
+
+```tsx live
+<Pagination>
+  <Pagination.Previous>Previous</Pagination.Previous>
+  <Pagination.Next>Next page</Pagination.Next>
+  <Pagination.List>
+    <Pagination.Link active>1</Pagination.Link>
+    <Pagination.Link>2</Pagination.Link>
+    <Pagination.Ellipsis />
+    <Pagination.Link>10</Pagination.Link>
+  </Pagination.List>
+</Pagination>
+```
+
+---
+
 ## Accessibility
 
 - The root `Pagination` renders as a semantic `<nav role="navigation" aria-label="pagination">`.

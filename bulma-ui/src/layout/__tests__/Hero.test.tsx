@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import Hero from '../Hero';
+import Hero, { HeroHead, HeroBody, HeroFoot } from '../Hero';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Hero', () => {
@@ -205,5 +205,33 @@ describe('Hero', () => {
       expect(getByTestId('foot')).toHaveClass('bulma-hero-foot');
       expect(getByTestId('foot')).toHaveClass('bulma-has-text-danger');
     });
+  });
+});
+
+describe('Compound components', () => {
+  it('statics are the separately exported components', () => {
+    expect(Hero.Head).toBe(HeroHead);
+    expect(Hero.Body).toBe(HeroBody);
+    expect(Hero.Foot).toBe(HeroFoot);
+  });
+
+  it('renders a hero through the dot path', () => {
+    const { container } = render(
+      <Hero>
+        <Hero.Head>Head content</Hero.Head>
+        <Hero.Body>Body content</Hero.Body>
+        <Hero.Foot>Foot content</Hero.Foot>
+      </Hero>
+    );
+    expect(container.querySelector('.hero')).toBeInTheDocument();
+    expect(container.querySelector('.hero-head')).toHaveTextContent(
+      'Head content'
+    );
+    expect(container.querySelector('.hero-body')).toHaveTextContent(
+      'Body content'
+    );
+    expect(container.querySelector('.hero-foot')).toHaveTextContent(
+      'Foot content'
+    );
   });
 });

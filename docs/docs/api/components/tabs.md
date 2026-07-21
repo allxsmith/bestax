@@ -425,6 +425,25 @@ The final example showcases toggle tabs with fullwidth and large size, including
 
 ---
 
+### Compound (dot-notation) usage
+
+`TabList`, `Tab`, `TabsContent`, and `TabContentItem` are also available as `Tabs.List`, `Tabs.Tab`, `Tabs.Content`, and `Tabs.Content.Item`, so a complete tabbed interface can be composed from the single `Tabs` import.
+
+```tsx live
+<Tabs>
+  <Tabs.List>
+    <Tabs.Tab index={0}>Overview</Tabs.Tab>
+    <Tabs.Tab index={1}>Settings</Tabs.Tab>
+  </Tabs.List>
+  <Tabs.Content>
+    <Tabs.Content.Item index={0}>Overview panel</Tabs.Content.Item>
+    <Tabs.Content.Item index={1}>Settings panel</Tabs.Content.Item>
+  </Tabs.Content>
+</Tabs>
+```
+
+---
+
 ## Accessibility
 
 - The tab list renders as a semantic `<ul>` and each item as `<li>`.

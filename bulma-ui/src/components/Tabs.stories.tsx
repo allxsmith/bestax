@@ -604,3 +604,22 @@ export const BackwardCompatible: Story = {
     </Tabs>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Tabs>
+      <Tabs.List>
+        <Tabs.Tab index={0}>Overview</Tabs.Tab>
+        <Tabs.Tab index={1}>Settings</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content>
+        <Tabs.Content.Item index={0}>
+          <Paragraph>Overview panel composed via dot notation.</Paragraph>
+        </Tabs.Content.Item>
+        <Tabs.Content.Item index={1}>
+          <Paragraph>Settings panel composed via dot notation.</Paragraph>
+        </Tabs.Content.Item>
+      </Tabs.Content>
+    </Tabs>
+  ),
+};

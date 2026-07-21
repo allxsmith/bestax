@@ -356,3 +356,25 @@ export const White: Story = {
     </Panel>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Panel>
+      <Panel.Heading>Continental Congress</Panel.Heading>
+      <Panel.Tabs>
+        <a className="is-active">All</a>
+        <a>Delegates</a>
+      </Panel.Tabs>
+      <Panel.Block active>
+        <Panel.Icon name="user" variant="solid" />
+        John Adams
+      </Panel.Block>
+      <Panel.Block>
+        <Panel.Icon name="user" variant="solid" />
+        Benjamin Franklin
+      </Panel.Block>
+      <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
+      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+    </Panel>
+  ),
+};

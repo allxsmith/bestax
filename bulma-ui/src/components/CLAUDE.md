@@ -10,7 +10,11 @@ beyond stock Bulma (Carousel, Dialog, Toast, …). The generated
 Conventions:
 
 - Multi-part components use the compound pattern — `Card.Header`, `Navbar.Item`, `Modal.Card` —
-  subcomponents attached to the parent, exported from the same file.
+  statics attached via `withSubComponents` (`../helpers/withSubComponents.ts`, mutates the
+  base, never wraps), exported from the same file. Each compound family ships the four
+  compound artifacts listed under Conventions in `bulma-ui/CLAUDE.md`: identity tests in a
+  `describe('Compound components')` block, a dot-path render test, a `CompoundUsage` story,
+  and a `### Compound (dot-notation) usage` docs example.
 - **Stock Bulma components ship no CSS.** Extras pair with a partial in `../scss/components/`
   following the pattern in `../scss/CLAUDE.md` — and a stock component can still have an
   extending partial (Tabs gains vertical mode from `_tabs.scss`), so check

@@ -309,3 +309,26 @@ export const Light: Story = {
 export const White: Story = {
   render: () => <StatefulNavbarBurgerMenu color="white" />,
 };
+
+// Compound (dot-notation) usage
+export const CompoundUsage: Story = {
+  render: () => (
+    <Navbar>
+      <Navbar.Brand>
+        <Navbar.Item href="#">
+          <img src={logo} alt="Logo" width="30" height="24" />
+        </Navbar.Item>
+        <Navbar.Burger aria-label="menu" />
+      </Navbar.Brand>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          <Navbar.Item href="#">Home</Navbar.Item>
+          <Navbar.Item href="#">Docs</Navbar.Item>
+        </Navbar.Start>
+        <Navbar.End>
+          <Navbar.Item href="#">Log in</Navbar.Item>
+        </Navbar.End>
+      </Navbar.Menu>
+    </Navbar>
+  ),
+};

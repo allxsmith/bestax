@@ -58,3 +58,12 @@ export const Up = () => (
     </Dropdown>
   </>
 );
+
+export const CompoundUsage = () => (
+  <Dropdown label="Compound Dropdown" active>
+    <Dropdown.Item>First Item</Dropdown.Item>
+    <Dropdown.Item>Second Item</Dropdown.Item>
+    <Dropdown.Divider />
+    <Dropdown.Item>Third Item</Dropdown.Item>
+  </Dropdown>
+);

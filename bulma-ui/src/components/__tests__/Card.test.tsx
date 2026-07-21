@@ -386,7 +386,35 @@ describe('Card Component', () => {
     });
   });
 
-  describe('Compound Components', () => {
+  describe('Compound components', () => {
+    test('all compound statics are defined', () => {
+      expect(Card.Header).toBeDefined();
+      expect(Card.Header.Title).toBeDefined();
+      expect(Card.Header.Icon).toBeDefined();
+      expect(Card.Image).toBeDefined();
+      expect(Card.Content).toBeDefined();
+      expect(Card.Footer).toBeDefined();
+      expect(Card.FooterItem).toBeDefined();
+    });
+
+    test('renders a card through the dot paths', () => {
+      const { container } = render(
+        <Card>
+          <Card.Header>
+            <Card.Header.Title>Title</Card.Header.Title>
+          </Card.Header>
+          <Card.Content>Body</Card.Content>
+          <Card.Footer>
+            <Card.FooterItem>Item</Card.FooterItem>
+          </Card.Footer>
+        </Card>
+      );
+      expect(container.querySelector('.card')).toBeInTheDocument();
+      expect(container.querySelector('.card-header')).toBeInTheDocument();
+      expect(container.querySelector('.card-content')).toBeInTheDocument();
+      expect(container.querySelector('.card-footer')).toBeInTheDocument();
+    });
+
     test('Card.Header renders with correct classes', () => {
       render(
         <Card.Header data-testid="header">

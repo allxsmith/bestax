@@ -700,3 +700,26 @@ describe('Dropdown', () => {
     expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
   });
 });
+
+describe('Compound components', () => {
+  test('Dropdown.Item is the DropdownItem component', () => {
+    expect(Dropdown.Item).toBe(DropdownItem);
+  });
+
+  test('Dropdown.Divider is the DropdownDivider component', () => {
+    expect(Dropdown.Divider).toBe(DropdownDivider);
+  });
+
+  test('renders a dropdown through the dot path', () => {
+    const { container } = render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item>First</Dropdown.Item>
+        <Dropdown.Divider />
+        <Dropdown.Item>Second</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(container.querySelector('.dropdown')).toBeInTheDocument();
+    expect(container.querySelectorAll('.dropdown-item')).toHaveLength(2);
+    expect(container.querySelector('.dropdown-divider')).toBeInTheDocument();
+  });
+});

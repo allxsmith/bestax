@@ -274,3 +274,26 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
     </Hero>
   ),
 };
+
+export const CompoundUsage: StoryObj<typeof Hero> = {
+  render: () => (
+    <Hero color="info">
+      <Hero.Head>
+        <Container textAlign="centered" pt="4">
+          <Title size="6">Hero head via dot notation</Title>
+        </Container>
+      </Hero.Head>
+      <Hero.Body>
+        <Container textAlign="centered">
+          <Title>Hero title</Title>
+          <SubTitle>Hero subtitle</SubTitle>
+        </Container>
+      </Hero.Body>
+      <Hero.Foot>
+        <Container textAlign="centered" pb="4">
+          <SubTitle size="6">Hero foot via dot notation</SubTitle>
+        </Container>
+      </Hero.Foot>
+    </Hero>
+  ),
+};

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import Level from '../Level';
+import Level, { LevelLeft, LevelRight, LevelItem } from '../Level';
 import { Title } from '../../elements/Title';
 import Button from '../../elements/Button';
 import Field from '../../form/Field';
@@ -332,5 +332,30 @@ describe('Level', () => {
       const item = screen.getByTestId('item');
       expect(item).toHaveClass('has-text-grey-light');
     });
+  });
+});
+
+describe('Compound components', () => {
+  it('statics are the separately exported components', () => {
+    expect(Level.Left).toBe(LevelLeft);
+    expect(Level.Right).toBe(LevelRight);
+    expect(Level.Item).toBe(LevelItem);
+  });
+
+  it('renders a level through the dot path', () => {
+    const { container } = render(
+      <Level>
+        <Level.Left>
+          <Level.Item>Posts</Level.Item>
+        </Level.Left>
+        <Level.Right>
+          <Level.Item>All</Level.Item>
+        </Level.Right>
+      </Level>
+    );
+    expect(container.querySelector('.level')).toBeInTheDocument();
+    expect(container.querySelector('.level-left')).toBeInTheDocument();
+    expect(container.querySelector('.level-right')).toBeInTheDocument();
+    expect(container.querySelectorAll('.level-item')).toHaveLength(2);
   });
 });

@@ -1,5 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Panel from '../Panel';
+import Panel, {
+  PanelHeading,
+  PanelTabs,
+  PanelBlock,
+  PanelIcon,
+  PanelInputBlock,
+  PanelCheckboxBlock,
+  PanelButtonBlock,
+} from '../Panel';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Panel', () => {
@@ -288,5 +296,41 @@ describe('Panel.ButtonBlock', () => {
     );
     fireEvent.click(screen.getByTestId('button'));
     expect(handleClick).toHaveBeenCalled();
+  });
+});
+
+describe('Compound components', () => {
+  it('exposes the named exports as statics', () => {
+    expect(Panel.Heading).toBe(PanelHeading);
+    expect(Panel.Tabs).toBe(PanelTabs);
+    expect(Panel.Block).toBe(PanelBlock);
+    expect(Panel.Icon).toBe(PanelIcon);
+    expect(Panel.InputBlock).toBe(PanelInputBlock);
+    expect(Panel.CheckboxBlock).toBe(PanelCheckboxBlock);
+    expect(Panel.ButtonBlock).toBe(PanelButtonBlock);
+  });
+
+  it('renders a panel through the dot path', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.Heading>Repositories</Panel.Heading>
+        <Panel.Tabs>
+          <a className="is-active">All</a>
+          <a>Public</a>
+        </Panel.Tabs>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="book" variant="solid" />
+          bestax-bulma
+        </Panel.Block>
+        <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+    expect(container.querySelector('.panel')).toBeInTheDocument();
+    expect(container.querySelector('.panel-heading')).toBeInTheDocument();
+    expect(container.querySelector('.panel-tabs')).toBeInTheDocument();
+    expect(container.querySelector('.panel-icon')).toBeInTheDocument();
+    expect(container.querySelectorAll('.panel-block')).toHaveLength(4);
   });
 });

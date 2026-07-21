@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import Media from '../Media';
+import Media, { MediaLeft, MediaContent, MediaRight } from '../Media';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Media', () => {
@@ -364,5 +364,31 @@ describe('Media', () => {
       const right = screen.getByTestId('right');
       expect(right).toHaveClass('has-text-grey-light');
     });
+  });
+});
+
+describe('Compound components', () => {
+  it('statics are the separately exported components', () => {
+    expect(Media.Left).toBe(MediaLeft);
+    expect(Media.Content).toBe(MediaContent);
+    expect(Media.Right).toBe(MediaRight);
+  });
+
+  it('renders a media object through the dot path', () => {
+    const { container } = render(
+      <Media>
+        <Media.Left>Avatar</Media.Left>
+        <Media.Content>Comment body</Media.Content>
+        <Media.Right>Dismiss</Media.Right>
+      </Media>
+    );
+    expect(container.querySelector('.media')).toBeInTheDocument();
+    expect(container.querySelector('.media-left')).toHaveTextContent('Avatar');
+    expect(container.querySelector('.media-content')).toHaveTextContent(
+      'Comment body'
+    );
+    expect(container.querySelector('.media-right')).toHaveTextContent(
+      'Dismiss'
+    );
   });
 });

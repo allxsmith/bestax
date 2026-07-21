@@ -148,3 +148,14 @@ export const CodeFigure: Story = {
     </Figure>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Figure textAlign="centered">
+      <img src="/img/logo.png" alt="Logo" />
+      <Figure.Caption mt="2">
+        Caption via the Figure.Caption static
+      </Figure.Caption>
+    </Figure>
+  ),
+};

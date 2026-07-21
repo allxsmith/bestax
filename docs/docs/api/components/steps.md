@@ -267,6 +267,20 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`Step` is also available as `Steps.Step`, so steps can be declared as children from the single `Steps` import — an alternative to the `items` prop.
+
+```tsx live
+<Steps value={1}>
+  <Steps.Step label="Account" />
+  <Steps.Step label="Profile" />
+  <Steps.Step label="Complete" />
+</Steps>
+```
+
+---
+
 ## Accessibility
 
 - Steps use `aria-current="step"` on the active step

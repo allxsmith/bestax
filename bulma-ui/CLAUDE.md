@@ -38,6 +38,14 @@ improvising.
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards
   `...rest`; see `src/helpers/CLAUDE.md` before adding a prop that several components share.
+- Multi-part components attach sub-components as statics via `withSubComponents`
+  (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
+  never wrap it. A compound family ships four artifacts beyond the base anatomy rule:
+  an identity test per static (`expect(Parent.Sub).toBe(Sub)`, or `toBeDefined()` +
+  dot-path render for module-private subs) in a `describe('Compound components')` block,
+  a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the
+  end of the API page's `## Usage` section. Prefer exporting subs by name from the same
+  module so identity tests are possible.
 - Components must work with a custom class prefix (`ConfigProvider`) — tests assert
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).
