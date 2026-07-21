@@ -32,6 +32,9 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-custom-compone
 npx skills add https://github.com/allxsmith/bestax --skill bestax-form
 npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 npx skills add https://github.com/allxsmith/bestax --skill bestax-layout-scaffold
+npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
+npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
+npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ```
 
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills**
@@ -39,6 +42,22 @@ into the generated app's `.claude/skills/` (alongside a `CLAUDE.md` and a
 `.claude/launch.json` that lets Claude Code's browser preview start the dev server by
 name), so a Claude Code session picks them up automatically. See the
 [Skills overview](/docs/skills/intro) for what each one does.
+
+## In the npm package
+
+The published `@allxsmith/bestax-bulma` tarball also carries three small pointer
+files at the package root, so an agent that explores `node_modules` by filename
+(`find` / `ls` for `AGENTS.md`, `CLAUDE.md`, `llms.txt`) lands on these resources
+even if it never opens the README or reaches the network first:
+
+| File        | What it is                                                                          |
+| ----------- | ----------------------------------------------------------------------------------- |
+| `llms.txt`  | A stub index pointing at the site artifacts above.                                  |
+| `AGENTS.md` | The cross-tool agent convention — the same links plus the core library conventions. |
+| `CLAUDE.md` | A copy of `AGENTS.md` under the filename Claude-family tooling probes for first.    |
+
+They are pointers, not documentation — the site artifacts above stay the single
+source of truth, so nothing in the tarball goes stale between releases.
 
 ## MCP server (coming soon)
 
