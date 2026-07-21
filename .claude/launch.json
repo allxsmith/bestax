@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "docs",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@allxsmith/bestax-docs",
+        "exec",
+        "docusaurus",
+        "start",
+        "--port",
+        "3210",
+        "--no-open"
+      ],
+      "port": 3210
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["storybook"],
+      "port": 6006
+    }
+  ]
+}
