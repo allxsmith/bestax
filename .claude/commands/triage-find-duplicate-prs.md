@@ -25,7 +25,16 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
 ## Search — 3 parallel agents
 
 Read the PR title, body, and changed file list, then fan out THREE Task
-agents in a single message, one strategy each:
+agents in a single message, one strategy each.
+
+Sub-agents run SYNCHRONOUSLY: every Task call MUST pass
+`run_in_background: false`. If the runtime backgrounds them anyway, NEVER
+end your turn while any sub-agent is still pending — in the headless CI
+session an ended turn terminates the session immediately, orphaning the
+agents before any comment is posted (#338). Collect every agent's result,
+then continue with the filter pass.
+
+The three strategies:
 
 1. **Changed files** — other PRs touching the same components or paths.
 2. **Title + body keywords** — the strongest words plus synonyms.
@@ -33,7 +42,11 @@ agents in a single message, one strategy each:
 
 Rules for every agent: EVERY search scoped
 `repo:REPO is:pr is:open is:unmerged` (via `gh search prs` or
-`gh pr list --search`); exclude the target PR itself and draft PRs; return
+`gh pr list --search`); exclude the target PR itself and draft PRs; ONE
+`gh` command per Bash call, starting with the `gh` binary — no shell
+loops, `echo` prefixes, or `;`/`&&` chains (the permission allowlist
+matches command prefixes; anything else is denied and wastes turns); at
+most 6 searches per agent (the shared API limit 403s on bursts); return
 numbers + titles + a one-line justification.
 
 ## Filter pass

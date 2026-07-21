@@ -28,7 +28,16 @@ EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
 
 Read the PR title, body, and `gh pr diff NUMBER --repo REPO` (never check
 out or execute its code). Extract signals, then fan out FIVE Task agents in
-a single message, one strategy each:
+a single message, one strategy each.
+
+Sub-agents run SYNCHRONOUSLY: every Task call MUST pass
+`run_in_background: false`. If the runtime backgrounds them anyway, NEVER
+end your turn while any sub-agent is still pending — in the headless CI
+session an ended turn terminates the session immediately, orphaning the
+agents before any comment is posted (#338). Collect every agent's result,
+then continue with the filter pass.
+
+The five strategies:
 
 1. **Error strings** — messages or test names the diff fixes or touches.
 2. **Component + file names** — components and paths the diff changes.
@@ -38,7 +47,11 @@ a single message, one strategy each:
 
 Rules for every agent: scope EVERY search to this repository
 (`repo:REPO` or `--repo REPO`); OPEN issues only (`is:open` /
-`--state open`); return numbers + titles + a one-line justification.
+`--state open`); ONE `gh` command per Bash call, starting with the `gh`
+binary — no shell loops, `echo` prefixes, or `;`/`&&` chains (the
+permission allowlist matches command prefixes; anything else is denied and
+wastes turns); at most 6 searches per agent (the shared API limit 403s on
+bursts); return numbers + titles + a one-line justification.
 
 ## Filter pass
 
