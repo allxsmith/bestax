@@ -9,7 +9,10 @@
   "files": [
     "dist",
     "src/scss",
-    "README.md"
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "llms.txt"
   ],
   "sideEffects": [
     "**/*.css",
@@ -34,7 +37,9 @@
     "release": "npx semantic-release",
     "test-storybook": "test-storybook",
     "test-storybook:dark": "STORYBOOK_THEME=dark test-storybook",
-    "test-storybook:ci": "node scripts/test-storybook-ci.mjs"
+    "test-storybook:ci": "node scripts/test-storybook-ci.mjs",
+    "prepack": "node scripts/pack-pointer-files.mjs prepack",
+    "postpack": "node scripts/pack-pointer-files.mjs postpack"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
@@ -111,7 +116,11 @@
     "react",
     "bulma",
     "typescript",
-    "components"
+    "components",
+    "ai",
+    "llms",
+    "agents",
+    "agent-skills"
   ],
   "exports": {
     ".": {

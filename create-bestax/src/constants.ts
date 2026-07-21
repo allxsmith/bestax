@@ -152,6 +152,7 @@ automatically when the task matches:
 - **bestax-layout-scaffold** — scaffold full pages (app shell, landing, centered, card grid).
 - **bestax-icons** — icons via \`Icon\`/\`IconText\`: library setup, name formats, variants, a11y.
 - **bestax-optimize** — shrink the built CSS: measure raw+gzip, then flavor switch or a modular Sass build.
+- **bestax-migrate** — migrate code off react-bulma-components (v4): run the codemod, resolve its TODOs.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
 

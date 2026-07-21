@@ -20,6 +20,7 @@ const SKILLS = [
   'bestax-layout-scaffold',
   'bestax-icons',
   'bestax-optimize',
+  'bestax-migrate',
 ];
 
 if (!fs.existsSync(skillsSrc)) {

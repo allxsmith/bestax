@@ -1,0 +1,9 @@
+# @allxsmith/bestax-bulma
+
+React components for Bulma v1.
+
+- Docs index: https://bestax.io/llms.txt
+- Full docs (one file): https://bestax.io/llms-full.txt
+- Any docs page as markdown: append .md (e.g. https://bestax.io/docs/api/elements/button.md)
+- LLM guide: https://bestax.io/docs/guides/llms
+- Agent skills: https://bestax.io/docs/skills/intro
