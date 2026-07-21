@@ -124,6 +124,17 @@ Use Figure to wrap code blocks with captions.
 </Figure>
 ```
 
+### Compound (dot-notation) usage
+
+The `Caption` subcomponent is only exposed as the `Figure.Caption` static, so a captioned figure needs just the single `Figure` import.
+
+```tsx live
+<Figure>
+  <Image src="/img/bestax-solar-system-3d.png" alt="Placeholder" />
+  <Figure.Caption>Caption via the Figure.Caption static</Figure.Caption>
+</Figure>
+```
+
 ---
 
 ## Accessibility

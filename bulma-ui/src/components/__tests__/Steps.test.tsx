@@ -794,3 +794,24 @@ describe('Step subcomponent', () => {
     expect(handleClick).toHaveBeenCalled();
   });
 });
+
+describe('Compound components', () => {
+  it('Steps.Step is the Step component', () => {
+    expect(Steps.Step).toBe(Step);
+  });
+
+  it('renders steps through the dot path', () => {
+    const { container } = render(
+      <Steps value={1}>
+        <Steps.Step label="Account" />
+        <Steps.Step label="Profile" />
+        <Steps.Step label="Complete" />
+      </Steps>
+    );
+    expect(container.querySelector('.steps')).toBeInTheDocument();
+    expect(container.querySelectorAll('.steps-segment')).toHaveLength(3);
+    expect(
+      container.querySelector('.steps-segment.is-active')
+    ).toHaveTextContent('Profile');
+  });
+});

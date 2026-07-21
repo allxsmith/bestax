@@ -167,6 +167,22 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 
 ---
 
+### Compound (dot-notation) usage
+
+`MenuLabel`, `MenuList`, and `MenuItem` are also available as `Menu.Label`, `Menu.List`, and `Menu.Item`, so the whole menu can be composed from the single `Menu` import.
+
+```tsx live
+<Menu>
+  <Menu.Label>General</Menu.Label>
+  <Menu.List>
+    <Menu.Item active>Dashboard</Menu.Item>
+    <Menu.Item>Customers</Menu.Item>
+  </Menu.List>
+</Menu>
+```
+
+---
+
 ## Accessibility
 
 - The root `Menu` renders as `<aside class="menu">`.

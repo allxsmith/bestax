@@ -609,3 +609,37 @@ export const FilterSidebar: Story = {
     );
   },
 };
+
+/**
+ * Compound (dot-notation) usage: every sub-part is a static on Sidebar.
+ */
+export const CompoundUsage: Story = {
+  render: function CompoundUsageExample() {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <Section>
+        <Button color="primary" onClick={() => setIsOpen(true)}>
+          Open Sidebar
+        </Button>
+        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <Sidebar.Header>
+            <Sidebar.Title>Dot Notation</Sidebar.Title>
+            <Sidebar.Close onClick={() => setIsOpen(false)} />
+          </Sidebar.Header>
+          <Sidebar.Body>
+            <Paragraph>
+              Header, Title, Close, Body, and Footer are all available from the
+              single Sidebar import.
+            </Paragraph>
+          </Sidebar.Body>
+          <Sidebar.Footer>
+            <Button color="primary" onClick={() => setIsOpen(false)}>
+              Done
+            </Button>
+          </Sidebar.Footer>
+        </Sidebar>
+      </Section>
+    );
+  },
+};

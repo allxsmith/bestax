@@ -173,6 +173,39 @@ describe('Modal', () => {
   });
 
   describe('Compound Components API', () => {
+    it('defines all compound statics', () => {
+      expect(Modal.Background).toBeDefined();
+      expect(Modal.Content).toBeDefined();
+      expect(Modal.Card).toBeDefined();
+      expect(Modal.Card.Head).toBeDefined();
+      expect(Modal.Card.Title).toBeDefined();
+      expect(Modal.Card.Body).toBeDefined();
+      expect(Modal.Card.Foot).toBeDefined();
+      expect(Modal.Close).toBeDefined();
+    });
+
+    it('renders a modal card through the dot paths', () => {
+      const { container } = render(
+        <Modal isActive>
+          <Modal.Background />
+          <Modal.Card>
+            <Modal.Card.Head>
+              <Modal.Card.Title>Title</Modal.Card.Title>
+            </Modal.Card.Head>
+            <Modal.Card.Body>{latin}</Modal.Card.Body>
+            <Modal.Card.Foot>Foot</Modal.Card.Foot>
+          </Modal.Card>
+        </Modal>
+      );
+      expect(container.querySelector('.modal')).toBeInTheDocument();
+      expect(container.querySelector('.modal-background')).toBeInTheDocument();
+      expect(container.querySelector('.modal-card')).toBeInTheDocument();
+      expect(container.querySelector('.modal-card-head')).toBeInTheDocument();
+      expect(container.querySelector('.modal-card-title')).toBeInTheDocument();
+      expect(container.querySelector('.modal-card-body')).toBeInTheDocument();
+      expect(container.querySelector('.modal-card-foot')).toBeInTheDocument();
+    });
+
     it('renders Modal with compound Background component', () => {
       const onClose = jest.fn();
       render(

@@ -180,3 +180,18 @@ export const PreviousNext: Story = {
     </Pagination>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Pagination>
+      <Pagination.Previous>Previous</Pagination.Previous>
+      <Pagination.Next>Next page</Pagination.Next>
+      <Pagination.List>
+        <Pagination.Link active>1</Pagination.Link>
+        <Pagination.Link>2</Pagination.Link>
+        <Pagination.Ellipsis />
+        <Pagination.Link>10</Pagination.Link>
+      </Pagination.List>
+    </Pagination>
+  ),
+};

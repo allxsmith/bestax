@@ -344,6 +344,42 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import.
+
+```tsx live
+function example() {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <Button color="primary" onClick={() => setIsOpen(true)}>
+        Open Sidebar
+      </Button>
+      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar.Header>
+          <Sidebar.Title>Dot Notation</Sidebar.Title>
+          <Sidebar.Close onClick={() => setIsOpen(false)} />
+        </Sidebar.Header>
+        <Sidebar.Body>
+          <Paragraph>
+            Header, Title, Close, Body, and Footer are all available from the
+            single Sidebar import.
+          </Paragraph>
+        </Sidebar.Body>
+        <Sidebar.Footer>
+          <Button color="primary" onClick={() => setIsOpen(false)}>
+            Done
+          </Button>
+        </Sidebar.Footer>
+      </Sidebar>
+    </>
+  );
+}
+```
+
+---
+
 ## Close Methods
 
 When `canCancel` is true, the sidebar can be closed by:

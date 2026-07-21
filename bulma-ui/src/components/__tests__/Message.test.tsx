@@ -119,6 +119,23 @@ describe('Message', () => {
   });
 
   describe('Compound Components', () => {
+    test('all compound statics are defined', () => {
+      expect(Message.Header).toBeDefined();
+      expect(Message.Body).toBeDefined();
+    });
+
+    test('renders a message through the dot paths', () => {
+      const { container } = render(
+        <Message>
+          <Message.Header>Header</Message.Header>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      expect(container.querySelector('.message')).toBeInTheDocument();
+      expect(container.querySelector('.message-header')).toBeInTheDocument();
+      expect(container.querySelector('.message-body')).toBeInTheDocument();
+    });
+
     test('Message.Header renders with correct classes', () => {
       render(
         <Message.Header data-testid="header">

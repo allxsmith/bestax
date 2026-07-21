@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Field from '../Field';
+import Field, { FieldLabel, FieldBody } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -324,6 +324,14 @@ describe('Field', () => {
 describe('Compound components', () => {
   test('Field.Control is the Control component', () => {
     expect(Field.Control).toBe(Control);
+  });
+
+  test('Field.Label is the FieldLabel component', () => {
+    expect(Field.Label).toBe(FieldLabel);
+  });
+
+  test('Field.Body is the FieldBody component', () => {
+    expect(Field.Body).toBe(FieldBody);
   });
 
   test('renders a horizontal field through Field.Label and Field.Body', () => {

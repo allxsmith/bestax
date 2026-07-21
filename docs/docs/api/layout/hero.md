@@ -274,6 +274,33 @@ This example shows a comprehensive usage of the `Hero` component with all its su
 
 ---
 
+### Compound (dot-notation) usage
+
+`HeroHead`, `HeroBody`, and `HeroFoot` are also available as `Hero.Head`, `Hero.Body`, and `Hero.Foot`, so the whole hero can be composed from the single `Hero` import.
+
+```tsx live
+<Hero color="info">
+  <Hero.Head>
+    <Container textAlign="centered" pt="4">
+      <Title size="6">Hero head via dot notation</Title>
+    </Container>
+  </Hero.Head>
+  <Hero.Body>
+    <Container textAlign="centered">
+      <Title>Hero title</Title>
+      <SubTitle>Hero subtitle</SubTitle>
+    </Container>
+  </Hero.Body>
+  <Hero.Foot>
+    <Container textAlign="centered" pb="4">
+      <SubTitle size="6">Hero foot via dot notation</SubTitle>
+    </Container>
+  </Hero.Foot>
+</Hero>
+```
+
+---
+
 ## Accessibility
 
 - The hero renders as a semantic `<section>` by default.

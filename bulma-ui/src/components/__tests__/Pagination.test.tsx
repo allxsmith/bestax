@@ -1,5 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Pagination from '../Pagination';
+import Pagination, {
+  PaginationLink,
+  PaginationList,
+  PaginationEllipsis,
+  PaginationPrevious,
+  PaginationNext,
+} from '../Pagination';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Pagination', () => {
@@ -297,5 +303,35 @@ describe('Pagination.Next', () => {
     );
     fireEvent.click(screen.getByTestId('next'));
     expect(handleClick).not.toHaveBeenCalled();
+  });
+});
+
+describe('Compound components', () => {
+  it('exposes the named exports as statics', () => {
+    expect(Pagination.Link).toBe(PaginationLink);
+    expect(Pagination.List).toBe(PaginationList);
+    expect(Pagination.Ellipsis).toBe(PaginationEllipsis);
+    expect(Pagination.Previous).toBe(PaginationPrevious);
+    expect(Pagination.Next).toBe(PaginationNext);
+  });
+
+  it('renders pagination through the dot path', () => {
+    const { container } = render(
+      <Pagination>
+        <Pagination.Previous>Previous</Pagination.Previous>
+        <Pagination.Next>Next page</Pagination.Next>
+        <Pagination.List>
+          <Pagination.Link active>1</Pagination.Link>
+          <Pagination.Ellipsis />
+          <Pagination.Link>10</Pagination.Link>
+        </Pagination.List>
+      </Pagination>
+    );
+    expect(container.querySelector('.pagination')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-previous')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-next')).toBeInTheDocument();
+    expect(container.querySelector('.pagination-list')).toBeInTheDocument();
+    expect(container.querySelectorAll('.pagination-link')).toHaveLength(2);
+    expect(container.querySelector('.pagination-ellipsis')).toBeInTheDocument();
   });
 });

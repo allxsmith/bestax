@@ -143,3 +143,28 @@ export const MobileLevel: StoryObj<typeof Level> = {
     </Level>
   ),
 };
+
+// Compound (dot-notation) usage
+export const CompoundUsage: StoryObj<typeof Level> = {
+  render: () => (
+    <Level>
+      <Level.Left>
+        <Level.Item>
+          <Title as="p" size="5" className="subtitle">
+            <strong>All Posts</strong>
+          </Title>
+        </Level.Item>
+      </Level.Left>
+      <Level.Right>
+        <Level.Item as="p">
+          <a>Published</a>
+        </Level.Item>
+        <Level.Item as="p">
+          <Button color="success" as="a">
+            New
+          </Button>
+        </Level.Item>
+      </Level.Right>
+    </Level>
+  ),
+};

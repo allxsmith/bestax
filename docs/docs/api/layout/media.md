@@ -254,6 +254,39 @@ In this variation, a button is placed below the input area within the `Media.Con
 
 ---
 
+### Compound (dot-notation) usage
+
+`MediaLeft`, `MediaContent`, and `MediaRight` are also available as `Media.Left`, `Media.Content`, and `Media.Right`, so the whole media object can be composed from the single `Media` import.
+
+```tsx live
+<Media>
+  <Media.Left>
+    <Image
+      as="p"
+      size="64x64"
+      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      alt=""
+    />
+  </Media.Left>
+  <Media.Content>
+    <Content>
+      <p>
+        <strong>John Smith</strong> <small>@johnsmith</small>
+        <br />
+        Composed entirely from the single Media import via dot notation.
+      </p>
+    </Content>
+  </Media.Content>
+  <Media.Right>
+    <Button as="a" size="small">
+      Reply
+    </Button>
+  </Media.Right>
+</Media>
+```
+
+---
+
 ## Accessibility
 
 - The Media root renders as a semantic `<article>` by default. Use `as="div"` for a generic container.

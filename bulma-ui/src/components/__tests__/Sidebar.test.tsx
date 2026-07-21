@@ -602,4 +602,45 @@ describe('Sidebar', () => {
       expect(footer).toHaveTextContent('Footer content');
     });
   });
+
+  describe('Compound components', () => {
+    it('exposes Sidebar.Header as a static', () => {
+      expect(Sidebar.Header).toBeDefined();
+    });
+
+    it('exposes Sidebar.Title as a static', () => {
+      expect(Sidebar.Title).toBeDefined();
+    });
+
+    it('exposes Sidebar.Close as a static', () => {
+      expect(Sidebar.Close).toBeDefined();
+    });
+
+    it('exposes Sidebar.Body as a static', () => {
+      expect(Sidebar.Body).toBeDefined();
+    });
+
+    it('exposes Sidebar.Footer as a static', () => {
+      expect(Sidebar.Footer).toBeDefined();
+    });
+
+    it('renders a sidebar through the dot path', () => {
+      const { container } = render(
+        <Sidebar inline isOpen onClose={() => {}}>
+          <Sidebar.Header>
+            <Sidebar.Title>Menu</Sidebar.Title>
+            <Sidebar.Close />
+          </Sidebar.Header>
+          <Sidebar.Body>Body content</Sidebar.Body>
+          <Sidebar.Footer>Footer content</Sidebar.Footer>
+        </Sidebar>
+      );
+      expect(container.querySelector('.sidebar')).toBeInTheDocument();
+      expect(container.querySelector('.sidebar-header')).toBeInTheDocument();
+      expect(container.querySelector('.sidebar-title')).toBeInTheDocument();
+      expect(container.querySelector('.sidebar-close')).toBeInTheDocument();
+      expect(container.querySelector('.sidebar-body')).toBeInTheDocument();
+      expect(container.querySelector('.sidebar-footer')).toBeInTheDocument();
+    });
+  });
 });

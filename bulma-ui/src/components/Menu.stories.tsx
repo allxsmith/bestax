@@ -43,3 +43,20 @@ export const Basic: Story = {
     </Menu>
   ),
 };
+
+export const CompoundUsage: Story = {
+  render: () => (
+    <Menu>
+      <Menu.Label>General</Menu.Label>
+      <Menu.List>
+        <Menu.Item active>Dashboard</Menu.Item>
+        <Menu.Item>Customers</Menu.Item>
+      </Menu.List>
+      <Menu.Label>Administration</Menu.Label>
+      <Menu.List>
+        <Menu.Item>Team Settings</Menu.Item>
+        <Menu.Item>Invitations</Menu.Item>
+      </Menu.List>
+    </Menu>
+  ),
+};

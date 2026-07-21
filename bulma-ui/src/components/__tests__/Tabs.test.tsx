@@ -1,6 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Tabs, { Tab, TabContentItem } from '../Tabs';
+import Tabs, {
+  Tab,
+  TabList,
+  TabItem,
+  TabsContent,
+  TabContentItem,
+} from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Tabs', () => {
@@ -806,5 +812,37 @@ describe('Tabs', () => {
       expect(panel).toHaveAttribute('aria-hidden', 'true');
       expect(panel).not.toHaveClass('is-active');
     });
+  });
+});
+
+describe('Compound components', () => {
+  it('statics are the separately exported components', () => {
+    expect(Tabs.List).toBe(TabList);
+    expect(Tabs.Tab).toBe(Tab);
+    expect(Tabs.Item).toBe(TabItem);
+    expect(Tabs.Content).toBe(TabsContent);
+    expect(Tabs.Content.Item).toBe(TabContentItem);
+  });
+
+  it('renders tabs with content panels through the dot path', () => {
+    const { container } = render(
+      <Tabs>
+        <Tabs.List>
+          <Tabs.Tab index={0}>Overview</Tabs.Tab>
+          <Tabs.Tab index={1}>Settings</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Content>
+          <Tabs.Content.Item index={0}>Overview panel</Tabs.Content.Item>
+          <Tabs.Content.Item index={1}>Settings panel</Tabs.Content.Item>
+        </Tabs.Content>
+      </Tabs>
+    );
+    expect(container.querySelector('.tabs')).toBeInTheDocument();
+    expect(container.querySelectorAll('.tabs li')).toHaveLength(2);
+    expect(container.querySelector('.tabs-content')).toBeInTheDocument();
+    expect(container.querySelectorAll('.tabs-content-item')).toHaveLength(2);
+    expect(
+      container.querySelector('.tabs-content-item.is-active')
+    ).toHaveTextContent('Overview panel');
   });
 });

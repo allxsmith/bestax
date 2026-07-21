@@ -220,3 +220,33 @@ export const WithButtonBelow: StoryObj<typeof Media> = {
     </Media>
   ),
 };
+
+// Compound (dot-notation) usage
+export const CompoundUsage: StoryObj<typeof Media> = {
+  render: () => (
+    <Media>
+      <Media.Left>
+        <Image
+          as="p"
+          size="64x64"
+          src="https://bulma.io/assets/images/placeholders/128x128.png"
+          alt=""
+        />
+      </Media.Left>
+      <Media.Content>
+        <Content>
+          <p>
+            <strong>John Smith</strong> <small>@johnsmith</small>
+            <br />
+            Composed entirely from the single Media import via dot notation.
+          </p>
+        </Content>
+      </Media.Content>
+      <Media.Right>
+        <Button as="a" size="small">
+          Reply
+        </Button>
+      </Media.Right>
+    </Media>
+  ),
+};

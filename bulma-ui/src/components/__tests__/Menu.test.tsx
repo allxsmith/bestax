@@ -234,3 +234,33 @@ describe('Menu', () => {
     expect(screen.getByText('Sub B')).toBeInTheDocument();
   });
 });
+
+describe('Compound components', () => {
+  it('Menu.Label is the MenuLabel component', () => {
+    expect(Menu.Label).toBe(MenuLabel);
+  });
+
+  it('Menu.List is the MenuList component', () => {
+    expect(Menu.List).toBe(MenuList);
+  });
+
+  it('Menu.Item is the MenuItem component', () => {
+    expect(Menu.Item).toBe(MenuItem);
+  });
+
+  it('renders a menu through the dot path', () => {
+    const { container } = render(
+      <Menu>
+        <Menu.Label>General</Menu.Label>
+        <Menu.List>
+          <Menu.Item>Dashboard</Menu.Item>
+          <Menu.Item>Customers</Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(container.querySelector('.menu')).toBeInTheDocument();
+    expect(container.querySelector('.menu-label')).toBeInTheDocument();
+    expect(container.querySelector('.menu-list')).toBeInTheDocument();
+    expect(container.querySelectorAll('.menu-list li')).toHaveLength(2);
+  });
+});

@@ -147,6 +147,27 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
 
 ---
 
+### Compound (dot-notation) usage
+
+Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and attached to `Panel` as a static, so a whole panel can be composed from the single `Panel` import.
+
+```tsx live
+<Panel>
+  <Panel.Heading>Founding Documents</Panel.Heading>
+  <Panel.Block active>
+    <Panel.Icon name="file" variant="solid" />
+    Declaration of Independence
+  </Panel.Block>
+  <Panel.Block>
+    <Panel.Icon name="file" variant="solid" />
+    Articles of Confederation
+  </Panel.Block>
+  <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+</Panel>
+```
+
+---
+
 ## Accessibility
 
 - The root panel renders as a semantic `<nav>` for navigation/landmark.

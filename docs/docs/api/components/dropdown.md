@@ -166,6 +166,21 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`DropdownItem` and `DropdownDivider` are also available as `Dropdown.Item` and `Dropdown.Divider`, so the whole menu can be composed from the single `Dropdown` import.
+
+```tsx live
+<Dropdown label="Dropdown Menu" active>
+  <Dropdown.Item>First Item</Dropdown.Item>
+  <Dropdown.Item>Second Item</Dropdown.Item>
+  <Dropdown.Divider />
+  <Dropdown.Item>Third Item</Dropdown.Item>
+</Dropdown>
+```
+
+---
+
 ## Accessibility
 
 - The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.

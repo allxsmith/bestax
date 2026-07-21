@@ -182,3 +182,22 @@ describe('Figure Component', () => {
     });
   });
 });
+
+describe('Compound components', () => {
+  test('Figure.Caption is defined', () => {
+    expect(Figure.Caption).toBeDefined();
+  });
+
+  test('renders a caption through the dot path', () => {
+    const { container } = render(
+      <Figure>
+        <img src="test.jpg" alt="Test" />
+        <Figure.Caption>Caption text</Figure.Caption>
+      </Figure>
+    );
+    expect(container.querySelector('figure')).toBeInTheDocument();
+    expect(container.querySelector('figcaption')).toHaveTextContent(
+      'Caption text'
+    );
+  });
+});

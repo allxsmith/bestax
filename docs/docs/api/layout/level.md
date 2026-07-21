@@ -188,6 +188,34 @@ This example demonstrates the `Level` component's mobile layout. When the `isMob
 
 ---
 
+### Compound (dot-notation) usage
+
+`LevelLeft`, `LevelRight`, and `LevelItem` are also available as `Level.Left`, `Level.Right`, and `Level.Item`, so the whole level can be composed from the single `Level` import.
+
+```tsx live
+<Level>
+  <Level.Left>
+    <Level.Item>
+      <Title as="p" size="5">
+        <strong>All Posts</strong>
+      </Title>
+    </Level.Item>
+  </Level.Left>
+  <Level.Right>
+    <Level.Item as="p">
+      <a>Published</a>
+    </Level.Item>
+    <Level.Item as="p">
+      <Button color="success" as="a">
+        New
+      </Button>
+    </Level.Item>
+  </Level.Right>
+</Level>
+```
+
+---
+
 ## Accessibility
 
 - The root `Level` renders as a semantic `<nav>` for grouping and navigation.

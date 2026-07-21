@@ -406,6 +406,32 @@ function example() {
 
 ---
 
+### Compound (dot-notation) usage
+
+`NavbarBrand`, `NavbarMenu`, `NavbarItem`, and the other subcomponents are also available as `Navbar.Brand`, `Navbar.Menu`, `Navbar.Item`, and so on, so a complete navbar can be composed from the single `Navbar` import.
+
+```tsx live
+<Navbar>
+  <Navbar.Brand>
+    <Navbar.Item href="#">
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+    </Navbar.Item>
+    <Navbar.Burger aria-label="menu" />
+  </Navbar.Brand>
+  <Navbar.Menu active>
+    <Navbar.Start>
+      <Navbar.Item href="#">Home</Navbar.Item>
+      <Navbar.Item href="#">Docs</Navbar.Item>
+    </Navbar.Start>
+    <Navbar.End>
+      <Navbar.Item href="#">Log in</Navbar.Item>
+    </Navbar.End>
+  </Navbar.Menu>
+</Navbar>
+```
+
+---
+
 ## Accessibility
 
 - The root `Navbar` renders as `<nav role="navigation" aria-label="main navigation">`.

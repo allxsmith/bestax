@@ -1,6 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { ComponentProps } from 'react';
-import Navbar from '../Navbar';
+import Navbar, {
+  NavbarBrand,
+  NavbarItem,
+  NavbarLink,
+  NavbarBurger,
+  NavbarMenu,
+  NavbarStart,
+  NavbarEnd,
+  NavbarDropdown,
+  NavbarDropdownMenu,
+  NavbarDivider,
+} from '../Navbar';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Navbar', () => {
@@ -445,5 +456,60 @@ describe('Navbar.Link', () => {
     );
     const link = screen.getByTestId('navlink');
     expect(link).toHaveClass('bulma-navbar-link');
+  });
+});
+
+describe('Compound components', () => {
+  it('statics are the separately exported components', () => {
+    expect(Navbar.Brand).toBe(NavbarBrand);
+    expect(Navbar.Item).toBe(NavbarItem);
+    expect(Navbar.Link).toBe(NavbarLink);
+    expect(Navbar.Burger).toBe(NavbarBurger);
+    expect(Navbar.Menu).toBe(NavbarMenu);
+    expect(Navbar.Start).toBe(NavbarStart);
+    expect(Navbar.End).toBe(NavbarEnd);
+    expect(Navbar.Dropdown).toBe(NavbarDropdown);
+    expect(Navbar.DropdownMenu).toBe(NavbarDropdownMenu);
+    expect(Navbar.Divider).toBe(NavbarDivider);
+  });
+
+  it('renders a full navbar through the dot path', () => {
+    const { container } = render(
+      <Navbar>
+        <Navbar.Brand>
+          <Navbar.Item href="#">Bestax</Navbar.Item>
+          <Navbar.Burger />
+        </Navbar.Brand>
+        <Navbar.Menu active>
+          <Navbar.Start>
+            <Navbar.Item href="#">Home</Navbar.Item>
+            <Navbar.Dropdown hoverable>
+              <Navbar.Link>More</Navbar.Link>
+              <Navbar.DropdownMenu>
+                <Navbar.Item href="#">About</Navbar.Item>
+                <Navbar.Divider />
+                <Navbar.Item href="#">Contact</Navbar.Item>
+              </Navbar.DropdownMenu>
+            </Navbar.Dropdown>
+          </Navbar.Start>
+          <Navbar.End>
+            <Navbar.Item href="#">Log in</Navbar.Item>
+          </Navbar.End>
+        </Navbar.Menu>
+      </Navbar>
+    );
+    expect(container.querySelector('.navbar')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-brand')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-burger')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-menu')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-start')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-end')).toBeInTheDocument();
+    expect(container.querySelector('.has-dropdown')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-link')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-dropdown')).toBeInTheDocument();
+    expect(container.querySelector('.navbar-divider')).toBeInTheDocument();
+    expect(
+      container.querySelectorAll('.navbar-item').length
+    ).toBeGreaterThanOrEqual(5);
   });
 });
