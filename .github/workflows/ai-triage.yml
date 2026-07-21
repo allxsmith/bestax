@@ -72,9 +72,10 @@ name: AI Triage
 # ended turn kills the headless session and orphans the agents). The prompt
 # therefore forbids backgrounded sub-agents AND requires a final
 # `TRIAGE-RESULT:` sentinel line per command; the watchdog fails the job
-# unless the result text is nothing but such lines, exactly one per
-# expected command (one for issues, two for PRs — so finishing the first
-# PR command and bailing during the second still fails).
+# unless the result text ENDS with exactly one such line per expected
+# command (one for issues, two for PRs — so finishing the first PR
+# command and bailing during the second still fails; leading narration
+# is tolerated).
 #
 # KILL SWITCHES: AI_TRIAGE_MODE=off (this workflow only) or
 # AI_LOOP_ENABLED=false (all Claude spend, repo-wide).
@@ -386,8 +387,8 @@ jobs:
       #          running ("I'll wait for them to finish…"), so nothing was
       #          ever posted. Session status alone cannot catch this, which
       #          is why the prompt demands the TRIAGE-RESULT sentinel: a
-      #          session that actually finished its commands ends with only
-      #          sentinel lines; any other final text fails here.
+      #          session that actually finished its commands ends with the
+      #          sentinel lines; a bailout never emits them, so it fails.
       # Fail loudly on both. An empty/missing execution file (e.g. the
       # action's workflow-validation skip) is tolerated: there was no
       # session to judge.
@@ -404,12 +405,18 @@ jobs:
           fi
           # Fail closed: accept a JSON array or NDJSON, and require a final
           # result record whose is_error is exactly false AND whose result
-          # text is nothing but TRIAGE-RESULT sentinel lines — exactly one
-          # per expected command (issues run one command, PRs run two), so
-          # a session that finishes the first PR command but bails during
-          # the second cannot pass on the strength of one sentinel.
-          # Malformed JSON, a missing result record, a mid-task bailout
-          # message, or any other shape fails the job.
+          # text ENDS with the TRIAGE-RESULT sentinel lines — exactly one
+          # per expected command (issues run one command, PRs run two), as
+          # the LAST non-empty lines, and none anywhere else. The exact
+          # count means a session that finishes the first PR command but
+          # bails during the second cannot pass on one sentinel; requiring
+          # them last means a bailout message can't follow them. Leading
+          # narration is tolerated (the first live run, 29794090279,
+          # false-failed an otherwise-correct skip because the session
+          # prefixed one explanatory line — the review's predicted
+          # chatter false-positive). Malformed JSON, a missing result
+          # record, or a mid-task bailout (which never emits sentinels)
+          # still fails the job.
           if [ "$IS_PR" = "true" ]; then EXPECTED=2; else EXPECTED=1; fi
           if jq -es --argjson n "$EXPECTED" \
                     '[.[] | if type == "array" then .[] else . end]
@@ -418,8 +425,9 @@ jobs:
                      | (.is_error == false)
                        and ((.result // "") | split("\n")
                             | map(select(length > 0))
-                            | (length == $n)
-                              and all(startswith("TRIAGE-RESULT:")))' \
+                            | (length >= $n)
+                              and ([.[] | select(startswith("TRIAGE-RESULT:"))] | length == $n)
+                              and (.[- $n:] | all(startswith("TRIAGE-RESULT:"))))' \
               "$EXEC_FILE" >/dev/null 2>&1; then
             echo "session ended cleanly with $EXPECTED TRIAGE-RESULT sentinel(s) — triage completed"
           else
