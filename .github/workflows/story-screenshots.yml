@@ -1,0 +1,388 @@
+name: Story Screenshots
+
+# Eyes at handoff (#284): screenshot the Storybook stories affected by a PR
+# (light + dark, via bulma-ui/scripts/capture-stories.mjs) and post them to
+# the PR as an upserted comment + artifact, so the human reviewer of an
+# ai-loop PR sees pictures — the loop's reviewers are text-only and CSS bugs
+# invisible to jsdom have survived full review rounds (#257).
+#
+# Two ways in:
+#   - claude-pr-loop.yml dispatches this at handoff. It must: the loop edits
+#     labels with GITHUB_TOKEN, and GITHUB_TOKEN-caused `labeled` events fire
+#     no workflow runs (recursion guard) — workflow_dispatch via API does.
+#   - A human applying the needs-human-review label fires the `labeled` path.
+#
+# Security: `pull_request`, NOT `pull_request_target` — the capture job
+# builds and executes PR-authored code, so it holds a read-only token
+# (worst case: a garbage artifact). Write scopes live only in `publish`,
+# which runs no PR code and treats everything from `capture` as untrusted
+# (filename whitelist, HTML-escaped titles). Same split as
+# visual-regression.yml.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'PR number to screenshot'
+        required: true
+  pull_request:
+    types: [labeled]
+
+# No workflow-level grants; each job takes exactly what it needs.
+permissions: {}
+
+concurrency:
+  group: story-screenshots-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true # a newer handoff supersedes an in-flight one
+
+jobs:
+  capture:
+    name: Capture screenshots
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'needs-human-review' &&
+       github.event.pull_request.state == 'open' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read # checkout PR head (fallback storybook build)
+      pull-requests: read # gh pr view / gh pr diff
+      actions: read # download the storybook artifact from the CI run
+    outputs:
+      pr: ${{ steps.pr.outputs.pr }}
+      head_sha: ${{ steps.pr.outputs.head_sha }}
+    steps:
+      # Pin the head SHA once; diff, artifact lookup and checkout all use it
+      # so a push racing this run can't mix two heads.
+      - name: Resolve PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_INPUT: ${{ inputs.pr || github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_INPUT" =~ ^[0-9]+$ ]] || { echo "bad pr input: $PR_INPUT"; exit 1; }
+          INFO=$(gh pr view "$PR_INPUT" --repo "$REPO" \
+            --json state,headRefOid,isCrossRepository)
+          [ "$(jq -r .state <<<"$INFO")" = "OPEN" ] \
+            || { echo "PR #$PR_INPUT is not open — nothing to do"; exit 1; }
+          [ "$(jq -r .isCrossRepository <<<"$INFO")" = "false" ] \
+            || { echo "PR #$PR_INPUT is cross-repo — refusing"; exit 1; }
+          {
+            echo "pr=$PR_INPUT"
+            echo "head_sha=$(jq -r .headRefOid <<<"$INFO")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+          # This job runs PR code; don't leave the token in .git/config.
+          persist-credentials: false
+
+      # If nothing under bulma-ui/src changed there is nothing to map to
+      # stories: skip the whole storybook/playwright pipeline and ship an
+      # empty manifest so publish still upserts an explicit "nothing to
+      # screenshot" comment (silence is indistinguishable from breakage,
+      # and a re-handoff that goes some→none must clear stale images).
+      - name: Changed files
+        id: changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.pr }}
+        run: |
+          set -euo pipefail
+          gh pr diff "$PR" --repo "$REPO" --name-only > /tmp/changed-files.txt
+          if grep -q '^bulma-ui/src/' /tmp/changed-files.txt; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "no bulma-ui/src changes — writing empty manifest"
+            echo "any=false" >> "$GITHUB_OUTPUT"
+            mkdir -p /tmp/story-screenshots
+            printf '%s' '{"totalMatched":0,"changedSrcFiles":[],"skipped":[],"stories":[]}' \
+              > /tmp/story-screenshots/manifest.json
+          fi
+
+      # At loop handoff CI is green by definition, so the CI run for this
+      # head has a fresh `storybook` artifact (ci.yml "Archive Storybook") —
+      # reuse it instead of a ~4 min rebuild. Fallback covers manual labels.
+      - name: Get built storybook (CI artifact, else build)
+        id: sb
+        if: steps.changed.outputs.any == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          NEED_BUILD=true
+          RUN_ID=$(gh run list --repo "$REPO" --workflow CI --commit "$HEAD_SHA" \
+            --status success --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$RUN_ID" ]; then
+            if gh run download "$RUN_ID" --repo "$REPO" -n storybook \
+                 -D bulma-ui/storybook-static \
+               && [ -f bulma-ui/storybook-static/index.json ]; then
+              echo "reusing storybook artifact from CI run $RUN_ID"
+              NEED_BUILD=false
+            fi
+          fi
+          echo "need_build=$NEED_BUILD" >> "$GITHUB_OUTPUT"
+
+      - name: Setup pnpm
+        if: steps.changed.outputs.any == 'true'
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node.js
+        if: steps.changed.outputs.any == 'true'
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.changed.outputs.any == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Storybook (fallback)
+        if: steps.changed.outputs.any == 'true' && steps.sb.outputs.need_build == 'true'
+        run: |
+          set -euo pipefail
+          rm -rf bulma-ui/storybook-static
+          pnpm --filter @allxsmith/bestax-bulma run build-storybook
+
+      - name: Install Playwright Chromium
+        if: steps.changed.outputs.any == 'true'
+        run: pnpm --filter @allxsmith/bestax-bulma exec playwright install --with-deps chromium
+
+      - name: Capture screenshots
+        if: steps.changed.outputs.any == 'true'
+        run: |
+          node bulma-ui/scripts/capture-stories.mjs \
+            --changed-files /tmp/changed-files.txt \
+            --out /tmp/story-screenshots
+
+      - name: Upload screenshots artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: story-screenshots-pr-${{ steps.pr.outputs.pr }}
+          path: /tmp/story-screenshots
+          retention-days: 30
+
+  publish:
+    name: Publish to PR
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # orphan-branch image commit via the git data API
+      pull-requests: write # upsert the marker comment
+    steps:
+      - name: Download screenshots
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: story-screenshots-pr-${{ needs.capture.outputs.pr }}
+          path: screens
+
+      # Images need a publicly fetchable URL to render inline in a comment
+      # (artifact zips can't be embedded). They live on the disposable
+      # orphan branch `story-screenshots` under pr-<n>/<run-id>/ — the
+      # run-id path keeps every URL unique so GitHub's Camo image proxy
+      # never serves a stale cache. Append-only; deleting the branch only
+      # breaks images in old handoff comments and the next run re-bootstraps.
+      - name: Commit images and upsert PR comment
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          # Inputs reach the script as env vars, never via ${{ }} template
+          # interpolation into the JS source (see verified-commit/action.yml).
+          PR: ${{ needs.capture.outputs.pr }}
+          HEAD_SHA: ${{ needs.capture.outputs.head_sha }}
+          SCREENS_DIR: screens
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const pr = process.env.PR;
+            const headSha = process.env.HEAD_SHA;
+            const screensDir = process.env.SCREENS_DIR;
+            const runId = String(context.runId);
+            const { owner, repo } = context.repo;
+            const BRANCH = 'story-screenshots';
+            const MARKER = '<!-- story-screenshots -->';
+            // The capture job ran PR-authored code, so its outputs are
+            // untrusted: ids/filenames are charset-whitelisted before any
+            // URL/path use, titles are HTML-escaped before markdown use.
+            const SAFE_ID = /^[a-z0-9][a-z0-9_-]*$/;
+            const SAFE_PNG = /^[a-z0-9][a-z0-9_-]*\.png$/;
+
+            if (!/^\d+$/.test(pr)) throw new Error(`bad PR number: ${pr}`);
+            if (!/^[0-9a-f]{40}$/.test(headSha)) throw new Error(`bad head SHA: ${headSha}`);
+
+            const manifest = JSON.parse(
+              fs.readFileSync(path.join(screensDir, 'manifest.json'), 'utf8')
+            );
+
+            const files = [];
+            for (const theme of ['light', 'dark']) {
+              const dir = path.join(screensDir, theme);
+              if (!fs.existsSync(dir)) continue;
+              for (const f of fs.readdirSync(dir)) {
+                if (!SAFE_PNG.test(f)) {
+                  console.log(`skipping unsafe filename: ${JSON.stringify(f)}`);
+                  continue;
+                }
+                files.push({ theme, name: f, abs: path.join(dir, f) });
+              }
+            }
+
+            // ---- Commit PNGs to the orphan branch ----
+            if (files.length > 0) {
+              let tip = null;
+              try {
+                const { data } = await github.rest.git.getRef({ owner, repo, ref: `heads/${BRANCH}` });
+                tip = data.object.sha;
+              } catch (e) {
+                if (e.status !== 404) throw e;
+              }
+              if (tip === null) {
+                // Bootstrap: parentless README commit.
+                const readme = [
+                  '# story-screenshots',
+                  '',
+                  'Disposable screenshot storage for story-screenshots.yml (#284).',
+                  'Safe to delete or reset at any time — that only breaks images',
+                  'embedded in old handoff comments; the next run re-bootstraps.',
+                  '',
+                ].join('\n');
+                const { data: blob } = await github.rest.git.createBlob({
+                  owner, repo,
+                  content: Buffer.from(readme).toString('base64'),
+                  encoding: 'base64',
+                });
+                const { data: tree } = await github.rest.git.createTree({
+                  owner, repo,
+                  tree: [{ path: 'README.md', mode: '100644', type: 'blob', sha: blob.sha }],
+                });
+                const { data: commit } = await github.rest.git.createCommit({
+                  owner, repo,
+                  message: 'chore: bootstrap screenshot storage (#284)',
+                  tree: tree.sha, parents: [],
+                });
+                await github.rest.git.createRef({
+                  owner, repo, ref: `refs/heads/${BRANCH}`, sha: commit.sha,
+                });
+                tip = commit.sha;
+              }
+
+              const blobs = [];
+              for (const f of files) {
+                const { data: blob } = await github.rest.git.createBlob({
+                  owner, repo,
+                  content: fs.readFileSync(f.abs).toString('base64'),
+                  encoding: 'base64',
+                });
+                blobs.push({
+                  path: `pr-${pr}/${runId}/${f.theme}/${f.name}`,
+                  mode: '100644', type: 'blob', sha: blob.sha,
+                });
+              }
+              // Append, never rewrite. Concurrency is per-PR, so a run for
+              // another PR can advance the tip under us: retry once fresh.
+              for (let attempt = 0; ; attempt++) {
+                const { data: tipCommit } = await github.rest.git.getCommit({ owner, repo, commit_sha: tip });
+                const { data: tree } = await github.rest.git.createTree({
+                  owner, repo, base_tree: tipCommit.tree.sha, tree: blobs,
+                });
+                const { data: commit } = await github.rest.git.createCommit({
+                  owner, repo,
+                  message: `chore: story screenshots for #${pr} (run ${runId})`,
+                  tree: tree.sha, parents: [tip],
+                });
+                try {
+                  await github.rest.git.updateRef({ owner, repo, ref: `heads/${BRANCH}`, sha: commit.sha });
+                  break;
+                } catch (e) {
+                  if (attempt >= 1) throw e;
+                  const { data } = await github.rest.git.getRef({ owner, repo, ref: `heads/${BRANCH}` });
+                  tip = data.object.sha;
+                }
+              }
+              console.log(`Committed ${files.length} images to ${BRANCH}/pr-${pr}/${runId}/`);
+            }
+
+            // ---- Build the comment body ----
+            const esc = s => String(s)
+              .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              .replace(/\|/g, '&#124;').replace(/`/g, '&#96;');
+            const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${BRANCH}/pr-${pr}/${runId}`;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${runId}`;
+            const artifactName = `story-screenshots-pr-${pr}`;
+            const short = headSha.slice(0, 7);
+            const heading = `### 📸 Story screenshots at handoff — \`${short}\``;
+
+            const stories = Array.isArray(manifest.stories) ? manifest.stories : [];
+            const captured = stories.filter(s => s.status !== 'failed' && SAFE_ID.test(s.id));
+            const failedIds = stories
+              .filter(s => s.status === 'failed')
+              .map(s => s.id).filter(id => SAFE_ID.test(id));
+            const skippedIds = (Array.isArray(manifest.skipped) ? manifest.skipped : [])
+              .filter(id => SAFE_ID.test(id));
+
+            let body;
+            if (stories.length === 0) {
+              body = `${MARKER}\n${heading}\n\nNo Storybook stories map to this PR's changed files — nothing to screenshot. ([workflow run](${runUrl}))`;
+            } else {
+              const head = [
+                MARKER,
+                heading,
+                '',
+                `**${captured.length}** stories (light + dark) from this PR's changed files under \`bulma-ui/src/\` ([workflow run](${runUrl}) · artifact \`${artifactName}\`, 30-day retention).`,
+                '',
+              ].join('\n');
+              const blocks = captured.map((s, i) => [
+                `<details${i < 6 ? ' open' : ''}><summary><code>${s.id}</code> · ${esc(s.title)} · ${esc(s.name)}${s.status === 'error' ? ' ⚠ render error' : ''}</summary>`,
+                '',
+                '| Light | Dark |',
+                '| --- | --- |',
+                `| <img width="420" alt="${s.id} light" src="${rawBase}/light/${s.id}.png"> | <img width="420" alt="${s.id} dark" src="${rawBase}/dark/${s.id}.png"> |`,
+                '',
+                '</details>',
+              ].join('\n'));
+              const listIds = ids => ids.slice(0, 10).map(id => `\`${id}\``).join(', ')
+                + (ids.length > 10 ? ', …' : '');
+              const notes = [];
+              if (failedIds.length > 0) {
+                notes.push(`> ⚠ Failed to render: ${listIds(failedIds)} — see the [run log](${runUrl}).`);
+              }
+              if (skippedIds.length > 0) {
+                notes.push(`> ✂ ${skippedIds.length} more matched stories skipped by the cap: ${listIds(skippedIds)} — full set in the artifact.`);
+              }
+              // GitHub caps comment bodies at 65536 chars.
+              let dropped = 0;
+              const assemble = () => [head, ...blocks, ...notes,
+                ...(dropped > 0 ? [`> ✂ ${dropped} image block(s) omitted to fit the comment size limit — full set in the artifact.`] : []),
+              ].join('\n');
+              body = assemble();
+              while (body.length > 60000 && blocks.length > 0) {
+                blocks.pop(); dropped++; body = assemble();
+              }
+            }
+
+            // ---- Upsert (author-filtered, same recipe as ai-loop-state) ----
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: Number(pr), per_page: 100,
+            });
+            const mine = comments.filter(c =>
+              c.user && c.user.login === 'github-actions[bot]'
+              && c.body && c.body.startsWith(MARKER));
+            const last = mine[mine.length - 1];
+            if (last) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: last.id, body });
+              console.log(`Updated screenshots comment ${last.id}`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: Number(pr), body });
+              console.log('Created screenshots comment');
+            }

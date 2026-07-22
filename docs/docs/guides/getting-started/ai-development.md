@@ -87,6 +87,17 @@ re-verify their own findings against the pushed code (nothing is closed on the f
 alone) → after at most 4 fix rounds, the PR either converges (CI green, all review threads
 resolved) or is handed to a human with the open disagreements listed.
 
+**Screenshots at handoff.** When the loop flips a PR to `needs-human-review` it also
+dispatches a screenshot pass (`story-screenshots.yml`): Playwright captures the Storybook
+stories affected by the PR's changed files — once light, once dark — and posts them to the PR
+as a single (upserted) comment plus a 30-day workflow artifact, so the reviewer sees the
+rendered result and not just the diff. The images are served from the `story-screenshots`
+branch, which is disposable storage — deleting it only breaks images in old handoff comments,
+and the next run re-creates it. To run the pass on any PR, apply the `needs-human-review`
+label yourself or dispatch it directly: `gh workflow run story-screenshots.yml -f pr=<number>`.
+Cross-cutting changes (shared helpers, theme plumbing) map to no specific stories and produce
+an explicit "nothing to screenshot" comment.
+
 Please don't add or remove the loop labels on PRs you don't own — they are the loop's state
 machine.
 
