@@ -47,9 +47,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
   hidden behind it — the library does not do this automatically.
-- **Style with helper props, not inline `style`.** Use `m`/`p` spacing (`mt="4"` = 1rem),
-  `textAlign="centered"`, and `textColor`/`bgColor` instead of `style={{ marginTop, textAlign,
-color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
+- **Style with helper props, not inline `style`.** Before writing `style={{ … }}` anywhere,
+  translate each declaration with the mapping table below — the helper props cover the common
+  cases. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
   rather than `library` on every `<Icon>`.
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
@@ -58,6 +58,27 @@ color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary=
   design is single-mode (a fixed light or dark look), pin it at the root —
   `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
   colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
+
+## Inline style → helper prop mapping
+
+Every component accepts these. Look up the declaration you were about to inline:
+
+| Inline style you're about to write       | Helper props instead                                                                                                                                           |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `marginTop: '1rem'` (any margin/padding) | `mt="4"` — `m`/`mt`/`mx`/`p`/`py`/… scale: `1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem (nearest step)                                 |
+| `textAlign: 'center'`                    | `textAlign="centered"` (also `left`, `right`, `justified`)                                                                                                     |
+| `color: '#…'`                            | `textColor` with the nearest Bulma color: `primary`, `link`, `info`, `success`, `warning`, `danger`, `white`, `black`, `grey` (+ `grey-light`, `grey-dark`, …) |
+| `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
+| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest) — for headings use `Title`/`SubTitle` `size`                                                                                |
+| `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
+| `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
+| `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
+| `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
+| `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
+
+No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project
+stylesheet (`src/App.css` in a scaffolded app) and pass it via `className` — still never
+inline `style`.
 
 ## References
 
@@ -84,5 +105,6 @@ color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary=
       cards must match height.
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
-- [ ] Style with helper props (`mt`/`p`, `textAlign`, `textColor`), not inline `style`.
+- [ ] Style with helper props, not inline `style` — translate via the mapping table; values
+      with no helper get a named class in the stylesheet, never `style={{}}`.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.

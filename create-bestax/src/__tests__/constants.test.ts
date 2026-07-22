@@ -25,6 +25,7 @@ const {
   MESSAGES,
   PROMPTS,
   LAUNCH_JSON,
+  CLAUDE_MD,
 } = await import('../constants.js');
 
 describe('constants', () => {
@@ -224,6 +225,35 @@ describe('constants', () => {
 
     it('is mentioned in the skills success message', () => {
       expect(MESSAGES.SKILLS_ADDED).toContain('launch.json');
+    });
+  });
+
+  describe('CLAUDE_MD house style', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'none',
+    });
+
+    it('maps common inline-style patterns to concrete helper props', () => {
+      // the never-inline rule ships with a lookup table, not just a prohibition (#350)
+      expect(md).toContain('Never inline `style={{}}`');
+      expect(md).toContain('Helper props instead');
+      expect(md).toContain('`mt="4"`');
+      expect(md).toContain('`4`=1rem');
+      expect(md).toContain('`textAlign="centered"`');
+      expect(md).toContain('`textColor`');
+      expect(md).toContain('`bgColor`');
+      expect(md).toContain('`textSize="1"`');
+      expect(md).toContain('`textWeight`');
+      expect(md).toContain('`display="flex"`');
+      expect(md).toContain('`flexGrow="1"`');
+      expect(md).toContain('`displayMobile`');
+    });
+
+    it('states the no-helper fallback: a named class in the stylesheet, never inline style', () => {
+      expect(md).toContain('No helper matches');
+      expect(md).toContain('`src/App.css`');
+      expect(md).toContain('still never inline `style`');
     });
   });
 
