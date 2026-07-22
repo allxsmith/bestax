@@ -79,6 +79,7 @@ a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead; wrap c
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
 | `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
+| `gap: …` in a flex layout                | no `gap` helper exists — space children with `m*` margins; `Grid` and `Columns` take a `gap` prop, so prefer those there                                       |
 
 No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project
 stylesheet (`src/App.css` in a scaffolded app) and pass it via `className` — still never

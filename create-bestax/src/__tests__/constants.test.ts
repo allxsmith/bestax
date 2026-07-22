@@ -253,7 +253,14 @@ describe('constants', () => {
     it('states the no-helper fallback: a named class in the stylesheet, never inline style', () => {
       expect(md).toContain('No helper matches');
       expect(md).toContain('`src/App.css`');
+      expect(md).toContain('pass it via `className`');
       expect(md).toContain('still never inline `style`');
+    });
+
+    it('documents the gap exception: no flex gap helper, but Grid/Columns take a gap prop', () => {
+      expect(md).toContain('Flex layouts have no `gap` helper');
+      expect(md).toContain('`Grid` and `Columns`');
+      expect(md).toContain('take a `gap` prop');
     });
   });
 

@@ -101,9 +101,10 @@ free. `references/api.md` documents the helpers.
 ## Styling ladder — use the lowest rung that works
 
 **Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`. There is
-**no `gap` helper** — space children with `m*`/`p*` margins instead. Before writing
-`style={{ … }}` anywhere, translate each declaration:
+`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`. Flex
+layouts have **no `gap` helper** — space children with `m*`/`p*` margins instead (`Grid` and
+`Columns` take a `gap` prop). Before writing `style={{ … }}` anywhere, translate each
+declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
