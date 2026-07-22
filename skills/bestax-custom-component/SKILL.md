@@ -101,8 +101,30 @@ free. `references/api.md` documents the helpers.
 ## Styling ladder — use the lowest rung that works
 
 **Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`. There is
-**no `gap` helper** — space children with `m*`/`p*` margins instead.
+`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`. Flex
+layouts have **no `gap` helper** — space children with `m*`/`p*` margins instead (`Grid` and
+`Columns` take a `gap` prop). Before writing `style={{ … }}` anywhere, translate each
+declaration:
+
+| Inline style you're about to write       | Helper props instead                                                                                                                                           |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `marginTop: '1rem'` (any margin/padding) | `mt="4"` — `m`/`mt`/`mx`/`p`/`py`/… scale: `1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem (nearest step)                                 |
+| `textAlign: 'center'`                    | `textAlign="centered"` (also `left`, `right`, `justified`)                                                                                                     |
+| `color: '#…'`                            | `textColor` with the nearest Bulma color: `primary`, `link`, `info`, `success`, `warning`, `danger`, `white`, `black`, `grey` (+ `grey-light`, `grey-dark`, …) |
+| `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
+| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest) — for headings use `Title`/`SubTitle` `size`                                                                                |
+| `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
+| `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
+| `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
+| `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
+| `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
+
+Spacing, typography, and flex helpers are on every component; `textColor`/`bgColor` are on
+the content components you'll compose with (`Box`, `Block`, `Title`, `Content`, `Card`, …) —
+the few with a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead.
+
+A value with no helper equivalent (`maxWidth: 720`, a one-off gradient) moves you to rung 2 —
+a named class in a stylesheet — never to inline `style`.
 
 **Rung 2 — a plain CSS file**, scoped under the component's class, consuming `--bulma-*`
 variables — never literal colors, so `Theme` and dark mode keep working:
@@ -153,7 +175,8 @@ render, prop→class mapping, helper-prop passthrough (`m="3"` → `m-3`), and t
 - [ ] Inventory checked (catalog + bestax.io/docs/api) and the decision surfaced to the user.
 - [ ] All imports from `@allxsmith/bestax-bulma` (no deep/internal paths).
 - [ ] Composition first — existing components + helper props before any CSS.
-- [ ] No inline `style={{}}` anywhere.
+- [ ] No inline `style={{}}` anywhere — translate via the rung-1 mapping table; values with
+      no helper equivalent get a named class (rung 2).
 - [ ] Lowest sufficient ladder rung (helper props → scoped CSS vars → Sass).
 - [ ] All colors/radii derived from `--bulma-*` variables — no literals.
 - [ ] Renders correctly via `npm run dev`, including dark mode.

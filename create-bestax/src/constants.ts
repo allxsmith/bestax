@@ -133,10 +133,29 @@ ${setupLines.join('\n')}
 
 ## House style
 
-- Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
-  spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
-  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
+**Never inline \`style={{}}\`** — the components accept helper props that cover the common
+cases. Before writing \`style\`, translate each declaration with this table:
+
+| Inline style you're about to write         | Helper props instead                                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| \`marginTop: '1rem'\` (any margin/padding) | \`mt="4"\` — \`m\`/\`mt\`/\`mx\`/\`p\`/\`py\`/… scale: \`1\`=0.25rem, \`2\`=0.5rem, \`3\`=0.75rem, \`4\`=1rem, \`5\`=1.5rem, \`6\`=3rem (nearest step) |
+| \`textAlign: 'center'\`                    | \`textAlign="centered"\` (also \`left\`, \`right\`, \`justified\`)                                                                          |
+| \`color: '#…'\`                            | \`textColor\` with the nearest Bulma color: \`primary\`, \`link\`, \`info\`, \`success\`, \`warning\`, \`danger\`, \`white\`, \`black\`, \`grey\` (+ \`grey-light\`, \`grey-dark\`, …) |
+| \`backgroundColor: '#…'\`                  | \`bgColor\` (same palette)                                                                                                                  |
+| \`fontSize: …\`                            | \`textSize="1"\`…\`"7"\` (\`1\` largest) — for headings use \`Title\`/\`SubTitle\` \`size\`                                                 |
+| \`fontWeight: …\`                          | \`textWeight\`: \`light\`, \`normal\`, \`medium\`, \`semibold\`, \`bold\`                                                                   |
+| \`textTransform\`, italics                 | \`textTransform\`: \`uppercase\`, \`lowercase\`, \`capitalized\`, \`italic\`                                                                |
+| \`display: 'flex'\` + flex properties      | same-named props: \`display="flex"\`, \`flexDirection\`, \`justifyContent\`, \`alignItems\`, \`flexWrap\`                                   |
+| \`height: '100%'\` on a flex child         | \`flexGrow="1"\`                                                                                                                            |
+| \`display: 'none'\`                        | \`visibility="hidden"\`, or responsive \`display*\` props (\`displayMobile\`, \`displayTablet\`, …)                                         |
+
+- Spacing, typography, and flex helpers are on every component; \`textColor\`/\`bgColor\` are
+  on the content components (\`Box\`, \`Block\`, \`Title\`, \`Content\`, \`Hero\`, \`Card\`, …) — the
+  few with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
+- Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
+- No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
+  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - There is no test runner or Storybook in this app — don't assume one.
