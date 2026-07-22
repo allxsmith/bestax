@@ -61,7 +61,10 @@ name: AI Triage
 #     commands + the two comment commands + Task (the fan-out sub-agents)
 #     — no `gh api`, which could also POST/PATCH/DELETE, and no
 #     file-editing tools, because the session ingests untrusted issue/PR
-#     text.
+#     text. That allowlist is what confines the bestaxbot PAT the session
+#     holds (so triage comments are credited to bestaxbot, see the Claude
+#     step): a prompt-injected session can at worst post a comment as
+#     bestaxbot — it cannot push, label, close, or call the raw API.
 #
 # SILENT NO-OPS (#317, #338): the action reports step success even when the
 # session did no useful work, so the "Fail on silent session error" step
@@ -139,8 +142,11 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read # checkout of the base default branch
-      pull-requests: write # post the triage comment on PRs; remove the label
-      issues: write # post the triage comment on issues; budget marker; remove the label
+      pull-requests: write # remove the ai-triage label from PRs
+      issues: write # budget marker on the tracking issue; remove the label
+      # Triage comments themselves post via bestaxbot's PAT (see the Claude
+      # step), not GITHUB_TOKEN — these grants only cover the gate and
+      # label-removal steps.
       # No id-token: the Claude step gets github_token explicitly, which
       # short-circuits the action's OIDC→app-token exchange (#312).
     steps:
@@ -291,13 +297,25 @@ jobs:
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
-          # passed explicitly (Bun-style) so the action skips its OIDC→app
-          # token exchange (#312); triage comments therefore post as
-          # github-actions[bot] — anything probing for them must match the
-          # marker + a Bot-type author, never a specific login. Bonus:
-          # GITHUB_TOKEN-authored comments can't re-trigger workflows.
+          # passed explicitly so the action skips its OIDC→app token
+          # exchange (#312). It is bestaxbot's PAT (AI_LOOP_PAT — the same
+          # machine account claude-implement.yml and the PR loop use), so
+          # triage comments are credited to bestaxbot instead of the
+          # anonymous github-actions[bot] that GITHUB_TOKEN produced
+          # before (and claude[bot] before #312). bestaxbot is a machine
+          # USER account, not a Bot-type app: anything probing for triage
+          # comments must match the marker + (bestaxbot OR a Bot-type
+          # author) — auto-close-duplicates.mjs and the marker checks in
+          # .claude/commands/triage-*.md do exactly that; never probe one
+          # specific login. Trade-off vs GITHUB_TOKEN: PAT-authored
+          # comments DO emit issue_comment events that can re-trigger
+          # workflows — every comment-triggered workflow already gates
+          # bestaxbot out (bestaxbot-reply.yml excludes it as sender;
+          # claude.yml requires a literal "@claude", which the HARD RULES
+          # below forbid writing), and the tool allowlist below confines
+          # the PAT to GET-only reads plus the two comment commands.
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.AI_LOOP_PAT }}
           # Full session output in the public job log (#317): the session
           # only ever sees public issue/PR text and GET-only gh output, so
           # nothing sensitive can leak, and without it a session that ends

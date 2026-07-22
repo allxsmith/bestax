@@ -5,9 +5,10 @@
  * Ported from oven-sh/bun's scripts/auto-close-duplicates.ts, with the
  * objection window widened from 3 to 14 days (deliberate owner choice).
  *
- * An issue is a close candidate when its LATEST bot-authored comment carries
- * the `<!-- ai-triage:dedupe -->` idempotency marker AND a machine-parseable
- * `Duplicate of #N` line (posted by the ai-triage workflow, PR A of #289).
+ * An issue is a close candidate when its LATEST automation-authored comment
+ * (bestaxbot or a Bot-type account) carries the `<!-- ai-triage:dedupe -->`
+ * idempotency marker AND a machine-parseable `Duplicate of #N` line (posted
+ * by the ai-triage workflow, PR A of #289).
  * The candidate is closed only if ALL of these hold:
  *   - the marker comment is at least --wait-days old (default 14), AND
  *   - no non-bot user commented after the marker comment (objection), AND
@@ -81,17 +82,31 @@ export function isBot(user) {
 }
 
 /**
- * Find the LATEST bot-authored comment that carries the dedupe marker and a
- * parseable `Duplicate of #N`. Matched by marker + Bot author, never a
- * specific login (Bun's convention): the triage workflow posts via
- * GITHUB_TOKEN as github-actions[bot] since #312, while pre-#312 comments
- * are claude[bot]. Returns { comment, target } or null. `comments` must be
- * in ascending created order (the REST API default for issue comments).
+ * Machine USER accounts that act as repo automation. A PAT-driven machine
+ * account is a regular User to the API — type-based `isBot` can never
+ * identify it, so the logins are named here.
+ */
+const MACHINE_USERS = new Set(['bestaxbot']);
+
+/** True for any automation author: Bot-type, `[bot]` suffix, or a machine user. */
+export function isAutomationAuthor(user) {
+  if (!user) return false;
+  return isBot(user) || MACHINE_USERS.has(user.login ?? '');
+}
+
+/**
+ * Find the LATEST automation-authored comment that carries the dedupe
+ * marker and a parseable `Duplicate of #N`. Matched by marker + author
+ * class, never one specific login: the triage workflow posts as the
+ * bestaxbot machine account today, posted as github-actions[bot] while it
+ * used GITHUB_TOKEN (#312 → this change), and as claude[bot] before #312.
+ * Returns { comment, target } or null. `comments` must be in ascending
+ * created order (the REST API default for issue comments).
  */
 export function findMarkerComment(comments) {
   for (let i = comments.length - 1; i >= 0; i--) {
     const c = comments[i];
-    if (!isBot(c.user)) continue;
+    if (!isAutomationAuthor(c.user)) continue;
     if (!c.body?.includes(MARKER)) continue;
     const m = c.body.match(DUPLICATE_RE);
     if (!m) continue;
@@ -106,9 +121,9 @@ export function ageInDays(createdAt, now = Date.now()) {
 }
 
 /**
- * First non-bot comment posted after the marker comment (an objection), or
- * null. Compares by created_at, with id as the tiebreaker for same-second
- * posts.
+ * First human (non-automation) comment posted after the marker comment (an
+ * objection), or null. Compares by created_at, with id as the tiebreaker
+ * for same-second posts.
  */
 export function humanCommentAfter(comments, marker) {
   const markerTime = Date.parse(marker.created_at);
@@ -116,7 +131,7 @@ export function humanCommentAfter(comments, marker) {
     comments.find(c => {
       const t = Date.parse(c.created_at);
       const after = t > markerTime || (t === markerTime && c.id > marker.id);
-      return after && !isBot(c.user);
+      return after && !isAutomationAuthor(c.user);
     }) ?? null
   );
 }
@@ -237,9 +252,10 @@ async function main() {
       `/repos/${repo}/issues?state=open&per_page=100`
     );
     for (const issue of issues) {
-      // The issues list endpoint also returns PRs; and bot-authored issues
-      // (e.g. bestaxbot automation) are out of scope for auto-close.
-      if (issue.pull_request || isBot(issue.user)) continue;
+      // The issues list endpoint also returns PRs; and automation-authored
+      // issues (Bot-type or the bestaxbot machine user — the latter was
+      // silently missed while this checked isBot alone) are out of scope.
+      if (issue.pull_request || isAutomationAuthor(issue.user)) continue;
       counts.scanned++;
 
       // Isolate per-issue failures: one bad issue (transferred target, a
