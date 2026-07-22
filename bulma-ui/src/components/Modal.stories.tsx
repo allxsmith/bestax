@@ -127,7 +127,7 @@ const CompoundModalCardComponent = () => {
   );
 };
 
-export const CompoundModalCard: StoryObj<ModalProps> = {
+export const CompoundUsage: StoryObj<ModalProps> = {
   render: () => <CompoundModalCardComponent />,
 };
 

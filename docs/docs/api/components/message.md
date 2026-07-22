@@ -36,6 +36,28 @@ import { Message } from '@allxsmith/bestax-bulma';
 | `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Body content for the message.                    |
 | ...         | All standard HTML and Bulma helper props (see [Helper Props](../helpers/usebulmaclasses))                                                                                                                                                                                                |         | Utility and accessibility props.                 |
 
+### Compound component props
+
+The `Message` component also supports a compound component API for maximum flexibility. This allows you to compose messages with fine-grained control over each section.
+
+#### Message.Header
+
+Renders the message header section with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Message.Body
+
+Renders the message body section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
 ---
 
 ## Usage
@@ -119,29 +141,9 @@ You can use Bulma size helpers or custom styles to adjust the size of the messag
 
 ---
 
-## Compound Components
+### Compound (dot-notation) usage
 
-The `Message` component also supports a compound component API for maximum flexibility. This allows you to compose messages with fine-grained control over each section.
-
-### Message.Header
-
-Renders the message header section with proper styling.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-### Message.Body
-
-Renders the message body section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-### Compound Component Examples
+The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props).
 
 #### Complete Message with Compound Components
 

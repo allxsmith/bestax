@@ -118,8 +118,8 @@ export const UniformShape: Story = {
   },
 };
 
-export const CompoundStatic: Story = {
-  render: function CompoundStaticExample() {
+export const CompoundUsage: Story = {
+  render: function CompoundUsageExample() {
     // `Avatars.Avatar` is the same component as `Avatar`, handy when importing
     // only the container.
     return (
