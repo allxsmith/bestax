@@ -2,9 +2,11 @@
 // Each Section stacks vertically; the feature Columns collapse to one per row on
 // mobile (Bulma columns stack below the tablet breakpoint).
 //
-// The Navbar's burger/menu is CONTROLLED: without `active` state wired to both
-// `Navbar.Burger` and `Navbar.Menu`, the mobile menu can never open — desktop
-// looks fine and nothing errors, so the failure is silent. A fixed-top navbar
+// The Navbar's burger/menu is CONTROLLED: `active` on Navbar.Menu shows/hides
+// the mobile menu, while `active` + `onClick` on Navbar.Burger make the burger
+// toggle it and animate. Wire the same state to both — left unwired, clicking
+// the burger does nothing; desktop looks fine and nothing errors, so the
+// failure is silent. A fixed-top navbar
 // also needs the `has-navbar-fixed-top` class on <html> so the page is padded
 // below it (never an inline padding offset) — Bulma requires this and the
 // library does NOT add it for you.

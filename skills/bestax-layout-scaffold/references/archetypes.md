@@ -19,6 +19,8 @@ app".
 **Skeleton:**
 
 ```tsx
+const [open, setOpen] = useState(false); // controls the burger + mobile menu
+
 <>
   <Navbar fixed="top" color="dark">
     <Navbar.Brand>
@@ -54,7 +56,7 @@ app".
       </Column>
     </Columns>
   </Container>
-</>
+</>;
 ```
 
 **Required:** add `has-navbar-fixed-top` to `<html>` (see `examples/app-shell.tsx`) so content is
@@ -74,6 +76,8 @@ pricing page. The default for "build me a site/page".
 **Skeleton:**
 
 ```tsx
+const [open, setOpen] = useState(false); // controls the burger + mobile menu
+
 <>
   <Navbar fixed="top">
     <Navbar.Brand>
@@ -130,11 +134,13 @@ pricing page. The default for "build me a site/page".
       <Content textAlign="centered">{/* footer */}</Content>
     </Container>
   </Footer>
-</>
+</>;
 ```
 
-**Required:** `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire `active` via state on both
-(a bare `<Navbar.Burger />` renders a burger that can never open, with no error). And add
+**Required:** `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to
+both: `active` on `Navbar.Menu` shows/hides the mobile menu, and `active` + `onClick` on
+`Navbar.Burger` make the burger toggle it and animate (a bare `<Navbar.Burger />` does nothing
+when clicked, with no error). And add
 `has-navbar-fixed-top` to `<html>` (see `examples/landing.tsx`) so content is not hidden behind
 the fixed navbar — never an inline padding offset.
 

@@ -45,10 +45,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `height: 100%` on the card doesn't help — the column's height is auto).
 - Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
   mobile. Add responsive `size*` props only to tune the breakpoints.
-- `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire `active` via state on both, or the
-  mobile menu can never open (no error, silent failure). For a `fixed="top"` `Navbar`, add the
-  `has-navbar-fixed-top` class to `<html>` so content is not hidden behind it — the library does
-  not do this automatically, and an inline padding offset is not a substitute.
+- `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to both:
+  `active` on `Navbar.Menu` shows/hides the mobile menu, while `active` + `onClick` on
+  `Navbar.Burger` make the burger toggle it and animate. Left unwired, clicking the burger
+  does nothing (no error, silent failure). For a `fixed="top"` `Navbar`, add the
+  `has-navbar-fixed-top` class to `<html>` so content is not hidden behind it — the library
+  does not do this automatically, and an inline padding offset is not a substitute.
 - **Style with helper props, not inline `style`.** Use `m`/`p` spacing (`mt="4"` = 1rem),
   `textAlign="centered"`, and `textColor`/`bgColor` instead of `style={{ marginTop, textAlign,
 color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
