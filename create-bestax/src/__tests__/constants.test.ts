@@ -237,6 +237,9 @@ describe('constants', () => {
       expect(content).toContain('# my-app');
       expect(content).toContain('`<title>`');
       expect(content).toContain('README.md');
+      expect(content).toContain('starts as the project name');
+      expect(content).toContain('meta tags');
+      expect(content).toContain('rewrite the README');
     });
   });
 
