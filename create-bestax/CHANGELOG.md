@@ -1,3 +1,11 @@
+# [3.6.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.5.0...create-bestax@3.6.0) (2026-07-22)
+
+
+### Features
+
+* **bulma-ui:** ship agent-discovery files in the npm tarball ([#345](https://github.com/allxsmith/bestax/issues/345)) ([4b58739](https://github.com/allxsmith/bestax/commit/4b587392df2e4f780c3f67c161f6e3eb500b2b14)), closes [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344)
+* **create-bestax:** set scaffolded index.html title to the project name ([#356](https://github.com/allxsmith/bestax/issues/356)) ([3bfbea3](https://github.com/allxsmith/bestax/commit/3bfbea371f33cc969892bea4796fd58da2890201)), closes [#349](https://github.com/allxsmith/bestax/issues/349) [#349](https://github.com/allxsmith/bestax/issues/349)
+
 # [3.5.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.4.0...create-bestax@3.5.0) (2026-07-21)
 
 
