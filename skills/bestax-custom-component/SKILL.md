@@ -118,6 +118,10 @@ free. `references/api.md` documents the helpers.
 | `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
 
+Spacing, typography, and flex helpers are on every component; `textColor`/`bgColor` are on
+the content components you'll compose with (`Box`, `Block`, `Title`, `Content`, `Card`, …) —
+the few with a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead.
+
 A value with no helper equivalent (`maxWidth: 720`, a one-off gradient) moves you to rung 2 —
 a named class in a stylesheet — never to inline `style`.
 

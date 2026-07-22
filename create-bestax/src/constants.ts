@@ -133,7 +133,7 @@ ${setupLines.join('\n')}
 
 ## House style
 
-**Never inline \`style={{}}\`** — every component accepts helper props that cover the common
+**Never inline \`style={{}}\`** — the components accept helper props that cover the common
 cases. Before writing \`style\`, translate each declaration with this table:
 
 | Inline style you're about to write         | Helper props instead                                                                                                                       |
@@ -149,6 +149,9 @@ cases. Before writing \`style\`, translate each declaration with this table:
 | \`height: '100%'\` on a flex child         | \`flexGrow="1"\`                                                                                                                            |
 | \`display: 'none'\`                        | \`visibility="hidden"\`, or responsive \`display*\` props (\`displayMobile\`, \`displayTablet\`, …)                                         |
 
+- Spacing, typography, and flex helpers are on every component; \`textColor\`/\`bgColor\` are
+  on the content components (\`Box\`, \`Block\`, \`Title\`, \`Content\`, \`Hero\`, \`Card\`, …) — the
+  few with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
 - Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
