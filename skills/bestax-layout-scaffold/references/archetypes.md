@@ -19,6 +19,8 @@ app".
 **Skeleton:**
 
 ```tsx
+const [open, setOpen] = useState(false); // controls the burger + mobile menu
+
 <>
   <Navbar fixed="top" color="dark">
     <Navbar.Brand>
@@ -54,7 +56,7 @@ app".
       </Column>
     </Columns>
   </Container>
-</>
+</>;
 ```
 
 **Required:** add `has-navbar-fixed-top` to `<html>` (see `examples/app-shell.tsx`) so content is
@@ -74,7 +76,29 @@ pricing page. The default for "build me a site/page".
 **Skeleton:**
 
 ```tsx
+const [open, setOpen] = useState(false); // controls the burger + mobile menu
+
 <>
+  <Navbar fixed="top">
+    <Navbar.Brand>
+      <Navbar.Item href="#">Brand</Navbar.Item>
+      <Navbar.Burger
+        active={open}
+        onClick={() => setOpen(o => !o)}
+        aria-label="menu"
+      />
+    </Navbar.Brand>
+    <Navbar.Menu active={open}>
+      <Navbar.Start>
+        <Navbar.Item href="#">Features</Navbar.Item>
+        <Navbar.Item href="#">Pricing</Navbar.Item>
+      </Navbar.Start>
+      <Navbar.End>
+        <Navbar.Item href="#">Sign in</Navbar.Item>
+      </Navbar.End>
+    </Navbar.Menu>
+  </Navbar>
+
   <Hero color="primary" size="medium">
     <Hero.Body>
       <Container textAlign="centered">
@@ -110,10 +134,18 @@ pricing page. The default for "build me a site/page".
       <Content textAlign="centered">{/* footer */}</Content>
     </Container>
   </Footer>
-</>
+</>;
 ```
 
-**Responsive:** `Section`s already stack vertically. The feature `Columns` collapse to one feature
+**Required:** `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to
+both: `active` on `Navbar.Menu` shows/hides the mobile menu, and `active` + `onClick` on
+`Navbar.Burger` make the burger toggle it and animate (a bare `<Navbar.Burger />` does nothing
+when clicked, with no error). And add
+`has-navbar-fixed-top` to `<html>` (see `examples/landing.tsx`) so content is not hidden behind
+the fixed navbar — never an inline padding offset.
+
+**Responsive:** the navbar collapses to a burger on mobile (`Navbar.Burger` + `Navbar.Menu active`).
+`Section`s already stack vertically. The feature `Columns` collapse to one feature
 per row on mobile. Use `Hero size="large"` / `"fullheight"` for a taller hero.
 
 **Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
