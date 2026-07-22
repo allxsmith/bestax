@@ -139,6 +139,9 @@ ${setupLines.join('\n')}
   take a \`gap\` prop, so prefer that there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+- \`Navbar.Burger\`/\`Navbar.Menu\` are controlled — wire \`active\` via state on both, and pair
+  \`Navbar fixed="top"\` with the \`has-navbar-fixed-top\` class on \`<html>\` (never an inline
+  padding offset).
 - There is no test runner or Storybook in this app — don't assume one.
 
 ## AI skills
