@@ -10,6 +10,11 @@ name: Claude Deep Review
 # Second trigger path: a triage+ collaborator applies the `deep-review`
 # label to ANY same-repo PR (any branch) to run the same one-shot review —
 # e.g. Claude-Code-authored but human-opened PRs that never enter the loop.
+# Optionally, a triage+ user can pre-post a PR comment starting with
+# "deep-review:" (focus areas, suspected weak spots) — the focus step below
+# verifies the author's live role and injects it into the prompt as a FOCUS
+# block, mirroring the pointed human brief that makes prompted @claude
+# review sessions effective (#341).
 # Security posture: same-repo PRs only (never forks), the labeler's live
 # role is re-verified via the collaborators API (triage+ required, so a
 # label applied by automation on behalf of an outsider is a silent no-op),
@@ -129,6 +134,93 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Optional focus steer: a triage+ maintainer may pre-post a PR comment
+      # starting with "deep-review:" (focus areas / suspected weak spots)
+      # before applying the label. Anyone can comment on a public-repo PR and
+      # this text enters the LLM prompt, so each candidate author's LIVE role
+      # is re-verified via the collaborators API (same belt-and-braces as the
+      # perm step above). Scans newest-first over the newest steer per
+      # distinct author and takes the first that verifies triage+ — a later
+      # "deep-review:" comment from an outsider can neither inject text nor
+      # displace the maintainer's steer. At most 5 distinct authors are
+      # role-checked (bounds the API calls comment spam can force). Emits a
+      # fully-formed FOCUS block, or an empty string, so the prompt needs no
+      # conditional. Best-effort by design — the steer is an enhancement,
+      # not an authorization gate, so unlike the perm step it degrades open:
+      # an API failure means an unfocused review, never a red run. A steer
+      # persists across re-labels (edit/delete the comment to change it; the
+      # run log names the steer author). On ai-loop `opened` events no
+      # comments can exist yet, so this is a cheap no-op there.
+      - name: Extract focus steer
+        id: focus
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
+
+          # All "deep-review:"-prefixed comments -> newest first -> newest
+          # per distinct author -> cap 5. --paginate because loop PRs
+          # routinely exceed the default page size; gh applies --jq per page
+          # (NDJSON out), the outer jq -s reassembles across pages. Note
+          # unique_by would re-sort, hence the reduce for first-per-login.
+          # Fallback OUTSIDE the substitution: under pipefail a gh failure
+          # still lets jq -s print "[]" on empty input, so an inner
+          # "|| echo []" would concatenate both and corrupt COUNT below.
+          CANDIDATES=$(gh api --paginate "repos/$REPO/issues/$PR/comments?per_page=100" \
+            --jq '.[] | select(.body | startswith("deep-review:"))
+                  | {login: .user.login, body: .body}' \
+            | jq -s 'reverse
+                     | reduce .[] as $c ([];
+                         if any(.[]; .login == $c.login) then . else . + [$c] end)
+                     | .[0:5]') || CANDIDATES='[]'
+
+          BODY=""
+          COUNT=$(jq length <<<"$CANDIDATES")
+          i=0
+          # while, not seq: BSD seq counts DOWN for "seq 0 -1", so an empty
+          # candidate list would loop with null logins on a Mac dev box.
+          while [ "$i" -lt "$COUNT" ]; do
+            LOGIN=$(jq -r ".[$i].login" <<<"$CANDIDATES")
+            # On a public repo this endpoint returns role_name "read" for
+            # ANY user (not 404), so non-collaborators fall to the * arm;
+            # the fallback still covers deleted users under set -e.
+            ROLE=$(gh api "repos/$REPO/collaborators/$LOGIN/permission" \
+              --jq '.role_name' || echo none)
+            case "$ROLE" in
+              admin|maintain|write|triage)
+                BODY=$(jq -r ".[$i].body" <<<"$CANDIDATES")
+                echo "using steer by $LOGIN ($ROLE)"; break ;;
+              *)
+                echo "ignoring steer by $LOGIN ($ROLE — not triage+)" ;;
+            esac
+            i=$((i + 1))
+          done
+          [ -n "$BODY" ] || { echo "no trusted steer comment — unfocused review"; exit 0; }
+
+          # Prompt hygiene: normalize CRLF, strip the trigger prefix, cap
+          # length, and treat a whitespace-only remainder as no steer.
+          TEXT=$(printf '%s' "$BODY" | tr -d '\r')
+          TEXT="${TEXT#deep-review:}"
+          TEXT="${TEXT:0:2000}"
+          [ -n "$(printf '%s' "$TEXT" | tr -d '[:space:]')" ] \
+            || { echo "steer comment empty after prefix — unfocused review"; exit 0; }
+
+          # Multi-line output: random heredoc delimiter so no line of the
+          # (trusted, but arbitrary) comment can terminate the value early
+          # or smuggle extra step outputs — even a literal "EOF" line, or a
+          # "foo=bar" line, stays inside the value.
+          DELIM="FOCUS_$(od -An -tx1 -N16 /dev/urandom | tr -d ' \n')"
+          {
+            echo "block<<$DELIM"
+            echo "FOCUS (steer from a verified maintainer — prioritize these areas, but still review the entire diff):"
+            echo "$TEXT"
+            echo "$DELIM"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Checkout PR head
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -178,44 +270,86 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
+            ${{ steps.focus.outputs.block }}
+
             You are the independent DEEP REVIEWER for this PR (typically
             AI-authored or AI-assisted). The PR branch is checked out and
             dependencies are installed. You did not write this code — review
-            it adversarially.
+            it adversarially: investigate like a skeptical engineer given a
+            pointed brief, not a reader validating the diff in isolation.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
-            2. Verify every candidate finding against the actual code before
-               posting it; run the relevant tests (`pnpm --filter <pkg> run
-               test`) when unsure. Only post REAL defects:
-               - correctness bugs and broken edge cases
-               - accessibility problems (aria-*, semantics, focus)
-               - public API inconsistencies with the rest of the library
-               - missing Storybook story, missing docs page for API changes,
-                 missing skills/ update for component/prop changes
-               - meaningful coverage gaps in the new code
-               - conformance misses for new components: missing listing
-                 surfaces (components guide page, home-page cards or Beyond
-                 Bulma strip), missing theming-skill rows, inline `style={{}}`
-                 in stories or docs examples, unregistered SCSS variables
-               - CSS-interaction bugs invisible to jsdom: pointer-events/
-                 position resets under modifier classes (e.g. a standalone/
-                 overlay mode), physical margins that break RTL, `||`-vs-`??`
-                 on a11y attributes like alt/aria-label
-            3. Do NOT post nitpicks, style, or formatting comments —
+            2. EVIDENCE PHASE — chase the PR's claims to their sources
+               before judging the code. Read the PR body and every linked
+               issue (`Fixes #N` / `Refs #N`, via
+               `gh api repos/${{ github.repository }}/issues/N`). When the
+               PR claims to fix a failure, fetch the cited evidence — issue
+               quotes, workflow run/job logs
+               (`gh api repos/${{ github.repository }}/actions/jobs/<id>/logs`)
+               — and confirm the failure shape is real. Then verify the fix
+               against that evidence EMPIRICALLY: run the relevant tests
+               (`pnpm --filter <pkg> run test`), exercise the changed logic
+               against the real failing inputs. Reading the diff is not
+               verification.
+            3. RESIDUAL-RISK HUNT — for the failure class this PR
+               addresses, enumerate the ways it could still occur: adjacent
+               code paths, unhandled variants, boundary counts, the same bug
+               shape elsewhere in the changed subsystem. Refute each with
+               evidence, or post it as a finding.
+            4. Verify every candidate finding against the actual code
+               before posting it. Apply the lens that matches what the diff
+               touches (both lenses when it touches both):
+               - Component/docs lens (`bulma-ui/`, `docs/`):
+                 - correctness bugs and broken edge cases
+                 - accessibility problems (aria-*, semantics, focus)
+                 - public API inconsistencies with the rest of the library
+                 - missing Storybook story, missing docs page for API
+                   changes, missing skills/ update for component/prop changes
+                 - meaningful coverage gaps in the new code
+                 - conformance misses for new components: missing listing
+                   surfaces (components guide page, home-page cards or Beyond
+                   Bulma strip), missing theming-skill rows, inline `style={{}}`
+                   in stories or docs examples, unregistered SCSS variables
+                 - CSS-interaction bugs invisible to jsdom: pointer-events/
+                   position resets under modifier classes (e.g. a standalone/
+                   overlay mode), physical margins that break RTL, `||`-vs-`??`
+                   on a11y attributes like alt/aria-label
+               - Infra lens (`.github/`, `.claude/`, `scripts/`):
+                 - guard/permission bypasses: who can trigger what, and is
+                   every trust decision re-verified live rather than trusted
+                   from event payloads
+                 - shell + jq edge cases: quoting, `set -e` interactions,
+                   empty or paginated API results, exit-code polarity
+                 - untrusted-input handling: attacker-controlled text
+                   reaching prompts, logs, outputs, or eval'd contexts
+                 - silent-failure shapes: steps that stay green while doing
+                   nothing, swallowed errors, dead conditions
+                 - idempotency/concurrency of workflows: double-fires,
+                   races, re-runs, partial state
+            5. Do NOT post nitpicks, style, or formatting comments —
                CodeRabbit and the linters cover those.
 
             FORMAT — your output is read by BOTH the fix agent (which needs
             precise, actionable detail) and a human maintainer (who wants it
             to read cleanly). Use GitHub-flavored Markdown well; NEVER post a
             jumbled wall-of-text paragraph.
-            4. Post each defect as an inline comment with
-               mcp__github_inline_comment__create_inline_comment
-               (confirmed: true). Structure EVERY inline finding as Markdown:
+            6. Severity scale: 🔴 Critical / 🟠 Major / 🟡 Minor are
+               BLOCKING defects. 🔵 Advisory is for real limitations,
+               trade-offs, or accepted risks worth putting on the record
+               that do NOT block merge — do not suppress these, but do not
+               inflate them into blockers either. Category is Correctness /
+               Accessibility / API / Coverage / SSR / Performance /
+               Security / Robustness.
+            7. Post each BLOCKING defect (🔴/🟠/🟡) as an inline comment
+               with mcp__github_inline_comment__create_inline_comment
+               (confirmed: true). NEVER post a 🔵 Advisory as an inline
+               comment — inline threads are work items for the AI loop's
+               fix agent, and advisories must not spin the loop; advisories
+               appear ONLY as rows in the summary table below. Structure
+               EVERY inline finding as Markdown:
                - A bold one-line title followed by a severity + category tag,
                  e.g. `**Observer ref can be clobbered** — 🟠 Major ·
-                 Correctness`. Severity is one of 🔴 Critical / 🟠 Major /
-                 🟡 Minor; category is Correctness / Accessibility / API /
-                 Coverage / SSR / Performance.
+                 Correctness`.
                - **What:** one or two sentences on the actual defect.
                - **Why it matters:** the concrete failure mode or user impact.
                - **Fix:** a ```suggestion block when it is a small local edit,
@@ -224,7 +358,7 @@ jobs:
                  the comment stays scannable.
                - Include a ```mermaid diagram when a control-/data-flow picture
                  makes the bug clearer than prose (GitHub renders it).
-            5. ALWAYS finish — findings or not — by submitting ONE summary
+            8. ALWAYS finish — findings or not — by submitting ONE summary
                review that certifies the deep review ran (for AI-loop PRs,
                the loop's gate requires it before it may hand the PR to a
                human). Write the body to a file first so the Markdown/tables
@@ -232,14 +366,19 @@ jobs:
 
                  (write this to /tmp/deep-review.md, filling in the values)
                  <!-- claude-deep-review -->
-                 ## Deep review — <N> finding(s)
+                 ## Deep review — <N> blocking · <M> advisory
 
                  | # | Severity | Area | Finding | Location |
                  |---|----------|------|---------|----------|
                  | 1 | 🟠 Major | Correctness | <short summary> | `path:line` |
+                 | 2 | 🔵 Advisory | Robustness | <limitation, on the record> | `path:line` |
 
                  **Overall:** <2-3 sentences — is the change sound, what is the
                  riskiest part, and what should the human focus on first.>
+
+                 **Residual risk:** <1-3 bullets — the ways the addressed
+                 failure class could still occur, each refuted with the
+                 evidence you checked, or "none identified" with why.>
 
                  > 🏄 <one or two sentences in the voice of a laid-back
                  > California surfer summing up the vibe of this PR — fun, but
@@ -251,9 +390,11 @@ jobs:
 
                Keep the literal marker "<!-- claude-deep-review -->" as the
                VERY FIRST line of the body — it is machine-parsed. With zero
-               findings, put "No blocking defects found." in the table area and
-               still include the Overall line and the surfer blurb.
-            6. Never push, merge, close, or label anything, and never write
+               blocking findings but advisories, keep the table with only 🔵
+               rows. Only with zero findings of ANY tier, put "No blocking
+               defects found." in the table area — and still include the
+               Overall line, the Residual risk section, and the surfer blurb.
+            9. Never push, merge, close, or label anything, and never write
                "@claude" or "@coderabbitai" in any text.
 
       # The action reports step success even when the Claude session itself
