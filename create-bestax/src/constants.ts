@@ -140,6 +140,9 @@ ${setupLines.join('\n')}
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - There is no test runner or Storybook in this app — don't assume one.
+- \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
+  boilerplate — once this app has a real identity, set the title (and any meta tags) to match
+  it and rewrite the README to describe *this* app, not the template.
 
 ## AI skills
 

@@ -553,6 +553,53 @@ describe('ProjectCreator', () => {
     });
   });
 
+  describe('updateIndexHtmlTitle', () => {
+    it('replaces the stock <title> with the project name', async () => {
+      const targetPath = '/test/project';
+      const indexHtmlPath = '/test/project/index.html';
+
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(path => path === indexHtmlPath);
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        '<head><title>Bestax + Vite + React</title></head>' as unknown
+      );
+
+      await projectCreator.updateIndexHtmlTitle(targetPath, 'my-app');
+
+      expect(fs.default.writeFile).toHaveBeenCalledWith(
+        indexHtmlPath,
+        '<head><title>my-app</title></head>'
+      );
+    });
+
+    it('does nothing when index.html is missing', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.updateIndexHtmlTitle('/test/project', 'my-app');
+
+      expect(fs.default.readFile).not.toHaveBeenCalled();
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+    });
+
+    it('leaves index.html untouched when it has no <title> tag', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue('<head></head>' as unknown);
+
+      await projectCreator.updateIndexHtmlTitle('/test/project', 'my-app');
+
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+    });
+  });
+
   describe('setupIconLibrary', () => {
     it('should skip setup for none', async () => {
       await projectCreator.setupIconLibrary('/test/project', 'none', 'vite');
@@ -962,6 +1009,37 @@ describe('ProjectCreator', () => {
 
       expect(fileSystem.copyDirectory).toHaveBeenCalled();
       expect(fileSystem.updatePackageJson).toHaveBeenCalled();
+    });
+
+    it('sets the index.html title to the project name', async () => {
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(false);
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(true);
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(path => String(path).endsWith('index.html'));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        '<head><title>Bestax + Vite + React</title></head>' as unknown
+      );
+
+      await projectCreator.create('test-project', { yes: true, skills: false });
+
+      expect(
+        (fs.default.writeFile as unknown as jest.Mock).mock.calls.some(
+          ([p, content]) =>
+            String(p).endsWith('index.html') &&
+            String(content).includes('<title>test-project</title>')
+        )
+      ).toBe(true);
     });
 
     it('writes launch.json when the skills opt-in is accepted', async () => {
