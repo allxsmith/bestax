@@ -39,6 +39,76 @@ import { Card } from '@allxsmith/bestax-bulma';
 | `textAlign`      | `'centered' \| 'justified' \| 'left' \| 'right'`                                                                                                                                                                                                                                         | Text alignment.                                                   |
 | ...              | All Bulma and standard HTML props                                                                                                                                                                                                                                                        | (See [Helper Props](../helpers/usebulmaclasses))                  |
 
+### Compound component props
+
+The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
+
+#### Card.Header
+
+Renders the card header section with proper styling. When used without `Card.Header.Title`, it automatically wraps content in a `.card-header-title` div. When used with `Card.Header.Title`, it renders the title component directly without additional wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
+- All standard HTML attributes for `<header>`
+
+#### Card.Header.Title
+
+Renders the card header title with proper styling. This provides more granular control over the header title when using compound components. When used inside `Card.Header`, it prevents automatic wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header title
+- All standard HTML attributes for `<div>`
+
+#### Card.Header.Icon
+
+Renders the card header icon button with proper styling. This is typically placed after `Card.Header.Title` for actions like expand/collapse or accessing more options.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `aria-label?`: Accessibility label (defaults to "more options")
+- All standard HTML attributes for `<button>`
+
+#### Card.Image
+
+Renders the card image section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Card.Content
+
+Renders the main card content section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Card.Footer
+
+Renders the card footer section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<footer>`
+
+#### Card.FooterItem
+
+Renders individual footer items with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<span>`
+
 ---
 
 ## Usage
@@ -189,77 +259,9 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
 
 ---
 
-## Compound Components
+### Compound (dot-notation) usage
 
-The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
-
-### Card.Header
-
-Renders the card header section with proper styling. When used without `Card.Header.Title`, it automatically wraps content in a `.card-header-title` div. When used with `Card.Header.Title`, it renders the title component directly without additional wrapping.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
-- All standard HTML attributes for `<header>`
-
-### Card.Header.Title
-
-Renders the card header title with proper styling. This provides more granular control over the header title when using compound components. When used inside `Card.Header`, it prevents automatic wrapping.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `centered?`: Whether to center the header title
-- All standard HTML attributes for `<div>`
-
-### Card.Header.Icon
-
-Renders the card header icon button with proper styling. This is typically placed after `Card.Header.Title` for actions like expand/collapse or accessing more options.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `aria-label?`: Accessibility label (defaults to "more options")
-- All standard HTML attributes for `<button>`
-
-### Card.Image
-
-Renders the card image section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-### Card.Content
-
-Renders the main card content section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-### Card.Footer
-
-Renders the card footer section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<footer>`
-
-### Card.FooterItem
-
-Renders individual footer items with proper styling.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<span>`
-
-### Compound Component Examples
+Every card section is also available as a static — `Card.Header` (with `Card.Header.Title` and `Card.Header.Icon`), `Card.Image`, `Card.Content`, `Card.Footer`, and `Card.FooterItem` — so a whole card can be composed from the single `Card` import. Each static's props are listed under [Compound component props](#compound-component-props).
 
 #### Complete Card with Compound Components
 

@@ -99,18 +99,6 @@ The surplus bubble always shows `+N`, but its accessible name defaults to Englis
 </Avatars>
 ```
 
-### Compound Static
-
-`Avatars.Avatar` is the same component as `Avatar`, handy when you import only the container.
-
-```tsx live
-<Avatars>
-  <Avatars.Avatar name="Ada Lovelace" />
-  <Avatars.Avatar name="Grace Hopper" />
-  <Avatars.Avatar name="Katherine Johnson" />
-</Avatars>
-```
-
 ### Spacing
 
 A `'sm' | 'md' | 'lg'` preset controls how far the avatars overlap; each group is stacked here
@@ -150,6 +138,18 @@ A `number` sets a pixel overlap directly:
   <Avatar name="Ada Lovelace" />
   <Avatar name="Grace Hopper" />
   <Avatar name="Katherine Johnson" />
+</Avatars>
+```
+
+### Compound (dot-notation) usage
+
+`Avatars.Avatar` is the same component as `Avatar`, handy when you import only the container.
+
+```tsx live
+<Avatars>
+  <Avatars.Avatar name="Ada Lovelace" />
+  <Avatars.Avatar name="Grace Hopper" />
+  <Avatars.Avatar name="Katherine Johnson" />
 </Avatars>
 ```
 

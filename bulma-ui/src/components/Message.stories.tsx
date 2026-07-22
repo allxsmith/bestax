@@ -133,7 +133,7 @@ export const Large: StoryObj<MessageProps> = {
 };
 
 // ----- COMPOUND COMPONENT STORIES -----
-export const CompoundComponents: StoryObj = {
+export const CompoundUsage: StoryObj = {
   render: () => (
     <Message color="info">
       <Message.Header>
