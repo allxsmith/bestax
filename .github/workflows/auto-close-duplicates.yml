@@ -5,9 +5,10 @@ name: Auto-close duplicates
 # oven-sh/bun's scripts/auto-close-duplicates.ts, with the window widened
 # from Bun's 3 days to 14.
 #
-# A candidate is an open issue whose latest claude[bot] comment carries the
-# `<!-- ai-triage:dedupe -->` marker and a `Duplicate of #N` line, aged >= 14
-# days. Three vetoes, any one of which blocks the close forever or until it
+# A candidate is an open issue whose latest automation-authored comment
+# (bestaxbot today; github-actions[bot] or claude[bot] historically) carries
+# the `<!-- ai-triage:dedupe -->` marker and a `Duplicate of #N` line, aged
+# >= 14 days. Three vetoes, any one of which blocks the close forever or until it
 # clears: a non-bot comment after the marker, a 👎 reaction on the marker
 # comment, or a `reopened` event in the issue timeline (a reopened issue is
 # never auto-closed again).
