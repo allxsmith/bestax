@@ -45,7 +45,7 @@
     "semantic-release": "^25.0.2",
     "ts-jest": "^29.4.6",
     "turbo": "^2.7.3",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "wrangler": "^4.0.0"
   },
   "keywords": [
