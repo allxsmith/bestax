@@ -32,6 +32,10 @@ minimumReleaseAge: 4320
 # (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
   - prettier
+  # Urgent security patch (GHSA-v2hh-gcrm-f6hx + host-confusion sibling):
+  # 3.1.4 published 2026-07-19, forced via the override below before the
+  # cooldown elapses. Remove from this list after 2026-07-22.
+  - fast-uri
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -46,6 +50,15 @@ overrides:
   'brace-expansion@<1.1.16': '>=1.1.16 <2'
   'brace-expansion@>=2.0.0 <2.1.2': '>=2.1.2 <3'
   'brace-expansion@>=3.0.0 <5.0.7': '>=5.0.7 <6'
+  # Force patched fast-uri (transitive via ajv across commitlint/webpack/
+  # storybook) — two high host-confusion advisories incl. GHSA-v2hh-gcrm-f6hx.
+  'fast-uri@>=3.0.0 <3.1.4': '>=3.1.4 <4'
+  # Force patched svgo (transitive via Docusaurus image tooling) — high
+  # advisory: removeScripts leaves executable content.
+  'svgo@>=3.0.0 <3.3.4': '>=3.3.4 <4'
+  # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
+  # tooling with its native build blocked above) — high libvips CVEs.
+  'sharp@<0.35.0': '>=0.35.0'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
