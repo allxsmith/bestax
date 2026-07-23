@@ -34,8 +34,8 @@
     "react-shadow": "^20.6.0"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.9.2",
-    "@docusaurus/types": "^3.9.2",
+    "@docusaurus/module-type-aliases": "^3.10.2",
+    "@docusaurus/types": "^3.10.2",
     "docusaurus-plugin-llms": "^0.4.0",
     "raw-loader": "^4.0.2"
   },
