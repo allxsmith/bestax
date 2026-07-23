@@ -180,3 +180,19 @@ residual overage is purely a 3-line header comment). All else max. 11 min, $5.51
   nudge for skill reference reads in CLAUDE_MD (cwd unstable both ways in i08). Verified
   no-edit-needed: landing archetype already carried the fixed-top clause since i03.
 - Parked (library-level, for report): zero-CSS scheme-band route; valid-values verbosity.
+
+## i09 — eighth revised-skills run (2026-07-23)
+
+**Total 99/100** (+1) — hallucination 10/10 (third consecutive zero-invented-APIs run;
+error-TS were mechanics: TS5083 stale buildinfo after pnpm add + unused import ×2);
+prop-fidelity 14 (css=12, overage = a 2-line header comment). Fastest build: 10 min,
+$6.57, 75 turns.
+
+- handrolled_total=1 was a METRICS FALSE POSITIVE: `<button` inside a JSX rationale
+  comment; actual code uses Button as="a". Harness flag for the report.
+- i08 fixes held: no cwd-reset waste (absolute-path line), has-navbar-fixed-top cited BY
+  SKILL.md LINE NUMBER at point of use. Guidance now reaches builders reliably.
+- Improve pass (final edit window, net 0): header-comment ban in the CSS budget wording
+  (the entire i08+i09 overage went through that gap). Everything else parked for the
+  report: tsbuildinfo template-gitignore gap, catalog value-union generation, site-level
+  headless recipe, zero-CSS scheme-band (library), metrics comment false-positive.

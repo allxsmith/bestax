@@ -1,0 +1,12 @@
+/* Two decorative rules only; every value derives from --bulma-* so Theme and
+   dark mode keep working. Bulma ships the reset — nothing else belongs here. */
+.hero-wash {
+  background-image: radial-gradient(
+    58rem 30rem at 18% -12%,
+    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 55% / 0.26),
+    transparent 62%
+  );
+}
+.section-alt {
+  background: var(--bulma-scheme-main-bis); /* next band down: -ter */
+}

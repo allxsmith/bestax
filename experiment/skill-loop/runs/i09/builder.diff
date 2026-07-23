@@ -1,0 +1,2440 @@
+diff --git a/index.html b/index.html
+index 0419f7e..25fd150 100644
+--- a/index.html
++++ b/index.html
+@@ -1,13 +1,19 @@
+ <!doctype html>
+-<html lang="en">
++<!-- has-navbar-fixed-top pairs with <Navbar fixed="top"> — Bulma offsets the page
++     from the fixed bar with this class; no component renders <html>. -->
++<html lang="en" class="has-navbar-fixed-top">
+   <head>
+     <meta charset="UTF-8" />
+-    <link rel="icon" type="image/svg+xml" href="/bestax.svg" />
++    <link rel="icon" type="image/svg+xml" href="/netadyne.svg" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <title>Bestax + Vite + React</title>
++    <meta
++      name="description"
++      content="Skynet by Netadyne — a frontier language model that scores 10x Fable on every benchmark we publish. 10M-token context, sub-100ms first token, deploy anywhere."
++    />
++    <title>Skynet by Netadyne — the 10x frontier model</title>
+   </head>
+   <body>
+     <div id="root"></div>
+     <script type="module" src="/src/main.tsx"></script>
+   </body>
+-</html>
+\ No newline at end of file
++</html>
+diff --git a/package.json b/package.json
+index 1ab5faa..1d03f01 100644
+--- a/package.json
++++ b/package.json
+@@ -11,6 +11,7 @@
+   },
+   "dependencies": {
+     "@allxsmith/bestax-bulma": "^5.0.0",
++    "@fortawesome/fontawesome-free": "^7.3.1",
+     "react": "^19.2.3",
+     "react-dom": "^19.2.3"
+   },
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 0231c76..7bb625f 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -10,7 +10,10 @@ importers:
+     dependencies:
+       '@allxsmith/bestax-bulma':
+         specifier: ^5.0.0
+-        version: 5.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++        version: 5.8.0(@fortawesome/fontawesome-free@7.3.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++      '@fortawesome/fontawesome-free':
++        specifier: ^7.3.1
++        version: 7.3.1
+       react:
+         specifier: ^19.2.3
+         version: 19.2.8
+@@ -192,6 +195,10 @@ packages:
+     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
+     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+ 
++  '@fortawesome/fontawesome-free@7.3.1':
++    resolution: {integrity: sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg==}
++    engines: {node: '>=6'}
++
+   '@humanfs/core@0.19.2':
+     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
+     engines: {node: '>=18.18.0'}
+@@ -947,11 +954,13 @@ packages:
+ 
+ snapshots:
+ 
+-  '@allxsmith/bestax-bulma@5.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
++  '@allxsmith/bestax-bulma@5.8.0(@fortawesome/fontawesome-free@7.3.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+     dependencies:
+       bulma: 1.0.4
+       react: 19.2.8
+       react-dom: 19.2.8(react@19.2.8)
++    optionalDependencies:
++      '@fortawesome/fontawesome-free': 7.3.1
+ 
+   '@babel/code-frame@7.29.7':
+     dependencies:
+@@ -1103,6 +1112,8 @@ snapshots:
+       '@eslint/core': 1.2.1
+       levn: 0.4.1
+ 
++  '@fortawesome/fontawesome-free@7.3.1': {}
++
+   '@humanfs/core@0.19.2':
+     dependencies:
+       '@humanfs/types': 0.15.0
+diff --git a/public/netadyne.svg b/public/netadyne.svg
+new file mode 100644
+index 0000000..8a15dd4
+--- /dev/null
++++ b/public/netadyne.svg
+@@ -0,0 +1,13 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Netadyne">
++  <defs>
++    <linearGradient id="n" x1="0" y1="0" x2="1" y2="1">
++      <stop offset="0" stop-color="#7b5cff" />
++      <stop offset="1" stop-color="#22d3ee" />
++    </linearGradient>
++  </defs>
++  <rect width="64" height="64" rx="14" fill="url(#n)" />
++  <path
++    d="M18 45V19h6l16 18V19h6v26h-6L24 27v18z"
++    fill="#0b0b14"
++  />
++</svg>
+diff --git a/src/App.css b/src/App.css
+deleted file mode 100644
+index 1beafa5..0000000
+--- a/src/App.css
++++ /dev/null
+@@ -1 +0,0 @@
+-/* App-specific styles - keep minimal, let Bulma handle the styling */
+\ No newline at end of file
+diff --git a/src/App.tsx b/src/App.tsx
+index bd315aa..2c7ed78 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,144 +1,68 @@
+-import { useState } from 'react';
+-import {
+-  Box,
+-  Button,
+-  Image,
+-  Title,
+-  SubTitle,
+-  Notification,
+-  Columns,
+-  Column,
+-  Container,
+-  Section,
+-  Card,
+-  Buttons,
+-} from '@allxsmith/bestax-bulma';
+-import './App.css';
++import { useEffect, useState } from 'react';
++import { ConfigProvider, Theme } from '@allxsmith/bestax-bulma';
++import { SiteNavbar } from './components/SiteNavbar';
++import { SiteFooter } from './components/SiteFooter';
++import { HomePage } from './pages/HomePage';
++import { ModelsPage } from './pages/ModelsPage';
++import { BenchmarksPage } from './pages/BenchmarksPage';
++import { PricingPage } from './pages/PricingPage';
++import { ContactPage } from './pages/ContactPage';
++import { NAV_PAGES, type PageId } from './data/site';
+ 
+-function App() {
+-  const [showNotification, setShowNotification] = useState(false);
+-  const [count, setCount] = useState(0);
+-
+-  return (
+-    <>
+-      <Container breakpoint="desktop" isMax>
+-        <Section>
+-          <Columns isCentered>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/bestax.svg" alt="Bestax" size="128x128" />
+-            </Column>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/vite.svg" alt="Vite" size="128x128" />
+-            </Column>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/react.svg" alt="React" size="128x128" />
+-            </Column>
+-          </Columns>
+-          <Title size="1" textAlign="centered">
+-            Bestax + Vite + React
+-          </Title>
+-        </Section>
+-
+-        <Box>
+-          <Title size="3">Get Started</Title>
+-          <SubTitle size="5" textColor="grey">
+-            This template includes everything you need to build with
+-            bestax-bulma
+-          </SubTitle>
+-        </Box>
+-
+-        <Columns>
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Quick Start</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Edit src/App.tsx and save to test HMR updates.
+-              </Card.Content>
+-            </Card>
+-          </Column>
+-
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Documentation</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Visit{' '}
+-                <a
+-                  href="https://bestax.io"
+-                  target="_blank"
+-                  rel="noopener noreferrer"
+-                >
+-                  bestax.io
+-                </a>{' '}
+-                for component docs.
+-              </Card.Content>
+-            </Card>
+-          </Column>
+-
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Examples</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Check the examples below to see components in action.
+-              </Card.Content>
+-            </Card>
+-          </Column>
+-        </Columns>
+-
+-        <Box>
+-          <Title size="4">Interactive Example</Title>
++/** Hash routing keeps the URL, the back button, and plain <a href> links real. */
++function pageFromHash(): PageId {
++  const id = window.location.hash.replace(/^#\/?/, '');
++  return NAV_PAGES.some(p => p.id === id) ? (id as PageId) : 'home';
++}
+ 
+-          <Columns isVCentered>
+-            <Column size="half">
+-              <Buttons>
+-                <Button
+-                  color="primary"
+-                  onClick={() => setShowNotification(!showNotification)}
+-                >
+-                  Toggle Notification
+-                </Button>
++function App() {
++  const [page, setPage] = useState<PageId>(pageFromHash);
++  const [colorMode, setColorMode] = useState<'light' | 'dark'>('dark');
+ 
+-                <Button color="info" onClick={() => setCount(count + 1)}>
+-                  Count: {count}
+-                </Button>
++  useEffect(() => {
++    const onHashChange = () => {
++      setPage(pageFromHash());
++      window.scrollTo(0, 0);
++    };
++    window.addEventListener('hashchange', onHashChange);
++    return () => window.removeEventListener('hashchange', onHashChange);
++  }, []);
+ 
+-                <Button
+-                  color="warning"
+-                  onClick={() => setCount(0)}
+-                  disabled={count === 0}
+-                >
+-                  Reset
+-                </Button>
+-              </Buttons>
+-            </Column>
++  return (
++    <ConfigProvider iconLibrary="fa">
++      {/* One global theme: Netadyne's violet brand + the scheme the toggle owns.
++          Both modes are supported, so nothing below may use fixed color tokens. */}
++      <Theme
++        isRoot
++        colorMode={colorMode}
++        primaryH="258"
++        primaryS="83%"
++        primaryL="62%"
++        linkH="258"
++        linkS="83%"
++        linkL="62%"
++        infoH="190"
++        infoS="88%"
++        infoL="48%"
++        bulmaVars={{ '--bulma-radius-large': '0.75rem' }}
++      >
++        <SiteNavbar
++          page={page}
++          colorMode={colorMode}
++          onToggleColorMode={() =>
++            setColorMode(mode => (mode === 'dark' ? 'light' : 'dark'))
++          }
++        />
+ 
+-            <Column size="half">
+-              {showNotification && (
+-                <Notification
+-                  color="success"
+-                  isLight
+-                  onDelete={() => setShowNotification(false)}
+-                >
+-                  <strong>Success!</strong> Your Vite + Bestax setup is working
+-                  perfectly!
+-                </Notification>
+-              )}
++        {page === 'home' && <HomePage />}
++        {page === 'models' && <ModelsPage />}
++        {page === 'benchmarks' && <BenchmarksPage />}
++        {page === 'pricing' && <PricingPage />}
++        {page === 'contact' && <ContactPage />}
+ 
+-              {count > 10 && (
+-                <Notification color="info" isLight>
+-                  You've clicked the button {count} times!
+-                </Notification>
+-              )}
+-            </Column>
+-          </Columns>
+-        </Box>
+-      </Container>
+-    </>
++        <SiteFooter />
++      </Theme>
++    </ConfigProvider>
+   );
+ }
+ 
+diff --git a/src/components/SiteFooter.tsx b/src/components/SiteFooter.tsx
+new file mode 100644
+index 0000000..020943d
+--- /dev/null
++++ b/src/components/SiteFooter.tsx
+@@ -0,0 +1,113 @@
++import {
++  Footer,
++  Container,
++  Columns,
++  Column,
++  Title,
++  UnorderedList,
++  ListItem,
++  Link,
++  Image,
++  Strong,
++  Span,
++  Paragraph,
++  Divider,
++  Icon,
++} from '@allxsmith/bestax-bulma';
++
++const LINK_GROUPS: { heading: string; links: { label: string; href: string }[] }[] =
++  [
++    {
++      heading: 'Product',
++      links: [
++        { label: 'Models', href: '#/models' },
++        { label: 'Benchmarks', href: '#/benchmarks' },
++        { label: 'Pricing', href: '#/pricing' },
++        { label: 'Changelog', href: '#/models' },
++      ],
++    },
++    {
++      heading: 'Developers',
++      links: [
++        { label: 'API reference', href: '#/models' },
++        { label: 'Python SDK', href: '#/models' },
++        { label: 'TypeScript SDK', href: '#/models' },
++        { label: 'Eval harness', href: '#/benchmarks' },
++      ],
++    },
++    {
++      heading: 'Company',
++      links: [
++        { label: 'Contact sales', href: '#/contact' },
++        { label: 'Research', href: '#/benchmarks' },
++        { label: 'Careers', href: '#/contact' },
++        { label: 'Trust & safety', href: '#/contact' },
++      ],
++    },
++  ];
++
++export function SiteFooter() {
++  return (
++    <Footer>
++      <Container>
++        <Columns>
++          <Column sizeDesktop={5}>
++            {/* No `gap` helper on flex layouts — the logo carries mr="2". */}
++            <Span display="flex" alignItems="center" mb="3">
++              <Image src="/netadyne.svg" alt="" size="32x32" mr="2" />
++              <Strong textSize="5">Netadyne</Strong>
++            </Span>
++            <Paragraph textColor="grey">
++              Netadyne builds frontier models that finish the job. Skynet is our
++              third-generation family, trained on the Helix-4 cluster in Ames,
++              Iowa.
++            </Paragraph>
++            <Span display="flex" alignItems="center" mt="4">
++              <Link href="#/contact" mr="4" aria-label="Netadyne on GitHub">
++                <Icon name="github" variant="brands" aria-hidden="true" />
++              </Link>
++              <Link href="#/contact" mr="4" aria-label="Netadyne on X">
++                <Icon name="x-twitter" variant="brands" aria-hidden="true" />
++              </Link>
++              <Link href="#/contact" aria-label="Netadyne on LinkedIn">
++                <Icon name="linkedin" variant="brands" aria-hidden="true" />
++              </Link>
++            </Span>
++          </Column>
++
++          {LINK_GROUPS.map(group => (
++            <Column key={group.heading}>
++              <Title as="p" size="6" mb="3">
++                {group.heading}
++              </Title>
++              {/* Bulma's reset already unstyles <ul> — no prop or CSS needed. */}
++              <UnorderedList>
++                {group.links.map(link => (
++                  <ListItem key={link.label} mb="2">
++                    <Link href={link.href} textColor="grey">
++                      {link.label}
++                    </Link>
++                  </ListItem>
++                ))}
++              </UnorderedList>
++            </Column>
++          ))}
++        </Columns>
++
++        <Divider />
++
++        <Paragraph textSize="7" textColor="grey">
++          © 2026 Netadyne Intelligence, Inc. All rights reserved. Netadyne and
++          Skynet are trademarks of Netadyne Intelligence, Inc.
++        </Paragraph>
++        <Paragraph textSize="7" textColor="grey" mt="2">
++          <Strong textColor="grey">Demo site.</Strong> Netadyne and Skynet are
++          fictional, and every benchmark figure, price, quote, and customer on
++          this site is invented to demonstrate a bestax-bulma layout. Fable is a
++          real model from another company; none of the comparisons here reflect
++          any actual measurement of it.
++        </Paragraph>
++      </Container>
++    </Footer>
++  );
++}
+diff --git a/src/components/SiteNavbar.tsx b/src/components/SiteNavbar.tsx
+new file mode 100644
+index 0000000..b6adef3
+--- /dev/null
++++ b/src/components/SiteNavbar.tsx
+@@ -0,0 +1,84 @@
++import { useState } from 'react';
++import {
++  Navbar,
++  Image,
++  Strong,
++  Button,
++  Buttons,
++  Icon,
++} from '@allxsmith/bestax-bulma';
++import { NAV_PAGES, type PageId } from '../data/site';
++
++export interface SiteNavbarProps {
++  page: PageId;
++  colorMode: 'light' | 'dark';
++  onToggleColorMode: () => void;
++}
++
++export function SiteNavbar({
++  page,
++  colorMode,
++  onToggleColorMode,
++}: SiteNavbarProps) {
++  const [open, setOpen] = useState(false);
++  const close = () => setOpen(false);
++
++  return (
++    <Navbar fixed="top" color="dark">
++      <Navbar.Brand>
++        <Navbar.Item href="#/" onClick={close}>
++          <Image src="/netadyne.svg" alt="" size="32x32" mr="2" />
++          <Strong textColor="light" textSize="5">
++            Netadyne
++          </Strong>
++        </Navbar.Item>
++        <Navbar.Burger
++          active={open}
++          onClick={() => setOpen(o => !o)}
++          aria-label="menu"
++        />
++      </Navbar.Brand>
++
++      <Navbar.Menu active={open}>
++        <Navbar.Start>
++          {NAV_PAGES.map(item => (
++            <Navbar.Item
++              key={item.id}
++              href={`#/${item.id}`}
++              active={page === item.id}
++              onClick={close}
++            >
++              {item.label}
++            </Navbar.Item>
++          ))}
++        </Navbar.Start>
++
++        <Navbar.End>
++          <Navbar.Item as="div">
++            <Buttons>
++              <Button
++                color="dark"
++                onClick={onToggleColorMode}
++                aria-label={
++                  colorMode === 'dark'
++                    ? 'Switch to light theme'
++                    : 'Switch to dark theme'
++                }
++              >
++                <Icon
++                  name={colorMode === 'dark' ? 'sun' : 'moon'}
++                  aria-hidden="true"
++                />
++              </Button>
++              {/* `href` alone keeps Button a <button> — `as="a"` is what makes
++                  it a real link. */}
++              <Button color="primary" as="a" href="#/contact" onClick={close}>
++                Get API access
++              </Button>
++            </Buttons>
++          </Navbar.Item>
++        </Navbar.End>
++      </Navbar.Menu>
++    </Navbar>
++  );
++}
+diff --git a/src/components/StatTile.tsx b/src/components/StatTile.tsx
+new file mode 100644
+index 0000000..e19b6a0
+--- /dev/null
++++ b/src/components/StatTile.tsx
+@@ -0,0 +1,55 @@
++import type React from 'react';
++import {
++  Title,
++  Icon,
++  Span,
++  classNames,
++  useBulmaClasses,
++  type BulmaClassesProps,
++} from '@allxsmith/bestax-bulma';
++
++export interface StatTileProps
++  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
++    Omit<BulmaClassesProps, 'color'> {
++  /** The headline figure, e.g. "10.3x". */
++  value: string;
++  /** What the figure measures, e.g. "Average advantage over Fable". */
++  label: string;
++  /** Optional Font Awesome icon name shown above the figure. */
++  icon?: string;
++  /** Bulma color for the figure and icon. */
++  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
++}
++
++/**
++ * A single headline metric. Composition + helper props only — no CSS of its own,
++ * and it takes the same helper props as any library component.
++ */
++export function StatTile({
++  value,
++  label,
++  icon,
++  color = 'primary',
++  className,
++  ...props
++}: StatTileProps) {
++  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
++
++  return (
++    <div
++      className={classNames(bulmaHelperClasses, className)}
++      {...(rest as React.HTMLAttributes<HTMLDivElement>)}
++    >
++      {icon && (
++        <Icon name={icon} textColor={color} mb="2" aria-hidden="true" />
++      )}
++      {/* as="p": these sizes are visual scale, not document structure. */}
++      <Title as="p" size="2" textColor={color} mb="1">
++        {value}
++      </Title>
++      <Span textSize="6" textColor="grey">
++        {label}
++      </Span>
++    </div>
++  );
++}
+diff --git a/src/data/site.ts b/src/data/site.ts
+new file mode 100644
+index 0000000..f8f09a2
+--- /dev/null
++++ b/src/data/site.ts
+@@ -0,0 +1,323 @@
++// All marketing copy and figures for the Netadyne / Skynet site live here so the
++// page components stay layout-only.
++//
++// NOTE: Netadyne and Skynet are fictional. Every benchmark figure below is
++// invented for this demo — see the disclaimer rendered in the site footer.
++
++export type PageId =
++  | 'home'
++  | 'models'
++  | 'benchmarks'
++  | 'pricing'
++  | 'contact';
++
++export const NAV_PAGES: { id: PageId; label: string }[] = [
++  { id: 'models', label: 'Models' },
++  { id: 'benchmarks', label: 'Benchmarks' },
++  { id: 'pricing', label: 'Pricing' },
++  { id: 'contact', label: 'Contact sales' },
++];
++
++/**
++ * Scores are Netadyne Eval Index points on a 0–1000 scale, which is what makes
++ * a 10x headline expressible at all (a 0–100 accuracy percentage caps out).
++ */
++export interface Benchmark {
++  id: string;
++  name: string;
++  domain: string;
++  skynet: number;
++  fable: number;
++}
++
++export const BENCHMARKS: Benchmark[] = [
++  {
++    id: 'mmlu-pro',
++    name: 'MMLU-Pro',
++    domain: 'Graduate-level reasoning',
++    skynet: 872,
++    fable: 86,
++  },
++  {
++    id: 'gpqa',
++    name: 'GPQA Diamond',
++    domain: 'Expert science Q&A',
++    skynet: 806,
++    fable: 79,
++  },
++  {
++    id: 'swe-bench',
++    name: 'SWE-bench Verified',
++    domain: 'Agentic software engineering',
++    skynet: 861,
++    fable: 82,
++  },
++  {
++    id: 'terminal-bench',
++    name: 'Terminal-Bench',
++    domain: 'Computer & shell use',
++    skynet: 597,
++    fable: 58,
++  },
++  {
++    id: 'aime',
++    name: 'AIME 2026',
++    domain: 'Competition mathematics',
++    skynet: 928,
++    fable: 91,
++  },
++  {
++    id: 'mmmu',
++    name: 'MMMU',
++    domain: 'Multimodal understanding',
++    skynet: 785,
++    fable: 77,
++  },
++  {
++    id: 'longbench',
++    name: 'LongBench-10M',
++    domain: 'Long-context retrieval',
++    skynet: 762,
++    fable: 74,
++  },
++  {
++    id: 'tau-bench',
++    name: 'τ-bench (retail + airline)',
++    domain: 'Multi-turn tool use',
++    skynet: 834,
++    fable: 81,
++  },
++];
++
++/** Rounded advantage multiple, e.g. 10.1 — recomputed, never hand-typed. */
++export const advantage = (b: Benchmark) =>
++  Math.round((b.skynet / b.fable) * 10) / 10;
++
++export interface Model {
++  id: string;
++  name: string;
++  tagline: string;
++  context: string;
++  output: string;
++  latency: string;
++  inputPrice: string;
++  outputPrice: string;
++  bestFor: string[];
++  icon: string;
++  color: 'primary' | 'info' | 'success';
++}
++
++export const MODELS: Model[] = [
++  {
++    id: 'nano',
++    name: 'Skynet Nano',
++    tagline: 'Real-time intelligence at classification prices.',
++    context: '1M tokens',
++    output: '64K tokens',
++    latency: '38 ms TTFT',
++    inputPrice: '$0.20',
++    outputPrice: '$1.00',
++    bestFor: ['Routing & classification', 'Autocomplete', 'High-volume extraction'],
++    icon: 'bolt',
++    color: 'info',
++  },
++  {
++    id: 'pro',
++    name: 'Skynet Pro',
++    tagline: 'The everyday workhorse for production agents.',
++    context: '2M tokens',
++    output: '128K tokens',
++    latency: '71 ms TTFT',
++    inputPrice: '$2.50',
++    outputPrice: '$12.00',
++    bestFor: ['Coding agents', 'RAG over private corpora', 'Customer operations'],
++    icon: 'rocket',
++    color: 'primary',
++  },
++  {
++    id: 'max',
++    name: 'Skynet Max',
++    tagline: 'Our frontier model. 10x Fable on every benchmark we run.',
++    context: '10M tokens',
++    output: '256K tokens',
++    latency: '96 ms TTFT',
++    inputPrice: '$9.00',
++    outputPrice: '$45.00',
++    bestFor: ['Autonomous research', 'Whole-repository refactors', 'Formal verification'],
++    icon: 'brain',
++    color: 'success',
++  },
++];
++
++export interface Feature {
++  icon: string;
++  title: string;
++  body: string;
++}
++
++export const FEATURES: Feature[] = [
++  {
++    icon: 'layer-group',
++    title: '10M-token context',
++    body: 'Load an entire monorepo, a decade of filings, or a full patient history in one call — with no retrieval scaffolding to maintain.',
++  },
++  {
++    icon: 'screwdriver-wrench',
++    title: 'Tool use that finishes',
++    body: 'Skynet plans, calls, retries, and verifies across hundreds of steps. Median agent trajectories complete without a human takeover.',
++  },
++  {
++    icon: 'gauge-high',
++    title: 'Sub-100 ms first token',
++    body: 'Netadyne runs its own inference fabric on dedicated silicon, so frontier quality no longer means frontier latency.',
++  },
++  {
++    icon: 'lock',
++    title: 'Zero-retention by default',
++    body: 'Prompts and completions are never persisted, never trained on. SOC 2 Type II, ISO 27001, HIPAA, and GDPR from day one.',
++  },
++  {
++    icon: 'server',
++    title: 'Runs where your data lives',
++    body: 'Netadyne Cloud, your VPC, or fully air-gapped on-premises — the same weights and the same API surface in all three.',
++  },
++  {
++    icon: 'chart-line',
++    title: 'Evals, not vibes',
++    body: 'Ship with the Netadyne eval harness: deterministic replay, regression gates in CI, and per-release scorecards.',
++  },
++];
++
++export interface Tier {
++  id: string;
++  name: string;
++  price: string;
++  cadence: string;
++  blurb: string;
++  cta: string;
++  featured: boolean;
++  includes: string[];
++}
++
++export const TIERS: Tier[] = [
++  {
++    id: 'developer',
++    name: 'Developer',
++    price: '$0',
++    cadence: 'pay per token',
++    blurb: 'Everything you need to get a prototype in front of people this week.',
++    cta: 'Start building',
++    featured: false,
++    includes: [
++      'All three Skynet models',
++      '500K free tokens per month',
++      '60 requests / minute',
++      'Community support',
++    ],
++  },
++  {
++    id: 'team',
++    name: 'Team',
++    price: '$60',
++    cadence: 'per seat / month',
++    blurb: 'For engineering teams running Skynet in production with real traffic.',
++    cta: 'Start 30-day trial',
++    featured: true,
++    includes: [
++      'Everything in Developer',
++      '10,000 requests / minute',
++      'Shared prompt & eval workspace',
++      'Batch API at 50% off',
++      '99.9% uptime SLA',
++    ],
++  },
++  {
++    id: 'enterprise',
++    name: 'Enterprise',
++    price: 'Custom',
++    cadence: 'annual commitment',
++    blurb: 'Dedicated capacity, deployment in your environment, and a named team.',
++    cta: 'Talk to sales',
++    featured: false,
++    includes: [
++      'Everything in Team',
++      'Provisioned throughput',
++      'VPC or air-gapped deployment',
++      'Custom fine-tuning',
++      '99.99% SLA + 24/7 on-call',
++    ],
++  },
++];
++
++export interface Quote {
++  body: string;
++  name: string;
++  role: string;
++  initials: string;
++}
++
++export const QUOTES: Quote[] = [
++  {
++    body: 'We replaced a seven-model pipeline with one Skynet Max call. The eval scores went up and our inference bill went down by two thirds.',
++    name: 'Priya Raghunathan',
++    role: 'VP Engineering, Halcyon Systems',
++    initials: 'PR',
++  },
++  {
++    body: 'Ten million tokens of context meant we stopped building retrieval infrastructure entirely. That was four engineers we got back.',
++    name: 'Dez Okonkwo',
++    role: 'Head of AI, Marrow Financial',
++    initials: 'DO',
++  },
++  {
++    body: 'The agent finishes the ticket. That sounds small until you have watched every other model stall on step forty.',
++    name: 'Ingrid Sørensen',
++    role: 'Staff Engineer, Kestrel Robotics',
++    initials: 'IS',
++  },
++];
++
++export interface Faq {
++  q: string;
++  a: string;
++}
++
++export const FAQS: Faq[] = [
++  {
++    q: 'What exactly does "10x Fable" mean?',
++    a: 'Every benchmark on this site is scored on the Netadyne Eval Index, a 0–1000 point scale weighted by task difficulty and by how many steps a model completes unaided. On that scale Skynet Max scores at least 10.0x Fable on all eight suites we publish. Percentage-accuracy scores are also in the full report.',
++  },
++  {
++    q: 'Can I bring my own data without it being trained on?',
++    a: 'Yes. Zero retention is the default on every plan, not an enterprise upsell. Nothing you send is logged beyond the request lifetime or used for training, and you can attest to that with our per-request retention headers.',
++  },
++  {
++    q: 'How do I migrate from another provider?',
++    a: 'The Netadyne API is OpenAI- and Anthropic-message-shape compatible. Most teams change a base URL, a model string, and an API key. Our migration guide covers tool-call and streaming differences in about fifteen minutes of reading.',
++  },
++  {
++    q: 'What happens if I exceed my rate limit?',
++    a: 'Requests queue rather than fail, up to your burst ceiling, and you get a Retry-After header. Team and Enterprise plans can also route overflow to the Batch API automatically at half the token price.',
++  },
++  {
++    q: 'Is there a free tier for research?',
++    a: 'Netadyne for Research grants 250M tokens per quarter to accredited academic labs, plus early access to unreleased checkpoints under NDA. Apply through the contact form and mention your institution.',
++  },
++];
++
++export const CODE_SAMPLE = `from netadyne import Netadyne
++
++client = Netadyne(api_key=os.environ["NETADYNE_API_KEY"])
++
++response = client.messages.create(
++    model="skynet-max",
++    max_tokens=4096,
++    tools=[repo_search, run_tests, open_pull_request],
++    messages=[{
++        "role": "user",
++        "content": "Port the billing service off the legacy "
++                   "scheduler and open a PR when tests are green.",
++    }],
++)
++
++print(response.content[0].text)`;
+diff --git a/src/index.css b/src/index.css
+index c6a0ac1..3b10c3b 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1,4 +1,12 @@
+-/* Reset and base styles - minimal, Bulma handles most styling */
+-body {
+-  margin: 0;
+-}
+\ No newline at end of file
++/* Two decorative rules only; every value derives from --bulma-* so Theme and
++   dark mode keep working. Bulma ships the reset — nothing else belongs here. */
++.hero-wash {
++  background-image: radial-gradient(
++    58rem 30rem at 18% -12%,
++    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 55% / 0.26),
++    transparent 62%
++  );
++}
++.section-alt {
++  background: var(--bulma-scheme-main-bis); /* next band down: -ter */
++}
+diff --git a/src/main.tsx b/src/main.tsx
+index 6e55ed9..cf61b97 100644
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -4,6 +4,7 @@ import App from './App.tsx';
+ 
+ // Import CSS
+ import '@allxsmith/bestax-bulma/bestax.css';
++import '@fortawesome/fontawesome-free/css/all.min.css';
+ import './index.css';
+ 
+ createRoot(document.getElementById('root')!).render(
+diff --git a/src/pages/BenchmarksPage.tsx b/src/pages/BenchmarksPage.tsx
+new file mode 100644
+index 0000000..9e72fca
+--- /dev/null
++++ b/src/pages/BenchmarksPage.tsx
+@@ -0,0 +1,253 @@
++import {
++  Hero,
++  Section,
++  Container,
++  Grid,
++  Cell,
++  Box,
++  Table,
++  Title,
++  SubTitle,
++  Span,
++  Strong,
++  Tag,
++  Progress,
++  Message,
++  Button,
++  Buttons,
++  Content,
++} from '@allxsmith/bestax-bulma';
++import { BENCHMARKS, advantage } from '../data/site';
++import { StatTile } from '../components/StatTile';
++
++const advantages = BENCHMARKS.map(advantage);
++const lowest = Math.min(...advantages).toFixed(1);
++const highest = Math.max(...advantages).toFixed(1);
++const average = (
++  advantages.reduce((sum, x) => sum + x, 0) / advantages.length
++).toFixed(1);
++
++export function BenchmarksPage() {
++  return (
++    <>
++      <Hero className="hero-wash">
++        <Hero.Body>
++          <Container>
++            <Tag color="primary" isRounded mb="4">
++              Netadyne Eval Report · Q3 2026
++            </Tag>
++            <Title size="1">Every suite. Ten times over.</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Skynet Max against Fable on the eight public suites we run, scored
++              on the Netadyne Eval Index.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section className="section-alt">
++        <Container>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={3} gap={5}>
++            <Cell>
++              <StatTile
++                icon="arrow-trend-up"
++                value={`${average}x`}
++                label="Mean advantage across all eight suites"
++              />
++            </Cell>
++            <Cell>
++              <StatTile
++                icon="arrow-down-short-wide"
++                value={`${lowest}x`}
++                label="Narrowest margin we measured"
++                color="info"
++              />
++            </Cell>
++            <Cell>
++              <StatTile
++                icon="arrow-up-wide-short"
++                value={`${highest}x`}
++                label="Widest margin we measured"
++                color="success"
++              />
++            </Cell>
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Title size="2" mb="5">
++            Full results
++          </Title>
++
++          <Box>
++            <Table isFullwidth isHoverable isResponsive>
++              <Table.Thead>
++                <Table.Tr>
++                  <Table.Th>Suite</Table.Th>
++                  <Table.Th>Domain</Table.Th>
++                  <Table.Th textAlign="right">Skynet Max</Table.Th>
++                  <Table.Th textAlign="right">Fable</Table.Th>
++                  <Table.Th textAlign="right">Advantage</Table.Th>
++                </Table.Tr>
++              </Table.Thead>
++              <Table.Tbody>
++                {BENCHMARKS.map(benchmark => (
++                  <Table.Tr key={benchmark.id}>
++                    <Table.Th>{benchmark.name}</Table.Th>
++                    <Table.Td>
++                      <Span textColor="grey">{benchmark.domain}</Span>
++                    </Table.Td>
++                    <Table.Td textAlign="right" textWeight="semibold">
++                      {benchmark.skynet}
++                    </Table.Td>
++                    <Table.Td textAlign="right">
++                      <Span textColor="grey">{benchmark.fable}</Span>
++                    </Table.Td>
++                    <Table.Td textAlign="right">
++                      <Tag color="primary" isRounded>
++                        {advantage(benchmark)}x
++                      </Tag>
++                    </Table.Td>
++                  </Table.Tr>
++                ))}
++              </Table.Tbody>
++              <Table.Tfoot>
++                <Table.Tr>
++                  <Table.Th>Mean</Table.Th>
++                  <Table.Td />
++                  <Table.Td textAlign="right" textWeight="semibold">
++                    {Math.round(
++                      BENCHMARKS.reduce((s, b) => s + b.skynet, 0) /
++                        BENCHMARKS.length
++                    )}
++                  </Table.Td>
++                  <Table.Td textAlign="right">
++                    <Span textColor="grey">
++                      {Math.round(
++                        BENCHMARKS.reduce((s, b) => s + b.fable, 0) /
++                          BENCHMARKS.length
++                      )}
++                    </Span>
++                  </Table.Td>
++                  <Table.Td textAlign="right">
++                    <Strong textColor="primary">{average}x</Strong>
++                  </Table.Td>
++                </Table.Tr>
++              </Table.Tfoot>
++            </Table>
++          </Box>
++        </Container>
++      </Section>
++
++      <Section size="large" className="section-alt">
++        <Container>
++          <Title size="2" mb="6">
++            Suite by suite
++          </Title>
++
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={2} gap={5}>
++            {BENCHMARKS.map(benchmark => (
++              <Cell key={benchmark.id} display="flex" flexDirection="column">
++                <Box flexGrow="1">
++                  <Span
++                    display="flex"
++                    alignItems="baseline"
++                    justifyContent="space-between"
++                    mb="1"
++                  >
++                    <Strong textSize="5">{benchmark.name}</Strong>
++                    <Tag color="primary" isRounded>
++                      {advantage(benchmark)}x
++                    </Tag>
++                  </Span>
++                  <Span display="block" textSize="7" textColor="grey" mb="4">
++                    {benchmark.domain}
++                  </Span>
++
++                  <Span display="block" mb="3">
++                    <Span
++                      display="flex"
++                      justifyContent="space-between"
++                      textSize="7"
++                      mb="1"
++                    >
++                      <Span>Skynet Max</Span>
++                      <Strong>{benchmark.skynet}</Strong>
++                    </Span>
++                    <Progress
++                      color="primary"
++                      value={benchmark.skynet}
++                      max={1000}
++                      aria-label={`Skynet Max on ${benchmark.name}`}
++                    />
++                  </Span>
++
++                  <Span display="block">
++                    <Span
++                      display="flex"
++                      justifyContent="space-between"
++                      textSize="7"
++                      mb="1"
++                    >
++                      <Span textColor="grey">Fable</Span>
++                      <Span textColor="grey">{benchmark.fable}</Span>
++                    </Span>
++                    <Progress
++                      value={benchmark.fable}
++                      max={1000}
++                      aria-label={`Fable on ${benchmark.name}`}
++                    />
++                  </Span>
++                </Box>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Title size="2" mb="5">
++            Methodology
++          </Title>
++          <Content>
++            <p>
++              Scores are Netadyne Eval Index points on a 0–1000 scale. The index
++              weights each task by difficulty and by how many steps a model
++              completes without human intervention, which is why it separates
++              models that a plain accuracy percentage compresses together.
++            </p>
++            <p>
++              Every run is a single attempt, temperature 0, no majority voting,
++              no test-time search, and no suite-specific prompting. Tool-using
++              suites get the same sandbox and the same 45-minute wall clock for
++              both models. Raw transcripts for all 12,400 runs ship with the
++              eval harness.
++            </p>
++          </Content>
++
++          <Message color="warning" mt="5">
++            <Message.Header>Read this before you quote the numbers</Message.Header>
++            <Message.Body>
++              This is a demonstration site. Netadyne and Skynet do not exist,
++              the Netadyne Eval Index is not a real benchmark, and no model was
++              measured to produce this table. Fable is a real model made by
++              another company; nothing here describes its actual performance.
++            </Message.Body>
++          </Message>
++
++          <Buttons mt="6">
++            <Button color="primary" size="medium" as="a" href="#/contact">
++              Request the full report
++            </Button>
++            <Button size="medium" as="a" href="#/models">
++              Compare the models
++            </Button>
++          </Buttons>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/ContactPage.tsx b/src/pages/ContactPage.tsx
+new file mode 100644
+index 0000000..48f6cd4
+--- /dev/null
++++ b/src/pages/ContactPage.tsx
+@@ -0,0 +1,304 @@
++import { useState } from 'react';
++import {
++  Hero,
++  Section,
++  Container,
++  Columns,
++  Column,
++  Box,
++  Title,
++  SubTitle,
++  Paragraph,
++  Span,
++  Strong,
++  Button,
++  Input,
++  Select,
++  TextArea,
++  Checkbox,
++  Field,
++  Notification,
++  Icon,
++  IconText,
++  Divider,
++} from '@allxsmith/bestax-bulma';
++
++const TEAM_SIZES = ['1–10', '11–50', '51–250', '251–1,000', '1,000+'];
++const VOLUMES = [
++  'Still evaluating',
++  'Under 50M tokens / month',
++  '50M – 500M tokens / month',
++  '500M – 5B tokens / month',
++  'Over 5B tokens / month',
++];
++
++const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
++
++interface FormState {
++  name: string;
++  email: string;
++  company: string;
++  teamSize: string;
++  volume: string;
++  message: string;
++  updates: boolean;
++}
++
++const EMPTY: FormState = {
++  name: '',
++  email: '',
++  company: '',
++  teamSize: TEAM_SIZES[0],
++  volume: VOLUMES[0],
++  message: '',
++  updates: true,
++};
++
++/** No validation library ships with bestax — errors are computed here and fed
++ *  back through each input's own color / message / messageColor props. */
++function validate(form: FormState) {
++  return {
++    name: form.name.trim() ? undefined : 'Tell us who to reply to.',
++    email: EMAIL_RE.test(form.email)
++      ? undefined
++      : 'Enter a valid work email address.',
++    company: form.company.trim() ? undefined : 'Which company is this for?',
++    message:
++      form.message.trim().length >= 20
++        ? undefined
++        : 'A sentence or two about what you are building helps us route this.',
++  };
++}
++
++export function ContactPage() {
++  const [form, setForm] = useState<FormState>(EMPTY);
++  const [touched, setTouched] = useState<Record<string, boolean>>({});
++  const [submitted, setSubmitted] = useState(false);
++
++  const errors = validate(form);
++  const show = (field: keyof typeof errors) =>
++    touched[field] ? errors[field] : undefined;
++
++  const set = <K extends keyof FormState>(field: K, value: FormState[K]) =>
++    setForm(prev => ({ ...prev, [field]: value }));
++  const blur = (field: string) =>
++    setTouched(prev => ({ ...prev, [field]: true }));
++
++  const handleSubmit = (event: React.FormEvent) => {
++    event.preventDefault();
++    setTouched({ name: true, email: true, company: true, message: true });
++    if (Object.values(errors).every(error => !error)) {
++      setSubmitted(true);
++      setForm(EMPTY);
++      setTouched({});
++    }
++  };
++
++  return (
++    <>
++      <Hero className="hero-wash">
++        <Hero.Body>
++          <Container>
++            <Title size="1">Talk to Netadyne</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Tell us what you are building and a solutions engineer replies
++              within one business day — not a sequence of drip emails.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section size="large">
++        <Container>
++          <Columns>
++            <Column sizeDesktop={7}>
++              <Box>
++                {submitted && (
++                  <Notification
++                    color="success"
++                    isLight
++                    onDelete={() => setSubmitted(false)}
++                  >
++                    <Strong>Thanks — that's in.</Strong> A solutions engineer
++                    will email you within one business day. Nothing was actually
++                    sent: this is a demo form.
++                  </Notification>
++                )}
++
++                <form onSubmit={handleSubmit} noValidate>
++                  <Columns>
++                    <Column sizeTablet="half">
++                      <Input
++                        id="contact-name"
++                        label="Full name"
++                        labelProps={{ htmlFor: 'contact-name' }}
++                        placeholder="Ada Lovelace"
++                        value={form.name}
++                        onChange={event => set('name', event.target.value)}
++                        onBlur={() => blur('name')}
++                        color={show('name') ? 'danger' : undefined}
++                        message={show('name')}
++                        messageColor={show('name') ? 'danger' : undefined}
++                      />
++                    </Column>
++                    <Column sizeTablet="half">
++                      <Input
++                        id="contact-email"
++                        type="email"
++                        label="Work email"
++                        labelProps={{ htmlFor: 'contact-email' }}
++                        placeholder="you@company.com"
++                        iconLeftName="envelope"
++                        value={form.email}
++                        onChange={event => set('email', event.target.value)}
++                        onBlur={() => blur('email')}
++                        color={show('email') ? 'danger' : undefined}
++                        message={show('email')}
++                        messageColor={show('email') ? 'danger' : undefined}
++                      />
++                    </Column>
++                  </Columns>
++
++                  <Input
++                    id="contact-company"
++                    label="Company"
++                    labelProps={{ htmlFor: 'contact-company' }}
++                    placeholder="Halcyon Systems"
++                    iconLeftName="building"
++                    value={form.company}
++                    onChange={event => set('company', event.target.value)}
++                    onBlur={() => blur('company')}
++                    color={show('company') ? 'danger' : undefined}
++                    message={show('company')}
++                    messageColor={show('company') ? 'danger' : undefined}
++                  />
++
++                  <Columns>
++                    <Column sizeTablet="half">
++                      <Select
++                        id="contact-team-size"
++                        label="Engineering team size"
++                        labelProps={{ htmlFor: 'contact-team-size' }}
++                        isFullwidth
++                        value={form.teamSize}
++                        onChange={event => set('teamSize', event.target.value)}
++                      >
++                        {TEAM_SIZES.map(size => (
++                          <option key={size} value={size}>
++                            {size}
++                          </option>
++                        ))}
++                      </Select>
++                    </Column>
++                    <Column sizeTablet="half">
++                      <Select
++                        id="contact-volume"
++                        label="Expected volume"
++                        labelProps={{ htmlFor: 'contact-volume' }}
++                        isFullwidth
++                        value={form.volume}
++                        onChange={event => set('volume', event.target.value)}
++                      >
++                        {VOLUMES.map(volume => (
++                          <option key={volume} value={volume}>
++                            {volume}
++                          </option>
++                        ))}
++                      </Select>
++                    </Column>
++                  </Columns>
++
++                  <TextArea
++                    id="contact-message"
++                    label="What are you building?"
++                    labelProps={{ htmlFor: 'contact-message' }}
++                    placeholder="We run a coding agent over a 4M-line monorepo and keep losing trajectories around step forty…"
++                    rows={5}
++                    value={form.message}
++                    onChange={event => set('message', event.target.value)}
++                    onBlur={() => blur('message')}
++                    color={show('message') ? 'danger' : undefined}
++                    message={show('message')}
++                    messageColor={show('message') ? 'danger' : undefined}
++                  />
++
++                  <Field mt="4">
++                    <Checkbox
++                      checked={form.updates}
++                      onChange={event => set('updates', event.target.checked)}
++                    >
++                      <Span ml="2">
++                        Send me the Netadyne research digest, roughly monthly.
++                      </Span>
++                    </Checkbox>
++                  </Field>
++
++                  <Button color="primary" size="medium" type="submit" mt="5">
++                    Send message
++                  </Button>
++                </form>
++              </Box>
++            </Column>
++
++            <Column sizeDesktop={5}>
++              <Box>
++                <Title as="p" size="5">
++                  Other ways in
++                </Title>
++                <Divider />
++
++                <Span display="block" mb="4">
++                  <IconText
++                    iconProps={{ name: 'headset', 'aria-hidden': 'true' }}
++                  >
++                    <Strong>Enterprise sales</Strong>
++                  </IconText>
++                  <Paragraph textColor="grey" textSize="7" mt="1">
++                    Provisioned throughput, VPC and air-gapped deployment,
++                    custom fine-tuning, and 24/7 on-call.
++                  </Paragraph>
++                </Span>
++
++                <Span display="block" mb="4">
++                  <IconText
++                    iconProps={{ name: 'flask', 'aria-hidden': 'true' }}
++                  >
++                    <Strong>Netadyne for Research</Strong>
++                  </IconText>
++                  <Paragraph textColor="grey" textSize="7" mt="1">
++                    250M tokens a quarter for accredited academic labs, plus
++                    early checkpoints under NDA. Mention your institution.
++                  </Paragraph>
++                </Span>
++
++                <Span display="block" mb="4">
++                  <IconText
++                    iconProps={{
++                      name: 'shield-halved',
++                      'aria-hidden': 'true',
++                    }}
++                  >
++                    <Strong>Security & trust</Strong>
++                  </IconText>
++                  <Paragraph textColor="grey" textSize="7" mt="1">
++                    SOC 2 Type II and ISO 27001 reports, our DPA, and the
++                    current penetration test summary are available on request.
++                  </Paragraph>
++                </Span>
++
++                <Divider />
++
++                <Span display="flex" alignItems="center" textColor="grey">
++                  <Icon name="location-dot" mr="2" aria-hidden="true" />
++                  <Span textSize="7">
++                    1 Helix Way, Ames, Iowa · Zürich · Singapore
++                  </Span>
++                </Span>
++              </Box>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/HomePage.tsx b/src/pages/HomePage.tsx
+new file mode 100644
+index 0000000..aeac919
+--- /dev/null
++++ b/src/pages/HomePage.tsx
+@@ -0,0 +1,375 @@
++import {
++  Hero,
++  Section,
++  Container,
++  Columns,
++  Column,
++  Grid,
++  Cell,
++  Card,
++  Box,
++  Title,
++  SubTitle,
++  Paragraph,
++  Span,
++  Strong,
++  Button,
++  Buttons,
++  Tag,
++  Tags,
++  Icon,
++  IconText,
++  Progress,
++  Reveal,
++  Link,
++  Media,
++  Pre,
++} from '@allxsmith/bestax-bulma';
++import {
++  BENCHMARKS,
++  FEATURES,
++  QUOTES,
++  MODELS,
++  CODE_SAMPLE,
++  advantage,
++} from '../data/site';
++import { StatTile } from '../components/StatTile';
++
++const HEADLINE_BENCHMARKS = BENCHMARKS.slice(0, 4);
++
++const averageAdvantage = (
++  BENCHMARKS.reduce((sum, b) => sum + advantage(b), 0) / BENCHMARKS.length
++).toFixed(1);
++
++export function HomePage() {
++  return (
++    <>
++      <Hero size="large" className="hero-wash">
++        <Hero.Body>
++          <Container>
++            <Columns isVCentered>
++              <Column sizeDesktop={7}>
++                <Tags mb="5">
++                  <Tag color="primary" isRounded>
++                    New
++                  </Tag>
++                  <Tag isRounded>Skynet Max is generally available</Tag>
++                </Tags>
++
++                <Title size="1">
++                  The model that scores{' '}
++                  <Span textColor="primary">10x Fable</Span> on every benchmark
++                  we publish.
++                </Title>
++
++                <SubTitle size="4" textColor="grey" mt="5">
++                  Skynet is Netadyne's third-generation frontier family: a
++                  10M-token context window, tool use that survives hundreds of
++                  steps, and first tokens in under 100 milliseconds.
++                </SubTitle>
++
++                <Buttons mt="6">
++                  <Button color="primary" size="large" as="a" href="#/contact">
++                    Get API access
++                  </Button>
++                  <Button size="large" as="a" href="#/benchmarks">
++                    Read the evals
++                  </Button>
++                </Buttons>
++
++                <Span
++                  display="flex"
++                  alignItems="center"
++                  flexWrap="wrap"
++                  mt="5"
++                  textColor="grey"
++                  textSize="7"
++                >
++                  <IconText
++                    mr="5"
++                    iconProps={{ name: 'circle-check', 'aria-hidden': 'true' }}
++                  >
++                    500K free tokens monthly
++                  </IconText>
++                  <IconText
++                    mr="5"
++                    iconProps={{ name: 'shield-halved', 'aria-hidden': 'true' }}
++                  >
++                    Zero data retention
++                  </IconText>
++                  <IconText
++                    iconProps={{ name: 'credit-card', 'aria-hidden': 'true' }}
++                  >
++                    No card to start
++                  </IconText>
++                </Span>
++              </Column>
++
++              <Column sizeDesktop={5}>
++                <Box>
++                  <Span
++                    display="flex"
++                    alignItems="center"
++                    justifyContent="space-between"
++                    mb="4"
++                  >
++                    <Strong>Netadyne Eval Index</Strong>
++                    <Tag color="primary" isRounded>
++                      skynet-max
++                    </Tag>
++                  </Span>
++
++                  {HEADLINE_BENCHMARKS.map(benchmark => (
++                    <Span key={benchmark.id} display="block" mb="4">
++                      <Span
++                        display="flex"
++                        justifyContent="space-between"
++                        textSize="7"
++                        mb="1"
++                      >
++                        <Span>{benchmark.name}</Span>
++                        <Strong textColor="primary">
++                          {advantage(benchmark)}x
++                        </Strong>
++                      </Span>
++                      <Progress
++                        color="primary"
++                        value={benchmark.skynet}
++                        max={1000}
++                        size="small"
++                        aria-label={`Skynet Max on ${benchmark.name}`}
++                      />
++                      <Progress
++                        value={benchmark.fable}
++                        max={1000}
++                        size="small"
++                        aria-label={`Fable on ${benchmark.name}`}
++                      />
++                    </Span>
++                  ))}
++
++                  <Span textSize="7" textColor="grey">
++                    Filled bar: Skynet Max. Hairline: Fable. Scored 0–1000 on
++                    the Netadyne Eval Index —{' '}
++                    <Link href="#/benchmarks">see the methodology</Link>.
++                  </Span>
++                </Box>
++              </Column>
++            </Columns>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section className="section-alt">
++        <Container>
++          <Grid isFixed fixedColsMobile={2} fixedColsTablet={4} gap={5}>
++            <Cell>
++              <StatTile
++                icon="arrow-trend-up"
++                value={`${averageAdvantage}x`}
++                label="Average advantage over Fable across eight suites"
++              />
++            </Cell>
++            <Cell>
++              <StatTile
++                icon="layer-group"
++                value="10M"
++                label="Token context window on Skynet Max"
++                color="info"
++              />
++            </Cell>
++            <Cell>
++              <StatTile
++                icon="bolt"
++                value="38 ms"
++                label="Time to first token on Skynet Nano"
++                color="info"
++              />
++            </Cell>
++            <Cell>
++              <StatTile
++                icon="shield-halved"
++                value="99.99%"
++                label="Measured API availability, trailing twelve months"
++                color="success"
++              />
++            </Cell>
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Title size="2" textAlign="centered">
++            Built for the work that doesn't fit in a chat box
++          </Title>
++          <SubTitle size="5" textColor="grey" textAlign="centered" mt="4">
++            Six things teams tell us they stopped worrying about after
++            switching.
++          </SubTitle>
++
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={2} fixedColsDesktop={3} gap={5} mt="6">
++            {FEATURES.map((feature, i) => (
++              <Cell key={feature.title} display="flex" flexDirection="column">
++                {/* Reveal cascades only its direct children — so the stagger
++                    lives inside each Cell, not around the Grid. */}
++                <Reveal
++                  animation="fade-up"
++                  delay={i * 70}
++                  display="flex"
++                  flexDirection="column"
++                  flexGrow="1"
++                >
++                  <Card flexGrow="1">
++                    <Card.Content>
++                      <Icon
++                        name={feature.icon}
++                        size="medium"
++                        textColor="primary"
++                        aria-hidden="true"
++                      />
++                      <Title as="p" size="5" mt="3" mb="2">
++                        {feature.title}
++                      </Title>
++                      <Paragraph textColor="grey">{feature.body}</Paragraph>
++                    </Card.Content>
++                  </Card>
++                </Reveal>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large" className="section-alt">
++        <Container>
++          <Columns isVCentered>
++            <Column sizeDesktop={5}>
++              <Title size="2">Three lines, then you're on Skynet</Title>
++              <Paragraph textColor="grey" mt="4">
++                The Netadyne API accepts OpenAI- and Anthropic-shaped messages,
++                so migrating usually means a base URL, a model string, and a
++                key. Tools, streaming, and structured output work the way you
++                already have them wired.
++              </Paragraph>
++              <Buttons mt="5">
++                <Button color="primary" as="a" href="#/models">
++                  Compare the models
++                </Button>
++                <Button as="a" href="#/pricing">
++                  See pricing
++                </Button>
++              </Buttons>
++            </Column>
++
++            <Column sizeDesktop={7}>
++              <Pre>{CODE_SAMPLE}</Pre>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Title size="2" textAlign="centered">
++            One family, three sizes
++          </Title>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={3} gap={5} mt="6">
++            {MODELS.map(model => (
++              <Cell key={model.id} display="flex" flexDirection="column">
++                <Card flexGrow="1">
++                  <Card.Content>
++                    <Icon
++                      name={model.icon}
++                      size="medium"
++                      textColor={model.color}
++                      aria-hidden="true"
++                    />
++                    <Title as="p" size="4" mt="3" mb="2">
++                      {model.name}
++                    </Title>
++                    <Paragraph textColor="grey" mb="4">
++                      {model.tagline}
++                    </Paragraph>
++                    <Span display="block" textSize="7" textColor="grey">
++                      <Strong>{model.context}</Strong> context ·{' '}
++                      <Strong>{model.latency}</Strong>
++                    </Span>
++                  </Card.Content>
++                  <Card.Footer>
++                    <Card.FooterItem>
++                      <Link href="#/models">Details</Link>
++                    </Card.FooterItem>
++                    <Card.FooterItem>
++                      <Link href="#/pricing">{model.inputPrice}/Mtok in</Link>
++                    </Card.FooterItem>
++                  </Card.Footer>
++                </Card>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large" className="section-alt">
++        <Container>
++          <Title size="2" textAlign="centered" mb="6">
++            What teams do with it
++          </Title>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={3} gap={5}>
++            {QUOTES.map(quote => (
++              <Cell key={quote.name} display="flex" flexDirection="column">
++                <Box flexGrow="1" display="flex" flexDirection="column">
++                  <Paragraph flexGrow="1">"{quote.body}"</Paragraph>
++                  <Media mt="4">
++                    <Media.Left>
++                      <Tag color="primary" size="medium" isRounded>
++                        {quote.initials}
++                      </Tag>
++                    </Media.Left>
++                    <Media.Content>
++                      <Span display="block">
++                        <Strong>{quote.name}</Strong>
++                      </Span>
++                      <Span textSize="7" textColor="grey">
++                        {quote.role}
++                      </Span>
++                    </Media.Content>
++                  </Media>
++                </Box>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Hero color="primary" size="medium">
++        <Hero.Body>
++          <Container textAlign="centered">
++            <Title size="2">Ship the thing that kept stalling</Title>
++            <SubTitle size="5" mt="4">
++              Start with 500K free tokens. Talk to us when you need provisioned
++              throughput.
++            </SubTitle>
++            {/* Filled buttons only on a fixed-color hero — a thin outline here
++                loses contrast, and loses more under dark mode. */}
++            <Buttons isCentered mt="5">
++              <Button color="light" size="large" as="a" href="#/contact">
++                Get API access
++              </Button>
++              <Button
++                color="primary"
++                isInverted
++                size="large"
++                as="a"
++                href="#/pricing"
++              >
++                See pricing
++              </Button>
++            </Buttons>
++          </Container>
++        </Hero.Body>
++      </Hero>
++    </>
++  );
++}
+diff --git a/src/pages/ModelsPage.tsx b/src/pages/ModelsPage.tsx
+new file mode 100644
+index 0000000..542d33c
+--- /dev/null
++++ b/src/pages/ModelsPage.tsx
+@@ -0,0 +1,271 @@
++import {
++  Hero,
++  Section,
++  Container,
++  Grid,
++  Cell,
++  Columns,
++  Column,
++  Card,
++  Box,
++  Table,
++  Title,
++  SubTitle,
++  Paragraph,
++  Span,
++  Strong,
++  Button,
++  Buttons,
++  Tag,
++  Icon,
++  IconText,
++  UnorderedList,
++  ListItem,
++  Message,
++} from '@allxsmith/bestax-bulma';
++import { MODELS } from '../data/site';
++
++const DEPLOYMENTS = [
++  {
++    icon: 'cloud',
++    name: 'Netadyne Cloud',
++    body: 'Multi-region serverless inference with automatic failover. Nothing to run; usage billed per token.',
++  },
++  {
++    icon: 'network-wired',
++    name: 'Your VPC',
++    body: 'The same weights inside your AWS, GCP, or Azure account. Traffic never leaves your network boundary.',
++  },
++  {
++    icon: 'lock',
++    name: 'Air-gapped',
++    body: 'A sealed appliance for classified and regulated environments. Quarterly weight updates by physical media.',
++  },
++];
++
++export function ModelsPage() {
++  return (
++    <>
++      <Hero className="hero-wash">
++        <Hero.Body>
++          <Container>
++            <Title size="1">The Skynet family</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Three models, one API surface, one tokenizer. Move between them by
++              changing a string.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section size="large">
++        <Container>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={3} gap={5}>
++            {MODELS.map(model => (
++              <Cell key={model.id} display="flex" flexDirection="column">
++                <Card flexGrow="1">
++                  <Card.Header>
++                    <Card.Header.Title>{model.name}</Card.Header.Title>
++                    <Card.Header.Icon>
++                      <Icon
++                        name={model.icon}
++                        textColor={model.color}
++                        aria-hidden="true"
++                      />
++                    </Card.Header.Icon>
++                  </Card.Header>
++                  <Card.Content>
++                    <Paragraph textColor="grey" mb="5">
++                      {model.tagline}
++                    </Paragraph>
++
++                    <Span display="block" mb="2">
++                      <Tag color={model.color} isRounded>
++                        {model.context} context
++                      </Tag>
++                    </Span>
++
++                    <Title as="p" size="6" mt="5" mb="2">
++                      Best for
++                    </Title>
++                    <UnorderedList>
++                      {model.bestFor.map(use => (
++                        <ListItem key={use} mb="1">
++                          <IconText
++                            iconProps={{
++                              name: 'check',
++                              'aria-hidden': 'true',
++                            }}
++                            textColor="grey"
++                          >
++                            {use}
++                          </IconText>
++                        </ListItem>
++                      ))}
++                    </UnorderedList>
++                  </Card.Content>
++                  <Card.Footer>
++                    <Card.FooterItem>
++                      <Span textSize="7">
++                        <Strong>{model.inputPrice}</Strong> in
++                      </Span>
++                    </Card.FooterItem>
++                    <Card.FooterItem>
++                      <Span textSize="7">
++                        <Strong>{model.outputPrice}</Strong> out
++                      </Span>
++                    </Card.FooterItem>
++                  </Card.Footer>
++                </Card>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="large" className="section-alt">
++        <Container>
++          <Title size="2" mb="5">
++            Specifications
++          </Title>
++          <Box>
++            <Table isFullwidth isHoverable isResponsive>
++              <Table.Thead>
++                <Table.Tr>
++                  <Table.Th>Capability</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Th key={model.id} textAlign="right">
++                      {model.name}
++                    </Table.Th>
++                  ))}
++                </Table.Tr>
++              </Table.Thead>
++              <Table.Tbody>
++                <Table.Tr>
++                  <Table.Th>Model string</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      <Span fontFamily="code">skynet-{model.id}</Span>
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Context window</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      {model.context}
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Max output</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      {model.output}
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Time to first token</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      {model.latency}
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Input / Mtok</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      {model.inputPrice}
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Output / Mtok</Table.Th>
++                  {MODELS.map(model => (
++                    <Table.Td key={model.id} textAlign="right">
++                      {model.outputPrice}
++                    </Table.Td>
++                  ))}
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Vision & audio input</Table.Th>
++                  <Table.Td textAlign="right">
++                    <Span textColor="grey">Vision only</Span>
++                  </Table.Td>
++                  <Table.Td textAlign="right">Yes</Table.Td>
++                  <Table.Td textAlign="right">Yes</Table.Td>
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Parallel tool calls</Table.Th>
++                  <Table.Td textAlign="right">8</Table.Td>
++                  <Table.Td textAlign="right">64</Table.Td>
++                  <Table.Td textAlign="right">512</Table.Td>
++                </Table.Tr>
++                <Table.Tr>
++                  <Table.Th>Custom fine-tuning</Table.Th>
++                  <Table.Td textAlign="right">Yes</Table.Td>
++                  <Table.Td textAlign="right">Yes</Table.Td>
++                  <Table.Td textAlign="right">
++                    <Span textColor="grey">Enterprise only</Span>
++                  </Table.Td>
++                </Table.Tr>
++              </Table.Tbody>
++            </Table>
++          </Box>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Title size="2">Runs where your data already lives</Title>
++          <Paragraph textColor="grey" mt="4" mb="6">
++            Identical weights and an identical API in all three deployments —
++            you are not trading capability for control.
++          </Paragraph>
++
++          <Columns>
++            {DEPLOYMENTS.map(deployment => (
++              <Column
++                key={deployment.name}
++                display="flex"
++                flexDirection="column"
++              >
++                <Box flexGrow="1">
++                  <Icon
++                    name={deployment.icon}
++                    size="medium"
++                    textColor="primary"
++                    aria-hidden="true"
++                  />
++                  <Title as="p" size="5" mt="3" mb="2">
++                    {deployment.name}
++                  </Title>
++                  <Paragraph textColor="grey">{deployment.body}</Paragraph>
++                </Box>
++              </Column>
++            ))}
++          </Columns>
++
++          <Message color="info" mt="6">
++            <Message.Body>
++              Every deployment ships with the Netadyne eval harness, so the
++              scorecard you run in CI is the same one we publish on the
++              benchmarks page.
++            </Message.Body>
++          </Message>
++
++          <Buttons mt="6">
++            <Button color="primary" size="medium" as="a" href="#/contact">
++              Talk to an engineer
++            </Button>
++            <Button size="medium" as="a" href="#/benchmarks">
++              See the benchmarks
++            </Button>
++          </Buttons>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/PricingPage.tsx b/src/pages/PricingPage.tsx
+new file mode 100644
+index 0000000..a498cd2
+--- /dev/null
++++ b/src/pages/PricingPage.tsx
+@@ -0,0 +1,219 @@
++import {
++  Hero,
++  Section,
++  Container,
++  Columns,
++  Column,
++  Card,
++  Box,
++  Table,
++  Title,
++  SubTitle,
++  Paragraph,
++  Span,
++  Strong,
++  Button,
++  Tag,
++  Theme,
++  Collapse,
++  IconText,
++  UnorderedList,
++  ListItem,
++} from '@allxsmith/bestax-bulma';
++import { TIERS, MODELS, FAQS, type Tier } from '../data/site';
++
++function TierCard({ tier }: { tier: Tier }) {
++  return (
++    <Card flexGrow="1">
++      <Card.Content>
++        <Span display="flex" alignItems="center" justifyContent="space-between">
++          <Title as="p" size="4" mb="0">
++            {tier.name}
++          </Title>
++          {tier.featured && (
++            <Tag color="primary" isRounded>
++              Most popular
++            </Tag>
++          )}
++        </Span>
++
++        <Span display="flex" alignItems="baseline" mt="4">
++          <Title as="p" size="1" mb="0" mr="2">
++            {tier.price}
++          </Title>
++          <Span textColor="grey" textSize="7">
++            {tier.cadence}
++          </Span>
++        </Span>
++
++        <Paragraph textColor="grey" mt="4" mb="5">
++          {tier.blurb}
++        </Paragraph>
++
++        <Button
++          color={tier.featured ? 'primary' : 'dark'}
++          isFullWidth
++          as="a"
++          href="#/contact"
++        >
++          {tier.cta}
++        </Button>
++
++        <UnorderedList mt="5">
++          {tier.includes.map(item => (
++            <ListItem key={item} mb="2">
++              <IconText
++                iconProps={{ name: 'check', 'aria-hidden': 'true' }}
++                textColor="grey"
++              >
++                {item}
++              </IconText>
++            </ListItem>
++          ))}
++        </UnorderedList>
++      </Card.Content>
++    </Card>
++  );
++}
++
++export function PricingPage() {
++  return (
++    <>
++      <Hero className="hero-wash">
++        <Hero.Body>
++          <Container textAlign="centered">
++            <Title size="1">Frontier pricing without the frontier tax</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Pay for tokens. Add seats when the team grows. Negotiate only when
++              you need dedicated capacity.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section size="large">
++        <Container>
++          <Columns isMultiline>
++            {TIERS.map(tier => (
++              <Column
++                key={tier.id}
++                sizeTablet="half"
++                sizeDesktop="one-third"
++                display="flex"
++                flexDirection="column"
++              >
++                {tier.featured ? (
++                  // A component --bulma-* var reaches the whole subtree, so the
++                  // featured ring needs no third CSS rule and stays theme-aware.
++                  <Theme
++                    bulmaVars={{
++                      '--bulma-card-shadow':
++                        '0 0 0 2px var(--bulma-primary), var(--bulma-shadow)',
++                    }}
++                    display="flex"
++                    flexDirection="column"
++                    flexGrow="1"
++                  >
++                    <TierCard tier={tier} />
++                  </Theme>
++                ) : (
++                  <TierCard tier={tier} />
++                )}
++              </Column>
++            ))}
++          </Columns>
++        </Container>
++      </Section>
++
++      <Section size="large" className="section-alt">
++        <Container>
++          <Title size="2" mb="2">
++            Token pricing
++          </Title>
++          <Paragraph textColor="grey" mb="5">
++            Per million tokens, in US dollars. Batch requests are half price on
++            every model; cached input reads are 90% off.
++          </Paragraph>
++
++          <Box>
++            <Table isFullwidth isHoverable isResponsive>
++              <Table.Thead>
++                <Table.Tr>
++                  <Table.Th>Model</Table.Th>
++                  <Table.Th textAlign="right">Input</Table.Th>
++                  <Table.Th textAlign="right">Output</Table.Th>
++                  <Table.Th textAlign="right">Batch input</Table.Th>
++                  <Table.Th textAlign="right">Cached read</Table.Th>
++                </Table.Tr>
++              </Table.Thead>
++              <Table.Tbody>
++                {MODELS.map(model => {
++                  const input = Number(model.inputPrice.replace('$', ''));
++                  return (
++                    <Table.Tr key={model.id}>
++                      <Table.Th>
++                        {model.name}
++                        <Span display="block" textSize="7" textColor="grey">
++                          {model.context} context
++                        </Span>
++                      </Table.Th>
++                      <Table.Td textAlign="right">{model.inputPrice}</Table.Td>
++                      <Table.Td textAlign="right">{model.outputPrice}</Table.Td>
++                      <Table.Td textAlign="right">
++                        <Span textColor="grey">${(input / 2).toFixed(2)}</Span>
++                      </Table.Td>
++                      <Table.Td textAlign="right">
++                        <Span textColor="grey">${(input / 10).toFixed(2)}</Span>
++                      </Table.Td>
++                    </Table.Tr>
++                  );
++                })}
++              </Table.Tbody>
++            </Table>
++          </Box>
++        </Container>
++      </Section>
++
++      <Section size="large">
++        <Container>
++          <Columns isCentered>
++            <Column sizeDesktop={8}>
++              <Title size="2" textAlign="centered" mb="6">
++                Questions we get asked
++              </Title>
++
++              {FAQS.map(faq => (
++                <Collapse
++                  key={faq.q}
++                  bordered
++                  mb="3"
++                  trigger={
++                    <Span
++                      display="flex"
++                      alignItems="center"
++                      justifyContent="space-between"
++                      p="4"
++                    >
++                      <Strong>{faq.q}</Strong>
++                    </Span>
++                  }
++                >
++                  <Paragraph textColor="grey" p="4">
++                    {faq.a}
++                  </Paragraph>
++                </Collapse>
++              ))}
++
++              <Paragraph textAlign="centered" mt="6">
++                Still deciding?{' '}
++                <Button color="primary" as="a" href="#/contact">
++                  Talk to sales
++                </Button>
++              </Paragraph>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/tsconfig.tsbuildinfo b/tsconfig.tsbuildinfo
+new file mode 100644
+index 0000000..24a0590
+--- /dev/null
++++ b/tsconfig.tsbuildinfo
+@@ -0,0 +1 @@
++{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/sitefooter.tsx","./src/components/sitenavbar.tsx","./src/components/stattile.tsx","./src/data/site.ts","./src/pages/benchmarkspage.tsx","./src/pages/contactpage.tsx","./src/pages/homepage.tsx","./src/pages/modelspage.tsx","./src/pages/pricingpage.tsx"],"version":"6.0.3"}
+\ No newline at end of file
+diff --git a/vite.config.d.ts b/vite.config.d.ts
+new file mode 100644
+index 0000000..340562a
+--- /dev/null
++++ b/vite.config.d.ts
+@@ -0,0 +1,2 @@
++declare const _default: import("vite").UserConfig;
++export default _default;
+diff --git a/vite.config.js b/vite.config.js
+new file mode 100644
+index 0000000..bf919fb
+--- /dev/null
++++ b/vite.config.js
+@@ -0,0 +1,6 @@
++import { defineConfig } from 'vite';
++import react from '@vitejs/plugin-react';
++// https://vite.dev/config/
++export default defineConfig({
++    plugins: [react()],
++});
