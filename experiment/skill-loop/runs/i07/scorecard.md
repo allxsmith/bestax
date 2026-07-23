@@ -1,0 +1,27 @@
+# Scorecard — skill-loop iteration i07
+
+| # | Category | Score | Max | Evidence summary |
+|---|----------|-------|-----|------------------|
+| 1 | Build integrity | 15 | 15 | build_pass=true, tsc_errors=0; tsc clean on FIRST run (L349) |
+| 2 | Component adoption | 15 | 15 | 48 named imports / 44 components; handrolled_total=0; Table compound ×3 pages, Collapse FAQ, Tabs compound, Media+Avatar leadership |
+| 3 | Prop fidelity | 13 | 15 | inline=0, rawcls=0; custom_css_added_lines=21 > ≤10 (3 rules across 2 files: hero-wash, section-alt, featured-ring — all --bulma-*-derived, none prop-expressible; .section-alt verbatim from archetypes.md:126) |
+| 4 | Hallucination penalty | 7 | 10 | Zero invented APIs in final code (verified prop-by-prop); −3 for three drafted-then-self-corrected wobbles pre-tsc: Tabs.Content placed outside Tabs; Progress color="grey" (typechecks, no .progress.is-grey CSS exists); Box color="primary" (real prop, no .box.is-primary rule). All caught by proactive verification, not failures |
+| 5 | Custom-component conformance | 10 | 10 | All 5 reusable components full-spine incl. usePrefixedClassNames with variant classes |
+| 6 | Theming approach | 10 | 10 | Theme isRoot HSL trios + bulmaVars (radius-large/title-weight verified); colorMode + localStorage; zero hex |
+| 7 | Site completeness | 15 | 15 | 8/8 across 6 routes; skynetScore() derives every number so 10x is internally consistent; 3 extra pages |
+| 8 | Skill & docs engagement | 10 | 10 | 5 invocations + 11 reads before first Write (L148); "Rung 2" vocabulary in PricingCard.css; final summary has "Following the house rules" section |
+|   | **Total** | **95** | **100** | |
+
+## Top 5 friction points
+
+1. **Valid-typed color values that are CSS no-ops** — Progress accepts color="grey", Box accepts color="primary" per types, but Bulma ships no .progress.is-grey / .box.is-primary rules. Nothing warns which color values actually style which component; builder grepped bestax.css to find out. Two of three churn events. LIBRARY-LEVEL FLAG: types broader than shipped CSS.
+2. **Tabs containment rule undocumented** — drafted Tabs.Content as SIBLING of Tabs; learned the active-tab context lives on Tabs from dist/index.esm.js (L309-313). One sentence would prevent it.
+3. **No browser tool** — SSR render of all 6 routes + class greps; "the visual pass is still owed." Harness-level.
+4. **pnpm isolated-linker package hunt** — L109-137 spent finding node_modules/@allxsmith/bestax-bulma/dist/types via dead-end ls/find rounds (~6 wasted calls/run). One path note would fix it.
+5. **The skills' own guidance spends the CSS budget** — .section-alt + hero-wash are prescribed patterns (≈14 lines); adding one more justified rule (featured ring, since Card.* sub-parts take no helper props and forced Box) lands at 21 > 10. Related LIBRARY note: Card.* className-only design pushed PricingCard onto Box for flex pinning.
+
+## 3 transcript quotes
+
+1. L15-16: Skill {'skill': 'bestax-layout-scaffold'} → references read before first Write at L148.
+2. L375: "No browser tool here, so I'll do an SSR smoke render of every page to catch runtime errors."
+3. L489: "I did the skills' documented fallback instead: an SSR render of all six routes via a temporary Vite SSR bundle (since deleted), grepping the emitted HTML. That caught three real bugs I fixed."

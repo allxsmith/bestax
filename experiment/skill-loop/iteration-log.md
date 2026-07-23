@@ -145,3 +145,23 @@ Tabs.Tab missing required index ×2). All else max. 14 min, $6.60, 88 turns, imp
   htmlFor/id (a11y trap — skill now teaches the labelProps={{htmlFor}} workaround; the
   form skill checklist previously ASSERTED the false association); Tabs.Item deprecated
   alias still mapped by bestax-migrate's component-map (parked for a dedicated pass).
+
+## i07 — sixth revised-skills run (2026-07-23)
+
+**Total 95/100** (−2) — hallucination 7 (three PRE-tsc self-caught wobbles, zero error-TS:
+Tabs.Content-as-sibling; Progress color="grey" and Box color="primary" — both typecheck
+with NO shipped CSS behind them: NEW friction class "type-valid CSS no-ops"); prop-fidelity
+13 (css 21: the two prescribed patterns + one justified featured-ring rule — the skills'
+own guidance saturates the ≤10 budget). All else max. 18 min, $8.43, 105 turns.
+
+- i06 fixes held: Tabs.Tab index correct everywhere (tsc clean on FIRST run), Steps items
+  shape followed verbatim. Casing traps still zero-recurrence since i03.
+- Improve pass (+12 lines, verified by LIVE renderToStaticMarkup probes + shipped-CSS
+  greps): types-wider-than-CSS rule + confirmed examples into themeable-components.md
+  (which i07 actually read), corrected its factually wrong Box row (color → has-text-*,
+  not a box variant); Tabs.Content-must-be-child clause; featured-ring via scoped
+  `Theme bulmaVars` (--bulma-box-shadow) = ZERO-CSS route, budget untouched; generator:
+  catalog header now names the dist/types path (kills the ~6-call node_modules hunt).
+- LIBRARY-LEVEL FLAGS: Box.color falls through to has-text-* (never a box variant — bug?);
+  grey-family validColors typecheck on Progress/Notification/Hero but style nothing;
+  Card.* className-only design forces Box for flex pinning.

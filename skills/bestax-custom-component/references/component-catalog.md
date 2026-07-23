@@ -13,10 +13,12 @@ instead of hand-writing markup.
   references. Value unions (`size`, `color`, variants) differ per component —
   never reuse one by analogy (`Tag size` is `normal|medium|large`; `Button`
   adds `small`): the bestax-theming skill's
-  `references/themeable-components.md` lists them verbatim, and when a
-  `.d.ts` shows an opaque alias (`size?: TagSize`), grep the alias name in
-  that same file for the literals instead of guessing. Top-level components
-  accept the shared Bulma **helper props**
+  `references/themeable-components.md` lists them verbatim. The installed
+  types are at `node_modules/@allxsmith/bestax-bulma/dist/types/` (the
+  symlink resolves under pnpm's isolated linker — go straight there, no
+  `find` hunt), and when a `.d.ts` shows an opaque alias (`size?: TagSize`),
+  grep the alias name in that same file for the literals instead of guessing.
+  Top-level components accept the shared Bulma **helper props**
   (`m`/`p` spacing, `textColor`/`bgColor`, `textAlign`, `display`, flex, …) —
   documented once in `references/api.md` — with rare exceptions (`Skeleton`).
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,

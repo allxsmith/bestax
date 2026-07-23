@@ -47,7 +47,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - Interactive extras don't share a state API — never transfer one by analogy:
   `Collapse trigger={node} open/defaultOpen onOpen/onClose`, `Tabs value={i}/onChange`
-  (each `Tabs.Tab`/`Tabs.Content.Item` requires `index={i}`), `Dropdown active/onActiveChange`,
+  (each `Tabs.Tab`/`Tabs.Content.Item` requires `index={i}`, and `Tabs.Content` must be a
+  **child of `<Tabs>`** — the active-tab context lives on it; a sibling panel never
+  switches), `Dropdown active/onActiveChange`,
   `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
   `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
   put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
@@ -81,6 +83,11 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
     background: var(--bulma-scheme-main-bis); /* next band: -ter */
   }
   ```
+
+  A highlighted/"featured" card needs **no third rule**: wrap that one card in a scoped
+  `<Theme bulmaVars={{ '--bulma-box-shadow': '0 0 0 2px var(--bulma-primary), var(--bulma-shadow)' }}>`
+  — component `--bulma-*` vars (`box-shadow`, `card-shadow`, radius, …) are reachable
+  per-subtree with zero CSS, and stay theme- and dark-mode-aware.
 
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
@@ -117,7 +124,7 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
 - [ ] Decorative CSS ≤10 lines total (one hero wash + one section band), `--bulma-*`-derived;
-      no resets — Bulma ships one.
+      no resets — Bulma ships one. A featured-card ring is a scoped `<Theme bulmaVars>`, not CSS.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
       it, run the `bestax-optimize` skill (measure first).

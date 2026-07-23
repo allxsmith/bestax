@@ -1,0 +1,9 @@
+/* Rung 2 of the styling ladder: the one thing helper props can't do — an
+   accent outline on the featured tier. Bulma ships no `.box.is-primary`, and
+   the value is --bulma-derived so Theme and dark mode keep working. */
+.pricingcard.is-featured {
+  --pricingcard-accent: var(--bulma-primary);
+  box-shadow:
+    0 0 0 2px var(--pricingcard-accent),
+    var(--bulma-box-shadow);
+}
