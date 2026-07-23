@@ -55,18 +55,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
-- **Decorative CSS is budgeted: ~10 lines per app, every value derived from `--bulma-*`.**
-  A marketing page gets at most one hero wash + one alternating section band, applied via
-  `className` — skip grid textures, masks, and multi-layer backdrops; the components carry
-  the design:
+- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app, every value derived
+  from `--bulma-*`.** A marketing page gets at most one hero wash + one alternating section
+  band, applied via `className` — skip grid textures, masks, and multi-layer backdrops; the
+  components carry the design:
 
   ```css
   .hero-wash {
-    background-image: radial-gradient(
-      60rem 30rem at 20% -10%,
-      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2),
-      transparent 60%
-    );
+    background-image: radial-gradient(60rem 30rem at 20% -10%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2), transparent 60%);
   }
   .section-alt {
     background: var(--bulma-scheme-main-bis); /* next band: -ter */
@@ -107,7 +104,7 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
-- [ ] Decorative CSS ≤ ~10 lines total (one hero wash + one section band), `--bulma-*`-derived.
+- [ ] Decorative CSS ≤10 lines total (one hero wash + one section band), `--bulma-*`-derived.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
       it, run the `bestax-optimize` skill (measure first).

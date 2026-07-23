@@ -1,0 +1,12 @@
+/* Decorative CSS budget: one hero wash + one alternating section band.
+   Every value derives from --bulma-* so Theme and dark mode keep working. */
+.hero-wash {
+  background-image: radial-gradient(
+    60rem 30rem at 15% -20%,
+    hsl(var(--bulma-link-h) var(--bulma-link-s) 55% / 0.45),
+    transparent 65%
+  );
+}
+.section-alt {
+  background-color: var(--bulma-scheme-main-bis);
+}

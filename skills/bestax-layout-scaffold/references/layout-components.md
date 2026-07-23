@@ -21,7 +21,8 @@ import {
 ```
 
 Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `textAlign`,
-`textColor`, `bgColor`, etc.).
+`textColor`, `bgColor`, etc.). Flex helpers take the standard CSS values spelled in full:
+`justifyContent="space-between"`, `alignItems="center"`.
 
 > **Use helper props, never inline `style`, for spacing / alignment / color.** `mt="4"` (= 1rem)
 > not `style={{ marginTop: '1rem' }}`; `textAlign="centered"` not `style={{ textAlign: 'center' }}`;

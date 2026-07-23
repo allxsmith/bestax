@@ -136,7 +136,9 @@ ${setupLines.join('\n')}
 - Never inline \`style={{}}\` and never hand-write Bulma utility classes — use the shared
   helper props (\`m*\`/\`p*\` spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`,
   \`alignItems\`). Bare text/markup has wrapper elements that take the same helper props:
-  \`Span\`, \`Paragraph\`, \`Strong\` — not \`<span className="has-text-…">\`.
+  \`Span\`, \`Paragraph\`, \`Strong\` — not \`<span className="has-text-…">\`. The one exception:
+  companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g. \`has-navbar-fixed-top\` with
+  \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no component renders those elements.
   Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`

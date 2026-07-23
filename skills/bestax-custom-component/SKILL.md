@@ -60,7 +60,9 @@ example.
 
 Same shape the library itself uses, with all imports from the package. Every reusable
 component gets it — including pure compositions with zero CSS (a heading block, a labeled
-wrapper): extend `BulmaClassesProps`, merge `className`, spread `...rest`. File at
+wrapper): extend `BulmaClassesProps`, merge `className`, spread `...rest`. The
+`usePrefixedClassNames` root class is needed only when component-scoped CSS (or a variant
+class) targets it — a zero-CSS composition may omit that call. File at
 `src/components/MyComponent.tsx`:
 
 ```tsx

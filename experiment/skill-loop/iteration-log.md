@@ -90,3 +90,19 @@ Build: 12 min, $5.68, 74 turns.
 - Flagged for the final report (outside improver surface):
   `create-bestax/src/display.ts` hardcodes `pnpm install` in next-steps despite PM-agnostic
   design; `UnorderedList` lacks a bullet-suppression prop (library API gap, hit i02+i03).
+
+## i04 — third revised-skills run (2026-07-23)
+
+**Total 99/100** (+3) — prop-fidelity **14** (+1, css 18→12), hallucination **10** (+2,
+zero error-TS in the whole transcript — casing/aria warnings preempted the last churn
+class), all other categories max. Build: 13 min, $6.18, 79 turns, imports 54.
+
+- Adoption deepened: Reveal, Steps, Collapse FAQ, Avatar(s) — 54 named imports, still
+  0 handrolled/inline/raw. Builder greps installed .d.ts ~15× before using APIs
+  (verify-then-write now the norm). PM-lockfile rule followed first-try.
+- Harness artifact found+fixed: orphaned vite dev servers from earlier builders squatted
+  :5173 (strictPort) — killed; cleanup sweep added before each launch from i05 on.
+- Improve pass (plateau mode, net 0 bundle lines): few-shot compressed so its natural
+  transcription is ≤10 CSS lines; sanctioned-exception clause for Bulma companion classes
+  (has-navbar-fixed-top) added to the CLAUDE_MD house rule; usePrefixedClassNames declared
+  optional for zero-CSS Rung-1 compositions; one flex-values line in layout-components.md.
