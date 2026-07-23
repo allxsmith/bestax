@@ -1,0 +1,2 @@
+runs/*/transcript.jsonl
+runs/*/builder-stderr.log
