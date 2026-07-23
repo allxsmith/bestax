@@ -47,7 +47,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - Interactive extras don't share a state API — never transfer one by analogy:
   `Collapse trigger={node} open/defaultOpen onOpen/onClose`, `Tabs value={i}/onChange`
-  (numeric index), `Dropdown active/onActiveChange`, `Steps value={i}/onStepClick`.
+  (each `Tabs.Tab`/`Tabs.Content.Item` requires `index={i}`), `Dropdown active/onActiveChange`,
+  `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
+  `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
+  put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

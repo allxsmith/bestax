@@ -126,3 +126,22 @@ Build: 13 min, $6.46, 86 turns, imports 48.
   in form SKILL.md intro; Column numeric-sizes-are-numbers note at the union definition
   (the reference's own gap rows seeded the confusion); compound-sub-part rule echoed into
   CLAUDE_MD house style (unconditionally injected — immune to loading luck).
+
+## i06 — fifth revised-skills run (2026-07-23)
+
+**Total 97/100** (+6) — prop-fidelity **15/15 for the first time** (css exactly 10:
+hero-wash + section-alt per the compressed few-shot); hallucination 7 (2 pre-tsc
+self-caught drafts: maxWidth-on-SubTitle, Steps.Item-vs-items; 1 mechanics round:
+Tabs.Tab missing required index ×2). All else max. 14 min, $6.60, 88 turns, imports 51.
+
+- i05's four inventions did NOT recur — always-loaded-path fixes held. Adoption deepened
+  (Steps/Collapse/Reveal/IconText). Builder loaded 5 skills before first Write.
+- LOOP SELF-CORRECTION: the i05-added sub-part rule ("Tabs.* take only className+HTML
+  attrs") was itself slightly FALSE — Tabs.Tab requires index — and was in i06's context
+  during the failure. i06's improve pass corrected the falsehood on all three surfaces
+  that carried it (CLAUDE_MD, custom-component SKILL.md) + stated Steps items shape and
+  Reveal cascade semantics in the extras bullet. Bundle 4,239→4,247 (+8).
+- LIBRARY-LEVEL FLAGS for final report: form `label` prop renders a label but wires no
+  htmlFor/id (a11y trap — skill now teaches the labelProps={{htmlFor}} workaround; the
+  form skill checklist previously ASSERTED the false association); Tabs.Item deprecated
+  alias still mapped by bestax-migrate's component-map (parked for a dedicated pass).

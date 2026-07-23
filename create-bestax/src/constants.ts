@@ -143,6 +143,7 @@ ${setupLines.join('\n')}
   take a \`gap\` prop, so prefer that there).
 - Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take only \`className\` +
   HTML attributes — no helper props, no \`as\`/\`href\`: nest a \`Link\`/\`Span\` inside instead.
+  One required addition: \`Tabs.Tab\` and \`Tabs.Content.Item\` each need \`index={i}\`.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - Reusable components you write get the library's spine so helper props work on them too:

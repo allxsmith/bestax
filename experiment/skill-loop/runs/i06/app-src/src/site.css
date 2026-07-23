@@ -1,0 +1,10 @@
+.hero-wash {
+  background-image: radial-gradient(
+    60rem 30rem at 20% -10%,
+    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
+    transparent 60%
+  );
+}
+.section-alt {
+  background: var(--bulma-scheme-main-bis);
+}

@@ -16,7 +16,7 @@ Container and layout. Compound parts: `Field.Label`, `Field.Body`.
 | `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).             |
 | `label`                 | `ReactNode`                                       | Convenience label.                                                 |
 | `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                        |
-| `labelProps`            | label attributes                                  | Props for the `<label>`.                                           |
+| `labelProps`            | label attributes                                  | Props for the `<label>` — where `htmlFor` goes.                    |
 | `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                       |
 
 ## Control — `form/Control.tsx`

@@ -117,6 +117,10 @@ via `useBulmaClasses`.
 ⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
 `isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
 
+⚠️ The `label` prop renders the `<label>` but does **not** wire `htmlFor`/`id` — assistive tech
+gets no association. Pass `id` on the input plus `labelProps={{ htmlFor: sameId }}` (every
+convenience input and `Field` accept `labelProps`).
+
 ## Convenience vs composed
 
 - **Convenience** (`<Input label message … />`) — for typical, single-control fields. Fewer
@@ -206,7 +210,8 @@ for the expected classes/states, and say plainly that the visual pass is still o
 ## Checklist
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
-- [ ] Every input has an associated label (`label` prop, or a `<label htmlFor>` when composing).
+- [ ] Every label is programmatically associated: `label` prop + `id` on the input +
+      `labelProps={{ htmlFor }}`, or a `<label htmlFor>` when composing.
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
