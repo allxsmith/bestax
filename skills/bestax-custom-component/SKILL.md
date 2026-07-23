@@ -144,7 +144,9 @@ bestax-bulma. Then the full `register-vars`/`getVar` pattern from
 Types don't see layout. Run `npm run dev`, render the component, and actually look at it:
 vertical centering of inline text (use `display="flex" alignItems="center"`, not line-height
 hacks), balanced padding, nothing clipping, every color/size variant, and **dark mode**
-legibility. Fix what you see, then re-check.
+legibility. Fix what you see, then re-check. No browser available (headless)? Fall back to
+`npm run build` plus a Node `renderToString` smoke render, grep the emitted HTML for the
+expected classes, and flag the visual pass as not done.
 
 ## Tests and stories in an app
 

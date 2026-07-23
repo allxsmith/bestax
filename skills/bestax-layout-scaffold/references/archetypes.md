@@ -20,6 +20,7 @@ app".
 
 ```tsx
 <>
+  {/* fixed="top" requires <html class="has-navbar-fixed-top"> — set it in index.html */}
   <Navbar fixed="top" color="dark">
     <Navbar.Brand>
       <Navbar.Item href="#">Brand</Navbar.Item>
@@ -57,8 +58,9 @@ app".
 </>
 ```
 
-**Required:** add `has-navbar-fixed-top` to `<html>` (see `examples/app-shell.tsx`) so content is
-not hidden behind the fixed navbar.
+**Required:** add `has-navbar-fixed-top` to `<html>` — statically in `index.html`; an effect
+(`examples/app-shell.tsx`) only for a conditionally-mounted navbar — so content is not hidden
+behind the fixed navbar.
 
 **Responsive:** the navbar collapses to a burger on mobile (`Navbar.Burger` + `Navbar.Menu active`).
 The sidebar and content columns sit side by side on tablet and up, and stack (menu above content)
@@ -115,6 +117,10 @@ pricing page. The default for "build me a site/page".
 
 **Responsive:** `Section`s already stack vertically. The feature `Columns` collapse to one feature
 per row on mobile. Use `Hero size="large"` / `"fullheight"` for a taller hero.
+
+**Site chrome:** a full site adds the App-shell `Navbar` (archetype 1, minus the sidebar) above
+the `Hero`; if it's `fixed="top"`, the same `<html class="has-navbar-fixed-top">` requirement
+applies here too.
 
 **Alternating section bands:** tint every other `Section` with a scheme step —
 `.section-alt { background: var(--bulma-scheme-main-bis); }` (next step `-ter`) — not

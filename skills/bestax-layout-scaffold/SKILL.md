@@ -109,3 +109,5 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
 - [ ] Decorative CSS ≤ ~10 lines total (one hero wash + one section band), `--bulma-*`-derived.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
+- [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
+      it, run the `bestax-optimize` skill (measure first).

@@ -1,0 +1,18 @@
+/* Decorative CSS budget: two rules, every value derived from --bulma-*. */
+
+.hero-wash {
+  background-image: radial-gradient(
+      58rem 30rem at 12% -18%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
+      transparent 62%
+    ),
+    radial-gradient(
+      44rem 26rem at 92% 6%,
+      hsl(var(--bulma-link-h) var(--bulma-link-s) 50% / 0.16),
+      transparent 60%
+    );
+}
+
+.section-alt {
+  background: var(--bulma-scheme-main-bis);
+}

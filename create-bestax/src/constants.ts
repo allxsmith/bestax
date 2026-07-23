@@ -145,6 +145,9 @@ ${setupLines.join('\n')}
   extend \`BulmaClassesProps\`, merge \`className\`, spread \`...rest\` — the
   bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
+- Before adding a dependency, match the package manager to the app's lockfile
+  (\`pnpm-lock.yaml\` → pnpm, \`package-lock.json\` → npm, \`yarn.lock\` → yarn) — a mismatched
+  install fails or forks the lockfile.
 
 ## AI skills
 

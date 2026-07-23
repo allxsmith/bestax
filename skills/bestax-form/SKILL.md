@@ -113,6 +113,9 @@ Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
 
+⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
+`isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
+
 ## Convenience vs composed
 
 - **Convenience** (`<Input label message … />`) — for typical, single-control fields. Fewer
@@ -195,7 +198,9 @@ Before calling a form done, **render it and look at it**: run `pnpm storybook` (
 or the docs dev server, open the form, and check field alignment/spacing, the help-text/error
 states, and the validation flow (submit empty → fields turn `danger` with messages; fix → errors
 clear). If claude-in-chrome or Playwright is available, drive the browser and screenshot the
-valid and error states; otherwise eyeball it yourself.
+valid and error states; otherwise eyeball it yourself. No browser at all (headless CI)? Fall
+back to a production build plus a Node `renderToString` smoke render, grep the emitted HTML
+for the expected classes/states, and say plainly that the visual pass is still owed.
 
 ## Checklist
 

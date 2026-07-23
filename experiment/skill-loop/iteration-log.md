@@ -65,3 +65,28 @@ custom-comp 7, theming 10, completeness 15, engagement 10. Build: 12 min, $5.77,
 - Strategic learning: place facts in surfaces that demonstrably load (SKILL.md on trigger,
   CLAUDE_MD auto-inject, the catalog itself); references read in neither run are dead
   weight for critical facts.
+
+## i03 — second revised-skills run (2026-07-23)
+
+**Total 96/100** (+7) — build 15, adoption 15, prop-fidelity **13** (+1), hallucination
+**8** (+3), custom-comp **10** (+3), theming 10, completeness 15, engagement 10.
+Build: 12 min, $5.68, 74 turns.
+
+- Metrics: css_added 56→**18** (exactly the two-rule budget few-shot, adopted nearly
+  verbatim); rawcls/inline/handrolled all 0 (held); imports 43; 5 skills invoked early
+  incl. custom-component via the catalog's new spine pointer → **full spine in all 4
+  reusable components** (StatCard/FeatureCard/SectionHeading/BenchmarkBar), callers
+  demonstrably pass helper props through it.
+- Hallucination: invented APIs **eliminated** (i02's class gone); residual churn = near-miss
+  names of real props: `ariaLabel` (real on Icon/Delete/Slider/Carousel, generalized to
+  Navbar) + `isFullWidth` (Button) vs `isFullwidth` (Select/Table/File) — a genuine
+  library-internal casing inconsistency, now warned about in bestax-form.
+- Improve pass (+19 lines, all verified): casing-trap fact (form SKILL.md + api.md);
+  ariaLabel-vs-aria-label split stated in icons SKILL.md + stat-card comment;
+  `has-navbar-fixed-top` moved to the point of use in archetypes (static-first, replacing
+  the classList.add hack the reference itself used to prescribe); headless verify fallback
+  line; ~800 KB expected-CSS note + bestax-optimize pointer in layout checklist; CLAUDE_MD
+  "match the PM to the lockfile" bullet (scaffold is PM-agnostic by design).
+- Flagged for the final report (outside improver surface):
+  `create-bestax/src/display.ts` hardcodes `pnpm install` in next-steps despite PM-agnostic
+  design; `UnorderedList` lacks a bullet-suppression prop (library API gap, hit i02+i03).
