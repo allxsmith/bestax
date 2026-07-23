@@ -165,3 +165,18 @@ own guidance saturates the ≤10 budget). All else max. 18 min, $8.43, 105 turns
 - LIBRARY-LEVEL FLAGS: Box.color falls through to has-text-* (never a box variant — bug?);
   grey-family validColors typecheck on Progress/Notification/Hero but style nothing;
   Card.* className-only design forces Box for flex pinning.
+
+## i08 — seventh revised-skills run (2026-07-23)
+
+**Total 98/100** (+3) — hallucination **10/10** (check-then-use: grepped validVisibilities
+BEFORE the edit); css 21→13 (i07's scoped-Theme ring pattern adopted — third rule gone;
+residual overage is purely a 3-line header comment). All else max. 11 min, $5.51, 77 turns.
+
+- GRADER-NOISE CORRECTION (by improver, from transcript): i08 applied has-navbar-fixed-top
+  from guidance at the FIRST index.html write (with the CLAUDE_MD's own phrasing in a
+  comment) — the scorecard's "discovered via SSR smoke" friction was false; the guidance
+  worked. Recorded here so the report doesn't propagate it.
+- Improve pass (net +1 line): comments-count clause in the CSS budget bullet; absolute-path
+  nudge for skill reference reads in CLAUDE_MD (cwd unstable both ways in i08). Verified
+  no-edit-needed: landing archetype already carried the fixed-top clause since i03.
+- Parked (library-level, for report): zero-CSS scheme-band route; valid-values verbosity.

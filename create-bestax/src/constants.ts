@@ -168,6 +168,7 @@ automatically when the task matches:
 - **bestax-migrate** — migrate code off react-bulma-components (v4): run the codemod, resolve its TODOs.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+Read skill \`references/\` files with absolute paths — the shell's cwd is not stable between commands.
 
 \`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering

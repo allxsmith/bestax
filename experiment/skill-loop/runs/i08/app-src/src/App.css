@@ -1,0 +1,13 @@
+/* The only decorative CSS in the app: a hero wash and an alternating section
+   band. Both derive from --bulma-* tokens, so they follow the Theme and flip
+   correctly between light and dark mode. */
+.hero-wash {
+  background-image: radial-gradient(
+    60rem 30rem at 50% -20%,
+    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
+    transparent 65%
+  );
+}
+.section-alt {
+  background: var(--bulma-scheme-main-bis);
+}

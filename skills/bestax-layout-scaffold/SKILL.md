@@ -66,10 +66,11 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
-- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app, every value derived
-  from `--bulma-*`.** A marketing page gets at most one hero wash + one alternating section
-  band, applied via `className` — no resets (Bulma ships one; body/list margins are already
-  zero) and no grid textures, masks, or multi-layer backdrops; the components carry the design:
+- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app — comments count,
+  keep them inline — every value derived from `--bulma-*`.** A marketing page gets at most
+  one hero wash + one alternating section band, applied via `className` — no resets (Bulma
+  ships one; body/list margins are already zero) and no grid textures, masks, or multi-layer
+  backdrops; the components carry the design:
 
   ```css
   .hero-wash {
@@ -123,7 +124,7 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
-- [ ] Decorative CSS ≤10 lines total (one hero wash + one section band), `--bulma-*`-derived;
+- [ ] Decorative CSS ≤10 lines total incl. comments (hero wash + section band), `--bulma-*`-derived;
       no resets — Bulma ships one. A featured-card ring is a scoped `<Theme bulmaVars>`, not CSS.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
