@@ -1,8 +1,8 @@
 {
   "branch": "chore/skill-improvement-loop",
   "worktree": ".claude/worktrees/skill-loop",
-  "iteration": 9,
-  "phase": "committing",
+  "iteration": 10,
+  "phase": "final-synthesis",
   "flags_verified": "env -u CLAUDECODE claude -p \"$(cat base-prompt.md)\" --model opus --output-format stream-json --verbose --dangerously-skip-permissions --setting-sources project --no-session-persistence --max-budget-usd 15 < /dev/null  # verified 2026-07-23: exit 0, 7 skills discovered, cost field present ($0.127 smoke), opus in modelUsage; scaffold positional arg must be a BARE dir name relative to cwd; after baseline commit run: git tag baseline",
   "budget_usd": 15,
   "timeout_s": 2700,
@@ -41,8 +41,12 @@
       "total": 98
     },
     "i09": {
-      "sha": "pending",
+      "sha": "8961561",
       "total": 99
+    },
+    "i10": {
+      "sha": "pending",
+      "total": 93
     }
   },
   "infra_retries": {},
@@ -145,6 +149,17 @@
       "theme": 10,
       "complete": 15,
       "engage": 10
+    },
+    "i10": {
+      "total": 93,
+      "build": 15,
+      "adoption": 15,
+      "props": 15,
+      "halluc": 4,
+      "custom": 10,
+      "theme": 10,
+      "complete": 15,
+      "engage": 9
     }
   }
 }

@@ -196,3 +196,28 @@ $6.57, 75 turns.
   (the entire i08+i09 overage went through that gap). Everything else parked for the
   report: tsbuildinfo template-gitignore gap, catalog value-union generation, site-level
   headless recipe, zero-CSS scheme-band (library), metrics comment false-positive.
+
+## i10 — ninth revised-skills run, final measured build (2026-07-23)
+
+**Total 93/100** — leanest run of the series (51 turns, $2.83, 7 min, 712 src lines,
+single-page architecture, no icon library): mechanically PERFECT (props 15/15, css exactly
+10 — i09's header-comment ban validated; all zeros), hallucination **4** (Tag isLight ×5 —
+a RETENTION failure: the ban was read in full at event 41 before the violation, likely
+interference from a legitimate Notification isLight example; and Progress color="grey"
+shipped as the series' first SURVIVING no-op — a LOADING failure: warned only in the
+never-opened truth table), engagement 9 (zero Skill-tool invocations — all cat/sed reads,
+head-100 truncations; check-then-use discipline absent: 1 pre-write .d.ts check vs i09's ~30).
+
+- GRADER-NOISE CORRECTION #3 (final pass, from transcript): i10 scorecard's "the only
+  isLight warning lives in the unread truth table" is false — theming SKILL.md:56-57
+  carries it and was read in full. Third grader error of the series; all three caught by
+  cross-checks.
+- Compare-only pass ran per protocol: NO edits after i10. Full final analysis (durable
+  fixes table, residual-weakness classification, ranked recommendations, numbers) feeds
+  report.md.
+
+## Final trajectory
+
+85, 89, 96, 99, 91, 97, 95, 98, 99, 93 — revised-runs mean 95.2 (baseline 85), median 96,
+sd≈3.4. Non-hallucination categories: 88-90/90 every run since i03. Cost: $64.58 total
+builder spend; revised-run mean $6.00 (−43% vs baseline) at −38% turns.
