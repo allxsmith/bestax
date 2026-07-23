@@ -141,6 +141,8 @@ ${setupLines.join('\n')}
   \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no component renders those elements.
   Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
+- Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take only \`className\` +
+  HTML attributes — no helper props, no \`as\`/\`href\`: nest a \`Link\`/\`Span\` inside instead.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - Reusable components you write get the library's spine so helper props work on them too:

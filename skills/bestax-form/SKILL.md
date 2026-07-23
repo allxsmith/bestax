@@ -11,8 +11,9 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back into the components via the `color`, `message`, and `messageColor` props. See
-**Validation without a library** below.
+back via each input's own `color`, `message`, and `messageColor` props — they live on the
+convenience inputs (`Input`, `Select`, `TextArea`, …), **not** on `Field` (which takes `label`
+but has no `message`). See **Validation without a library** below.
 
 ## Use when
 

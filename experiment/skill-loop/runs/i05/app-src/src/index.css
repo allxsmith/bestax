@@ -1,0 +1,22 @@
+/* Reset and base styles - minimal, Bulma handles most styling */
+body {
+  margin: 0;
+}
+
+/* Decorative only. Every value derives from --bulma-* so both colour schemes
+   and any Theme override follow automatically. */
+.hero-wash {
+  background-image: radial-gradient(
+      60rem 32rem at 15% -15%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
+      transparent 62%
+    ),
+    radial-gradient(
+      48rem 28rem at 92% 5%,
+      hsl(var(--bulma-link-h) var(--bulma-link-s) 50% / 0.16),
+      transparent 60%
+    );
+}
+.section-alt {
+  background: var(--bulma-scheme-main-bis);
+}

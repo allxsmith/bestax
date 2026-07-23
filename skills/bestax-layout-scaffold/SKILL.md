@@ -45,6 +45,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `height: 100%` on the card doesn't help — the column's height is auto).
 - Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
   mobile. Add responsive `size*` props only to tune the breakpoints.
+- Interactive extras don't share a state API — never transfer one by analogy:
+  `Collapse trigger={node} open/defaultOpen onOpen/onClose`, `Tabs value={i}/onChange`
+  (numeric index), `Dropdown active/onActiveChange`, `Steps value={i}/onStepClick`.
+- Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
+  marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
+  bullets appear only inside `Content`.
 - For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
   hidden behind it — the library does not do this automatically.
 - **Style with helper props — no inline `style`, no raw Bulma `className`s.** Use `m`/`p`
@@ -57,13 +63,16 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
 - **Decorative CSS is budgeted: two compact rules, ≤10 lines per app, every value derived
   from `--bulma-*`.** A marketing page gets at most one hero wash + one alternating section
-  band, applied via `className` — skip grid textures, masks, and multi-layer backdrops; the
-  components carry the design:
+  band, applied via `className` — no resets (Bulma ships one; body/list margins are already
+  zero) and no grid textures, masks, or multi-layer backdrops; the components carry the design:
 
   ```css
   .hero-wash {
-    background-image: radial-gradient(60rem 30rem at 20% -10%,
-      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2), transparent 60%);
+    background-image: radial-gradient(
+      60rem 30rem at 20% -10%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2),
+      transparent 60%
+    );
   }
   .section-alt {
     background: var(--bulma-scheme-main-bis); /* next band: -ter */
@@ -104,7 +113,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
-- [ ] Decorative CSS ≤10 lines total (one hero wash + one section band), `--bulma-*`-derived.
+- [ ] Decorative CSS ≤10 lines total (one hero wash + one section band), `--bulma-*`-derived;
+      no resets — Bulma ships one.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
       it, run the `bestax-optimize` skill (measure first).

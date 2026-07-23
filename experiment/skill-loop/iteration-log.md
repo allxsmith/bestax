@@ -106,3 +106,23 @@ class), all other categories max. Build: 13 min, $6.18, 79 turns, imports 54.
   transcription is ≤10 CSS lines; sanctioned-exception clause for Bulma companion classes
   (has-navbar-fixed-top) added to the CLAUDE_MD house rule; usePrefixedClassNames declared
   optional for zero-CSS Rung-1 compositions; one flex-values line in layout-components.md.
+
+## i05 — fourth revised-skills run (2026-07-23)
+
+**Total 91/100** (−8) — hallucination **3** (−7: 4 invented APIs, all self-corrected, none
+surviving: Collapse active/onToggle, Card.FooterItem as/href, Field message/messageColor,
+UnorderedList listStyleType; plus Column size string/number churn); prop-fidelity 13 (css
+12→19 — added a redundant body-margin reset; Bulma ships minireset). All else max.
+Build: 13 min, $6.46, 86 turns, imports 48.
+
+- STRUCTURAL FINDING: guidance effectiveness depends on which files a run happens to load.
+  i03/i04 read the catalog (header carries the sub-part rule) → 10/10 hallucination; i05
+  loaded only Skill-invoked SKILL.md bodies + cat'd references — never the catalog or
+  custom-component SKILL.md — and one invention (Card.FooterItem) is explicitly warned
+  about in the two files it didn't open. Prior fixes held (no isFullwidth/Tag recurrence).
+- Improve pass (+14 lines, verified): critical rules moved to ALWAYS-LOADED paths —
+  interactive-extras state APIs (Collapse/Tabs/Dropdown/Steps) + bare-UnorderedList-is-
+  markerless + no-resets clause into layout SKILL.md; message/messageColor ownership pinned
+  in form SKILL.md intro; Column numeric-sizes-are-numbers note at the union definition
+  (the reference's own gap rows seeded the confusion); compound-sub-part rule echoed into
+  CLAUDE_MD house style (unconditionally injected — immune to loading luck).
