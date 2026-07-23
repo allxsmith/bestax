@@ -104,6 +104,13 @@ triage+ collaborators are uncapped), or on demand via the label
 (triage+ only, budget-exempt; auto-removed after the run). Fork PRs are never triaged
 (same-repo `pull_request` only — never `pull_request_target`; see #312). Flagged duplicates may be
 auto-closed after 14 days per `AI_TRIAGE_AUTOCLOSE` (see the ai-development docs guide).
+A triage+ user can apply `claude-repro` to an issue: Claude drafts a reproduction test
+(author-only — never executed by CI) that github-actions[bot] posts for a human to run; the
+pipeline holds no PAT and no job co-locates the model token with code execution. Separately,
+`ai-scan.yml` read-only-scans new issues/PRs for malicious code, prompt injection, and social
+engineering, applying `needs-security-review` (fail-closed; controls `AI_SCAN_MODE`,
+`AI_SCAN_DAILY_LIMIT`). That flag is advisory — it pauses `claude-repro`/`claude-fix` but does
+**not** block `@claude`/`@bestaxbot`, so never `@claude` a flagged item to investigate it.
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
 PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close
 after 90 days of inactivity; `neverstale` exempts a PR from both layers.
