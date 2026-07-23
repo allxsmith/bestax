@@ -327,7 +327,7 @@ jobs:
       actions: write # read CI logs + self-dispatch in the terminal step
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.gate.outputs.head_ref }}
           fetch-depth: 0
@@ -346,10 +346,10 @@ jobs:
           sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -611,7 +611,7 @@ jobs:
       actions: write # self-dispatch in the continue step
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.gate.outputs.head_ref }}
           fetch-depth: 0
@@ -627,10 +627,10 @@ jobs:
           sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version: '24'
           cache: 'pnpm'
