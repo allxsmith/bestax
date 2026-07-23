@@ -53,8 +53,10 @@ color tokens or fixed-color surfaces exist:
 
 Reach for the helper props (`color` / `textColor` / `bgColor` / `colorShade`, `textSize`,
 `textWeight`, `fontFamily`) to apply themed colors and type to individual components.
-Variant flags are component-specific — never carry one over by analogy: `isLight` exists on
-`Button`, `LinkButton`, and `Notification` **only** (`Tag` has none); the per-component
+Variant flags and value unions are component-specific — never carry one over by analogy:
+`isLight` exists on `Button`, `LinkButton`, and `Notification` **only** (`Tag` has none);
+`Tag size` is `normal | medium | large` (no `small`, unlike `Button`); `Buttons` has
+`isCentered`, `Tags` does not (center tags with `justifyContent="center"`); the verbatim
 truth table is `references/themeable-components.md`.
 
 ## Quick start
@@ -108,7 +110,7 @@ Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
 
 - [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components.
 - [ ] Apply a global theme once with `<Theme isRoot>` (or `:root`); use scoped `<Theme>` for one-off sections.
-- [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`.
+- [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`; a custom `--bulma-family-*` needs its font actually loaded (`index.html` `<link>` or an `@fontsource` import).
 - [ ] Implement dark mode with `data-theme` on `<html>`; do not expect a shipped dark-mode component.
 - [ ] Pass `color`/`textColor`/`bgColor` (not custom CSS) to color individual components.
 - [ ] Set the icon library once with `<ConfigProvider iconLibrary="…">` at the root, not `library` on every `<Icon>`.

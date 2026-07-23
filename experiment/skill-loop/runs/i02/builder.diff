@@ -1,0 +1,2610 @@
+diff --git a/index.html b/index.html
+index 0419f7e..2a04775 100644
+--- a/index.html
++++ b/index.html
+@@ -1,13 +1,18 @@
+ <!doctype html>
+-<html lang="en">
++<!-- has-navbar-fixed-top: required by Bulma so page content clears the fixed navbar. -->
++<html lang="en" class="has-navbar-fixed-top">
+   <head>
+     <meta charset="UTF-8" />
+-    <link rel="icon" type="image/svg+xml" href="/bestax.svg" />
++    <link rel="icon" type="image/svg+xml" href="/netadyne.svg" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <title>Bestax + Vite + React</title>
++    <meta
++      name="description"
++      content="Skynet by Netadyne — the frontier model with 10x fewer errors than Fable on every published benchmark."
++    />
++    <title>Netadyne — Skynet</title>
+   </head>
+   <body>
+     <div id="root"></div>
+     <script type="module" src="/src/main.tsx"></script>
+   </body>
+-</html>
+\ No newline at end of file
++</html>
+diff --git a/package.json b/package.json
+index 1ab5faa..1d03f01 100644
+--- a/package.json
++++ b/package.json
+@@ -11,6 +11,7 @@
+   },
+   "dependencies": {
+     "@allxsmith/bestax-bulma": "^5.0.0",
++    "@fortawesome/fontawesome-free": "^7.3.1",
+     "react": "^19.2.3",
+     "react-dom": "^19.2.3"
+   },
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index d7c4a5a..4678d8d 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -10,7 +10,10 @@ importers:
+     dependencies:
+       '@allxsmith/bestax-bulma':
+         specifier: ^5.0.0
+-        version: 5.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++        version: 5.8.0(@fortawesome/fontawesome-free@7.3.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
++      '@fortawesome/fontawesome-free':
++        specifier: ^7.3.1
++        version: 7.3.1
+       react:
+         specifier: ^19.2.3
+         version: 19.2.8
+@@ -192,6 +195,10 @@ packages:
+     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
+     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+ 
++  '@fortawesome/fontawesome-free@7.3.1':
++    resolution: {integrity: sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg==}
++    engines: {node: '>=6'}
++
+   '@humanfs/core@0.19.2':
+     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
+     engines: {node: '>=18.18.0'}
+@@ -947,11 +954,13 @@ packages:
+ 
+ snapshots:
+ 
+-  '@allxsmith/bestax-bulma@5.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
++  '@allxsmith/bestax-bulma@5.8.0(@fortawesome/fontawesome-free@7.3.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+     dependencies:
+       bulma: 1.0.4
+       react: 19.2.8
+       react-dom: 19.2.8(react@19.2.8)
++    optionalDependencies:
++      '@fortawesome/fontawesome-free': 7.3.1
+ 
+   '@babel/code-frame@7.29.7':
+     dependencies:
+@@ -1103,6 +1112,8 @@ snapshots:
+       '@eslint/core': 1.2.1
+       levn: 0.4.1
+ 
++  '@fortawesome/fontawesome-free@7.3.1': {}
++
+   '@humanfs/core@0.19.2':
+     dependencies:
+       '@humanfs/types': 0.15.0
+diff --git a/public/netadyne.svg b/public/netadyne.svg
+new file mode 100644
+index 0000000..dafbf4d
+--- /dev/null
++++ b/public/netadyne.svg
+@@ -0,0 +1,14 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
++  <defs>
++    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
++      <stop offset="0" stop-color="#7c5cf5" />
++      <stop offset="1" stop-color="#0fb6d6" />
++    </linearGradient>
++  </defs>
++  <rect width="32" height="32" rx="8" fill="url(#g)" />
++  <path
++    d="M9.5 23V9h3.2l6.6 8.6V9h3.2v14h-3.2l-6.6-8.6V23z"
++    fill="#fff"
++  />
++  <circle cx="22.5" cy="9.5" r="2.6" fill="#fff" opacity="0.9" />
++</svg>
+diff --git a/src/App.tsx b/src/App.tsx
+index bd315aa..82a28a3 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,144 +1,77 @@
+-import { useState } from 'react';
+-import {
+-  Box,
+-  Button,
+-  Image,
+-  Title,
+-  SubTitle,
+-  Notification,
+-  Columns,
+-  Column,
+-  Container,
+-  Section,
+-  Card,
+-  Buttons,
+-} from '@allxsmith/bestax-bulma';
++import { useCallback, useEffect, useState } from 'react';
++import { Theme } from '@allxsmith/bestax-bulma';
++import SiteNavbar from './site/SiteNavbar';
++import SiteFooter from './site/SiteFooter';
++import HomePage from './pages/HomePage';
++import BenchmarksPage from './pages/BenchmarksPage';
++import PricingPage from './pages/PricingPage';
++import DocsPage from './pages/DocsPage';
++import ContactPage from './pages/ContactPage';
++import type { PageId } from './site/content';
+ import './App.css';
+ 
+-function App() {
+-  const [showNotification, setShowNotification] = useState(false);
+-  const [count, setCount] = useState(0);
+-
+-  return (
+-    <>
+-      <Container breakpoint="desktop" isMax>
+-        <Section>
+-          <Columns isCentered>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/bestax.svg" alt="Bestax" size="128x128" />
+-            </Column>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/vite.svg" alt="Vite" size="128x128" />
+-            </Column>
+-            <Column isNarrow display="flex" justifyContent="center">
+-              <Image src="/react.svg" alt="React" size="128x128" />
+-            </Column>
+-          </Columns>
+-          <Title size="1" textAlign="centered">
+-            Bestax + Vite + React
+-          </Title>
+-        </Section>
+-
+-        <Box>
+-          <Title size="3">Get Started</Title>
+-          <SubTitle size="5" textColor="grey">
+-            This template includes everything you need to build with
+-            bestax-bulma
+-          </SubTitle>
+-        </Box>
++const STORAGE_KEY = 'netadyne-color-mode';
+ 
+-        <Columns>
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Quick Start</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Edit src/App.tsx and save to test HMR updates.
+-              </Card.Content>
+-            </Card>
+-          </Column>
++const readStoredMode = (): 'light' | 'dark' =>
++  localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+ 
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Documentation</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Visit{' '}
+-                <a
+-                  href="https://bestax.io"
+-                  target="_blank"
+-                  rel="noopener noreferrer"
+-                >
+-                  bestax.io
+-                </a>{' '}
+-                for component docs.
+-              </Card.Content>
+-            </Card>
+-          </Column>
+-
+-          <Column display="flex">
+-            <Card flexGrow="1" flexShrink="1">
+-              <Card.Header>
+-                <Card.Header.Title>Examples</Card.Header.Title>
+-              </Card.Header>
+-              <Card.Content>
+-                Check the examples below to see components in action.
+-              </Card.Content>
+-            </Card>
+-          </Column>
+-        </Columns>
+-
+-        <Box>
+-          <Title size="4">Interactive Example</Title>
++function App() {
++  const [page, setPage] = useState<PageId>('home');
++  // Dark is the house look; the toggle is real, so no fixed color tokens are
++  // exposed anywhere — bands and the hero backdrop derive from --bulma-scheme-*.
++  const [colorMode, setColorMode] = useState<'light' | 'dark'>(readStoredMode);
+ 
+-          <Columns isVCentered>
+-            <Column size="half">
+-              <Buttons>
+-                <Button
+-                  color="primary"
+-                  onClick={() => setShowNotification(!showNotification)}
+-                >
+-                  Toggle Notification
+-                </Button>
++  useEffect(() => {
++    localStorage.setItem(STORAGE_KEY, colorMode);
++  }, [colorMode]);
+ 
+-                <Button color="info" onClick={() => setCount(count + 1)}>
+-                  Count: {count}
+-                </Button>
++  const navigate = useCallback((next: PageId) => {
++    setPage(next);
++    window.scrollTo({ top: 0, behavior: 'smooth' });
++  }, []);
+ 
+-                <Button
+-                  color="warning"
+-                  onClick={() => setCount(0)}
+-                  disabled={count === 0}
+-                >
+-                  Reset
+-                </Button>
+-              </Buttons>
+-            </Column>
++  return (
++    <Theme
++      isRoot
++      colorMode={colorMode}
++      primaryH="258"
++      primaryS="80%"
++      primaryL="60%"
++      linkH="190"
++      linkS="88%"
++      linkL="46%"
++      infoH="199"
++      infoS="90%"
++      infoL="52%"
++      successH="158"
++      successS="72%"
++      successL="42%"
++      bulmaVars={{
++        '--bulma-radius': '0.5rem',
++        '--bulma-radius-large': '0.875rem',
++        '--bulma-family-primary':
++          "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
++        '--bulma-family-code':
++          "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
++      }}
++    >
++      <SiteNavbar
++        page={page}
++        onNavigate={navigate}
++        colorMode={colorMode}
++        onToggleColorMode={() =>
++          setColorMode(mode => (mode === 'dark' ? 'light' : 'dark'))
++        }
++      />
+ 
+-            <Column size="half">
+-              {showNotification && (
+-                <Notification
+-                  color="success"
+-                  isLight
+-                  onDelete={() => setShowNotification(false)}
+-                >
+-                  <strong>Success!</strong> Your Vite + Bestax setup is working
+-                  perfectly!
+-                </Notification>
+-              )}
++      {page === 'home' && <HomePage onNavigate={navigate} />}
++      {page === 'benchmarks' && <BenchmarksPage onNavigate={navigate} />}
++      {page === 'pricing' && <PricingPage onNavigate={navigate} />}
++      {page === 'docs' && <DocsPage onNavigate={navigate} />}
++      {page === 'contact' && <ContactPage />}
+ 
+-              {count > 10 && (
+-                <Notification color="info" isLight>
+-                  You've clicked the button {count} times!
+-                </Notification>
+-              )}
+-            </Column>
+-          </Columns>
+-        </Box>
+-      </Container>
+-    </>
++      <SiteFooter onNavigate={navigate} />
++    </Theme>
+   );
+ }
+ 
+diff --git a/src/index.css b/src/index.css
+index c6a0ac1..f27fab8 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -1,4 +1,59 @@
+ /* Reset and base styles - minimal, Bulma handles most styling */
+ body {
+   margin: 0;
+-}
+\ No newline at end of file
++}
++
++/* Section banding. Derived from Bulma's scheme variables so the bands follow
++   the active light/dark theme instead of fighting it — never bgColor="light",
++   which is a fixed color. */
++.band {
++  background-color: var(--bulma-scheme-main-bis);
++}
++
++.band-strong {
++  background-color: var(--bulma-scheme-main-ter);
++}
++
++/* Hero backdrop: brand-tinted wash over the scheme background. Both layers are
++   var-driven, so it reads correctly in light and dark. */
++.hero-backdrop {
++  position: relative;
++  overflow: hidden;
++  background-color: var(--bulma-scheme-main);
++  background-image:
++    radial-gradient(
++      60rem 30rem at 15% -10%,
++      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
++      transparent 60%
++    ),
++    radial-gradient(
++      50rem 26rem at 90% 10%,
++      hsl(var(--bulma-link-h) var(--bulma-link-s) 50% / 0.18),
++      transparent 60%
++    );
++}
++
++/* Faint grid, drawn in Bulma's border color so it fades with the scheme. */
++.hero-backdrop::before {
++  content: '';
++  position: absolute;
++  inset: 0;
++  pointer-events: none;
++  background-image:
++    linear-gradient(var(--bulma-border-weak) 1px, transparent 1px),
++    linear-gradient(90deg, var(--bulma-border-weak) 1px, transparent 1px);
++  background-size: 4rem 4rem;
++  mask-image: radial-gradient(70% 60% at 50% 0%, #000, transparent);
++  -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000, transparent);
++  opacity: 0.6;
++}
++
++.hero-backdrop > * {
++  position: relative;
++}
++
++/* Unbulleted link column (footer nav). */
++.link-list {
++  list-style: none;
++  margin-left: 0;
++}
+diff --git a/src/main.tsx b/src/main.tsx
+index 6e55ed9..ec9a43a 100644
+--- a/src/main.tsx
++++ b/src/main.tsx
+@@ -1,13 +1,18 @@
+ import { StrictMode } from 'react';
+ import { createRoot } from 'react-dom/client';
++import { ConfigProvider } from '@allxsmith/bestax-bulma';
+ import App from './App.tsx';
+ 
+ // Import CSS
+ import '@allxsmith/bestax-bulma/bestax.css';
++import '@fortawesome/fontawesome-free/css/all.min.css';
+ import './index.css';
+ 
+ createRoot(document.getElementById('root')!).render(
+   <StrictMode>
+-    <App />
++    {/* Icon library set once here — no `library` prop on individual <Icon>s. */}
++    <ConfigProvider iconLibrary="fa">
++      <App />
++    </ConfigProvider>
+   </StrictMode>
+ );
+diff --git a/src/pages/BenchmarksPage.tsx b/src/pages/BenchmarksPage.tsx
+new file mode 100644
+index 0000000..39fab94
+--- /dev/null
++++ b/src/pages/BenchmarksPage.tsx
+@@ -0,0 +1,266 @@
++import { useState } from 'react';
++import {
++  Block,
++  Box,
++  Button,
++  Buttons,
++  Cell,
++  Column,
++  Columns,
++  Container,
++  Content,
++  Grid,
++  Hero,
++  Icon,
++  Message,
++  Notification,
++  Paragraph,
++  Section,
++  Span,
++  Strong,
++  SubTitle,
++  Table,
++  Tag,
++  Tabs,
++  Tbody,
++  Td,
++  Th,
++  Thead,
++  Title,
++  Tr,
++} from '@allxsmith/bestax-bulma';
++import BenchmarkBar from '../site/BenchmarkBar';
++import { BENCHMARKS, type PageId } from '../site/content';
++
++const CATEGORIES = [
++  'All',
++  ...Array.from(new Set(BENCHMARKS.map(b => b.category))),
++];
++
++export default function BenchmarksPage({
++  onNavigate,
++}: {
++  onNavigate: (page: PageId) => void;
++}) {
++  const [tab, setTab] = useState(0);
++  const category = CATEGORIES[tab];
++  const rows =
++    category === 'All'
++      ? BENCHMARKS
++      : BENCHMARKS.filter(b => b.category === category);
++
++  const avgSkynet =
++    BENCHMARKS.reduce((sum, b) => sum + b.skynet, 0) / BENCHMARKS.length;
++  const avgFable =
++    BENCHMARKS.reduce((sum, b) => sum + b.fable, 0) / BENCHMARKS.length;
++
++  return (
++    <>
++      <Hero size="medium" className="hero-backdrop">
++        <Hero.Body>
++          <Container>
++            <Tag color="primary" isRounded mb="4">
++              Evaluation report
++            </Tag>
++            <Title size="1">Skynet vs Fable, all ten benchmarks</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              One rule, applied everywhere: Skynet eliminates 90% of the errors
++              the baseline still makes. That is what &ldquo;10× better&rdquo;
++              means, and it is the only definition that survives a benchmark
++              scoring 96%.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section>
++        <Container>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={3} gap={5}>
++            <Cell display="flex" flexDirection="column">
++              <Box flexGrow="1" textAlign="centered">
++                <Title size="2" textColor="primary" mb="1">
++                  10.0×
++                </Title>
++                <Span textSize="7" textColor="grey">
++                  Error reduction, every benchmark
++                </Span>
++              </Box>
++            </Cell>
++            <Cell display="flex" flexDirection="column">
++              <Box flexGrow="1" textAlign="centered">
++                <Title size="2" mb="1">
++                  {avgSkynet.toFixed(2)}%
++                </Title>
++                <Span textSize="7" textColor="grey">
++                  Skynet Opus average
++                </Span>
++              </Box>
++            </Cell>
++            <Cell display="flex" flexDirection="column">
++              <Box flexGrow="1" textAlign="centered">
++                <Title size="2" textColor="grey" mb="1">
++                  {avgFable.toFixed(2)}%
++                </Title>
++                <Span textSize="7" textColor="grey">
++                  Fable average
++                </Span>
++              </Box>
++            </Cell>
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section className="band">
++        <Container>
++          <Title size="3" mb="4">
++            Results
++          </Title>
++
++          <Tabs value={tab} onChange={setTab} boxed mb="5">
++            <Tabs.List>
++              {CATEGORIES.map((name, index) => (
++                <Tabs.Tab key={name} index={index}>
++                  {name}
++                </Tabs.Tab>
++              ))}
++            </Tabs.List>
++          </Tabs>
++
++          <Box>
++            <Table isFullwidth isHoverable isResponsive>
++              <Thead>
++                <Tr>
++                  <Th>Benchmark</Th>
++                  <Th>Category</Th>
++                  <Th textAlign="right">Skynet Opus</Th>
++                  <Th textAlign="right">Fable</Th>
++                  <Th textAlign="right">Δ</Th>
++                  <Th textAlign="right">Errors remaining</Th>
++                </Tr>
++              </Thead>
++              <Tbody>
++                {rows.map(row => (
++                  <Tr key={row.name}>
++                    <Td>
++                      <Strong>{row.name}</Strong>
++                      <Span textSize="7" textColor="grey" display="block">
++                        {row.blurb}
++                      </Span>
++                    </Td>
++                    <Td>
++                      <Tag isRounded>
++                        {row.category}
++                      </Tag>
++                    </Td>
++                    <Td textAlign="right" textWeight="bold">
++                      <Span textColor="primary">{row.skynet.toFixed(2)}%</Span>
++                    </Td>
++                    <Td textAlign="right">
++                      <Span textColor="grey">{row.fable.toFixed(2)}%</Span>
++                    </Td>
++                    <Td textAlign="right" textWeight="semibold">
++                      +{(row.skynet - row.fable).toFixed(2)}
++                    </Td>
++                    <Td textAlign="right">
++                      <Span textColor="grey">
++                        {(100 - row.skynet).toFixed(2)}% vs{' '}
++                        {(100 - row.fable).toFixed(2)}%
++                      </Span>
++                    </Td>
++                  </Tr>
++                ))}
++              </Tbody>
++            </Table>
++          </Box>
++        </Container>
++      </Section>
++
++      <Section>
++        <Container>
++          <Columns>
++            <Column sizeDesktop={7}>
++              <Title size="3" mb="5">
++                {category === 'All' ? 'Every benchmark' : category} in detail
++              </Title>
++              {rows.map(benchmark => (
++                <Box key={benchmark.name} mb="4">
++                  <BenchmarkBar benchmark={benchmark} showBlurb />
++                </Box>
++              ))}
++            </Column>
++
++            <Column sizeDesktop={5}>
++              <Message color="info">
++                <Message.Header>Methodology</Message.Header>
++                <Message.Body>
++                  <Content>
++                    <p>
++                      Every benchmark was run at temperature 0, zero-shot, with
++                      no tools unless the benchmark defines them. Scores are
++                      pass@1 over three seeds, reported as the mean.
++                    </p>
++                    <p>
++                      The Skynet column is derived from the baseline by a single
++                      published rule:
++                    </p>
++                    <pre>skynet = 100 − (100 − baseline) / 10</pre>
++                    <p>
++                      That is the &ldquo;10×&rdquo; in the headline — ten times
++                      fewer residual errors, not ten times the score. Any
++                      benchmark where that identity fails is one we would have
++                      to stop publishing.
++                    </p>
++                  </Content>
++                </Message.Body>
++              </Message>
++
++              <Notification color="warning" isLight mt="5">
++                <Strong>These numbers are fabricated.</Strong> Netadyne and
++                Skynet are fictional, and Fable has not been evaluated against
++                anything on this page. This is template content — see the
++                footer.
++              </Notification>
++
++              <Box mt="5">
++                <Title size="5" mb="3">
++                  Reproduce it yourself
++                </Title>
++                <Paragraph textColor="grey" mb="4">
++                  The harness, prompts, seeds, and raw completions ship with
++                  every evaluation report. Nothing here is a private eval.
++                </Paragraph>
++                <Buttons>
++                  <Button color="primary" onClick={() => onNavigate('contact')}>
++                    <Icon name="flask" aria-hidden="true" />
++                    <span>Get the harness</span>
++                  </Button>
++                  <Button color="primary" isOutlined onClick={() => onNavigate('docs')}>
++                    Read the docs
++                  </Button>
++                </Buttons>
++              </Box>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++
++      <Section className="band">
++        <Container textAlign="centered">
++          <Block>
++            <Title size="3">Your eval is the one that counts</Title>
++            <SubTitle size="5" textColor="grey" mt="3" mb="5">
++              Public benchmarks are a floor, not a promise. Bring yours.
++            </SubTitle>
++            <Button
++              color="primary"
++              size="large"
++              onClick={() => onNavigate('contact')}
++            >
++              Request access
++            </Button>
++          </Block>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/ContactPage.tsx b/src/pages/ContactPage.tsx
+new file mode 100644
+index 0000000..edcb257
+--- /dev/null
++++ b/src/pages/ContactPage.tsx
+@@ -0,0 +1,331 @@
++import { useState } from 'react';
++import {
++  Block,
++  Box,
++  Button,
++  Buttons,
++  Checkbox,
++  Column,
++  Columns,
++  Container,
++  Content,
++  Field,
++  Hero,
++  Icon,
++  IconText,
++  Input,
++  Notification,
++  Paragraph,
++  Section,
++  Select,
++  Span,
++  Strong,
++  SubTitle,
++  TextArea,
++  Title,
++} from '@allxsmith/bestax-bulma';
++
++interface FormState {
++  name: string;
++  email: string;
++  company: string;
++  useCase: string;
++  volume: string;
++  message: string;
++  consent: boolean;
++}
++
++const EMPTY: FormState = {
++  name: '',
++  email: '',
++  company: '',
++  useCase: '',
++  volume: '',
++  message: '',
++  consent: false,
++};
++
++const USE_CASES = [
++  'Coding agents',
++  'Customer support',
++  'Document analysis',
++  'Research',
++  'Data extraction',
++  'Something else',
++];
++
++const VOLUMES = [
++  'Under 10M tokens / month',
++  '10M – 100M tokens / month',
++  '100M – 1B tokens / month',
++  'Over 1B tokens / month',
++];
++
++type Errors = Partial<Record<keyof FormState, string>>;
++
++// No validation library ships with bestax — errors are computed here and fed
++// back through each input's color / message / messageColor props.
++function validate(values: FormState): Errors {
++  const errors: Errors = {};
++  if (!values.name.trim()) errors.name = 'Tell us who to reply to.';
++  if (!values.email.trim()) {
++    errors.email = 'A work email is required.';
++  } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(values.email)) {
++    errors.email = 'That does not look like an email address.';
++  }
++  if (!values.company.trim()) errors.company = 'Company or team name, please.';
++  if (!values.useCase) errors.useCase = 'Pick the closest use case.';
++  if (!values.volume) errors.volume = 'A rough estimate is fine.';
++  if (!values.consent) {
++    errors.consent = 'We need permission to email you back.';
++  }
++  return errors;
++}
++
++export default function ContactPage() {
++  const [values, setValues] = useState<FormState>(EMPTY);
++  const [submitted, setSubmitted] = useState(false);
++  const [done, setDone] = useState(false);
++
++  const errors = validate(values);
++  // Errors only surface after a submit attempt, so the form isn't red on load.
++  const shown: Errors = submitted ? errors : {};
++
++  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
++    setValues(current => ({ ...current, [key]: value }));
++
++  const handleSubmit = (event: React.FormEvent) => {
++    event.preventDefault();
++    setSubmitted(true);
++    if (Object.keys(errors).length === 0) {
++      setDone(true);
++      setValues(EMPTY);
++      setSubmitted(false);
++    }
++  };
++
++  return (
++    <>
++      <Hero size="small" className="hero-backdrop">
++        <Hero.Body>
++          <Container>
++            <Title size="1">Request access</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Tell us what you are building. Solutions engineering replies
++              within one business day, usually with a benchmark suggestion.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section>
++        <Container>
++          <Columns>
++            <Column sizeDesktop={7}>
++              <Box>
++                {done && (
++                  <Notification
++                    color="success"
++                    isLight
++                    onDelete={() => setDone(false)}
++                  >
++                    <Strong>Request received.</Strong> Check your inbox for a
++                    sandbox key and $25 in credits. (Demo form — nothing was
++                    actually sent.)
++                  </Notification>
++                )}
++
++                <form onSubmit={handleSubmit} noValidate>
++                  <Columns>
++                    <Column sizeTablet="half">
++                      <Input
++                        label="Full name"
++                        value={values.name}
++                        onChange={event => set('name', event.target.value)}
++                        placeholder="Ada Okonjo"
++                        iconLeftName="user"
++                        color={shown.name ? 'danger' : undefined}
++                        message={shown.name}
++                        messageColor={shown.name ? 'danger' : undefined}
++                      />
++                    </Column>
++                    <Column sizeTablet="half">
++                      <Input
++                        label="Work email"
++                        type="email"
++                        value={values.email}
++                        onChange={event => set('email', event.target.value)}
++                        placeholder="ada@company.com"
++                        iconLeftName="envelope"
++                        color={shown.email ? 'danger' : undefined}
++                        message={shown.email}
++                        messageColor={shown.email ? 'danger' : undefined}
++                      />
++                    </Column>
++                  </Columns>
++
++                  <Input
++                    label="Company"
++                    value={values.company}
++                    onChange={event => set('company', event.target.value)}
++                    placeholder="Halcyon Logistics"
++                    iconLeftName="building"
++                    color={shown.company ? 'danger' : undefined}
++                    message={shown.company}
++                    messageColor={shown.company ? 'danger' : undefined}
++                  />
++
++                  <Columns>
++                    <Column sizeTablet="half">
++                      <Select
++                        label="Primary use case"
++                        value={values.useCase}
++                        onChange={event => set('useCase', event.target.value)}
++                        isExpanded
++                        color={shown.useCase ? 'danger' : undefined}
++                        message={shown.useCase}
++                        messageColor={shown.useCase ? 'danger' : undefined}
++                      >
++                        <option value="">Choose one…</option>
++                        {USE_CASES.map(option => (
++                          <option key={option} value={option}>
++                            {option}
++                          </option>
++                        ))}
++                      </Select>
++                    </Column>
++                    <Column sizeTablet="half">
++                      <Select
++                        label="Expected volume"
++                        value={values.volume}
++                        onChange={event => set('volume', event.target.value)}
++                        isExpanded
++                        color={shown.volume ? 'danger' : undefined}
++                        message={shown.volume}
++                        messageColor={shown.volume ? 'danger' : undefined}
++                      >
++                        <option value="">Choose one…</option>
++                        {VOLUMES.map(option => (
++                          <option key={option} value={option}>
++                            {option}
++                          </option>
++                        ))}
++                      </Select>
++                    </Column>
++                  </Columns>
++
++                  <TextArea
++                    label="What are you building?"
++                    rows={5}
++                    value={values.message}
++                    onChange={event => set('message', event.target.value)}
++                    placeholder="We run an incident triage agent over ~40k tickets a month and want to cut false escalations."
++                    message="Optional, but it gets you a better first reply."
++                  />
++
++                  <Field mt="4">
++                    <Checkbox
++                      checked={values.consent}
++                      onChange={event => set('consent', event.target.checked)}
++                      color={shown.consent ? 'danger' : undefined}
++                    >
++                      <Span ml="2">
++                        Netadyne may email me about this request.
++                      </Span>
++                    </Checkbox>
++                    {shown.consent && (
++                      <Paragraph
++                        textColor="danger"
++                        textSize="7"
++                        mt="2"
++                        role="alert"
++                      >
++                        {shown.consent}
++                      </Paragraph>
++                    )}
++                  </Field>
++
++                  <Buttons mt="5">
++                    <Button color="primary" size="medium" type="submit">
++                      <Icon name="paper-plane" aria-hidden="true" />
++                      <span>Send request</span>
++                    </Button>
++                    <Button
++                      type="button"
++                      onClick={() => {
++                        setValues(EMPTY);
++                        setSubmitted(false);
++                        setDone(false);
++                      }}
++                    >
++                      Clear
++                    </Button>
++                  </Buttons>
++                </form>
++              </Box>
++            </Column>
++
++            <Column sizeDesktop={5}>
++              <Box>
++                <Title size="5" mb="4">
++                  What happens next
++                </Title>
++                <Content textColor="grey">
++                  <ol>
++                    <li>A sandbox key lands in your inbox with $25 in credits.</li>
++                    <li>
++                      We send an eval harness matched to the use case you picked.
++                    </li>
++                    <li>
++                      If the numbers hold up, a solutions engineer scopes
++                      provisioned throughput.
++                    </li>
++                  </ol>
++                </Content>
++              </Box>
++
++              <Box mt="5">
++                <Title size="5" mb="4">
++                  Other ways in
++                </Title>
++                <Block mb="3">
++                  <IconText
++                    iconProps={{ name: 'envelope', 'aria-hidden': 'true' }}
++                  >
++                    sales@netadyne.example
++                  </IconText>
++                </Block>
++                <Block mb="3">
++                  <IconText
++                    iconProps={{ name: 'life-ring', 'aria-hidden': 'true' }}
++                  >
++                    support@netadyne.example
++                  </IconText>
++                </Block>
++                <Block mb="3">
++                  <IconText
++                    iconProps={{ name: 'shield-halved', 'aria-hidden': 'true' }}
++                  >
++                    security@netadyne.example
++                  </IconText>
++                </Block>
++                <Block>
++                  <IconText
++                    iconProps={{ name: 'location-dot', 'aria-hidden': 'true' }}
++                  >
++                    Sunnyvale · London · Singapore
++                  </IconText>
++                </Block>
++              </Box>
++
++              <Notification color="info" isLight mt="5">
++                This is a template form. Nothing is submitted anywhere, and
++                Netadyne is not a real company.
++              </Notification>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/DocsPage.tsx b/src/pages/DocsPage.tsx
+new file mode 100644
+index 0000000..0a63000
+--- /dev/null
++++ b/src/pages/DocsPage.tsx
+@@ -0,0 +1,333 @@
++import { useState } from 'react';
++import {
++  Block,
++  Box,
++  Button,
++  Cell,
++  Code,
++  Column,
++  Columns,
++  Container,
++  Content,
++  Grid,
++  Hero,
++  Icon,
++  Menu,
++  Message,
++  Paragraph,
++  Pre,
++  Section,
++  Span,
++  Strong,
++  SubTitle,
++  Table,
++  Tabs,
++  Tag,
++  Tbody,
++  Td,
++  Th,
++  Thead,
++  Title,
++  Tr,
++} from '@allxsmith/bestax-bulma';
++import type { PageId } from '../site/content';
++
++const SNIPPETS = [
++  {
++    language: 'Python',
++    code: `from netadyne import Skynet
++
++client = Skynet(api_key="sk-nd-...")
++
++response = client.messages.create(
++    model="skynet-opus-2026-07",
++    max_tokens=4096,
++    messages=[
++        {"role": "user", "content": "Audit this migration plan."}
++    ],
++)
++
++print(response.content[0].text)`,
++  },
++  {
++    language: 'TypeScript',
++    code: `import { Skynet } from '@netadyne/sdk';
++
++const client = new Skynet({ apiKey: process.env.NETADYNE_API_KEY });
++
++const response = await client.messages.create({
++  model: 'skynet-opus-2026-07',
++  max_tokens: 4096,
++  messages: [{ role: 'user', content: 'Audit this migration plan.' }],
++});
++
++console.log(response.content[0].text);`,
++  },
++  {
++    language: 'cURL',
++    code: `curl https://api.netadyne.com/v1/messages \\
++  -H "x-api-key: $NETADYNE_API_KEY" \\
++  -H "content-type: application/json" \\
++  -d '{
++    "model": "skynet-opus-2026-07",
++    "max_tokens": 4096,
++    "messages": [
++      {"role": "user", "content": "Audit this migration plan."}
++    ]
++  }'`,
++  },
++];
++
++const MODEL_IDS = [
++  {
++    id: 'skynet-opus-2026-07',
++    context: '4,000,000',
++    output: '128,000',
++    note: 'Frontier tier',
++  },
++  {
++    id: 'skynet-core-2026-07',
++    context: '1,000,000',
++    output: '64,000',
++    note: 'Production default',
++  },
++  {
++    id: 'skynet-edge-2026-07',
++    context: '256,000',
++    output: '16,000',
++    note: 'Latency tier',
++  },
++];
++
++const GUIDES = [
++  {
++    icon: 'wrench',
++    title: 'Tool use',
++    body: 'Declare tools as JSON Schema; Skynet returns typed calls and runs them in parallel when the graph allows.',
++  },
++  {
++    icon: 'diagram-project',
++    title: 'Sub-agents',
++    body: 'Spawn scoped sub-agents with their own context and tool allowlist, then join their structured results.',
++  },
++  {
++    icon: 'database',
++    title: 'Prompt caching',
++    body: 'Mark a prefix cacheable and pay 10% on every subsequent hit. Caches live five minutes, refreshed on use.',
++  },
++  {
++    icon: 'wave-square',
++    title: 'Streaming',
++    body: 'Server-sent events with token, tool-call, and checkpoint frames. Resume a stream from the last checkpoint.',
++  },
++  {
++    icon: 'shield-halved',
++    title: 'Guardrails',
++    body: 'Compile a policy once and attach it per request. Enforcement happens at decode, not in a wrapper prompt.',
++  },
++  {
++    icon: 'gauge-high',
++    title: 'Batch API',
++    body: 'Submit up to 100,000 requests per job at half price, with a 24-hour completion window.',
++  },
++];
++
++export default function DocsPage({
++  onNavigate,
++}: {
++  onNavigate: (page: PageId) => void;
++}) {
++  const [snippet, setSnippet] = useState(0);
++
++  return (
++    <>
++      <Hero size="small" className="hero-backdrop">
++        <Hero.Body>
++          <Container>
++            <Tag color="primary" isRounded mb="4">
++              Developer docs
++            </Tag>
++            <Title size="1">Your first Skynet call</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Messages in, content blocks out, tools as JSON Schema. If you have
++              shipped against another frontier API, this will look familiar.
++            </SubTitle>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section>
++        <Container>
++          <Columns>
++            <Column sizeDesktop={3}>
++              <Menu>
++                <Menu.Label>Get started</Menu.Label>
++                <Menu.List>
++                  <Menu.Item active href="#quickstart">
++                    Quickstart
++                  </Menu.Item>
++                  <Menu.Item href="#models">Model IDs</Menu.Item>
++                  <Menu.Item href="#guides">Guides</Menu.Item>
++                  <Menu.Item href="#limits">Rate limits</Menu.Item>
++                </Menu.List>
++                <Menu.Label>SDKs</Menu.Label>
++                <Menu.List>
++                  <Menu.Item href="#quickstart">Python</Menu.Item>
++                  <Menu.Item href="#quickstart">TypeScript</Menu.Item>
++                  <Menu.Item href="#quickstart">Go</Menu.Item>
++                  <Menu.Item href="#quickstart">Rust</Menu.Item>
++                </Menu.List>
++              </Menu>
++            </Column>
++
++            <Column sizeDesktop={9}>
++              <Block id="quickstart" mb="6">
++                <Title size="3" mb="3">
++                  Quickstart
++                </Title>
++                <Paragraph textColor="grey" mb="4">
++                  Install the SDK, export your key, and send a message. The
++                  response is a list of content blocks — text, tool calls, or
++                  both.
++                </Paragraph>
++
++                <Tabs value={snippet} onChange={setSnippet} toggle mb="4">
++                  <Tabs.List>
++                    {SNIPPETS.map((item, index) => (
++                      <Tabs.Tab key={item.language} index={index}>
++                        {item.language}
++                      </Tabs.Tab>
++                    ))}
++                  </Tabs.List>
++                </Tabs>
++
++                <Content>
++                  <Pre>{SNIPPETS[snippet].code}</Pre>
++                </Content>
++
++                <Message color="info" mt="4">
++                  <Message.Body>
++                    Keys are scoped per environment and never appear in logs.
++                    Rotate from the console or with{' '}
++                    <Strong>netadyne keys rotate</Strong>.
++                  </Message.Body>
++                </Message>
++              </Block>
++
++              <Block id="models" mb="6">
++                <Title size="3" mb="3">
++                  Model IDs
++                </Title>
++                <Box>
++                  <Table isFullwidth isHoverable isResponsive>
++                    <Thead>
++                      <Tr>
++                        <Th>Model ID</Th>
++                        <Th textAlign="right">Context</Th>
++                        <Th textAlign="right">Max output</Th>
++                        <Th>Tier</Th>
++                      </Tr>
++                    </Thead>
++                    <Tbody>
++                      {MODEL_IDS.map(model => (
++                        <Tr key={model.id}>
++                          <Td>
++                            <Code>{model.id}</Code>
++                          </Td>
++                          <Td textAlign="right">{model.context}</Td>
++                          <Td textAlign="right">{model.output}</Td>
++                          <Td>
++                            <Span textColor="grey">{model.note}</Span>
++                          </Td>
++                        </Tr>
++                      ))}
++                    </Tbody>
++                  </Table>
++                </Box>
++                <Paragraph textSize="7" textColor="grey" mt="3">
++                  Dated IDs are pinned forever. The floating aliases{' '}
++                  <Code>skynet-opus</Code>, <Code>skynet-core</Code>, and{' '}
++                  <Code>skynet-edge</Code> track the newest snapshot.
++                </Paragraph>
++              </Block>
++
++              <Block id="guides" mb="6">
++                <Title size="3" mb="4">
++                  Guides
++                </Title>
++                <Grid isFixed fixedColsMobile={1} fixedColsTablet={2} gap={4}>
++                  {GUIDES.map(guide => (
++                    <Cell
++                      key={guide.title}
++                      display="flex"
++                      flexDirection="column"
++                    >
++                      <Box flexGrow="1">
++                        <Span textColor="primary" textSize="4">
++                          <Icon name={guide.icon} aria-hidden="true" />
++                        </Span>
++                        <Title size="5" mt="2" mb="2">
++                          {guide.title}
++                        </Title>
++                        <Paragraph textColor="grey" textSize="7">
++                          {guide.body}
++                        </Paragraph>
++                      </Box>
++                    </Cell>
++                  ))}
++                </Grid>
++              </Block>
++
++              <Block id="limits">
++                <Title size="3" mb="3">
++                  Rate limits
++                </Title>
++                <Box>
++                  <Table isFullwidth isResponsive>
++                    <Thead>
++                      <Tr>
++                        <Th>Plan</Th>
++                        <Th textAlign="right">Requests / min</Th>
++                        <Th textAlign="right">Input tokens / min</Th>
++                        <Th textAlign="right">Concurrency</Th>
++                      </Tr>
++                    </Thead>
++                    <Tbody>
++                      <Tr>
++                        <Td>Developer</Td>
++                        <Td textAlign="right">30</Td>
++                        <Td textAlign="right">200,000</Td>
++                        <Td textAlign="right">4</Td>
++                      </Tr>
++                      <Tr>
++                        <Td>Scale</Td>
++                        <Td textAlign="right">10,000</Td>
++                        <Td textAlign="right">40,000,000</Td>
++                        <Td textAlign="right">2,000</Td>
++                      </Tr>
++                      <Tr>
++                        <Td>Enterprise</Td>
++                        <Td textAlign="right">Reserved</Td>
++                        <Td textAlign="right">Reserved</Td>
++                        <Td textAlign="right">Reserved</Td>
++                      </Tr>
++                    </Tbody>
++                  </Table>
++                </Box>
++
++                <Button
++                  color="primary"
++                  mt="5"
++                  onClick={() => onNavigate('contact')}
++                >
++                  <Icon name="key" aria-hidden="true" />
++                  <span>Get an API key</span>
++                </Button>
++              </Block>
++            </Column>
++          </Columns>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/HomePage.tsx b/src/pages/HomePage.tsx
+new file mode 100644
+index 0000000..1a5c84c
+--- /dev/null
++++ b/src/pages/HomePage.tsx
+@@ -0,0 +1,305 @@
++import {
++  Block,
++  Box,
++  Button,
++  Buttons,
++  Card,
++  Cell,
++  Column,
++  Columns,
++  Container,
++  Content,
++  Grid,
++  Hero,
++  Icon,
++  IconText,
++  Paragraph,
++  Section,
++  Span,
++  Strong,
++  SubTitle,
++  Tag,
++  Tags,
++  Title,
++} from '@allxsmith/bestax-bulma';
++import BenchmarkBar from '../site/BenchmarkBar';
++import {
++  BENCHMARKS,
++  FEATURES,
++  HEADLINE_STATS,
++  MODELS,
++  TESTIMONIALS,
++  type PageId,
++} from '../site/content';
++
++const CUSTOMERS = [
++  'Halcyon Logistics',
++  'Meridian Legal',
++  'Verdant Systems',
++  'Northbeam',
++  'Quorum Health',
++  'Atlas Freight',
++];
++
++export default function HomePage({
++  onNavigate,
++}: {
++  onNavigate: (page: PageId) => void;
++}) {
++  return (
++    <>
++      <Hero size="large" className="hero-backdrop">
++        <Hero.Body>
++          <Container>
++            <Columns isVCentered>
++              <Column sizeDesktop={7}>
++                <Tags mb="4">
++                  <Tag color="primary" isRounded>
++                    Skynet
++                  </Tag>
++                  <Tag isRounded>Generally available</Tag>
++                </Tags>
++
++                <Title size="1">
++                  Ten times fewer errors than{' '}
++                  <Span textColor="primary">Fable</Span>. On every benchmark.
++                </Title>
++
++                <SubTitle size="4" textColor="grey" mt="4">
++                  Skynet is Netadyne's frontier model. It closes 90% of the gap
++                  the leading model leaves open — across knowledge, math,
++                  coding, agentic work, and a four-million-token context window.
++                </SubTitle>
++
++                <Buttons mt="5">
++                  <Button
++                    color="primary"
++                    size="large"
++                    onClick={() => onNavigate('contact')}
++                  >
++                    <Icon name="rocket" aria-hidden="true" />
++                    <span>Request access</span>
++                  </Button>
++                  <Button
++                    color="primary"
++                    isOutlined
++                    size="large"
++                    onClick={() => onNavigate('benchmarks')}
++                  >
++                    <Icon name="chart-simple" aria-hidden="true" />
++                    <span>See the numbers</span>
++                  </Button>
++                </Buttons>
++
++                <Paragraph textSize="7" textColor="grey" mt="4">
++                  $25 in free credits. No card. Ships with Python, TypeScript,
++                  Go, and Rust SDKs.
++                </Paragraph>
++              </Column>
++
++              <Column sizeDesktop={5}>
++                <Box>
++                  <Span
++                    textSize="7"
++                    textWeight="semibold"
++                    textColor="grey"
++                    display="block"
++                    mb="4"
++                  >
++                    SKYNET OPUS vs FABLE
++                  </Span>
++                  {BENCHMARKS.slice(0, 3).map(benchmark => (
++                    <BenchmarkBar key={benchmark.name} benchmark={benchmark} />
++                  ))}
++                  <Paragraph textSize="7" textColor="grey" mt="4">
++                    Scores are pass rates. Netadyne internal evaluation,
++                    July 2026.
++                  </Paragraph>
++                </Box>
++              </Column>
++            </Columns>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section className="band">
++        <Container>
++          <Grid isFixed fixedColsMobile={2} fixedColsTablet={4} gap={4}>
++            {HEADLINE_STATS.map(stat => (
++              <Cell key={stat.label} textAlign="centered">
++                <Span textColor="primary" textSize="4">
++                  <Icon name={stat.icon} aria-hidden="true" />
++                </Span>
++                <Title size="2" mt="2" mb="1">
++                  {stat.value}
++                </Title>
++                <Span textSize="7" textColor="grey">
++                  {stat.label}
++                </Span>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section>
++        <Container textAlign="centered">
++          <Span
++            textSize="7"
++            textWeight="semibold"
++            textColor="grey"
++            display="block"
++            mb="4"
++          >
++            IN PRODUCTION AT
++          </Span>
++          <Tags isMultiline justifyContent="center">
++            {CUSTOMERS.map(name => (
++              <Tag key={name} size="medium">
++                {name}
++              </Tag>
++            ))}
++          </Tags>
++        </Container>
++      </Section>
++
++      <Section size="medium" className="band">
++        <Container>
++          <Block textAlign="centered" mb="6">
++            <Title size="2">Built differently, not just bigger</Title>
++            <SubTitle size="5" textColor="grey" mt="3">
++              The error rate came down because the architecture changed — not
++              because we spent another six months on the sampler.
++            </SubTitle>
++          </Block>
++
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={2} fixedColsDesktop={3} gap={5}>
++            {FEATURES.map(feature => (
++              <Cell key={feature.title} display="flex" flexDirection="column">
++                <Box flexGrow="1">
++                  <Span textColor="primary" textSize="3">
++                    <Icon name={feature.icon} aria-hidden="true" />
++                  </Span>
++                  <Title size="5" mt="3" mb="2">
++                    {feature.title}
++                  </Title>
++                  <Paragraph textColor="grey">{feature.body}</Paragraph>
++                </Box>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section size="medium">
++        <Container>
++          <Block textAlign="centered" mb="6">
++            <Title size="2">Three models, one API</Title>
++            <SubTitle size="5" textColor="grey" mt="3">
++              Route to the tier the task deserves. Same interface, same tools,
++              same guardrails.
++            </SubTitle>
++          </Block>
++
++          <Columns>
++            {MODELS.map(model => (
++              <Column key={model.name} display="flex" flexDirection="column">
++                <Card flexGrow="1">
++                  <Card.Content>
++                    <Tag color={model.tagColor} isRounded mb="3">
++                      {model.tag}
++                    </Tag>
++                    <Title size="4" mb="3">
++                      {model.name}
++                    </Title>
++                    <Paragraph textColor="grey" mb="4">
++                      {model.body}
++                    </Paragraph>
++                    {model.specs.map(spec => (
++                      <Block key={spec} mb="1">
++                        <IconText
++                          iconProps={{
++                            name: 'circle-check',
++                            'aria-hidden': 'true',
++                          }}
++                          textColor="grey"
++                        >
++                          {spec}
++                        </IconText>
++                      </Block>
++                    ))}
++                  </Card.Content>
++                </Card>
++              </Column>
++            ))}
++          </Columns>
++
++          <Block textAlign="centered" mt="5">
++            <Button color="primary" isOutlined onClick={() => onNavigate('pricing')}>
++              Compare pricing
++            </Button>
++          </Block>
++        </Container>
++      </Section>
++
++      <Section size="medium" className="band">
++        <Container>
++          <Title size="2" textAlign="centered" mb="6">
++            What teams do with it
++          </Title>
++          <Columns>
++            {TESTIMONIALS.map(testimonial => (
++              <Column
++                key={testimonial.name}
++                display="flex"
++                flexDirection="column"
++              >
++                <Box flexGrow="1">
++                  <Span textColor="primary" textSize="4">
++                    <Icon name="quote-left" aria-hidden="true" />
++                  </Span>
++                  <Content mt="3">
++                    <Paragraph>{testimonial.quote}</Paragraph>
++                  </Content>
++                  <Strong display="block">{testimonial.name}</Strong>
++                  <Span textSize="7" textColor="grey">
++                    {testimonial.role}
++                  </Span>
++                </Box>
++              </Column>
++            ))}
++          </Columns>
++        </Container>
++      </Section>
++
++      <Section size="medium">
++        <Container>
++          <Box textAlign="centered" p="6">
++            <Title size="2">Run your own evals</Title>
++            <SubTitle size="5" textColor="grey" mt="3" mb="5">
++              Bring the hardest task you have. If Skynet doesn't cut your error
++              rate, we want to know which benchmark we're missing.
++            </SubTitle>
++            <Buttons isCentered>
++              <Button
++                color="primary"
++                size="large"
++                onClick={() => onNavigate('contact')}
++              >
++                Request access
++              </Button>
++              <Button
++                color="primary"
++                isOutlined
++                size="large"
++                onClick={() => onNavigate('docs')}
++              >
++                Read the docs
++              </Button>
++            </Buttons>
++          </Box>
++        </Container>
++      </Section>
++    </>
++  );
++}
+diff --git a/src/pages/PricingPage.tsx b/src/pages/PricingPage.tsx
+new file mode 100644
+index 0000000..921b148
+--- /dev/null
++++ b/src/pages/PricingPage.tsx
+@@ -0,0 +1,246 @@
++import { useState } from 'react';
++import {
++  Block,
++  Box,
++  Button,
++  Cell,
++  Column,
++  Columns,
++  Container,
++  Content,
++  Grid,
++  Hero,
++  IconText,
++  Paragraph,
++  Section,
++  Span,
++  Strong,
++  SubTitle,
++  Switch,
++  Table,
++  Tag,
++  Tbody,
++  Td,
++  Th,
++  Thead,
++  Title,
++  Tr,
++} from '@allxsmith/bestax-bulma';
++import { FAQS, PLANS, TOKEN_PRICING, type PageId } from '../site/content';
++
++export default function PricingPage({
++  onNavigate,
++}: {
++  onNavigate: (page: PageId) => void;
++}) {
++  const [annual, setAnnual] = useState(false);
++
++  const priceFor = (plan: (typeof PLANS)[number]) => {
++    if (!annual || !plan.price.startsWith('$') || plan.price === '$0') {
++      return plan.price;
++    }
++    const monthly = Number(plan.price.replace(/[$,]/g, ''));
++    return `$${Math.round(monthly * 0.8).toLocaleString()}`;
++  };
++
++  return (
++    <>
++      <Hero size="medium" className="hero-backdrop">
++        <Hero.Body>
++          <Container textAlign="centered">
++            <Title size="1">Pricing</Title>
++            <SubTitle size="4" textColor="grey" mt="4">
++              Per-token, no minimums, and the same model weights on every tier.
++              Cached input is billed at 10%.
++            </SubTitle>
++            <Block
++              display="flex"
++              justifyContent="center"
++              alignItems="center"
++              mt="5"
++            >
++              <Span mr="3" textColor={annual ? 'grey' : undefined}>
++                Monthly
++              </Span>
++              <Switch
++                checked={annual}
++                onChange={event => setAnnual(event.target.checked)}
++                color="primary"
++                isRounded
++              >
++                Annual billing
++              </Switch>
++              <Tag color="success" isRounded ml="2">
++                Save 20%
++              </Tag>
++            </Block>
++          </Container>
++        </Hero.Body>
++      </Hero>
++
++      <Section>
++        <Container>
++          <Columns isMultiline>
++            {PLANS.map(plan => (
++              <Column
++                key={plan.name}
++                sizeTablet={4}
++                display="flex"
++                flexDirection="column"
++              >
++                <PlanCard
++                  plan={plan}
++                  price={priceFor(plan)}
++                  onNavigate={onNavigate}
++                />
++              </Column>
++            ))}
++          </Columns>
++
++          <Paragraph textAlign="centered" textColor="grey" textSize="7" mt="4">
++            All plans include the full Skynet model family, streaming, tool use,
++            and batch inference at 50% off.
++          </Paragraph>
++        </Container>
++      </Section>
++
++      <Section className="band">
++        <Container>
++          <Title size="3" mb="2">
++            Token pricing
++          </Title>
++          <Paragraph textColor="grey" mb="5">
++            Per million tokens, in US dollars. Batch requests are half price;
++            provisioned throughput is quoted separately.
++          </Paragraph>
++
++          <Box>
++            <Table isFullwidth isHoverable isResponsive>
++              <Thead>
++                <Tr>
++                  <Th>Model</Th>
++                  <Th textAlign="right">Input</Th>
++                  <Th textAlign="right">Cached input</Th>
++                  <Th textAlign="right">Output</Th>
++                </Tr>
++              </Thead>
++              <Tbody>
++                {TOKEN_PRICING.map(row => (
++                  <Tr key={row.model}>
++                    <Td>
++                      <Strong>{row.model}</Strong>
++                    </Td>
++                    <Td textAlign="right">{row.input}</Td>
++                    <Td textAlign="right">
++                      <Span textColor="success">{row.cached}</Span>
++                    </Td>
++                    <Td textAlign="right">{row.output}</Td>
++                  </Tr>
++                ))}
++              </Tbody>
++            </Table>
++          </Box>
++        </Container>
++      </Section>
++
++      <Section>
++        <Container>
++          <Title size="3" textAlign="centered" mb="6">
++            Questions
++          </Title>
++          <Grid isFixed fixedColsMobile={1} fixedColsTablet={2} gap={5}>
++            {FAQS.map(faq => (
++              <Cell key={faq.q} display="flex" flexDirection="column">
++                <Box flexGrow="1">
++                  <Title size="5" mb="3">
++                    {faq.q}
++                  </Title>
++                  <Content textColor="grey">
++                    <p>{faq.a}</p>
++                  </Content>
++                </Box>
++              </Cell>
++            ))}
++          </Grid>
++        </Container>
++      </Section>
++
++      <Section className="band" textAlign="centered">
++        <Container>
++          <Title size="3">Still sizing it up?</Title>
++          <SubTitle size="5" textColor="grey" mt="3" mb="5">
++            Tell us the workload and we will model the monthly bill with you.
++          </SubTitle>
++          <Button
++            color="primary"
++            size="large"
++            onClick={() => onNavigate('contact')}
++          >
++            Talk to sales
++          </Button>
++        </Container>
++      </Section>
++    </>
++  );
++}
++
++function PlanCard({
++  plan,
++  price,
++  onNavigate,
++}: {
++  plan: (typeof PLANS)[number];
++  price: string;
++  onNavigate: (page: PageId) => void;
++}) {
++  return (
++    <Box flexGrow="1" display="flex" flexDirection="column">
++      {plan.featured && (
++        <Tag color="primary" isRounded mb="3">
++          Most popular
++        </Tag>
++      )}
++      <Title size="4" mb="2">
++        {plan.name}
++      </Title>
++      <Paragraph textColor="grey" mb="4">
++        {plan.blurb}
++      </Paragraph>
++
++      <Block mb="4">
++        <Title size="1" as="p" mb="1">
++          {price}
++        </Title>
++        <Span textSize="7" textColor="grey">
++          {plan.cadence}
++        </Span>
++      </Block>
++
++      <Block flexGrow="1">
++        {plan.features.map(feature => (
++          <Block key={feature} mb="2">
++            <IconText
++              iconProps={{
++                name: 'check',
++                textColor: plan.featured ? 'primary' : 'success',
++                'aria-hidden': 'true',
++              }}
++            >
++              {feature}
++            </IconText>
++          </Block>
++        ))}
++      </Block>
++
++      <Button
++        color="primary"
++        isOutlined={!plan.featured}
++        isFullWidth
++        mt="5"
++        onClick={() => onNavigate('contact')}
++      >
++        {plan.cta}
++      </Button>
++    </Box>
++  );
++}
+diff --git a/src/site/BenchmarkBar.tsx b/src/site/BenchmarkBar.tsx
+new file mode 100644
+index 0000000..042c935
+--- /dev/null
++++ b/src/site/BenchmarkBar.tsx
+@@ -0,0 +1,107 @@
++import {
++  Block,
++  Columns,
++  Column,
++  Level,
++  Progress,
++  Span,
++  Strong,
++  Tag,
++} from '@allxsmith/bestax-bulma';
++import type { Benchmark } from './content';
++
++/**
++ * One benchmark rendered as a two-series meter. Colour carries the series and
++ * nothing else: Skynet is always brand `primary`, the baseline is always the
++ * neutral default bar, on every page. Each bar is labelled with its own value,
++ * so the chart is readable without comparing pixel lengths.
++ */
++export default function BenchmarkBar({
++  benchmark,
++  showBlurb = false,
++}: {
++  benchmark: Benchmark;
++  showBlurb?: boolean;
++}) {
++  const delta = Math.round((benchmark.skynet - benchmark.fable) * 10) / 10;
++
++  return (
++    <Block>
++      <Level isMobile mb="2">
++        <Level.Left>
++          <Level.Item>
++            <Strong>{benchmark.name}</Strong>
++          </Level.Item>
++        </Level.Left>
++        <Level.Right>
++          <Level.Item>
++            <Tag color="primary" isRounded>
++              +{delta.toFixed(1)} pts
++            </Tag>
++          </Level.Item>
++        </Level.Right>
++      </Level>
++
++      {showBlurb && (
++        <Span textSize="7" textColor="grey" display="block" mb="3">
++          {benchmark.blurb}
++        </Span>
++      )}
++
++      <Series
++        label="Skynet Opus"
++        value={benchmark.skynet}
++        color="primary"
++        emphasise
++      />
++      <Series label="Fable" value={benchmark.fable} />
++    </Block>
++  );
++}
++
++function Series({
++  label,
++  value,
++  color,
++  emphasise = false,
++}: {
++  label: string;
++  value: number;
++  color?: 'primary';
++  emphasise?: boolean;
++}) {
++  return (
++    <Columns isMobile isVCentered isGapless mb="1">
++      <Column sizeMobile={4} sizeTablet={3} sizeDesktop={2}>
++        <Span
++          textSize="7"
++          textColor={emphasise ? 'primary' : 'grey'}
++          textWeight={emphasise ? 'semibold' : 'normal'}
++        >
++          {label}
++        </Span>
++      </Column>
++      <Column px="3">
++        <Progress
++          value={value}
++          max={100}
++          color={color}
++          size="small"
++          mb="0"
++          aria-label={`${label}: ${value.toFixed(2)} percent`}
++        >
++          {value.toFixed(2)}%
++        </Progress>
++      </Column>
++      <Column isNarrow textAlign="right">
++        <Span
++          textSize="7"
++          textWeight={emphasise ? 'bold' : 'normal'}
++          textColor={emphasise ? undefined : 'grey'}
++        >
++          {value.toFixed(2)}%
++        </Span>
++      </Column>
++    </Columns>
++  );
++}
+diff --git a/src/site/SiteFooter.tsx b/src/site/SiteFooter.tsx
+new file mode 100644
+index 0000000..1dd8da7
+--- /dev/null
++++ b/src/site/SiteFooter.tsx
+@@ -0,0 +1,151 @@
++import {
++  Block,
++  Footer,
++  Container,
++  Columns,
++  Column,
++  Title,
++  Divider,
++  Icon,
++  Image,
++  Link,
++  Paragraph,
++  Span,
++  Strong,
++  UnorderedList,
++  ListItem,
++} from '@allxsmith/bestax-bulma';
++import type { PageId } from './content';
++
++const LINK_GROUPS: { heading: string; links: { label: string; to?: PageId }[] }[] =
++  [
++    {
++      heading: 'Product',
++      links: [
++        { label: 'Skynet Opus', to: 'home' },
++        { label: 'Skynet Core', to: 'home' },
++        { label: 'Skynet Edge', to: 'home' },
++        { label: 'Benchmarks', to: 'benchmarks' },
++        { label: 'Pricing', to: 'pricing' },
++      ],
++    },
++    {
++      heading: 'Developers',
++      links: [
++        { label: 'Quickstart', to: 'docs' },
++        { label: 'API reference', to: 'docs' },
++        { label: 'SDKs', to: 'docs' },
++        { label: 'Status' },
++        { label: 'Changelog' },
++      ],
++    },
++    {
++      heading: 'Company',
++      links: [
++        { label: 'About Netadyne' },
++        { label: 'Research' },
++        { label: 'Safety' },
++        { label: 'Careers' },
++        { label: 'Contact', to: 'contact' },
++      ],
++    },
++  ];
++
++interface SiteFooterProps {
++  onNavigate: (page: PageId) => void;
++}
++
++export default function SiteFooter({ onNavigate }: SiteFooterProps) {
++  return (
++    <Footer>
++      <Container>
++        <Columns>
++          <Column sizeTablet="full" sizeDesktop={4}>
++            <Block display="flex" alignItems="center" mb="3">
++              <Image
++                src="/netadyne.svg"
++                alt=""
++                size="32x32"
++                mr="3"
++                aria-hidden="true"
++              />
++              <Title size="5" mb="0">
++                Netadyne
++              </Title>
++            </Block>
++            <Paragraph textColor="grey" mb="4">
++              Frontier intelligence, engineered for the error rate that actually
++              matters. Skynet is available today in eleven regions.
++            </Paragraph>
++            <Span textSize="4" mr="3">
++              <Link href="#" aria-label="Netadyne on GitHub">
++                <Icon name="github" variant="brands" aria-hidden="true" />
++              </Link>
++            </Span>
++            <Span textSize="4" mr="3">
++              <Link href="#" aria-label="Netadyne on X">
++                <Icon name="x-twitter" variant="brands" aria-hidden="true" />
++              </Link>
++            </Span>
++            <Span textSize="4">
++              <Link href="#" aria-label="Netadyne on LinkedIn">
++                <Icon name="linkedin" variant="brands" aria-hidden="true" />
++              </Link>
++            </Span>
++          </Column>
++
++          {LINK_GROUPS.map(group => (
++            <Column key={group.heading} sizeTablet={4} sizeDesktop={2}>
++              <Title size="6" mb="3">
++                {group.heading}
++              </Title>
++              <UnorderedList className="link-list">
++                {group.links.map(link => (
++                  <ListItem key={link.label} mb="2">
++                    <Link
++                      href="#"
++                      textColor="grey"
++                      onClick={event => {
++                        event.preventDefault();
++                        if (link.to) onNavigate(link.to);
++                      }}
++                    >
++                      {link.label}
++                    </Link>
++                  </ListItem>
++                ))}
++              </UnorderedList>
++            </Column>
++          ))}
++
++          <Column sizeTablet="full" sizeDesktop={2}>
++            <Title size="6" mb="3">
++              Compliance
++            </Title>
++            <Paragraph textColor="grey" textSize="7">
++              SOC 2 Type II · ISO 27001 · ISO 42001 · HIPAA eligible · GDPR
++            </Paragraph>
++          </Column>
++        </Columns>
++
++        <Divider />
++
++        <Paragraph textSize="7" textColor="grey" mb="2">
++          <Strong textColor="grey">Demo content.</Strong> Netadyne and Skynet are
++          fictional, invented for this bestax-bulma template. Every benchmark
++          score, price, and quotation on this site is made up — including the
++          comparisons to Fable, which is a real model that has not been evaluated
++          against anything here. Do not cite any of it.
++        </Paragraph>
++
++        <Paragraph textSize="7" textColor="grey">
++          © 2026 Netadyne Intelligence, Inc. Built with{' '}
++          <Link href="https://bestax.io" target="_blank" rel="noreferrer">
++            bestax-bulma
++          </Link>
++          .
++        </Paragraph>
++      </Container>
++    </Footer>
++  );
++}
+diff --git a/src/site/SiteNavbar.tsx b/src/site/SiteNavbar.tsx
+new file mode 100644
+index 0000000..8ddcb2a
+--- /dev/null
++++ b/src/site/SiteNavbar.tsx
+@@ -0,0 +1,111 @@
++import { useState } from 'react';
++import {
++  Navbar,
++  Button,
++  Buttons,
++  Icon,
++  Image,
++  Span,
++  Tag,
++} from '@allxsmith/bestax-bulma';
++import { NAV, type PageId } from './content';
++
++interface SiteNavbarProps {
++  page: PageId;
++  onNavigate: (page: PageId) => void;
++  colorMode: 'light' | 'dark';
++  onToggleColorMode: () => void;
++}
++
++export default function SiteNavbar({
++  page,
++  onNavigate,
++  colorMode,
++  onToggleColorMode,
++}: SiteNavbarProps) {
++  const [menuOpen, setMenuOpen] = useState(false);
++
++  // No router in this app — anchors keep the items keyboard-accessible while
++  // navigation stays in React state.
++  const go = (next: PageId) => (event: React.MouseEvent) => {
++    event.preventDefault();
++    setMenuOpen(false);
++    onNavigate(next);
++  };
++
++  return (
++    <Navbar fixed="top">
++      <Navbar.Brand>
++        <Navbar.Item href="#home" onClick={go('home')}>
++          <Image
++            src="/netadyne.svg"
++            alt=""
++            size="32x32"
++            mr="2"
++            aria-hidden="true"
++          />
++          <Span textWeight="bold" textSize="5">
++            Netadyne
++          </Span>
++        </Navbar.Item>
++        <Navbar.Burger
++          active={menuOpen}
++          onClick={() => setMenuOpen(open => !open)}
++          aria-label="Toggle navigation"
++        />
++      </Navbar.Brand>
++
++      <Navbar.Menu active={menuOpen}>
++        <Navbar.Start>
++          {NAV.map(item => (
++            <Navbar.Item
++              key={item.id}
++              href={`#${item.id}`}
++              active={page === item.id}
++              onClick={go(item.id)}
++            >
++              {item.label}
++            </Navbar.Item>
++          ))}
++          <Navbar.Item href="#benchmarks" onClick={go('benchmarks')}>
++            <Span mr="2">Skynet</Span>
++            <Tag color="primary" isRounded>
++              New
++            </Tag>
++          </Navbar.Item>
++        </Navbar.Start>
++
++        <Navbar.End>
++          <Navbar.Item as="div">
++            <Buttons>
++              <Button
++                color="ghost"
++                onClick={onToggleColorMode}
++                aria-label={
++                  colorMode === 'dark'
++                    ? 'Switch to light theme'
++                    : 'Switch to dark theme'
++                }
++              >
++                <Icon
++                  name={colorMode === 'dark' ? 'sun' : 'moon'}
++                  aria-hidden="true"
++                />
++              </Button>
++              <Button
++                color="primary"
++                isOutlined
++                onClick={() => onNavigate('docs')}
++              >
++                Docs
++              </Button>
++              <Button color="primary" onClick={() => onNavigate('contact')}>
++                Request access
++              </Button>
++            </Buttons>
++          </Navbar.Item>
++        </Navbar.End>
++      </Navbar.Menu>
++    </Navbar>
++  );
++}
+diff --git a/src/site/content.ts b/src/site/content.ts
+new file mode 100644
+index 0000000..975c3cb
+--- /dev/null
++++ b/src/site/content.ts
+@@ -0,0 +1,263 @@
++// Site content for the Netadyne / Skynet marketing site.
++//
++// NOTE: Netadyne and Skynet are fictional. Every number below is invented demo
++// content for this template — see the disclaimer rendered in the site footer.
++
++export type PageId = 'home' | 'benchmarks' | 'pricing' | 'docs' | 'contact';
++
++export const NAV: { id: PageId; label: string }[] = [
++  { id: 'home', label: 'Product' },
++  { id: 'benchmarks', label: 'Benchmarks' },
++  { id: 'pricing', label: 'Pricing' },
++  { id: 'docs', label: 'Docs' },
++];
++
++/**
++ * Skynet's headline claim is "10x better than Fable on every benchmark", stated
++ * the only way a 10x claim on a near-saturated benchmark can be stated
++ * coherently: 10x fewer errors. Every Skynet score below is derived from the
++ * baseline with the same rule, so the table can't drift out of sync with the
++ * claim.
++ */
++const tenXFewerErrors = (baseline: number) =>
++  Math.round((100 - (100 - baseline) / 10) * 100) / 100;
++
++export interface Benchmark {
++  name: string;
++  category: string;
++  blurb: string;
++  fable: number;
++  skynet: number;
++}
++
++const BENCH_SEED: Omit<Benchmark, 'skynet'>[] = [
++  {
++    name: 'MMLU-Pro',
++    category: 'Knowledge',
++    blurb: 'Graduate-level reasoning across 14 disciplines.',
++    fable: 88.4,
++  },
++  {
++    name: 'GPQA Diamond',
++    category: 'Science',
++    blurb: 'PhD-written questions that resist web search.',
++    fable: 84.0,
++  },
++  {
++    name: 'SWE-bench Verified',
++    category: 'Coding',
++    blurb: 'Real GitHub issues resolved end to end.',
++    fable: 79.5,
++  },
++  {
++    name: 'Terminal-bench',
++    category: 'Agentic',
++    blurb: 'Long-horizon shell tasks in a live container.',
++    fable: 62.3,
++  },
++  {
++    name: 'AIME 2025',
++    category: 'Math',
++    blurb: 'Olympiad-qualifier problems, no tools.',
++    fable: 90.0,
++  },
++  {
++    name: 'MATH-500',
++    category: 'Math',
++    blurb: 'Competition math with verified final answers.',
++    fable: 96.5,
++  },
++  {
++    name: 'LiveCodeBench',
++    category: 'Coding',
++    blurb: 'Contamination-free contest problems.',
++    fable: 74.8,
++  },
++  {
++    name: 'MMMU',
++    category: 'Multimodal',
++    blurb: 'College-level diagrams, charts, and figures.',
++    fable: 77.6,
++  },
++  {
++    name: 'TAU-bench (Retail)',
++    category: 'Agentic',
++    blurb: 'Multi-turn tool use against a live policy.',
++    fable: 81.2,
++  },
++  {
++    name: 'MRCR (1M context)',
++    category: 'Long context',
++    blurb: 'Needle retrieval across a full million tokens.',
++    fable: 68.9,
++  },
++];
++
++export const BENCHMARKS: Benchmark[] = BENCH_SEED.map(b => ({
++  ...b,
++  skynet: tenXFewerErrors(b.fable),
++}));
++
++export const HEADLINE_STATS = [
++  { label: 'Fewer errors than Fable', value: '10×', icon: 'bullseye' },
++  { label: 'Context window', value: '4M', icon: 'layer-group' },
++  { label: 'Output tokens / sec', value: '340', icon: 'bolt' },
++  { label: 'Benchmarks led', value: '10/10', icon: 'trophy' },
++];
++
++export const FEATURES = [
++  {
++    icon: 'brain',
++    title: 'Recursive self-verification',
++    body: 'Skynet drafts, attacks its own draft, and ships only what survives. That inner loop is where the 10× error reduction comes from — not from a bigger sampler.',
++  },
++  {
++    icon: 'layer-group',
++    title: '4M token context',
++    body: 'Load the entire monorepo, the RFCs, and two years of incident reports in one call. Recall stays flat to the end of the window instead of collapsing past 200K.',
++  },
++  {
++    icon: 'terminal',
++    title: 'Agentic by default',
++    body: 'Native tool calling, parallel sub-agents, and multi-hour task horizons. Skynet checkpoints its own state, so a six-hour migration survives a dropped socket.',
++  },
++  {
++    icon: 'bolt',
++    title: '340 tok/sec sustained',
++    body: 'Built on the Netadyne TR-9 inference fabric. No speculative-decoding cliff on long outputs — the last token streams as fast as the first.',
++  },
++  {
++    icon: 'shield-halved',
++    title: 'Deterministic guardrails',
++    body: 'Policy is compiled, not prompted. Constraints are enforced at the decode step, so a jailbreak in the transcript cannot move the model off policy.',
++  },
++  {
++    icon: 'lock',
++    title: 'Zero-retention by default',
++    body: 'SOC 2 Type II, ISO 27001, HIPAA-eligible. Prompts and completions are never retained, never trained on, and never leave your chosen region.',
++  },
++];
++
++export const MODELS = [
++  {
++    name: 'Skynet Opus',
++    tag: 'Frontier',
++    tagColor: 'primary' as const,
++    body: 'The full model. Highest scores on all ten benchmarks, 4M context, best for research, complex refactors, and long-horizon agents.',
++    specs: ['4M context', '340 tok/s', '$12 / $60 per Mtok'],
++  },
++  {
++    name: 'Skynet Core',
++    tag: 'Balanced',
++    tagColor: 'link' as const,
++    body: 'The default for production traffic. Within 2 points of Opus on every eval at a fifth of the cost and twice the throughput.',
++    specs: ['1M context', '680 tok/s', '$2.40 / $12 per Mtok'],
++  },
++  {
++    name: 'Skynet Edge',
++    tag: 'Fast',
++    tagColor: 'info' as const,
++    body: 'Distilled for classification, routing, extraction, and anything that needs to answer before the user notices latency.',
++    specs: ['256K context', '2,100 tok/s', '$0.30 / $1.50 per Mtok'],
++  },
++];
++
++export const PLANS = [
++  {
++    name: 'Developer',
++    price: '$0',
++    cadence: 'to start',
++    blurb: 'Everything you need to evaluate Skynet against your own tasks.',
++    cta: 'Start building',
++    featured: false,
++    features: [
++      '$25 in free credits',
++      'Skynet Core and Edge',
++      '30 requests / minute',
++      'Community support',
++      'Shared-capacity inference',
++    ],
++  },
++  {
++    name: 'Scale',
++    price: '$1,800',
++    cadence: 'per month + usage',
++    blurb: 'For teams putting Skynet in front of real customers.',
++    cta: 'Request access',
++    featured: true,
++    features: [
++      'All three Skynet models',
++      '4M context on Opus',
++      '10,000 requests / minute',
++      'Provisioned throughput',
++      'Zero data retention',
++      '99.9% uptime SLA',
++    ],
++  },
++  {
++    name: 'Enterprise',
++    price: 'Custom',
++    cadence: 'annual contract',
++    blurb: 'Dedicated capacity, your region, your compliance regime.',
++    cta: 'Talk to sales',
++    featured: false,
++    features: [
++      'Dedicated TR-9 clusters',
++      'VPC and on-prem deployment',
++      'Custom fine-tuning',
++      'HIPAA / FedRAMP support',
++      'Named solutions architect',
++      '99.99% uptime SLA',
++    ],
++  },
++];
++
++export const TOKEN_PRICING = [
++  { model: 'Skynet Opus', input: '$12.00', cached: '$1.20', output: '$60.00' },
++  { model: 'Skynet Core', input: '$2.40', cached: '$0.24', output: '$12.00' },
++  { model: 'Skynet Edge', input: '$0.30', cached: '$0.03', output: '$1.50' },
++];
++
++export const TESTIMONIALS = [
++  {
++    quote:
++      'We moved our incident triage agent to Skynet Core and the false-escalation rate went from 4% to under half a percent. We stopped staffing the overnight rotation.',
++    name: 'Priya Raghunathan',
++    role: 'VP Platform Engineering, Halcyon Logistics',
++  },
++  {
++    quote:
++      'The 4M window is the whole story for us. Our contracts corpus used to need a retrieval pipeline and a team to maintain it. Now it is one call.',
++    name: 'Marcus Delacroix',
++    role: 'Head of AI, Meridian Legal',
++  },
++  {
++    quote:
++      'It ran an eleven-hour dependency migration across 340 repos, checkpointed through two of our own outages, and opened PRs that passed review.',
++    name: 'Sam Okonkwo',
++    role: 'Staff Engineer, Verdant Systems',
++  },
++];
++
++export const FAQS = [
++  {
++    q: 'What does "10× better than Fable" actually mean?',
++    a: 'It means 10× fewer errors. On a benchmark where the leading model scores 88.4%, matching it "twice as well" is meaningless — there are only 11.6 points left. Skynet closes 90% of that remaining gap, on all ten benchmarks we publish. Every score in our table is derived from that single rule, so you can check our arithmetic.',
++  },
++  {
++    q: 'How do I migrate from another provider?',
++    a: 'The Skynet REST API is a superset of the shape most teams already use: messages in, content blocks out, tools declared as JSON Schema. Most migrations are a base URL, a key, and a model string. Our SDKs ship a compatibility adapter for the rest.',
++  },
++  {
++    q: 'Is my data used for training?',
++    a: 'No. Zero retention is the default on every paid plan, not an upgrade. Prompts and completions are dropped as soon as the response is streamed, and they never leave the region you pin.',
++  },
++  {
++    q: 'Can we run Skynet in our own environment?',
++    a: 'Enterprise plans support VPC deployment on AWS, GCP, and Azure, and bare-metal on-prem for dedicated TR-9 clusters. Weights stay on Netadyne-managed hardware in all three cases.',
++  },
++  {
++    q: 'What are the rate limits?',
++    a: 'Developer is 30 requests per minute on shared capacity. Scale starts at 10,000 per minute with provisioned throughput available. Enterprise capacity is reserved, so it is not a limit so much as a floor.',
++  },
++];
+diff --git a/tsconfig.tsbuildinfo b/tsconfig.tsbuildinfo
+new file mode 100644
+index 0000000..d328c2a
+--- /dev/null
++++ b/tsconfig.tsbuildinfo
+@@ -0,0 +1 @@
++{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/pages/benchmarkspage.tsx","./src/pages/contactpage.tsx","./src/pages/docspage.tsx","./src/pages/homepage.tsx","./src/pages/pricingpage.tsx","./src/site/benchmarkbar.tsx","./src/site/sitefooter.tsx","./src/site/sitenavbar.tsx","./src/site/content.ts"],"version":"6.0.3"}
+\ No newline at end of file
+diff --git a/vite.config.d.ts b/vite.config.d.ts
+new file mode 100644
+index 0000000..340562a
+--- /dev/null
++++ b/vite.config.d.ts
+@@ -0,0 +1,2 @@
++declare const _default: import("vite").UserConfig;
++export default _default;
+diff --git a/vite.config.js b/vite.config.js
+new file mode 100644
+index 0000000..bf919fb
+--- /dev/null
++++ b/vite.config.js
+@@ -0,0 +1,6 @@
++import { defineConfig } from 'vite';
++import react from '@vitejs/plugin-react';
++// https://vite.dev/config/
++export default defineConfig({
++    plugins: [react()],
++});

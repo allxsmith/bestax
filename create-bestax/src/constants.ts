@@ -141,6 +141,9 @@ ${setupLines.join('\n')}
   take a \`gap\` prop, so prefer that there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+- Reusable components you write get the library's spine so helper props work on them too:
+  extend \`BulmaClassesProps\`, merge \`className\`, spread \`...rest\` — the
+  bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
 
 ## AI skills

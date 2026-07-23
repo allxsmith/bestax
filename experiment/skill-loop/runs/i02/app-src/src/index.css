@@ -1,0 +1,59 @@
+/* Reset and base styles - minimal, Bulma handles most styling */
+body {
+  margin: 0;
+}
+
+/* Section banding. Derived from Bulma's scheme variables so the bands follow
+   the active light/dark theme instead of fighting it — never bgColor="light",
+   which is a fixed color. */
+.band {
+  background-color: var(--bulma-scheme-main-bis);
+}
+
+.band-strong {
+  background-color: var(--bulma-scheme-main-ter);
+}
+
+/* Hero backdrop: brand-tinted wash over the scheme background. Both layers are
+   var-driven, so it reads correctly in light and dark. */
+.hero-backdrop {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bulma-scheme-main);
+  background-image:
+    radial-gradient(
+      60rem 30rem at 15% -10%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.22),
+      transparent 60%
+    ),
+    radial-gradient(
+      50rem 26rem at 90% 10%,
+      hsl(var(--bulma-link-h) var(--bulma-link-s) 50% / 0.18),
+      transparent 60%
+    );
+}
+
+/* Faint grid, drawn in Bulma's border color so it fades with the scheme. */
+.hero-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--bulma-border-weak) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bulma-border-weak) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: radial-gradient(70% 60% at 50% 0%, #000, transparent);
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000, transparent);
+  opacity: 0.6;
+}
+
+.hero-backdrop > * {
+  position: relative;
+}
+
+/* Unbulleted link column (footer nav). */
+.link-list {
+  list-style: none;
+  margin-left: 0;
+}

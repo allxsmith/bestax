@@ -33,6 +33,10 @@ theming means overriding the right `--bulma-*` values.
 > Note: the type of the `bulmaVars` keys is not exported — pass it as an object literal (TypeScript
 > still checks the keys against the allowed `--bulma-*` names).
 
+> `--bulma-family-*` only selects the family — also load the font itself (a `<link>` in
+> `index.html` or an `@fontsource/*` package import), or the browser silently falls back to
+> the system font.
+
 ### 2. Plain CSS
 
 Set the variables yourself on any selector. `:root` themes the whole document; a class scopes it.
