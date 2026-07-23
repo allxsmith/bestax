@@ -47,10 +47,14 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
   hidden behind it — the library does not do this automatically.
-- **Style with helper props, not inline `style`.** Use `m`/`p` spacing (`mt="4"` = 1rem),
-  `textAlign="centered"`, and `textColor`/`bgColor` instead of `style={{ marginTop, textAlign,
-color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
-  rather than `library` on every `<Icon>`.
+- **Style with helper props — no inline `style`, no raw Bulma `className`s.** Use `m`/`p`
+  spacing (`mt="4"` = 1rem), `textAlign="centered"`, and `textColor`/`bgColor` instead of
+  `style={{…}}` or `className="has-text-…"`. Bare markup has wrapper elements that take all
+  helper props: `<Span textSize="7" textColor="grey">`, `Paragraph`, `Strong` — never a raw
+  `<span className="is-size-7 has-text-grey">`. Table cells: `Th`/`Td` take `textAlign="right"`,
+  `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
+  wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
+  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
   `color="primary" isInverted` — never a thin `isOutlined` secondary: a light outline + light
@@ -84,5 +88,5 @@ color }}`. Set the app-wide icon library once with `<ConfigProvider iconLibrary=
       cards must match height.
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
-- [ ] Style with helper props (`mt`/`p`, `textAlign`, `textColor`), not inline `style`.
+- [ ] Style with helper props, never inline `style` or raw Bulma `className`s (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.

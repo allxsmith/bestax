@@ -133,8 +133,10 @@ ${setupLines.join('\n')}
 
 ## House style
 
-- Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
-  spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
+- Never inline \`style={{}}\` and never hand-write Bulma utility classes — use the shared
+  helper props (\`m*\`/\`p*\` spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`,
+  \`alignItems\`). Bare text/markup has wrapper elements that take the same helper props:
+  \`Span\`, \`Paragraph\`, \`Strong\` — not \`<span className="has-text-…">\`.
   Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`

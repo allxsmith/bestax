@@ -8,13 +8,15 @@ This is the self-contained inventory of the color/size/variant props that matter
 
 1. **Component `color` modifier** → emits `is-<color>` (the filled Bulma variant). The accepted
    values are component-specific (see the table). Example: `<Button color="primary">` → `is-primary`.
-2. **Helper color props** (available on virtually every component, applied as utility classes):
+2. **Helper color props** (on most components, applied as utility classes):
    - `color` / `textColor` → `has-text-<color>` (text color)
    - `backgroundColor` / `bgColor` → `has-background-<color>` (background)
    - `colorShade` / `backgroundColorShade` → adds a shade suffix, e.g. `has-text-primary-30`
 
-   When a component has its own `color` modifier (Button, Tag, Input, …), use **`textColor`** /
-   **`bgColor`** for utility coloring so the two don't collide.
+   Components with their own `color` modifier drop the `color` helper to avoid a collision.
+   Button/Box/Card/Hero/Section re-expose it as **`textColor`** / **`bgColor`**; Tag, Input,
+   and `Td`/`Th` have **no text-color prop at all** — wrap content in `<Span textColor="…">`
+   there (raw `backgroundColor` still works on Tag and Input).
 
 `<color>` for the helper props is one of **`validColors`**:
 
@@ -32,7 +34,7 @@ Shades (`colorShade` / `backgroundColorShade`): `00, 05, 10, … 95, invert, lig
 | ------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `Button`           | `primary \| link \| info \| success \| warning \| danger \| white \| light \| dark \| black \| text \| ghost` | `small \| normal \| medium \| large`                                      | adds `text`, `ghost`; also `isLight`, `isOutlined`, `isInverted`, `isRounded` |
 | `Notification`     | the 17 `validColors`                                                                                          | —                                                                         | also `isLight`                                                                |
-| `Tag`              | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | `normal \| medium \| large`                                               | also `isRounded`, `isDelete`, `isHoverable`                                   |
+| `Tag`              | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | `normal \| medium \| large`                                               | also `isRounded`, `isDelete`, `isHoverable` — **no `isLight`**                |
 | `Box`              | `primary \| link \| info \| success \| warning \| danger`                                                     | —                                                                         | the 6 only; also `hasShadow`                                                  |
 | `Message`          | `primary \| link \| info \| success \| warning \| danger`                                                     | —                                                                         | the 6 only                                                                    |
 | `Input`            | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | `small \| medium \| large`                                                | also `isRounded`, `isStatic`                                                  |
@@ -64,7 +66,7 @@ Shades (`colorShade` / `backgroundColorShade`): `00, 05, 10, … 95, invert, lig
 | `TextArea`         | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | `small \| medium \| large`                                                | also `isRounded`, `isStatic`                                                  |
 | `TimeInput`        | `primary \| link \| info \| success \| warning \| danger`                                                     | `small \| medium \| large`                                                | —                                                                             |
 | `Tooltip`          | `primary \| link \| info \| success \| warning \| danger \| dark \| light`                                    | `small \| medium \| large`                                                | —                                                                             |
-| `Tr` / `Td` / `Th` | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | —                                                                         | table row/cell background                                                     |
+| `Tr` / `Td` / `Th` | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | —                                                                         | cell background; cells take `textAlign`/`textWeight`/`textSize` directly      |
 
 The 6 brand colors (`primary, link, info, success, warning, danger`) are the ones a custom theme
 recolors via the HSL trios (see `css-variables.md`). The greyscale and `white`/`light`/`dark`

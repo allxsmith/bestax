@@ -9,12 +9,6 @@ license: MIT
 `@allxsmith/bestax-bulma` wraps Bulma 1.x, which is themed through `--bulma-*` CSS custom
 properties. Theme an app by overriding the right variables — no component re-styling required.
 
-## Use when
-
-- Setting a brand/primary color or recoloring `link`/`info`/`success`/`warning`/`danger`.
-- Adjusting global tokens — radius, fonts, sizes, weights.
-- Adding light/dark mode.
-
 ## Approach
 
 Recolor a brand color by overriding its **hue/saturation/lightness trio** — Bulma derives every
@@ -50,13 +44,18 @@ color tokens or fixed-color surfaces exist:
   (`--my-canvas: var(--bulma-scheme-main)`) — or flip them yourself under **both** dark-mode
   paths: `[data-theme='dark']` **and** `@media (prefers-color-scheme: dark)` scoped to
   `:root:not([data-theme])`, since `colorMode="system"` removes the attribute (snippets in
-  `references/css-variables.md`).
+  `references/css-variables.md`). Alternating/tinted section bands are this case:
+  `background: var(--bulma-scheme-main-bis)` (then `-ter`), never `bgColor="light"` —
+  `light`/`white`/grey helper backgrounds are fixed colors that fight dark mode.
 - **Fixed-color surface → fixed-color content.** On a surface that never changes (a dark hero,
   a brand banner), pin the content's colors too: solid/filled buttons and explicit text colors,
   never scheme-derived defaults or thin outlines that depend on the flipping scheme.
 
 Reach for the helper props (`color` / `textColor` / `bgColor` / `colorShade`, `textSize`,
 `textWeight`, `fontFamily`) to apply themed colors and type to individual components.
+Variant flags are component-specific — never carry one over by analogy: `isLight` exists on
+`Button`, `LinkButton`, and `Notification` **only** (`Tag` has none); the per-component
+truth table is `references/themeable-components.md`.
 
 ## Quick start
 

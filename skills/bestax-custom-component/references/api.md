@@ -30,7 +30,9 @@ that can also be used on their own:
 | Other      | `useOtherClasses`      | `float`, `overflow`, `radius`, `shadow`, `interaction`, `cursor`, `skeleton`, `clearfix`, `relative`, `fullHeight`, `responsive` |
 
 Because the component destructures these into `bulmaHelperClasses`, callers get the full Bulma
-helper surface for free on every component, and `rest` stays clean for DOM spreading.
+helper surface for free on every component built this way, and `rest` stays clean for DOM
+spreading. (Library compound sub-parts — `Card.Content`, `Modal.Card`, `Tabs.Tab`,
+`Message.Body` — do **not** take helper props: only `className` + HTML attributes.)
 
 ## `classNames(...)` and friends — `helpers/classNames.ts`
 

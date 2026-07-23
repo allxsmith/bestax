@@ -49,13 +49,18 @@ label — use that instead"_ or _"No `ProfileCard` exists; I'll build one compos
 ## Composition first
 
 Build from existing components before writing any CSS: `Box`, `Card`, `Title`, `SubTitle`,
-`Icon`, `Block`, `Content`, `Tag`, plus the Bulma helper props every component accepts (spacing,
-color, typography, flexbox). Most "custom components" are a composition function — zero new
-styles. See `examples/stat-card.tsx` for a complete worked example.
+`Icon`, `Block`, `Content`, `Tag`, plus the shared Bulma helper props (spacing, color,
+typography, flexbox). Compound sub-parts are the exception — `Card.Content`, `Modal.Card`,
+`Tabs.Tab`, `Message.Body` take only `className` + HTML attributes, so put helper props on the
+parent or on an element inside them, never invent them there. Most "custom components" are a
+composition function — zero new styles. See `examples/stat-card.tsx` for a complete worked
+example.
 
 ## The component spine
 
-Same shape the library itself uses, with all imports from the package. File at
+Same shape the library itself uses, with all imports from the package. Every reusable
+component gets it — including pure compositions with zero CSS (a heading block, a labeled
+wrapper): extend `BulmaClassesProps`, merge `className`, spread `...rest`. File at
 `src/components/MyComponent.tsx`:
 
 ```tsx
@@ -152,7 +157,7 @@ render, prop→class mapping, helper-prop passthrough (`m="3"` → `m-3`), and t
 
 - [ ] Inventory checked (catalog + bestax.io/docs/api) and the decision surfaced to the user.
 - [ ] All imports from `@allxsmith/bestax-bulma` (no deep/internal paths).
-- [ ] Composition first — existing components + helper props before any CSS.
+- [ ] Composition first — existing components + helper props before any CSS; every reusable component gets the spine.
 - [ ] No inline `style={{}}` anywhere.
 - [ ] Lowest sufficient ladder rung (helper props → scoped CSS vars → Sass).
 - [ ] All colors/radii derived from `--bulma-*` variables — no literals.

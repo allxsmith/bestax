@@ -1,0 +1,77 @@
+/* App-specific styles - keep minimal, let Bulma handle the styling.
+ *
+ * The only custom CSS on this site: two brand gradient surfaces. Both are
+ * built from --bulma-* variables rather than hardcoded colors, so they follow
+ * the primary/link hues set on <Theme> in App.tsx.
+ *
+ * These are fixed-color surfaces in both schemes, so everything placed on them
+ * uses pinned light text and filled buttons (see Home.tsx).
+ */
+
+.hero-skynet,
+.cta-skynet {
+  background-image: linear-gradient(
+    135deg,
+    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 22%) 0%,
+    hsl(var(--bulma-primary-h) var(--bulma-primary-s) 32%) 45%,
+    hsl(var(--bulma-link-h) var(--bulma-link-s) 38%) 100%
+  );
+}
+
+/* Bulma's Box sets its own background; the gradient has to win. */
+.cta-skynet {
+  background-color: transparent;
+}
+
+/* Subtle grid texture over the hero, drawn with the scheme's own border color
+   so it stays consistent when the primary hue changes. */
+.hero-skynet {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-skynet::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(hsl(0deg 0% 100% / 6%) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(0deg 0% 100% / 6%) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.hero-skynet > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Marketing pages read better when the code block keeps its own dark surface
+   regardless of scheme — the tab strip above it inherits Bulma's. */
+.hero-skynet code,
+.hero-skynet pre {
+  background-color: transparent;
+}
+
+/* Alternating section background.
+ *
+ * NOT bgColor="light": has-background-light is a fixed color, so in dark mode
+ * Bulma's flipped (near-white) body text lands on a near-white panel and the
+ * headings disappear. --bulma-scheme-main-bis is scheme-derived, so it flips
+ * with the rest of the palette and the contrast holds in both modes.
+ */
+.section-alt {
+  background-color: var(--bulma-scheme-main-bis);
+}
+
+/* Sticky footer: short pages (the contact form) otherwise leave the footer
+   floating mid-viewport with bare body background beneath it. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#root > main {
+  flex-grow: 1;
+}

@@ -10,12 +10,16 @@ instead of hand-writing markup.
 
 - **Full props are not listed here** (that would be too large to keep in context).
   Follow a component's link for its complete prop table, or see the per-skill
-  references. Every component also accepts the shared Bulma **helper props**
+  references. Top-level components accept the shared Bulma **helper props**
   (`m`/`p` spacing, `textColor`/`bgColor`, `textAlign`, `display`, flex, …) —
-  documented once in `references/api.md`.
+  documented once in `references/api.md` — with rare exceptions (`Skeleton`).
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,
   `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
-  component's linked page for the full set.
+  component's linked page for the full set. Sub-parts do **not** all take helper
+  props: the `Table.*`, `Menu.*`, and `Hero.*` families do (most `Navbar.*`
+  too), but `Card.*`, `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take only
+  `className` + HTML attributes — put helper props on the parent or on an
+  element inside (`Span`, `Paragraph`, …) instead.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 

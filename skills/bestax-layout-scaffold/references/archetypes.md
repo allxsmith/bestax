@@ -116,6 +116,10 @@ pricing page. The default for "build me a site/page".
 **Responsive:** `Section`s already stack vertically. The feature `Columns` collapse to one feature
 per row on mobile. Use `Hero size="large"` / `"fullheight"` for a taller hero.
 
+**Alternating section bands:** tint every other `Section` with a scheme step —
+`.section-alt { background: var(--bulma-scheme-main-bis); }` (next step `-ter`) — not
+`bgColor="light"`/`"white"`: those are fixed colors that stay light when dark mode flips the text.
+
 **Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
 CTA and `color="primary" isInverted` (solid white, primary text) for a secondary. A thin
 `isOutlined` button on a fixed-color surface is low-contrast and degrades further under OS dark
@@ -172,7 +176,7 @@ search results, "a grid of cards".
             flexGrow="1"
             image={item.image}
             header={item.name}
-            footer={<span className="card-footer-item">{item.price}</span>}
+            footer={item.price} // Card wraps footer items in .card-footer-item itself
           >
             {item.blurb}
           </Card>
