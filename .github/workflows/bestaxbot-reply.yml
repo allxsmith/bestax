@@ -52,6 +52,8 @@ jobs:
       github.event.sender.type == 'User' &&
       github.event.sender.login != 'bestaxbot' &&
       vars.AI_LOOP_ENABLED == 'true' &&
+      !contains(github.event.issue.labels.*.name, 'needs-security-review') &&
+      !contains(github.event.pull_request.labels.*.name, 'needs-security-review') &&
       (
         (github.event_name == 'pull_request_review' &&
           github.event.pull_request.user.login == 'bestaxbot' &&

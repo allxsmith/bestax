@@ -32,15 +32,32 @@ jobs:
     # Only OWNER / MEMBER / COLLABORATOR may trigger Claude, and only when the
     # relevant body actually contains the "@claude" trigger phrase. Anyone else
     # mentioning @claude is a no-op — the job never starts, so no usage is spent.
+    #
+    # Two hardening guards fence the whole OR below:
+    #   - sender is a real User and NOT bestaxbot. A bot/PAT-authored comment can
+    #     carry the literal "@claude" substring (contains() matches the RAW body,
+    #     not the rendered mention), so without this a bestaxbot comment — e.g. a
+    #     triage/repro machine notice that echoed attacker text — could re-trigger
+    #     this write-capable session. Mirrors bestaxbot-reply.yml's self-exclusion.
+    #   - the target issue/PR is NOT flagged `needs-security-review`: never route
+    #     the most write-capable Claude entry point at content the scanner marked
+    #     as injection/social-engineering. (When issue/pull_request is absent the
+    #     label filter yields null and contains() is false, so the term is inert.)
     if: |
-      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude') &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association))
+      github.event.sender.type == 'User' &&
+      github.event.sender.login != 'bestaxbot' &&
+      !contains(github.event.issue.labels.*.name, 'needs-security-review') &&
+      !contains(github.event.pull_request.labels.*.name, 'needs-security-review') &&
+      (
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)) ||
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude') &&
+          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.review.author_association))
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

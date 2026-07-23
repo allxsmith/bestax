@@ -80,8 +80,16 @@ name: AI Triage
 # command and bailing during the second still fails; leading narration
 # is tolerated).
 #
-# KILL SWITCHES: AI_TRIAGE_MODE=off (this workflow only) or
-# AI_LOOP_ENABLED=false (all Claude spend, repo-wide).
+# KILL SWITCHES (per-surface):
+#   - AI_LOOP_ENABLED=false → stops ALL Claude spend repo-wide (this workflow,
+#     the implement/PR loop, the reproduction workflow, and the security scanner).
+#   - AI_TRIAGE_MODE=off → stops THIS triage workflow only (label included).
+#   - The security scanner is a SEPARATE workflow (ai-scan.yml) with its own
+#     switches: AI_SCAN_MODE=off disables it, AI_SCAN_DAILY_LIMIT caps its daily
+#     auto scans. It shares only the budget-counter host issue (#290), via a
+#     distinct `<!-- ai-scan-budget … -->` marker.
+#   - The reproduction workflow (claude-repro.yml) is label-triggered
+#     (`claude-repro`) and gated on AI_LOOP_ENABLED.
 #
 # Label (exists since v1): `ai-triage`, color #0e8a16, description
 # "Run one-shot AI triage: related issues + duplicates (sonnet; triage+ only)".
@@ -150,6 +158,30 @@ jobs:
       # No id-token: the Claude step gets github_token explicitly, which
       # short-circuits the action's OIDC→app-token exchange (#312).
     steps:
+      # Egress monitoring on the job that holds bestaxbot's PAT and ingests
+      # untrusted issue/PR text. The session's tools are GET-only gh + the two
+      # comment commands (it cannot open arbitrary sockets), so this is
+      # defense-in-depth on the PAT / OAuth-token surface.
+      #
+      # AUDIT (not block) deliberately: this is a live, working workflow, and the
+      # Claude action's full runtime egress is not cleanly documented. Audit mode
+      # reports every endpoint the run touches without blocking any, so it cannot
+      # break triage. FOLLOW-UP: after one real run, read harden-runner's endpoint
+      # report and, once the list below is confirmed complete, flip
+      # `egress-policy` to `block`. The new jobs (claude-repro.yml, ai-scan.yml)
+      # already run in block mode — they are new and canary-tested before relied on.
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+          allowed-endpoints: >
+            api.anthropic.com:443
+            statsig.anthropic.com:443
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            registry.npmjs.org:443
+
       # Layer 2 (authoritative, zero Claude usage). Two shapes:
       #   labeled → GitHub already restricts labeling to triage+; re-verify
       #             the labeler's LIVE role defensively so an automated or
