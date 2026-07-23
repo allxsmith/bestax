@@ -47,17 +47,19 @@ the review-time requirements (Storybook story for UI changes, docs page for API 
 
 PRs authored by the loop move through a small label lifecycle:
 
-| Label                | Where        | Meaning                                                                                                                                                                                                                                                        |
-| -------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `claude-fix`         | issues       | Maintainer-approved: Claude implements this issue and opens a PR                                                                                                                                                                                               |
-| `ai-loop`            | PRs          | The PR is inside the autonomous review/fix loop                                                                                                                                                                                                                |
-| `needs-human-review` | PRs          | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                                                                                                  |
-| `ai-loop-paused`     | PRs          | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                                                                                                    |
-| `deep-review`        | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
-| `ai-triage`          | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                               |
-| `claude-assisted`    | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                   |
-| `stale`              | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                              |
-| `neverstale`         | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                        |
+| Label                   | Where        | Meaning                                                                                                                                                                                                                                                        |
+| ----------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `claude-fix`            | issues       | Maintainer-approved: Claude implements this issue and opens a PR                                                                                                                                                                                               |
+| `ai-loop`               | PRs          | The PR is inside the autonomous review/fix loop                                                                                                                                                                                                                |
+| `needs-human-review`    | PRs          | The loop converged (or hit a disagreement) — awaiting maintainer review/merge                                                                                                                                                                                  |
+| `ai-loop-paused`        | PRs          | The loop hit its iteration cap or a guardrail — a maintainer must intervene                                                                                                                                                                                    |
+| `deep-review`           | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
+| `ai-triage`             | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                               |
+| `claude-repro`          | issues       | Triage+ user applies it: Claude drafts a candidate reproduction test and github-actions[bot] posts it for a human to run (author-only — CI does not run it). Auto-removes                                                                                      |
+| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; pauses `claude-repro` and `claude-fix` until a maintainer reviews and removes it                                                                                                                   |
+| `claude-assisted`       | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                   |
+| `stale`                 | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                              |
+| `neverstale`            | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                        |
 
 ### AI triage
 
@@ -81,6 +83,31 @@ secrets); issues have no such restriction. Three repository variables control it
   whose triage comment names a `Duplicate of #N` is auto-closed after **14 days** — unless
   anyone objects: a human comment after the triage comment, a 👎 reaction on it, or reopening
   the issue each veto the close.
+
+### Reproduction (author-only)
+
+A triage+ user can apply `claude-repro` to an issue to have Claude **draft** a minimal Jest
+reproduction test. `github-actions[bot]` posts the draft as a comment for a human to review and
+run — **CI does not execute it**. This is deliberately author-only; the token that pays for the
+model never shares a job with code execution, and the drafted (untrusted-influenced) test is
+posted with the workflow's own token, not bestaxbot's, so a stray `@claude` or marker in the
+draft cannot re-trigger anything. The whole pipeline holds no PAT. A flagged issue
+(`needs-security-review`) is refused until the flag is cleared.
+
+### Security scan
+
+New issues and PRs are automatically assessed by a read-only Claude session for malicious code,
+prompt injection aimed at this repo's automation, and social engineering. When it flags an item,
+a deterministic step applies **`needs-security-review`** (the reason stays in the private run
+output, never a public comment). The scan holds no write tools and no PAT, so it has no channel
+to post or leak anything; it fails **closed** (a crashed or inconclusive scan flags rather than
+passes). Controls: `AI_SCAN_MODE` (`off` disables it) and `AI_SCAN_DAILY_LIMIT` (auto scans per
+UTC day, default 20); `AI_LOOP_ENABLED=false` stops it with everything else.
+
+The flag is **advisory, not a gate**: a clean verdict only covers the static text scanned at open
+time. It pauses `claude-repro` and `claude-fix`, but it does **not** block `@claude` / `@bestaxbot`
+— so **do not `@claude` a flagged item to "investigate" it; inspect it by hand.** Clear a false
+positive by removing the label.
 
 The loop itself: Claude implements the issue and opens the PR → CodeRabbit reviews it and a
 second, independent Claude review (a stronger model than the implementer) does a deep pass →
