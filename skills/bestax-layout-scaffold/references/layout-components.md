@@ -21,7 +21,8 @@ import {
 ```
 
 Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `textAlign`,
-`textColor`, `bgColor`, etc.).
+`textColor`, `bgColor`, etc.). Flex helpers take the standard CSS values spelled in full:
+`justifyContent="space-between"`, `alignItems="center"`.
 
 > **Use helper props, never inline `style`, for spacing / alignment / color.** `mt="4"` (= 1rem)
 > not `style={{ marginTop: '1rem' }}`; `textAlign="centered"` not `style={{ textAlign: 'center' }}`;
@@ -129,6 +130,9 @@ type BulmaColumnSize =
   | 'four-fifths';
 ```
 
+Numeric sizes are **numbers** — `sizeDesktop={7}`, never `"7"`; only the fraction names are
+strings. (`gap` is the exception that accepts number **or** string.)
+
 > Columns **stack on mobile** by default and go side-by-side at the tablet breakpoint and up.
 > Use the per-breakpoint `size*` props to control how many cells share a row at each width.
 
@@ -219,11 +223,9 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 
 The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` and pass the same
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
-(Bulma offsets the page from it); the library adds no helper, so set it yourself:
-
-```ts
-document.documentElement.classList.add('has-navbar-fixed-top');
-```
+(Bulma offsets the page from it); the library adds no helper. Set it statically —
+`<html class="has-navbar-fixed-top">` in `index.html` — reserving a `classList.add` effect for
+a navbar that mounts conditionally.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile

@@ -133,16 +133,29 @@ ${setupLines.join('\n')}
 
 ## House style
 
-- Never inline \`style={{}}\` — use the helper props every component accepts (\`m*\`/\`p*\`
-  spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`, \`alignItems\`).
+- Never inline \`style={{}}\` and never hand-write Bulma utility classes — use the shared
+  helper props (\`m*\`/\`p*\` spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`,
+  \`alignItems\`). Bare text/markup has wrapper elements that take the same helper props:
+  \`Span\`, \`Paragraph\`, \`Strong\` — not \`<span className="has-text-…">\`. The one exception:
+  companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g. \`has-navbar-fixed-top\` with
+  \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no component renders those elements.
   Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
+- Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take only \`className\` +
+  HTML attributes — no helper props, no \`as\`/\`href\`: nest a \`Link\`/\`Span\` inside instead.
+  One required addition: \`Tabs.Tab\` and \`Tabs.Content.Item\` each need \`index={i}\`.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+- Reusable components you write get the library's spine so helper props work on them too:
+  extend \`BulmaClassesProps\`, merge \`className\`, spread \`...rest\` — the
+  bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
 - \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
   boilerplate — once this app has a real identity, set the title (and any meta tags) to match
   it and rewrite the README to describe *this* app, not the template.
+- Before adding a dependency, match the package manager to the app's lockfile
+  (\`pnpm-lock.yaml\` → pnpm, \`package-lock.json\` → npm, \`yarn.lock\` → yarn) — a mismatched
+  install fails or forks the lockfile.
 
 ## AI skills
 
@@ -158,6 +171,7 @@ automatically when the task matches:
 - **bestax-migrate** — migrate code off react-bulma-components (v4): run the codemod, resolve its TODOs.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+Read skill \`references/\` files with absolute paths — the shell's cwd is not stable between commands.
 
 \`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering

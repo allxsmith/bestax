@@ -61,7 +61,9 @@ don't rely on it.
 
 ## Accessibility
 
-Every `Icon` renders `aria-label` (default `"icon"`).
+Every `Icon` renders `aria-label` (default `"icon"`), set via its camelCase `ariaLabel` prop.
+Only a few components declare that prop (`Icon`, `Delete`, `Slider`, `Carousel`) — everything
+else takes the standard `aria-label` attribute, e.g. `<Navbar.Burger aria-label="menu" />`.
 
 - **Meaningful icon** (stands alone, conveys information): pass a descriptive
   `ariaLabel="Delete item"`.

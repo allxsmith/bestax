@@ -90,9 +90,10 @@ export default function CatalogPage() {
                 image={product.image}
                 imageAlt={product.name}
                 header={product.name}
-                footer={
-                  <span className="card-footer-item">{product.price}</span>
-                }
+                // Card wraps each footer item in .card-footer-item itself —
+                // no raw span/className needed (and a literal class would
+                // break under ConfigProvider classPrefix).
+                footer={product.price}
               >
                 <p>{product.blurb}</p>
               </Card>

@@ -64,6 +64,7 @@ export function StatCard({
           size="large"
           textColor={color}
           mr="4"
+          // ariaLabel is Icon's own prop; most components take plain aria-label.
           ariaLabel={`${label} icon`}
         />
       )}
