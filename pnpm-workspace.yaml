@@ -32,6 +32,11 @@ minimumReleaseAge: 4320
 # (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
   - prettier
+  # Urgent security patch (GHSA-mh99-v99m-4gvg, high): 5.0.8 is the only
+  # patched release on any major line and published 2026-07-23, so the audit
+  # gate cannot go green until the cooldown is bypassed. The cooldown elapses
+  # 2026-07-26 — remove from this list after that date.
+  - brace-expansion
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -53,6 +58,14 @@ overrides:
   # auto-loading follows `../` out of the source directory and discloses
   # arbitrary .map files.
   'postcss@<8.5.18': '>=8.5.18 <9'
+  # Force patched brace-expansion (transitive via minimatch across the eslint
+  # and jest toolchains) — high advisory GHSA-mh99-v99m-4gvg: unbounded
+  # expansion length causes an out-of-memory crash. Unlike the earlier
+  # brace-expansion advisory this one has no per-major backport — 5.0.8 is the
+  # only patched release — so the 1.x and 2.x consumers are pulled across
+  # majors too. Safe here because 5.x keeps a `require` export condition and
+  # every consumer is dev-tooling only, never published output.
+  brace-expansion: '>=5.0.8'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
