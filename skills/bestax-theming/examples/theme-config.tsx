@@ -34,6 +34,8 @@ export function ThemedApp({ children }: { children: React.ReactNode }) {
       bulmaVars={{
         '--bulma-radius': '0.75rem',
         '--bulma-radius-large': '1.25rem',
+        // 'Inter' must actually be loaded (index.html <link> or an @fontsource
+        // import) — declaring the family var alone falls back to system-ui.
         '--bulma-family-primary': "'Inter', system-ui, sans-serif",
       }}
     >
