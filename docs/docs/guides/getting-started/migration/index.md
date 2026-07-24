@@ -7,7 +7,7 @@ slug: /guides/getting-started/migration
 # Migration
 
 :::note Independent migration paths
-The pages below cover unrelated upgrades. Most readers only need one. The 4.x → 5.x and 3.x → 4.x bumps are one-line changes for most apps; the real work (if any) is in 2.x → 3.x.
+The pages below cover unrelated upgrades. Most readers only need one. For apps already on React 18 or 19, the 4.x → 5.x and 3.x → 4.x bumps are one-line changes at most; apps still on React 16 or 17 need a React upgrade first to cross 4.x. The real work (if any) is in 2.x → 3.x.
 :::
 
 Pick whichever applies to your situation:

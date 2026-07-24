@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Upgrading bestax-bulma 4.x → 5.x
 
-This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from 4.x to 5.x. There is **one** consumer-facing change: the `versions/bestax-bulma-prefixed.css` stylesheet (the variant that prefixed every class with `bulma-`) is removed. Everything else in the 5.x line is additive — new components and props, no removals or renames.
+This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from 4.x to 5.x. There is **one** consumer-facing change: the `versions/bestax-bulma-prefixed.css` stylesheet and its package export (the variant that prefixed every class with `bulma-`) are removed. Everything else in the 5.x line is additive — new components and props; no component props or JavaScript exports are removed or renamed.
 
 ## TL;DR
 
@@ -14,13 +14,13 @@ This guide explains what changes when you upgrade `@allxsmith/bestax-bulma` from
 5.x removes the **`versions/bestax-bulma-prefixed.css`** stylesheet. If you never imported that file, upgrade freely — nothing in your code needs to change. If you did, switch the import to `versions/bestax-prefixed.css` and change `classPrefix="bulma-"` to `classPrefix="bestax-"`.
 :::
 
-| Area               | What changed                                                            | Action                                                                |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| CSS variations     | `versions/bestax-bulma-prefixed.css` export removed                     | Import `versions/bestax-prefixed.css` and set `classPrefix="bestax-"` |
-| Class prefix       | One prefixed scheme (`bestax-`) instead of two (`bestax-` and `bulma-`) | Update custom CSS that targets `.bulma-*` classes to `.bestax-*`      |
-| Component behavior | No changes                                                              | None                                                                  |
-| Props / exports    | No removals or renames                                                  | None                                                                  |
-| React peer range   | Unchanged (`^18.0.0 \|\| ^19.0.0`)                                      | None                                                                  |
+| Area                         | What changed                                                            | Action                                                                |
+| ---------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| CSS variations               | `versions/bestax-bulma-prefixed.css` export removed                     | Import `versions/bestax-prefixed.css` and set `classPrefix="bestax-"` |
+| Class prefix                 | One prefixed scheme (`bestax-`) instead of two (`bestax-` and `bulma-`) | Update custom CSS that targets `.bulma-*` classes to `.bestax-*`      |
+| Component behavior           | No changes                                                              | None                                                                  |
+| Component props / JS exports | No removals or renames                                                  | None                                                                  |
+| React peer range             | Unchanged (`^18.0.0 \|\| ^19.0.0`)                                      | None                                                                  |
 
 ## The one breaking change: `bestax-bulma-prefixed.css` is removed
 
@@ -94,7 +94,7 @@ Import that file instead of the removed CSS (you'll need `bulma` and `sass` inst
 
 ## No other breaking changes
 
-No components, props, or exports were removed or renamed crossing the 5.0 boundary, and the React peer range is unchanged from 4.x (React 18 or 19). The rest of the 5.x line is additive — highlights since 4.x:
+No components, component props, or JavaScript exports were removed or renamed crossing the 5.0 boundary — the stylesheet export above is the only removal — and the React peer range is unchanged from 4.x (React 18 or 19). The rest of the 5.x line is additive — highlights since 4.x:
 
 - New components: [Avatar](/docs/api/components/avatar), [Avatars](/docs/api/components/avatars), [Badge](/docs/api/components/badge), and [Reveal](/docs/api/components/reveal) (scroll-triggered animations).
 - Compound (dot-notation) sub-components for all parent/child families — `Card.Header`, `Navbar.Item`, `Modal.Card`, and the rest.
