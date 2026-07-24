@@ -85,10 +85,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   }
   ```
 
-  A highlighted/"featured" card needs **no third rule**: wrap that one card in a scoped
-  `<Theme bulmaVars={{ '--bulma-box-shadow': '0 0 0 2px var(--bulma-primary), var(--bulma-shadow)' }}>`
-  — component `--bulma-*` vars (`box-shadow`, `card-shadow`, radius, …) are reachable
-  per-subtree with zero CSS, and stay theme- and dark-mode-aware.
+  A highlighted/"featured" `Card`/`Box` needs **no third rule**: wrap that one element in
+  `<Theme bulmaVars={{ '--bulma-shadow': '0 0 0 2px var(--bulma-primary)' }}>`. Override the
+  **upstream token**, not the component's own var: `.card`/`.box` re-declare
+  `--bulma-card-shadow`/`--bulma-box-shadow` on their own selector, so setting those from an
+  ancestor never wins (same for `--bulma-box-radius`; `--bulma-card-radius` is a literal with
+  no ancestor route at all). The subtree stays theme- and dark-mode-aware.
 
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
