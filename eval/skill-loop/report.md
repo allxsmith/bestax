@@ -148,6 +148,19 @@ Total tooling diff vs baseline: 18 files, +230/−88. Hand-written skill bundle
 4. **The decorative-CSS budget few-shot + scoped-Theme ring** (i02/i04/i07) — 77 lines →
    a stable, themeable, dark-mode-safe ~10-line pattern; the i07 ring recipe removed the
    last CSS-pressure source and was adopted by every subsequent run.
+
+   > **Correction (2026-07-24, post-experiment).** The ring recipe itself was _wrong_: it
+   > scoped `--bulma-box-shadow`, but `.box`/`.card` re-declare their own shadow var on
+   > their own selector, so an ancestor `Theme` never wins — browser-verified, the ring
+   > rendered in **neither** component. Runs i08–i10 all adopted it (as
+   > `--bulma-card-shadow`) and shipped an inert ring; three graders scored it as correct
+   > because **the harness has no browser** and neither builders nor graders could see the
+   > rendered result. Fixed in the guidance PR by overriding the upstream `--bulma-shadow`
+   > token instead. Two lessons stand: the CSS-_pressure_ result (77 → ~10 lines) holds,
+   > but its "zero-CSS ring" component was never validated; and any guidance whose effect
+   > is only visible in a rendered page is unfalsifiable in this harness — see the
+   > browser-tool recommendation in §Remaining gaps (d).
+
 5. **Micro-facts that each killed a repair-round class**: extras state APIs, casing trap,
    `message` ownership, fixed-top at point of use, markerless lists, PM-lockfile rule.
 
@@ -197,8 +210,12 @@ Total tooling diff vs baseline: 18 files, +230/−88. Hand-written skill bundle
    the rationale comments the guidance encourages).
 2. `skill_files` extraction should parse Bash `cat`/`sed`/`grep` paths, not only Read-tool
    inputs (lists were empty in i05/i08/i10 while reads occurred).
-3. Provide a browser tool in nested builder sessions, or bless the SSR smoke recipe as the
-   official fallback (flagged honestly by builders in 7 runs).
+3. **Provide a browser tool in nested builder sessions** (or bless the SSR smoke recipe as
+   the official fallback) — flagged honestly by builders in 7 runs, and demonstrably not
+   cosmetic: the inert featured-ring recipe (see the correction under §What mattered most)
+   survived three runs and three graders precisely because nothing in the loop could see a
+   rendered page. **Any claim whose effect is only visible in the browser is currently
+   unfalsifiable here** — treat such guidance as unvalidated until a render check exists.
 4. Keep the improver's grader cross-check step — it caught 3 scorecard errors in 10 runs.
 5. Keep the pre-launch orphaned-dev-server sweep (added at i05 after the port collision).
 
