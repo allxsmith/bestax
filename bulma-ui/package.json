@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.5.0",
-    "@fortawesome/fontawesome-free": "^7.2.0",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@mdi/font": "^7.4.47",
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
