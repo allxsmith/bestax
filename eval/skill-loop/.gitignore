@@ -1,0 +1,5 @@
+runs/*/transcript.jsonl
+runs/*/builder-stderr.log
+runs/*/builder.diff
+runs/*/app-src/
+runs/*/*.txt
