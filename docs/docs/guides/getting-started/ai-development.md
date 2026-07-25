@@ -94,7 +94,8 @@ as a single (upserted) comment plus a 30-day workflow artifact, so the reviewer 
 rendered result and not just the diff. The images are served from the `story-screenshots`
 branch, which is disposable storage — deleting it only breaks images in old handoff comments,
 and the next run re-creates it. To run the pass on any PR, apply the `needs-human-review`
-label yourself or dispatch it directly: `gh workflow run story-screenshots.yml -f pr=<number>`.
+label yourself or dispatch it directly: `gh workflow run story-screenshots.yml -f pr=123`, with
+`123` swapped for your PR number.
 Cross-cutting changes (shared helpers, theme plumbing) map to no specific stories and produce
 an explicit "nothing to screenshot" comment. If the pass itself breaks, the same comment says
 so and links the failed run — a silent handoff always means there was nothing to show, never
