@@ -31,6 +31,12 @@ on:
 # No workflow-level grants; each job takes exactly what it needs.
 permissions: {}
 
+# `publish` and `report-failure` both write the handoff comment and find the
+# previous one by this marker. One definition, or a drift between them stacks
+# a second comment instead of replacing the first.
+env:
+  SCREENSHOT_MARKER: '<!-- story-screenshots -->'
+
 concurrency:
   group: story-screenshots-${{ github.event.pull_request.number || inputs.pr }}
   cancel-in-progress: true # a newer handoff supersedes an in-flight one
@@ -211,7 +217,7 @@ jobs:
             const runId = String(context.runId);
             const { owner, repo } = context.repo;
             const BRANCH = 'story-screenshots';
-            const MARKER = '<!-- story-screenshots -->';
+            const MARKER = process.env.SCREENSHOT_MARKER;
             // The capture job ran PR-authored code, so its outputs are
             // untrusted: ids/filenames are charset-whitelisted before any
             // URL/path use, titles are HTML-escaped before markdown use.
@@ -385,4 +391,75 @@ jobs:
             } else {
               await github.rest.issues.createComment({ owner, repo, issue_number: Number(pr), body });
               console.log('Created screenshots comment');
+            }
+
+  # `publish` hangs off a plain `needs: capture`, so Actions auto-skips it
+  # when capture fails — and a skipped publish is silence, which is exactly
+  # what a healthy "nothing to screenshot" run looks like to the reviewer. A
+  # Playwright install that 500s, or the 20-minute timeout expiring on a slow
+  # runner at the 24-story cap, would read as "no CSS to look at here". Say it
+  # out loud instead, through the same upserted comment so the notice also
+  # supersedes images from an earlier run rather than leaving them to pass as
+  # current.
+  #
+  # `failure` only: `cancelled` is the concurrency group retiring this run for
+  # a newer handoff, `skipped` is the label guard. Neither is news.
+  report-failure:
+    name: Report capture failure
+    needs: capture
+    if: always() && needs.capture.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write # upsert the marker comment
+    steps:
+      - name: Upsert failure notice
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          # Empty when capture died in its first step — which is where the
+          # deliberate refusals live (PR closed, PR cross-repo). Those are the
+          # workflow declining to run, not breaking, and get no comment.
+          PR: ${{ needs.capture.outputs.pr }}
+          HEAD_SHA: ${{ needs.capture.outputs.head_sha }}
+        with:
+          script: |
+            const pr = process.env.PR || '';
+            if (!/^\d+$/.test(pr)) {
+              console.log('capture failed before it resolved a PR — nothing to comment on');
+              return;
+            }
+            const headSha = process.env.HEAD_SHA || '';
+            const { owner, repo } = context.repo;
+            const MARKER = process.env.SCREENSHOT_MARKER;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const short = /^[0-9a-f]{40}$/.test(headSha) ? ` — \`${headSha.slice(0, 7)}\`` : '';
+
+            const body = [
+              MARKER,
+              `### 📸 Story screenshots at handoff${short}`,
+              '',
+              '⚠ The screenshot pass failed before it could publish — **no images for this handoff.** That is this workflow breaking, not a verdict on the PR; review the diff as you would without it.',
+              '',
+              `See the [workflow run](${runUrl}) for the cause, then re-run:`,
+              '',
+              '```',
+              `gh workflow run story-screenshots.yml --ref main -f pr=${pr}`,
+              '```',
+            ].join('\n');
+
+            // Same author-filtered upsert as `publish`, so a failure replaces
+            // the previous handoff comment instead of stacking under it.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: Number(pr), per_page: 100,
+            });
+            const mine = comments.filter(c =>
+              c.user && c.user.login === 'github-actions[bot]'
+              && c.body && c.body.startsWith(MARKER));
+            const last = mine[mine.length - 1];
+            if (last) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: last.id, body });
+              console.log(`Updated screenshots comment ${last.id} with the failure notice`);
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: Number(pr), body });
+              console.log('Created the failure notice comment');
             }

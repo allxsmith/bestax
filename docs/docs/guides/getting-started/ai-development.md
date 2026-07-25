@@ -96,7 +96,9 @@ branch, which is disposable storage — deleting it only breaks images in old ha
 and the next run re-creates it. To run the pass on any PR, apply the `needs-human-review`
 label yourself or dispatch it directly: `gh workflow run story-screenshots.yml -f pr=<number>`.
 Cross-cutting changes (shared helpers, theme plumbing) map to no specific stories and produce
-an explicit "nothing to screenshot" comment.
+an explicit "nothing to screenshot" comment. If the pass itself breaks, the same comment says
+so and links the failed run — a silent handoff always means there was nothing to show, never
+that the screenshots were lost.
 
 Please don't add or remove the loop labels on PRs you don't own — they are the loop's state
 machine.
