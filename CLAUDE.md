@@ -90,7 +90,8 @@ fix/verify rounds (cap 4) until CI is green and every AI review thread is resolv
 `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner reviews and
 squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard hit). A triage+
 user can also apply the opt-in `deep-review` label to any PR to run the Claude deep
-review on it (re-applying the label re-runs it). AI-assisted PRs (bestaxbot author or the
+review on it (re-applying the label re-runs it; a `deep-review:`-prefixed PR comment from
+a triage+ user pre-steers its focus). AI-assisted PRs (bestaxbot author or the
 Claude Code attribution footer) also get an auto-applied `claude-assisted` provenance
 label. Kill switches: remove `ai-loop` (per PR) or set repo
 variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment

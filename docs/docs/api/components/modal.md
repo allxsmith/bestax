@@ -46,7 +46,7 @@ import { Modal } from '@allxsmith/bestax-bulma';
 | `children`       | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Modal body/content.                                                                    |
 | ...              | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses))                                       |
 
-### Compound Components
+### Compound component props
 
 | Component          | Description                                                                                                                                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -222,7 +222,7 @@ function example() {
 
 ---
 
-### Compound Components API
+### Compound (dot-notation) usage
 
 #### Modal.Card with compound components
 

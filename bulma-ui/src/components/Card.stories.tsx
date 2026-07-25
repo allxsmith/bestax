@@ -183,7 +183,7 @@ export const Interactive: Story = {
   },
 };
 
-export const CompoundComponents: Story = {
+export const CompoundUsage: Story = {
   render: () => (
     <Card>
       <Card.Header>

@@ -1,7 +1,7 @@
 ---
 title: Migrating from react-bulma-components
 sidebar_label: From react-bulma-components
-sidebar_position: 3
+sidebar_position: 5
 ---
 
 # Migrating from react-bulma-components

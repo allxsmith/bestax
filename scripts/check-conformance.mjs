@@ -15,6 +15,8 @@
  *   docs-sections        API pages must have the house sections
  *   scss-conformance     SCSS partials follow the register-vars pattern
  *   story-per-component  every exported component module has a .stories.tsx
+ *   compound-family      withSubComponents families ship a CompoundUsage story
+ *                        and a "Compound (dot-notation) usage" docs subsection
  *   autodocs-tag         every story file opts into autodocs
  *   inline-style         no NEW inline style={{}} in stories/docs (ratcheted
  *                        against scripts/conformance-baseline.json; after
@@ -488,6 +490,89 @@ async function checkStoryPerComponent() {
   return violations;
 }
 
+// The compound-family standard (bulma-ui/CLAUDE.md): every component that
+// attaches statics via withSubComponents ships a story named exactly
+// `CompoundUsage` and a `### Compound (dot-notation) usage` example as the
+// LAST subsection of its API page's `## Usage` section. Detection is
+// source-driven (the withSubComponents call site), so a new compound family
+// is covered the moment it adopts the helper.
+async function checkCompoundFamily() {
+  const violations = [];
+  const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
+  const pages = new Map(); // frontmatter title -> relPath
+  for (const comps of (await apiComponents()).values()) {
+    for (const { title, relPath } of comps) pages.set(title, relPath);
+  }
+  const HEADING = '### Compound (dot-notation) usage';
+  const seen = new Set();
+  for (const { cat, mod } of modules) {
+    const key = `${cat}/${mod}`;
+    if (seen.has(key) || !/^[A-Z]/.test(mod) || mod.endsWith('Base')) continue;
+    seen.add(key);
+    let src;
+    try {
+      src = await readFile(
+        join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`),
+        'utf8'
+      );
+    } catch {
+      continue; // .ts modules (helpers) have no component surface
+    }
+    if (!src.includes('withSubComponents(')) continue;
+
+    // 1. A story named exactly CompoundUsage. (A missing story file is
+    //    story-per-component's finding, not repeated here.)
+    const storyRel = `bulma-ui/src/${cat}/${mod}.stories.tsx`;
+    let storySrc = null;
+    try {
+      storySrc = await readFile(join(REPO, storyRel), 'utf8');
+    } catch {
+      /* reported by story-per-component */
+    }
+    if (storySrc !== null && !/^export const CompoundUsage\b/m.test(storySrc)) {
+      violations.push(
+        `${storyRel} has no \`export const CompoundUsage\` story. ${mod} is ` +
+          `a compound family (it calls withSubComponents), which ships a ` +
+          `CompoundUsage story — rename the primary dot-notation story or ` +
+          `add one (exemplar: bulma-ui/src/components/Menu.stories.tsx).`
+      );
+    }
+
+    // 2. The API page's `## Usage` section ends with the compound subsection.
+    const rel = pages.get(mod);
+    if (!rel) {
+      violations.push(
+        `${mod} (bulma-ui/src/${cat}/${mod}.tsx) is a compound family but no ` +
+          `API page under docs/docs/api has frontmatter \`title: ${mod}\`.`
+      );
+      continue;
+    }
+    const docSrc = await readFile(join(API_DIR, rel), 'utf8');
+    const lines = docSrc.split(/\r?\n/);
+    const start = lines.findIndex(l => /^## Usage[ \t]*$/.test(l));
+    let end = lines.length;
+    for (let i = start + 1; i < lines.length; i++) {
+      if (/^## /.test(lines[i])) {
+        end = i;
+        break;
+      }
+    }
+    const subs = lines
+      .slice(start + 1, end)
+      .filter(l => /^### /.test(l))
+      .map(l => l.trim());
+    if (start === -1 || subs[subs.length - 1] !== HEADING) {
+      violations.push(
+        `docs/docs/api/${rel} must end its "## Usage" section with a ` +
+          `"${HEADING}" subsection (${mod} is a compound family). Mirror ` +
+          `docs/docs/api/components/dropdown.md: one sentence naming the ` +
+          `\`${mod}.*\` statics, then a \`\`\`tsx live example.`
+      );
+    }
+  }
+  return violations;
+}
+
 async function checkAutodocsTag() {
   const violations = [];
   const stories = await walk(join(REPO, 'bulma-ui', 'src'), '.stories.tsx');
@@ -563,6 +648,7 @@ const CHECKS = {
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
   'story-per-component': checkStoryPerComponent,
+  'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
   'inline-style': null, // handled below (takes the flag)
 };

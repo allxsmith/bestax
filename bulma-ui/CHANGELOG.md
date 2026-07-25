@@ -1,3 +1,12 @@
+# [5.8.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.7.0...@allxsmith/bestax-bulma@5.8.0) (2026-07-22)
+
+
+### Features
+
+* **bestax-migrate:** react-bulma-components → bestax-bulma codemod CLI, skill, and docs ([#333](https://github.com/allxsmith/bestax/issues/333)) ([e04a12b](https://github.com/allxsmith/bestax/commit/e04a12b52a473265395cd1d3fa41ac1fb55886b3)), closes [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99)
+* **bulma-ui:** ship agent-discovery files in the npm tarball ([#345](https://github.com/allxsmith/bestax/issues/345)) ([4b58739](https://github.com/allxsmith/bestax/commit/4b587392df2e4f780c3f67c161f6e3eb500b2b14)), closes [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344)
+* **create-bestax:** scaffold .claude/launch.json with the AI skills opt-in ([#343](https://github.com/allxsmith/bestax/issues/343)) ([189135a](https://github.com/allxsmith/bestax/commit/189135ad54675b6ade7931a8c63a03d5eb0e2549))
+
 # [5.7.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.6.2...@allxsmith/bestax-bulma@5.7.0) (2026-07-20)
 
 

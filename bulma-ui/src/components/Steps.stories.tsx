@@ -903,7 +903,7 @@ export const HasNavigation: Story = {
 /**
  * Using `<Steps.Step>` compound component API with navigation.
  */
-export const CompoundComponents: Story = {
+export const CompoundUsage: Story = {
   render: function CompoundStory() {
     const [step, setStep] = useState(1);
     const labels = ['Account', 'Profile', 'Complete'];

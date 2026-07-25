@@ -104,6 +104,25 @@ export class ProjectCreator {
     await copyDirectory(templatePath, targetPath);
   }
 
+  async updateIndexHtmlTitle(
+    targetPath: string,
+    projectName: string
+  ): Promise<void> {
+    const indexHtmlPath = path.join(targetPath, 'index.html');
+    if (!fs.existsSync(indexHtmlPath)) return;
+
+    const htmlContent = await fs.readFile(indexHtmlPath, 'utf8');
+    // projectName is validated against PROJECT_NAME_REGEX (letters, digits,
+    // dots, dashes, underscores only), so it needs no HTML escaping.
+    const updated = htmlContent.replace(
+      /<title>[^<]*<\/title>/,
+      `<title>${projectName}</title>`
+    );
+    if (updated !== htmlContent) {
+      await fs.writeFile(indexHtmlPath, updated);
+    }
+  }
+
   async setupSkills(
     targetPath: string,
     projectName: string,
@@ -559,6 +578,7 @@ export class ProjectCreator {
     try {
       await this.copyTemplate(template, targetPath);
       await updatePackageJson(targetPath, projectName);
+      await this.updateIndexHtmlTitle(targetPath, projectName);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);
       await this.setupIconLibrary(targetPath, iconLibrary, template);
       await this.setupConfigProvider(
