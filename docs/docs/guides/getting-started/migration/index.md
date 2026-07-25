@@ -7,10 +7,16 @@ slug: /guides/getting-started/migration
 # Migration
 
 :::note Independent migration paths
-The pages below cover unrelated upgrades. Most readers only need one. The 3.x → 4.x bump is a one-line change for most apps; the real work (if any) is in 2.x → 3.x.
+The pages below cover unrelated upgrades. Most readers only need one. For apps already on React 18 or 19, the 4.x → 5.x and 3.x → 4.x bumps are one-line changes at most; apps still on React 16 or 17 need a React upgrade first to cross 4.x. The real work (if any) is in 2.x → 3.x.
 :::
 
 Pick whichever applies to your situation:
+
+## [Upgrading bestax-bulma 4.x → 5.x](./bulma-ui-4-to-5.md)
+
+The 5.x release has a single consumer-facing change: the **`versions/bestax-bulma-prefixed.css` stylesheet is removed** (the variant that prefixed every class with `bulma-`). If you never imported that file, upgrade with no code changes. If you did, switch to `versions/bestax-prefixed.css` with `classPrefix="bestax-"` and update any custom CSS targeting `.bulma-*` classes. The rest of the 5.x line is additive — Avatar, Badge, Reveal, compound (dot-notation) sub-components, and more.
+
+[Read the full 4.x to 5.x guide →](./bulma-ui-4-to-5.md)
 
 ## [Upgrading bestax-bulma 3.x → 4.x](./bulma-ui-3-to-4.md)
 
@@ -29,12 +35,6 @@ Also notable but not breaking: new optional context-driven APIs in `<Tabs>`, `<C
 
 [Read the full 2.x to 3.x guide →](./bulma-ui-2-to-3.md)
 
-## [Migrating from react-bulma-components](./react-bulma-components.md)
-
-Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-migrate`** codemod converts imports, component names, props, and responsive objects to bestax-bulma automatically, and flags everything it can't convert with `TODO(bestax-migrate)` comments plus a report. An [Agent Skill](/docs/skills/migrate) packages the whole workflow for coding agents.
-
-[Read the react-bulma-components guide →](./react-bulma-components.md)
-
 ## [Migrating from Bulma v0.9.x → v1](./bulma-0-9-to-1.md)
 
 bestax-bulma itself has always required Bulma v1 — there's no "bestax on Bulma 0.9" path. This guide is for two adjacent scenarios: (1) you're migrating off **another** React + Bulma library (`react-bulma-components`, Buefy, etc.) that was pinned to Bulma 0.9.x, or (2) you have **plain Bulma 0.9.x** in your own project that you want to upgrade alongside (or before) adopting bestax.
@@ -42,3 +42,9 @@ bestax-bulma itself has always required Bulma v1 — there's no "bestax on Bulma
 The HTML stays identical between Bulma 0.9 and 1, but Bulma v1 swaps Node Sass for Dart Sass, introduces CSS custom properties for runtime theming, ships a real CSS Grid system, and deprecates Tiles.
 
 [Read the full Bulma 0.9.4 → 1.x guide →](./bulma-0-9-to-1.md)
+
+## [Migrating from react-bulma-components](./react-bulma-components.md)
+
+Coming from the (unmaintained) `react-bulma-components` library? The **`bestax-migrate`** codemod converts imports, component names, props, and responsive objects to bestax-bulma automatically, and flags everything it can't convert with `TODO(bestax-migrate)` comments plus a report. An [Agent Skill](/docs/skills/migrate) packages the whole workflow for coding agents.
+
+[Read the react-bulma-components guide →](./react-bulma-components.md)
