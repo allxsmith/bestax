@@ -32,33 +32,40 @@ minimumReleaseAge: 4320
 # (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
   - prettier
-  # Urgent security patch (GHSA-v2hh-gcrm-f6hx + host-confusion sibling):
-  # 3.1.4 published 2026-07-19, forced via the override below before the
-  # cooldown elapses. Remove from this list after 2026-07-22.
-  - fast-uri
+  # Urgent security patch (GHSA-mh99-v99m-4gvg, high): 5.0.8 is the only
+  # patched release on any major line and published 2026-07-23, so the audit
+  # gate cannot go green until the cooldown is bypassed. The cooldown elapses
+  # 2026-07-26 — remove from this list after that date.
+  - brace-expansion
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
 # differently, which otherwise splits into two resolved copies).
 overrides:
   prettier: 3.9.4
+  # The entries below force patched versions of transitive dependencies. Each
+  # stops being load-bearing once its parents widen their own ranges, so prune
+  # periodically: drop an entry, re-resolve, and leave it out if the resolved
+  # version is unchanged and `pnpm audit --audit-level=high` stays clean.
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
   # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
   serialize-javascript: '>=7.0.3'
-  # Force patched brace-expansion (transitive via minimatch across the jest and
-  # eslint toolchains) — DoS advisory GHSA-3jxr-9vmj-r5cp, patched per major.
-  'brace-expansion@<1.1.16': '>=1.1.16 <2'
-  'brace-expansion@>=2.0.0 <2.1.2': '>=2.1.2 <3'
-  'brace-expansion@>=3.0.0 <5.0.7': '>=5.0.7 <6'
-  # Force patched fast-uri (transitive via ajv across commitlint/webpack/
-  # storybook) — two high host-confusion advisories incl. GHSA-v2hh-gcrm-f6hx.
-  'fast-uri@>=3.0.0 <3.1.4': '>=3.1.4 <4'
-  # Force patched svgo (transitive via Docusaurus image tooling) — high
-  # advisory: removeScripts leaves executable content.
-  'svgo@>=3.0.0 <3.3.4': '>=3.3.4 <4'
   # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
   # tooling with its native build blocked above) — high libvips CVEs.
   'sharp@<0.35.0': '>=0.35.0'
+  # Force patched postcss (transitive via vite/storybook and the Docusaurus
+  # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
+  # auto-loading follows `../` out of the source directory and discloses
+  # arbitrary .map files.
+  'postcss@<8.5.18': '>=8.5.18 <9'
+  # Force patched brace-expansion (transitive via minimatch across the eslint
+  # and jest toolchains) — high advisory GHSA-mh99-v99m-4gvg: unbounded
+  # expansion length causes an out-of-memory crash. Unlike the earlier
+  # brace-expansion advisory this one has no per-major backport — 5.0.8 is the
+  # only patched release — so the 1.x and 2.x consumers are pulled across
+  # majors too. Safe here because 5.x keeps a `require` export condition and
+  # every consumer is dev-tooling only, never published output.
+  brace-expansion: '>=5.0.8'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
