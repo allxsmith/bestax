@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
           [[ "$PR_INPUT" =~ ^[0-9]+$ ]] || { echo "bad pr input: $PR_INPUT"; exit 1; }
           INFO=$(gh pr view "$PR_INPUT" --repo "$REPO" \
-            --json state,headRefOid,isCrossRepository)
+            --json state,headRefOid,baseRefOid,isCrossRepository)
           [ "$(jq -r .state <<<"$INFO")" = "OPEN" ] \
             || { echo "PR #$PR_INPUT is not open — nothing to do"; exit 1; }
           [ "$(jq -r .isCrossRepository <<<"$INFO")" = "false" ] \
@@ -79,6 +79,7 @@ jobs:
           {
             echo "pr=$PR_INPUT"
             echo "head_sha=$(jq -r .headRefOid <<<"$INFO")"
+            echo "base_sha=$(jq -r .baseRefOid <<<"$INFO")"
           } >> "$GITHUB_OUTPUT"
 
       - name: Checkout PR head
@@ -98,10 +99,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PR: ${{ steps.pr.outputs.pr }}
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
         run: |
           set -euo pipefail
-          gh pr diff "$PR" --repo "$REPO" --name-only > /tmp/changed-files.txt
+          # Compare the pinned SHAs, not `gh pr diff <n>` — that re-reads the
+          # PR's *current* diff, so a push landing between "Resolve PR" and
+          # here would pair the new head's file list with the old head's
+          # checkout. Three-dot: changes since the merge base, i.e. the PR's.
+          gh api --paginate "repos/$REPO/compare/$BASE_SHA...$HEAD_SHA" \
+            --jq '.files[].filename' > /tmp/changed-files.txt
           if grep -q '^bulma-ui/src/' /tmp/changed-files.txt; then
             echo "any=true" >> "$GITHUB_OUTPUT"
           else
@@ -277,10 +284,21 @@ jobs:
                   message: 'chore: bootstrap screenshot storage (#284)',
                   tree: tree.sha, parents: [],
                 });
-                await github.rest.git.createRef({
-                  owner, repo, ref: `refs/heads/${BRANCH}`, sha: commit.sha,
-                });
-                tip = commit.sha;
+                try {
+                  await github.rest.git.createRef({
+                    owner, repo, ref: `refs/heads/${BRANCH}`, sha: commit.sha,
+                  });
+                  tip = commit.sha;
+                } catch (e) {
+                  // Concurrency is per-PR, so two first-ever runs can both see
+                  // the 404 above and both bootstrap. The loser adopts the
+                  // winner's branch and falls through to the append loop —
+                  // throwing here would cost that PR its handoff comment.
+                  if (e.status !== 422) throw e;
+                  console.log(`${BRANCH} was bootstrapped concurrently — adopting it`);
+                  const { data } = await github.rest.git.getRef({ owner, repo, ref: `heads/${BRANCH}` });
+                  tip = data.object.sha;
+                }
               }
 
               const blobs = [];
@@ -402,12 +420,17 @@ jobs:
   # supersedes images from an earlier run rather than leaving them to pass as
   # current.
   #
+  # Watches `publish` too: it is the job that would die on a blob upload or a
+  # lost race for the orphan branch, and its silence reads identically.
+  #
   # `failure` only: `cancelled` is the concurrency group retiring this run for
   # a newer handoff, `skipped` is the label guard. Neither is news.
   report-failure:
     name: Report capture failure
-    needs: capture
-    if: always() && needs.capture.result == 'failure'
+    needs: [capture, publish]
+    if: |
+      always() &&
+      (needs.capture.result == 'failure' || needs.publish.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -438,7 +461,7 @@ jobs:
               MARKER,
               `### 📸 Story screenshots at handoff${short}`,
               '',
-              '⚠ The screenshot pass failed before it could publish — **no images for this handoff.** That is this workflow breaking, not a verdict on the PR; review the diff as you would without it.',
+              '⚠ The screenshot pass failed — **no images for this handoff.** That is this workflow breaking, not a verdict on the PR; review the diff as you would without it.',
               '',
               `See the [workflow run](${runUrl}) for the cause, then re-run:`,
               '',
