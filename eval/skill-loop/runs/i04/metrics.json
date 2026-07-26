@@ -3,6 +3,8 @@
   "brief": "skynet-saas",
   "tsc_errors": 0,
   "build_pass": true,
+  "files_changed_vs_baseline": null,
+  "app_modified": true,
   "inline_style_count": 0,
   "raw_bulma_classnames": 0,
   "handrolled_tags": {

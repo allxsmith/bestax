@@ -23,10 +23,17 @@ anchors, and state the evidence (file:line or transcript event) for every deduct
 
 Scored directly from metrics.json.
 
-- 15: `build_pass=true` and `tsc_errors=0`.
+**Check `app_modified` first.** The pristine scaffold typechecks and builds cleanly, so
+`build_pass=true, tsc_errors=0` is also what an app the builder never touched reports. The
+unmodified anchor below **takes precedence** over the 15 anchor, which an untouched scaffold
+would otherwise satisfy.
+
+- 0: `app_modified=false` — the builder changed nothing (`files_changed_vs_baseline=0`).
+  Not a build success; a run in which nothing happened. Also 0 for >5 tsc errors, build and
+  typecheck both failing, or an app left skeletal.
+- 15: `build_pass=true` and `tsc_errors=0`, **with `app_modified=true`**.
 - 8: tsc has 1–5 errors OR vite build fails but the app is dev-renderable (src parses,
   imports resolve).
-- 0: >5 tsc errors, or build and typecheck both fail, or app is skeletal/unmodified.
 
 ## 2. Component adoption — 15 pts
 

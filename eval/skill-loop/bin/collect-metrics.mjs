@@ -110,6 +110,15 @@ const css_files_added = (nameStatus.stdout ?? '')
   .split('\n')
   .filter(l => /^A\t.*\.(css|scss|sass)$/.test(l)).length;
 
+// Did the builder change anything at all? The pristine scaffold typechecks and builds
+// cleanly, so `build_pass=true, tsc_errors=0` is also exactly what an UNTOUCHED app
+// reports. Rubric category 1 is scored mechanically from those two fields and cannot
+// otherwise tell "built it perfectly" from "did nothing" — its 0 anchor covers a skeletal
+// or unmodified app, but nothing in metrics.json made that anchor reachable until now.
+const files_changed_vs_baseline = (nameStatus.stdout ?? '')
+  .split('\n')
+  .filter(l => l.trim()).length;
+
 let deps_added = [];
 try {
   const basePkg = JSON.parse(
@@ -238,6 +247,8 @@ console.log(
       brief: briefName ?? null,
       tsc_errors,
       build_pass,
+      files_changed_vs_baseline,
+      app_modified: files_changed_vs_baseline > 0,
       inline_style_count,
       raw_bulma_classnames,
       handrolled_tags,

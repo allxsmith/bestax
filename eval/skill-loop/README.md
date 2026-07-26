@@ -80,8 +80,17 @@ and adjacent-pair deltas are weak evidence.
   `< /dev/null` (skips a 3 s stdin wait). A fresh work dir per run ⇒ empty auto-memory.
 - **Kill orphaned dev servers between runs** — a builder's `npm run dev` child can outlive
   it and squat `:5173` (`--strictPort`), breaking the next run's preview. Runner does this.
+- **A clean-looking build can mean nothing happened.** The pristine scaffold typechecks and
+  builds, so `build_pass=true, tsc_errors=0` is also what an untouched app reports — and
+  `inline_style_count`, `raw_bulma_classnames` and `handrolled_total` all read 0 for it,
+  which looks like flawless work. Check **`app_modified`** before reading any of them;
+  rubric category 1 scores `app_modified=false` as 0, ahead of the 15 anchor.
 - Metrics caveats (known, keep in mind when reading `metrics.json`):
   - `handrolled_tags` regex-matches JSX **comments** too (one false positive in run i09);
+  - `files_changed_vs_baseline` is `null` in the committed i01–i10 metrics — the exact count
+    is not recomputable, since those app-src git repos are archived rather than committed.
+    Their `app_modified: true` is proven from data the runs already carry (every one added
+    CSS lines against its baseline tag), not assumed;
   - `skill_file_reads` counts every tool input mentioning `.claude/skills/`, so a bare
     listing (`ls .claude/skills/`) counts as a "read" — it **over-reports** category-8
     engagement. Read it alongside `skill_files`, which now holds only resolved file paths:
