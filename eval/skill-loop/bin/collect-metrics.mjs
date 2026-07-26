@@ -70,6 +70,55 @@ const tsxText = tsxFiles.map(p => ({ p: relative(appDir, p), text: read(p) }));
 const countAll = (re, files = tsxText) =>
   files.reduce((n, f) => n + (f.text.match(re) ?? []).length, 0);
 
+// ---- diffs vs pristine scaffold ---------------------------------------------
+// MUST run BEFORE the typecheck+build below. Those write into the app — `tsc -b` drops
+// `tsconfig.tsbuildinfo` in the app root, which the scaffold's .gitignore does not cover
+// (recorded as a scaffold flag in runs/i09) — so measuring afterwards would count OUR
+// artifacts as the builder's work and mark every run modified, defeating the rubric gate.
+const diffCss = run('git', [
+  'diff',
+  'baseline',
+  '--',
+  '*.css',
+  '*.scss',
+  '*.sass',
+]);
+const custom_css_added_lines = (diffCss.stdout ?? '')
+  .split('\n')
+  .filter(l => l.startsWith('+') && !l.startsWith('+++')).length;
+const nameStatus = run('git', ['diff', '--name-status', 'baseline']);
+const css_files_added = (nameStatus.stdout ?? '')
+  .split('\n')
+  .filter(l => /^A\t.*\.(css|scss|sass)$/.test(l)).length;
+
+// Did the builder change anything at all? The pristine scaffold typechecks and builds
+// cleanly, so `build_pass=true, tsc_errors=0` is also exactly what an UNTOUCHED app
+// reports — the rubric gate reads app_modified to tell "built it perfectly" from "did
+// nothing", and zeroes the whole run when it is false.
+//
+// `git diff` only sees TRACKED (or staged) paths, so a builder that merely CREATED files —
+// new page components, the common case — registers as zero changes unless something staged
+// them first. The runner does `git add -A` before calling this, but the collector is
+// documented as standalone-runnable, and a metric that silently depends on the caller
+// having staged is exactly the proxy-for-the-real-property trap. Count untracked files too.
+// No double counting: once staged, a file appears in the diff and not in ls-files --others.
+const untracked = run('git', ['ls-files', '--others', '--exclude-standard']);
+const nonEmptyLines = s => (s ?? '').split('\n').filter(l => l.trim()).length;
+const files_changed_vs_baseline =
+  nonEmptyLines(nameStatus.stdout) + nonEmptyLines(untracked.stdout);
+
+let deps_added = [];
+try {
+  const basePkg = JSON.parse(
+    run('git', ['show', 'baseline:package.json']).stdout
+  );
+  const nowPkg = JSON.parse(read(join(appDir, 'package.json')));
+  const keys = o => Object.keys({ ...o.dependencies, ...o.devDependencies });
+  deps_added = keys(nowPkg).filter(k => !keys(basePkg).includes(k));
+} catch {
+  /* leave empty */
+}
+
 // ---- typecheck + build ------------------------------------------------------
 // Run tsc via the app's own binary; count distinct "error TS" diagnostics.
 const tsc = run('npx', ['tsc', '-b', '--pretty', 'false', '--force']);
@@ -118,44 +167,6 @@ for (const f of tsxText) {
       .filter(Boolean)
       .forEach(id => importSet.add(id));
   }
-}
-
-// ---- diffs vs pristine scaffold ---------------------------------------------
-const diffCss = run('git', [
-  'diff',
-  'baseline',
-  '--',
-  '*.css',
-  '*.scss',
-  '*.sass',
-]);
-const custom_css_added_lines = (diffCss.stdout ?? '')
-  .split('\n')
-  .filter(l => l.startsWith('+') && !l.startsWith('+++')).length;
-const nameStatus = run('git', ['diff', '--name-status', 'baseline']);
-const css_files_added = (nameStatus.stdout ?? '')
-  .split('\n')
-  .filter(l => /^A\t.*\.(css|scss|sass)$/.test(l)).length;
-
-// Did the builder change anything at all? The pristine scaffold typechecks and builds
-// cleanly, so `build_pass=true, tsc_errors=0` is also exactly what an UNTOUCHED app
-// reports. Rubric category 1 is scored mechanically from those two fields and cannot
-// otherwise tell "built it perfectly" from "did nothing" — its 0 anchor covers a skeletal
-// or unmodified app, but nothing in metrics.json made that anchor reachable until now.
-const files_changed_vs_baseline = (nameStatus.stdout ?? '')
-  .split('\n')
-  .filter(l => l.trim()).length;
-
-let deps_added = [];
-try {
-  const basePkg = JSON.parse(
-    run('git', ['show', 'baseline:package.json']).stdout
-  );
-  const nowPkg = JSON.parse(read(join(appDir, 'package.json')));
-  const keys = o => Object.keys({ ...o.dependencies, ...o.devDependencies });
-  deps_added = keys(nowPkg).filter(k => !keys(basePkg).includes(k));
-} catch {
-  /* leave empty */
 }
 
 // ---- transcript metrics -----------------------------------------------------

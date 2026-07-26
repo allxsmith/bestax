@@ -88,6 +88,11 @@ and adjacent-pair deltas are weak evidence.
   `< /dev/null` (skips a 3 s stdin wait). A fresh work dir per run ⇒ empty auto-memory.
 - **Kill orphaned dev servers between runs** — a builder's `npm run dev` child can outlive
   it and squat `:5173` (`--strictPort`), breaking the next run's preview. Runner does this.
+- **The collector measures the baseline diff BEFORE running its own tsc/vite.** It has to:
+  `tsc -b` writes `tsconfig.tsbuildinfo` into the app root and the scaffold `.gitignore`
+  does not cover it (scaffold flag, recorded in `runs/i09`), so measuring afterwards would
+  count the collector's own artifacts as builder work and mark every run modified —
+  silently disabling the rubric gate. `bin/test-app-modified.mjs` guards the ordering.
 - **A clean-looking build can mean nothing happened.** The pristine scaffold typechecks and
   builds, so `build_pass=true, tsc_errors=0` is also what an untouched app reports — and
   `inline_style_count`, `raw_bulma_classnames` and `handrolled_total` all read 0 for it,
@@ -151,6 +156,8 @@ bin/lib/skill-paths.mjs shared skill-path harvest (imported by the collector
                         AND its guard, so the guard cannot drift from the code)
 bin/test-skill-paths.mjs regression guard — `node bin/test-skill-paths.mjs`;
                         run it before and after touching that pattern
+bin/test-app-modified.mjs guard for app_modified (what the rubric gate zeroes a
+                        run on): real git fixtures, stubbed toolchain
 bin/grader-prompt.md    phase-D subagent instructions
 bin/improver-prompt.md  phase-E subagent instructions + guardrails
 runs/<id>/         the ARCHIVED i01–i10 loop; the runner refuses to write here
