@@ -17,7 +17,9 @@
 #             the registry package)
 #
 # The builder's exit code is recorded, not enforced: a timeout/budget kill is a valid
-# datapoint — grade what exists, never fix the app.
+# datapoint — grade what exists, never fix the app. The one exception is a builder that
+# never started (empty transcript): that is infra failure, and the run is refused rather
+# than recorded, because the untouched scaffold's metrics look like a perfect build.
 
 # Fail fast: a broken rebuild/scaffold/install/snapshot/metrics step is INFRA failure, not a
 # datapoint — it must not fall through to "done" and record a run built from stale tooling.
@@ -112,6 +114,21 @@ date -u +%Y-%m-%dT%H:%M:%SZ > "$RUN/started-at.txt"
 
 RC="$(cat "$RUN/builder-exit-code.txt" 2>/dev/null || echo unknown)"
 echo "[$RUN_ID] builder exited rc=$RC (nonzero = timeout/budget/crash — still a datapoint)"
+
+# A builder that was KILLED still wrote events before dying — that is a datapoint, and the
+# exit code above stays unenforced for it. A builder that never STARTED emits nothing, and
+# is infra failure in the same class as a failed scaffold. The two are distinguishable by
+# exactly this: an empty transcript. Without the check, the pristine scaffold's own numbers
+# (build_pass=true, tsc_errors=0, handrolled_total=0) get written as metrics.json, and
+# rubric category 1 — "scored directly from metrics.json" — reads 15/15 for a run in which
+# nothing happened.
+if [ ! -s "$RUN/transcript.jsonl" ]; then
+  echo "[$RUN_ID] builder produced NO output — infra failure, NOT a datapoint. Cause:" >&2
+  sed 's/^/  /' "$RUN/builder-stderr.log" >&2 2>/dev/null || true
+  echo "[$RUN_ID] refusing to write metrics.json: the untouched scaffold would score 15/15" >&2
+  echo "[$RUN_ID] on build integrity. Fix the cause and re-run $RUN_ID." >&2
+  exit 1
+fi
 
 echo "[$RUN_ID] snapshot + mechanized metrics"
 ( cd "$APP" && git add -A && git diff baseline > "$RUN/builder.diff" )
