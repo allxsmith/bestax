@@ -176,6 +176,11 @@ if (transcriptPath && existsSync(transcriptPath)) {
           // is a fragment: `.claude/skills/bestax-${name}/SKILL.md` yields "bestax-".
           // Keeping it would both pollute skill_files and certify the list as complete.
           if (/[$*?[{~`]/.test(m[2])) continue;
+          // A trailing slash means the reference named a directory, not a file:
+          // `ls .claude/skills/theming/` identifies no file to read, exactly like the bare
+          // `ls .claude/skills/` that already counts unresolved. Without this the two
+          // listings disagree, and skill_files picks up directory entries.
+          if (m[1].endsWith('/')) continue;
           skillFiles.add(m[1]);
           resolved++;
         }
