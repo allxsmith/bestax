@@ -74,6 +74,7 @@
   "src_total_lines": 2500,
   "skill_file_reads": 8,
   "skill_files": [],
+  "skill_refs_unresolved": null,
   "skill_files_complete": false,
   "skill_invocations": 4,
   "claude_md_read": false,

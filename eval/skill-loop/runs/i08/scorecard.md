@@ -29,8 +29,13 @@
 ## Correction (2026-07-24, post-experiment)
 
 The category-5 evidence credits the scoped-`Theme` featured ring as a working zero-CSS
-pattern. Browser verification after the experiment showed it was **inert**: `.box`/`.card`
-re-declare their own shadow variable on their own selector, so an ancestor `Theme` scoping
-`--bulma-box-shadow` never wins (and the recipe named the wrong variable besides). The ring
-never rendered. The score is left as graded — this note records the error rather than
-restating the run. See the correction under §What mattered most in `report.md`.
+pattern. It was **inert**, established by two separate checks:
+
+- **Observed (browser, post-experiment):** the ring rendered in neither `Box` nor `Card`.
+- **Mechanism (CSS inspection):** `.box` and `.card` re-declare their own shadow variable on
+  their own selector, so an ancestor `Theme` never wins. That defeats the recipe under
+  either token name — `--bulma-box-shadow` as authored in i07, `--bulma-card-shadow` as
+  adopted by i08–i10. Overriding the upstream `--bulma-shadow` token is what works.
+
+The score is left as graded — this note records the error rather than restating the run.
+See the correction under §What mattered most in `report.md`.

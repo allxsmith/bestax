@@ -35,9 +35,12 @@
    that one is warned about only in the never-opened truth table. Logged as grader-noise
    correction #3 in `iteration-log.md`.
 2. **The featured ring was inert.** The category-5 evidence credits the scoped-`Theme` ring as a
-   working zero-CSS pattern. Browser verification after the experiment showed `.box`/`.card`
-   re-declare their own shadow variable on their own selector, so an ancestor `Theme` scoping
-   `--bulma-box-shadow` never wins; the ring never rendered. See the correction under
-   §What mattered most in `report.md`.
+   working zero-CSS pattern. Two separate checks establish otherwise. Observed in a browser
+   post-experiment: the ring rendered in neither `Box` nor `Card`. Mechanism, from CSS
+   inspection: `.box` and `.card` re-declare their own shadow variable on their own selector,
+   so an ancestor `Theme` never wins — under `--bulma-box-shadow` as authored in i07, and
+   equally under `--bulma-card-shadow` as adopted by i08–i10. Overriding the upstream
+   `--bulma-shadow` token is what works. See the correction under §What mattered most in
+   `report.md`.
 
 Scores are left as graded — these notes record the errors rather than restating the run.

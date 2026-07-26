@@ -82,7 +82,8 @@
     "bestax-layout-scaffold/examples/landing.tsx",
     "bestax-layout-scaffold/references/layout-components.md"
   ],
-  "skill_files_complete": true,
+  "skill_refs_unresolved": null,
+  "skill_files_complete": null,
   "skill_invocations": 3,
   "claude_md_read": false,
   "docs_fetches": 0,

@@ -124,6 +124,7 @@ try {
 let transcript = {
   skill_file_reads: null,
   skill_files: null,
+  skill_refs_unresolved: null,
   skill_files_complete: null,
   skill_invocations: null,
   claude_md_read: null,
@@ -139,6 +140,7 @@ let transcript = {
 if (transcriptPath && existsSync(transcriptPath)) {
   const skillFiles = new Set();
   let skillReads = 0,
+    skillRefsUnresolved = 0,
     skillInvocations = 0,
     claudeMdRead = false,
     webTotal = 0;
@@ -164,10 +166,15 @@ if (transcriptPath && existsSync(transcriptPath)) {
         // Harvest paths from the whole input, not just file_path: builders that reach
         // references with Bash `cat`/`sed` counted reads but left skill_files empty
         // (i05, i08, i10 of the original run).
-        for (const m of inputStr.matchAll(
-          /\.claude\/skills\/([A-Za-z0-9._/-]+)/g
-        ))
-          skillFiles.add(m[1]);
+        const refs = (inputStr.match(/\.claude\/skills\//g) ?? []).length;
+        const paths = [
+          ...inputStr.matchAll(/\.claude\/skills\/([A-Za-z0-9._/-]+)/g),
+        ];
+        // Count references the pattern cannot resolve — a shell expansion like
+        // `.claude/skills/${skill}/SKILL.md`, or a bare directory listing. Without this,
+        // one recovered path would certify a partially-harvested list as complete.
+        skillRefsUnresolved += refs - paths.length;
+        for (const m of paths) skillFiles.add(m[1]);
       }
       if (/CLAUDE\.md/.test(inputStr) && ['Read', 'Grep'].includes(block.name))
         claudeMdRead = true;
@@ -183,9 +190,11 @@ if (transcriptPath && existsSync(transcriptPath)) {
   transcript = {
     skill_file_reads: skillReads,
     skill_files: [...skillFiles].sort(),
-    // Disambiguates an empty skill_files: true = confirmed zero engagement,
-    // false = reads happened but no path was recoverable from the transcript.
-    skill_files_complete: skillFiles.size > 0 || skillReads === 0,
+    skill_refs_unresolved: skillRefsUnresolved,
+    // true only when EVERY counted reference resolved to a path, so skill_files can be
+    // read as the full inventory. Not "we recovered something" — a partially-harvested
+    // list is exactly what this flag exists to expose.
+    skill_files_complete: skillRefsUnresolved === 0,
     skill_invocations: skillInvocations,
     claude_md_read: claudeMdRead,
     docs_fetches: docsUrls.size,
