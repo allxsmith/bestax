@@ -30,17 +30,23 @@ build → snapshot + `metrics.json`). Grading and improving are agent phases (be
 | E     | improver subagent      | Dispatch with [bin/improver-prompt.md](bin/improver-prompt.md). Editable surface: `skills/**`, the `CLAUDE_MD()` template in `create-bestax/src/constants.ts`, `scripts/gen-component-catalog.mjs`. Hard guardrails: guidance stays generic (no eval-brief leakage), verify every fact against `bulma-ui/src` before writing it, line budgets, noise rule (act only on metric-corroborated / repeated / plainly-factual findings). **After i-final: compare-only, no edits** — nothing unvalidated ships. |
 | F     | orchestrator           | `pnpm gen:catalog` (if generator/docs changed) → `pnpm --filter create-bestax build` (**always** after skills/template edits — scaffolds read the synced copy, not `skills/`) → commit one `chore:` per iteration.                                                                                                                                                                                                                                                                                        |
 
-**Frozen per eval, never edited mid-loop:** the brief, the rubric, the invocation flags,
-the caps, the model. Improvements go into the tooling — never into the prompt or the
-yardstick, or runs stop being comparable.
+**Frozen per eval, never edited mid-loop:** the brief, its completeness addendum, the
+rubric, the invocation flags, the caps, the model. Improvements go into the tooling — never
+into the prompt or the yardstick, or runs stop being comparable. _Frozen means for the
+duration of a loop, not forever_ — refine the rubric between loops if it measures the wrong
+thing, and record which version a loop ran against.
 
 ## Comparing variants (prompts, skills states, models)
 
 The loop above varies exactly one factor — tooling state — against a frozen
 brief+rubric+model. The same harness compares anything else the same way:
 
-- **Brief/prompt A vs B:** add `briefs/<name>.md` per variant, same rubric+model+tooling;
-  run n per variant with distinct run-ids (`briefA-1`, `briefB-1`, …).
+- **Brief/prompt A vs B:** add `briefs/<name>.md` **and its
+  `briefs/<name>.completeness.md`** per variant, same core rubric+model+tooling; run n per
+  variant with distinct run-ids (`briefA-1`, `briefB-1`, …). **Compare the 85-pt core
+  (categories 1–6 and 8), never the totals** — category 7 scores each brief against its own
+  surface list, so cross-brief totals are not the same measurement. `metrics.brief` records
+  which brief a run built.
 - **Skills state A vs B:** check out each state, rebuild create-bestax, run n each.
 - **Model A vs B:** `--model` flag, everything else frozen.
 
@@ -52,8 +58,10 @@ and adjacent-pair deltas are weak evidence.
 ## Writing a new eval
 
 1. Write the brief (`briefs/<name>.md`) — what the cold agent is asked to build. Freeze it.
-2. Write (or reuse) the rubric — anchored 0/half/full descriptors per category, and say
-   which categories are mechanized. Freeze it.
+2. Write its completeness addendum (`briefs/<name>.completeness.md`) — the surfaces
+   category 7 requires, and which skills category 8 should expect. **Grader-only: never
+   show it to the builder**, or you have told it what it is scored on. `rubric.md` is
+   brief-agnostic and gets reused unchanged; the runner warns if the addendum is missing.
 3. Decide caps (`--timeout`, `--budget`, `--model`) and n. Freeze them.
 4. Keep loop state in a `state.json` (current run, phase, completed→commit-SHA map) so an
    interrupted loop resumes from committed artifacts — every finished run is durable.
@@ -108,8 +116,11 @@ and adjacent-pair deltas are weak evidence.
 ## Layout
 
 ```
-briefs/            frozen builder prompts (one per eval variant)
-rubric.md          the frozen 100-pt rubric used by the original experiment
+briefs/<name>.md   frozen builder prompt (one per eval variant)
+briefs/<name>.completeness.md
+                   its category-7 surface list + expected skills — GRADER-ONLY,
+                   never shown to the builder
+rubric.md          brief-agnostic core rubric (85 pts); + category 7 (15) = 100
 bin/run-iteration.sh    phases A–C, turnkey
 bin/collect-metrics.mjs mechanized metrics (JSON to stdout)
 bin/grader-prompt.md    phase-D subagent instructions

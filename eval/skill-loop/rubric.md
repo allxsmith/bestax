@@ -1,4 +1,18 @@
-# Skill-Loop Grading Rubric (FROZEN — never edit after iteration 0)
+# Skill-Loop Grading Rubric — brief-agnostic core
+
+**Frozen for the duration of a loop, not forever.** Never edit it mid-loop — runs stop
+being comparable the moment the yardstick moves. Between loops, refine it freely if it is
+measuring the wrong thing, and record which rubric version a loop ran against.
+
+**Total 100 pts = this core (85) + category 7 (15).** Categories 1–6 and 8 live here and
+apply to any brief. Category 7 — site completeness — cannot be brief-agnostic, so its
+surface list comes from the brief's completeness addendum
+(`briefs/<name>.completeness.md`), handed to the grader as `$COMPLETENESS`.
+
+**Comparability across briefs:** categories 1–6 and 8 (85 pts) are directly comparable.
+Category 7 is defined per brief, so it — and therefore the **total** — is comparable only
+_within_ a single brief. Comparing totals across different briefs is the error this split
+exists to prevent; compare the 85-pt core instead.
 
 Grade the app produced by the incognito builder against this rubric. Total: 100 points.
 Mechanized metrics in `metrics.json` are ground truth where referenced — a grader may not
@@ -74,24 +88,35 @@ composition, `className` passthrough, rest-prop spread.
 - 5: Some Theme/variable use but mixed with hardcoded colors or ad-hoc CSS overrides.
 - 0: No Theme usage; colors hardcoded or restyled via custom CSS.
 
-## 7. Site completeness (SaaS brief) — 15 pts
+## 7. Site completeness — 15 pts [brief-specific]
 
-Required surfaces for the brief: (a) navbar, (b) hero selling Skynet, (c) features,
-(d) benchmarks/comparison vs Fable (table or equivalent, "10x" claim represented),
-(e) pricing, (f) testimonials/social proof, (g) CTA + footer, (h) responsive behavior
-(Columns/Grid breakpoints or viewport props — judged from code, not a browser).
+The only category that cannot be brief-agnostic: what "complete" means depends on what the
+brief asked for. **The required-surface list comes from `$COMPLETENESS`** — the brief's
+completeness addendum. Grade against that list, not against any other brief's.
 
-- 15: ≥7 of 8 present and coherent with plausible copy (Netadyne/Skynet/Fable naming used).
-- 8: 4–6 present, or all present but skeletal (lorem-level copy, empty sections).
-- 0: ≤3 present (hero-only landing).
+The scoring _shape_ is fixed here so the 15-pt scale means the same thing whatever the
+brief, and is proportional so addenda may list any number of surfaces:
+
+- 15: ≥85% of the addendum's required surfaces present and coherent, with plausible
+  brief-appropriate copy (including any naming the addendum calls for).
+- 8: 50–85% present, or all present but skeletal (lorem-level copy, empty sections).
+- 0: <50% present.
+
+If `$COMPLETENESS` was not supplied, do **not** improvise a surface list and do not fall
+back to another brief's — stop and report the missing addendum, exactly as you would a
+missing rubric.
 
 ## 8. Skill & docs engagement — 10 pts [mechanized + transcript]
 
-From metrics `skill_file_reads`, `claude_md_read`, `docs_fetches` and transcript review.
+From metrics `skill_file_reads`, `skill_files`, `claude_md_read`, `docs_fetches` and
+transcript review. Two counter caveats you must not over-trust: `skill_file_reads` counts
+any tool input mentioning `.claude/skills/`, so a bare directory listing inflates it, and
+`skill_files` is a complete inventory only when `skill_files_complete` is `true` (`null`
+means never established — treat it as unknown, never as a pass).
 
-- 10: Read CLAUDE.md early, loaded ≥2 relevant skills (layout-scaffold/theming at minimum
-  for this brief) and demonstrably applied them (patterns from references appear in
-  code).
+- 10: Read CLAUDE.md early, loaded ≥2 relevant skills — at minimum the ones `$COMPLETENESS`
+  names as expected for this brief — and demonstrably applied them (patterns from
+  references appear in code).
 - 5: Read some guidance but late/partially, or read it and visibly ignored it.
 - 0: Never opened CLAUDE.md or any skill.
 

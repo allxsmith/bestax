@@ -45,6 +45,16 @@ while [ $# -gt 0 ]; do
 done
 
 BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
+BRIEF_NAME="$(basename "$BRIEF" .md)"
+# Rubric category 7 is brief-specific and its anchors live beside the brief. Warn now rather
+# than at grading time, so a missing addendum is fixable while the build is still running.
+# Not fatal: the run itself is valid evidence either way; only phase D needs this file.
+COMPLETENESS="${BRIEF%.md}.completeness.md"
+if [ ! -f "$COMPLETENESS" ]; then
+  echo "[$RUN_ID] WARNING: no completeness addendum at $COMPLETENESS" >&2
+  echo "[$RUN_ID]          rubric category 7 (15 pts) cannot be graded for this brief until" >&2
+  echo "[$RUN_ID]          you write one — see rubric.md §7 and briefs/skynet-saas.completeness.md" >&2
+fi
 
 # Resolve WORK to an absolute, symlink-free path BEFORE the isolation check — a relative arg
 # like "eval/work" would otherwise slip past a raw prefix match and scaffold inside the repo,
@@ -111,7 +121,7 @@ cp "$APP/package.json" "$RUN/app-src/" 2>/dev/null || true
 cp "$APP/index.html" "$RUN/app-src/" 2>/dev/null || true
 # Write via a temp file: a collector crash must not leave a truncated metrics.json behind,
 # which would both look like a datapoint and trip the "already has metrics.json" guard on retry.
-node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" > "$RUN/metrics.json.tmp"
+node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" "$BRIEF_NAME" > "$RUN/metrics.json.tmp"
 mv "$RUN/metrics.json.tmp" "$RUN/metrics.json"
 
 node -e "
@@ -120,4 +130,5 @@ console.log('[$RUN_ID] tsc_errors=%s build_pass=%s inline=%s rawcls=%s handrolle
   m.tsc_errors, m.build_pass, m.inline_style_count, m.raw_bulma_classnames,
   m.handrolled_total, m.bestax_named_imports, m.custom_css_added_lines,
   m.cost_usd?.toFixed?.(2), m.num_turns);"
-echo "[$RUN_ID] done: $RUN  (grade next — see bin/grader-prompt.md; transcript stays on disk, gitignored)"
+echo "[$RUN_ID] done: $RUN  (transcript stays on disk, gitignored)"
+echo "[$RUN_ID] grade next — bin/grader-prompt.md with RUN=$RUN RUBRIC=$HARNESS_DIR/rubric.md COMPLETENESS=$COMPLETENESS"

@@ -7,9 +7,11 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 
-const [appDir, transcriptPath] = process.argv.slice(2);
+const [appDir, transcriptPath, briefName] = process.argv.slice(2);
 if (!appDir) {
-  console.error('usage: collect-metrics.mjs <appDir> [transcript.jsonl]');
+  console.error(
+    'usage: collect-metrics.mjs <appDir> [transcript.jsonl] [brief-name]'
+  );
   process.exit(1);
 }
 
@@ -231,6 +233,9 @@ console.log(
       // design, so the absolute path is host-specific (and carries a local username) while
       // adding nothing a reader of runs/<id>/ doesn't already know.
       app_dir: join(basename(dirname(appDir)), basename(appDir)),
+      // Which brief this run built. Once a loop spans more than one brief, runs/ is
+      // ambiguous without it — and category-7 scores only compare within a brief.
+      brief: briefName ?? null,
       tsc_errors,
       build_pass,
       inline_style_count,

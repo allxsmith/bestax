@@ -1,10 +1,24 @@
-# Grader instructions (Phase D) — parameterized by RUN=runs/iNN
+# Grader instructions (Phase D)
+
+Parameterized by three paths the dispatcher substitutes:
+
+| Var             | Default                                          | What it is                  |
+| --------------- | ------------------------------------------------ | --------------------------- |
+| `$RUN`          | `eval/skill-loop/runs/<run-id>`                  | the run being graded        |
+| `$RUBRIC`       | `eval/skill-loop/rubric.md`                      | brief-agnostic core, 85 pts |
+| `$COMPLETENESS` | `eval/skill-loop/briefs/<brief>.completeness.md` | category-7 anchors, 15 pts  |
+
+`$COMPLETENESS` pairs with the brief the run was built from — for a run against
+`briefs/foo.md` it is `briefs/foo.completeness.md`. If either authority is missing or
+unreadable, **stop and say so**; never improvise a rubric or a surface list, and never
+substitute another brief's.
 
 You are grading one iteration of a skill-evaluation experiment. Work read-only. Read, in
 this order:
 
-1. `eval/skill-loop/rubric.md` — the **sole scoring authority**. Apply its anchors
-   exactly; interpolate only between adjacent anchors.
+1. `$RUBRIC` — the **sole scoring authority** for categories 1–6 and 8, and for the scoring
+   shape of 7. `$COMPLETENESS` supplies category 7's required-surface list and the skills
+   category 8 expects. Apply the anchors exactly; interpolate only between adjacent anchors.
 2. `$RUN/metrics.json` — mechanized ground truth you may not contradict (categories 1 and
    the auto-caps in 3 are mechanical; categories 2/8 must be consistent with the counts).
 3. The final app source at `$RUN/app-src/` and the diff `$RUN/builder.diff`.

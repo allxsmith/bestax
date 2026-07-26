@@ -1,16 +1,21 @@
-# Compare + improve instructions (Phase E) — parameterized by N (current iteration)
+# Compare + improve instructions (Phase E)
 
-You are the improvement agent after iteration iN. Inputs: all scorecards + metrics so far
-(`eval/skill-loop/runs/i01..iN/`), the current skills at `skills/`, the `CLAUDE_MD()`
-template in `create-bestax/src/constants.ts` (~lines 97–169), and the authoring contract
-`skills/CLAUDE.md`.
+You are the improvement agent after the run named `$RUN_ID`. Inputs: every scorecard +
+`metrics.json` produced so far in **this loop** (under `eval/skill-loop/runs/`, whatever
+run-id scheme the loop uses — `i01…`, `briefA-1…`, etc.), the current skills at `skills/`,
+the `CLAUDE_MD()` template in `create-bestax/src/constants.ts` (~lines 97–169), and the
+authoring contract `skills/CLAUDE.md`.
 
-**Part 1 — COMPARE** (always): identify concrete deltas vs the previous iteration — named
-regressions/improvements ("still hand-rolls `<table>` for benchmarks", "inline styles
-7→0"), not just score totals. For i01 (baseline), inventory the failure modes instead.
+**Part 1 — COMPARE** (always): identify concrete deltas vs the previous run of the same
+variant — named regressions/improvements ("still hand-rolls `<table>` where the Table
+component applies", "inline styles 7→0"), not just score totals. Compare the brief-agnostic
+core (rubric categories 1–6 and 8) when runs span different briefs; category 7 and the
+total are only comparable within one brief. On the loop's first run, inventory the failure
+modes instead of comparing.
 
-**Part 2 — IMPROVE** (skipped after i10 — compare only): design and apply the **minimal**
-set of edits to the skills / CLAUDE_MD template that address the top findings.
+**Part 2 — IMPROVE** (skipped on the loop's **final** run — compare only, so nothing ships
+unvalidated): design and apply the **minimal** set of edits to the skills / CLAUDE_MD
+template that address the top findings.
 
 HARD GUARDRAILS:
 a. Never edit `eval/skill-loop/rubric.md`, `eval/skill-loop/briefs/**`, or anything under
@@ -21,11 +26,19 @@ hand-rolled the benchmarks table", the fix is generic `Table` guidance.
 c. Respect `skills/CLAUDE.md` authoring rules: SKILL.md lean, depth in `references/`; fix
 the guidance that produced the bad output, not just an example. Context economy is a
 standing preference: few-shot over prose, no no-op instructions ("be careful with
-props" is banned), prefer replacing weak lines over adding. LINE BUDGET: the
-hand-written skill bundle (all SKILL.md + references/ + examples/, excluding
-component-catalog.md) measured 4,162 lines at i01 baseline and must never exceed
-4,300; net growth ≤ +60 lines per iteration unless offset by deletions — deletions
-that tighten prose are encouraged. `CLAUDE_MD()` rendered output ≤ 90 lines.
+props" is banned), prefer replacing weak lines over adding. LINE BUDGET — **measure it,
+never assume a number**. At loop start record BASE as:
+
+```sh
+find skills -type f \( -name '*.md' -o -name '*.tsx' -o -name '*.ts' \) \
+  ! -name 'component-catalog.md' ! -name 'CLAUDE.md' -print0 | xargs -0 cat | wc -l
+```
+
+The bundle must never exceed **BASE + 140** across the whole loop; net growth ≤ +60 lines
+per iteration unless offset by deletions — deletions that tighten prose are encouraged.
+`CLAUDE_MD()` rendered output ≤ 90 lines. (The original experiment ran BASE = 4,162 with an
+absolute 4,300 ceiling. That number is now stale — the bundle has since grown past 4,250 —
+which is exactly why the budget is expressed relative to a measurement rather than frozen.)
 d. NEVER hand-edit `skills/bestax-custom-component/references/component-catalog.md` — it
 is generated. If catalog content itself is the gap, you MAY edit
 `scripts/gen-component-catalog.mjs` or the source docs pages under `docs/docs/api/`,
