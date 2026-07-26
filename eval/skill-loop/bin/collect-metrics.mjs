@@ -5,7 +5,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 
 const [appDir, transcriptPath] = process.argv.slice(2);
 if (!appDir) {
@@ -124,6 +124,7 @@ try {
 let transcript = {
   skill_file_reads: null,
   skill_files: null,
+  skill_files_complete: null,
   skill_invocations: null,
   claude_md_read: null,
   docs_fetches: null,
@@ -160,9 +161,13 @@ if (transcriptPath && existsSync(transcriptPath)) {
       if (block.name === 'Skill') skillInvocations++;
       if (inputStr.includes('.claude/skills/')) {
         skillReads++;
-        const fp = block.input?.file_path ?? block.input?.path;
-        if (typeof fp === 'string' && fp.includes('.claude/skills/'))
-          skillFiles.add(fp.split('.claude/skills/')[1]);
+        // Harvest paths from the whole input, not just file_path: builders that reach
+        // references with Bash `cat`/`sed` counted reads but left skill_files empty
+        // (i05, i08, i10 of the original run).
+        for (const m of inputStr.matchAll(
+          /\.claude\/skills\/([A-Za-z0-9._/-]+)/g
+        ))
+          skillFiles.add(m[1]);
       }
       if (/CLAUDE\.md/.test(inputStr) && ['Read', 'Grep'].includes(block.name))
         claudeMdRead = true;
@@ -178,6 +183,9 @@ if (transcriptPath && existsSync(transcriptPath)) {
   transcript = {
     skill_file_reads: skillReads,
     skill_files: [...skillFiles].sort(),
+    // Disambiguates an empty skill_files: true = confirmed zero engagement,
+    // false = reads happened but no path was recoverable from the transcript.
+    skill_files_complete: skillFiles.size > 0 || skillReads === 0,
     skill_invocations: skillInvocations,
     claude_md_read: claudeMdRead,
     docs_fetches: docsUrls.size,
@@ -197,7 +205,10 @@ if (transcriptPath && existsSync(transcriptPath)) {
 console.log(
   JSON.stringify(
     {
-      app_dir: appDir,
+      // Only the trailing <run>/<app> segments: the app is scaffolded outside the repo by
+      // design, so the absolute path is host-specific (and carries a local username) while
+      // adding nothing a reader of runs/<id>/ doesn't already know.
+      app_dir: join(basename(dirname(appDir)), basename(appDir)),
       tsc_errors,
       build_pass,
       inline_style_count,

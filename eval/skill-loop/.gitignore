@@ -3,3 +3,4 @@ runs/*/builder-stderr.log
 runs/*/builder.diff
 runs/*/app-src/
 runs/*/*.txt
+runs/*/metrics.json.tmp

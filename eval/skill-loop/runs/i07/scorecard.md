@@ -18,7 +18,7 @@
 2. **Tabs containment rule undocumented** — drafted Tabs.Content as SIBLING of Tabs; learned the active-tab context lives on Tabs from dist/index.esm.js (L309-313). One sentence would prevent it.
 3. **No browser tool** — SSR render of all 6 routes + class greps; "the visual pass is still owed." Harness-level.
 4. **pnpm isolated-linker package hunt** — L109-137 spent finding node_modules/@allxsmith/bestax-bulma/dist/types via dead-end ls/find rounds (~6 wasted calls/run). One path note would fix it.
-5. **The skills' own guidance spends the CSS budget** — .section-alt + hero-wash are prescribed patterns (≈14 lines); adding one more justified rule (featured ring, since Card.* sub-parts take no helper props and forced Box) lands at 21 > 10. Related LIBRARY note: Card.* className-only design pushed PricingCard onto Box for flex pinning.
+5. **The skills' own guidance spends the CSS budget** — .section-alt + hero-wash are prescribed patterns (≈14 lines); adding one more justified rule (featured ring, since `Card.*` sub-parts take no helper props and forced Box) lands at 21 > 10. Related LIBRARY note: `Card.*` className-only design pushed PricingCard onto Box for flex pinning.
 
 ## 3 transcript quotes
 

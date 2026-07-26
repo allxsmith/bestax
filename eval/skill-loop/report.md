@@ -23,9 +23,10 @@ i01 ran the unmodified shipped tooling as the baseline. After i10, a compare-onl
 
 ## Method
 
-- **Frozen inputs** (committed in the harness commit, never edited after): `base-prompt.md`
-  (the user's Skynet/Netadyne SaaS brief, wrapped with "the project in cwd was just
-  scaffolded"), `rubric.md` (8 anchored categories / 100 pts), the builder invocation
+- **Frozen inputs** (committed in the harness commit, never edited after):
+  `briefs/skynet-saas.md` (the user's Skynet/Netadyne SaaS brief, wrapped with "the project
+  in cwd was just scaffolded"), `rubric.md` (8 anchored categories / 100 pts), the builder
+  invocation
   (`env -u CLAUDECODE claude -p … --model opus --setting-sources project
 --no-session-persistence --dangerously-skip-permissions`, 45-min watchdog, $15 budget
   cap), and `bin/collect-metrics.mjs` (mechanized counts the grader may not contradict).
@@ -238,10 +239,11 @@ Total tooling diff vs baseline: 18 files, +230/−88. Hand-written skill bundle
 
 ## Artifact map
 
-- Per-run artifacts: `experiment/skill-loop/runs/i01..i10/` — `metrics.json`,
-  `scorecard.md`, `builder.diff`, `app-src/`, `notes.md` (i01/i10);
-  `transcript.jsonl` + `builder-stderr.log` on disk, gitignored.
-- Running log with per-iteration detail: `experiment/skill-loop/iteration-log.md`.
-- Loop state machine: `experiment/skill-loop/state.json` (all 10 commit SHAs).
-- Frozen inputs: `base-prompt.md`, `rubric.md`, `bin/collect-metrics.mjs`,
+- Per-run artifacts: `eval/skill-loop/runs/i01..i10/` — `metrics.json`, `scorecard.md`, and
+  `notes.md` (i01/i10) ship here; `builder.diff`, `app-src/`, `transcript.jsonl`, and
+  `builder-stderr.log` are gitignored bulk and live on the archived branch
+  `chore/skill-improvement-loop`.
+- Running log with per-iteration detail: `eval/skill-loop/iteration-log.md`.
+- Loop state machine: `state.json` on the archived branch (all 10 commit SHAs).
+- Frozen inputs: `briefs/skynet-saas.md`, `rubric.md`, `bin/collect-metrics.mjs`,
   `bin/grader-prompt.md`, `bin/improver-prompt.md`.

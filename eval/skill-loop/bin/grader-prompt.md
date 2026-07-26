@@ -3,14 +3,16 @@
 You are grading one iteration of a skill-evaluation experiment. Work read-only. Read, in
 this order:
 
-1. `experiment/skill-loop/rubric.md` — the **sole scoring authority**. Apply its anchors
+1. `eval/skill-loop/rubric.md` — the **sole scoring authority**. Apply its anchors
    exactly; interpolate only between adjacent anchors.
 2. `$RUN/metrics.json` — mechanized ground truth you may not contradict (categories 1 and
    the auto-caps in 3 are mechanical; categories 2/8 must be consistent with the counts).
 3. The final app source at `$RUN/app-src/` and the diff `$RUN/builder.diff`.
 4. The transcript `$RUN/transcript.jsonl` — do NOT read it whole (it can be huge). Grep it:
-   `grep -c '\.claude/skills/' t.jsonl`, `grep -o 'skills/[a-z-]*/[A-Za-z/._-]*' …`,
-   `grep -n 'bestax\.io' …`, `grep -n 'error TS' …`, and read a few matching lines around
+   `grep -c '\.claude/skills/' "$RUN/transcript.jsonl"`,
+   `grep -o 'skills/[a-z-]*/[A-Za-z/._-]*' "$RUN/transcript.jsonl"`,
+   `grep -n 'bestax\.io' "$RUN/transcript.jsonl"`, `grep -n 'error TS' "$RUN/transcript.jsonl"`,
+   and read a few matching lines around
    skill loads and TS-error repair churn for category 4/8 evidence.
 
 Emit **exactly** the scorecard format the rubric specifies (the 8-row table + Total), then:

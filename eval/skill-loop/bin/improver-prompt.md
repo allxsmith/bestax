@@ -1,7 +1,7 @@
 # Compare + improve instructions (Phase E) — parameterized by N (current iteration)
 
 You are the improvement agent after iteration iN. Inputs: all scorecards + metrics so far
-(`experiment/skill-loop/runs/i01..iN/`), the current skills at `skills/`, the `CLAUDE_MD()`
+(`eval/skill-loop/runs/i01..iN/`), the current skills at `skills/`, the `CLAUDE_MD()`
 template in `create-bestax/src/constants.ts` (~lines 97–169), and the authoring contract
 `skills/CLAUDE.md`.
 
@@ -13,8 +13,8 @@ regressions/improvements ("still hand-rolls `<table>` for benchmarks", "inline s
 set of edits to the skills / CLAUDE_MD template that address the top findings.
 
 HARD GUARDRAILS:
-a. Never edit `experiment/skill-loop/rubric.md`, `base-prompt.md`, or anything under
-`experiment/skill-loop/runs/`.
+a. Never edit `eval/skill-loop/rubric.md`, `eval/skill-loop/briefs/**`, or anything under
+`eval/skill-loop/runs/`.
 b. Guidance stays **GENERIC** to any app built with this library. Never mention skynet,
 Netadyne, Fable, LLM-vendor marketing, or this experiment. If the finding is "it
 hand-rolled the benchmarks table", the fix is generic `Table` guidance.

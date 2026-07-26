@@ -1,5 +1,5 @@
 {
-  "app_dir": "/private/tmp/claude-501/-Users-asmith-workspaces-ralph-bestax/5b487f5c-9b25-4334-95d8-e1509c2e005b/scratchpad/skill-loop/i10/app",
+  "app_dir": "i10/app",
   "tsc_errors": 0,
   "build_pass": true,
   "inline_style_count": 0,
@@ -60,6 +60,7 @@
   "src_total_lines": 712,
   "skill_file_reads": 10,
   "skill_files": [],
+  "skill_files_complete": false,
   "skill_invocations": 0,
   "claude_md_read": false,
   "docs_fetches": 0,

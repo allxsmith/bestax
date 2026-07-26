@@ -19,7 +19,10 @@
 # The builder's exit code is recorded, not enforced: a timeout/budget kill is a valid
 # datapoint — grade what exists, never fix the app.
 
-set -uo pipefail
+# Fail fast: a broken rebuild/scaffold/install/snapshot/metrics step is INFRA failure, not a
+# datapoint — it must not fall through to "done" and record a run built from stale tooling.
+# The builder's own exit code is captured inside its subshell (below) and stays unenforced.
+set -euo pipefail
 
 RUN_ID="${1:?usage: run-iteration.sh <run-id> <brief.md> <work-dir> [...]}"
 BRIEF="${2:?missing brief.md}"
@@ -42,7 +45,31 @@ while [ $# -gt 0 ]; do
 done
 
 BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
-case "$WORK" in "$REPO"*) echo "work-dir must be OUTSIDE the repo tree: $WORK" >&2; exit 1 ;; esac
+
+# Resolve WORK to an absolute, symlink-free path BEFORE the isolation check — a relative arg
+# like "eval/work" would otherwise slip past a raw prefix match and scaffold inside the repo,
+# where pnpm workspace-links the local library and invalidates the registry-package measurement.
+# Resolved without creating anything, so a rejected work-dir leaves no directory behind.
+if [ -d "$WORK" ]; then
+  WORK="$(cd "$WORK" && pwd -P)"
+else
+  # Not created yet: walk up to the nearest existing ancestor and canonicalize from there,
+  # so a fresh nested work-dir still resolves (mkdir -p semantics are preserved below).
+  work_tail="" work_probe="$WORK"
+  while [ ! -d "$work_probe" ]; do
+    work_tail="$(basename "$work_probe")${work_tail:+/$work_tail}"
+    work_next="$(dirname "$work_probe")"
+    if [ "$work_next" = "$work_probe" ]; then break; fi
+    work_probe="$work_next"
+  done
+  if [ ! -d "$work_probe" ]; then echo "cannot resolve work-dir: $WORK" >&2; exit 1; fi
+  WORK="$(cd "$work_probe" && pwd -P)/$work_tail"
+fi
+# Trailing slashes on both sides make this a path-COMPONENT test: /repo/eval/work is rejected,
+# a sibling like /repo-scratch is not.
+REPO_REAL="$(cd "$REPO" && pwd -P)"
+case "$WORK/" in "$REPO_REAL"/*) echo "work-dir must be OUTSIDE the repo tree: $WORK" >&2; exit 1 ;; esac
+
 RUN="$RUNS_DIR/$RUN_ID"
 if [ -e "$RUN/metrics.json" ]; then echo "runs/$RUN_ID already has metrics.json — pick a new run-id" >&2; exit 1; fi
 mkdir -p "$RUN" "$WORK"
@@ -51,7 +78,8 @@ echo "[$RUN_ID] rebuild create-bestax (syncs skills/ -> templates; picks up CLAU
 pnpm -C "$REPO" --filter create-bestax build >/dev/null
 
 echo "[$RUN_ID] kill orphaned dev servers under $WORK (survivors steal :5173 strictPort)"
-pgrep -fl vite | grep -F "$WORK" | awk '{print $1}' | while read -r p; do kill "$p" 2>/dev/null || true; done
+# Trailing `|| true`: "no vite running" / "no match" are exit-1 from pgrep|grep, not failures.
+pgrep -fl vite | grep -F "$WORK" | awk '{print $1}' | while read -r p; do kill "$p" 2>/dev/null || true; done || true
 
 echo "[$RUN_ID] scaffold + install + baseline tag"
 APP="$WORK/app"
@@ -81,7 +109,10 @@ mkdir -p "$RUN/app-src"
 cp -R "$APP/src" "$RUN/app-src/src"
 cp "$APP/package.json" "$RUN/app-src/" 2>/dev/null || true
 cp "$APP/index.html" "$RUN/app-src/" 2>/dev/null || true
-node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" > "$RUN/metrics.json"
+# Write via a temp file: a collector crash must not leave a truncated metrics.json behind,
+# which would both look like a datapoint and trip the "already has metrics.json" guard on retry.
+node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" > "$RUN/metrics.json.tmp"
+mv "$RUN/metrics.json.tmp" "$RUN/metrics.json"
 
 node -e "
 const m=require('$RUN/metrics.json');

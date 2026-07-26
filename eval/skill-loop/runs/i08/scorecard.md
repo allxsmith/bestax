@@ -1,16 +1,16 @@
 # Scorecard — skill-loop iteration i08
 
-| #   | Category                     | Score  | Max     | Evidence summary                                                                                                                                                                                                 |
-| --- | ---------------------------- | ------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Build integrity              | 15     | 15      | build_pass=true, tsc_errors=0                                                                                                                                                                                    |
-| 2   | Component adoption           | 15     | 15      | handrolled_total=0; 46 imports; deep cuts: Tabs compound, Steps (mobileMode="compact"), Collapse, Reveal, IconText/Level/Divider/Pre                                                                             |
-| 3   | Prop fidelity                | 13     | 15      | inline=0, rawcls=0; custom_css_added_lines=13 > ≤10 gate — but 3 of 13 are comment lines; two rules var-derived, not prop-expressible; has-navbar-fixed-top on <html> is the documented companion, not an escape |
-| 4   | Hallucination penalty        | 10     | 10      | Zero invented APIs; check-then-use throughout (validVisibilities grepped BEFORE the invisible-Tag edit); zero error TS; lone "Cannot find" was the builder's own SSR harness mispath                             |
-| 5   | Custom-component conformance | 10     | 10      | StatCard + BenchmarkBar full-spine (zero-CSS waiver applies); featured ring via the sanctioned scoped Theme bulmaVars pattern (--bulma-card-shadow from --bulma-primary)                                         |
-| 6   | Theming approach             | 10     | 10      | ConfigProvider + Theme isRoot colorMode, HSL trios + bulmaVars radius; dark-first with working toggle; zero hex                                                                                                  |
-| 7   | Site completeness            | 15     | 15      | 8/8 over 5 pages; benchmark Table with Tfoot mean row + Progress charts + methodology tab; residual-error 10x framing                                                                                            |
-| 8   | Skill & docs engagement      | 10     | 10      | 4 invocations + 5 reads all before first Write; FA wired per icons skill; StatCard mirrors the worked example; pnpm matched to lockfile                                                                          |
-|     | **Total**                    | **98** | **100** |                                                                                                                                                                                                                  |
+| #   | Category                     | Score  | Max     | Evidence summary                                                                                                                                                                                                      |
+| --- | ---------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Build integrity              | 15     | 15      | build_pass=true, tsc_errors=0                                                                                                                                                                                         |
+| 2   | Component adoption           | 15     | 15      | handrolled_total=0; 46 imports; deep cuts: Tabs compound, Steps (mobileMode="compact"), Collapse, Reveal, IconText/Level/Divider/Pre                                                                                  |
+| 3   | Prop fidelity                | 13     | 15      | inline=0, rawcls=0; custom_css_added_lines=13 > ≤10 gate — but 3 of 13 are comment lines; two rules var-derived, not prop-expressible; has-navbar-fixed-top on <html> is the documented companion, not an escape      |
+| 4   | Hallucination penalty        | 10     | 10      | Zero invented APIs; check-then-use throughout (validVisibilities grepped BEFORE the invisible-Tag edit); zero error TS; lone "Cannot find" was the builder's own SSR harness mispath                                  |
+| 5   | Custom-component conformance | 10     | 10      | StatCard + BenchmarkBar full-spine (zero-CSS waiver applies); featured ring via the then-sanctioned scoped Theme bulmaVars pattern (--bulma-card-shadow from --bulma-primary) — later disproven, see Correction below |
+| 6   | Theming approach             | 10     | 10      | ConfigProvider + Theme isRoot colorMode, HSL trios + bulmaVars radius; dark-first with working toggle; zero hex                                                                                                       |
+| 7   | Site completeness            | 15     | 15      | 8/8 over 5 pages; benchmark Table with Tfoot mean row + Progress charts + methodology tab; residual-error 10x framing                                                                                                 |
+| 8   | Skill & docs engagement      | 10     | 10      | 4 invocations + 5 reads all before first Write; FA wired per icons skill; StatCard mirrors the worked example; pnpm matched to lockfile                                                                               |
+|     | **Total**                    | **98** | **100** |                                                                                                                                                                                                                       |
 
 ## Top 5 friction points
 
@@ -25,3 +25,12 @@
 1. Second tool call: `cat package.json && ls .claude/skills/` → Skill: bestax-layout-scaffold → archetypes.md read (16:50:10-16).
 2. Check-then-use: grep validVisibilities from bulmaClassHelpers.d.ts → ["hidden","sr-only","invisible"] → immediately the visibility={...'invisible'} edit (268-270).
 3. Closing summary: "StatCard and BenchmarkBar are custom components with the library spine (useBulmaClasses, merged className, spread rest)."
+
+## Correction (2026-07-24, post-experiment)
+
+The category-5 evidence credits the scoped-`Theme` featured ring as a working zero-CSS
+pattern. Browser verification after the experiment showed it was **inert**: `.box`/`.card`
+re-declare their own shadow variable on their own selector, so an ancestor `Theme` scoping
+`--bulma-box-shadow` never wins (and the recipe named the wrong variable besides). The ring
+never rendered. The score is left as graded — this note records the error rather than
+restating the run. See the correction under §What mattered most in `report.md`.

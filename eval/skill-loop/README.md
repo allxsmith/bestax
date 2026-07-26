@@ -74,8 +74,11 @@ and adjacent-pair deltas are weak evidence.
   it and squat `:5173` (`--strictPort`), breaking the next run's preview. Runner does this.
 - Metrics caveats (known, keep in mind when reading `metrics.json`):
   - `handrolled_tags` regex-matches JSX **comments** too (one false positive in run i09);
-  - `skill_files` harvests Read-tool paths only — builders that `cat`/`sed` references
-    show an empty list while `skill_file_reads` still counts them;
+  - `skill_files` is now harvested from every tool input (Bash `cat`/`sed` included), but
+    the committed i01–i10 metrics predate that fix — check `skill_files_complete`: `false`
+    means reads were counted and no path was recoverable, not zero engagement (i05/i08/i10);
+  - `app_dir` records only the trailing `<run>/<app>` segments — the scaffold lives outside
+    the repo, so its absolute path is host-specific and is deliberately not committed;
   - `claude_md_read` is `false` in every run — CLAUDE.md is auto-injected by `claude -p`;
     judge CLAUDE.md engagement by whether its rules show up in the code.
 - Graders err: 3 of 10 scorecards in the experiment contained a factual error. The

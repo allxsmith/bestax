@@ -15,7 +15,7 @@ Newest entries at the bottom. Commit SHAs recorded so the report can link per-it
   `env -u CLAUDECODE claude -p … --setting-sources project` run discovered **all 7 skills**,
   read CLAUDE.md, exited 0 with parseable stream-json and `total_cost_usd` populated
   ($0.127). `< /dev/null` added to the frozen invocation (skips a 3s stdin wait).
-- Frozen from here on: `base-prompt.md`, `rubric.md`, invocation flags, caps
+- Frozen from here on: `briefs/skynet-saas.md`, `rubric.md`, invocation flags, caps
   (45 min / $15 / opus).
 
 ## i01 — baseline, unmodified skills (2026-07-23)
@@ -158,13 +158,19 @@ own guidance saturates the ≤10 budget). All else max. 18 min, $8.43, 105 turns
   shape followed verbatim. Casing traps still zero-recurrence since i03.
 - Improve pass (+12 lines, verified by LIVE renderToStaticMarkup probes + shipped-CSS
   greps): types-wider-than-CSS rule + confirmed examples into themeable-components.md
-  (which i07 actually read), corrected its factually wrong Box row (color → has-text-*,
+  (which i07 actually read), corrected its factually wrong Box row (color → `has-text-*`,
   not a box variant); Tabs.Content-must-be-child clause; featured-ring via scoped
   `Theme bulmaVars` (--bulma-box-shadow) = ZERO-CSS route, budget untouched; generator:
   catalog header now names the dist/types path (kills the ~6-call node_modules hunt).
-- LIBRARY-LEVEL FLAGS: Box.color falls through to has-text-* (never a box variant — bug?);
+  > **Correction (2026-07-24, post-experiment).** The ZERO-CSS ring claim above is
+  > **disproven**. `.box`/`.card` re-declare their own shadow variable on their own
+  > selector, so an ancestor `Theme` scoping `--bulma-box-shadow` never wins. Browser
+  > verification showed the ring never rendered; i08–i10 inherited the recipe and shipped
+  > an inert ring that three graders scored as correct. See the correction under
+  > §What mattered most in `report.md`.
+- LIBRARY-LEVEL FLAGS: Box.color falls through to `has-text-*` (never a box variant — bug?);
   grey-family validColors typecheck on Progress/Notification/Hero but style nothing;
-  Card.* className-only design forces Box for flex pinning.
+  `Card.*` className-only design forces Box for flex pinning.
 
 ## i08 — seventh revised-skills run (2026-07-23)
 
