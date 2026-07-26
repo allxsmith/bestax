@@ -19,13 +19,13 @@ bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/skill-loop-work/i11 \
   --runs-dir eval/skill-loop/runs-2026-08
 ```
 
+does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
+build → snapshot + `metrics.json`). Grading and improving are agent phases (below).
+
 **Every loop needs its own `--runs-dir`.** Phase E consumes a runs directory as one loop's
 evidence, so a new run dropped beside an old loop's scorecards hands the improver another
 brief's, another tooling revision's findings as if they were this loop's. The shipped
 `runs/` is the completed, committed i01–i10 loop; the runner **refuses** to write into it.
-
-does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
-build → snapshot + `metrics.json`). Grading and improving are agent phases (below).
 
 ## The loop protocol (what the 10-run experiment executed)
 
