@@ -21,6 +21,10 @@ this order:
    category 8 expects. Apply the anchors exactly; interpolate only between adjacent anchors.
 2. `$RUN/metrics.json` — mechanized ground truth you may not contradict (categories 1 and
    the auto-caps in 3 are mechanical; categories 2/8 must be consistent with the counts).
+   **Apply the rubric's `app_modified` gate before scoring any category.** "Ground truth you
+   may not contradict" cuts both ways: an untouched scaffold reports clean zeros across the
+   mechanized inputs and satisfies the top anchor of categories 1–5, so taking the numbers
+   at face value scores 50/100 for a run in which the builder changed nothing.
 3. The final app source at `$RUN/app-src/` and the diff `$RUN/builder.diff`.
 4. The transcript `$RUN/transcript.jsonl` — do NOT read it whole (it can be huge). Grep it:
    `grep -c '\.claude/skills/' "$RUN/transcript.jsonl"`,

@@ -19,21 +19,29 @@ Mechanized metrics in `metrics.json` are ground truth where referenced — a gra
 contradict them. Score each category with the anchors; interpolate only between adjacent
 anchors, and state the evidence (file:line or transcript event) for every deduction.
 
+## Gate — check `app_modified` before scoring anything
+
+If `metrics.app_modified` is `false` the builder changed no file, so the app being graded
+**is the pristine scaffold**. There is nothing to score: the **total is 0**. Record it as a
+failed run with a one-line reason and stop.
+
+This is not a formality. An untouched scaffold reads as _excellent_ on every mechanized
+input — `build_pass=true`, `tsc_errors=0`, `inline_style_count=0`, `raw_bulma_classnames=0`,
+`handrolled_total=0`, `custom_css_added_lines=0` — and, having invented no APIs and written
+no custom components, it satisfies the **top anchor of categories 1 through 5 outright**.
+Graded category-by-category it collects **50 of 100 for doing nothing**. Only categories 6–8
+fall to zero on their own. No per-category wording can be trusted to catch this, which is
+why the gate sits above all of them.
+
 ## 1. Build integrity — 15 pts [mechanized]
 
-Scored directly from metrics.json.
+Scored directly from metrics.json, after the gate above.
 
-**Check `app_modified` first.** The pristine scaffold typechecks and builds cleanly, so
-`build_pass=true, tsc_errors=0` is also what an app the builder never touched reports. The
-unmodified anchor below **takes precedence** over the 15 anchor, which an untouched scaffold
-would otherwise satisfy.
-
-- 0: `app_modified=false` — the builder changed nothing (`files_changed_vs_baseline=0`).
-  Not a build success; a run in which nothing happened. Also 0 for >5 tsc errors, build and
-  typecheck both failing, or an app left skeletal.
-- 15: `build_pass=true` and `tsc_errors=0`, **with `app_modified=true`**.
+- 15: `build_pass=true` and `tsc_errors=0`.
 - 8: tsc has 1–5 errors OR vite build fails but the app is dev-renderable (src parses,
   imports resolve).
+- 0: >5 tsc errors, or build and typecheck both fail, or the app is skeletal. (An app the
+  builder never touched does not reach this category at all — see the gate.)
 
 ## 2. Component adoption — 15 pts
 
