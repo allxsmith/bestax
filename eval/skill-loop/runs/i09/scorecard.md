@@ -35,7 +35,9 @@ pattern. It was **inert**, established by two separate checks:
 - **Mechanism (CSS inspection):** `.box` and `.card` re-declare their own shadow variable on
   their own selector, so an ancestor `Theme` never wins. That defeats the recipe under
   either token name — `--bulma-box-shadow` as authored in i07, `--bulma-card-shadow` as
-  adopted by i08–i10. Overriding the upstream `--bulma-shadow` token is what works.
+  adopted by i08–i10. The guidance PR replaced it with an override of the upstream
+  `--bulma-shadow` token; that replacement is not itself render-checked here, so it carries
+  the same unvalidated status.
 
 The score is left as graded — this note records the error rather than restating the run.
 See the correction under §What mattered most in `report.md`.

@@ -156,8 +156,10 @@ Total tooling diff vs baseline: 18 files, +230/−88. Hand-written skill bundle
    > rendered in **neither** component. Runs i08–i10 all adopted it (as
    > `--bulma-card-shadow`) and shipped an inert ring; three graders scored it as correct
    > because **the harness has no browser** and neither builders nor graders could see the
-   > rendered result. Fixed in the guidance PR by overriding the upstream `--bulma-shadow`
-   > token instead. Two lessons stand: the CSS-_pressure_ result (77 → ~10 lines) holds,
+   > rendered result. The guidance PR replaced it with an override of the upstream
+   > `--bulma-shadow` token; that replacement has **not** itself been render-checked, so by
+   > the second lesson below it is unvalidated too — do not read it as a confirmed fix.
+   > Two lessons stand: the CSS-_pressure_ result (77 → ~10 lines) holds,
    > but its "zero-CSS ring" component was never validated; and any guidance whose effect
    > is only visible in a rendered page is unfalsifiable in this harness — see the
    > browser-tool recommendation in §Remaining gaps (d).

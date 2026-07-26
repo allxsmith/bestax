@@ -39,8 +39,9 @@
    post-experiment: the ring rendered in neither `Box` nor `Card`. Mechanism, from CSS
    inspection: `.box` and `.card` re-declare their own shadow variable on their own selector,
    so an ancestor `Theme` never wins — under `--bulma-box-shadow` as authored in i07, and
-   equally under `--bulma-card-shadow` as adopted by i08–i10. Overriding the upstream
-   `--bulma-shadow` token is what works. See the correction under §What mattered most in
-   `report.md`.
+   equally under `--bulma-card-shadow` as adopted by i08–i10. The guidance PR replaced it
+   with an override of the upstream `--bulma-shadow` token; that replacement is not itself
+   render-checked here, so it carries the same unvalidated status. See the correction under
+   §What mattered most in `report.md`.
 
 Scores are left as graded — these notes record the errors rather than restating the run.

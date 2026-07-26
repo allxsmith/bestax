@@ -167,7 +167,9 @@ own guidance saturates the ≤10 budget). All else max. 18 min, $8.43, 105 turns
   > `Box` nor `Card`. Mechanism, from CSS inspection: `.box`/`.card` re-declare their own
   > shadow variable on their own selector, so an ancestor `Theme` never wins — under
   > `--bulma-box-shadow` as authored here, and equally under `--bulma-card-shadow` as
-  > i08–i10 adopted it. Overriding the upstream `--bulma-shadow` token is what works.
+  > i08–i10 adopted it. The guidance PR replaced it with an override of the upstream
+  > `--bulma-shadow` token; that replacement is not itself render-checked here, so it
+  > carries the same unvalidated status.
   > i08–i10 inherited the recipe and shipped an inert ring that three graders scored as
   > correct. See the correction under §What mattered most in `report.md`.
 - LIBRARY-LEVEL FLAGS: Box.color falls through to `has-text-*` (never a box variant — bug?);
