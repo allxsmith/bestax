@@ -100,8 +100,11 @@ echo "[$RUN_ID] rebuild create-bestax (syncs skills/ -> templates; picks up CLAU
 pnpm -C "$REPO" --filter create-bestax build >/dev/null
 
 echo "[$RUN_ID] kill orphaned dev servers under $WORK (survivors steal :5173 strictPort)"
+# Match "$WORK/" not "$WORK": a bare prefix also matches SIBLINGS — with WORK=/tmp/work it
+# would kill dev servers under /tmp/work-old and /tmp/workspace, i.e. another loop's run.
+# Same path-component boundary the work-dir isolation check enforces above.
 # Trailing `|| true`: "no vite running" / "no match" are exit-1 from pgrep|grep, not failures.
-pgrep -fl vite | grep -F "$WORK" | awk '{print $1}' | while read -r p; do kill "$p" 2>/dev/null || true; done || true
+pgrep -fl vite | grep -F "$WORK/" | awk '{print $1}' | while read -r p; do kill "$p" 2>/dev/null || true; done || true
 
 echo "[$RUN_ID] scaffold + install + baseline tag"
 APP="$WORK/app"

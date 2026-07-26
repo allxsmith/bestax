@@ -147,6 +147,10 @@ briefs/<name>.completeness.md
 rubric.md          brief-agnostic core rubric (85 pts); + category 7 (15) = 100
 bin/run-iteration.sh    phases A–C, turnkey
 bin/collect-metrics.mjs mechanized metrics (JSON to stdout)
+bin/lib/skill-paths.mjs shared skill-path harvest (imported by the collector
+                        AND its guard, so the guard cannot drift from the code)
+bin/test-skill-paths.mjs regression guard — `node bin/test-skill-paths.mjs`;
+                        run it before and after touching that pattern
 bin/grader-prompt.md    phase-D subagent instructions
 bin/improver-prompt.md  phase-E subagent instructions + guardrails
 runs/<id>/         the ARCHIVED i01–i10 loop; the runner refuses to write here

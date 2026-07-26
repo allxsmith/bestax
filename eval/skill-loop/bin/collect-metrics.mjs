@@ -6,6 +6,7 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
+import { harvestSkillPaths } from './lib/skill-paths.mjs';
 
 const [appDir, transcriptPath, runMetaArg] = process.argv.slice(2);
 if (!appDir) {
@@ -202,29 +203,14 @@ if (transcriptPath && existsSync(transcriptPath)) {
         skillReads++;
         // Harvest paths from the whole input, not just file_path: builders that reach
         // references with Bash `cat`/`sed` counted reads but left skill_files empty
-        // (i05, i08, i10 of the original run).
-        const refs = (inputStr.match(/\.claude\/skills\//g) ?? []).length;
-        let resolved = 0;
-        for (const m of inputStr.matchAll(
-          /\.claude\/skills\/([A-Za-z0-9._/-]+)(.|$)/g
-        )) {
-          // A capture is only trustworthy if it stopped at a real delimiter. Stopping at a
-          // shell metacharacter means the path was interpolated or globbed and the capture
-          // is a fragment: `.claude/skills/bestax-${name}/SKILL.md` yields "bestax-".
-          // Keeping it would both pollute skill_files and certify the list as complete.
-          if (/[$*?[{~`]/.test(m[2])) continue;
-          // A trailing slash means the reference named a directory, not a file:
-          // `ls .claude/skills/theming/` identifies no file to read, exactly like the bare
-          // `ls .claude/skills/` that already counts unresolved. Without this the two
-          // listings disagree, and skill_files picks up directory entries.
-          if (m[1].endsWith('/')) continue;
-          skillFiles.add(m[1]);
-          resolved++;
-        }
-        // Every reference the pattern could not fully resolve — an expansion, a glob, or a
+        // (i05, i08, i10 of the original run). The pattern lives in lib/skill-paths.mjs so
+        // bin/test-skill-paths.mjs guards this exact code rather than a copy of it.
+        const { paths, unresolved } = harvestSkillPaths(inputStr);
+        for (const p of paths) skillFiles.add(p);
+        // Every reference that did not resolve to a whole path — an expansion, a glob, or a
         // bare directory listing. Without this, one recovered path would certify a
         // partially-harvested list as complete.
-        skillRefsUnresolved += refs - resolved;
+        skillRefsUnresolved += unresolved;
       }
       if (/CLAUDE\.md/.test(inputStr) && ['Read', 'Grep'].includes(block.name))
         claudeMdRead = true;
