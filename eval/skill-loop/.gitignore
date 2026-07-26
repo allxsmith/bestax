@@ -1,6 +1,9 @@
-runs/*/transcript.jsonl
-runs/*/builder-stderr.log
-runs/*/builder.diff
-runs/*/app-src/
-runs/*/*.txt
-runs/*/metrics.json.tmp
+# `runs*` not `runs`: every loop gets its own runs directory (runs-2026-08/, runs-briefA/,
+# …), and patterns anchored to runs/ alone would leave a new loop's transcripts, app-src
+# snapshots and builder diffs untracked-but-committable.
+runs*/*/transcript.jsonl
+runs*/*/builder-stderr.log
+runs*/*/builder.diff
+runs*/*/app-src/
+runs*/*/*.txt
+runs*/*/metrics.json.tmp

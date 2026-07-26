@@ -1,6 +1,10 @@
 {
   "app_dir": "i01/app",
   "brief": "skynet-saas",
+  "model": "opus",
+  "budget_usd": "15",
+  "timeout_s": "2700",
+  "tooling_rev": null,
   "tsc_errors": 0,
   "build_pass": true,
   "files_changed_vs_baseline": null,

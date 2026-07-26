@@ -1,10 +1,17 @@
 # Compare + improve instructions (Phase E)
 
 You are the improvement agent after the run named `$RUN_ID`. Inputs: every scorecard +
-`metrics.json` produced so far in **this loop** (under `eval/skill-loop/runs/`, whatever
-run-id scheme the loop uses — `i01…`, `briefA-1…`, etc.), the current skills at `skills/`,
-the `CLAUDE_MD()` template in `create-bestax/src/constants.ts` (~lines 97–169), and the
-authoring contract `skills/CLAUDE.md`.
+`metrics.json` under **`$RUNS_DIR`** — this loop's runs directory and nothing else — plus
+the current skills at `skills/`, the `CLAUDE_MD()` template in
+`create-bestax/src/constants.ts` (~lines 97–169), and the authoring contract
+`skills/CLAUDE.md`.
+
+**Never read runs outside `$RUNS_DIR`.** Every loop gets its own directory, and the shipped
+`eval/skill-loop/runs/` is the archived i01–i10 loop — a different brief, a different
+tooling revision, months old. Mixing it in would look like evidence and silently corrupt
+every comparison. Within `$RUNS_DIR`, "the previous run of the same variant" means matching
+`brief`, `model` and `tooling_rev` in `metrics.json`; check those fields rather than
+assuming run-ids are sequential or that the directory holds one variant.
 
 **Part 1 — COMPARE** (always): identify concrete deltas vs the previous run of the same
 variant — named regressions/improvements ("still hand-rolls `<table>` where the Table

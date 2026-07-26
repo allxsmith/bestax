@@ -82,6 +82,16 @@ fi
 REPO_REAL="$(cd "$REPO" && pwd -P)"
 case "$WORK/" in "$REPO_REAL"/*) echo "work-dir must be OUTSIDE the repo tree: $WORK" >&2; exit 1 ;; esac
 
+# Loop isolation. The shipped runs/ holds the COMPLETED, committed i01-i10 loop. The improver
+# consumes a runs directory as one loop's evidence, so writing a new run there hands it ten
+# months-old scorecards from another brief and tooling revision as if they were this loop's.
+# Refused rather than warned: the failure is silent wrong comparisons, not a visible error.
+if [ "$(cd "$RUNS_DIR" 2>/dev/null && pwd -P || echo "$RUNS_DIR")" = "$(cd "$HARNESS_DIR/runs" && pwd -P)" ]; then
+  echo "runs/ is the archived i01-i10 loop — give this loop its own directory:" >&2
+  echo "  bin/run-iteration.sh $RUN_ID <brief> <work-dir> --runs-dir <fresh-dir>" >&2
+  exit 1
+fi
+
 RUN="$RUNS_DIR/$RUN_ID"
 if [ -e "$RUN/metrics.json" ]; then echo "runs/$RUN_ID already has metrics.json — pick a new run-id" >&2; exit 1; fi
 mkdir -p "$RUN" "$WORK"
@@ -138,7 +148,10 @@ cp "$APP/package.json" "$RUN/app-src/" 2>/dev/null || true
 cp "$APP/index.html" "$RUN/app-src/" 2>/dev/null || true
 # Write via a temp file: a collector crash must not leave a truncated metrics.json behind,
 # which would both look like a datapoint and trip the "already has metrics.json" guard on retry.
-node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" "$BRIEF_NAME" > "$RUN/metrics.json.tmp"
+TOOLING_REV="$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+RUN_META="$(printf '{"brief":"%s","model":"%s","budget_usd":"%s","timeout_s":"%s","tooling_rev":"%s"}' \
+  "$BRIEF_NAME" "$MODEL" "$BUDGET" "$TIMEOUT" "$TOOLING_REV")"
+node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" "$RUN_META" > "$RUN/metrics.json.tmp"
 mv "$RUN/metrics.json.tmp" "$RUN/metrics.json"
 
 node -e "

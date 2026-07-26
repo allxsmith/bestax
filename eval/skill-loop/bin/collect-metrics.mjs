@@ -7,12 +7,38 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
 
-const [appDir, transcriptPath, briefName] = process.argv.slice(2);
+const [appDir, transcriptPath, runMetaArg] = process.argv.slice(2);
 if (!appDir) {
   console.error(
-    'usage: collect-metrics.mjs <appDir> [transcript.jsonl] [brief-name]'
+    'usage: collect-metrics.mjs <appDir> [transcript.jsonl] [run-meta-json|brief-name]'
   );
   process.exit(1);
+}
+
+// Run identity. Without it a runs/ directory cannot be split back into loops or variants,
+// and "the previous run of the same variant" stops being mechanically determinable — which
+// is how an improver ends up comparing against another loop's evidence.
+// Accepts a JSON object, or a bare string meaning the brief name alone.
+let runMeta = {
+  brief: null,
+  model: null,
+  budget_usd: null,
+  timeout_s: null,
+  tooling_rev: null,
+};
+if (runMetaArg) {
+  if (runMetaArg.trimStart().startsWith('{')) {
+    try {
+      runMeta = { ...runMeta, ...JSON.parse(runMetaArg) };
+    } catch (e) {
+      // Loud, but not fatal: the measurements are still valid and the build was expensive.
+      console.error(
+        `warning: unparseable run-meta, identity omitted — ${e.message}`
+      );
+    }
+  } else {
+    runMeta = { ...runMeta, brief: runMetaArg };
+  }
 }
 
 const run = (cmd, args, opts = {}) =>
@@ -242,9 +268,10 @@ console.log(
       // design, so the absolute path is host-specific (and carries a local username) while
       // adding nothing a reader of runs/<id>/ doesn't already know.
       app_dir: join(basename(dirname(appDir)), basename(appDir)),
-      // Which brief this run built. Once a loop spans more than one brief, runs/ is
-      // ambiguous without it — and category-7 scores only compare within a brief.
-      brief: briefName ?? null,
+      // Which brief, model, caps and tooling revision produced this run. Once a runs/
+      // directory holds more than one variant it is ambiguous without these, and
+      // category-7 scores only compare within a brief.
+      ...runMeta,
       tsc_errors,
       build_pass,
       files_changed_vs_baseline,

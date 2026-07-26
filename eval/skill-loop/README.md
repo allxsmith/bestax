@@ -15,20 +15,26 @@ One run = scaffold a fresh app with the **current** tooling → a cold-start
 library) builds a **frozen brief** in it → mechanized metrics + a rubric-graded scorecard.
 
 ```
-bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/skill-loop-work/i11
+bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/skill-loop-work/i11 \
+  --runs-dir eval/skill-loop/runs-2026-08
 ```
+
+**Every loop needs its own `--runs-dir`.** Phase E consumes a runs directory as one loop's
+evidence, so a new run dropped beside an old loop's scorecards hands the improver another
+brief's, another tooling revision's findings as if they were this loop's. The shipped
+`runs/` is the completed, committed i01–i10 loop; the runner **refuses** to write into it.
 
 does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
 build → snapshot + `metrics.json`). Grading and improving are agent phases (below).
 
 ## The loop protocol (what the 10-run experiment executed)
 
-| Phase | Actor                  | What happens                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ----- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A–C   | `bin/run-iteration.sh` | Scaffold, cold-start build (45-min watchdog, `--max-budget-usd` cap), snapshot, metrics. Builder timeout/budget-kill/broken output **is a datapoint** — grade what exists, never fix the app. Scaffold/install failures are infra: retry, don't count the run. So is a builder that never _started_ (empty transcript — e.g. `claude` refusing to launch): the runner refuses to write `metrics.json` rather than record the untouched scaffold, whose `build_pass=true, tsc_errors=0, handrolled_total=0` would score 15/15 on category 1. |
-| D     | grader subagent        | Dispatch with [bin/grader-prompt.md](bin/grader-prompt.md) + the frozen [rubric.md](rubric.md). Read-only; mechanized metrics are ground truth it may not contradict; no cross-run comparisons. Orchestrator writes `runs/<id>/scorecard.md`.                                                                                                                                                                                                                                                                                               |
-| E     | improver subagent      | Dispatch with [bin/improver-prompt.md](bin/improver-prompt.md). Editable surface: `skills/**`, the `CLAUDE_MD()` template in `create-bestax/src/constants.ts`, `scripts/gen-component-catalog.mjs`. Hard guardrails: guidance stays generic (no eval-brief leakage), verify every fact against `bulma-ui/src` before writing it, line budgets, noise rule (act only on metric-corroborated / repeated / plainly-factual findings). **After i-final: compare-only, no edits** — nothing unvalidated ships.                                   |
-| F     | orchestrator           | `pnpm gen:catalog` (if generator/docs changed) → `pnpm --filter create-bestax build` (**always** after skills/template edits — scaffolds read the synced copy, not `skills/`) → commit one `chore:` per iteration.                                                                                                                                                                                                                                                                                                                          |
+| Phase | Actor                  | What happens                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A–C   | `bin/run-iteration.sh` | Scaffold, cold-start build (45-min watchdog, `--max-budget-usd` cap), snapshot, metrics. Builder timeout/budget-kill/broken output **is a datapoint** — grade what exists, never fix the app. Scaffold/install failures are infra: retry, don't count the run. So is a builder that never _started_ (empty transcript — e.g. `claude` refusing to launch): the runner refuses to write `metrics.json` rather than record the untouched scaffold, whose `build_pass=true, tsc_errors=0, handrolled_total=0` would score 15/15 on category 1.                                                                           |
+| D     | grader subagent        | Dispatch with [bin/grader-prompt.md](bin/grader-prompt.md) + the frozen [rubric.md](rubric.md). Read-only; mechanized metrics are ground truth it may not contradict; no cross-run comparisons. Dispatched with `$RUN`, `$RUBRIC` and `$COMPLETENESS`; orchestrator writes `$RUNS_DIR/<id>/scorecard.md`.                                                                                                                                                                                                                                                                                                             |
+| E     | improver subagent      | Dispatch with [bin/improver-prompt.md](bin/improver-prompt.md) and `$RUNS_DIR` — **this loop's runs directory only**; it reads that whole directory as the loop's evidence. Editable surface: `skills/**`, the `CLAUDE_MD()` template in `create-bestax/src/constants.ts`, `scripts/gen-component-catalog.mjs`. Hard guardrails: guidance stays generic (no eval-brief leakage), verify every fact against `bulma-ui/src` before writing it, line budgets, noise rule (act only on metric-corroborated / repeated / plainly-factual findings). **After i-final: compare-only, no edits** — nothing unvalidated ships. |
+| F     | orchestrator           | `pnpm gen:catalog` (if generator/docs changed) → `pnpm --filter create-bestax build` (**always** after skills/template edits — scaffolds read the synced copy, not `skills/`) → commit one `chore:` per iteration.                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 **Frozen per eval, never edited mid-loop:** the brief, its completeness addendum, the
 rubric, the invocation flags, the caps, the model. Improvements go into the tooling — never
@@ -63,7 +69,9 @@ and adjacent-pair deltas are weak evidence.
    show it to the builder**, or you have told it what it is scored on. `rubric.md` is
    brief-agnostic and gets reused unchanged; the runner warns if the addendum is missing.
 3. Decide caps (`--timeout`, `--budget`, `--model`) and n. Freeze them.
-4. Keep loop state in a `state.json` (current run, phase, completed→commit-SHA map) so an
+4. Give the loop its own `--runs-dir` (e.g. `runs-2026-08/`). Phase E reads that directory
+   as this loop's complete evidence, so it must contain this loop's runs and no others.
+5. Keep loop state in a `state.json` (current run, phase, completed→commit-SHA map) so an
    interrupted loop resumes from committed artifacts — every finished run is durable.
 
 ## Gotchas (all learned the hard way — details in report.md §threats + iteration-log)
@@ -87,6 +95,13 @@ and adjacent-pair deltas are weak evidence.
   rubric category 1 scores `app_modified=false` as 0, ahead of the 15 anchor.
 - Metrics caveats (known, keep in mind when reading `metrics.json`):
   - `handrolled_tags` regex-matches JSX **comments** too (one false positive in run i09);
+  - each run records its identity — `brief`, `model`, `budget_usd`, `timeout_s`,
+    `tooling_rev` — so "the previous run of the same variant" is mechanically determinable
+    instead of inferred from run-id ordering. In the committed i01–i10 metrics `tooling_rev`
+    is `null`: `report.md`'s per-iteration commit table lists the commit each improve pass
+    _produced_, not the revision each run was _built against_, so it was left unknown rather
+    than guessed. The model and caps there are backfilled from `report.md` §Method, which
+    lists them as frozen for the whole experiment;
   - `files_changed_vs_baseline` is `null` in the committed i01–i10 metrics — the exact count
     is not recomputable, since those app-src git repos are archived rather than committed.
     Their `app_modified: true` is proven from data the runs already carry (every one added
@@ -134,7 +149,9 @@ bin/run-iteration.sh    phases A–C, turnkey
 bin/collect-metrics.mjs mechanized metrics (JSON to stdout)
 bin/grader-prompt.md    phase-D subagent instructions
 bin/improver-prompt.md  phase-E subagent instructions + guardrails
-runs/<id>/         per-run record: metrics.json, scorecard.md, notes.md
+runs/<id>/         the ARCHIVED i01–i10 loop; the runner refuses to write here
+runs-<loop>/<id>/  one directory per loop (--runs-dir), each holding only that
+                   loop's runs: metrics.json, scorecard.md, notes.md
                    (builder.diff + app-src/ + transcript.jsonl stay local, gitignored)
 report.md          the original 10-run experiment's full findings
 iteration-log.md   the original experiment's per-iteration narrative
