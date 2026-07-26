@@ -167,14 +167,22 @@ if (transcriptPath && existsSync(transcriptPath)) {
         // references with Bash `cat`/`sed` counted reads but left skill_files empty
         // (i05, i08, i10 of the original run).
         const refs = (inputStr.match(/\.claude\/skills\//g) ?? []).length;
-        const paths = [
-          ...inputStr.matchAll(/\.claude\/skills\/([A-Za-z0-9._/-]+)/g),
-        ];
-        // Count references the pattern cannot resolve — a shell expansion like
-        // `.claude/skills/${skill}/SKILL.md`, or a bare directory listing. Without this,
-        // one recovered path would certify a partially-harvested list as complete.
-        skillRefsUnresolved += refs - paths.length;
-        for (const m of paths) skillFiles.add(m[1]);
+        let resolved = 0;
+        for (const m of inputStr.matchAll(
+          /\.claude\/skills\/([A-Za-z0-9._/-]+)(.|$)/g
+        )) {
+          // A capture is only trustworthy if it stopped at a real delimiter. Stopping at a
+          // shell metacharacter means the path was interpolated or globbed and the capture
+          // is a fragment: `.claude/skills/bestax-${name}/SKILL.md` yields "bestax-".
+          // Keeping it would both pollute skill_files and certify the list as complete.
+          if (/[$*?[{~`]/.test(m[2])) continue;
+          skillFiles.add(m[1]);
+          resolved++;
+        }
+        // Every reference the pattern could not fully resolve — an expansion, a glob, or a
+        // bare directory listing. Without this, one recovered path would certify a
+        // partially-harvested list as complete.
+        skillRefsUnresolved += refs - resolved;
       }
       if (/CLAUDE\.md/.test(inputStr) && ['Read', 'Grep'].includes(block.name))
         claudeMdRead = true;

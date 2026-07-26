@@ -75,10 +75,15 @@ and adjacent-pair deltas are weak evidence.
 - Metrics caveats (known, keep in mind when reading `metrics.json`):
   - `handrolled_tags` regex-matches JSX **comments** too (one false positive in run i09);
   - `skill_files` is harvested from every tool input (Bash `cat`/`sed` included).
-    `skill_refs_unresolved` counts references the pattern could not turn into a path — a
-    shell expansion such as `.claude/skills/${skill}/SKILL.md`, or a bare directory listing.
-    `skill_files_complete` is `true` only when that count is zero, i.e. only when
-    `skill_files` is the full inventory rather than whatever happened to be recoverable;
+    `skill_refs_unresolved` counts references the pattern could not turn into a whole path:
+    a bare directory listing, a full expansion (`.claude/skills/${skill}/SKILL.md`), or a
+    _partial_ one (`.claude/skills/bestax-${name}/SKILL.md`, which would otherwise capture
+    the fragment `bestax-`). A capture counts only when it stops at a real delimiter rather
+    than a shell metacharacter. `skill_files_complete` is `true` only when the unresolved
+    count is zero — only then is `skill_files` the full inventory rather than whatever
+    happened to be recoverable. Residual limitation: a skill path quoted _and_ containing a
+    space would still truncate silently; generated skill directories are kebab-case, so this
+    has not occurred, but the flag does not prove it cannot;
   - the committed i01–i10 metrics predate both fixes and their transcripts are archived, not
     committed, so completeness cannot be recomputed: `skill_files_complete` is `null`
     (unknown) there, except i05/i08/i10 where reads were counted and no path was recovered,
