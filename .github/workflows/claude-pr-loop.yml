@@ -592,6 +592,10 @@ jobs:
           @allxsmith, time for a carbon-based referee — squint at the threads with those little eyeballs and make the call. The loop never merges; 'having opinions about trade-offs' is apparently still a wetware perk. 🤙"
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
             gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
+            # Screenshots at handoff (#284): label edits via GITHUB_TOKEN fire
+            # no `labeled` runs, so dispatch explicitly. Best-effort — never
+            # blocks handoff.
+            gh workflow run story-screenshots.yml --repo "$REPO" --ref main -f pr="$PR" || true
           else
             # Threads resolved without a push (e.g. refutations accepted):
             # re-evaluate — thread changes fire no workflow events.
@@ -751,6 +755,7 @@ jobs:
     permissions:
       pull-requests: write # labels + reviewer request
       issues: write # convergence comment
+      actions: write # dispatch story-screenshots.yml
     steps:
       - name: Converge and hand off to owner
         env:
@@ -774,6 +779,10 @@ jobs:
           No offense to the carbon-based units, but you fleshbags kept the merge button for yourselves — so @allxsmith, wiggle those opposable thumbs and squash-merge when you're stoked. The loop never merges; apparently 'judgment' is still a squishy-brain-only feature. 🤙$WARN"
           gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
           gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
+          # Screenshots at handoff (#284): label edits via GITHUB_TOKEN fire
+          # no `labeled` runs, so dispatch explicitly. Best-effort — never
+          # blocks handoff.
+          gh workflow run story-screenshots.yml --repo "$REPO" --ref main -f pr="$PR" || true
 
   halt:
     needs: gate
