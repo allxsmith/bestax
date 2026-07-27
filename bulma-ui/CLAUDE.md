@@ -25,7 +25,8 @@ A new or changed component is **five artifacts, not one**. Touch all of:
 4. `docs/docs/api/<folder>/foo.md` — the API docs page
 5. `src/index.ts` — the export
 
-…then run `pnpm gen:catalog` (CI's `gen:catalog:check` fails if the skill catalog is stale).
+…then run `pnpm gen` (regenerates the API pages' generated regions **and** the skill catalog;
+CI's `gen:catalog:check` and `check:conformance` fail if either is stale).
 If the change invalidates guidance in `skills/`, update the skill in the same PR.
 For a **new** component, `/CONTRIBUTING-COMPONENTS.md` is the complete checklist — it adds the
 docs listing surfaces and skills sync that CI's `check:conformance` enforces.
@@ -38,6 +39,13 @@ improvising.
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards
   `...rest`; see `src/helpers/CLAUDE.md` before adding a prop that several components share.
+- **TSDoc is the docs source, not a comment.** Every `<Foo>Props` member needs an inline
+  `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
+  missing one is a build error, and the component's own summary sentence becomes the page's
+  Overview. Two tags: `@defaultValue` when the default is computed rather than destructured
+  (the AST can't see it), and `@extraProp {Type} [name] - desc` to document a notable prop
+  inherited from the DOM base type. Do **not** add `@property` blocks above an interface —
+  that older style is unverifiable and drifted from the real types; it has been migrated away.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships four artifacts beyond the base anatomy rule:

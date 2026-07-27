@@ -13,6 +13,9 @@
  * Sub-checks (run one with `--only=<name>[,<name>]`):
  *   listings-sync        new components must appear on the docs listing surfaces
  *   docs-sections        API pages must have the house sections
+ *   docs-section-order   managed API pages keep the canonical section order and
+ *                        carry their generated-region markers
+ *   docs-generated       generated regions match the source (`pnpm gen`)
  *   scss-conformance     SCSS partials follow the register-vars pattern
  *   story-per-component  every exported component module has a .stories.tsx
  *   compound-family      withSubComponents families ship a CompoundUsage story
@@ -27,6 +30,19 @@
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
+// parser — it additionally exposes values and selector nesting, which the CSS
+// variable tables need. Key extraction is byte-for-byte the behaviour this file
+// used to implement inline (verified against all 26 partials).
+import { registerVarsKeys } from './lib/scss-vars.mjs';
+import { readRegions, sectionSpans } from './lib/api-page.mjs';
+import { renderPage } from './gen-api-docs.mjs';
+import {
+  MANAGED_CATEGORIES,
+  GENERATED_EXEMPT,
+  SCSS_SOURCES,
+} from './lib/api-sources.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -158,29 +174,6 @@ function hasHeading(src, text) {
   return new RegExp(`^#{2,3}[ \\t]+${text}[ \\t]*$`, 'm').test(src);
 }
 
-// All keys registered via `@include cv.register-vars((...))` in a partial.
-// A paren-depth scan finds each call's closing paren (values like
-// `#{hsl(cv.getVar(...))}` nest parens, so a lazy regex to `))` stops short);
-// keys are always static quoted strings, so the map-key regex is enough.
-function registerVarsKeys(src) {
-  const keys = new Set();
-  const re = /cv\.register-vars\s*\(/g;
-  while (re.exec(src)) {
-    let depth = 1;
-    let i = re.lastIndex;
-    while (i < src.length && depth > 0) {
-      if (src[i] === '(') depth++;
-      else if (src[i] === ')') depth--;
-      i++;
-    }
-    const block = src.slice(re.lastIndex, i);
-    for (const m of block.matchAll(/['"]([a-z0-9-]+)['"][ \t]*:/g)) {
-      keys.add(m[1]);
-    }
-  }
-  return keys;
-}
-
 // ---------------------------------------------------------------------------
 // Checks. Each returns an array of violation strings (already actionable).
 // ---------------------------------------------------------------------------
@@ -281,6 +274,122 @@ async function checkDocsSections() {
             `docs/docs/api/components/avatar.md.`
         );
       }
+      // The CSS variable section is data-driven, never universal: Paragraph,
+      // Span and the Table sub-elements have no SCSS at all, and Container has
+      // SCSS but registers no CSS variables.
+      const title = frontmatterTitle(src);
+      if (
+        SCSS_SOURCES[title]?.length &&
+        !hasHeading(src, 'CSS & Sass Variables')
+      ) {
+        violations.push(
+          `docs/docs/api/${rel} is missing its "## CSS & Sass Variables" ` +
+            `section, but ${title} registers CSS variables (see SCSS_SOURCES ` +
+            `in scripts/lib/api-sources.mjs). Run \`pnpm gen\`.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+// The canonical top-level section order for a managed API page. Sections not
+// listed keep their place in the middle bucket, so pages with extras like
+// "Keyboard Navigation" or "Form Submission" are not forced to drop them.
+const SECTION_RANK = {
+  Overview: 0,
+  Import: 1,
+  Usage: 2,
+  Accessibility: 4,
+  'Related Components': 5,
+  'Additional Resources': 6,
+  Props: 7,
+  'CSS & Sass Variables': 8,
+};
+const UNKNOWN_SECTION_RANK = 3;
+
+function managedPages(rel) {
+  const cat = rel.split('/')[0];
+  return (
+    MANAGED_CATEGORIES.has(cat) &&
+    !GENERATED_EXEMPT.has(cat) &&
+    !GENERATED_EXEMPT.has(rel)
+  );
+}
+
+// Section order + marker presence on generator-managed pages. Deleting a marker
+// pair is the documented per-region opt-out, so it must not be silent.
+async function checkDocsSectionOrder() {
+  const violations = [];
+  for (const file of await mdFiles(API_DIR)) {
+    const rel = relative(API_DIR, file).split('\\').join('/');
+    if (!managedPages(rel)) continue;
+    const src = await readFile(file, 'utf8');
+    const title = frontmatterTitle(src);
+
+    const { sections } = sectionSpans(src);
+    const ranked = sections.map(
+      s => SECTION_RANK[s.heading] ?? UNKNOWN_SECTION_RANK
+    );
+    for (let i = 1; i < ranked.length; i++) {
+      if (ranked[i] < ranked[i - 1]) {
+        violations.push(
+          `docs/docs/api/${rel} has "## ${sections[i].heading}" after ` +
+            `"## ${sections[i - 1].heading}". Managed pages run Overview, ` +
+            `Import, Usage, …, Accessibility, Related Components, Additional ` +
+            `Resources, Props, CSS & Sass Variables.`
+        );
+        break;
+      }
+    }
+
+    let regions;
+    try {
+      regions = readRegions(src, `docs/docs/api/${rel}`);
+    } catch (err) {
+      violations.push(err.message);
+      continue;
+    }
+    const expected = ['overview', 'import', 'props'];
+    if (SCSS_SOURCES[title]?.length) expected.push('cssvars');
+    for (const id of expected) {
+      if (!regions.has(id)) {
+        violations.push(
+          `docs/docs/api/${rel} has no "${id}" generated region. Add the ` +
+            `<!-- bestax:generated ${id} --> / <!-- /bestax:generated ${id} --> ` +
+            `marker pair, or move the page out of MANAGED_CATEGORIES if it is ` +
+            `a deliberate exception.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+// Staleness gate for the generated regions. Recomputes each managed page in
+// memory and diffs — no writes, so it is safe inside a read-only check. This
+// lives here rather than as a separate CI step because check:conformance is
+// already wired into the workflow, and the ai-loop refuses PRs touching
+// .github/**.
+async function checkDocsGenerated() {
+  const violations = [];
+  for (const file of await mdFiles(API_DIR)) {
+    const rel = relative(API_DIR, file).split('\\').join('/');
+    if (!managedPages(rel)) continue;
+    const src = await readFile(file, 'utf8');
+    let out;
+    try {
+      ({ src: out } = await renderPage(file, src));
+    } catch (err) {
+      violations.push(`docs/docs/api/${rel}: ${err.message}`);
+      continue;
+    }
+    if (out !== src) {
+      violations.push(
+        `docs/docs/api/${rel} has stale generated content. Run \`pnpm gen\` ` +
+          `and commit the result — the Overview sentence, Import, Props table ` +
+          `and CSS variables are generated from the source, not hand-edited.`
+      );
     }
   }
   return violations;
@@ -645,6 +754,8 @@ async function checkInlineStyle(updateBaseline) {
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
+  'docs-section-order': checkDocsSectionOrder,
+  'docs-generated': checkDocsGenerated,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
   'story-per-component': checkStoryPerComponent,

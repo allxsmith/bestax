@@ -1,13 +1,20 @@
 ---
 title: Media
 sidebar_label: Media
+description: The `Media` component implements Bulma’s powerful media object layout for React.
 ---
 
 # Media
 
 ## Overview
 
-The `Media` component implements Bulma’s powerful media object layout for React. It’s perfect for aligning images or icons (usually on the left), with content and actions in the center and right. `Media` supports nesting, Bulma color/background helpers, and comes with subcomponents for left, content, and right sections.
+<!-- bestax:generated overview -->
+
+The `Media` component implements Bulma’s powerful media object layout for React.
+
+<!-- /bestax:generated overview -->
+
+It’s perfect for aligning images or icons (usually on the left), with content and actions in the center and right. `Media` supports nesting, Bulma color/background helpers, and comes with subcomponents for left, content, and right sections.
 
 :::info
 Use `Media` for comments, posts, cards, notifications, or any structured block with media, text, and actions.
@@ -17,29 +24,13 @@ Use `Media` for comments, posts, cards, notifications, or any structured block w
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Media } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default     | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------ |
-| `as`        | `'article'` \| `'div'`                                                                                                                                                                                                                                                                   | `'article'` | Element type for the root Media container.       |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —           | Bulma color modifier.                            |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —           | Bulma background color helper.                   |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —           | Bulma text color helper.                         |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —           | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —           | Content inside the media container.              |
-| ...         | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |             | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-**Subcomponents:**
-
-- `Media.Left`: For avatars, thumbnails, icons (renders as `figure` or `div`)
-- `Media.Content`: Main content (renders as `div`)
-- `Media.Right`: Actions or controls (renders as `div`)
+<!-- /bestax:generated import -->
 
 ---
 
@@ -316,3 +307,78 @@ When using only icons or controls, provide `aria-label` or screen-reader-only co
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Media />` and its subcomponents for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default     | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ----------- | ------------------------------------------------- |
+| `as`        | `'article'` \| `'div'`                                                  | `'article'` | Element type for the root Media container.        |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Bulma color modifier.                             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Bulma background color helper.                    |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —           | Bulma text color helper.                          |
+| `className` | `string`                                                                | —           | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —           | Content inside the media container.               |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —           | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:** `Media.Left`, `Media.Content`, `Media.Right`.
+
+### Media.Left
+
+| Prop        | Type                                                                    | Default    | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ---------- | ------------------------------------------------- |
+| `as`        | `'figure'` \| `'div'`                                                   | `'figure'` | Element type to render.                           |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Bulma color modifier.                             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Text color.                                       |
+| `className` | `string`                                                                | —          | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —          | Content.                                          |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —          | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Media.Content
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier.                             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Media.Right
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier.                             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Media` registers these variables on its own `.media` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                            | Sass Variable                    | Default                                                                          |
+| --------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| `--bulma-media-border-color`            | `$media-border-color`            | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-border-l), 0.5)` |
+| `--bulma-media-border-size`             | `$media-border-size`             | `1px`                                                                            |
+| `--bulma-media-spacing`                 | `$media-spacing`                 | `1rem`                                                                           |
+| `--bulma-media-spacing-large`           | `$media-spacing-large`           | `1.5rem`                                                                         |
+| `--bulma-media-content-spacing`         | `$media-content-spacing`         | `0.75rem`                                                                        |
+| `--bulma-media-level-1-spacing`         | `$media-level-1-spacing`         | `0.75rem`                                                                        |
+| `--bulma-media-level-1-content-spacing` | `$media-level-1-content-spacing` | `0.5rem`                                                                         |
+| `--bulma-media-level-2-spacing`         | `$media-level-2-spacing`         | `0.5rem`                                                                         |
+
+<!-- /bestax:generated cssvars -->

@@ -8,28 +8,27 @@ import {
 
 /**
  * Props for the Footer component.
- *
- * @property {'footer'|'div'} [as] - The HTML tag to render as.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content inside the footer.
  */
 export interface FooterProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** The HTML tag to render as. */
   as?: 'footer' | 'div';
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content inside the footer. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Footer component.
+ * The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.
  *
  * @function
  * @param {FooterProps} props - Props for the Footer component.

@@ -13,37 +13,35 @@ export type ContainerBreakpoint = 'tablet' | 'desktop' | 'widescreen';
 
 /**
  * Props for the Container component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {boolean} [fluid] - Full-width container.
- * @property {boolean} [widescreen] - Container is widescreen.
- * @property {boolean} [fullhd] - Container is fullhd.
- * @property {ContainerBreakpoint} [breakpoint] - Responsive breakpoint.
- * @property {boolean} [isMax] - Use is-max-* class for breakpoint.
- * @property {React.ReactNode} [children] - Content inside the container.
  */
 export interface ContainerProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for text. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Makes the container full-width with a 32px gap on each side. */
   fluid?: boolean;
+  /** Makes the container full-width until the `widescreen` breakpoint. */
   widescreen?: boolean;
+  /** Makes the container full-width until the `fullhd` breakpoint. */
   fullhd?: boolean;
+  /** Responsive breakpoint for container (`is-tablet`, `is-desktop`, `is-widescreen`). */
   breakpoint?: ContainerBreakpoint;
+  /** Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width. */
   isMax?: boolean;
+  /** Content inside the container. */
   children?: React.ReactNode;
 }
 
 /**
- * Container component for Bulma.
- * Adds optional responsive, fluid, and color support, including is-max-* and breakpoint classes.
+ * The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
  *
  * @function
  * @param {ContainerProps} props - Props for the Container component.

@@ -1,13 +1,20 @@
 ---
 title: Hero
 sidebar_label: Hero
+description: The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.
 ---
 
 # Hero
 
 ## Overview
 
-The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI. It supports all Bulma hero color and size modifiers, including fullheight, background helpers, and composition with `Hero.Head`, `Hero.Body`, and `Hero.Foot` subcomponents. Use it to showcase prominent content, headers, or landing sections.
+<!-- bestax:generated overview -->
+
+The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports all Bulma hero color and size modifiers, including fullheight, background helpers, and composition with `Hero.Head`, `Hero.Body`, and `Hero.Foot` subcomponents. Use it to showcase prominent content, headers, or landing sections.
 
 :::info
 You can use `Hero` as a simple colored banner, or compose it with `Hero.Head`, `Hero.Body`, and `Hero.Foot` for complex layouts with navigation, content, and tabs.
@@ -17,29 +24,13 @@ You can use `Hero` as a simple colored banner, or compose it with `Hero.Head`, `
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Hero } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop                   | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                          |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
-| `color`                | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| ...`                                                                                                                                                                                                             | —       | Bulma color modifier for the hero section.                           |
-| `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'`                                                                                                                                                                                                             | —       | Hero size.                                                           |
-| `fullheightWithNavbar` | `boolean`                                                                                                                                                                                                                                                                                | `false` | Use fullheight hero with a navbar offset.                            |
-| `bgColor`              | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                                       |
-| `className`            | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                              |
-| `children`             | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). |
-| ...                    | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses))                     |
-
-**Subcomponents:**
-
-- `Hero.Head`: Top bar for navigation or branding.
-- `Hero.Body`: Main content area, vertically centered by default.
-- `Hero.Foot`: Bottom bar for tabs or actions.
+<!-- /bestax:generated import -->
 
 ---
 
@@ -331,3 +322,77 @@ When using fullheight or fullheight-with-navbar, ensure your layout remains keyb
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop                   | Type                                                                                 | Default | Description                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------ | ------- | -------------------------------------------------------------------- |
+| `className`            | `string`                                                                             | —       | Additional CSS classes.                                              |
+| `color`                | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`              | —       | Bulma color modifier for the hero section.                           |
+| `size`                 | `'small'` \| `'medium'` \| `'large'` \| `'fullheight'` \| `'fullheight-with-navbar'` | —       | Hero size.                                                           |
+| `bgColor`              | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`              | —       | Bulma background color helper.                                       |
+| `fullheightWithNavbar` | `boolean`                                                                            | —       | Use fullheight hero with a navbar offset.                            |
+| `children`             | `React.ReactNode`                                                                    | —       | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). |
+| `...`                  | All standard HTML attributes and Bulma helper props                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                    |
+
+**Subcomponents:** `Hero.Head`, `Hero.Body`, `Hero.Foot`.
+
+### Hero.Head
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                    |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `children`  | `React.ReactNode`                                                       | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Hero.Body
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                    |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `children`  | `React.ReactNode`                                                       | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Hero.Foot
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                    |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `children`  | `React.ReactNode`                                                       | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Hero` registers these variables on its own `.hero` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                       | Sass Variable               | Default       |
+| ---------------------------------- | --------------------------- | ------------- |
+| `--bulma-hero-body-padding`        | `$hero-body-padding`        | `3rem 1.5rem` |
+| `--bulma-hero-body-padding-tablet` | `$hero-body-padding-tablet` | `3rem 3rem`   |
+| `--bulma-hero-body-padding-small`  | `$hero-body-padding-small`  | `1.5rem`      |
+| `--bulma-hero-body-padding-medium` | `$hero-body-padding-medium` | `9rem 4.5rem` |
+| `--bulma-hero-body-padding-large`  | `$hero-body-padding-large`  | `18rem 6rem`  |
+| `--bulma-hero-gradient-h-offset`   | `$hero-gradient-h-offset`   | `5deg`        |
+| `--bulma-hero-gradient-s-offset`   | `$hero-gradient-s-offset`   | `10%`         |
+| `--bulma-hero-gradient-l-offset`   | `$hero-gradient-l-offset`   | `5%`          |
+
+<!-- /bestax:generated cssvars -->

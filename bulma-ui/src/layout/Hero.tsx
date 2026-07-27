@@ -15,28 +15,27 @@ export type HeroSize =
 
 /**
  * Props for the Hero component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {HeroSize} [size] - Hero size.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {boolean} [fullheightWithNavbar] - Use fullheight with navbar.
- * @property {React.ReactNode} [children] - Content inside the hero.
  */
 export interface HeroProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Bulma color modifier for the hero section. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Hero size. */
   size?: HeroSize;
+  /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Use fullheight hero with a navbar offset. */
   fullheightWithNavbar?: boolean;
+  /** Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Hero component root.
+ * The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.
  *
  * @function
  * @param {HeroProps} props - Props for the Hero component.
@@ -74,21 +73,20 @@ const HeroComponent: React.FC<HeroProps> = ({
 
 /**
  * Props for the HeroHead component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier for text.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroHeadProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content. */
   children?: React.ReactNode;
 }
 
@@ -123,21 +121,20 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
 
 /**
  * Props for the HeroBody component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier for text.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroBodyProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content. */
   children?: React.ReactNode;
 }
 
@@ -172,21 +169,20 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
 
 /**
  * Props for the HeroFoot component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier for text.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface HeroFootProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content. */
   children?: React.ReactNode;
 }
 

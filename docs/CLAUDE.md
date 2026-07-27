@@ -36,6 +36,16 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).
+- **Parts of an API page are generated** (`pnpm gen`, `scripts/gen-api-docs.mjs`). Regions
+  delimited by `<!-- bestax:generated <id> -->` / `<!-- /bestax:generated <id> -->` are
+  machine-owned and hand-edits are reverted: `overview` (the summary sentence, from the
+  component's TSDoc), `import`, `props` (from the `<X>Props` interfaces) and `cssvars` (parsed
+  from the SCSS). To change a props table, change the TSDoc on the interface member. Prose
+  outside the markers — including admonitions right below the Overview sentence — is yours.
+  Deleting a marker pair opts that region out; `docs-section-order` makes that visible rather
+  than silent. Managed categories are listed in `scripts/lib/api-sources.mjs`.
+- Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
+  Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.
 - No inline `style={{}}` in examples — use `Block`/helper props; there is no `gap` helper,
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
