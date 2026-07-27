@@ -15,9 +15,11 @@ assuming run-ids are sequential or that the directory holds one variant.
 
 **Part 0 — VALIDATE THE SCORECARD** (always, before acting on any finding). Cross-check
 `$RUNS_DIR/$RUN_ID/scorecard.md` against that run's `transcript.jsonl` and `metrics.json`.
-**Graders err**: 3 of 10 scorecards in the original experiment carried a factual error, and
-this step is what caught all three — acting on an unchecked finding edits the skills to fix
-a problem that did not happen. Do NOT read a transcript whole (they are huge); grep it.
+**Graders err**: acting on an unchecked finding edits the skills to repair a problem that
+never happened. (Calibration from this harness's own history, not a quota to hit or a
+prediction for your loop: 3 of 10 scorecards in the 10-run experiment carried a factual
+error, and this step caught all three.) Do NOT read a transcript whole (they are huge);
+grep it.
 
 - Every cited event or quote must exist and say what the scorecard claims it says.
 - Treat **negative** claims as unproven until you grep — "X was never read", "warned about
