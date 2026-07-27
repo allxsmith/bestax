@@ -54,6 +54,20 @@ Three files back every edition:
 3. **Verify** (see below), then commit with a `docs` type and push. Open a PR to `main` only when
    asked.
 
+## Cover image
+
+Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" radio show):
+
+- **Source SVG:** `docs/static/img/state-of-react-libs/{YYYY-MM}.svg` — for a new edition, copy the
+  previous month's and update the month text and the `EP.` number.
+- **Rasterize** it to `docs/static/img/state-of-react-libs/{YYYY-MM}.png` at **1200×630** — SVG does
+  not work as an `og:image` / dev.to `cover_image`, so a raster is required. Load the SVG in a
+  headless browser at 1200×630 and screenshot it (this repo used Playwright + the pre-installed
+  Chromium at `/opt/pw-browsers`).
+- **Frontmatter:** point both `image:` and `cover_image:` at the `.png` (rooted `/img/...` path).
+- **Visible banner:** at the very top of the post body, render the SVG full-width:
+  `<img className="sorl-cover" src="/img/state-of-react-libs/{YYYY-MM}.svg" alt="…" />`.
+
 ## Verify
 
 - `pnpm exec turbo run build --filter=@allxsmith/bestax-docs` — **must pass**;

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="A State of React Libs — July 2026">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#070312"/>
+      <stop offset="0.42" stop-color="#160a31"/>
+      <stop offset="0.62" stop-color="#3a1060"/>
+      <stop offset="0.70" stop-color="#8a1f74"/>
+      <stop offset="0.725" stop-color="#ff2d95"/>
+      <stop offset="0.75" stop-color="#170a2e"/>
+      <stop offset="1" stop-color="#05020d"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#fff6c8"/>
+      <stop offset="0.34" stop-color="#ffd24a"/>
+      <stop offset="0.68" stop-color="#ff7a2f"/>
+      <stop offset="1" stop-color="#ff2d95"/>
+    </radialGradient>
+    <linearGradient id="titleFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#9be9ff"/>
+    </linearGradient>
+    <linearGradient id="eq" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#21e6c1"/>
+      <stop offset="1" stop-color="#ff2d95"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="26"/>
+    </filter>
+    <clipPath id="sunClip"><circle cx="600" cy="212" r="136"/></clipPath>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="1200" height="630" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#ffffff">
+    <circle cx="90" cy="66" r="1.5" opacity=".8"/><circle cx="180" cy="120" r="1" opacity=".5"/>
+    <circle cx="300" cy="52" r="1.3" opacity=".7"/><circle cx="420" cy="96" r="1" opacity=".5"/>
+    <circle cx="150" cy="188" r="1.1" opacity=".6"/><circle cx="1040" cy="60" r="1.5" opacity=".8"/>
+    <circle cx="1120" cy="130" r="1" opacity=".5"/><circle cx="960" cy="98" r="1.2" opacity=".6"/>
+    <circle cx="820" cy="56" r="1" opacity=".5"/><circle cx="1150" cy="220" r="1.1" opacity=".55"/>
+    <circle cx="60" cy="300" r="1" opacity=".4"/><circle cx="700" cy="78" r="1" opacity=".5"/>
+  </g>
+
+  <!-- sun glow + disc with outrun scanline gaps -->
+  <circle cx="600" cy="212" r="150" fill="#ff2d95" opacity="0.55" filter="url(#softglow)"/>
+  <circle cx="600" cy="212" r="136" fill="url(#sun)"/>
+  <g clip-path="url(#sunClip)" fill="#160a31">
+    <rect x="464" y="238" width="272" height="5"/>
+    <rect x="464" y="256" width="272" height="7"/>
+    <rect x="464" y="278" width="272" height="9"/>
+    <rect x="464" y="305" width="272" height="12"/>
+    <rect x="464" y="338" width="272" height="18"/>
+  </g>
+
+  <!-- React-atom orbits (React motif fused with the sun) -->
+  <g transform="translate(600,212)" fill="none" stroke="#5df4ff" stroke-width="3" opacity="0.92" filter="url(#glow)">
+    <ellipse rx="230" ry="86"/>
+    <ellipse rx="230" ry="86" transform="rotate(60)"/>
+    <ellipse rx="230" ry="86" transform="rotate(120)"/>
+  </g>
+
+  <!-- equalizer skyline sitting on the horizon -->
+  <g fill="url(#eq)" filter="url(#glow)" opacity="0.9">
+    <rect x="150" y="430" width="16" height="24" rx="2"/><rect x="176" y="416" width="16" height="38" rx="2"/>
+    <rect x="202" y="398" width="16" height="56" rx="2"/><rect x="228" y="424" width="16" height="30" rx="2"/>
+    <rect x="254" y="408" width="16" height="46" rx="2"/><rect x="280" y="388" width="16" height="66" rx="2"/>
+    <rect x="306" y="420" width="16" height="34" rx="2"/><rect x="332" y="402" width="16" height="52" rx="2"/>
+    <rect x="820" y="402" width="16" height="52" rx="2"/><rect x="846" y="420" width="16" height="34" rx="2"/>
+    <rect x="872" y="388" width="16" height="66" rx="2"/><rect x="898" y="408" width="16" height="46" rx="2"/>
+    <rect x="924" y="424" width="16" height="30" rx="2"/><rect x="950" y="398" width="16" height="56" rx="2"/>
+    <rect x="976" y="416" width="16" height="38" rx="2"/><rect x="1002" y="430" width="16" height="24" rx="2"/>
+  </g>
+
+  <!-- horizon -->
+  <rect x="0" y="454" width="1200" height="2.5" fill="#ff6fb6" filter="url(#glow)"/>
+
+  <!-- perspective grid floor -->
+  <g stroke="#5df4ff" stroke-width="1.4" opacity="0.5">
+    <path d="M600 456L-600 630M600 456L-300 630M600 456L-90 630M600 456L60 630M600 456L180 630M600 456L285 630M600 456L380 630M600 456L490 630M600 456L600 630M600 456L710 630M600 456L820 630M600 456L915 630M600 456L1020 630M600 456L1140 630M600 456L1290 630M600 456L1500 630M600 456L1800 630"/>
+  </g>
+  <g stroke="#ff4fa8" stroke-width="1.5" opacity="0.55">
+    <path d="M0 463H1200M0 474H1200M0 489H1200M0 510H1200M0 540H1200M0 583H1200M0 630H1200"/>
+  </g>
+
+  <!-- radio-show framing -->
+  <g font-family="'DejaVu Sans Mono','SFMono-Regular',Menlo,monospace" font-size="16" letter-spacing="3" fill="#7fe9ff">
+    <g fill="#21e6c1"><rect x="60" y="58" width="4" height="14"/><rect x="67" y="52" width="4" height="20"/><rect x="74" y="46" width="4" height="26"/></g>
+    <text x="88" y="72">LIVE&#160;SET</text>
+    <text x="1140" y="72" text-anchor="end" fill="#ff77bd">EP.&#160;001</text>
+  </g>
+
+  <!-- title -->
+  <g text-anchor="middle" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" filter="url(#glow)">
+    <text x="600" y="345" font-size="46" font-weight="800" letter-spacing="14" fill="#ffd24a">A&#160;STATE&#160;OF</text>
+    <text x="600" y="432" font-size="96" font-weight="900" letter-spacing="4">
+      <tspan fill="#5df4ff">REACT&#160;</tspan><tspan fill="url(#titleFill)">LIBS</tspan>
+    </text>
+  </g>
+
+  <!-- subtitle -->
+  <rect x="286" y="500" width="628" height="40" rx="20" fill="#05020d" opacity="0.5"/>
+  <text x="600" y="526" text-anchor="middle" font-family="'DejaVu Sans Mono','SFMono-Regular',Menlo,monospace" font-size="19" letter-spacing="3" fill="#c8f6ff">JULY&#160;2026&#160;&#160;·&#160;&#160;REACT&#160;COMPONENT&#160;LIBRARIES,&#160;COMPARED</text>
+</svg>

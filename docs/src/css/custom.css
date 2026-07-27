@@ -76,3 +76,13 @@ html.blog-post-page:has(.sorl-comparison) main.col {
   flex: 0 0 100%;
   margin-left: 0;
 }
+
+/* "A State of React Libs" cover banner at the top of each edition. */
+.sorl-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  margin: 0 0 1.75rem;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.28);
+}

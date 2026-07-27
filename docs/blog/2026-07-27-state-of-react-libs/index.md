@@ -8,9 +8,17 @@ tags:
 canonical_url: https://bestax.io/blog/state-of-react-libs-2026-07
 publish_to_devto: false
 hide_table_of_contents: true
+image: /img/state-of-react-libs/2026-07.png
+cover_image: /img/state-of-react-libs/2026-07.png
 ---
 
 import ComponentComparison from '@site/src/components/ComponentComparison';
+
+<img
+  className="sorl-cover"
+  src="/img/state-of-react-libs/2026-07.svg"
+  alt="A State of React Libs — July 2026: React component libraries, compared"
+/>
 
 Picking a React component library is one of the bigger architectural calls in a project, and the honest answer to “which one” depends entirely on what you’re building. We maintain [bestax](/docs/intro), a component library for Bulma v1, so we spend a lot of time studying the field. This post maps it out **fairly and in the open**: every user-facing capability across seven React libraries, with each cell linking straight to that library’s own documentation so you can check our work.
 
