@@ -83,7 +83,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Checkout PR head
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ steps.pr.outputs.head_sha }}
           # This job runs PR code; don't leave the token in .git/config.
@@ -146,11 +146,11 @@ jobs:
 
       - name: Setup pnpm
         if: steps.changed.outputs.any == 'true'
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
       - name: Setup Node.js
         if: steps.changed.outputs.any == 'true'
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -206,7 +206,7 @@ jobs:
       # never serves a stale cache. Append-only; deleting the branch only
       # breaks images in old handoff comments and the next run re-bootstraps.
       - name: Commit images and upsert PR comment
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           # Inputs reach the script as env vars, never via ${{ }} template
           # interpolation into the JS source (see verified-commit/action.yml).
@@ -437,7 +437,7 @@ jobs:
       pull-requests: write # upsert the marker comment
     steps:
       - name: Upsert failure notice
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           # Empty when capture died in its first step — which is where the
           # deliberate refusals live (PR closed, PR cross-repo). Those are the
