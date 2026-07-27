@@ -32,17 +32,12 @@ minimumReleaseAge: 4320
 # (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
   - prettier
-  # Urgent security patch (GHSA-mh99-v99m-4gvg, high): 5.0.8 is the only
-  # patched release on any major line and published 2026-07-23, so the audit
-  # gate cannot go green until the cooldown is bypassed. The cooldown elapses
-  # 2026-07-26 — remove from this list after that date.
-  - brace-expansion
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
 # differently, which otherwise splits into two resolved copies).
 overrides:
-  prettier: 3.9.4
+  prettier: 3.9.6
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
