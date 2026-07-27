@@ -1,7 +1,7 @@
 ---
 slug: state-of-react-libs-2026-07
 title: 'A State of React Libs — July 2026'
-description: 'A dated, linkable snapshot comparing bestax against Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and react-bulma-components — capability by capability, with every cell linking to the real docs.'
+description: 'A dated, linkable snapshot comparing bestax against Mantine, MUI, Chakra UI, shadcn/ui, and React-Bootstrap — capability by capability, with every cell linking to the real docs.'
 authors: [asmith]
 tags:
   [state-of-react-libs, comparison, react, bulma, mantine, mui, chakra, shadcn]
@@ -20,7 +20,7 @@ import ComponentComparison from '@site/src/components/ComponentComparison';
   alt="A State of React Libs — July 2026: React component libraries, compared"
 />
 
-Picking a React component library is one of the bigger architectural calls in a project, and the honest answer to “which one” depends entirely on what you’re building. We maintain [bestax](/docs/intro), a component library for Bulma v1, so we spend a lot of time studying the field. This post maps it out **fairly and in the open**: every user-facing capability across seven React libraries, with each cell linking straight to that library’s own documentation so you can check our work.
+Picking a React component library is one of the bigger architectural calls in a project, and the honest answer to “which one” depends entirely on what you’re building. We maintain [bestax](/docs/intro), a component library for Bulma v1, so we spend a lot of time studying the field. This post maps it out **fairly and in the open**: every user-facing capability across six React libraries, with each cell linking straight to that library’s own documentation so you can check our work.
 
 It’s a point-in-time capture — the first edition of something we plan to refresh regularly. Call it _A State of React Libs_ (with apologies to Armin).
 
@@ -28,7 +28,7 @@ It’s a point-in-time capture — the first edition of something we plan to ref
 The table below reflects each library **as of July 27, 2026**. Component catalogs move fast; for the newest edition, see [the latest **A State of React Libs**](/blog/tags/state-of-react-libs).
 :::
 
-In the ring: **[bestax](/docs/intro)** (Bulma v1), **[react-bulma-components](https://react-bulma.dev/)** (the other Bulma wrapper), **[Mantine](https://mantine.dev/)**, **[MUI](https://mui.com/)**, **[Chakra UI](https://chakra-ui.com/)**, **[shadcn/ui](https://ui.shadcn.com/)**, and **[React-Bootstrap](https://react-bootstrap.netlify.app/)**.
+In the ring: **[bestax](/docs/intro)** (Bulma v1), **[Mantine](https://mantine.dev/)**, **[MUI](https://mui.com/)**, **[Chakra UI](https://chakra-ui.com/)**, **[shadcn/ui](https://ui.shadcn.com/)**, and **[React-Bootstrap](https://react-bootstrap.netlify.app/)**.
 
 <!-- truncate -->
 
@@ -38,8 +38,8 @@ Read a column top-to-bottom for one library’s catalog; read a row across to se
 
 ## What the matrix says
 
-:::tip bestax is a superset of react-bulma-components
-Within the Bulma world there isn’t much contest left. `react-bulma-components` covers Bulma-core only and has been inactive since ~2021. bestax matches essentially all of it (bar Bulma’s `Tile`) and adds roughly 50 more components — date/time pickers, autocomplete, rating, tag input, slider, switch, Carousel, Steps, Avatar, Badge, Toast, Tooltip, Skeleton, Sidebar, Dialog, and Reveal.
+:::tip Where bestax lands
+bestax matches the components you reach for every day and adds a Bulma-idiomatic layout kit — Hero, Level, Media, Section, Panel — that most libraries leave to composition, plus a full form suite (date/time pickers, rating, tag input, autocomplete, stepped number input) that React-Bootstrap has no answer for.
 :::
 
 A few honest takeaways across the wider field:

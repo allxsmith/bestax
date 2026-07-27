@@ -7,9 +7,9 @@ is the **runbook for the recurring component-comparison series** so each edition
 ## What the series is
 
 **"A State of React Libs"** is a dated, honest snapshot comparing bestax against the other
-mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and
-react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
-roughly **monthly** cadence rather than editing an old post.
+mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, and React-Bootstrap).
+Each edition is a point-in-time capture; we publish a fresh one on a roughly **monthly** cadence
+rather than editing an old post.
 
 Three files back every edition:
 
