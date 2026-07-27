@@ -31,7 +31,9 @@ Three files back every edition:
   the newest edition first — it is the canonical "latest edition" pointer that every edition's top
   `:::info` admonition links to. Do **not** change this tag.
 - `authors: [asmith]`, `publish_to_devto: false` (the interactive table does not port to plain
-  markdown / dev.to).
+  markdown / dev.to), and `hide_table_of_contents: true` (the wide table needs the room — this
+  removes the right-hand TOC; the left blog sidebar is collapsed automatically via a scoped
+  `:has(.sorl-comparison)` rule in `src/css/custom.css`, so no per-post action is needed).
 - Keep the four admonitions: top `:::info` (snapshot date + latest-edition link), `:::tip`
   (headline insight), `:::note` (shadcn is a copy-paste registry, not a dependency), `:::caution`
   (corrections → GitHub issues).

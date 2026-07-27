@@ -91,7 +91,7 @@ function Cell({ lib, value }) {
 
 export default function ComponentComparison() {
   return (
-    <div className={styles.root}>
+    <div className={clsx(styles.root, 'sorl-comparison')}>
       <div className={styles.meta}>
         <span className={styles.asOf}>
           Data as of <strong>{formatReviewed(lastReviewed)}</strong>

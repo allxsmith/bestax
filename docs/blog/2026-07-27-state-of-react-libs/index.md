@@ -7,6 +7,7 @@ tags:
   [state-of-react-libs, comparison, react, bulma, mantine, mui, chakra, shadcn]
 canonical_url: https://bestax.io/blog/state-of-react-libs-2026-07
 publish_to_devto: false
+hide_table_of_contents: true
 ---
 
 import ComponentComparison from '@site/src/components/ComponentComparison';
