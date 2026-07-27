@@ -3,10 +3,17 @@
 Category-7 anchors for the brief in [`skynet-saas.md`](skynet-saas.md), plus the skills
 category 8 expects this brief to pull. Supplied to the grader as `$COMPLETENESS`.
 
-> **Grader-only. Never given to the builder.** The builder receives `skynet-saas.md` and
-> nothing else — handing it the surface list would tell it what it is being scored on and
-> void the measurement. The runner only ever `cat`s the brief path it was passed, and the
-> builder runs in the scaffolded app outside this repo, so it cannot reach this file.
+> **Grader-only. Never give this to the builder.** Handing it the surface list would tell it
+> what it is being scored on and void the measurement. The runner only ever `cat`s the brief
+> path it was passed, and the builder is started in the scaffolded app, which the runner
+> forces to live outside this repo tree.
+>
+> That is a convention, **not enforced isolation**. The builder runs under
+> `--dangerously-skip-permissions`, which bypasses permission prompts rather than sandboxing
+> the filesystem; `cd "$APP"` only sets the starting directory. A builder that went looking
+> could read this file. It has no reason to — it is a cold-start agent told only that the
+> project in its cwd was just scaffolded — but if you need that guaranteed rather than
+> merely unlikely, run the builder in a container or mount namespace exposing only the app.
 
 This addendum is the anchor runs **i01–i10 were graded against** (it is the original
 category 7, moved out of `rubric.md` unchanged so those scores stay interpretable). Frozen

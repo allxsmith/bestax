@@ -27,6 +27,11 @@ export function harvestSkillPaths(inputStr) {
     // `ls .claude/skills/theming/` identifies no file to read, exactly like the bare
     // `ls .claude/skills/` that already counts unresolved.
     if (m[1].endsWith('/')) continue;
+    // Two references with no separator between them merge into one greedy capture
+    // (`a/S.md.claude/skills/b/S.md`). The unresolved count already flags it, but the
+    // capture itself is not a file anyone read — recording it would put a path that never
+    // existed into skill_files.
+    if (m[1].includes('.claude/skills/')) continue;
     paths.push(m[1]);
   }
   return { refs, paths, unresolved: refs - paths.length };

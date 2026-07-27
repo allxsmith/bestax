@@ -126,8 +126,17 @@ if (noSep.unresolved <= 0) {
   console.error(
     `FAIL  no-separator concatenation must stay conservative, got unresolved=${noSep.unresolved}`
   );
+} else if (noSep.paths.length > 0) {
+  // Flagging it as unresolved is not enough: the merged capture is not a file anyone read,
+  // so it must not appear in skill_files either.
+  failed++;
+  console.error(
+    `FAIL  no-separator concatenation must resolve NO paths, got ${JSON.stringify(noSep.paths)}`
+  );
 } else {
-  console.log('ok    no-separator concatenation stays conservative');
+  console.log(
+    'ok    no-separator concatenation stays conservative and records no path'
+  );
 }
 
 console.log(

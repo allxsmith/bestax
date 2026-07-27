@@ -46,6 +46,17 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Canonicalization alone accepts a NONEXISTENT file under an existing directory, and the
+# builder is launched with `claude -p "$(cat "$0")"` — so a typo'd brief path yields an empty
+# prompt and burns a full run on nothing. Infra failure: check before launching.
+if [ ! -f "$BRIEF" ] || [ ! -r "$BRIEF" ]; then
+  echo "brief must be a readable file: $BRIEF" >&2
+  exit 1
+fi
+if [ ! -s "$BRIEF" ]; then
+  echo "brief is empty: $BRIEF" >&2
+  exit 1
+fi
 BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
 BRIEF_NAME="$(basename "$BRIEF" .md)"
 # Rubric category 7 is brief-specific and its anchors live beside the brief. Warn now rather
@@ -152,8 +163,13 @@ cp "$APP/index.html" "$RUN/app-src/" 2>/dev/null || true
 # Write via a temp file: a collector crash must not leave a truncated metrics.json behind,
 # which would both look like a datapoint and trip the "already has metrics.json" guard on retry.
 TOOLING_REV="$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo unknown)"
-RUN_META="$(printf '{"brief":"%s","model":"%s","budget_usd":"%s","timeout_s":"%s","tooling_rev":"%s"}' \
-  "$BRIEF_NAME" "$MODEL" "$BUDGET" "$TIMEOUT" "$TOOLING_REV")"
+# Serialized by node, not printf: a quote or backslash in --model, --budget or the brief
+# basename produces invalid JSON, and the collector's fallback would then read the whole
+# blob as a bare brief name and silently drop the run identity.
+RUN_META="$(node -e 'process.stdout.write(JSON.stringify({
+  brief: process.argv[1], model: process.argv[2], budget_usd: process.argv[3],
+  timeout_s: process.argv[4], tooling_rev: process.argv[5],
+}))' "$BRIEF_NAME" "$MODEL" "$BUDGET" "$TIMEOUT" "$TOOLING_REV")"
 node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" "$RUN_META" > "$RUN/metrics.json.tmp"
 mv "$RUN/metrics.json.tmp" "$RUN/metrics.json"
 

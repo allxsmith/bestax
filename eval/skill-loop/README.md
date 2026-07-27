@@ -109,8 +109,12 @@ and adjacent-pair deltas are weak evidence.
     lists them as frozen for the whole experiment;
   - `files_changed_vs_baseline` is `null` in the committed i01–i10 metrics — the exact count
     is not recomputable, since those app-src git repos are archived rather than committed.
-    Their `app_modified: true` is proven from data the runs already carry (every one added
-    CSS lines against its baseline tag), not assumed;
+    Their `app_modified: true` is proven from data the runs already carry — every one has
+    `custom_css_added_lines > 0`, which is by definition divergence from the baseline tag —
+    not assumed. Like the pair above, it is deliberately **not** reproducible by the
+    collector's `files_changed_vs_baseline > 0` derivation, which would read `null` as
+    `false` and wrongly zero a real run under the gate. Check the same artifact's
+    `custom_css_added_lines` if you want to re-verify; only the archived runs carry this;
   - `skill_file_reads` counts every tool input mentioning `.claude/skills/`, so a bare
     listing (`ls .claude/skills/`) counts as a "read" — it **over-reports** category-8
     engagement. Read it alongside `skill_files`, which now holds only resolved file paths:
@@ -129,8 +133,13 @@ and adjacent-pair deltas are weak evidence.
     has not occurred, but the flag does not prove it cannot;
   - the committed i01–i10 metrics predate both fixes and their transcripts are archived, not
     committed, so completeness cannot be recomputed: `skill_files_complete` is `null`
-    (unknown) there, except i05/i08/i10 where reads were counted and no path was recovered,
-    which proves it `false`. Treat `null` as "not established", never as a pass. Note that
+    (unknown) there, except i05/i08/i10, which are `false`. A nonzero read count with no
+    recovered path does **not** on its own prove incompleteness — `skill_file_reads` counts
+    directory listings too, and a run of pure listings resolves nothing while missing
+    nothing. What proves it for those three is their scorecards, which document `cat`/`sed`
+    reads of actual reference **files** (i10: "10 file reads (cat/sed…)"; i08: reads before
+    first Write incl. `archetypes.md`; i05: "cat'd references"). Treat `null` as "not
+    established", never as a pass. Note that
     this `false`-beside-`null` pair is hand-set and is **not** reproducible by the
     collector's own "complete when unresolved is zero" derivation: incompleteness is proven
     without an exact count. Only the historical files carry it; anything the collector emits

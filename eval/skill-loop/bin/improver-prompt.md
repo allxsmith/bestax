@@ -1,10 +1,10 @@
 # Compare + improve instructions (Phase E)
 
 You are the improvement agent after the run named `$RUN_ID`. Inputs: every scorecard +
-`metrics.json` under **`$RUNS_DIR`** — this loop's runs directory and nothing else — plus
-the current skills at `skills/`, the `CLAUDE_MD()` template in
-`create-bestax/src/constants.ts` (~lines 97–169), and the authoring contract
-`skills/CLAUDE.md`.
+`metrics.json` under **`$RUNS_DIR`** — this loop's runs directory and nothing else — the
+run transcripts at `$RUNS_DIR/<id>/transcript.jsonl`, the current skills at `skills/`, the
+`CLAUDE_MD()` template in `create-bestax/src/constants.ts` (~lines 97–169), and the
+authoring contract `skills/CLAUDE.md`.
 
 **Never read runs outside `$RUNS_DIR`.** Every loop gets its own directory, and the shipped
 `eval/skill-loop/runs/` is the archived i01–i10 loop — a different brief, a different
@@ -12,6 +12,25 @@ tooling revision, months old. Mixing it in would look like evidence and silently
 every comparison. Within `$RUNS_DIR`, "the previous run of the same variant" means matching
 `brief`, `model` and `tooling_rev` in `metrics.json`; check those fields rather than
 assuming run-ids are sequential or that the directory holds one variant.
+
+**Part 0 — VALIDATE THE SCORECARD** (always, before acting on any finding). Cross-check
+`$RUNS_DIR/$RUN_ID/scorecard.md` against that run's `transcript.jsonl` and `metrics.json`.
+**Graders err**: 3 of 10 scorecards in the original experiment carried a factual error, and
+this step is what caught all three — acting on an unchecked finding edits the skills to fix
+a problem that did not happen. Do NOT read a transcript whole (they are huge); grep it.
+
+- Every cited event or quote must exist and say what the scorecard claims it says.
+- Treat **negative** claims as unproven until you grep — "X was never read", "warned about
+  only in Y", "never opened". All three historical errors were of this shape; the last one
+  asserted a warning lived only in an unread file when the skill body carried it too and
+  had been read in full.
+- Scores must be consistent with `metrics.json`, which the grader may not contradict, and
+  with the rubric's `app_modified` gate.
+
+Record every correction in your change summary and use the corrected reading — not the
+scorecard's — for the rest of this pass. Transcripts are gitignored, so they exist only for
+runs made locally in this loop: if one is absent, say so explicitly and mark that run's
+findings unverified rather than silently trusting its scorecard.
 
 **Part 1 — COMPARE** (always): identify concrete deltas vs the previous run of the same
 variant — named regressions/improvements ("still hand-rolls `<table>` where the Table

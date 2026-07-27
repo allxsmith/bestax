@@ -114,7 +114,7 @@ brief, and is proportional so addenda may list any number of surfaces:
 
 - 15: ≥85% of the addendum's required surfaces present and coherent, with plausible
   brief-appropriate copy (including any naming the addendum calls for).
-- 8: 50–85% present, or all present but skeletal (lorem-level copy, empty sections).
+- 8: ≥50% and <85% present, or all present but skeletal (lorem-level copy, empty sections).
 - 0: <50% present.
 
 If `$COMPLETENESS` was not supplied, do **not** improvise a surface list and do not fall
