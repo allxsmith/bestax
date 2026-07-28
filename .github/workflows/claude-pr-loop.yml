@@ -327,7 +327,7 @@ jobs:
       actions: write # read CI logs + self-dispatch in the terminal step
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.gate.outputs.head_ref }}
           fetch-depth: 0
@@ -346,10 +346,10 @@ jobs:
           sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -592,6 +592,10 @@ jobs:
           @allxsmith, time for a carbon-based referee — squint at the threads with those little eyeballs and make the call. The loop never merges; 'having opinions about trade-offs' is apparently still a wetware perk. 🤙"
             gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
             gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
+            # Screenshots at handoff (#284): label edits via GITHUB_TOKEN fire
+            # no `labeled` runs, so dispatch explicitly. Best-effort — never
+            # blocks handoff.
+            gh workflow run story-screenshots.yml --repo "$REPO" --ref main -f pr="$PR" || true
           else
             # Threads resolved without a push (e.g. refutations accepted):
             # re-evaluate — thread changes fire no workflow events.
@@ -611,7 +615,7 @@ jobs:
       actions: write # self-dispatch in the continue step
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.gate.outputs.head_ref }}
           fetch-depth: 0
@@ -627,10 +631,10 @@ jobs:
           sudo install -m 0755 /tmp/gh-thread /usr/local/bin/gh-thread
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -751,6 +755,7 @@ jobs:
     permissions:
       pull-requests: write # labels + reviewer request
       issues: write # convergence comment
+      actions: write # dispatch story-screenshots.yml
     steps:
       - name: Converge and hand off to owner
         env:
@@ -774,6 +779,10 @@ jobs:
           No offense to the carbon-based units, but you fleshbags kept the merge button for yourselves — so @allxsmith, wiggle those opposable thumbs and squash-merge when you're stoked. The loop never merges; apparently 'judgment' is still a squishy-brain-only feature. 🤙$WARN"
           gh pr edit "$PR" --repo "$REPO" --remove-label ai-loop --add-label needs-human-review
           gh pr edit "$PR" --repo "$REPO" --add-reviewer allxsmith || true
+          # Screenshots at handoff (#284): label edits via GITHUB_TOKEN fire
+          # no `labeled` runs, so dispatch explicitly. Best-effort — never
+          # blocks handoff.
+          gh workflow run story-screenshots.yml --repo "$REPO" --ref main -f pr="$PR" || true
 
   halt:
     needs: gate

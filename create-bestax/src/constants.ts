@@ -147,6 +147,9 @@ ${setupLines.join('\n')}
   and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+- \`Navbar.Burger\`/\`Navbar.Menu\` are controlled — wire \`active\` via state on both, and pair
+  \`Navbar fixed="top"\` with the \`has-navbar-fixed-top\` class on \`<html>\` (never an inline
+  padding offset).
 - Reusable components you write get the library's spine so helper props work on them too:
   extend \`BulmaClassesProps\`, run your props through \`useBulmaClasses\`, merge the
   \`bulmaHelperClasses\` it returns into \`className\`, and spread **its** \`rest\` (not the raw
