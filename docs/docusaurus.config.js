@@ -80,6 +80,10 @@ const config = {
   //   },
   // ],
   plugins: [
+    // Keeps cssnano's discardUnused from stripping Font Awesome's @font-face
+    // rules (FA v7 resolves its family through var(), which the minifier can't
+    // follow). Without this every FA icon renders as a blank box in production.
+    './plugins/preserve-font-face.js',
     [
       'docusaurus-plugin-llms',
       {
