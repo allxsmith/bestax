@@ -1,7 +1,7 @@
 ---
 title: Migrating from react-bulma-components
 sidebar_label: From react-bulma-components
-sidebar_position: 3
+sidebar_position: 5
 ---
 
 # Migrating from react-bulma-components
@@ -11,6 +11,12 @@ popular React wrapper for Bulma, but it has been unmaintained since early 2022 a
 Bulma 0.9.x. `@allxsmith/bestax-bulma` is actively maintained, targets **Bulma v1** (CSS
 variables, dark mode, Grid), and covers the same component surface — so most apps can migrate
 mechanically.
+
+:::tip See how they compare
+For a capability-by-capability comparison of bestax against react-bulma-components and the other
+major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
+[**The State of React**](/blog/tags/state-of-react).
+:::
 
 The **`bestax-migrate`** codemod automates that mechanical part. It supports
 react-bulma-components **v4** (the TypeScript rewrite most surviving apps use).

@@ -1,7 +1,7 @@
 ---
 title: Bulma 0.9.4 → 1.x
 sidebar_label: Bulma 0.9.4 to 1.x
-sidebar_position: 2
+sidebar_position: 4
 ---
 
 # Migrating from Bulma v0.9.x → Bulma v1

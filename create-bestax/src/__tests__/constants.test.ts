@@ -228,6 +228,21 @@ describe('constants', () => {
     });
   });
 
+  describe('CLAUDE_MD', () => {
+    it('tells agents to customize the scaffolded title and README', () => {
+      const content = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
+      expect(content).toContain('# my-app');
+      expect(content).toContain('`<title>`');
+      expect(content).toContain('README.md');
+      expect(content).toContain('starts as the project name');
+      expect(content).toContain('meta tags');
+      expect(content).toContain('rewrite the README');
+    });
+  });
+
   describe('CLAUDE_MD house style', () => {
     const md = CLAUDE_MD('my-app', {
       bulmaFlavor: 'complete',
