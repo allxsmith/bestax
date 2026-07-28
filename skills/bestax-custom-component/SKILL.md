@@ -51,9 +51,10 @@ label — use that instead"_ or _"No `ProfileCard` exists; I'll build one compos
 Build from existing components before writing any CSS: `Box`, `Card`, `Title`, `SubTitle`,
 `Icon`, `Block`, `Content`, `Tag`, plus the shared Bulma helper props (spacing, color,
 typography, flexbox). Compound sub-parts are the exception — `Card.Content`, `Modal.Card`,
-`Tabs.Tab`, `Message.Body` take only `className` + HTML attributes — `Tabs.Tab` additionally
-requires `index={i}` — so put helper props on the parent or on an element inside them, never
-invent them there. Most "custom components" are a composition function — zero new styles.
+`Tabs.Tab`, `Message.Body` take **no Bulma helper props**, just `className` + HTML attributes
+plus their own few (`Tabs.Tab` requires `index={i}` and has built-in `disabled` and
+`icon`/`iconLibrary`/`iconVariant`/`iconSize`/`iconFeatures` — don't nest an `<Icon>` there) —
+so put helper props on the parent or on an element inside them, never invent them there. Most "custom components" are a composition function — zero new styles.
 See `examples/stat-card.tsx` for a complete worked example.
 
 ## The component spine

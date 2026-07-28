@@ -25,9 +25,10 @@ instead of hand-writing markup.
   `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
   component's linked page for the full set. Sub-parts do **not** all take helper
   props: the `Table.*`, `Menu.*`, and `Hero.*` families do (most `Navbar.*`
-  too), but `Card.*`, `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take only
-  `className` + HTML attributes — put helper props on the parent or on an
-  element inside (`Span`, `Paragraph`, …) instead.
+  too), but `Card.*`, `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take none —
+  just `className`, HTML attributes, and their own few (`Tabs.Tab` requires
+  `index` and has built-in `icon`/`disabled` props). Put helper props on the
+  parent or on an element inside (`Span`, `Paragraph`, …) instead.
 - **Composing these into your own reusable component?** Use the spine in this
   skill's `SKILL.md`: extend `BulmaClassesProps`, run your props through
   `useBulmaClasses`, merge its `bulmaHelperClasses` into `className`, and spread
