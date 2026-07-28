@@ -13,8 +13,8 @@ variables, dark mode, Grid), and covers the same component surface — so most a
 mechanically.
 
 :::tip See how they compare
-For a capability-by-capability comparison of bestax against the major React libraries
-(Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest
+For a capability-by-capability comparison of bestax against react-bulma-components and the other
+major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest
 [**A State of React Libs**](/blog/tags/state-of-react-libs).
 :::
 

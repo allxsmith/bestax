@@ -52,13 +52,13 @@ function Cell({ lib, value }) {
 
   const href = lib.resolve(name);
   const internal = href.startsWith('/');
-  const label = `${lib.label} ${name} — ${STATUS_LABEL[status]}`;
+  const label = `${lib.title || lib.label} ${name} — ${STATUS_LABEL[status]}`;
   const inner = (
     <>
       <span className={clsx(styles.glyph, styles[status])} aria-hidden="true">
         {GLYPH[status]}
       </span>
-      <span className={styles.name}>{name}</span>
+      {!lib.iconOnly && <span className={styles.name}>{name}</span>}
     </>
   );
 
@@ -137,6 +137,7 @@ export default function ComponentComparison() {
                   key={lib.id}
                   className={clsx(styles.headCell, styles.libCol)}
                   style={{ '--lib-color': lib.color }}
+                  title={lib.title}
                 >
                   <span className={styles.libLabel}>{lib.label}</span>
                 </th>
