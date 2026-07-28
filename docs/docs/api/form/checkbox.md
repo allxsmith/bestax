@@ -95,21 +95,6 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 
 ## Related Components
 
-- [`Checkboxes`](./checkboxes.md) – for grouped checkboxes.
-- [`Field`](./field.md) – for labeled/structured forms.
-- [Helper Props](../helpers/usebulmaclasses.md)
-
----
-
-## Additional Resources
-
-- [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
-- [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--default)
-
----
-
-## Related Components
-
 - [`Checkboxes`](./checkboxes.md): For grouped checkboxes.
 - [`Field`](./field.md): For forms.
 - [Helper Props](../helpers/usebulmaclasses.md): For spacing, color, etc.

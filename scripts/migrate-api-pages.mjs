@@ -246,7 +246,7 @@ function buildProps(body) {
   return wrap('props', `\n${body.trim()}\n`);
 }
 
-async function migratePage(file, { dryRun }) {
+async function migratePage(file, { dryRun, reorderOnly }) {
   const relPath = relative(API_DIR, file).split('\\').join('/');
   const src = await readFile(file, 'utf8');
   const title = frontmatterTitle(src);
@@ -275,14 +275,23 @@ async function migratePage(file, { dryRun }) {
     idx,
   }));
 
-  for (const p of parts) {
-    if (p.heading === 'Overview') p.body = buildOverview(p.body);
-    else if (p.heading === 'Import') p.body = buildImport(p.body);
-    else if (p.heading === 'Props') p.body = buildProps(p.body);
+  // `--reorder-only` moves sections into the canonical order without adding
+  // generated regions — for pages that share the house ordering but whose
+  // content is not a component props table (helpers/theme.md, helpers/config.md).
+  if (!reorderOnly) {
+    for (const p of parts) {
+      if (p.heading === 'Overview') p.body = buildOverview(p.body);
+      else if (p.heading === 'Import') p.body = buildImport(p.body);
+      else if (p.heading === 'Props') p.body = buildProps(p.body);
+    }
   }
 
   // Append the new CSS variables section when the component has any.
-  if (SCSS_SOURCES[title]?.length && !seen.has('CSS & Sass Variables')) {
+  if (
+    !reorderOnly &&
+    SCSS_SOURCES[title]?.length &&
+    !seen.has('CSS & Sass Variables')
+  ) {
     parts.push({
       heading: 'CSS & Sass Variables',
       body: wrap('cssvars', '\n\n'),
@@ -307,6 +316,7 @@ async function migratePage(file, { dryRun }) {
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const reorderOnly = args.includes('--reorder-only');
   const catArg = args.find(a => a.startsWith('--category='));
   if (!catArg) {
     console.error(
@@ -325,7 +335,7 @@ async function main() {
   for (const file of await mdFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (rel.split('/')[0] !== category) continue;
-    const r = await migratePage(file, { dryRun });
+    const r = await migratePage(file, { dryRun, reorderOnly });
     if (r?.changed) {
       changed++;
       process.stdout.write(

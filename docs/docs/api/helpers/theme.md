@@ -20,356 +20,6 @@ import { Theme } from '@allxsmith/bestax-bulma';
 
 ---
 
-## Props
-
-| Prop        | Type                            | Description                                                                                                                                                                                                                                               |
-| ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
-| `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
-| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
-| `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
-| `bulmaVars` | `Record<string, string>`        | Object containing CSS custom properties as key-value pairs (e.g., `{'--bulma-primary-h': '210'}`).                                                                                                                                                        |
-
-### CSS Variable Props
-
-The Theme component accepts individual CSS variable props that correspond to Bulma's design tokens. These props are automatically converted to their corresponding CSS custom properties (e.g., `primaryH` → `--bulma-primary-h`).
-
-#### Scheme Variables
-
-| Prop                     | Type     | Description                                       | CSS Variable                        |
-| ------------------------ | -------- | ------------------------------------------------- | ----------------------------------- |
-| `schemeH`                | `string` | Base hue for the color scheme (0-360)             | `--bulma-scheme-h`                  |
-| `schemeS`                | `string` | Base saturation for the color scheme (percentage) | `--bulma-scheme-s`                  |
-| `lightL`                 | `string` | Lightness value for light backgrounds             | `--bulma-light-l`                   |
-| `lightInvertL`           | `string` | Inverted lightness for light backgrounds          | `--bulma-light-invert-l`            |
-| `darkL`                  | `string` | Lightness value for dark backgrounds              | `--bulma-dark-l`                    |
-| `darkInvertL`            | `string` | Inverted lightness for dark backgrounds           | `--bulma-dark-invert-l`             |
-| `softL`                  | `string` | Lightness value for soft colors                   | `--bulma-soft-l`                    |
-| `boldL`                  | `string` | Lightness value for bold colors                   | `--bulma-bold-l`                    |
-| `softInvertL`            | `string` | Inverted lightness for soft colors                | `--bulma-soft-invert-l`             |
-| `boldInvertL`            | `string` | Inverted lightness for bold colors                | `--bulma-bold-invert-l`             |
-| `hoverBackgroundLDelta`  | `string` | Lightness delta for hover background states       | `--bulma-hover-background-l-delta`  |
-| `activeBackgroundLDelta` | `string` | Lightness delta for active background states      | `--bulma-active-background-l-delta` |
-| `hoverBorderLDelta`      | `string` | Lightness delta for hover border states           | `--bulma-hover-border-l-delta`      |
-| `activeBorderLDelta`     | `string` | Lightness delta for active border states          | `--bulma-active-border-l-delta`     |
-| `hoverColorLDelta`       | `string` | Lightness delta for hover text color states       | `--bulma-hover-color-l-delta`       |
-| `activeColorLDelta`      | `string` | Lightness delta for active text color states      | `--bulma-active-color-l-delta`      |
-| `hoverShadowADelta`      | `string` | Alpha delta for hover shadow states               | `--bulma-hover-shadow-a-delta`      |
-| `activeShadowADelta`     | `string` | Alpha delta for active shadow states              | `--bulma-active-shadow-a-delta`     |
-
-#### Color Variables
-
-| Prop       | Type     | Description                           | CSS Variable        |
-| ---------- | -------- | ------------------------------------- | ------------------- |
-| `primaryH` | `string` | Primary color hue (0-360)             | `--bulma-primary-h` |
-| `primaryS` | `string` | Primary color saturation (percentage) | `--bulma-primary-s` |
-| `primaryL` | `string` | Primary color lightness (percentage)  | `--bulma-primary-l` |
-| `linkH`    | `string` | Link color hue (0-360)                | `--bulma-link-h`    |
-| `linkS`    | `string` | Link color saturation (percentage)    | `--bulma-link-s`    |
-| `linkL`    | `string` | Link color lightness (percentage)     | `--bulma-link-l`    |
-| `infoH`    | `string` | Info color hue (0-360)                | `--bulma-info-h`    |
-| `infoS`    | `string` | Info color saturation (percentage)    | `--bulma-info-s`    |
-| `infoL`    | `string` | Info color lightness (percentage)     | `--bulma-info-l`    |
-| `successH` | `string` | Success color hue (0-360)             | `--bulma-success-h` |
-| `successS` | `string` | Success color saturation (percentage) | `--bulma-success-s` |
-| `successL` | `string` | Success color lightness (percentage)  | `--bulma-success-l` |
-| `warningH` | `string` | Warning color hue (0-360)             | `--bulma-warning-h` |
-| `warningS` | `string` | Warning color saturation (percentage) | `--bulma-warning-s` |
-| `warningL` | `string` | Warning color lightness (percentage)  | `--bulma-warning-l` |
-| `dangerH`  | `string` | Danger color hue (0-360)              | `--bulma-danger-h`  |
-| `dangerS`  | `string` | Danger color saturation (percentage)  | `--bulma-danger-s`  |
-| `dangerL`  | `string` | Danger color lightness (percentage)   | `--bulma-danger-l`  |
-
-#### Complete CSS Variables List
-
-The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars` prop and individual props:
-
-**Typography Variables:**
-
-- `--bulma-family-primary`, `--bulma-family-secondary`, `--bulma-family-code`
-- `--bulma-size-small`, `--bulma-size-normal`, `--bulma-size-medium`, `--bulma-size-large`
-- `--bulma-weight-light`, `--bulma-weight-normal`, `--bulma-weight-medium`, `--bulma-weight-semibold`, `--bulma-weight-bold`, `--bulma-weight-extrabold`
-- `--bulma-body-background-color`, `--bulma-body-size`, `--bulma-body-min-width`, `--bulma-body-rendering`
-- `--bulma-body-family`, `--bulma-body-overflow-x`, `--bulma-body-overflow-y`, `--bulma-body-color`
-- `--bulma-body-font-size`, `--bulma-body-weight`, `--bulma-body-line-height`
-- `--bulma-code-family`, `--bulma-code-padding`, `--bulma-code-weight`, `--bulma-code-size`
-- `--bulma-small-font-size`, `--bulma-hr-background-color`, `--bulma-hr-height`, `--bulma-hr-margin`
-- `--bulma-strong-color`, `--bulma-strong-weight`, `--bulma-pre-font-size`, `--bulma-pre-padding`, `--bulma-pre-code-font-size`
-
-**Layout & Spacing Variables:**
-
-- `--bulma-block-spacing`, `--bulma-duration`, `--bulma-easing`, `--bulma-speed`
-- `--bulma-radius-small`, `--bulma-radius`, `--bulma-radius-medium`, `--bulma-radius-large`, `--bulma-radius-rounded`
-- `--bulma-arrow-color`, `--bulma-loading-color`
-- `--bulma-column-gap`, `--bulma-grid-gap`, `--bulma-grid-column-count`, `--bulma-grid-column-min`
-- `--bulma-grid-cell-column-span`, `--bulma-grid-cell-column-start`
-
-**Box Variables:**
-
-- `--bestax-box-background-color`, `--bestax-box-color`, `--bestax-box-radius`, `--bestax-box-shadow`
-- `--bestax-box-padding`, `--bestax-box-link-hover-shadow`, `--bestax-box-link-active-shadow`
-
-**Breadcrumb Variables:**
-
-- `--bulma-breadcrumb-item-color`, `--bulma-breadcrumb-item-hover-color`, `--bulma-breadcrumb-item-active-color`
-- `--bulma-breadcrumb-item-padding-vertical`, `--bulma-breadcrumb-item-padding-horizontal`
-- `--bulma-breadcrumb-item-separator-color`
-
-**Card Variables:**
-
-- `--bestax-card-color`, `--bestax-card-background-color`, `--bestax-card-shadow`, `--bestax-card-radius`
-- `--bestax-card-header-background-color`, `--bestax-card-header-color`, `--bestax-card-header-padding`
-- `--bestax-card-header-shadow`, `--bestax-card-header-weight`
-- `--bestax-card-content-background-color`, `--bestax-card-content-padding`
-- `--bestax-card-footer-background-color`, `--bestax-card-footer-border-top`, `--bestax-card-footer-padding`
-- `--bestax-card-media-margin`
-
-**Dropdown Variables:**
-
-- `--bulma-dropdown-menu-min-width`, `--bulma-dropdown-content-background-color`
-- `--bulma-dropdown-content-offset`, `--bulma-dropdown-content-padding-bottom`
-- `--bulma-dropdown-content-padding-top`, `--bulma-dropdown-content-radius`
-- `--bulma-dropdown-content-shadow`, `--bulma-dropdown-content-z`
-- `--bulma-dropdown-item-h`, `--bulma-dropdown-item-s`, `--bulma-dropdown-item-l`
-- `--bulma-dropdown-item-background-l`, `--bulma-dropdown-item-background-l-delta`
-- `--bulma-dropdown-item-hover-background-l-delta`, `--bulma-dropdown-item-active-background-l-delta`
-- `--bulma-dropdown-item-color-l`, `--bulma-dropdown-item-selected-h`
-- `--bulma-dropdown-item-selected-s`, `--bulma-dropdown-item-selected-l`
-- `--bulma-dropdown-item-selected-background-l`, `--bulma-dropdown-item-selected-color-l`
-- `--bulma-dropdown-divider-background-color`
-
-**Input Variables:**
-
-- `--bulma-input-h`, `--bulma-input-s`, `--bulma-input-l`, `--bulma-input-border-style`
-- `--bulma-input-border-l`, `--bulma-input-border-l-delta`, `--bulma-input-hover-border-l-delta`
-- `--bulma-input-active-border-l-delta`, `--bulma-input-focus-h`, `--bulma-input-focus-s`
-- `--bulma-input-focus-l`, `--bulma-input-focus-shadow-size`, `--bulma-input-focus-shadow-alpha`
-- `--bulma-input-color-l`, `--bulma-input-background-l`, `--bulma-input-background-l-delta`
-- `--bulma-input-height`, `--bulma-input-shadow`, `--bulma-input-placeholder-color`
-- `--bulma-input-disabled-color`, `--bulma-input-disabled-background-color`
-- `--bulma-input-disabled-border-color`, `--bulma-input-disabled-placeholder-color`
-- `--bulma-input-arrow`, `--bulma-input-icon-color`, `--bulma-input-icon-hover-color`
-- `--bulma-input-icon-focus-color`, `--bulma-input-radius`
-
-**Menu Variables:**
-
-- `--bulma-menu-item-h`, `--bulma-menu-item-s`, `--bulma-menu-item-l`
-- `--bulma-menu-item-background-l`, `--bulma-menu-item-background-l-delta`
-- `--bulma-menu-item-hover-background-l-delta`, `--bulma-menu-item-active-background-l-delta`
-- `--bulma-menu-item-color-l`, `--bulma-menu-item-radius`
-- `--bulma-menu-item-selected-h`, `--bulma-menu-item-selected-s`, `--bulma-menu-item-selected-l`
-- `--bulma-menu-item-selected-background-l`, `--bulma-menu-item-selected-color-l`
-- `--bulma-menu-list-border-left`, `--bulma-menu-list-line-height`, `--bulma-menu-list-link-padding`
-- `--bulma-menu-nested-list-margin`, `--bulma-menu-nested-list-padding-left`
-- `--bulma-menu-label-color`, `--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`
-- `--bulma-menu-label-spacing`
-
-**Message Variables:**
-
-- `--bulma-message-h`, `--bulma-message-s`, `--bulma-message-background-l`
-- `--bulma-message-border-l`, `--bulma-message-border-l-delta`, `--bulma-message-border-style`
-- `--bulma-message-border-width`, `--bulma-message-color-l`, `--bulma-message-radius`
-- `--bulma-message-header-weight`, `--bulma-message-header-padding`, `--bulma-message-header-radius`
-- `--bulma-message-header-body-border-width`, `--bulma-message-header-background-l`
-- `--bulma-message-header-color-l`, `--bulma-message-body-border-width`
-- `--bulma-message-body-color`, `--bulma-message-body-padding`, `--bulma-message-body-radius`
-- `--bulma-message-body-pre-code-background-color`
-
-**Modal Variables:**
-
-- `--bulma-modal-z`, `--bulma-modal-background-background-color`, `--bulma-modal-content-width`
-- `--bulma-modal-content-margin-mobile`, `--bulma-modal-content-spacing-mobile`
-- `--bulma-modal-content-spacing-tablet`, `--bulma-modal-close-dimensions`
-- `--bulma-modal-close-right`, `--bulma-modal-close-top`, `--bulma-modal-card-spacing`
-- `--bulma-modal-card-head-background-color`, `--bulma-modal-card-head-padding`
-- `--bulma-modal-card-head-radius`, `--bulma-modal-card-title-color`
-- `--bulma-modal-card-title-line-height`, `--bulma-modal-card-title-size`
-- `--bulma-modal-card-foot-background-color`, `--bulma-modal-card-foot-radius`
-- `--bulma-modal-card-body-background-color`, `--bulma-modal-card-body-padding`
-
-**Navbar Variables:**
-
-- `--bulma-navbar-h`, `--bulma-navbar-s`, `--bulma-navbar-l`, `--bulma-navbar-background-color`
-- `--bulma-navbar-box-shadow-size`, `--bulma-navbar-box-shadow-color`
-- `--bulma-navbar-padding-vertical`, `--bulma-navbar-padding-horizontal`
-- `--bulma-navbar-z`, `--bulma-navbar-fixed-z`, `--bulma-navbar-item-background-a`
-- `--bulma-navbar-item-background-l`, `--bulma-navbar-item-background-l-delta`
-- `--bulma-navbar-item-hover-background-l-delta`, `--bulma-navbar-item-active-background-l-delta`
-- `--bulma-navbar-item-color-l`, `--bulma-navbar-item-selected-h`
-- `--bulma-navbar-item-selected-s`, `--bulma-navbar-item-selected-l`
-- `--bulma-navbar-item-selected-background-l`, `--bulma-navbar-item-selected-color-l`
-- `--bulma-navbar-item-img-max-height`, `--bulma-navbar-burger-color`
-- `--bulma-navbar-tab-hover-background-color`, `--bulma-navbar-tab-hover-border-bottom-color`
-- `--bulma-navbar-tab-active-color`, `--bulma-navbar-tab-active-background-color`
-- `--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-border-bottom-style`
-- `--bulma-navbar-tab-active-border-bottom-width`, `--bulma-navbar-dropdown-background-color`
-- `--bulma-navbar-dropdown-border-l`, `--bulma-navbar-dropdown-border-color`
-- `--bulma-navbar-dropdown-border-style`, `--bulma-navbar-dropdown-border-width`
-- `--bulma-navbar-dropdown-offset`, `--bulma-navbar-dropdown-arrow`
-- `--bulma-navbar-dropdown-radius`, `--bulma-navbar-dropdown-z`
-- `--bulma-navbar-dropdown-boxed-radius`, `--bulma-navbar-dropdown-boxed-shadow`
-- `--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`
-- `--bulma-navbar-dropdown-item-l`, `--bulma-navbar-dropdown-item-background-l`
-- `--bulma-navbar-dropdown-item-color-l`, `--bulma-navbar-divider-background-l`
-- `--bulma-navbar-divider-height`, `--bulma-navbar-bottom-box-shadow-size`
-
-**Notification Variables:**
-
-- `--bestax-notification-h`, `--bestax-notification-s`, `--bestax-notification-background-l`
-- `--bestax-notification-color-l`, `--bestax-notification-code-background-color`
-- `--bestax-notification-radius`, `--bestax-notification-padding`
-
-**Pagination Variables:**
-
-- `--bulma-pagination-margin`, `--bulma-pagination-min-width`
-- `--bulma-pagination-item-h`, `--bulma-pagination-item-s`, `--bulma-pagination-item-l`
-- `--bulma-pagination-item-background-l-delta`, `--bulma-pagination-item-hover-background-l-delta`
-- `--bulma-pagination-item-active-background-l-delta`, `--bulma-pagination-item-border-style`
-- `--bulma-pagination-item-border-width`, `--bulma-pagination-item-border-l`
-- `--bulma-pagination-item-border-l-delta`, `--bulma-pagination-item-hover-border-l-delta`
-- `--bulma-pagination-item-active-border-l-delta`, `--bulma-pagination-item-focus-border-l-delta`
-- `--bulma-pagination-item-color-l`, `--bulma-pagination-item-font-size`
-- `--bulma-pagination-item-margin`, `--bulma-pagination-item-padding-left`
-- `--bulma-pagination-item-padding-right`, `--bulma-pagination-item-outer-shadow-h`
-- `--bulma-pagination-item-outer-shadow-s`, `--bulma-pagination-item-outer-shadow-l`
-- `--bulma-pagination-item-outer-shadow-a`, `--bulma-pagination-nav-padding-left`
-- `--bulma-pagination-nav-padding-right`, `--bulma-pagination-disabled-color`
-- `--bulma-pagination-disabled-background-color`, `--bulma-pagination-disabled-border-color`
-- `--bulma-pagination-current-color`, `--bulma-pagination-current-background-color`
-- `--bulma-pagination-current-border-color`, `--bulma-pagination-ellipsis-color`
-- `--bulma-pagination-shadow-inset`, `--bulma-pagination-selected-item-h`
-- `--bulma-pagination-selected-item-s`, `--bulma-pagination-selected-item-l`
-- `--bulma-pagination-selected-item-background-l`, `--bulma-pagination-selected-item-border-l`
-- `--bulma-pagination-selected-item-color-l`
-
-**Panel Variables:**
-
-- `--bulma-panel-margin`, `--bulma-panel-item-border`, `--bulma-panel-radius`, `--bulma-panel-shadow`
-- `--bulma-panel-heading-line-height`, `--bulma-panel-heading-padding`, `--bulma-panel-heading-radius`
-- `--bulma-panel-heading-size`, `--bulma-panel-heading-weight`, `--bulma-panel-tabs-font-size`
-- `--bulma-panel-tab-border-bottom-color`, `--bulma-panel-tab-border-bottom-style`
-- `--bulma-panel-tab-border-bottom-width`, `--bulma-panel-tab-active-color`
-- `--bulma-panel-list-item-color`, `--bulma-panel-list-item-hover-color`
-- `--bulma-panel-block-color`, `--bulma-panel-block-hover-background-color`
-- `--bulma-panel-block-active-border-left-color`, `--bulma-panel-block-active-color`
-- `--bulma-panel-block-active-icon-color`, `--bulma-panel-icon-color`
-
-**Progress Variables:**
-
-- `--bulma-progress-border-radius`, `--bulma-progress-bar-background-color`
-- `--bulma-progress-value-background-color`, `--bulma-progress-indeterminate-duration`
-
-**Skeleton Variables:**
-
-- `--bulma-skeleton-background`, `--bulma-skeleton-radius`, `--bulma-skeleton-block-min-height`
-- `--bulma-skeleton-lines-gap`, `--bulma-skeleton-line-height`
-
-**Table Variables:**
-
-- `--bulma-table-color`, `--bulma-table-background-color`, `--bulma-table-cell-border-color`
-- `--bulma-table-cell-border-style`, `--bulma-table-cell-border-width`, `--bulma-table-cell-padding`
-- `--bulma-table-cell-heading-color`, `--bulma-table-cell-text-align`
-- `--bulma-table-head-cell-border-width`, `--bulma-table-head-cell-color`
-- `--bulma-table-foot-cell-border-width`, `--bulma-table-foot-cell-color`
-- `--bulma-table-head-background-color`, `--bulma-table-body-background-color`
-- `--bulma-table-foot-background-color`, `--bulma-table-row-hover-background-color`
-- `--bulma-table-row-active-background-color`, `--bulma-table-row-active-color`
-- `--bulma-table-striped-row-even-background-color`, `--bulma-table-striped-row-even-hover-background-color`
-
-**Tabs Variables:**
-
-- `--bulma-tabs-border-bottom-color`, `--bulma-tabs-border-bottom-style`, `--bulma-tabs-border-bottom-width`
-- `--bulma-tabs-link-color`, `--bulma-tabs-link-hover-border-bottom-color`, `--bulma-tabs-link-hover-color`
-- `--bulma-tabs-link-active-border-bottom-color`, `--bulma-tabs-link-active-color`, `--bulma-tabs-link-padding`
-- `--bulma-tabs-boxed-link-radius`, `--bulma-tabs-boxed-link-hover-background-color`
-- `--bulma-tabs-boxed-link-hover-border-bottom-color`, `--bulma-tabs-boxed-link-active-background-color`
-- `--bulma-tabs-boxed-link-active-border-color`, `--bulma-tabs-boxed-link-active-border-bottom-color`
-- `--bulma-tabs-toggle-link-border-color`, `--bulma-tabs-toggle-link-border-style`
-- `--bulma-tabs-toggle-link-border-width`, `--bulma-tabs-toggle-link-hover-background-color`
-- `--bulma-tabs-toggle-link-hover-border-color`, `--bulma-tabs-toggle-link-radius`
-- `--bulma-tabs-toggle-link-active-background-color`, `--bulma-tabs-toggle-link-active-border-color`
-- `--bulma-tabs-toggle-link-active-color`
-
-**Tag Variables:**
-
-- `--bulma-tag-h`, `--bulma-tag-s`, `--bulma-tag-background-l`, `--bulma-tag-background-l-delta`
-- `--bulma-tag-hover-background-l-delta`, `--bulma-tag-active-background-l-delta`
-- `--bulma-tag-color-l`, `--bulma-tag-radius`, `--bulma-tag-delete-margin`
-
-**Title & Subtitle Variables:**
-
-- `--bestax-title-color`, `--bestax-title-family`, `--bestax-title-size`, `--bestax-title-weight`
-- `--bestax-title-line-height`, `--bestax-title-strong-color`, `--bestax-title-strong-weight`
-- `--bestax-title-sub-size`, `--bestax-title-sup-size`
-- `--bulma-subtitle-color`, `--bulma-subtitle-family`, `--bulma-subtitle-size`, `--bulma-subtitle-weight`
-- `--bulma-subtitle-line-height`, `--bulma-subtitle-strong-color`, `--bulma-subtitle-strong-weight`
-
-**Content Variables:**
-
-- `--bulma-content-heading-color`, `--bulma-content-heading-weight`, `--bulma-content-heading-line-height`
-- `--bulma-content-block-margin-bottom`, `--bulma-content-blockquote-background-color`
-- `--bulma-content-blockquote-border-left`, `--bulma-content-blockquote-padding`, `--bulma-content-pre-padding`
-- `--bulma-content-table-cell-border`, `--bulma-content-table-cell-border-width`
-- `--bulma-content-table-cell-padding`, `--bulma-content-table-cell-heading-color`
-- `--bulma-content-table-head-cell-border-width`, `--bulma-content-table-head-cell-color`
-- `--bulma-content-table-body-last-row-cell-border-bottom-width`
-- `--bulma-content-table-foot-cell-border-width`, `--bulma-content-table-foot-cell-color`
-
-**Control Variables:**
-
-- `--bulma-control-radius`, `--bulma-control-radius-small`, `--bulma-control-border-width`
-- `--bulma-control-height`, `--bulma-control-line-height`, `--bulma-control-padding-vertical`
-- `--bulma-control-padding-horizontal`, `--bulma-control-size`, `--bulma-control-focus-shadow-l`
-
-**Delete Variables:**
-
-- `--bulma-delete-dimensions`, `--bulma-delete-background-l`, `--bulma-delete-background-alpha`
-- `--bulma-delete-color`
-
-**File Variables:**
-
-- `--bulma-file-radius`, `--bulma-file-name-border-color`, `--bulma-file-name-border-style`
-- `--bulma-file-name-border-width`, `--bulma-file-name-max-width`
-- `--bulma-file-h`, `--bulma-file-s`, `--bulma-file-background-l`, `--bulma-file-background-l-delta`
-- `--bulma-file-hover-background-l-delta`, `--bulma-file-active-background-l-delta`
-- `--bulma-file-border-l`, `--bulma-file-border-l-delta`, `--bulma-file-hover-border-l-delta`
-- `--bulma-file-active-border-l-delta`, `--bulma-file-cta-color-l`, `--bulma-file-name-color-l`
-- `--bulma-file-color-l-delta`, `--bulma-file-hover-color-l-delta`, `--bulma-file-active-color-l-delta`
-
-**Footer Variables:**
-
-- `--bulma-footer-background-color`, `--bulma-footer-color`, `--bulma-footer-padding`
-
-**Hero Variables:**
-
-- `--bulma-hero-body-padding`, `--bulma-hero-body-padding-tablet`, `--bulma-hero-body-padding-small`
-- `--bulma-hero-body-padding-medium`, `--bulma-hero-body-padding-large`
-
-**Icon Variables:**
-
-- `--bulma-icon-dimensions`, `--bulma-icon-dimensions-small`, `--bulma-icon-dimensions-medium`
-- `--bulma-icon-dimensions-large`, `--bulma-icon-text-spacing`
-
-**Media Variables:**
-
-- `--bulma-media-border-color`, `--bulma-media-border-size`, `--bulma-media-spacing`
-- `--bulma-media-spacing-large`, `--bulma-media-content-spacing`, `--bulma-media-level-1-spacing`
-- `--bulma-media-level-1-content-spacing`, `--bulma-media-level-2-spacing`
-
-**Section Variables:**
-
-- `--bulma-section-padding`, `--bulma-section-padding-desktop`, `--bulma-section-padding-medium`
-- `--bulma-section-padding-large`
-
-**Burger Variables:**
-
-- `--bulma-burger-h`, `--bulma-burger-s`, `--bulma-burger-l`, `--bulma-burger-border-radius`
-- `--bulma-burger-gap`, `--bulma-burger-item-height`, `--bulma-burger-item-width`
-
-The Theme component also supports all [Bulma helper class props](./usebulmaclasses.md) for styling the wrapper element.
-
----
-
 ## Usage
 
 ### Basic Theme Customization
@@ -1017,3 +667,353 @@ All props are fully typed in TypeScript. Use IDE autocomplete to discover availa
 - [ConfigProvider](./config.md) - For class prefixing and configuration
 - [useBulmaClasses](./usebulmaclasses.md) - For applying Bulma helper classes
 - [Bulma CSS Variables Documentation](https://bulma.io/documentation/features/css-variables/) - Official Bulma CSS variables reference
+
+---
+
+## Props
+
+| Prop        | Type                            | Description                                                                                                                                                                                                                                               |
+| ----------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                     | The child components to apply the theme to.                                                                                                                                                                                                               |
+| `className` | `string`                        | Additional CSS classes for the theme wrapper.                                                                                                                                                                                                             |
+| `isRoot`    | `boolean`                       | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div.                                                                                                                          |
+| `colorMode` | `'light' \| 'dark' \| 'system'` | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
+| `bulmaVars` | `Record<string, string>`        | Object containing CSS custom properties as key-value pairs (e.g., `{'--bulma-primary-h': '210'}`).                                                                                                                                                        |
+
+### CSS Variable Props
+
+The Theme component accepts individual CSS variable props that correspond to Bulma's design tokens. These props are automatically converted to their corresponding CSS custom properties (e.g., `primaryH` → `--bulma-primary-h`).
+
+#### Scheme Variables
+
+| Prop                     | Type     | Description                                       | CSS Variable                        |
+| ------------------------ | -------- | ------------------------------------------------- | ----------------------------------- |
+| `schemeH`                | `string` | Base hue for the color scheme (0-360)             | `--bulma-scheme-h`                  |
+| `schemeS`                | `string` | Base saturation for the color scheme (percentage) | `--bulma-scheme-s`                  |
+| `lightL`                 | `string` | Lightness value for light backgrounds             | `--bulma-light-l`                   |
+| `lightInvertL`           | `string` | Inverted lightness for light backgrounds          | `--bulma-light-invert-l`            |
+| `darkL`                  | `string` | Lightness value for dark backgrounds              | `--bulma-dark-l`                    |
+| `darkInvertL`            | `string` | Inverted lightness for dark backgrounds           | `--bulma-dark-invert-l`             |
+| `softL`                  | `string` | Lightness value for soft colors                   | `--bulma-soft-l`                    |
+| `boldL`                  | `string` | Lightness value for bold colors                   | `--bulma-bold-l`                    |
+| `softInvertL`            | `string` | Inverted lightness for soft colors                | `--bulma-soft-invert-l`             |
+| `boldInvertL`            | `string` | Inverted lightness for bold colors                | `--bulma-bold-invert-l`             |
+| `hoverBackgroundLDelta`  | `string` | Lightness delta for hover background states       | `--bulma-hover-background-l-delta`  |
+| `activeBackgroundLDelta` | `string` | Lightness delta for active background states      | `--bulma-active-background-l-delta` |
+| `hoverBorderLDelta`      | `string` | Lightness delta for hover border states           | `--bulma-hover-border-l-delta`      |
+| `activeBorderLDelta`     | `string` | Lightness delta for active border states          | `--bulma-active-border-l-delta`     |
+| `hoverColorLDelta`       | `string` | Lightness delta for hover text color states       | `--bulma-hover-color-l-delta`       |
+| `activeColorLDelta`      | `string` | Lightness delta for active text color states      | `--bulma-active-color-l-delta`      |
+| `hoverShadowADelta`      | `string` | Alpha delta for hover shadow states               | `--bulma-hover-shadow-a-delta`      |
+| `activeShadowADelta`     | `string` | Alpha delta for active shadow states              | `--bulma-active-shadow-a-delta`     |
+
+#### Color Variables
+
+| Prop       | Type     | Description                           | CSS Variable        |
+| ---------- | -------- | ------------------------------------- | ------------------- |
+| `primaryH` | `string` | Primary color hue (0-360)             | `--bulma-primary-h` |
+| `primaryS` | `string` | Primary color saturation (percentage) | `--bulma-primary-s` |
+| `primaryL` | `string` | Primary color lightness (percentage)  | `--bulma-primary-l` |
+| `linkH`    | `string` | Link color hue (0-360)                | `--bulma-link-h`    |
+| `linkS`    | `string` | Link color saturation (percentage)    | `--bulma-link-s`    |
+| `linkL`    | `string` | Link color lightness (percentage)     | `--bulma-link-l`    |
+| `infoH`    | `string` | Info color hue (0-360)                | `--bulma-info-h`    |
+| `infoS`    | `string` | Info color saturation (percentage)    | `--bulma-info-s`    |
+| `infoL`    | `string` | Info color lightness (percentage)     | `--bulma-info-l`    |
+| `successH` | `string` | Success color hue (0-360)             | `--bulma-success-h` |
+| `successS` | `string` | Success color saturation (percentage) | `--bulma-success-s` |
+| `successL` | `string` | Success color lightness (percentage)  | `--bulma-success-l` |
+| `warningH` | `string` | Warning color hue (0-360)             | `--bulma-warning-h` |
+| `warningS` | `string` | Warning color saturation (percentage) | `--bulma-warning-s` |
+| `warningL` | `string` | Warning color lightness (percentage)  | `--bulma-warning-l` |
+| `dangerH`  | `string` | Danger color hue (0-360)              | `--bulma-danger-h`  |
+| `dangerS`  | `string` | Danger color saturation (percentage)  | `--bulma-danger-s`  |
+| `dangerL`  | `string` | Danger color lightness (percentage)   | `--bulma-danger-l`  |
+
+#### Complete CSS Variables List
+
+The Theme component supports all 500+ Bulma CSS variables through the `bulmaVars` prop and individual props:
+
+**Typography Variables:**
+
+- `--bulma-family-primary`, `--bulma-family-secondary`, `--bulma-family-code`
+- `--bulma-size-small`, `--bulma-size-normal`, `--bulma-size-medium`, `--bulma-size-large`
+- `--bulma-weight-light`, `--bulma-weight-normal`, `--bulma-weight-medium`, `--bulma-weight-semibold`, `--bulma-weight-bold`, `--bulma-weight-extrabold`
+- `--bulma-body-background-color`, `--bulma-body-size`, `--bulma-body-min-width`, `--bulma-body-rendering`
+- `--bulma-body-family`, `--bulma-body-overflow-x`, `--bulma-body-overflow-y`, `--bulma-body-color`
+- `--bulma-body-font-size`, `--bulma-body-weight`, `--bulma-body-line-height`
+- `--bulma-code-family`, `--bulma-code-padding`, `--bulma-code-weight`, `--bulma-code-size`
+- `--bulma-small-font-size`, `--bulma-hr-background-color`, `--bulma-hr-height`, `--bulma-hr-margin`
+- `--bulma-strong-color`, `--bulma-strong-weight`, `--bulma-pre-font-size`, `--bulma-pre-padding`, `--bulma-pre-code-font-size`
+
+**Layout & Spacing Variables:**
+
+- `--bulma-block-spacing`, `--bulma-duration`, `--bulma-easing`, `--bulma-speed`
+- `--bulma-radius-small`, `--bulma-radius`, `--bulma-radius-medium`, `--bulma-radius-large`, `--bulma-radius-rounded`
+- `--bulma-arrow-color`, `--bulma-loading-color`
+- `--bulma-column-gap`, `--bulma-grid-gap`, `--bulma-grid-column-count`, `--bulma-grid-column-min`
+- `--bulma-grid-cell-column-span`, `--bulma-grid-cell-column-start`
+
+**Box Variables:**
+
+- `--bestax-box-background-color`, `--bestax-box-color`, `--bestax-box-radius`, `--bestax-box-shadow`
+- `--bestax-box-padding`, `--bestax-box-link-hover-shadow`, `--bestax-box-link-active-shadow`
+
+**Breadcrumb Variables:**
+
+- `--bulma-breadcrumb-item-color`, `--bulma-breadcrumb-item-hover-color`, `--bulma-breadcrumb-item-active-color`
+- `--bulma-breadcrumb-item-padding-vertical`, `--bulma-breadcrumb-item-padding-horizontal`
+- `--bulma-breadcrumb-item-separator-color`
+
+**Card Variables:**
+
+- `--bestax-card-color`, `--bestax-card-background-color`, `--bestax-card-shadow`, `--bestax-card-radius`
+- `--bestax-card-header-background-color`, `--bestax-card-header-color`, `--bestax-card-header-padding`
+- `--bestax-card-header-shadow`, `--bestax-card-header-weight`
+- `--bestax-card-content-background-color`, `--bestax-card-content-padding`
+- `--bestax-card-footer-background-color`, `--bestax-card-footer-border-top`, `--bestax-card-footer-padding`
+- `--bestax-card-media-margin`
+
+**Dropdown Variables:**
+
+- `--bulma-dropdown-menu-min-width`, `--bulma-dropdown-content-background-color`
+- `--bulma-dropdown-content-offset`, `--bulma-dropdown-content-padding-bottom`
+- `--bulma-dropdown-content-padding-top`, `--bulma-dropdown-content-radius`
+- `--bulma-dropdown-content-shadow`, `--bulma-dropdown-content-z`
+- `--bulma-dropdown-item-h`, `--bulma-dropdown-item-s`, `--bulma-dropdown-item-l`
+- `--bulma-dropdown-item-background-l`, `--bulma-dropdown-item-background-l-delta`
+- `--bulma-dropdown-item-hover-background-l-delta`, `--bulma-dropdown-item-active-background-l-delta`
+- `--bulma-dropdown-item-color-l`, `--bulma-dropdown-item-selected-h`
+- `--bulma-dropdown-item-selected-s`, `--bulma-dropdown-item-selected-l`
+- `--bulma-dropdown-item-selected-background-l`, `--bulma-dropdown-item-selected-color-l`
+- `--bulma-dropdown-divider-background-color`
+
+**Input Variables:**
+
+- `--bulma-input-h`, `--bulma-input-s`, `--bulma-input-l`, `--bulma-input-border-style`
+- `--bulma-input-border-l`, `--bulma-input-border-l-delta`, `--bulma-input-hover-border-l-delta`
+- `--bulma-input-active-border-l-delta`, `--bulma-input-focus-h`, `--bulma-input-focus-s`
+- `--bulma-input-focus-l`, `--bulma-input-focus-shadow-size`, `--bulma-input-focus-shadow-alpha`
+- `--bulma-input-color-l`, `--bulma-input-background-l`, `--bulma-input-background-l-delta`
+- `--bulma-input-height`, `--bulma-input-shadow`, `--bulma-input-placeholder-color`
+- `--bulma-input-disabled-color`, `--bulma-input-disabled-background-color`
+- `--bulma-input-disabled-border-color`, `--bulma-input-disabled-placeholder-color`
+- `--bulma-input-arrow`, `--bulma-input-icon-color`, `--bulma-input-icon-hover-color`
+- `--bulma-input-icon-focus-color`, `--bulma-input-radius`
+
+**Menu Variables:**
+
+- `--bulma-menu-item-h`, `--bulma-menu-item-s`, `--bulma-menu-item-l`
+- `--bulma-menu-item-background-l`, `--bulma-menu-item-background-l-delta`
+- `--bulma-menu-item-hover-background-l-delta`, `--bulma-menu-item-active-background-l-delta`
+- `--bulma-menu-item-color-l`, `--bulma-menu-item-radius`
+- `--bulma-menu-item-selected-h`, `--bulma-menu-item-selected-s`, `--bulma-menu-item-selected-l`
+- `--bulma-menu-item-selected-background-l`, `--bulma-menu-item-selected-color-l`
+- `--bulma-menu-list-border-left`, `--bulma-menu-list-line-height`, `--bulma-menu-list-link-padding`
+- `--bulma-menu-nested-list-margin`, `--bulma-menu-nested-list-padding-left`
+- `--bulma-menu-label-color`, `--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`
+- `--bulma-menu-label-spacing`
+
+**Message Variables:**
+
+- `--bulma-message-h`, `--bulma-message-s`, `--bulma-message-background-l`
+- `--bulma-message-border-l`, `--bulma-message-border-l-delta`, `--bulma-message-border-style`
+- `--bulma-message-border-width`, `--bulma-message-color-l`, `--bulma-message-radius`
+- `--bulma-message-header-weight`, `--bulma-message-header-padding`, `--bulma-message-header-radius`
+- `--bulma-message-header-body-border-width`, `--bulma-message-header-background-l`
+- `--bulma-message-header-color-l`, `--bulma-message-body-border-width`
+- `--bulma-message-body-color`, `--bulma-message-body-padding`, `--bulma-message-body-radius`
+- `--bulma-message-body-pre-code-background-color`
+
+**Modal Variables:**
+
+- `--bulma-modal-z`, `--bulma-modal-background-background-color`, `--bulma-modal-content-width`
+- `--bulma-modal-content-margin-mobile`, `--bulma-modal-content-spacing-mobile`
+- `--bulma-modal-content-spacing-tablet`, `--bulma-modal-close-dimensions`
+- `--bulma-modal-close-right`, `--bulma-modal-close-top`, `--bulma-modal-card-spacing`
+- `--bulma-modal-card-head-background-color`, `--bulma-modal-card-head-padding`
+- `--bulma-modal-card-head-radius`, `--bulma-modal-card-title-color`
+- `--bulma-modal-card-title-line-height`, `--bulma-modal-card-title-size`
+- `--bulma-modal-card-foot-background-color`, `--bulma-modal-card-foot-radius`
+- `--bulma-modal-card-body-background-color`, `--bulma-modal-card-body-padding`
+
+**Navbar Variables:**
+
+- `--bulma-navbar-h`, `--bulma-navbar-s`, `--bulma-navbar-l`, `--bulma-navbar-background-color`
+- `--bulma-navbar-box-shadow-size`, `--bulma-navbar-box-shadow-color`
+- `--bulma-navbar-padding-vertical`, `--bulma-navbar-padding-horizontal`
+- `--bulma-navbar-z`, `--bulma-navbar-fixed-z`, `--bulma-navbar-item-background-a`
+- `--bulma-navbar-item-background-l`, `--bulma-navbar-item-background-l-delta`
+- `--bulma-navbar-item-hover-background-l-delta`, `--bulma-navbar-item-active-background-l-delta`
+- `--bulma-navbar-item-color-l`, `--bulma-navbar-item-selected-h`
+- `--bulma-navbar-item-selected-s`, `--bulma-navbar-item-selected-l`
+- `--bulma-navbar-item-selected-background-l`, `--bulma-navbar-item-selected-color-l`
+- `--bulma-navbar-item-img-max-height`, `--bulma-navbar-burger-color`
+- `--bulma-navbar-tab-hover-background-color`, `--bulma-navbar-tab-hover-border-bottom-color`
+- `--bulma-navbar-tab-active-color`, `--bulma-navbar-tab-active-background-color`
+- `--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-border-bottom-style`
+- `--bulma-navbar-tab-active-border-bottom-width`, `--bulma-navbar-dropdown-background-color`
+- `--bulma-navbar-dropdown-border-l`, `--bulma-navbar-dropdown-border-color`
+- `--bulma-navbar-dropdown-border-style`, `--bulma-navbar-dropdown-border-width`
+- `--bulma-navbar-dropdown-offset`, `--bulma-navbar-dropdown-arrow`
+- `--bulma-navbar-dropdown-radius`, `--bulma-navbar-dropdown-z`
+- `--bulma-navbar-dropdown-boxed-radius`, `--bulma-navbar-dropdown-boxed-shadow`
+- `--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`
+- `--bulma-navbar-dropdown-item-l`, `--bulma-navbar-dropdown-item-background-l`
+- `--bulma-navbar-dropdown-item-color-l`, `--bulma-navbar-divider-background-l`
+- `--bulma-navbar-divider-height`, `--bulma-navbar-bottom-box-shadow-size`
+
+**Notification Variables:**
+
+- `--bestax-notification-h`, `--bestax-notification-s`, `--bestax-notification-background-l`
+- `--bestax-notification-color-l`, `--bestax-notification-code-background-color`
+- `--bestax-notification-radius`, `--bestax-notification-padding`
+
+**Pagination Variables:**
+
+- `--bulma-pagination-margin`, `--bulma-pagination-min-width`
+- `--bulma-pagination-item-h`, `--bulma-pagination-item-s`, `--bulma-pagination-item-l`
+- `--bulma-pagination-item-background-l-delta`, `--bulma-pagination-item-hover-background-l-delta`
+- `--bulma-pagination-item-active-background-l-delta`, `--bulma-pagination-item-border-style`
+- `--bulma-pagination-item-border-width`, `--bulma-pagination-item-border-l`
+- `--bulma-pagination-item-border-l-delta`, `--bulma-pagination-item-hover-border-l-delta`
+- `--bulma-pagination-item-active-border-l-delta`, `--bulma-pagination-item-focus-border-l-delta`
+- `--bulma-pagination-item-color-l`, `--bulma-pagination-item-font-size`
+- `--bulma-pagination-item-margin`, `--bulma-pagination-item-padding-left`
+- `--bulma-pagination-item-padding-right`, `--bulma-pagination-item-outer-shadow-h`
+- `--bulma-pagination-item-outer-shadow-s`, `--bulma-pagination-item-outer-shadow-l`
+- `--bulma-pagination-item-outer-shadow-a`, `--bulma-pagination-nav-padding-left`
+- `--bulma-pagination-nav-padding-right`, `--bulma-pagination-disabled-color`
+- `--bulma-pagination-disabled-background-color`, `--bulma-pagination-disabled-border-color`
+- `--bulma-pagination-current-color`, `--bulma-pagination-current-background-color`
+- `--bulma-pagination-current-border-color`, `--bulma-pagination-ellipsis-color`
+- `--bulma-pagination-shadow-inset`, `--bulma-pagination-selected-item-h`
+- `--bulma-pagination-selected-item-s`, `--bulma-pagination-selected-item-l`
+- `--bulma-pagination-selected-item-background-l`, `--bulma-pagination-selected-item-border-l`
+- `--bulma-pagination-selected-item-color-l`
+
+**Panel Variables:**
+
+- `--bulma-panel-margin`, `--bulma-panel-item-border`, `--bulma-panel-radius`, `--bulma-panel-shadow`
+- `--bulma-panel-heading-line-height`, `--bulma-panel-heading-padding`, `--bulma-panel-heading-radius`
+- `--bulma-panel-heading-size`, `--bulma-panel-heading-weight`, `--bulma-panel-tabs-font-size`
+- `--bulma-panel-tab-border-bottom-color`, `--bulma-panel-tab-border-bottom-style`
+- `--bulma-panel-tab-border-bottom-width`, `--bulma-panel-tab-active-color`
+- `--bulma-panel-list-item-color`, `--bulma-panel-list-item-hover-color`
+- `--bulma-panel-block-color`, `--bulma-panel-block-hover-background-color`
+- `--bulma-panel-block-active-border-left-color`, `--bulma-panel-block-active-color`
+- `--bulma-panel-block-active-icon-color`, `--bulma-panel-icon-color`
+
+**Progress Variables:**
+
+- `--bulma-progress-border-radius`, `--bulma-progress-bar-background-color`
+- `--bulma-progress-value-background-color`, `--bulma-progress-indeterminate-duration`
+
+**Skeleton Variables:**
+
+- `--bulma-skeleton-background`, `--bulma-skeleton-radius`, `--bulma-skeleton-block-min-height`
+- `--bulma-skeleton-lines-gap`, `--bulma-skeleton-line-height`
+
+**Table Variables:**
+
+- `--bulma-table-color`, `--bulma-table-background-color`, `--bulma-table-cell-border-color`
+- `--bulma-table-cell-border-style`, `--bulma-table-cell-border-width`, `--bulma-table-cell-padding`
+- `--bulma-table-cell-heading-color`, `--bulma-table-cell-text-align`
+- `--bulma-table-head-cell-border-width`, `--bulma-table-head-cell-color`
+- `--bulma-table-foot-cell-border-width`, `--bulma-table-foot-cell-color`
+- `--bulma-table-head-background-color`, `--bulma-table-body-background-color`
+- `--bulma-table-foot-background-color`, `--bulma-table-row-hover-background-color`
+- `--bulma-table-row-active-background-color`, `--bulma-table-row-active-color`
+- `--bulma-table-striped-row-even-background-color`, `--bulma-table-striped-row-even-hover-background-color`
+
+**Tabs Variables:**
+
+- `--bulma-tabs-border-bottom-color`, `--bulma-tabs-border-bottom-style`, `--bulma-tabs-border-bottom-width`
+- `--bulma-tabs-link-color`, `--bulma-tabs-link-hover-border-bottom-color`, `--bulma-tabs-link-hover-color`
+- `--bulma-tabs-link-active-border-bottom-color`, `--bulma-tabs-link-active-color`, `--bulma-tabs-link-padding`
+- `--bulma-tabs-boxed-link-radius`, `--bulma-tabs-boxed-link-hover-background-color`
+- `--bulma-tabs-boxed-link-hover-border-bottom-color`, `--bulma-tabs-boxed-link-active-background-color`
+- `--bulma-tabs-boxed-link-active-border-color`, `--bulma-tabs-boxed-link-active-border-bottom-color`
+- `--bulma-tabs-toggle-link-border-color`, `--bulma-tabs-toggle-link-border-style`
+- `--bulma-tabs-toggle-link-border-width`, `--bulma-tabs-toggle-link-hover-background-color`
+- `--bulma-tabs-toggle-link-hover-border-color`, `--bulma-tabs-toggle-link-radius`
+- `--bulma-tabs-toggle-link-active-background-color`, `--bulma-tabs-toggle-link-active-border-color`
+- `--bulma-tabs-toggle-link-active-color`
+
+**Tag Variables:**
+
+- `--bulma-tag-h`, `--bulma-tag-s`, `--bulma-tag-background-l`, `--bulma-tag-background-l-delta`
+- `--bulma-tag-hover-background-l-delta`, `--bulma-tag-active-background-l-delta`
+- `--bulma-tag-color-l`, `--bulma-tag-radius`, `--bulma-tag-delete-margin`
+
+**Title & Subtitle Variables:**
+
+- `--bestax-title-color`, `--bestax-title-family`, `--bestax-title-size`, `--bestax-title-weight`
+- `--bestax-title-line-height`, `--bestax-title-strong-color`, `--bestax-title-strong-weight`
+- `--bestax-title-sub-size`, `--bestax-title-sup-size`
+- `--bulma-subtitle-color`, `--bulma-subtitle-family`, `--bulma-subtitle-size`, `--bulma-subtitle-weight`
+- `--bulma-subtitle-line-height`, `--bulma-subtitle-strong-color`, `--bulma-subtitle-strong-weight`
+
+**Content Variables:**
+
+- `--bulma-content-heading-color`, `--bulma-content-heading-weight`, `--bulma-content-heading-line-height`
+- `--bulma-content-block-margin-bottom`, `--bulma-content-blockquote-background-color`
+- `--bulma-content-blockquote-border-left`, `--bulma-content-blockquote-padding`, `--bulma-content-pre-padding`
+- `--bulma-content-table-cell-border`, `--bulma-content-table-cell-border-width`
+- `--bulma-content-table-cell-padding`, `--bulma-content-table-cell-heading-color`
+- `--bulma-content-table-head-cell-border-width`, `--bulma-content-table-head-cell-color`
+- `--bulma-content-table-body-last-row-cell-border-bottom-width`
+- `--bulma-content-table-foot-cell-border-width`, `--bulma-content-table-foot-cell-color`
+
+**Control Variables:**
+
+- `--bulma-control-radius`, `--bulma-control-radius-small`, `--bulma-control-border-width`
+- `--bulma-control-height`, `--bulma-control-line-height`, `--bulma-control-padding-vertical`
+- `--bulma-control-padding-horizontal`, `--bulma-control-size`, `--bulma-control-focus-shadow-l`
+
+**Delete Variables:**
+
+- `--bulma-delete-dimensions`, `--bulma-delete-background-l`, `--bulma-delete-background-alpha`
+- `--bulma-delete-color`
+
+**File Variables:**
+
+- `--bulma-file-radius`, `--bulma-file-name-border-color`, `--bulma-file-name-border-style`
+- `--bulma-file-name-border-width`, `--bulma-file-name-max-width`
+- `--bulma-file-h`, `--bulma-file-s`, `--bulma-file-background-l`, `--bulma-file-background-l-delta`
+- `--bulma-file-hover-background-l-delta`, `--bulma-file-active-background-l-delta`
+- `--bulma-file-border-l`, `--bulma-file-border-l-delta`, `--bulma-file-hover-border-l-delta`
+- `--bulma-file-active-border-l-delta`, `--bulma-file-cta-color-l`, `--bulma-file-name-color-l`
+- `--bulma-file-color-l-delta`, `--bulma-file-hover-color-l-delta`, `--bulma-file-active-color-l-delta`
+
+**Footer Variables:**
+
+- `--bulma-footer-background-color`, `--bulma-footer-color`, `--bulma-footer-padding`
+
+**Hero Variables:**
+
+- `--bulma-hero-body-padding`, `--bulma-hero-body-padding-tablet`, `--bulma-hero-body-padding-small`
+- `--bulma-hero-body-padding-medium`, `--bulma-hero-body-padding-large`
+
+**Icon Variables:**
+
+- `--bulma-icon-dimensions`, `--bulma-icon-dimensions-small`, `--bulma-icon-dimensions-medium`
+- `--bulma-icon-dimensions-large`, `--bulma-icon-text-spacing`
+
+**Media Variables:**
+
+- `--bulma-media-border-color`, `--bulma-media-border-size`, `--bulma-media-spacing`
+- `--bulma-media-spacing-large`, `--bulma-media-content-spacing`, `--bulma-media-level-1-spacing`
+- `--bulma-media-level-1-content-spacing`, `--bulma-media-level-2-spacing`
+
+**Section Variables:**
+
+- `--bulma-section-padding`, `--bulma-section-padding-desktop`, `--bulma-section-padding-medium`
+- `--bulma-section-padding-large`
+
+**Burger Variables:**
+
+- `--bulma-burger-h`, `--bulma-burger-s`, `--bulma-burger-l`, `--bulma-burger-border-radius`
+- `--bulma-burger-gap`, `--bulma-burger-item-height`, `--bulma-burger-item-width`
+
+The Theme component also supports all [Bulma helper class props](./usebulmaclasses.md) for styling the wrapper element.

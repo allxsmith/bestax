@@ -39,6 +39,7 @@ import { registerVarsKeys } from './lib/scss-vars.mjs';
 import { readRegions, sectionSpans } from './lib/api-page.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
+  ORDERED_CATEGORIES,
   MANAGED_CATEGORIES,
   GENERATED_EXEMPT,
   SCSS_SOURCES,
@@ -308,7 +309,14 @@ const SECTION_RANK = {
 };
 const UNKNOWN_SECTION_RANK = 3;
 
-function managedPages(rel) {
+// Order applies to every reference page; generation only to pages that really
+// are a component props table. Keeping these separate is what lets helpers/
+// share the canonical section order without growing markers it cannot fill.
+function orderedPage(rel) {
+  return ORDERED_CATEGORIES.has(rel.split('/')[0]);
+}
+
+function managedPage(rel) {
   const cat = rel.split('/')[0];
   return (
     MANAGED_CATEGORIES.has(cat) &&
@@ -323,26 +331,29 @@ async function checkDocsSectionOrder() {
   const violations = [];
   for (const file of await mdFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
-    if (!managedPages(rel)) continue;
+    if (!orderedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
     const title = frontmatterTitle(src);
 
+    // Only the CANONICAL sections are ordered relative to each other. Sections
+    // the house format does not name (`## API`, `## Supported Props`, `## Notes`)
+    // keep whatever position their author chose — constraining them would flag
+    // helpers pages, whose `## API` legitimately precedes `## Usage`.
     const { sections } = sectionSpans(src);
-    const ranked = sections.map(
-      s => SECTION_RANK[s.heading] ?? UNKNOWN_SECTION_RANK
-    );
-    for (let i = 1; i < ranked.length; i++) {
-      if (ranked[i] < ranked[i - 1]) {
+    const known = sections.filter(s => SECTION_RANK[s.heading] !== undefined);
+    for (let i = 1; i < known.length; i++) {
+      if (SECTION_RANK[known[i].heading] < SECTION_RANK[known[i - 1].heading]) {
         violations.push(
-          `docs/docs/api/${rel} has "## ${sections[i].heading}" after ` +
-            `"## ${sections[i - 1].heading}". Managed pages run Overview, ` +
-            `Import, Usage, …, Accessibility, Related Components, Additional ` +
+          `docs/docs/api/${rel} has "## ${known[i].heading}" after ` +
+            `"## ${known[i - 1].heading}". API pages run Overview, Import, ` +
+            `Usage, …, Accessibility, Related Components, Additional ` +
             `Resources, Props, CSS & Sass Variables.`
         );
         break;
       }
     }
 
+    if (!managedPage(rel)) continue; // ordered but not generated
     let regions;
     try {
       regions = readRegions(src, `docs/docs/api/${rel}`);
@@ -375,7 +386,7 @@ async function checkDocsGenerated() {
   const violations = [];
   for (const file of await mdFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
-    if (!managedPages(rel)) continue;
+    if (!managedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
     let out;
     try {

@@ -399,23 +399,68 @@ function memberRows(ts, decl, aliases, defaults, linkBase, inherited = false) {
  * its root selector in the SCSS (`.#{iv.$class-prefix}hero`), so the CSS
  * variable table never needs a hand-maintained selector.
  */
-function rootClassOf(ts, fn) {
-  let found = null;
+function rootClassCandidates(ts, sf) {
+  const out = [];
   const walk = node => {
-    if (found) return;
     if (
       ts.isCallExpression(node) &&
       /usePrefixedClassNames$/.test(node.expression.getText()) &&
       node.arguments[0] &&
       ts.isStringLiteral(node.arguments[0])
     ) {
-      found = node.arguments[0].text;
-      return;
+      // `usePrefixedClassNames('', {…})` means "no root class, modifiers only"
+      // (Td/Th/Tr colour their cell without a Bulma block class).
+      const text = node.arguments[0].text;
+      if (text && !out.includes(text)) out.push(text);
     }
     ts.forEachChild(node, walk);
   };
-  if (fn) walk(fn);
-  return found;
+  if (sf) walk(sf);
+  return out;
+}
+
+const kebab = name => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+
+/**
+ * Components whose root class cannot be derived from their name.
+ *
+ * Each was checked against the component source. Keep this list short: it
+ * exists because a wrong root class is silent, so anything the name rule
+ * cannot decide is stated explicitly rather than guessed.
+ */
+const ROOT_CLASS_OVERRIDES = {
+  Checkbox: 'styled-checkbox', // renders a styled span, not `.checkbox`
+  Radio: 'styled-radio',
+  Taginput: 'taginput', // builds its root class via classNames(), not the hook
+  Skeleton: 'skeleton-lines', // `.skeleton-lines` / `.skeleton-block` variants
+  DateInputBase: 'input', // the trigger is an `.input`
+  TimeInputBase: 'input',
+  DateTimeInputBase: 'input',
+};
+
+/**
+ * The Bulma root class a component renders.
+ *
+ * Taking the FIRST `usePrefixedClassNames` literal is wrong: components that
+ * render more than one prefixed element hit the wrong one (`Input` and `Select`
+ * would resolve to `help`, `Toast` to `toast-container`). Match the component's
+ * own name against its candidates instead, and return null when no candidate is
+ * a confident match — callers treat null as "needs an explicit override" rather
+ * than guessing, because a wrong root class silently attaches the wrong CSS
+ * variables to a page.
+ */
+function pickRootClass(name, candidates) {
+  if (!candidates.length) return null;
+  const bare = name.replace(/Base$/, '');
+  for (const want of [
+    name.toLowerCase(),
+    kebab(name),
+    bare.toLowerCase(),
+    kebab(bare),
+  ]) {
+    if (candidates.includes(want)) return want;
+  }
+  return null;
 }
 
 /**
@@ -426,7 +471,7 @@ function rootClassOf(ts, fn) {
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
  * @returns {{name, tsdoc, rootClass, tables: [{path, rows, catchAll, extraProps}]}}
  */
-export function extractComponent(name, { depth = 1 } = {}) {
+export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
   const { ts, program, checker } = createProgram();
   const mods = exportedModules();
   const entry = mods.get(name);
@@ -532,7 +577,23 @@ export function extractComponent(name, { depth = 1 } = {}) {
   const rootInitNode = inits.get(rootImpl);
   const rootDecl = rootInitNode?.parent;
   const tsdoc = rootDecl ? jsdocText(ts, rootDecl) : '';
-  const rootClass = rootClassOf(ts, componentFunction(ts, rootInitNode));
+  const candidates = rootClassCandidates(ts, sf);
+  let rootClass = ROOT_CLASS_OVERRIDES[name] ?? pickRootClass(name, candidates);
 
-  return { name, tsdoc, rootClass, tables, sourceFile: sf.fileName };
+  // Convenience wrappers (Input, Select, TextArea, the datetime trio) render a
+  // `<XBase>` rather than a prefixed element of their own, so the class that
+  // carries their CSS variables lives in the base module. The docs page is the
+  // wrapper's, so resolve through. `_depth` stops a Base-of-a-Base chain.
+  if (!rootClass && _depth === 0 && mods.has(`${name}Base`)) {
+    rootClass = extractComponent(`${name}Base`, { depth, _depth: 1 }).rootClass;
+  }
+
+  return {
+    name,
+    tsdoc,
+    rootClass,
+    rootClassCandidates: candidates,
+    tables,
+    sourceFile: sf.fileName,
+  };
 }

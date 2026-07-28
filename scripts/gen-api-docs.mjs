@@ -161,6 +161,12 @@ async function renderCssVars(info, { relPath }) {
   if (!sources || !sources.length) return null;
 
   const rows = [];
+  // A component can legitimately draw variables from more than one partial:
+  // Bulma's form/shared.scss registers the `--bulma-input-*` set on a selector
+  // list covering .control/.input/.textarea/.select, so those really do apply
+  // to all four. Dedupe across files by CSS variable name, first source wins —
+  // the same rule componentVars() applies within a file.
+  const seen = new Set();
   for (const source of sources) {
     const file =
       source.pkg === 'bulma'
@@ -175,6 +181,8 @@ async function renderCssVars(info, { relPath }) {
       );
     }
     for (const row of componentVars(src, root)) {
+      if (seen.has(row.cssVar)) continue;
+      seen.add(row.cssVar);
       rows.push([
         `\`${row.cssVar}\``,
         row.sassVar ? `\`${row.sassVar}\`` : '—',

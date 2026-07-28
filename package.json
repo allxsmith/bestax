@@ -15,6 +15,7 @@
     "lint": "turbo run lint",
     "check:conformance": "node scripts/check-conformance.mjs",
     "check:urls": "node scripts/check-pointer-urls.mjs",
+    "gen:api-sources": "node scripts/gen-api-sources.mjs",
     "gen:api-docs": "node scripts/gen-api-docs.mjs",
     "gen:api-docs:check": "node scripts/gen-api-docs.mjs && git diff --exit-code -- docs/docs/api",
     "gen:catalog": "node scripts/gen-component-catalog.mjs",
