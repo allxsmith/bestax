@@ -318,7 +318,25 @@ async function main() {
     );
     process.exit(2);
   }
-  const category = catArg.slice('--category='.length);
+  const rawCategory = catArg.slice('--category='.length);
+
+  // Resolve `--category` against the directories that actually exist under
+  // src/ rather than interpolating it into a path. This script WRITES the
+  // files it finds, so an unvalidated argv segment reaching `join()` is a
+  // path-traversal sink (`--category=../../..`), and a typo would otherwise
+  // fail with a bare ENOENT instead of naming the valid choices.
+  const SRC_ROOT = join(REPO, 'bulma-ui', 'src');
+  const categories = (await readdir(SRC_ROOT, { withFileTypes: true }))
+    .filter(e => e.isDirectory() && !e.name.startsWith('__'))
+    .map(e => e.name)
+    .sort();
+  const category = categories.find(c => c === rawCategory);
+  if (!category) {
+    console.error(
+      `Unknown --category=${rawCategory}. Valid: ${categories.join(', ')}`
+    );
+    process.exit(2);
+  }
 
   const docsByTitle = new Map();
   for (const f of await mdFiles(API_DIR)) {
