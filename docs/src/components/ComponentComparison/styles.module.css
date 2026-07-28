@@ -1,20 +1,20 @@
 .root {
   /* Semantic status palette — separate from the Bulma/Infima accent. */
-  --sorl-ok: #1f9d57;
-  --sorl-ok-bg: #e6f4ec;
-  --sorl-partial: #a9711a;
-  --sorl-partial-bg: #f6efdd;
-  --sorl-muted: var(--ifm-color-emphasis-500);
+  --sor-ok: #1f9d57;
+  --sor-ok-bg: #e6f4ec;
+  --sor-partial: #a9711a;
+  --sor-partial-bg: #f6efdd;
+  --sor-muted: var(--ifm-color-emphasis-500);
 
   margin: 1.75rem 0;
   font-size: 0.9rem;
 }
 
 [data-theme='dark'] .root {
-  --sorl-ok: #4cc684;
-  --sorl-ok-bg: rgba(76, 198, 132, 0.14);
-  --sorl-partial: #e0a848;
-  --sorl-partial-bg: rgba(224, 168, 72, 0.14);
+  --sor-ok: #4cc684;
+  --sor-ok-bg: rgba(76, 198, 132, 0.14);
+  --sor-partial: #e0a848;
+  --sor-partial-bg: rgba(224, 168, 72, 0.14);
 }
 
 /* ---- meta / legend ---------------------------------------------------- */
@@ -61,15 +61,15 @@
   flex: 0 0 auto;
 }
 .full {
-  color: var(--sorl-ok);
-  background: var(--sorl-ok-bg);
+  color: var(--sor-ok);
+  background: var(--sor-ok-bg);
 }
 .partial {
-  color: var(--sorl-partial);
-  background: var(--sorl-partial-bg);
+  color: var(--sor-partial);
+  background: var(--sor-partial-bg);
 }
 .none {
-  color: var(--sorl-muted);
+  color: var(--sor-muted);
   background: transparent;
 }
 

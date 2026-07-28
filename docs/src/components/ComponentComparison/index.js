@@ -88,17 +88,14 @@ function Cell({ lib, value }) {
 
 export default function ComponentComparison() {
   return (
-    <div className={clsx(styles.root, 'sorl-comparison')}>
+    <div className={clsx(styles.root, 'sor-comparison')}>
       <div className={styles.meta}>
         <span className={styles.asOf}>
           Data as of <strong>{formatReviewed(lastReviewed)}</strong>
         </span>
         <span className={styles.latest}>
           A newer edition may exist —{' '}
-          <Link to="/blog/tags/state-of-react-libs">
-            see the latest “A State of React Libs”
-          </Link>
-          .
+          <Link to="/blog/tags/state-of-react">see the latest edition</Link>.
         </span>
       </div>
 

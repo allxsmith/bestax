@@ -62,23 +62,23 @@ pre.prism-code {
   color: #fff;
 }
 
-/* "A State of React Libs" comparison posts: give the wide table room by
+/* "The State of React" comparison posts: give the wide table room by
    collapsing the blog "Recent posts" sidebar. The right-hand table of contents
    is removed per-post via `hide_table_of_contents: true` in the frontmatter.
    Scoped with :has() to posts that actually render <ComponentComparison /> (the
-   `.sorl-comparison` root), so it is flash-free (present at SSR) and never
+   `.sor-comparison` root), so it is flash-free (present at SSR) and never
    affects other blog posts. */
-html.blog-post-page:has(.sorl-comparison) aside.col {
+html.blog-post-page:has(.sor-comparison) aside.col {
   display: none;
 }
-html.blog-post-page:has(.sorl-comparison) main.col {
+html.blog-post-page:has(.sor-comparison) main.col {
   max-width: 100%;
   flex: 0 0 100%;
   margin-left: 0;
 }
 
-/* "A State of React Libs" cover banner at the top of each edition. */
-.sorl-cover {
+/* "The State of React" cover banner at the top of each edition. */
+.sor-cover {
   display: block;
   width: 100%;
   height: auto;

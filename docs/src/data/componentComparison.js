@@ -1,4 +1,4 @@
-// Data for the "A State of React Libs" comparison (rendered by
+// Data for "The State of React" — the component-library comparison (rendered by
 // src/components/ComponentComparison and embedded in the dated blog series).
 //
 // MONTHLY UPDATE: see docs/blog/CLAUDE.md for the runbook. To refresh, adjust the

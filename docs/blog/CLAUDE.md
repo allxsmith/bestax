@@ -1,4 +1,4 @@
-# blog — posts, and the "A State of React Libs" series
+# blog — posts, and the "The State of React" series
 
 General blog conventions live in `docs/CLAUDE.md` (frontmatter, `authors.yml`, the
 `<!-- truncate -->` fold, and dev.to syndication via `plugins/devto-preprocessor.js`). This file
@@ -6,7 +6,7 @@ is the **runbook for the recurring component-comparison series** so each edition
 
 ## What the series is
 
-**"A State of React Libs"** is a dated, honest snapshot comparing bestax against the other
+**"The State of React"** is a dated, honest snapshot comparing bestax against the other
 mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and
 react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
 roughly **monthly** cadence rather than editing an old post.
@@ -18,22 +18,22 @@ Three files back every edition:
   changes between most editions.
 - `docs/src/components/ComponentComparison/` — the React table that renders it (theme-aware,
   links every ✓/◐ to that library's docs). Rarely needs changes.
-- `docs/blog/{YYYY-MM-DD}-state-of-react-libs/index.md` — the edition post; imports and renders
+- `docs/blog/{YYYY-MM-DD}-state-of-react/index.md` — the edition post; imports and renders
   `<ComponentComparison />`.
 
 ## Conventions (keep these stable)
 
-- **Title:** `A State of React Libs — {Month YYYY}` — the month + year are required.
-- **Folder / filename:** `docs/blog/{YYYY-MM-DD}-state-of-react-libs/index.md` (folder form).
-- **Slug:** `state-of-react-libs-{YYYY-MM}`; set `canonical_url` to `https://bestax.io/blog/{slug}`.
-- **Tag:** always include `state-of-react-libs`. Its archive page,
-  [`/blog/tags/state-of-react-libs`](https://bestax.io/blog/tags/state-of-react-libs), always lists
+- **Title:** `The State of React — {Month YYYY}` — the month + year are required.
+- **Folder / filename:** `docs/blog/{YYYY-MM-DD}-state-of-react/index.md` (folder form).
+- **Slug:** `state-of-react-{YYYY-MM}`; set `canonical_url` to `https://bestax.io/blog/{slug}`.
+- **Tag:** always include `state-of-react`. Its archive page,
+  [`/blog/tags/state-of-react`](https://bestax.io/blog/tags/state-of-react), always lists
   the newest edition first — it is the canonical "latest edition" pointer that every edition's top
   `:::info` admonition links to. Do **not** change this tag.
 - `authors: [asmith]`, `publish_to_devto: false` (the interactive table does not port to plain
   markdown / dev.to), and `hide_table_of_contents: true` (the wide table needs the room — this
   removes the right-hand TOC; the left blog sidebar is collapsed automatically via a scoped
-  `:has(.sorl-comparison)` rule in `src/css/custom.css`, so no per-post action is needed).
+  `:has(.sor-comparison)` rule in `src/css/custom.css`, so no per-post action is needed).
 - Keep the four admonitions: top `:::info` (snapshot date + latest-edition link), `:::tip`
   (headline insight), `:::note` (shadcn is a copy-paste registry, not a dependency), `:::caution`
   (corrections → GitHub issues).
@@ -58,15 +58,15 @@ Three files back every edition:
 
 Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" radio show):
 
-- **Source SVG:** `docs/static/img/state-of-react-libs/{YYYY-MM}.svg` — for a new edition, copy the
+- **Source SVG:** `docs/static/img/state-of-react/{YYYY-MM}.svg` — for a new edition, copy the
   previous month's and update the month text and the `EP.` number.
-- **Rasterize** it to `docs/static/img/state-of-react-libs/{YYYY-MM}.png` at **1200×630** — SVG does
+- **Rasterize** it to `docs/static/img/state-of-react/{YYYY-MM}.png` at **1200×630** — SVG does
   not work as an `og:image` / dev.to `cover_image`, so a raster is required. Load the SVG in a
   headless browser at 1200×630 and screenshot it (this repo used Playwright + the pre-installed
   Chromium at `/opt/pw-browsers`).
 - **Frontmatter:** point both `image:` and `cover_image:` at the `.png` (rooted `/img/...` path).
 - **Visible banner:** at the very top of the post body, render the SVG full-width:
-  `<img className="sorl-cover" src="/img/state-of-react-libs/{YYYY-MM}.svg" alt="…" />`.
+  `<img className="sor-cover" src="/img/state-of-react/{YYYY-MM}.svg" alt="…" />`.
 
 ## Verify
 
@@ -74,7 +74,7 @@ Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" r
   `onBrokenLinks: 'throw'` validates every internal bestax link and the tag-archive link.
 - `pnpm format:check` (covers `md`/`mdx`) — run `pnpm format` to autofix.
 - Spot-check a representative external link per library (these are not build-validated).
-- `pnpm docs` and open `/blog/state-of-react-libs-{YYYY-MM}`: confirm the table renders and scrolls
+- `pnpm docs` and open `/blog/state-of-react-{YYYY-MM}`: confirm the table renders and scrolls
   on narrow widths, is legible in light **and** dark, and the admonitions + archive link work.
 
 The blog is excluded from the LLM index (`includeBlog: false`) by design — this series is a dated

@@ -1,31 +1,30 @@
 ---
-slug: state-of-react-libs-2026-07
-title: 'A State of React Libs — July 2026'
+slug: state-of-react-2026-07
+title: 'The State of React — July 2026'
 description: 'A dated, linkable snapshot comparing bestax against Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and react-bulma-components — capability by capability, with every cell linking to the real docs.'
 authors: [asmith]
-tags:
-  [state-of-react-libs, comparison, react, bulma, mantine, mui, chakra, shadcn]
-canonical_url: https://bestax.io/blog/state-of-react-libs-2026-07
+tags: [state-of-react, comparison, react, bulma, mantine, mui, chakra, shadcn]
+canonical_url: https://bestax.io/blog/state-of-react-2026-07
 publish_to_devto: false
 hide_table_of_contents: true
-image: /img/state-of-react-libs/2026-07.png
-cover_image: /img/state-of-react-libs/2026-07.png
+image: /img/state-of-react/2026-07.png
+cover_image: /img/state-of-react/2026-07.png
 ---
 
 import ComponentComparison from '@site/src/components/ComponentComparison';
 
 <img
-  className="sorl-cover"
-  src="/img/state-of-react-libs/2026-07.svg"
-  alt="A State of React Libs — July 2026: React component libraries, compared"
+  className="sor-cover"
+  src="/img/state-of-react/2026-07.svg"
+  alt="The State of React — July 2026: React component libraries, compared"
 />
 
 Picking a React component library is one of the bigger architectural calls in a project, and the honest answer to “which one” depends entirely on what you’re building. We maintain [bestax](/docs/intro), a component library for Bulma v1, so we spend a lot of time studying the field. This post maps it out **fairly and in the open**: every user-facing capability across seven React libraries, with each cell linking straight to that library’s own documentation so you can check our work.
 
-It’s a point-in-time capture — the first edition of something we plan to refresh regularly. Call it _A State of React Libs_ (with apologies to Armin).
+It’s a point-in-time capture — the first edition of a series we’ll refresh regularly. We’re calling it _The State of React_, with a nod to Armin’s long-running radio show. Over time we’d like it to grow into a wider read on the React ecosystem; for now, it stays focused on **component libraries**.
 
 :::info Snapshot — July 2026
-The table below reflects each library **as of July 27, 2026**. Component catalogs move fast; for the newest edition, see [the latest **A State of React Libs**](/blog/tags/state-of-react-libs).
+The table below reflects each library **as of July 27, 2026**. Component catalogs move fast — the [latest edition of _The State of React_](/blog/tags/state-of-react) always has the freshest data.
 :::
 
 In the ring: **[bestax](/docs/intro)** (Bulma v1), **[react-bulma-components](https://react-bulma.dev/)** (the other Bulma wrapper), **[Mantine](https://mantine.dev/)**, **[MUI](https://mui.com/)**, **[Chakra UI](https://chakra-ui.com/)**, **[shadcn/ui](https://ui.shadcn.com/)**, and **[React-Bootstrap](https://react-bootstrap.netlify.app/)**.

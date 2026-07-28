@@ -14,8 +14,8 @@ mechanically.
 
 :::tip See how they compare
 For a capability-by-capability comparison of bestax against react-bulma-components and the other
-major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest
-[**A State of React Libs**](/blog/tags/state-of-react-libs).
+major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
+[**The State of React**](/blog/tags/state-of-react).
 :::
 
 The **`bestax-migrate`** codemod automates that mechanical part. It supports
