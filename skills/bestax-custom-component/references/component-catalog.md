@@ -29,8 +29,10 @@ instead of hand-writing markup.
   `className` + HTML attributes — put helper props on the parent or on an
   element inside (`Span`, `Paragraph`, …) instead.
 - **Composing these into your own reusable component?** Use the spine in this
-  skill's `SKILL.md`: extend `BulmaClassesProps`, merge `className`, spread
-  `...rest` — so it takes the same helper props as the library components.
+  skill's `SKILL.md`: extend `BulmaClassesProps`, run your props through
+  `useBulmaClasses`, merge its `bulmaHelperClasses` into `className`, and spread
+  the `rest` it returns — so it takes the same helper props as the library
+  components.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 

@@ -11,9 +11,9 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back via each input's own `color`, `message`, and `messageColor` props — they live on the
-convenience inputs (`Input`, `Select`, `TextArea`, …), **not** on `Field` (which takes `label`
-but has no `message`). See **Validation without a library** below.
+back via each input's own `color`, `message`, and `messageColor` props on the convenience inputs
+(`Input`, `Select`, `TextArea`, …). `Field` accepts `color` too, but has **no** `message` /
+`messageColor` — put the validation state on the input. See **Validation without a library** below.
 
 ## Use when
 
@@ -217,4 +217,5 @@ for the expected classes/states, and say plainly that the visual pass is still o
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
 - [ ] **Rendered and visually inspected in a browser** — layout and the error/validation states
-      look right, not just green tests.
+      look right, not just green tests. No browser available? The `renderToString` fallback above
+      counts only if you grepped the emitted classes/states **and** said the visual pass is owed.

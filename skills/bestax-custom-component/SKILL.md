@@ -60,7 +60,9 @@ See `examples/stat-card.tsx` for a complete worked example.
 
 Same shape the library itself uses, with all imports from the package. Every reusable
 component gets it — including pure compositions with zero CSS (a heading block, a labeled
-wrapper): extend `BulmaClassesProps`, merge `className`, spread `...rest`. The
+wrapper): extend `BulmaClassesProps`, run your props through `useBulmaClasses`, merge its
+`bulmaHelperClasses` into `className`, and spread the `rest` **it** returns — spreading the raw
+props instead leaks helper props onto the DOM and emits none of their classes. The
 `usePrefixedClassNames` root class is needed only when component-scoped CSS (or a variant
 class) targets it — a zero-CSS composition may omit that call. File at
 `src/components/MyComponent.tsx`:

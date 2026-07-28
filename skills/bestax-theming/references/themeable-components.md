@@ -18,10 +18,15 @@ This is the self-contained inventory of the color/size/variant props that matter
    - `backgroundColor` / `bgColor` → `has-background-<color>` (background)
    - `colorShade` / `backgroundColorShade` → adds a shade suffix, e.g. `has-text-primary-30`
 
-   Components with their own `color` modifier drop the `color` helper to avoid a collision.
-   Button/Box/Card/Hero/Section re-expose it as **`textColor`** / **`bgColor`**; Tag, Input,
-   and `Td`/`Th` have **no text-color prop at all** — wrap content in `<Span textColor="…">`
-   there (raw `backgroundColor` still works on Tag and Input).
+   Components with a real `is-<color>` modifier (`Button`, `Hero`) drop the `color` helper and
+   re-expose it as **`textColor`** / **`bgColor`**. `Box`/`Card`/`Section` ship no `is-<color>`
+   rule — their `color` _is_ the text helper (`has-text-<color>`; narrowed to the 6 on
+   `Box`/`Card`), so `color` and `textColor` are the same lever there. `Tag` and `Td`/`Th` have
+   **no text-color prop** — wrap content in `<Span textColor="…">`. `Input` has none either and
+   the wrapper trick can't work (it renders a native `<input>`; a child can't color its value):
+   recolor via the upstream `--bulma-text-strong-l`, since Bulma re-declares `--bulma-input-*` on
+   `.input` itself and an ancestor `<Theme>` can't reach those. Raw `backgroundColor` still works
+   on `Tag` and `Input`.
 
 `<color>` for the helper props is one of **`validColors`**:
 
@@ -53,7 +58,7 @@ Shades (`colorShade` / `backgroundColorShade`): `00, 05, 10, … 95, invert, lig
 | `DateTimeInput`    | `primary \| link \| info \| success \| warning \| danger`                                                     | `small \| medium \| large`                                                | also `isRounded`                                                                                 |
 | `File`             | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | `small \| medium \| large`                                                | also `isBoxed`, `isFullwidth`                                                                    |
 | `Hero`             | the 17 `validColors` (greys typecheck, no CSS — see ⚠️)                                                       | `small \| medium \| large \| fullheight \| fullheight-with-navbar`        | section background                                                                               |
-| `LinkButton`       | `primary \| link \| info \| success \| warning \| danger \| white \| light \| dark \| black`                  | —                                                                         | button-styled link; emits `link-button-<color>`                                                  |
+| `LinkButton`       | `primary \| link \| info \| success \| warning \| danger \| white \| light \| dark \| black`                  | —                                                                         | button-styled link; emits `link-button-<color>` — **no `isLight`/`isOutlined`/`isInverted`**     |
 | `Loading`          | `primary \| link \| info \| success \| warning \| danger`                                                     | `small \| medium \| large`                                                | spinner color; default light grey                                                                |
 | `Navbar`           | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                  | —                                                                         | —                                                                                                |
 | `Numberinput`      | `primary \| link \| info \| success \| warning \| danger \| light \| dark`                                    | `small \| medium \| large`                                                | also `inputColor` (the 6) for the inner input                                                    |

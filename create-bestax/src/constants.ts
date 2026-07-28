@@ -147,8 +147,9 @@ ${setupLines.join('\n')}
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - Reusable components you write get the library's spine so helper props work on them too:
-  extend \`BulmaClassesProps\`, merge \`className\`, spread \`...rest\` — the
-  bestax-custom-component skill has the full template.
+  extend \`BulmaClassesProps\`, run your props through \`useBulmaClasses\`, merge the
+  \`bulmaHelperClasses\` it returns into \`className\`, and spread **its** \`rest\` (not the raw
+  props) — the bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
 - \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
   boilerplate — once this app has a real identity, set the title (and any meta tags) to match

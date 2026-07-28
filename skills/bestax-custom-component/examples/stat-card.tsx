@@ -64,8 +64,11 @@ export function StatCard({
           size="large"
           textColor={color}
           mr="4"
-          // ariaLabel is Icon's own prop; most components take plain aria-label.
-          ariaLabel={`${label} icon`}
+          // Decorative: the label below already says it, so hide it from AT —
+          // Icon otherwise emits its default aria-label="icon". (To *label* an
+          // icon, use Icon's own camelCase `ariaLabel`; most components take
+          // the plain aria-label attribute.)
+          aria-hidden="true"
         />
       )}
       {/* No `gap` helper exists — space siblings with margin props (mr above). */}
