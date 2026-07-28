@@ -45,8 +45,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `height: 100%` on the card doesn't help — the column's height is auto).
 - Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
   mobile. Add responsive `size*` props only to tune the breakpoints.
-- For a `fixed="top"` `Navbar`, add the `has-navbar-fixed-top` class to `<html>` so content is not
-  hidden behind it — the library does not do this automatically.
+- `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to both:
+  `active` on `Navbar.Menu` shows/hides the mobile menu, while `active` + `onClick` on
+  `Navbar.Burger` make the burger toggle it and animate. Left unwired, clicking the burger
+  does nothing (no error, silent failure). For a `fixed="top"` `Navbar`, add the
+  `has-navbar-fixed-top` class to `<html>` so content is not hidden behind it — the library
+  does not do this automatically, and an inline padding offset is not a substitute.
 - **Style with helper props, not inline `style`.** Before writing `style={{ … }}` anywhere,
   translate each declaration with the mapping table below — the helper props cover the common
   cases. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
@@ -95,7 +99,7 @@ inline `style`.
 ## Examples
 
 - `examples/app-shell.tsx` — fixed `Navbar` + sidebar `Menu` + content (dashboard).
-- `examples/landing.tsx` — `Hero` + `Section`s + `Footer`.
+- `examples/landing.tsx` — fixed `Navbar` (controlled burger) + `Hero` + `Section`s + `Footer`.
 - `examples/centered.tsx` — centered single column (auth/settings).
 - `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
 - `examples/content-page.tsx` — hero + feature cards + CTA styled with helper props (no inline
@@ -108,6 +112,7 @@ inline `style`.
 - [ ] Use `Grid`/`Cell` for uniform grids (equal heights per row, free); `Columns`/`Column`
       for proportional or per-breakpoint side-by-side layout — with the flex recipe when its
       cards must match height.
+- [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
