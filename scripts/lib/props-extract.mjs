@@ -506,7 +506,7 @@ export function extractComponent(name, { depth = 1 } = {}) {
       if (tag.tagName.text !== 'extraProp') continue;
       const raw = ts.getTextOfJSDocComment(tag.comment) ?? '';
       const m = raw.match(
-        /^(?:\{(.+?)\}\s*)?\[?([\w'"-]+)\]?\s*-\s*([\s\S]+)$/
+        /^(?:\{([^}]+)\}\s*)?\[?([\w'"-]+)\]?\s*-\s*([\s\S]+)$/
       );
       if (m) {
         extraProps.push({

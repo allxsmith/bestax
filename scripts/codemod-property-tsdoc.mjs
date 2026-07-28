@@ -112,14 +112,17 @@ function parsePropertyTags(comment) {
     .replace(/^\/\*\*/, '')
     .replace(/\*\/$/, '')
     .split(/\r?\n/)
-    .map(l => l.replace(/^\s*\*ic?\s?/, '').replace(/^\s*\*\s?/, ''));
+    .map(l => l.replace(/^\s*\*\s?/, ''));
 
   const tags = [];
   let current = null;
   const summary = [];
   for (const line of body) {
+    // `line` never contains a newline (body is split above), so `[^}]` is both
+    // equivalent to a lazy `[\s\S]+?` here and free of the backtracking that
+    // lazy-quantifier-before-a-literal produces.
     const m = line.match(
-      /^\s*@property\s+(?:\{([\s\S]+?)\}\s*)?\[?([\w'"$-]+)\]?\s*(?:-\s*)?([\s\S]*)$/
+      /^\s*@property\s+(?:\{([^}]+)\}\s*)?\[?([\w'"$-]+)\]?\s*(?:-\s*)?(.*)$/
     );
     if (m) {
       if (current) tags.push(current);

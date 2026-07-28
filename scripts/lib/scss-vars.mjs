@@ -196,8 +196,10 @@ export function defaultDeclarations(src) {
 export function registerVarsEntries(src) {
   const out = [];
   eachStatement(src, (stmt, stack) => {
-    const plural = stmt.match(/@include\s+[\w.-]*register-vars\b/);
-    const singular = stmt.match(/@include\s+[\w.-]*register-var\b(?!s)/);
+    // `(?:[\w-]+\.)?` is the sass module namespace (`cv.`); see renderValue for
+    // why this is not `[\w.-]*`.
+    const plural = stmt.match(/@include\s+(?:[\w-]+\.)?register-vars\b/);
+    const singular = stmt.match(/@include\s+(?:[\w-]+\.)?register-var\b(?!s)/);
     if (plural) {
       const args = outerParens(stmt.slice(plural.index));
       if (!args) return;
@@ -283,8 +285,12 @@ export function renderValue(raw) {
     text = text.slice(2, -1).trim();
   }
 
+  // The optional prefix is a sass module namespace (`cv.`), so match exactly
+  // that rather than an unbounded run of word characters — `[\w.-]*` before a
+  // literal is retried at every position, which is the polynomial-backtracking
+  // shape CodeQL flags (js/polynomial-redos).
   text = text.replace(
-    /\b[\w.-]*getVar\(\s*(['"])([a-z0-9-]+)\1\s*\)/g,
+    /(?:[\w-]+\.)?getVar\(\s*(['"])([a-z0-9-]+)\1\s*\)/g,
     (_, __, name) => `var(--${CSSVARS_PREFIX}${name})`
   );
   // Remaining interpolations are pass-through wrappers around a value.
