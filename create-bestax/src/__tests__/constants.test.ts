@@ -272,6 +272,13 @@ describe('constants', () => {
       expect(md).toContain('still never inline `style`');
     });
 
+    it('flags Notification as the mixed case: textColor yes, bgColor no', () => {
+      // Notification omits `backgroundColor` and re-adds only `textColor`, so a
+      // `bgColor` on it is inert — its background is the semantic `color` prop.
+      expect(md).toContain('`Notification` is the mixed case');
+      expect(md).toContain('not `bgColor`');
+    });
+
     it('documents the gap exception: no flex gap helper, but Grid/Columns take a gap prop', () => {
       expect(md).toContain('Flex layouts have no `gap` helper');
       expect(md).toContain('`Grid` and `Columns`');

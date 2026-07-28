@@ -151,7 +151,9 @@ cases. Before writing \`style\`, translate each declaration with this table:
 
 - Spacing, typography, and flex helpers are on every component; \`textColor\`/\`bgColor\` are
   on the content components (\`Box\`, \`Block\`, \`Title\`, \`Content\`, \`Hero\`, \`Card\`, …) — the
-  few with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
+  ones with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
+  \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
+  the semantic \`color\` prop, not \`bgColor\`.
 - Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to

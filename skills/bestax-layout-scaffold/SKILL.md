@@ -67,9 +67,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 
 Look up the declaration you were about to inline. The spacing, typography, and flex helpers
 below are on every component; `textColor`/`bgColor` are on the content components you'll
-target (`Box`, `Block`, `Title`, `Content`, `Notification`, `Hero`, `Card`, …) — the few with
-a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead; wrap content in a
-`Block` if you need a text color there.
+target (`Box`, `Block`, `Title`, `Content`, `Hero`, `Card`, …) — the ones with a semantic
+`color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead; wrap content in a `Block` if
+you need a text color there. `Notification` is the mixed case: it takes `textColor`, but its
+background comes from the semantic `color` prop, not `bgColor`.
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

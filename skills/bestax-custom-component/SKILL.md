@@ -121,7 +121,9 @@ declaration:
 
 Spacing, typography, and flex helpers are on every component; `textColor`/`bgColor` are on
 the content components you'll compose with (`Box`, `Block`, `Title`, `Content`, `Card`, …) —
-the few with a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead.
+the ones with a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead.
+`Notification` is the mixed case: it takes `textColor`, but its background comes from the
+semantic `color` prop, not `bgColor`.
 
 A value with no helper equivalent (`maxWidth: 720`, a one-off gradient) moves you to rung 2 —
 a named class in a stylesheet — never to inline `style`.
