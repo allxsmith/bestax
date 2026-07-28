@@ -242,8 +242,50 @@ function buildImport(body) {
   return wrap('import', `\n${body.trim()}\n`);
 }
 
+/**
+ * Wrap only the prop TABLES, leaving any surrounding prose in the section but
+ * outside the generated region.
+ *
+ * 15 pages carry hand-written prose under `## Props` — admonitions, footnotes,
+ * and in `card.md` a 32-line prose sub-API. Wrapping the whole section would
+ * put that inside a region the generator overwrites, i.e. delete it.
+ *
+ * The region spans the first table line to the last. Anything before or after
+ * survives untouched. Prose *between* tables cannot survive (the generator owns
+ * that span), so this returns `null` for those pages instead of eating it —
+ * the caller reports them for hand relocation.
+ */
 function buildProps(body) {
-  return wrap('props', `\n${body.trim()}\n`);
+  const lines = body.split('\n');
+  const isTable = l => l.trimStart().startsWith('|');
+  const first = lines.findIndex(isTable);
+  if (first === -1) return null; // no table to own
+  let last = first;
+  for (let i = lines.length - 1; i >= first; i--) {
+    if (isTable(lines[i])) {
+      last = i;
+      break;
+    }
+  }
+
+  const stray = [];
+  for (let i = first; i <= last; i++) {
+    const t = lines[i].trim();
+    if (!t || isTable(lines[i]) || /^#{3,}\s/.test(t)) continue;
+    stray.push(t);
+  }
+  if (stray.length) return { conflict: stray };
+
+  const before = lines.slice(0, first).join('\n').trim();
+  const after = lines
+    .slice(last + 1)
+    .join('\n')
+    .trim();
+  const region = wrap(
+    'props',
+    `\n${lines.slice(first, last + 1).join('\n')}\n`
+  );
+  return [before, region, after].filter(Boolean).join('\n\n');
 }
 
 async function migratePage(file, { dryRun, reorderOnly }) {
@@ -282,7 +324,26 @@ async function migratePage(file, { dryRun, reorderOnly }) {
     for (const p of parts) {
       if (p.heading === 'Overview') p.body = buildOverview(p.body);
       else if (p.heading === 'Import') p.body = buildImport(p.body);
-      else if (p.heading === 'Props') p.body = buildProps(p.body);
+      else if (p.heading === 'Props') {
+        const built = buildProps(p.body);
+        if (built === null) {
+          console.error(
+            `\u2717 docs/docs/api/${relPath}: "## Props" has no table to generate. ` +
+              `Check the page by hand.`
+          );
+          return null;
+        }
+        if (built.conflict) {
+          console.error(
+            `\u2717 docs/docs/api/${relPath}: prose sits BETWEEN prop tables and ` +
+              `would be overwritten by the generated region. Move it above the ` +
+              `first table or below the last, then re-run. Offending line(s):\n` +
+              built.conflict.map(l => `      ${l.slice(0, 90)}`).join('\n')
+          );
+          return null;
+        }
+        p.body = built;
+      }
     }
   }
 

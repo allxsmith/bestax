@@ -381,11 +381,22 @@ function memberRows(ts, decl, aliases, defaults, linkBase, inherited = false) {
       member.questionToken && member.type?.kind === ts.SyntaxKind.BooleanKeyword
         ? 'false'
         : null;
+    // `@deprecated` must reach the table. The hand-written pages led these rows
+    // with "**Deprecated.** Use `gapMobile` instead."; reading only the comment
+    // text would quietly drop the one thing a reader most needs to see.
+    const deprecated = ts
+      .getJSDocTags(member)
+      .find(t => t.tagName.text === 'deprecated');
+    const note = deprecated
+      ? `**Deprecated.** ${(ts.getTextOfJSDocComment(deprecated.comment) ?? '')
+          .replace(/\s+/g, ' ')
+          .trim()}`.trim()
+      : '';
     rows.push({
       name,
       type: renderTypeText(ts, member, aliases, linkBase),
       default: explicit ?? defaults.get(name) ?? impliedFalse,
-      description: jsdocText(ts, member),
+      description: [note, jsdocText(ts, member)].filter(Boolean).join(' '),
       inherited,
       node: member,
     });

@@ -1,6 +1,7 @@
 ---
 title: Cell
 sidebar_label: Cell
+description: The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.
 sidebar_position: 2
 ---
 
@@ -8,34 +9,25 @@ sidebar_position: 2
 
 ## Overview
 
-The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component. It supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and all utility/HTML props. Use `Cell` to control column/row start, end, and span within modern CSS grid layouts.
+<!-- bestax:generated overview -->
+
+The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.
+
+<!-- /bestax:generated overview -->
+
+It supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and all utility/HTML props. Use `Cell` to control column/row start, end, and span within modern CSS grid layouts.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Cell } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop         | Type                                                                                                                                                                                                                                                                                     | Description                                                                        |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `colStart`   | `number`                                                                                                                                                                                                                                                                                 | Which column the cell starts at (Bulma: `is-col-start-x`).                         |
-| `colFromEnd` | `number`                                                                                                                                                                                                                                                                                 | Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`). |
-| `colSpan`    | `number`                                                                                                                                                                                                                                                                                 | How many columns the cell will span (Bulma: `is-col-span-x`).                      |
-| `rowStart`   | `number`                                                                                                                                                                                                                                                                                 | Which row the cell starts at (Bulma: `is-row-start-x`).                            |
-| `rowFromEnd` | `number`                                                                                                                                                                                                                                                                                 | Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).    |
-| `rowSpan`    | `number`                                                                                                                                                                                                                                                                                 | How many rows the cell will span (Bulma: `is-row-span-x`).                         |
-| `className`  | `string`                                                                                                                                                                                                                                                                                 | Additional CSS class names.                                                        |
-| `textColor`  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color.                                                                        |
-| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Bulma color modifier for the cell.                                                 |
-| `bgColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color.                                                                  |
-| `children`   | `React.ReactNode`                                                                                                                                                                                                                                                                        | Content to render inside the cell.                                                 |
-| ...          | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | (See [Helper Props](../helpers/usebulmaclasses))                                   |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -218,3 +210,26 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 - [Grid component](./grid.md)
 - [Bulma Grid Documentation](https://bulma.io/documentation/grid/)
 - [Storybook: Cell Story](https://bestax.io/storybook/?path=/story/grid-cell--column-start)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop         | Type                                                                            | Default | Description                                                                        |
+| ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `colStart`   | `number`                                                                        | —       | Which column the cell starts at (Bulma: `is-col-start-x`).                         |
+| `colFromEnd` | `number`                                                                        | —       | Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`). |
+| `colSpan`    | `CellSpanValue`                                                                 | —       | How many columns the cell will span (Bulma: `is-col-span-x`).                      |
+| `rowStart`   | `number`                                                                        | —       | Which row the cell starts at (Bulma: `is-row-start-x`).                            |
+| `rowFromEnd` | `number`                                                                        | —       | Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).    |
+| `rowSpan`    | `CellSpanValue`                                                                 | —       | How many rows the cell will span (Bulma: `is-row-span-x`).                         |
+| `className`  | `string`                                                                        | —       | Additional CSS class names.                                                        |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color (Bulma color, 'inherit', or 'current').                                 |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the cell.                                                 |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color (Bulma color, 'inherit', or 'current').                           |
+| `children`   | `React.ReactNode`                                                               | —       | Children to render inside the cell.                                                |
+| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
+
+<!-- /bestax:generated props -->

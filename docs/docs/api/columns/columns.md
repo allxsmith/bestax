@@ -1,6 +1,7 @@
 ---
 title: Columns
 sidebar_label: Columns
+description: The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.
 sidebar_position: 1
 ---
 
@@ -8,46 +9,25 @@ sidebar_position: 1
 
 ## Overview
 
-The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components. It supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and all Bulma/utility helper props. Use it as the parent for one or more `Column` children.
+<!-- bestax:generated overview -->
+
+The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.
+
+<!-- /bestax:generated overview -->
+
+It supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and all Bulma/utility helper props. Use it as the parent for one or more `Column` children.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Columns, Column } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop                | Type                                                                                                                                                                                                                                                                                     | Description                                                                                           |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `className`         | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes for the columns container.                                                     |
-| `textColor`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color.                                                                                           |
-| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Bulma color modifier for all columns.                                                                 |
-| `bgColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color for all columns.                                                                     |
-| `isCentered`        | `boolean`                                                                                                                                                                                                                                                                                | Horizontally center columns within the container.                                                     |
-| `isGapless`         | `boolean`                                                                                                                                                                                                                                                                                | Remove gap between columns.                                                                           |
-| `isMultiline`       | `boolean`                                                                                                                                                                                                                                                                                | Allow columns to wrap to multiple lines.                                                              |
-| `isVCentered`       | `boolean`                                                                                                                                                                                                                                                                                | Vertically center columns within the container.                                                       |
-| `isMobile`          | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on mobile and up.                                                                |
-| `isDesktop`         | `boolean`                                                                                                                                                                                                                                                                                | Apply columns layout on desktop and up.                                                               |
-| `gap`               | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for all breakpoints. Same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. |
-| `gapMobile`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for mobile. Wins over `gapSizeMobile` if both are set.                                       |
-| `gapTablet`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for tablet. Wins over `gapSizeTablet` if both are set.                                       |
-| `gapDesktop`        | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for desktop. Wins over `gapSizeDesktop` if both are set.                                     |
-| `gapWidescreen`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for widescreen. Wins over `gapSizeWidescreen` if both are set.                               |
-| `gapFullhd`         | number \| string (0-8)                                                                                                                                                                                                                                                                   | Gap size for fullhd. Wins over `gapSizeFullhd` if both are set.                                       |
-| `gapSize`           | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gap` instead.                                                                    |
-| `gapSizeMobile`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapMobile` instead.                                                              |
-| `gapSizeTablet`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapTablet` instead.                                                              |
-| `gapSizeDesktop`    | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapDesktop` instead.                                                             |
-| `gapSizeWidescreen` | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapWidescreen` instead.                                                          |
-| `gapSizeFullhd`     | number \| string (0-8)                                                                                                                                                                                                                                                                   | **Deprecated.** Use `gapFullhd` instead.                                                              |
-| `children`          | `React.ReactNode`                                                                                                                                                                                                                                                                        | Columns to render within the container.                                                               |
-| ...                 | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | (See [Helper Props](../api/helpers/usebulmaclasses))                                                  |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -644,3 +624,38 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 - [Column component](./column.md)
 - [Bulma Columns Documentation](https://bulma.io/documentation/columns/)
 - [Storybook: Columns Story](https://bestax.io/storybook/?path=/story/columns-columns--mobile-columns)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop                | Type                                                                            | Default | Description                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `className`         | `string`                                                                        | —       | Additional CSS classes for the columns container.                                                     |
+| `textColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color (Bulma color, 'inherit', or 'current').                                                    |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for all columns.                                                                 |
+| `bgColor`           | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color (Bulma color, 'inherit', or 'current').                                              |
+| `isCentered`        | `boolean`                                                                       | `false` | Horizontally center columns within the container.                                                     |
+| `isGapless`         | `boolean`                                                                       | `false` | Remove gap between columns.                                                                           |
+| `isMultiline`       | `boolean`                                                                       | `false` | Allow columns to wrap to multiple lines.                                                              |
+| `isVCentered`       | `boolean`                                                                       | `false` | Vertically center columns within the container.                                                       |
+| `isMobile`          | `boolean`                                                                       | `false` | Apply columns layout on mobile and up.                                                                |
+| `isDesktop`         | `boolean`                                                                       | `false` | Apply columns layout on desktop and up.                                                               |
+| `gap`               | `BulmaGapValue`                                                                 | —       | Gap size for all breakpoints. Same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. |
+| `gapMobile`         | `BulmaGapValue`                                                                 | —       | Gap size for mobile. Wins over `gapSizeMobile` if both are set.                                       |
+| `gapTablet`         | `BulmaGapValue`                                                                 | —       | Gap size for tablet. Wins over `gapSizeTablet` if both are set.                                       |
+| `gapDesktop`        | `BulmaGapValue`                                                                 | —       | Gap size for desktop. Wins over `gapSizeDesktop` if both are set.                                     |
+| `gapWidescreen`     | `BulmaGapValue`                                                                 | —       | Gap size for widescreen. Wins over `gapSizeWidescreen` if both are set.                               |
+| `gapFullhd`         | `BulmaGapValue`                                                                 | —       | Gap size for fullhd. Wins over `gapSizeFullhd` if both are set.                                       |
+| `gapSize`           | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gap` instead. Gap size for all breakpoints.                                      |
+| `gapSizeMobile`     | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gapMobile` instead. Gap size for mobile.                                         |
+| `gapSizeTablet`     | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gapTablet` instead. Gap size for tablet.                                         |
+| `gapSizeDesktop`    | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gapDesktop` instead. Gap size for desktop.                                       |
+| `gapSizeWidescreen` | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gapWidescreen` instead. Gap size for widescreen.                                 |
+| `gapSizeFullhd`     | `BulmaGapSize`                                                                  | —       | **Deprecated.** Use `gapFullhd` instead. Gap size for fullhd.                                         |
+| `children`          | `React.ReactNode`                                                               | —       | Columns to render within the container.                                                               |
+| `...`               | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                     |
+
+<!-- /bestax:generated props -->
