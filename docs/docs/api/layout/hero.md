@@ -335,7 +335,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero 
 | `color`                | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`              | —       | Bulma color modifier for the hero section.                           |
 | `size`                 | `'small'` \| `'medium'` \| `'large'` \| `'fullheight'` \| `'fullheight-with-navbar'` | —       | Hero size.                                                           |
 | `bgColor`              | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`              | —       | Bulma background color helper.                                       |
-| `fullheightWithNavbar` | `boolean`                                                                            | —       | Use fullheight hero with a navbar offset.                            |
+| `fullheightWithNavbar` | `boolean`                                                                            | `false` | Use fullheight hero with a navbar offset.                            |
 | `children`             | `React.ReactNode`                                                                    | —       | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). |
 | `...`                  | All standard HTML attributes and Bulma helper props                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                    |
 

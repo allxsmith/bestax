@@ -245,7 +245,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 
 | Prop        | Type                                                                    | Default | Description                                                |
 | ----------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------- |
-| `isMobile`  | `boolean`                                                               | —       | Enables mobile layout (stacks vertically on mobile).       |
+| `isMobile`  | `boolean`                                                               | `false` | Enables mobile layout (stacks vertically on mobile).       |
 | `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                        |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                             |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                   |
@@ -282,7 +282,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 | Prop              | Type                                                                    | Default | Description                                       |
 | ----------------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
 | `as`              | `'div'` \| `'p'` \| `'a'`                                               | `'div'` | Element type to render.                           |
-| `hasTextCentered` | `boolean`                                                               | —       | Center the text in the item.                      |
+| `hasTextCentered` | `boolean`                                                               | `false` | Center the text in the item.                      |
 | `color`           | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier.                             |
 | `bgColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
 | `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |

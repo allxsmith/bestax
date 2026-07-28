@@ -181,11 +181,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Conta
 | `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                |
 | `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for text.                                                    |
 | `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                          |
-| `fluid`      | `boolean`                                                                       | —       | Makes the container full-width with a 32px gap on each side.                      |
-| `widescreen` | `boolean`                                                                       | —       | Makes the container full-width until the `widescreen` breakpoint.                 |
-| `fullhd`     | `boolean`                                                                       | —       | Makes the container full-width until the `fullhd` breakpoint.                     |
+| `fluid`      | `boolean`                                                                       | `false` | Makes the container full-width with a 32px gap on each side.                      |
+| `widescreen` | `boolean`                                                                       | `false` | Makes the container full-width until the `widescreen` breakpoint.                 |
+| `fullhd`     | `boolean`                                                                       | `false` | Makes the container full-width until the `fullhd` breakpoint.                     |
 | `breakpoint` | `'tablet'` \| `'desktop'` \| `'widescreen'`                                     | —       | Responsive breakpoint for container (`is-tablet`, `is-desktop`, `is-widescreen`). |
-| `isMax`      | `boolean`                                                                       | —       | Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width.   |
+| `isMax`      | `boolean`                                                                       | `false` | Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width.   |
 | `children`   | `React.ReactNode`                                                               | —       | Content inside the container.                                                     |
 | `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                 |
 

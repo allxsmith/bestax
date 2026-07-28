@@ -371,10 +371,20 @@ function memberRows(ts, decl, aliases, defaults, linkBase, inherited = false) {
       continue;
     const name = member.name.getText().replace(/^['"]|['"]$/g, '');
     const explicit = jsdocTag(ts, member, 'defaultValue');
+    // An optional prop typed exactly `boolean` with no destructuring default is
+    // `undefined`, which every consumer treats as off — the hand-written tables
+    // documented these as `false`, and dropping to `—` would lose real
+    // information on every boolean flag in the library. Safe because nothing in
+    // src/ defaults a boolean to true outside the destructuring pattern (an
+    // explicit default or `@defaultValue` still wins).
+    const impliedFalse =
+      member.questionToken && member.type?.kind === ts.SyntaxKind.BooleanKeyword
+        ? 'false'
+        : null;
     rows.push({
       name,
       type: renderTypeText(ts, member, aliases, linkBase),
-      default: explicit ?? defaults.get(name) ?? null,
+      default: explicit ?? defaults.get(name) ?? impliedFalse,
       description: jsdocText(ts, member),
       inherited,
       node: member,
