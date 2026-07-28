@@ -55,6 +55,16 @@ const config = {
         },
         blog: {
           showReadingTime: true,
+          // Docusaurus globs every markdown file in blog/ as a post. Keep the
+          // default exclusions and also skip CLAUDE.md (an agent runbook that
+          // lives in blog/, not a post).
+          exclude: [
+            '**/_*.{js,jsx,ts,tsx,md,mdx}',
+            '**/_*/**',
+            '**/*.test.{js,jsx,ts,tsx}',
+            '**/__tests__/**',
+            '**/CLAUDE.md',
+          ],
           feedOptions: {
             type: ['rss', 'atom'],
             xslt: true,
