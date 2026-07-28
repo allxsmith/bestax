@@ -54,12 +54,9 @@ function Cell({ lib, value }) {
   const internal = href.startsWith('/');
   const label = `${lib.title || lib.label} ${name} — ${STATUS_LABEL[status]}`;
   const inner = (
-    <>
-      <span className={clsx(styles.glyph, styles[status])} aria-hidden="true">
-        {GLYPH[status]}
-      </span>
-      {!lib.iconOnly && <span className={styles.name}>{name}</span>}
-    </>
+    <span className={clsx(styles.glyph, styles[status])} aria-hidden="true">
+      {GLYPH[status]}
+    </span>
   );
 
   return (
@@ -121,7 +118,7 @@ export default function ComponentComparison() {
           None
         </span>
         <span className={styles.legendNote}>
-          Every ✓/◐ links to that library’s own docs.
+          Hover a cell for the component name; click it to open the docs.
         </span>
       </div>
 

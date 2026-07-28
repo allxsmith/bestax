@@ -280,51 +280,63 @@ const rbulmaHref = () => 'https://react-bulma.dev/';
 // ---------------------------------------------------------------------------
 // Libraries (display order left→right) + their index into each row.
 // ---------------------------------------------------------------------------
+// Compact matrix: short abbreviated headers (full name in the `title` tooltip)
+// and icon-only cells — the ✓/◐/– glyph is itself the clickable link to that
+// library's docs (component names live in the cell's hover/aria label).
 export const libs = [
   {
     id: 'bestax',
     idx: 1,
     label: 'bestax',
+    title: 'bestax',
     color: '#00b89c',
     resolve: bestaxHref,
   },
   {
-    // Re-added as a compact reference column: abbreviated header + icon-only
-    // cells (no component name), since its links all resolve to one homepage.
     id: 'rbulma',
     idx: 5,
     label: 'r-bulma',
     title: 'react-bulma-components',
     color: '#c99700',
     resolve: rbulmaHref,
-    iconOnly: true,
   },
   {
     id: 'mantine',
     idx: 2,
     label: 'Mantine',
+    title: 'Mantine',
     color: '#4c6ef5',
     resolve: mantineHref,
   },
-  { id: 'mui', idx: 4, label: 'MUI', color: '#1e88e5', resolve: muiHref },
+  {
+    id: 'mui',
+    idx: 4,
+    label: 'MUI',
+    title: 'MUI',
+    color: '#1e88e5',
+    resolve: muiHref,
+  },
   {
     id: 'chakra',
     idx: 6,
-    label: 'Chakra UI',
+    label: 'Chakra',
+    title: 'Chakra UI',
     color: '#2f9e91',
     resolve: chakraHref,
   },
   {
     id: 'shadcn',
     idx: 7,
-    label: 'shadcn/ui',
+    label: 'shadcn',
+    title: 'shadcn/ui',
     color: '#6b7280',
     resolve: shadcnHref,
   },
   {
     id: 'rbootstrap',
     idx: 3,
-    label: 'React-Bootstrap',
+    label: 'R-Bootstrap',
+    title: 'React-Bootstrap',
     color: '#7952b3',
     resolve: rbHref,
   },

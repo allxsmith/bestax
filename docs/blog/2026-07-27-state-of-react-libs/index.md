@@ -32,7 +32,7 @@ In the ring: **[bestax](/docs/intro)** (Bulma v1), **[react-bulma-components](ht
 
 <!-- truncate -->
 
-Read a column top-to-bottom for one library’s catalog; read a row across to see who ships what. **✓** is a dedicated component, **◐** is available via a prop or by composition, and a muted dash means no first-party equivalent. Click any ✓ or ◐ to open that component’s docs.
+Each row is a capability; read across to see who ships it. **✓** is a dedicated component, **◐** is available via a prop or by composition, and a muted dash means no first-party equivalent. The columns are abbreviated (hover a header for the full name); **hover any cell for the component name, or click it** to open that component’s docs.
 
 <ComponentComparison />
 

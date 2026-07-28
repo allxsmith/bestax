@@ -159,6 +159,13 @@
 .noneCell {
   text-align: center;
 }
+
+/* Icon-only columns: center each lib header and its glyph cells (higher
+   specificity than the base `.table td/th` left-align). */
+.table th.libCol,
+.table td.cell {
+  text-align: center;
+}
 .cellLink {
   display: inline-flex;
   align-items: center;
