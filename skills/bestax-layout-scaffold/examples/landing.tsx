@@ -1,8 +1,18 @@
-// Marketing / landing page — Hero + stacked Sections + Footer.
+// Marketing / landing page — fixed top Navbar + Hero + stacked Sections + Footer.
 // Each Section stacks vertically; the feature Columns collapse to one per row on
 // mobile (Bulma columns stack below the tablet breakpoint).
-import React from 'react';
+//
+// The Navbar's burger/menu is CONTROLLED: `active` on Navbar.Menu shows/hides
+// the mobile menu, while `active` + `onClick` on Navbar.Burger make the burger
+// toggle it and animate. Wire the same state to both — left unwired, clicking
+// the burger does nothing; desktop looks fine and nothing errors, so the
+// failure is silent. A fixed-top navbar
+// also needs the `has-navbar-fixed-top` class on <html> so the page is padded
+// below it (never an inline padding offset) — Bulma requires this and the
+// library does NOT add it for you.
+import React, { useEffect, useState } from 'react';
 import {
+  Navbar,
   Hero,
   Section,
   Container,
@@ -24,8 +34,38 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add('has-navbar-fixed-top');
+    return () => {
+      document.documentElement.classList.remove('has-navbar-fixed-top');
+    };
+  }, []);
+
   return (
     <>
+      <Navbar fixed="top">
+        <Navbar.Brand>
+          <Navbar.Item href="#">Acme</Navbar.Item>
+          <Navbar.Burger
+            active={menuOpen}
+            onClick={() => setMenuOpen(open => !open)}
+            aria-label="menu"
+            aria-expanded={menuOpen}
+          />
+        </Navbar.Brand>
+        <Navbar.Menu active={menuOpen}>
+          <Navbar.Start>
+            <Navbar.Item href="#">Features</Navbar.Item>
+            <Navbar.Item href="#">Pricing</Navbar.Item>
+          </Navbar.Start>
+          <Navbar.End>
+            <Navbar.Item href="#">Sign in</Navbar.Item>
+          </Navbar.End>
+        </Navbar.Menu>
+      </Navbar>
+
       <Hero color="primary" size="medium">
         <Hero.Body>
           <Container textAlign="centered">
