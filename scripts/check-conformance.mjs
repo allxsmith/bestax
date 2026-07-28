@@ -23,6 +23,9 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
+ *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
+ *                        the same thing in all three deliberate copies
+ *                        (CLAUDE_MD template + both JSX-generating skills)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
@@ -462,6 +465,52 @@ async function checkSkillsSync() {
   return violations;
 }
 
+// The inline-style → helper-prop mapping (#350) is deliberately triplicated so
+// it is in context at generation time: the scaffolded CLAUDE_MD template plus
+// the two skills that generate the most JSX. Only the template copy is guarded
+// by jest, so this check pins the load-bearing facts (helper prop names, the
+// spacing scale, valid value sets, the gap rule, the named-class fallback) in
+// every copy. Matching strips backslashes first so the TS template's escaped
+// backticks compare equal to the markdown copies.
+async function checkStyleMappingSync() {
+  const violations = [];
+  const FILES = [
+    'create-bestax/src/constants.ts',
+    'skills/bestax-layout-scaffold/SKILL.md',
+    'skills/bestax-custom-component/SKILL.md',
+  ];
+  const FACTS = [
+    '`1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem',
+    '`textAlign="centered"`',
+    '`textColor`',
+    '`bgColor`',
+    '`textSize="1"`…`"7"`',
+    '`textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`',
+    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`',
+    '`display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`',
+    '`flexGrow="1"`',
+    '`visibility="hidden"`',
+    '`displayMobile`',
+    'no `gap` helper',
+    'take a `gap` prop',
+    'named class',
+  ];
+  for (const rel of FILES) {
+    const src = (await readFile(join(REPO, rel), 'utf8')).replace(/\\/g, '');
+    for (const fact of FACTS) {
+      if (!src.includes(fact)) {
+        violations.push(
+          `${rel} is missing "${fact}" from the inline-style → helper-prop ` +
+            `mapping (#350). The mapping is deliberately triplicated ` +
+            `(create-bestax CLAUDE_MD template + both skills) so it is ` +
+            `always in context — apply the same edit to all three copies.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
 async function checkStoryPerComponent() {
   const violations = [];
   const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
@@ -647,6 +696,7 @@ const CHECKS = {
   'docs-sections': checkDocsSections,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
+  'style-mapping-sync': checkStyleMappingSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
