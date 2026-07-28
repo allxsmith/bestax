@@ -141,6 +141,8 @@ const mantineHref = name =>
 
 // MUI: material-ui/react-<kebab> by default; many irregular slugs + MUI X/System.
 const MUI = {
+  // MUI documents MenuList only on its API page, not a react-menu-list guide.
+  MenuList: 'material-ui/api/menu-list',
   LinearProgress: 'material-ui/react-progress',
   CircularProgress: 'material-ui/react-progress',
   Radio: 'material-ui/react-radio-button',
