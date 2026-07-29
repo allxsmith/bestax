@@ -133,14 +133,36 @@ ${setupLines.join('\n')}
 
 ## House style
 
-- Never inline \`style={{}}\` and never hand-write Bulma utility classes — use the shared
-  helper props (\`m*\`/\`p*\` spacing, \`textColor\`/\`bgColor\`, \`display="flex"\`, \`flexDirection\`,
-  \`alignItems\`). Bare text/markup has wrapper elements that take the same helper props:
-  \`Span\`, \`Paragraph\`, \`Strong\` — not \`<span className="has-text-…">\`. The one exception:
-  companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g. \`has-navbar-fixed-top\` with
-  \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no component renders those elements.
-  Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
+**Never inline \`style={{}}\`** — the components accept helper props that cover the common
+cases. Before writing \`style\`, translate each declaration with this table:
+
+| Inline style you're about to write         | Helper props instead                                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| \`marginTop: '1rem'\` (any margin/padding) | \`mt="4"\` — \`m\`/\`mt\`/\`mx\`/\`p\`/\`py\`/… scale: \`1\`=0.25rem, \`2\`=0.5rem, \`3\`=0.75rem, \`4\`=1rem, \`5\`=1.5rem, \`6\`=3rem (nearest step) |
+| \`textAlign: 'center'\`                    | \`textAlign="centered"\` (also \`left\`, \`right\`, \`justified\`)                                                                          |
+| \`color: '#…'\`                            | \`textColor\` with the nearest Bulma color: \`primary\`, \`link\`, \`info\`, \`success\`, \`warning\`, \`danger\`, \`white\`, \`black\`, \`grey\` (+ \`grey-light\`, \`grey-dark\`, …) |
+| \`backgroundColor: '#…'\`                  | \`bgColor\` (same palette)                                                                                                                  |
+| \`fontSize: …\`                            | \`textSize="1"\`…\`"7"\` (\`1\` largest) — for headings use \`Title\`/\`SubTitle\` \`size\`                                                 |
+| \`fontWeight: …\`                          | \`textWeight\`: \`light\`, \`normal\`, \`medium\`, \`semibold\`, \`bold\`                                                                   |
+| \`textTransform\`, italics                 | \`textTransform\`: \`uppercase\`, \`lowercase\`, \`capitalized\`, \`italic\`                                                                |
+| \`display: 'flex'\` + flex properties      | same-named props: \`display="flex"\`, \`flexDirection\`, \`justifyContent\`, \`alignItems\`, \`flexWrap\`                                   |
+| \`height: '100%'\` on a flex child         | \`flexGrow="1"\`                                                                                                                            |
+| \`display: 'none'\`                        | \`visibility="hidden"\`, or responsive \`display*\` props (\`displayMobile\`, \`displayTablet\`, …)                                         |
+
+- Spacing, typography, and flex helpers are on every component; \`textColor\`/\`bgColor\` are
+  on the content components (\`Box\`, \`Block\`, \`Title\`, \`Content\`, \`Hero\`, \`Card\`, …) — the
+  ones with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
+  \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
+  the semantic \`color\` prop, not \`bgColor\`.
+- Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
   take a \`gap\` prop, so prefer that there).
+- No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
+  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.
+- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
+  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.
+  The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
+  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
+  component renders those elements.
 - Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
   attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
   \`Link\`/\`Span\` inside instead. \`Tabs.Tab\` and \`Tabs.Content.Item\` each require \`index={i}\`,

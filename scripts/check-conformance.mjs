@@ -23,6 +23,10 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
+ *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
+ *                        the same thing in all three deliberate copies
+ *                        (CLAUDE_MD template + both JSX-generating skills),
+ *                        and names only props that really exist
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
@@ -462,6 +466,145 @@ async function checkSkillsSync() {
   return violations;
 }
 
+// The inline-style → helper-prop mapping (#350) is deliberately triplicated so
+// it is in context at generation time: the scaffolded CLAUDE_MD template plus
+// the two skills that generate the most JSX. Only the template copy is guarded
+// by jest, so this check pins the mapping three ways:
+//   1. the load-bearing facts (spacing scale, value sets, the gap rule, the
+//      named-class fallback) appear verbatim in every copy;
+//   2. the copies name the same set of props, so a row added to one skill
+//      cannot silently go missing from the others;
+//   3. every prop named is really declared in bulma-ui/src — a mapping that
+//      points at a prop the library lacks makes the model emit an inert
+//      attribute, which is the exact failure #350 exists to prevent.
+// Matching strips backslashes first so the TS template's escaped backticks
+// compare equal to the markdown copies.
+const MAPPING_FILES = [
+  'create-bestax/src/constants.ts',
+  'skills/bestax-layout-scaffold/SKILL.md',
+  'skills/bestax-custom-component/SKILL.md',
+];
+
+// Prop tokens in the "Helper props instead" column. Two unambiguous forms:
+// `name="value"` (always a prop) and a bare `name` with an internal capital
+// (textColor, flexDirection). Bare all-lowercase spans are values, not props
+// (`bold`, `centered`, `primary`), and PascalCase spans are component names.
+function mappingPropTokens(source) {
+  const lines = source.replace(/\\`/g, '`').split('\n');
+  const start = lines.findIndex(
+    l => l.includes('|') && l.includes('Helper props instead')
+  );
+  if (start < 0) return null;
+  const props = new Set();
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('|')) break;
+    if (/^\|[\s:|-]+\|$/.test(line)) continue; // separator row
+    // Column 1 is the CSS declaration being replaced; only scan the rest.
+    const helper = line.split('|').slice(2, -1).join('|');
+    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)="[^"]*"`/g)) {
+      props.add(m[1]);
+    }
+    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)`/g)) {
+      if (/[A-Z]/.test(m[1])) props.add(m[1]);
+    }
+  }
+  return props;
+}
+
+async function checkStyleMappingSync() {
+  const violations = [];
+  const FILES = MAPPING_FILES;
+  const FACTS = [
+    '`1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem',
+    '`textAlign="centered"`',
+    '`textColor`',
+    '`bgColor`',
+    '`textSize="1"`…`"7"`',
+    '`textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`',
+    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`',
+    '`display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`',
+    '`flexGrow="1"`',
+    '`visibility="hidden"`',
+    '`displayMobile`',
+    'no `gap` helper',
+    'take a `gap` prop',
+    'named class',
+  ];
+  for (const rel of FILES) {
+    const src = (await readFile(join(REPO, rel), 'utf8')).replace(/\\/g, '');
+    for (const fact of FACTS) {
+      if (!src.includes(fact)) {
+        violations.push(
+          `${rel} is missing "${fact}" from the inline-style → helper-prop ` +
+            `mapping (#350). The mapping is deliberately triplicated ` +
+            `(create-bestax CLAUDE_MD template + both skills) so it is ` +
+            `always in context — apply the same edit to all three copies.`
+        );
+      }
+    }
+  }
+
+  // 2. The copies must name the same props. A row added to (or dropped from)
+  //    one table but not the others is drift the FACTS list cannot see,
+  //    because FACTS only pins rows that exist today.
+  const tables = new Map();
+  for (const rel of FILES) {
+    const props = mappingPropTokens(await readFile(join(REPO, rel), 'utf8'));
+    if (props === null) {
+      violations.push(
+        `${rel} no longer contains an inline-style → helper-prop mapping ` +
+          `table (no row with a "Helper props instead" header cell). The ` +
+          `mapping must stay in all of ${FILES.join(', ')} — it is only ` +
+          `useful when it is in context as JSX is generated (#350).`
+      );
+      continue;
+    }
+    tables.set(rel, props);
+  }
+  if (tables.size !== FILES.length) return violations;
+
+  const union = new Set([...tables.values()].flatMap(s => [...s]));
+  for (const [rel, props] of tables) {
+    const missing = [...union].filter(p => !props.has(p)).sort();
+    if (missing.length) {
+      violations.push(
+        `${rel}'s mapping table omits ${missing.length} prop(s) named in the ` +
+          `other copies: ${missing.join(', ')}. Add the matching row(s) — the ` +
+          `copies in ${FILES.join(', ')} must stay in sync.`
+      );
+    }
+  }
+
+  // 3. Every prop named must really exist. Helper props live in the helpers/
+  //    interfaces; component-remapped ones (textColor, bgColor) are declared
+  //    on the components themselves, so scan the whole source tree.
+  const srcDir = join(REPO, 'bulma-ui', 'src');
+  const declared = new Set();
+  for (const file of [
+    ...(await walk(srcDir, '.ts')),
+    ...(await walk(srcDir, '.tsx')),
+  ]) {
+    const src = await readFile(file, 'utf8');
+    for (const m of src.matchAll(/^\s+([a-zA-Z][a-zA-Z0-9]*)\?:/gm)) {
+      declared.add(m[1]);
+    }
+  }
+  for (const [rel, props] of tables) {
+    const unknown = [...props].filter(p => !declared.has(p)).sort();
+    if (unknown.length) {
+      violations.push(
+        `${rel}'s mapping table names ${unknown.length} prop(s) that are not ` +
+          `declared anywhere in bulma-ui/src: ${unknown.join(', ')}. Fix the ` +
+          `name or drop the row — a mapping that points at a prop the ` +
+          `library does not have makes the model emit an inert attribute.`
+      );
+    }
+  }
+
+  return violations;
+}
+
 async function checkStoryPerComponent() {
   const violations = [];
   const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
@@ -647,6 +790,7 @@ const CHECKS = {
   'docs-sections': checkDocsSections,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
+  'style-mapping-sync': checkStyleMappingSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,

@@ -1,3 +1,17 @@
+## [3.7.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.7.0...create-bestax@3.7.1) (2026-07-29)
+
+
+### Bug Fixes
+
+* **create-bestax:** concrete inline-style → helper-prop mapping for the never-inline rule ([#357](https://github.com/allxsmith/bestax/issues/357)) ([5f72a90](https://github.com/allxsmith/bestax/commit/5f72a90eea06162f4fd5260587098df919ddc4fc)), closes [#350](https://github.com/allxsmith/bestax/issues/350) [#350](https://github.com/allxsmith/bestax/issues/350)
+
+# [3.7.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.6.0...create-bestax@3.7.0) (2026-07-28)
+
+
+### Features
+
+* **create-bestax:** add controlled-Burger Navbar to the landing archetype ([#355](https://github.com/allxsmith/bestax/issues/355)) ([36d4d09](https://github.com/allxsmith/bestax/commit/36d4d094ab1103618a8f4a92ed8e4bb656c83452)), closes [#348](https://github.com/allxsmith/bestax/issues/348)
+
 # [3.6.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.5.0...create-bestax@3.6.0) (2026-07-22)
 
 
