@@ -81,7 +81,7 @@ export interface LevelLeftProps
 }
 
 /**
- * Bulma Level left section.
+ * Left-aligned content.
  *
  * @function
  * @param {LevelLeftProps} props - Props for the LevelLeft component.
@@ -129,7 +129,7 @@ export interface LevelRightProps
 }
 
 /**
- * Bulma Level right section.
+ * Right-aligned content.
  *
  * @function
  * @param {LevelRightProps} props - Props for the LevelRight component.
@@ -193,7 +193,7 @@ export interface LevelItemProps
 }
 
 /**
- * Bulma Level item section.
+ * Individual item, can be rendered as `div`, `p`, or `a`.
  *
  * @function
  * @param {LevelItemProps} props - Props for the LevelItem component.

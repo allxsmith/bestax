@@ -1,13 +1,20 @@
 ---
 title: Emphasis
 sidebar_label: Emphasis
+description: The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
 ---
 
 # Emphasis
 
 ## Overview
 
-The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration. Use it for text that has stress emphasis, which subtly changes the meaning of a sentence. The `<em>` element carries semantic meaning for screen readers.
+<!-- bestax:generated overview -->
+
+The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for text that has stress emphasis, which subtly changes the meaning of a sentence. The `<em>` element carries semantic meaning for screen readers.
 
 :::info
 For visual-only italic styling without semantic meaning, use CSS `font-style: italic` instead.
@@ -17,21 +24,13 @@ For visual-only italic styling without semantic meaning, use CSS `font-style: it
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Emphasis } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the em element.         |
-| ...         | All standard `<em>` and Bulma helper props                                                                                                                                                                                                                                               |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -145,3 +144,19 @@ The `<em>` element indicates stress emphasis that subtly changes the meaning of 
 
 - [MDN: em element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/em)
 - [Storybook: Emphasis Stories](https://bestax.io/storybook/?path=/story/elements-emphasis--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the em element.     |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

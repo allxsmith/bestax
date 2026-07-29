@@ -4,43 +4,42 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the Collapse component.
- *
- * @property {boolean} [open] - Controlled open state. If provided, component is controlled.
- * @property {boolean} [defaultOpen] - Initial open state for uncontrolled usage.
- * @property {() => void} [onOpen] - Callback when collapse opens.
- * @property {() => void} [onClose] - Callback when collapse closes.
- * @property {React.ReactNode} [trigger] - The clickable trigger element (usually a header/button).
- * @property {'fade'|'slide'|false} [animation] - Animation type. 'fade' for opacity transition, 'slide' for height transition, false to disable. Default: 'fade'.
- * @property {'top'|'bottom'} [position] - Position of trigger relative to content. Default: 'top'.
- * @property {string} [ariaId] - Custom aria id for accessibility.
- * @property {boolean} [bordered] - Whether to show a border around the collapse.
- * @property {React.ReactNode} [children] - The collapsible content.
- * @property {string} [className] - Additional CSS classes.
- * @property {string} [triggerClassName] - Additional classes for the trigger wrapper.
- * @property {string} [contentClassName] - Additional classes for the content wrapper.
+ * @extraProp {React.ReactNode} [children] - The collapsible content.
+ * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface CollapseProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Controlled open state. If provided, component is controlled. */
   open?: boolean;
+  /** Initial open state for uncontrolled usage. */
   defaultOpen?: boolean;
+  /** Callback when collapse opens. */
   onOpen?: () => void;
+  /** Callback when collapse closes. */
   onClose?: () => void;
+  /** The clickable trigger element (usually a header/button). */
   trigger?: React.ReactNode;
+  /** Animation style, or `false` to disable. Animation type. 'fade' for opacity transition, 'slide' for height transition, false to disable. Default: 'fade'. */
   animation?: 'fade' | 'slide' | false;
+  /** Position of trigger relative to content. Default: 'top'. */
   position?: 'top' | 'bottom';
+  /**
+   * Custom aria id for accessibility.
+   * @defaultValue auto
+   */
   ariaId?: string;
+  /** Adds a border around the collapse. Whether to show a border around the collapse. */
   bordered?: boolean;
+  /** Additional classes for the trigger wrapper. */
   triggerClassName?: string;
+  /** Additional classes for the content wrapper. */
   contentClassName?: string;
 }
 
 /**
- * Collapse component for expandable/collapsible content panels.
- *
- * Can be used in controlled or uncontrolled mode. Supports animation
- * and accessibility features for screen readers.
+ * The `Collapse` component provides an expandable/collapsible content panel.
  *
  * @function
  * @param {CollapseProps} props - Props for the Collapse component.

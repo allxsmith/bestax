@@ -8,53 +8,53 @@ import { useInsideField, useInsideControl } from './FormContext';
 /**
  * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
- *
- * @property {React.ReactNode} [label] - Field label.
- * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
- * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
- * @property {boolean} [horizontal] - Render the field with horizontal layout.
- * @property {ControlBaseProps['iconLeft']} [iconLeft] - Icon props for the left icon.
- * @property {ControlBaseProps['iconRight']} [iconRight] - Icon props for the right icon.
- * @property {string} [iconRightName] - Shortcut for the right icon name.
- * @property {ControlBaseProps['iconLeftSize']} [iconLeftSize] - Shortcut for left icon size.
- * @property {ControlBaseProps['iconRightSize']} [iconRightSize] - Shortcut for right icon size.
- * @property {boolean} [hasIconsLeft] - Force the left icon container.
- * @property {boolean} [hasIconsRight] - Force the right icon container.
- * @property {boolean} [isLoading] - Show a loading indicator on the control.
- * @property {boolean} [isExpanded] - Expand the control to fill its container.
- * @property {ControlBaseProps['size']} [controlSize] - Size of the wrapping Control.
- * @property {React.ReactNode} [message] - Help/validation text below the input.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [messageColor] - Message color.
- * @property {string} [fieldClassName] - Additional CSS classes for the Field wrapper.
- * @property {string} [controlClassName] - Additional CSS classes for the Control wrapper.
+ * @extraProp {string} [name] - Form field name. Forwarded to a hidden ISO-formatted input.
+ * @extraProp {string} [form] - Form id the input belongs to.
+ * @extraProp {boolean} [required=false] - Marks the input as required.
+ * @extraProp {string} [className] - Additional CSS classes for the input.
+ * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
  */
 export interface DateInputProps extends DateInputBaseProps {
+  /** Field label (component auto-wraps in a `Field` if not already inside). */
   label?: React.ReactNode;
+  /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
+  /** Props for the label element. */
   labelProps?: FieldProps['labelProps'];
+  /** Render the field with horizontal layout. */
   horizontal?: boolean;
+  /** Icon props for the left icon. */
   iconLeft?: ControlBaseProps['iconLeft'];
+  /** Icon props for the right icon. */
   iconRight?: ControlBaseProps['iconRight'];
+  /** Shortcut for the right icon name. */
   iconRightName?: string;
+  /** Shortcut for left icon size. */
   iconLeftSize?: ControlBaseProps['iconLeftSize'];
+  /** Shortcut for right icon size. */
   iconRightSize?: ControlBaseProps['iconRightSize'];
+  /** Force the left icon container. */
   hasIconsLeft?: boolean;
+  /** Force the right icon container. */
   hasIconsRight?: boolean;
+  /** Show a loading indicator on the control. */
   isLoading?: boolean;
+  /** Expand the control to fill its container. */
   isExpanded?: boolean;
+  /** Size of the wrapping Control. */
   controlSize?: ControlBaseProps['size'];
+  /** Help/validation text below the input. */
   message?: React.ReactNode;
+  /** Color modifier for the help message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Additional CSS classes for the Field wrapper. */
   fieldClassName?: string;
+  /** Additional CSS classes for the Control wrapper. */
   controlClassName?: string;
 }
 
 /**
- * DateInput is a form input that opens a popover calendar for date selection.
- * Uses native `Date` and `Intl` only (no extra dependencies). Supports min/max
- * bounds, disabled-date predicates, custom formats, locale-aware day/month
- * names, an inline mode, and a native `<input type="date">` fallback for touch
- * devices.
+ * The `DateInput` component is a form input that opens a popover calendar for date selection.
  *
  * @function
  * @param {DateInputProps} props - Props for the DateInput.

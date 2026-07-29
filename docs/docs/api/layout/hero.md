@@ -339,7 +339,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero 
 | `children`             | `React.ReactNode`                                                                    | —       | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). |
 | `...`                  | All standard HTML attributes and Bulma helper props                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                    |
 
-**Subcomponents:** `Hero.Head`, `Hero.Body`, `Hero.Foot`.
+**Subcomponents:**
+
+- `Hero.Head`: Top bar for navigation or branding.
+- `Hero.Body`: Main content area, vertically centered by default.
+- `Hero.Foot`: Bottom bar for tabs or actions.
 
 ### Hero.Head
 

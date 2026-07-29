@@ -324,7 +324,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Media
 | `children`  | `React.ReactNode`                                                       | —           | Content inside the media container.               |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —           | See [Helper Props](../helpers/usebulmaclasses.md) |
 
-**Subcomponents:** `Media.Left`, `Media.Content`, `Media.Right`.
+**Subcomponents:**
+
+- `Media.Left`: For avatars, thumbnails, icons (renders as `figure` or `div`)
+- `Media.Content`: Main content (renders as `div`)
+- `Media.Right`: Actions or controls (renders as `div`)
 
 ### Media.Left
 

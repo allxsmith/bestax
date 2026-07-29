@@ -20,11 +20,9 @@ import { Button } from '../elements/Button';
 
 /**
  * Props for the CarouselItem component.
- *
- * @property {boolean} [active] - Whether this item is the active/visible slide.
  */
 export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether this item is active */
+  /** Whether this item is active (set automatically). */
   active?: boolean;
 }
 
@@ -93,64 +91,67 @@ const DefaultNextIcon = () => (
 
 /**
  * Props for the Carousel component.
- *
- * @property {number} [value] - Current active slide index (controlled).
- * @property {boolean} [autoplay] - Enable auto-play.
- * @property {number} [interval] - Auto-play interval in milliseconds. Default: 5000.
- * @property {boolean} [pauseOnHover] - Pause auto-play on hover. Default: true.
- * @property {boolean} [repeat] - Loop back to first slide after last. Default: true.
- * @property {boolean} [hasDrag] - Enable drag/swipe navigation. Default: true.
- * @property {boolean} [arrow] - Show navigation arrows. Default: true.
- * @property {boolean} [arrowHover] - Only show arrows on hover.
- * @property {boolean} [indicator] - Show slide indicators. Default: true.
- * @property {boolean} [indicatorInside] - Position indicators inside carousel.
- * @property {'bottom'|'top'} [indicatorPosition] - Indicator position. Default: 'bottom'.
- * @property {'circles'|'dots'|'lines'|'bars'} [indicatorStyle] - Indicator style. Default: 'dots'.
- * @property {string} [iconPrev] - Icon name for the previous arrow button.
- * @property {string} [iconNext] - Icon name for the next arrow button.
- * @property {IconLibrary} [iconLibrary] - Icon library to use.
- * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined').
- * @property {'small' | 'medium' | 'large'} [iconSize] - Icon size modifier.
- * @property {string | string[]} [iconFeatures] - Additional icon modifiers.
- * @property {boolean} [arrowBackground] - Show semi-transparent background on arrow buttons. Default: true.
- * @property {'light'|'dark'} [arrowColor] - Arrow icon color variant. Useful for transparent arrows on dark/light backgrounds.
- * @property {(value: number) => void} [onChange] - Callback when slide changes.
- * @property {React.ReactNode} [children] - Carousel slide items (CarouselItem elements).
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the carousel element.
+ * @extraProp {boolean} [active] - Whether this item is active (set automatically).
  */
 export interface CarouselProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     BulmaClassesProps {
+  /**
+   * Current active slide index (controlled).
+   * @defaultValue 0
+   */
   value?: number;
+  /** Enable auto-play. */
   autoplay?: boolean;
+  /** Auto-play interval in milliseconds. Default: 5000. */
   interval?: number;
+  /** Pause auto-play on hover. Default: true. */
   pauseOnHover?: boolean;
+  /** Loop back to first slide after last. Default: true. */
   repeat?: boolean;
+  /** Enable drag/swipe navigation. Default: true. */
   hasDrag?: boolean;
+  /** Show navigation arrows. Default: true. */
   arrow?: boolean;
+  /** Only show arrows on hover. */
   arrowHover?: boolean;
+  /** Show slide indicators. Default: true. */
   indicator?: boolean;
+  /** Position indicators inside carousel. */
   indicatorInside?: boolean;
+  /** Indicator position. Default: 'bottom'. */
   indicatorPosition?: 'bottom' | 'top';
+  /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
+  /** Icon name for the previous arrow button. */
   iconPrev?: string;
+  /** Icon name for the next arrow button. */
   iconNext?: string;
+  /** Icon library to use. */
   iconLibrary?: IconLibrary;
+  /** Icon style variant (e.g., 'solid', 'outlined'). */
   iconVariant?: string;
+  /** Icon size modifier. */
   iconSize?: 'small' | 'medium' | 'large';
+  /** Additional icon modifiers. */
   iconFeatures?: string | string[];
+  /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. Show semi-transparent background on arrow buttons. Default: true. */
   arrowBackground?: boolean;
+  /** Color theme for navigation arrows. Arrow icon color variant. Useful for transparent arrows on dark/light backgrounds. */
   arrowColor?: 'light' | 'dark';
   /** Accessible label for the carousel region. Default: 'Image carousel'. */
   ariaLabel?: string;
+  /** Callback when slide changes. */
   onChange?: (value: number) => void;
+  /** CarouselItem children. Carousel slide items (CarouselItem elements). */
   children?: React.ReactNode;
 }
 
 /**
- * Carousel component for displaying slides with navigation.
- *
- * Supports auto-play, drag navigation, indicators, and customizable arrows.
+ * The `Carousel` component provides an image/content slider with navigation arrows and indicators.
  *
  * @function
  * @param {CarouselProps} props - Props for the Carousel component.

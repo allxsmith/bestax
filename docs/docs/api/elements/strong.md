@@ -1,13 +1,20 @@
 ---
 title: Strong
 sidebar_label: Strong
+description: The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.
 ---
 
 # Strong
 
 ## Overview
 
-The `Strong` component renders a styled `<strong>` element with Bulma helper class integration. Use it for text that has strong importance, seriousness, or urgency. The `<strong>` element carries semantic meaning for screen readers and search engines.
+<!-- bestax:generated overview -->
+
+The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for text that has strong importance, seriousness, or urgency. The `<strong>` element carries semantic meaning for screen readers and search engines.
 
 :::info
 For visual-only bold styling without semantic meaning, use the `Span` component with `textWeight="bold"` instead.
@@ -17,21 +24,13 @@ For visual-only bold styling without semantic meaning, use the `Span` component 
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Strong } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the strong element.     |
-| ...         | All standard `<strong>` and Bulma helper props                                                                                                                                                                                                                                           |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -135,3 +134,19 @@ The `<strong>` element indicates strong importance. For visual-only bold styling
 
 - [MDN: strong element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong)
 - [Storybook: Strong Stories](https://bestax.io/storybook/?path=/story/elements-strong--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the strong element. |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

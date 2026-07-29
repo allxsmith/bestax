@@ -4,15 +4,14 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 
 /**
  * Props for the LinkButton component.
- *
- * @property {'text' | 'ghost' | 'underline'} [variant] - Display mode. 'text' renders a minimal button without underline; 'ghost' renders a link-like button with default text color; 'underline' renders a text button that underlines on hover/focus. Defaults to 'text'.
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black'} [color] - Text color override.
  */
 export interface LinkButtonProps extends Omit<
   ButtonProps,
   'color' | 'isOutlined' | 'isInverted' | 'isLight'
 > {
+  /** Display mode. `text` has no underline; `ghost` uses default text color. Display mode. 'text' renders a minimal button without underline; 'ghost' renders a link-like button with default text color; 'underline' renders a text button that underlines on hover/focus. Defaults to 'text'. */
   variant?: 'text' | 'ghost' | 'underline';
+  /** Text color override for the button. */
   color?:
     | 'primary'
     | 'link'
@@ -27,12 +26,7 @@ export interface LinkButtonProps extends Omit<
 }
 
 /**
- * A button that visually looks like text or a link, for a11y-friendly replacements
- * of `<div onClick>` anti-patterns.
- *
- * Wraps the Button component with `is-text` or `is-ghost` styling, plus CSS overrides
- * to remove the underline (text variant) or link color (ghost variant).
- * The 'underline' variant uses `is-text` styling with an underline that appears on hover/focus.
+ * The `LinkButton` component renders a `<button>` that visually looks like text or a link.
  *
  * @function
  * @param {LinkButtonProps} props - Props for the LinkButton component.

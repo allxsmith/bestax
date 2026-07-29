@@ -86,7 +86,7 @@ export interface GridProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Use a fixed grid layout (Bulma's .fixed-grid > .grid). */
   isFixed?: boolean;
-  /** Main gap for grid (applies is-gap-X, 0-8). */
+  /** Main gap for grid (Bulma `is-gap-X`). Main gap for grid (applies is-gap-X, 0-8). */
   gap?: BulmaGapValue;
   /** Column gap for grid (applies is-column-gap-X, 0-8). */
   columnGap?: BulmaGapValue;
@@ -108,11 +108,11 @@ export interface GridProps
   fixedColsFullhd?: BulmaFixedGridCols;
   /** Additional CSS classes for the grid. */
   className?: string;
-  /** Text color (Bulma color, 'inherit', or 'current'). */
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the grid. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color (Bulma color, 'inherit', or 'current'). */
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Children to render inside the grid (usually `Cell` components). */
   children?: React.ReactNode;

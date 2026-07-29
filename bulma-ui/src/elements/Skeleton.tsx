@@ -3,17 +3,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 
 /**
  * Props for the Skeleton component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {'block' | 'lines'} [variant] - Variant of skeleton: 'block' (default) or 'lines'.
- * @property {number} [lines] - Number of lines (only used if variant="lines").
- * @property {React.ReactNode} [children] - Render content inside the skeleton (block variant only).
- * @see {@link https://bulma.io/documentation/features/skeletons/ | Bulma Skeletons documentation}
  */
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes to apply */
   className?: string;
-  /** Variant of skeleton: 'block' (default) or 'lines' */
+  /** Skeleton variant: block (single block) or lines. Variant of skeleton: 'block' (default) or 'lines' */
   variant?: 'block' | 'lines';
   /** Number of lines (only used if variant="lines") */
   lines?: number;
@@ -22,10 +16,7 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Skeleton component for rendering a styled Bulma skeleton element.
- *
- * Renders an animated placeholder that indicates content is loading.
- * Supports block and multi-line variants.
+ * The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
  *
  * @function
  * @param {SkeletonProps} props - Props for the Skeleton component.

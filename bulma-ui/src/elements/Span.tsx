@@ -8,27 +8,23 @@ import {
 
 /**
  * Props for the Span component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the span.
  */
 export interface SpanProps
   extends
     React.HTMLAttributes<HTMLSpanElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to be rendered inside the span. */
   children?: React.ReactNode;
 }
 
 /**
- * Span component for rendering a styled inline element.
- *
- * A Span wraps the HTML `<span>` element with Bulma helper class integration.
- * Useful for styling inline text with Bulma's color, typography, and spacing utilities.
+ * The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
  *
  * @function
  * @param {SpanProps} props - Props for the Span component.

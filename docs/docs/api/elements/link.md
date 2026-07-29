@@ -1,13 +1,20 @@
 ---
 title: Link
 sidebar_label: Link
+description: The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
 ---
 
 # Link
 
 ## Overview
 
-The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration. Use it for navigation links, external links, or any clickable text that follows Bulma's styling conventions. It supports all Bulma helper props for color, spacing, typography, and more.
+<!-- bestax:generated overview -->
+
+The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for navigation links, external links, or any clickable text that follows Bulma's styling conventions. It supports all Bulma helper props for color, spacing, typography, and more.
 
 :::info
 The Link component is a thin wrapper around the HTML `<a>` element, providing consistent Bulma styling and helper class support.
@@ -17,26 +24,13 @@ The Link component is a thin wrapper around the HTML `<a>` element, providing co
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Link } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                           |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------- |
-| `href`      | `string`                                                                                                                                                                                                                                                                                 | —       | The URL the link points to.                                           |
-| `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                                                                                                                                                                                                                                       | —       | Where to open the linked document.                                    |
-| `rel`       | `string`                                                                                                                                                                                                                                                                                 | —       | Relationship between current and linked document.                     |
-| `isActive`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Whether the link appears active.                                      |
-| `as`        | `React.ElementType`                                                                                                                                                                                                                                                                      | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                               |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                                    |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                                              |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the link.                                    |
-| ...         | All standard `<a>` and Bulma helper props                                                                                                                                                                                                                                                |         | (See [Helper Props](../helpers/usebulmaclasses))                      |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -208,3 +202,24 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 
 - [Bulma Content Documentation](https://bulma.io/documentation/elements/content/)
 - [Storybook: Link Stories](https://bestax.io/storybook/?path=/story/elements-link--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                                                              |
+| ----------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                                                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                 |
+| `isActive`  | `boolean`                                                               | `false` | Whether the link appears active.                                                         |
+| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
+| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the link.                                                  |
+| `href`      | `string`                                                                | —       | The URL the link points to.                                                              |
+| `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                      | —       | Where to open the linked document.                                                       |
+| `rel`       | `string`                                                                | —       | Relationship between the current and linked document.                                    |
+| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
+
+<!-- /bestax:generated props -->

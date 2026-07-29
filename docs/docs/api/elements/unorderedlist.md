@@ -1,13 +1,20 @@
 ---
 title: UnorderedList
 sidebar_label: UnorderedList
+description: The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.
 ---
 
 # UnorderedList
 
 ## Overview
 
-The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration. Use it with `ListItem` components to create bulleted lists with consistent styling.
+<!-- bestax:generated overview -->
+
+The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it with `ListItem` components to create bulleted lists with consistent styling.
 
 :::info
 The UnorderedList component is a thin wrapper around the HTML `<ul>` element, providing consistent Bulma styling and helper class support.
@@ -17,21 +24,13 @@ The UnorderedList component is a thin wrapper around the HTML `<ul>` element, pr
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { UnorderedList, ListItem } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | List items to render inside the list.            |
-| ...         | All standard `<ul>` and Bulma helper props                                                                                                                                                                                                                                               |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -160,3 +159,23 @@ Use `UnorderedList` when the order of items is not significant. For ordered cont
 
 - [MDN: ul element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul)
 - [Storybook: UnorderedList Stories](https://bestax.io/storybook/?path=/story/elements-unorderedlist--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | List items to be rendered inside the list.        |
+| `...`       | All standard `<ul>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- [`UnorderedList.Item`](listitem.md): The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated props -->

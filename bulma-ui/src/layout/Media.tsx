@@ -82,7 +82,7 @@ export interface MediaLeftProps
 }
 
 /**
- * Bulma Media left section.
+ * For avatars, thumbnails, icons (renders as `figure` or `div`)
  *
  * @function
  * @param {MediaLeftProps} props - Props for the MediaLeft component.
@@ -132,7 +132,7 @@ export interface MediaContentProps
 }
 
 /**
- * Bulma Media content section.
+ * Main content (renders as `div`)
  *
  * @function
  * @param {MediaContentProps} props - Props for the MediaContent component.
@@ -184,7 +184,7 @@ export interface MediaRightProps
 }
 
 /**
- * Bulma Media right section.
+ * Actions or controls (renders as `div`)
  *
  * @function
  * @param {MediaRightProps} props - Props for the MediaRight component.

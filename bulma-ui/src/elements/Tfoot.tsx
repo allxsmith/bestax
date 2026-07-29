@@ -7,15 +7,14 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the Tfoot component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {React.ReactNode} [children] - Table footer content (rows).
  */
 export interface TfootProps
   extends
     Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Table footer content (rows). */
   children?: React.ReactNode;
 }
 

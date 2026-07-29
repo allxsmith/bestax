@@ -1,13 +1,20 @@
 ---
 title: Buttons
 sidebar_label: Buttons
+description: The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.
 ---
 
 # Buttons
 
 ## Overview
 
-The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features. It's ideal for toolbars, button clusters, or any UI where you want a consistent group of buttons, including add-on styling, centering, or right alignment.
+<!-- bestax:generated overview -->
+
+The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.
+
+<!-- /bestax:generated overview -->
+
+It's ideal for toolbars, button clusters, or any UI where you want a consistent group of buttons, including add-on styling, centering, or right alignment.
 
 :::tip
 Use the `Buttons` component to maintain Bulma's consistent button group layout and spacing in your UI.
@@ -17,25 +24,13 @@ Use the `Buttons` component to maintain Bulma's consistent button group layout a
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Buttons } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop         | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                      |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- |
-| `className`  | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                          |
-| `textColor`  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper for the button group.                          |
-| `color`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the button group.                       |
-| `bgColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper for the button group.                    |
-| `isCentered` | `boolean`                                                                                                                                                                                                                                                                                | `false` | Center the group of buttons.                                     |
-| `isRight`    | `boolean`                                                                                                                                                                                                                                                                                | `false` | Align the group of buttons to the right.                         |
-| `hasAddons`  | `boolean`                                                                                                                                                                                                                                                                                | `false` | Group buttons together as addons (removes spacing between them). |
-| `children`   | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | The button elements to render inside the group.                  |
-| ...          | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses))                 |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -154,3 +149,28 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [Bulma Button Group Documentation](https://bulma.io/documentation/elements/button/#group)
 - [Storybook: Button Stories](https://bestax.io/storybook/?path=/story/elements-button--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop         | Type                                                                            | Default | Description                                                      |
+| ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- |
+| `className`  | `string`                                                                        | —       | Additional CSS classes to apply.                                 |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper for the button group.                          |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the buttons group.                      |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper for the button group.                    |
+| `isCentered` | `boolean`                                                                       | `false` | Center the group of buttons.                                     |
+| `isRight`    | `boolean`                                                                       | `false` | Align the group of buttons to the right.                         |
+| `hasAddons`  | `boolean`                                                                       | `false` | Group buttons together as addons (removes spacing between them). |
+| `children`   | `React.ReactNode`                                                               | —       | The button elements to render inside the group.                  |
+| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                |
+
+**Subcomponents:**
+
+- [`Buttons.Button`](button.md): The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
+- [`Buttons.LinkButton`](linkbutton.md): The `LinkButton` component renders a `<button>` that visually looks like text or a link.
+
+<!-- /bestax:generated props -->

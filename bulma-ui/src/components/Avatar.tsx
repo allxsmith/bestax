@@ -88,48 +88,43 @@ function DefaultAvatarIcon() {
 
 /**
  * Props for the Avatar component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {string} [src] - Image URL. On load error (or if absent), falls back to initials, then icon.
- * @property {string} [alt] - Alternate text for the image (required for meaningful images). An explicit `alt=""` marks a non-interactive avatar as decorative (skipped by screen readers).
- * @property {string} [name] - Derives initials and a deterministic background color when no `src`/`initials` is shown.
- * @property {string} [initials] - Explicit initials override (else derived from `name`).
- * @property {React.ReactNode} [icon] - Final fallback rendered when there is no `src`, `name`, or `initials`.
- * @property {AvatarSize | number} [size] - Preset size, or a pixel size when a number.
- * @property {AvatarShape} [shape] - Avatar shape. Default `'circle'`.
- * @property {AvatarColor} [color] - Background color for initials/icon avatars (else auto-derived from `name`).
- * @property {React.ElementType} [as] - Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.
- * @property {string} [href] - When set, renders the avatar as a link.
- * @property {string} [target] - Anchor target (forwarded only when rendering a link).
- * @property {string} [rel] - Anchor rel (forwarded only when rendering a link).
- * @property {React.ImgHTMLAttributes<HTMLImageElement>} [imageProps] - Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.
  */
 export interface AvatarProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Image URL. On load error (or if absent), falls back to initials, then `icon`. */
   src?: string;
+  /** Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. Alternate text for the image (required for meaningful images). An explicit `alt=""` marks a non-interactive avatar as decorative (skipped by screen readers). */
   alt?: string;
+  /** Derives initials and a deterministic background color when no `src`/`initials` is shown. */
   name?: string;
+  /** Explicit initials override (else derived from `name`). */
   initials?: string;
+  /** Final fallback, rendered when there is no `src`, `name`, or `initials`. */
   icon?: React.ReactNode;
+  /** Preset size, or a pixel size when a number. */
   size?: AvatarSize | number;
+  /** Avatar shape. Default `'circle'`. */
   shape?: AvatarShape;
+  /** Background color for initials/icon avatars (else auto-derived from `name`). */
   color?: AvatarColor;
+  /** Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`. */
   as?: React.ElementType;
+  /** When set, renders the avatar as a link. */
   href?: string;
+  /** Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component). */
   target?: string;
+  /** Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component). */
   rel?: string;
+  /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
 }
 
 /**
- * Avatar component for representing a person or entity as a compact image.
- *
- * Falls back automatically: `src` (image) -> initials (from `initials`/`name`) -> `icon` ->
- * a generic default icon. Initials avatars get a stable auto background color derived from
- * `name` unless `color` is set.
+ * The `Avatar` component represents a person or entity as a compact image.
  *
  * @function
  * @param {AvatarProps} props - Props for the Avatar component.

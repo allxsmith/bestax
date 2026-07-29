@@ -27,47 +27,39 @@ export type BadgeOverlap = 'circle' | 'square';
 
 /**
  * Props for the Badge component.
- *
- * @property {string} [className] - Additional CSS classes applied to the root (the wrapper when `children` are present, else the badge pill).
- * @property {string} [badgeClassName] - Additional CSS classes applied to the badge pill itself.
- * @property {React.ReactNode} [content] - Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content.
- * @property {number} [max] - Numeric `content` above this renders as `"{max}+"`. Default `99`; a
- * negative or non-integer value falls back to the default.
- * @property {boolean} [dot] - Render a small dot with no content.
- * @property {boolean} [showZero] - Show the badge when `content` is `0`. Default `false`.
- * @property {BadgeColor} [color] - Status color. Default `'danger'`.
- * @property {BadgePosition} [position] - Corner to overlay the badge on, relative to `children`. Default `'top-right'`.
- * @property {BadgeOverlap} [overlap] - Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Default `'square'`.
- * @property {boolean} [pulse] - Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.
- * @property {boolean} [invisible] - Hide the badge without unmounting it.
- * @property {React.ReactNode} [children] - The element the badge overlays. Omit to render a standalone badge.
  */
 export interface BadgeProps
   extends
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Additional CSS classes applied to the root (the wrapper when `children` are present, else the badge pill). */
   className?: string;
+  /** Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`). */
   badgeClassName?: string;
+  /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. */
   content?: React.ReactNode;
+  /** Numeric `content` above this renders as `"{max}+"`. Default `99`; a negative or non-integer value falls back to the default. */
   max?: number;
+  /** Render a small dot with no content. */
   dot?: boolean;
+  /** Show the badge when `content` is `0`. Default `false`. */
   showZero?: boolean;
+  /** Status color. Default `'danger'`. */
   color?: BadgeColor;
+  /** Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`). Corner to overlay the badge on, relative to `children`. Default `'top-right'`. */
   position?: BadgePosition;
+  /** Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`). Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Default `'square'`. */
   overlap?: BadgeOverlap;
+  /** Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`. */
   pulse?: boolean;
+  /** Hide the badge pill without unmounting it (the wrapper and `children` stay visible). */
   invisible?: boolean;
+  /** The element the badge overlays. Omit to render a standalone badge. */
   children?: React.ReactNode;
 }
 
 /**
- * Badge component for a small status/count indicator overlaid on the corner of another
- * element (or rendered standalone).
- *
- * Renders `{max}+` when a numeric `content` exceeds `max` and no-ops its `pulse` animation
- * under `prefers-reduced-motion: reduce`. At `0` without `showZero` the pill is visually
- * hidden but stays mounted, so its `role="status"` live region announces a later `0 -> 1`
- * change.
+ * The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
  *
  * @function
  * @param {BadgeProps} props - Props for the Badge component.

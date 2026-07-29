@@ -1,13 +1,20 @@
 ---
 title: Progress
 sidebar_label: Progress
+description: The `Progress` component displays a Bulma-styled progress bar.
 ---
 
 # Progress
 
 ## Overview
 
-The `Progress` component displays a Bulma-styled progress bar. It supports color and size modifiers, value/max attributes, custom content, and all Bulma helper props for spacing and layout.
+<!-- bestax:generated overview -->
+
+The `Progress` component displays a Bulma-styled progress bar.
+
+<!-- /bestax:generated overview -->
+
+It supports color and size modifiers, value/max attributes, custom content, and all Bulma helper props for spacing and layout.
 
 :::info
 Use `Progress` for visualizing task completion, loading states, or quantitative user feedback.
@@ -17,23 +24,13 @@ Use `Progress` for visualizing task completion, loading states, or quantitative 
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Progress } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                             | Default | Description                                      |
-| ----------- | ------------------------------------------------ | ------- | ------------------------------------------------ |
-| `className` | `string`                                         | —       | Additional CSS classes.                          |
-| `color`     | `Bulma color` (e.g. `'primary'`, `'info'`, etc.) | —       | Bulma color modifier for the progress bar.       |
-| `size`      | `'small' \| 'medium' \| 'large'`                 | —       | Size modifier for the progress bar.              |
-| `value`     | `number`                                         | —       | Current value of the progress bar.               |
-| `max`       | `number`                                         | —       | Maximum value of the progress bar.               |
-| `children`  | `React.ReactNode`                                | —       | Optional custom content inside the progress bar. |
-| ...         | All standard `<progress>` and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -137,3 +134,38 @@ Ensure your progress bars have sufficient color contrast for users with visual i
 
 - [Bulma Progress Documentation](https://bulma.io/documentation/elements/progress/)
 - [Storybook: Progress Stories](https://bestax.io/storybook/?path=/story/elements-progress--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                | Default | Description                                                                                           |
+| ----------- | --------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                            | —       | Additional CSS classes to apply.                                                                      |
+| `color`     | [Bulma color](../helpers/valid-values.md)           | —       | Bulma color modifier for the progress bar.                                                            |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Size modifier for the progress bar.                                                                   |
+| `value`     | `number`                                            | —       | Current value of the progress bar.                                                                    |
+| `max`       | `number`                                            | —       | Maximum value of the progress bar.                                                                    |
+| `children`  | `React.ReactNode`                                   | —       | Optional custom content inside the progress bar. Optional custom content inside the progress element. |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                     |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Progress` registers these variables on its own `.progress` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                              | Sass Variable                      | Default                       |
+| ----------------------------------------- | ---------------------------------- | ----------------------------- |
+| `--bulma-progress-border-radius`          | `$progress-border-radius`          | `var(--bulma-radius-rounded)` |
+| `--bulma-progress-bar-background-color`   | `$progress-bar-background-color`   | `var(--bulma-border-weak)`    |
+| `--bulma-progress-value-background-color` | `$progress-value-background-color` | `var(--bulma-text)`           |
+| `--bulma-progress-indeterminate-duration` | `$progress-indeterminate-duration` | `1.5s`                        |
+
+<!-- /bestax:generated cssvars -->

@@ -46,6 +46,12 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   than silent. Managed categories are listed in `scripts/lib/api-sources.mjs`.
 - Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
   Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.
+  Every category except `helpers/` is managed; the four hook pages there have no `## Props`
+  at all, and `config.md`/`theme.md` follow the order but keep their hand-written tables.
+- The `props` region owns the tables and nothing else. Prose inside `## Props` is preserved
+  above the opening marker or below the closing one — but prose sitting _between_ two tables
+  has nowhere to go, so move it out first. A `###` heading that is not one of the component's
+  sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
 - No inline `style={{}}` in examples — use `Block`/helper props; there is no `gap` helper,
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its

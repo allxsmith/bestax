@@ -14,34 +14,31 @@ import { Td } from './Td';
 
 /**
  * Props for the Table component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [isBordered] - Adds borders to all the cells.
- * @property {boolean} [isStriped] - Adds zebra-striping to rows.
- * @property {boolean} [isNarrow] - Makes the table more compact by cutting cell padding in half.
- * @property {boolean} [isHoverable] - Adds a hover effect on rows.
- * @property {boolean} [isFullwidth] - Makes the table span the full width of its parent.
- * @property {boolean} [isResponsive] - Makes the table horizontally scrollable on small screens.
- * @property {React.ReactNode} [children] - Table content.
  */
 export interface TableProps
   extends
     Omit<React.TableHTMLAttributes<HTMLTableElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Adds borders to all the cells. */
   isBordered?: boolean;
+  /** Adds zebra-striping to rows. */
   isStriped?: boolean;
+  /** Makes the table more compact by cutting cell padding in half. */
   isNarrow?: boolean;
+  /** Adds a hover effect on rows. */
   isHoverable?: boolean;
+  /** Makes the table span the full width of its parent. */
   isFullwidth?: boolean;
+  /** Makes the table horizontally scrollable on small screens. */
   isResponsive?: boolean;
+  /** Table content (should use subcomponents). */
   children?: React.ReactNode;
 }
 
 /**
- * Table component for rendering a styled Bulma table.
- *
- * Supports responsive, bordered, striped, narrow, hoverable, and fullwidth variants.
+ * The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.
  *
  * @function
  * @param {TableProps} props - Props for the Table component.

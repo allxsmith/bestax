@@ -253,7 +253,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 | `children`  | `React.ReactNode`                                                       | —       | Level content (`Level.Left`, `Level.Right`, `Level.Item`). |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)          |
 
-**Subcomponents:** `Level.Left`, `Level.Right`, `Level.Item`.
+**Subcomponents:**
+
+- `Level.Left`: Left-aligned content.
+- `Level.Right`: Right-aligned content.
+- `Level.Item`: Individual item, can be rendered as `div`, `p`, or `a`.
 
 ### Level.Left
 

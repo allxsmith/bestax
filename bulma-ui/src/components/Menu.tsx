@@ -8,20 +8,19 @@ const MenuListLevelContext = createContext(0);
 
 /**
  * Props for the Menu component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} children - Menu content.
  */
 export interface MenuProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** Additional CSS classes. */
   className?: string;
+  /** Menu content (labels, lists, items, etc). */
   children: React.ReactNode;
 }
 
 /**
- * Bulma Menu component.
+ * The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
  *
  * @function
  * @param {MenuProps} props - Props for the Menu component.
@@ -50,15 +49,14 @@ const MenuComponent: React.FC<MenuProps> = ({
 
 /**
  * Props for the MenuLabel component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} children - Label content.
  */
 export interface MenuLabelProps
   extends
     Omit<React.HTMLAttributes<HTMLParagraphElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** Additional CSS classes. */
   className?: string;
+  /** Label content. */
   children: React.ReactNode;
 }
 
@@ -92,15 +90,14 @@ export const MenuLabel: React.FC<MenuLabelProps> = ({
 
 /**
  * Props for the MenuList component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} children - List items.
  */
 export interface MenuListProps
   extends
     Omit<React.HTMLAttributes<HTMLUListElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** Additional CSS classes. */
   className?: string;
+  /** List items. */
   children: React.ReactNode;
 }
 
@@ -135,21 +132,20 @@ export const MenuList: React.FC<MenuListProps> = ({
 
 /**
  * Props for the MenuItem component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {boolean} [active] - Whether the item is active.
- * @property {string} [href] - Href for link items.
- * @property {React.ElementType} [as] - Render as a custom component.
- * @property {React.ReactNode} children - Item content and optional nested MenuList.
  */
 export interface MenuItemProps
   extends
     Omit<React.LiHTMLAttributes<HTMLLIElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** Additional CSS classes. */
   className?: string;
+  /** Item content and optional nested MenuList. */
   children: React.ReactNode;
+  /** Highlight item as active. Whether the item is active. */
   active?: boolean;
+  /** Href for link items (if rendered as `<a>`). */
   href?: string;
+  /** Custom link component (e.g. `Link` from router). Render as a custom component. */
   as?: React.ElementType;
   [key: string]: unknown;
 }

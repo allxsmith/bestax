@@ -91,7 +91,7 @@ export interface HeroHeadProps
 }
 
 /**
- * Bulma Hero head section.
+ * Top bar for navigation or branding.
  *
  * @function
  * @param {HeroHeadProps} props - Props for the HeroHead component.
@@ -139,7 +139,7 @@ export interface HeroBodyProps
 }
 
 /**
- * Bulma Hero body section.
+ * Main content area, vertically centered by default.
  *
  * @function
  * @param {HeroBodyProps} props - Props for the HeroBody component.
@@ -187,7 +187,7 @@ export interface HeroFootProps
 }
 
 /**
- * Bulma Hero foot section.
+ * Bottom bar for tabs or actions.
  *
  * @function
  * @param {HeroFootProps} props - Props for the HeroFoot component.

@@ -14,21 +14,20 @@ type TableAlignment = (typeof validAlignments)[number];
 
 /**
  * Props for the Th component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {TableAlignment} [isAligned] - Text alignment for the header cell ('left', 'right', 'centered').
- * @property {string|number} [width] - Width of the header cell (e.g., '100px' or 100).
- * @property {TableColor} [color] - Bulma color modifier for the header cell.
- * @property {React.ReactNode} [children] - Table header cell content.
  */
 export interface ThProps
   extends
     Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text alignment for the header cell ('left', 'right', 'centered'). */
   isAligned?: TableAlignment;
+  /** Width of the header cell (e.g., '100px' or 100). */
   width?: string | number;
+  /** Bulma color modifier for the header cell. */
   color?: TableColor;
+  /** Table header cell content. */
   children?: React.ReactNode;
 }
 

@@ -9,27 +9,26 @@ export type AvatarsSpacing = 'sm' | 'md' | 'lg';
 
 /**
  * Props for the Avatars component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {number} [max] - Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1".
- * @property {AvatarProps['size']} [size] - Uniform size applied to every child `Avatar` (and the surplus avatar).
- * @property {AvatarProps['shape']} [shape] - Uniform shape applied to every child `Avatar` (and the surplus avatar).
- * @property {AvatarsSpacing | number} [spacing] - Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`.
- * @property {boolean} [spaced] - Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.
- * @property {(count: number) => string} [surplusLabel] - Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.
- * @property {React.ReactNode} [children] - `Avatar` elements to render inside the group.
  */
 export interface AvatarsProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". */
   max?: number;
+  /** Uniform size applied to every child `Avatar` (and the surplus avatar). */
   size?: AvatarProps['size'];
+  /** Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset. */
   shape?: AvatarProps['shape'];
+  /** Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`. Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`. */
   spacing?: AvatarsSpacing | number;
+  /** Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`. */
   spaced?: boolean;
+  /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. */
   surplusLabel?: (count: number) => string;
+  /** `Avatar` elements to render inside the group. */
   children?: React.ReactNode;
 }
 
@@ -60,10 +59,7 @@ function flattenChildren(
 }
 
 /**
- * Avatars component for rendering an overlapping/stacked group of `Avatar`s.
- *
- * Clamps to `max`, rendering the overflow as a single "+N" surplus avatar. Mirrors the
- * `Tags`/`Buttons` sibling-plural-container convention.
+ * The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
  *
  * @function
  * @param {AvatarsProps} props - Props for the Avatars component.

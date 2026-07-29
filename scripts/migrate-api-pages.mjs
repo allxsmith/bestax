@@ -27,6 +27,7 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 
 import {
   sectionSpans,
@@ -36,7 +37,7 @@ import {
   closeMarker,
   firstSentence,
 } from './lib/api-page.mjs';
-import { exportedModules } from './lib/props-extract.mjs';
+import { exportedModules, extractComponent } from './lib/props-extract.mjs';
 import { SCSS_SOURCES } from './lib/api-sources.mjs';
 
 const require = createRequire(import.meta.url);
@@ -85,13 +86,112 @@ function frontmatterTitle(src) {
 // Mode 1: seed component TSDoc from the docs Overview sentence.
 // ---------------------------------------------------------------------------
 
-async function seedTsdoc(category, { dryRun }) {
+/**
+ * Replace the summary lines of `declName`'s JSDoc with `sentence`, keeping
+ * every tag below it. Returns null when there is nothing to do.
+ */
+async function seedSummary(source, declName, sentence, tsFile, title) {
+  const sf = ts.createSourceFile(
+    tsFile,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+
+  // The declaration named `declName`, or the implementation it wraps
+  // (`Hero` -> `HeroComponent`).
+  let target = null;
+  for (const stmt of sf.statements) {
+    if (!ts.isVariableStatement(stmt)) continue;
+    for (const decl of stmt.declarationList.declarations) {
+      if (!ts.isIdentifier(decl.name) || decl.name.text !== declName) continue;
+      const init = decl.initializer;
+      const isWrap =
+        init &&
+        ts.isCallExpression(init) &&
+        init.expression.getText() === 'withSubComponents';
+      if (!isWrap) {
+        target = stmt;
+        continue;
+      }
+      const base = init.arguments[0]?.getText();
+      for (const s2 of sf.statements) {
+        if (!ts.isVariableStatement(s2)) continue;
+        for (const d2 of s2.declarationList.declarations) {
+          if (ts.isIdentifier(d2.name) && d2.name.text === base) target = s2;
+        }
+      }
+    }
+  }
+  if (!target) {
+    console.warn(
+      `! ${title}: no declaration named ${declName} in ${relative(REPO, tsFile)}`
+    );
+    return null;
+  }
+
+  const docs = ts.getJSDocCommentsAndTags(target).filter(ts.isJSDoc);
+  const jsdoc = docs[docs.length - 1];
+  if (!jsdoc) {
+    console.warn(`! ${title}: ${declName} has no JSDoc block to seed`);
+    return null;
+  }
+  const was = (ts.getTextOfJSDocComment(jsdoc.comment) ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // The docs page always wins. No quality heuristic: the page's Overview was
+  // written to introduce the component, the TSDoc summaries were not, and
+  // scoring them by length picks the wrong one (Container's summary is longer
+  // overall but opens with "Container component for Bulma."). Every
+  // replacement is printed instead — a human reads the list, because this
+  // text ships in the .d.ts and users' editor tooltips.
+  if (firstSentence(was) === sentence) return null; // already seeded
+
+  const raw = source.slice(jsdoc.pos, jsdoc.end);
+  const lead = raw.match(/^\s*/)[0];
+  const rest = raw
+    .trim()
+    .replace(/^\/\*\*/, '')
+    .replace(/\*\/$/, '')
+    .split(/\r?\n/)
+    .map(l => l.replace(/^\s*\*\s?/, ''))
+    .join('\n');
+  const tagsAt = rest.search(/^@/m);
+  const tail = tagsAt === -1 ? '' : rest.slice(tagsAt).trimEnd();
+
+  const lines = ['/**', ` * ${sentence}`];
+  if (tail) {
+    lines.push(' *');
+    for (const l of tail.split('\n')) lines.push(` * ${l}`.trimEnd());
+  }
+  lines.push(' */');
+
+  return {
+    src:
+      source.slice(0, jsdoc.pos) +
+      lead +
+      lines.join('\n') +
+      source.slice(jsdoc.end),
+    was,
+  };
+}
+
+async function seedTsdoc(category, { dryRun, base }) {
   const mods = exportedModules();
   const pages = new Map();
   for (const file of await mdFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (rel.split('/')[0] !== category) continue;
-    const src = await readFile(file, 'utf8');
+    // `--base=origin/main` reads the PRE-migration page. Needed to seed a
+    // category that was already migrated: the generated `**Subcomponents:**`
+    // list has replaced the hand-written bullets this seeds from.
+    const src = base
+      ? execFileSync('git', ['show', `${base}:${relative(REPO, file)}`], {
+          cwd: REPO,
+          encoding: 'utf8',
+        })
+      : await readFile(file, 'utf8');
     const title = frontmatterTitle(src);
     if (title) pages.set(title, { file, src });
   }
@@ -102,13 +202,6 @@ async function seedTsdoc(category, { dryRun }) {
     if (!entry) continue;
     const tsFile = join(REPO, 'bulma-ui', 'src', entry.cat, `${entry.mod}.tsx`);
     const source = await readFile(tsFile, 'utf8');
-    const sf = ts.createSourceFile(
-      tsFile,
-      source,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX
-    );
 
     // The page's first Overview prose sentence.
     const after = src.split(/^#{2,3}[ \t]+Overview[ \t]*$/m)[1] ?? '';
@@ -123,91 +216,46 @@ async function seedTsdoc(category, { dryRun }) {
     if (!prose) continue;
     const sentence = firstSentence(prose);
 
-    // Find the component's own JSDoc: the declaration named `title`, or the
-    // implementation it wraps (`Hero` -> `HeroComponent`).
-    let target = null;
-    for (const stmt of sf.statements) {
-      if (!ts.isVariableStatement(stmt)) continue;
-      for (const decl of stmt.declarationList.declarations) {
-        if (!ts.isIdentifier(decl.name)) continue;
-        const init = decl.initializer;
-        const isWrap =
-          init &&
-          ts.isCallExpression(init) &&
-          init.expression.getText() === 'withSubComponents';
-        if (decl.name.text === title && !isWrap) target = stmt;
-        if (decl.name.text === title && isWrap) {
-          const base = init.arguments[0]?.getText();
-          for (const s2 of sf.statements) {
-            if (!ts.isVariableStatement(s2)) continue;
-            for (const d2 of s2.declarationList.declarations) {
-              if (ts.isIdentifier(d2.name) && d2.name.text === base)
-                target = s2;
-            }
-          }
-        }
-      }
+    // Sub-component summaries come from the page's `**Subcomponents:**` list,
+    // where the hand-written pages described each one ("Top bar for navigation
+    // or branding"). The source summaries there are as mechanical as the root's
+    // ("Bulma Hero head section."), and the generated list renders these.
+    const seeds = [[title, sentence]];
+    let info = null;
+    try {
+      info = extractComponent(title);
+    } catch {
+      /* not extractable — root seed still applies */
     }
-    if (!target) {
-      console.warn(
-        `! ${title}: no component declaration found in ${relative(REPO, tsFile)}`
-      );
-      continue;
-    }
-
-    const docs = ts.getJSDocCommentsAndTags(target).filter(ts.isJSDoc);
-    const jsdoc = docs[docs.length - 1];
-    if (!jsdoc) {
-      console.warn(`! ${title}: component has no JSDoc block to seed`);
-      continue;
-    }
-    const current = (ts.getTextOfJSDocComment(jsdoc.comment) ?? '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    // The docs page always wins. No quality heuristic: the page's Overview was
-    // written to introduce the component, the TSDoc summaries were not, and
-    // scoring them by length picks the wrong one (Container's summary is longer
-    // overall but opens with "Container component for Bulma."). Every
-    // replacement is printed instead — a human reads the list, because this
-    // text ships in the .d.ts and users' editor tooltips.
-    if (firstSentence(current) === sentence) continue; // already seeded
-
-    const raw = source.slice(jsdoc.pos, jsdoc.end);
-    const lead = raw.match(/^\s*/)[0];
-    const indent = ' ';
-    // Replace only the summary lines (up to the first blank ` *` or a tag).
-    const body = raw
-      .trim()
-      .replace(/^\/\*\*/, '')
-      .replace(/\*\/$/, '');
-    const rest = body
-      .split(/\r?\n/)
-      .map(l => l.replace(/^\s*\*\s?/, ''))
-      .join('\n');
-    const tagsAt = rest.search(/^@/m);
-    const tail = tagsAt === -1 ? '' : rest.slice(tagsAt).trimEnd();
-
-    const lines = ['/**', ` * ${sentence}`];
-    if (tail) {
-      lines.push(' *');
-      for (const l of tail.split('\n')) lines.push(` * ${l}`.trimEnd());
-    }
-    lines.push(' */');
-    const replacement =
-      lead +
-      lines.join(`\n${indent}`.replace('\n ', '\n')).replace(/\n/g, '\n');
-
-    const next =
-      source.slice(0, jsdoc.pos) + replacement + source.slice(jsdoc.end);
-    const formatted = await prettier.format(next, {
-      ...(await prettier.resolveConfig(tsFile)),
-      filepath: tsFile,
-    });
-    if (!dryRun) await writeFile(tsFile, formatted);
-    changed++;
-    process.stdout.write(
-      `✓ ${title}\n    was: "${current}"\n    now: "${sentence}"\n`
+    const bySubPath = new Map(
+      (info?.tables ?? []).slice(1).map(t => [t.path, t.impl])
     );
+    for (const m of src.matchAll(
+      /^[-*][ \t]+`([\w.]+)`[ \t]*[:—-][ \t]*(.+)$/gm
+    )) {
+      const impl = bySubPath.get(m[1]);
+      if (impl) seeds.push([impl, firstSentence(m[2].trim())]);
+    }
+
+    let source2 = source;
+    for (const [declName, text] of seeds) {
+      const next = await seedSummary(source2, declName, text, tsFile, title);
+      if (!next) continue;
+      source2 = next.src;
+      changed++;
+      process.stdout.write(
+        `\u2713 ${declName}\n    was: "${next.was}"\n    now: "${text}"\n`
+      );
+    }
+    if (source2 !== source && !dryRun) {
+      await writeFile(
+        tsFile,
+        await prettier.format(source2, {
+          ...(await prettier.resolveConfig(tsFile)),
+          filepath: tsFile,
+        })
+      );
+    }
   }
   process.stdout.write(
     `\n${changed} TSDoc summar(ies) ${dryRun ? 'would be ' : ''}seeded.\n`
@@ -255,13 +303,25 @@ function buildImport(body) {
  * that span), so this returns `null` for those pages instead of eating it —
  * the caller reports them for hand relocation.
  */
-function buildProps(body) {
+function buildProps(body, subPaths) {
   const lines = body.split('\n');
   const isTable = l => l.trimStart().startsWith('|');
   const first = lines.findIndex(isTable);
   if (first === -1) return null; // no table to own
+  // A `###` heading that is NOT one of the component's sub-components ends the
+  // generated span — `taginput.md` documents the `TaginputTag` type that way,
+  // and swallowing it would put a hand-written type reference inside a region
+  // the generator rewrites.
+  let stop = lines.length;
+  for (let i = first; i < lines.length; i++) {
+    const h = lines[i].trim().match(/^#{3,}\s+(.+?)\s*$/);
+    if (h && !subPaths.has(h[1].replace(/`/g, ''))) {
+      stop = i;
+      break;
+    }
+  }
   let last = first;
-  for (let i = lines.length - 1; i >= first; i--) {
+  for (let i = stop - 1; i >= first; i--) {
     if (isTable(lines[i])) {
       last = i;
       break;
@@ -325,7 +385,20 @@ async function migratePage(file, { dryRun, reorderOnly }) {
       if (p.heading === 'Overview') p.body = buildOverview(p.body);
       else if (p.heading === 'Import') p.body = buildImport(p.body);
       else if (p.heading === 'Props') {
-        const built = buildProps(p.body);
+        // Dot paths of this component's sub-components, so a `### Hero.Head`
+        // heading stays inside the generated span while a `### TaginputTag`
+        // type reference ends it.
+        let subPaths = new Set();
+        try {
+          subPaths = new Set(
+            extractComponent(title)
+              .tables.slice(1)
+              .map(t => t.path)
+          );
+        } catch {
+          /* not extractable — treat every ### as foreign */
+        }
+        const built = buildProps(p.body, subPaths);
         if (built === null) {
           console.error(
             `\u2717 docs/docs/api/${relPath}: "## Props" has no table to generate. ` +
@@ -388,7 +461,10 @@ async function main() {
   const category = catArg.slice('--category='.length);
 
   if (args.includes('--seed-tsdoc')) {
-    await seedTsdoc(category, { dryRun });
+    await seedTsdoc(category, {
+      dryRun,
+      base: args.find(a => a.startsWith('--base='))?.slice('--base='.length),
+    });
     return;
   }
 

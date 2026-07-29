@@ -8,23 +8,19 @@ import {
 
 /**
  * Props for the Divider component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
  */
 export interface DividerProps
   extends
     React.HTMLAttributes<HTMLHRElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
 /**
- * Divider component for rendering a styled horizontal rule element.
- *
- * A Divider wraps the HTML `<hr>` element with Bulma helper class integration.
- * Use it to visually separate content sections with a horizontal line.
+ * The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
  *
  * @function
  * @param {DividerProps} props - Props for the Divider component.

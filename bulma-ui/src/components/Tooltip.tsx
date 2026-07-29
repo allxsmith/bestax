@@ -25,47 +25,43 @@ export type TooltipSize = 'small' | 'medium' | 'large';
 
 /**
  * Props for the Tooltip component.
- *
- * @property {string} [label] - The tooltip text content.
- * @property {React.ReactNode} [content] - Custom rich content for the tooltip (takes precedence over label).
- * @property {TooltipPosition} [position] - Position of the tooltip. Default: 'top'.
- * @property {TooltipColor} [color] - Color variant for the tooltip.
- * @property {TooltipSize} [size] - Size variant for the tooltip ('small', 'medium', 'large').
- * @property {boolean} [active] - Force tooltip to be always visible.
- * @property {boolean} [multiline] - Allow tooltip to wrap to multiple lines.
- * @property {boolean} [animated] - Enable fade animation. Default: true.
- * @property {boolean} [square] - Use square corners instead of rounded.
- * @property {boolean} [dashed] - Show dashed underline on trigger.
- * @property {number} [delay] - Delay before showing tooltip (ms).
- * @property {number} [closeDelay] - Delay before hiding tooltip after mouse leave (ms).
- * @property {React.ReactNode} [children] - The element that triggers the tooltip.
- * @property {string} [className] - Additional CSS classes.
- * @property {string} [tooltipClassName] - Additional classes for the tooltip element.
+ * @extraProp {React.ReactNode} [children] - The element that triggers the tooltip.
+ * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface TooltipProps
   extends
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** The tooltip text content. */
   label?: string;
+  /** Rich tooltip content (alternative to `label`). Custom rich content for the tooltip (takes precedence over label). */
   content?: React.ReactNode;
+  /** Position of the tooltip. Default: 'top'. */
   position?: TooltipPosition;
+  /** Color variant for the tooltip. */
   color?: TooltipColor;
+  /** Size variant for the tooltip. */
   size?: TooltipSize;
+  /** Force tooltip to be always visible. */
   active?: boolean;
+  /** Allow tooltip to wrap to multiple lines. */
   multiline?: boolean;
+  /** Enable fade animation. Default: true. */
   animated?: boolean;
+  /** Use square corners instead of rounded. */
   square?: boolean;
+  /** Show dashed underline on trigger. */
   dashed?: boolean;
+  /** Delay before showing tooltip (ms). */
   delay?: number;
+  /** Delay before hiding tooltip after mouse leave (ms). */
   closeDelay?: number;
+  /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
 }
 
 /**
- * Tooltip component for displaying helpful information on hover.
- *
- * Shows a small popup with text when the user hovers over or focuses
- * on the wrapped element. Supports multiple positions and color variants.
+ * The `Tooltip` component displays helpful information when users hover over or focus on an element.
  *
  * @function
  * @param {TooltipProps} props - Props for the Tooltip component.

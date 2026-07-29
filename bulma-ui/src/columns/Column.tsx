@@ -31,11 +31,11 @@ export interface ColumnProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the column. */
   className?: string;
-  /** Text color (Bulma color, 'inherit', or 'current'). */
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the column. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color (Bulma color, 'inherit', or 'current'). */
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 
   /** Column size (see Bulma docs). */

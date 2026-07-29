@@ -1,13 +1,20 @@
 ---
 title: Code
 sidebar_label: Code
+description: The `Code` component renders a styled `<code>` element with Bulma helper class integration.
 ---
 
 # Code
 
 ## Overview
 
-The `Code` component renders a styled `<code>` element with Bulma helper class integration. Use it for inline code snippets, variable names, function names, file paths, or any short technical content that should be displayed in a monospace font.
+<!-- bestax:generated overview -->
+
+The `Code` component renders a styled `<code>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for inline code snippets, variable names, function names, file paths, or any short technical content that should be displayed in a monospace font.
 
 :::info
 For multi-line code blocks, use the `Pre` component instead, optionally with a `Code` component inside it.
@@ -17,21 +24,13 @@ For multi-line code blocks, use the `Pre` component instead, optionally with a `
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Code } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Code content to render inside the element.       |
-| ...         | All standard `<code>` and Bulma helper props                                                                                                                                                                                                                                             |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -156,3 +155,19 @@ Use `Code` for short inline snippets. For multi-line code blocks that need to pr
 
 - [MDN: code element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/code)
 - [Storybook: Code Stories](https://bestax.io/storybook/?path=/story/elements-code--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Code content to be rendered inside the element.   |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

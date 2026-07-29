@@ -1,41 +1,32 @@
 ---
 title: Field
 sidebar_label: Field
+description: The `Field` component is a Bulma-styled form field container.
 ---
 
 # Field
 
 ## Overview
 
-The `Field` component is a Bulma-styled form field container. It supports horizontal layouts, grouped controls, labels, label sizing, and all Bulma helper props for color, margin, and more. `Field` is the primary way to compose labeled, grouped, or horizontal layouts in your forms.
+<!-- bestax:generated overview -->
+
+The `Field` component is a Bulma-styled form field container.
+
+<!-- /bestax:generated overview -->
+
+It supports horizontal layouts, grouped controls, labels, label sizing, and all Bulma helper props for color, margin, and more. `Field` is the primary way to compose labeled, grouped, or horizontal layouts in your forms.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Field } from '@allxsmith/bestax-bulma';
-// Field.Label, Field.Body are available as subcomponents
 ```
 
----
-
-## Props
-
-| Field        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                         |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
-| `horizontal` | `boolean`                                                                                                                                                                                                                                                                                | —       | Renders the field as horizontal (label and control side by side).   |
-| `grouped`    | `boolean` \| `'centered'` \| `'right'` \| `'multiline'`                                                                                                                                                                                                                                  | —       | Group controls in a row (optionally centered, right, or multiline). |
-| `hasAddons`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Group controls as addons.                                           |
-| `label`      | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Field label.                                                        |
-| `labelSize`  | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | —       | Size for the label.                                                 |
-| `labelProps` | `object` (Label HTML attributes)                                                                                                                                                                                                                                                         | —       | Props for the label element.                                        |
-| `textColor`  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color for the field.                                           |
-| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | —       | Bulma color for the field.                                          |
-| `bgColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color for the field.                                     |
-| `className`  | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                             |
-| `children`   | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Field content.                                                      |
-| ...          | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | —       | (See [Helper Props](../helpers/usebulmaclasses))                    |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -516,3 +507,70 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 - [Bulma Field Documentation](https://bulma.io/documentation/form/general/#field)
 - [Storybook: Field Stories](https://bestax.io/storybook/?path=/story/form-input--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop         | Type                                                                            | Default | Description                                                                        |
+| ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `horizontal` | `boolean`                                                                       | `false` | Renders the field as horizontal (label and control side by side).                  |
+| `grouped`    | `boolean` \| `'centered'` \| `'right'` \| `'multiline'`                         | —       | Group controls in a row (optionally centered, right, or multiline).                |
+| `hasAddons`  | `boolean` \| `'centered'` \| `'right'`                                          | —       | Group controls as addons (optionally centered or right-aligned).                   |
+| `narrow`     | `boolean`                                                                       | `false` | Constrains the field to its content's width (used inside horizontal field bodies). |
+| `label`      | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                                            |
+| `labelSize`  | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label.                                                                |
+| `labelProps` | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                                       |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the field.                                                          |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the field.                                                         |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the field.                                                    |
+| `className`  | `string`                                                                        | —       | Additional CSS classes.                                                            |
+| `children`   | `React.ReactNode`                                                               | —       | Field content.                                                                     |
+| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
+
+**Subcomponents:**
+
+- `Field.Label`: FieldLabel component for rendering a Bulma field label.
+- `Field.Body`: FieldBody component for rendering Bulma field body.
+- [`Field.Control`](control.md): The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
+
+### Field.Label
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the field label.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the label.                         |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the label.                        |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the label.                   |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                               | —       | Field label content.                              |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Field.Body
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the field body.                    |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the field body.                   |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the field body.              |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                               | —       | Field body content.                               |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Field` registers these variables on its own `.field` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable            | Sass Variable | Default                            |
+| ----------------------- | ------------- | ---------------------------------- |
+| `--bulma-block-spacing` | —             | `var(--bulma-field-block-spacing)` |
+
+<!-- /bestax:generated cssvars -->

@@ -1,13 +1,20 @@
 ---
 title: Box
 sidebar_label: Box
+description: The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
 ---
 
 # Box
 
 ## Overview
 
-The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class. It's useful for visually separating content, callouts, or emphasizing important UI elements. Supports all Bulma helper props for color, spacing, and more.
+<!-- bestax:generated overview -->
+
+The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+
+<!-- /bestax:generated overview -->
+
+It's useful for visually separating content, callouts, or emphasizing important UI elements. Supports all Bulma helper props for color, spacing, and more.
 
 :::info
 By default, `Box` includes a subtle shadow. You can disable the shadow with `hasShadow={false}`.
@@ -17,23 +24,13 @@ By default, `Box` includes a subtle shadow. You can disable the shadow with `has
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Box } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the box.                |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `hasShadow` | `boolean`                                                                                                                                                                                                                                                                                | `true`  | Whether the box has a shadow.                    |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the box.                |
-| ...         | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -135,3 +132,41 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 
 - [Bulma Box Documentation](https://bulma.io/documentation/elements/box/)
 - [Storybook: Box Stories](https://bestax.io/storybook/?path=/story/elements-box--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the box.                 |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                          |
+| `hasShadow` | `boolean`                                                                       | `true`  | Whether the box has a shadow (default: true).     |
+| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the box.            |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Box` registers these variables on its own `.box` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                     | Sass Variable             | Default                                                                                                                                   |
+| -------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-box-background-color`   | `$box-background-color`   | `var(--bulma-scheme-main)`                                                                                                                |
+| `--bulma-box-color`              | `$box-color`              | `var(--bulma-text)`                                                                                                                       |
+| `--bulma-box-radius`             | `$box-radius`             | `var(--bulma-radius-large)`                                                                                                               |
+| `--bulma-box-shadow`             | `$box-shadow`             | `var(--bulma-shadow)`                                                                                                                     |
+| `--bulma-box-padding`            | `$box-padding`            | `1.25rem`                                                                                                                                 |
+| `--bulma-box-link-hover-shadow`  | `$box-link-hover-shadow`  | `0 0.5em 1em -0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1), 0 0 0 1px var(--bulma-link)` |
+| `--bulma-box-link-active-shadow` | `$box-link-active-shadow` | `inset 0 1px 2px hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2), 0 0 0 1px var(--bulma-link)`      |
+
+<!-- /bestax:generated cssvars -->

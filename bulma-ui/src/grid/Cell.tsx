@@ -32,13 +32,13 @@ export interface CellProps
   rowSpan?: CellSpanValue;
   /** Additional CSS class names. */
   className?: string;
-  /** Text color (Bulma color, 'inherit', or 'current'). */
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the cell. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color (Bulma color, 'inherit', or 'current'). */
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Children to render inside the cell. */
+  /** Content to render inside the cell. Children to render inside the cell. */
   children?: React.ReactNode;
 }
 

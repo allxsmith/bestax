@@ -25,11 +25,11 @@ export interface ColumnsProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the columns container. */
   className?: string;
-  /** Text color (Bulma color, 'inherit', or 'current'). */
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for all columns. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color (Bulma color, 'inherit', or 'current'). */
+  /** Background color for all columns. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Horizontally center columns within the container. */
   isCentered?: boolean;

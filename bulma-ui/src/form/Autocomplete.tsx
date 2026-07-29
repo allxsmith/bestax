@@ -18,92 +18,89 @@ import { FormFieldProps } from './fieldProps';
 
 /**
  * An item in the Autocomplete dropdown list.
- *
- * @property {string} value - The value used for filtering and selection.
- * @property {string} [label] - Display label (falls back to value if omitted).
- * @property {boolean} [disabled] - Whether the item is disabled and unselectable.
  */
 export interface AutocompleteItem {
+  /** The value used for filtering and selection. */
   value: string;
+  /** Display label (optional). Display label (falls back to value if omitted). */
   label?: string;
+  /** Whether the item is disabled and unselectable. */
   disabled?: boolean;
   [key: string]: unknown;
 }
 
 /**
  * Props for the Autocomplete component.
- *
- * @property {AutocompleteItem[] | string[]} data - The options data to display.
- * @property {string} [value] - The current input value (controlled).
- * @property {AutocompleteItem | string | null} [selected] - The selected item (controlled).
- * @property {string} [placeholder] - Placeholder text for the input.
- * @property {string} [field] - Object property to use as the display field.
- * @property {boolean} [clearable] - Whether to show a clear button.
- * @property {boolean} [openOnFocus] - Open dropdown when input is focused.
- * @property {boolean} [keepFirst] - Keep first option highlighted.
- * @property {boolean} [keepOpen] - Keep dropdown open after selection.
- * @property {boolean} [selectOnClickOutside] - Select highlighted item on click outside.
- * @property {number} [maxHeight] - Maximum dropdown height in pixels.
- * @property {boolean} [dropdown] - Render as dropdown style.
- * @property {boolean} [loading] - Show loading state.
- * @property {boolean} [disabled] - Whether the input is disabled.
- * @property {boolean} [checkInfiniteScroll] - Enable infinite scroll detection.
- * @property {number} [infiniteScrollDistance] - Distance threshold for infinite scroll.
- * @property {(value: string) => void} [onInput] - Callback when input value changes.
- * @property {(item: AutocompleteItem | string | null) => void} [onSelect] - Callback when item is selected.
- * @property {(active: boolean) => void} [onActiveChange] - Callback when dropdown active state changes.
- * @property {() => void} [onInfiniteScroll] - Callback when scrolled to bottom (infinite scroll).
- * @property {(item: AutocompleteItem | string) => React.ReactNode} [itemTemplate] - Custom render for items.
- * @property {React.ReactNode} [header] - Custom header in dropdown.
- * @property {React.ReactNode} [footer] - Custom footer in dropdown.
- * @property {React.ReactNode} [empty] - Content to show when no results.
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the input.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the input.
- * @property {string} [name] - Form field name; forwarded to the inner input so the typed/selected value submits with the surrounding form.
- * @property {string} [form] - The id of the form the input belongs to.
- * @property {boolean} [required] - Whether the input is required.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export interface AutocompleteProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** The options data to display (required). */
   data: AutocompleteItem[] | string[];
+  /** The current input value (controlled). */
   value?: string;
+  /** The selected item (controlled). */
   selected?: AutocompleteItem | string | null;
+  /** Placeholder text for the input. */
   placeholder?: string;
+  /** Object property to use as the display field. */
   field?: string;
+  /** Whether to show a clear button. */
   clearable?: boolean;
+  /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
+  /** Keep first option highlighted. */
   keepFirst?: boolean;
+  /** Keep dropdown open after selection. */
   keepOpen?: boolean;
+  /** Select highlighted item on click outside. */
   selectOnClickOutside?: boolean;
+  /** Maximum dropdown height in pixels. */
   maxHeight?: number;
+  /** Render as dropdown style. */
   dropdown?: boolean;
+  /** Show loading state. */
   loading?: boolean;
+  /** Whether the input is disabled. */
   disabled?: boolean;
+  /** Enables infinite scroll detection in the dropdown. Enable infinite scroll detection. */
   checkInfiniteScroll?: boolean;
+  /** Distance in pixels from the bottom to trigger `onInfiniteScroll`. Distance threshold for infinite scroll. */
   infiniteScrollDistance?: number;
+  /** Input color variant. Bulma color modifier for the input. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Size variant. Size modifier for the input. */
   size?: 'small' | 'medium' | 'large';
+  /** Form field name; forwarded to the inner input so the typed/selected value submits with the surrounding form. */
   name?: string;
+  /** Optional id of the form the input belongs to. */
   form?: string;
+  /** Marks the field as required for native HTML form validation. Whether the input is required. */
   required?: boolean;
+  /** Callback when input value changes. */
   onInput?: (value: string) => void;
+  /** Callback when item is selected. */
   onSelect?: (item: AutocompleteItem | string | null) => void;
+  /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
+  /** Callback when scrolled to bottom (infinite scroll). */
   onInfiniteScroll?: () => void;
+  /** Custom render for items. */
   itemTemplate?: (item: AutocompleteItem | string) => React.ReactNode;
+  /** Custom header in dropdown. */
   header?: React.ReactNode;
+  /** Custom footer in dropdown. */
   footer?: React.ReactNode;
+  /** Content to show when no results. */
   empty?: React.ReactNode;
 }
 
 /**
- * Autocomplete component with dropdown suggestions.
- *
- * Provides an input field with a dropdown of suggestions that filter
- * based on user input.
+ * The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
  *
  * @function
  * @param {AutocompleteProps} props - Props for the Autocomplete component.

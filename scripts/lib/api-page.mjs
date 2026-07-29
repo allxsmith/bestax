@@ -218,12 +218,28 @@ export function sectionBody(lines, section) {
  * llms.txt description from the first non-heading paragraph, which after
  * migration is a marker line, so the description has to be explicit.
  */
+/**
+ * A plain YAML scalar unless the value needs quoting. Generated Overview
+ * sentences are prose, and one of them contains ": " — `Menu` reads "provides
+ * Bulma's vertical navigation menu: a simple, accessible sidebar…" — which
+ * makes the frontmatter parse as a nested mapping and fails the docs build.
+ * Quoted only when necessary, so the other 80 pages keep their bare form.
+ */
+function yamlScalar(value) {
+  const needsQuotes =
+    /: |:\t|\s#|^[\s>|&*!%@`"'{}[\],]|[:\s]$/.test(value) ||
+    /^(true|false|null|yes|no|on|off|~)$/i.test(value) ||
+    /^[-+.]?\d/.test(value);
+  if (!needsQuotes) return value;
+  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
 export function upsertFrontmatter(src, key, value, after = null) {
   const m = src.match(/^(---\r?\n)([\s\S]*?)(\r?\n---)/);
   if (!m) throw new Error('page has no frontmatter block');
   const eol = m[1].includes('\r\n') ? '\r\n' : '\n';
   const lines = m[2].split(/\r?\n/);
-  const line = `${key}: ${value}`;
+  const line = `${key}: ${yamlScalar(value)}`;
   const at = lines.findIndex(l => new RegExp(`^${key}:`).test(l));
 
   if (at >= 0) {
@@ -265,7 +281,30 @@ export function firstSentence(text) {
  * code is parsed — see the hand-written `avatar.md` rows, which do the same.
  */
 export function escapeCell(text) {
-  return String(text).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ').trim();
+  return codeSpanBareTags(String(text))
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ')
+    .trim();
+}
+
+/**
+ * Backtick a bare `<Tag>` that is not already inside a code span.
+ *
+ * MDX parses `<Icon>` in a table cell as JSX and then fails the whole build
+ * looking for a closing tag — `Rate`'s TSDoc says "renders <Icon> instead of
+ * default SVG". An author writing a component name in a comment cannot be
+ * expected to know it will be spliced into markdown, so fix it here rather
+ * than policing every comment.
+ */
+function codeSpanBareTags(text) {
+  return text
+    .split(/(`[^`]*`)/)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part.replace(/<\/?[A-Za-z][\w.-]*\s*\/?>/g, tag => `\`${tag}\``)
+    )
+    .join('');
 }
 
 /**

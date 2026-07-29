@@ -6,26 +6,23 @@ import { Tag } from './Tag';
 
 /**
  * Props for the Tags component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [hasAddons] - Group tags together as addons.
- * @property {boolean} [isMultiline] - Allow tags to wrap onto multiple lines.
- * @property {React.ReactNode} [children] - Tag elements to render inside the container.
  */
 export interface TagsProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Group tags together as add-ons (no spacing). Group tags together as addons. */
   hasAddons?: boolean;
+  /** Allow tags to wrap onto multiple lines. */
   isMultiline?: boolean;
+  /** Tag elements to render inside the container. */
   children?: React.ReactNode;
 }
 
 /**
- * Tags component for rendering a styled Bulma tags container.
- *
- * Supports addons and multiline variants.
+ * The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
  *
  * @function
  * @param {TagsProps} props - Props for the Tags component.

@@ -1,35 +1,32 @@
 ---
 title: Checkbox
 sidebar_label: Checkbox
+description: The `Checkbox` component provides a Bulma-styled checkbox input.
 ---
 
 # Checkbox
 
 ## Overview
 
-The `Checkbox` component provides a Bulma-styled checkbox input. Pass the label as children; you can include plain text, links, or custom JSX. Use it for boolean choices and combine with the `Checkboxes` component for grouped options.
+<!-- bestax:generated overview -->
+
+The `Checkbox` component provides a Bulma-styled checkbox input.
+
+<!-- /bestax:generated overview -->
+
+Pass the label as children; you can include plain text, links, or custom JSX. Use it for boolean choices and combine with the `Checkboxes` component for grouped options.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `disabled`  | `boolean`                                                                                                                                                                                                                                                                                | Whether the checkbox is disabled.                |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Color of the checkbox.                           |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | Size of the checkbox.                            |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper.                               |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | Label/content for the checkbox.                  |
-| ...         | All standard `<input>` and Bulma helper props                                                                                                                                                                                                                                            | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -96,7 +93,7 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 ## Related Components
 
 - [`Checkboxes`](./checkboxes.md): For grouped checkboxes.
-- [`Field`](./field.md): For forms.
+- [`Field`](./field.md): For labeled/structured forms.
 - [Helper Props](../helpers/usebulmaclasses.md): For spacing, color, etc.
 
 ---
@@ -105,3 +102,46 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 
 - [Bulma Checkbox Documentation](https://bulma.io/documentation/form/checkbox/)
 - [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the checkbox.                   |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the checkbox.                             |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the checkbox is disabled.                 |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `children`  | `React.ReactNode`                                                               | —       | The label/content for the checkbox.               |
+| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.              |
+| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Checkbox` registers these variables on its own `.styled-checkbox` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                           | Sass Variable                   | Default                      |
+| -------------------------------------- | ------------------------------- | ---------------------------- |
+| `--bulma-checkbox-size`                | `$checkbox-size`                | `1.25em`                     |
+| `--bulma-checkbox-border-width`        | `$checkbox-border-width`        | `2px`                        |
+| `--bulma-checkbox-radius`              | `$checkbox-radius`              | `var(--bulma-radius-small)`  |
+| `--bulma-checkbox-border-color`        | `$checkbox-border-color`        | `var(--bulma-border)`        |
+| `--bulma-checkbox-background`          | `$checkbox-background`          | `transparent`                |
+| `--bulma-checkbox-check-color`         | `$checkbox-check-color`         | `var(--bulma-scheme-invert)` |
+| `--bulma-checkbox-active-color`        | `$checkbox-active-color`        | `var(--bulma-primary)`       |
+| `--bulma-checkbox-label-gap`           | `$checkbox-label-gap`           | `0.5em`                      |
+| `--bulma-checkbox-focus-shadow-size`   | `$checkbox-focus-shadow-size`   | `0 0 0 0.125em`              |
+| `--bulma-checkbox-transition-duration` | `$checkbox-transition-duration` | `var(--bulma-duration)`      |
+| `--bulma-checkbox-indeterminate-color` | `$checkbox-indeterminate-color` | `var(--bulma-primary)`       |
+
+<!-- /bestax:generated cssvars -->

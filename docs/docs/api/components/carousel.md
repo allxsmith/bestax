@@ -1,62 +1,32 @@
 ---
 title: Carousel
 sidebar_label: Carousel
+description: The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 ---
 
 # Carousel
 
 ## Overview
 
-The `Carousel` component provides an image/content slider with navigation arrows and indicators. It supports auto-play, drag navigation, and customizable styles.
+<!-- bestax:generated overview -->
+
+The `Carousel` component provides an image/content slider with navigation arrows and indicators.
+
+<!-- /bestax:generated overview -->
+
+It supports auto-play, drag navigation, and customizable styles.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-### Carousel
-
-| Prop                | Type                                                                       | Default    | Description                                                                             |
-| ------------------- | -------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------- |
-| `value`             | `number`                                                                   | `0`        | Current active slide index (controlled).                                                |
-| `autoplay`          | `boolean`                                                                  | `false`    | Enable auto-play.                                                                       |
-| `interval`          | `number`                                                                   | `5000`     | Auto-play interval in milliseconds.                                                     |
-| `pauseOnHover`      | `boolean`                                                                  | `true`     | Pause auto-play on hover.                                                               |
-| `repeat`            | `boolean`                                                                  | `true`     | Loop back to first slide after last.                                                    |
-| `hasDrag`           | `boolean`                                                                  | `true`     | Enable drag/swipe navigation.                                                           |
-| `arrow`             | `boolean`                                                                  | `true`     | Show navigation arrows.                                                                 |
-| `arrowHover`        | `boolean`                                                                  | `false`    | Only show arrows on hover.                                                              |
-| `arrowBackground`   | `boolean`                                                                  | `true`     | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. |
-| `iconPrev`          | `string`                                                                   | —          | Icon name for the previous arrow button.                                                |
-| `iconNext`          | `string`                                                                   | —          | Icon name for the next arrow button.                                                    |
-| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —          | Icon library to use.                                                                    |
-| `iconVariant`       | `string`                                                                   | —          | Icon style variant (e.g., 'solid', 'outlined').                                         |
-| `iconSize`          | `'small'` \| `'medium'` \| `'large'`                                       | —          | Icon size modifier.                                                                     |
-| `iconFeatures`      | `string \| string[]`                                                       | —          | Additional icon modifiers.                                                              |
-| `indicator`         | `boolean`                                                                  | `true`     | Show slide indicators.                                                                  |
-| `indicatorInside`   | `boolean`                                                                  | `false`    | Position indicators inside carousel.                                                    |
-| `indicatorPosition` | `'bottom'` \| `'top'`                                                      | `'bottom'` | Indicator position.                                                                     |
-| `indicatorStyle`    | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`   | Indicator style.                                                                        |
-| `onChange`          | `(value: number) => void`                                                  | —          | Callback when slide changes.                                                            |
-| `children`          | `React.ReactNode`                                                          | —          | CarouselItem children.                                                                  |
-| `className`         | `string`                                                                   | —          | Additional CSS classes.                                                                 |
-| `ref`               | `React.Ref<HTMLElement>`                                                   | —          | Ref forwarded to the carousel element.                                                  |
-| `arrowColor`        | `'light'` \| `'dark'`                                                      | —          | Color theme for navigation arrows.                                                      |
-| ...                 | All standard HTML and Bulma helper props                                   |            | (See [Helper Props](../helpers/usebulmaclasses))                                        |
-
-### CarouselItem
-
-| Prop        | Type      | Default | Description                                      |
-| ----------- | --------- | ------- | ------------------------------------------------ |
-| `active`    | `boolean` | —       | Whether this item is active (set automatically). |
-| `className` | `string`  | —       | Additional CSS classes.                          |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -462,3 +432,99 @@ Carousel that stops at the first and last slides.
 :::tip Pro Tip
 Use the `pauseOnHover` prop (enabled by default) to let users interact with carousel content without it auto-advancing.
 :::
+
+---
+
+## Props
+
+### Carousel
+
+<!-- bestax:generated props -->
+
+| Prop                | Type                                                                       | Default            | Description                                                                                                                                               |
+| ------------------- | -------------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`             | `number`                                                                   | `0`                | Current active slide index (controlled).                                                                                                                  |
+| `autoplay`          | `boolean`                                                                  | `false`            | Enable auto-play.                                                                                                                                         |
+| `interval`          | `number`                                                                   | `5000`             | Auto-play interval in milliseconds. Default: 5000.                                                                                                        |
+| `pauseOnHover`      | `boolean`                                                                  | `true`             | Pause auto-play on hover. Default: true.                                                                                                                  |
+| `repeat`            | `boolean`                                                                  | `true`             | Loop back to first slide after last. Default: true.                                                                                                       |
+| `hasDrag`           | `boolean`                                                                  | `true`             | Enable drag/swipe navigation. Default: true.                                                                                                              |
+| `arrow`             | `boolean`                                                                  | `true`             | Show navigation arrows. Default: true.                                                                                                                    |
+| `arrowHover`        | `boolean`                                                                  | `false`            | Only show arrows on hover.                                                                                                                                |
+| `indicator`         | `boolean`                                                                  | `true`             | Show slide indicators. Default: true.                                                                                                                     |
+| `indicatorInside`   | `boolean`                                                                  | `false`            | Position indicators inside carousel.                                                                                                                      |
+| `indicatorPosition` | `'bottom'` \| `'top'`                                                      | `'bottom'`         | Indicator position. Default: 'bottom'.                                                                                                                    |
+| `indicatorStyle`    | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`           | Indicator style. Default: 'dots'.                                                                                                                         |
+| `iconPrev`          | `string`                                                                   | —                  | Icon name for the previous arrow button.                                                                                                                  |
+| `iconNext`          | `string`                                                                   | —                  | Icon name for the next arrow button.                                                                                                                      |
+| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —                  | Icon library to use.                                                                                                                                      |
+| `iconVariant`       | `string`                                                                   | —                  | Icon style variant (e.g., 'solid', 'outlined').                                                                                                           |
+| `iconSize`          | `'small'` \| `'medium'` \| `'large'`                                       | —                  | Icon size modifier.                                                                                                                                       |
+| `iconFeatures`      | `string` \| `string[]`                                                     | —                  | Additional icon modifiers.                                                                                                                                |
+| `arrowBackground`   | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. Show semi-transparent background on arrow buttons. Default: true. |
+| `arrowColor`        | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Arrow icon color variant. Useful for transparent arrows on dark/light backgrounds.                                     |
+| `ariaLabel`         | `string`                                                                   | `'Image carousel'` | Accessible label for the carousel region. Default: 'Image carousel'.                                                                                      |
+| `onChange`          | `(value: number) => void`                                                  | —                  | Callback when slide changes.                                                                                                                              |
+| `children`          | `React.ReactNode`                                                          | —                  | CarouselItem children. Carousel slide items (CarouselItem elements).                                                                                      |
+| `className`         | `string`                                                                   | —                  | Additional CSS classes.                                                                                                                                   |
+| `ref`               | `React.Ref<HTMLElement>`                                                   | —                  | Ref forwarded to the carousel element.                                                                                                                    |
+| `active`            | `boolean`                                                                  | —                  | Whether this item is active (set automatically).                                                                                                          |
+| `...`               | All standard `<div>` attributes and Bulma helper props                     | —                  | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                         |
+
+<!-- /bestax:generated props -->
+
+### CarouselItem
+
+| Prop        | Type      | Default | Description                                      |
+| ----------- | --------- | ------- | ------------------------------------------------ |
+| `active`    | `boolean` | —       | Whether this item is active (set automatically). |
+| `className` | `string`  | —       | Additional CSS classes.                          |
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Carousel` registers these variables on its own `.carousel` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                           | Sass Variable                                   | Default                                                                                 |
+| ------------------------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `--bulma-carousel-arrow-size`                          | `$carousel-arrow-size`                          | `48px`                                                                                  |
+| `--bulma-carousel-arrow-size-mobile`                   | `$carousel-arrow-size-mobile`                   | `36px`                                                                                  |
+| `--bulma-carousel-arrow-background`                    | `$carousel-arrow-background`                    | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)`   |
+| `--bulma-carousel-arrow-background-hover`              | `$carousel-arrow-background-hover`              | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.95)`  |
+| `--bulma-carousel-arrow-color`                         | `$carousel-arrow-color`                         | `var(--bulma-text)`                                                                     |
+| `--bulma-carousel-arrow-disabled-opacity`              | `$carousel-arrow-disabled-opacity`              | `0.3`                                                                                   |
+| `--bulma-carousel-arrow-offset`                        | `$carousel-arrow-offset`                        | `1rem`                                                                                  |
+| `--bulma-carousel-arrow-offset-mobile`                 | `$carousel-arrow-offset-mobile`                 | `0.5rem`                                                                                |
+| `--bulma-carousel-arrow-icon-size`                     | `$carousel-arrow-icon-size`                     | `24px`                                                                                  |
+| `--bulma-carousel-arrow-icon-size-mobile`              | `$carousel-arrow-icon-size-mobile`              | `18px`                                                                                  |
+| `--bulma-carousel-arrow-radius`                        | `$carousel-arrow-radius`                        | `var(--bulma-radius)`                                                                   |
+| `--bulma-carousel-indicator-size`                      | `$carousel-indicator-size`                      | `10px`                                                                                  |
+| `--bulma-carousel-indicator-size-mobile`               | `$carousel-indicator-size-mobile`               | `8px`                                                                                   |
+| `--bulma-carousel-indicator-gap`                       | `$carousel-indicator-gap`                       | `0.5rem`                                                                                |
+| `--bulma-carousel-indicator-gap-mobile`                | `$carousel-indicator-gap-mobile`                | `0.375rem`                                                                              |
+| `--bulma-carousel-indicator-background`                | `$carousel-indicator-background`                | `var(--bulma-border)`                                                                   |
+| `--bulma-carousel-indicator-background-hover`          | `$carousel-indicator-background-hover`          | `var(--bulma-border-hover)`                                                             |
+| `--bulma-carousel-indicator-background-active`         | `$carousel-indicator-background-active`         | `var(--bulma-primary)`                                                                  |
+| `--bulma-carousel-indicator-circle-size`               | `$carousel-indicator-circle-size`               | `12px`                                                                                  |
+| `--bulma-carousel-indicator-line-width`                | `$carousel-indicator-line-width`                | `30px`                                                                                  |
+| `--bulma-carousel-indicator-line-width-mobile`         | `$carousel-indicator-line-width-mobile`         | `20px`                                                                                  |
+| `--bulma-carousel-indicator-line-height`               | `$carousel-indicator-line-height`               | `4px`                                                                                   |
+| `--bulma-carousel-indicator-line-height-mobile`        | `$carousel-indicator-line-height-mobile`        | `3px`                                                                                   |
+| `--bulma-carousel-indicator-line-radius`               | `$carousel-indicator-line-radius`               | `var(--bulma-radius-small)`                                                             |
+| `--bulma-carousel-indicator-bar-width`                 | `$carousel-indicator-bar-width`                 | `24px`                                                                                  |
+| `--bulma-carousel-indicator-bar-width-mobile`          | `$carousel-indicator-bar-width-mobile`          | `16px`                                                                                  |
+| `--bulma-carousel-indicator-bar-height`                | `$carousel-indicator-bar-height`                | `6px`                                                                                   |
+| `--bulma-carousel-indicator-bar-height-mobile`         | `$carousel-indicator-bar-height-mobile`         | `4px`                                                                                   |
+| `--bulma-carousel-overlay-arrow-background`            | `$carousel-overlay-arrow-background`            | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)` |
+| `--bulma-carousel-overlay-arrow-background-hover`      | `$carousel-overlay-arrow-background-hover`      | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)` |
+| `--bulma-carousel-overlay-arrow-color`                 | `$carousel-overlay-arrow-color`                 | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-carousel-overlay-indicator-background`        | `$carousel-overlay-indicator-background`        | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)`   |
+| `--bulma-carousel-overlay-indicator-background-hover`  | `$carousel-overlay-indicator-background-hover`  | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)`   |
+| `--bulma-carousel-overlay-indicator-background-active` | `$carousel-overlay-indicator-background-active` | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-carousel-transition-duration`                 | `$carousel-transition-duration`                 | `var(--bulma-duration)`                                                                 |
+| `--bulma-carousel-fade-duration`                       | `$carousel-fade-duration`                       | `0.5s`                                                                                  |
+
+<!-- /bestax:generated cssvars -->

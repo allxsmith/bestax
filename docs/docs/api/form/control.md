@@ -1,50 +1,32 @@
 ---
 title: Control
 sidebar_label: Control
+description: The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
 ---
 
 # Control
 
 ## Overview
 
-The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color. Use it to provide consistent spacing, icon placement, and loading indicators for any form element.
+<!-- bestax:generated overview -->
+
+The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
+
+<!-- /bestax:generated overview -->
+
+Use it to provide consistent spacing, icon placement, and loading indicators for any form element.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Control, Input, Select, TextArea } from '@allxsmith/bestax-bulma';
-// ...and other form elements as needed
 ```
 
----
-
-## Props
-
-| Prop            | Type                                                                  | Description                                                                         |
-| --------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `hasIconsLeft`  | `boolean`                                                             | Adds left icon container.                                                           |
-| `hasIconsRight` | `boolean`                                                             | Adds right icon container.                                                          |
-| `isLoading`     | `boolean`                                                             | Shows loading indicator.                                                            |
-| `isExpanded`    | `boolean`                                                             | Makes the control expand to fill available space.                                   |
-| `size`          | `'small' \| 'medium' \| 'large'`                                      | Sets the control size.                                                              |
-| `textColor`     | [Bulma color]\*, `'inherit'`, `'current'`                             | Sets text color.                                                                    |
-| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Bulma color for the control.                                                        |
-| `bgColor`       | [Bulma color]\*, `'inherit'`, `'current'`                             | Background color.                                                                   |
-| `iconLeft`      | `IconProps`                                                           | Icon props for left icon.                                                           |
-| `iconRight`     | `IconProps`                                                           | Icon props for right icon.                                                          |
-| `iconLeftName`  | `string`                                                              | Shortcut for left icon name.                                                        |
-| `iconLeftSize`  | `'small' \| 'medium' \| 'large'`                                      | Shortcut for left icon size.                                                        |
-| `iconRightName` | `string`                                                              | Shortcut for right icon name.                                                       |
-| `iconRightSize` | `'small' \| 'medium' \| 'large'`                                      | Shortcut for right icon size.                                                       |
-| `className`     | `string`                                                              | Additional CSS classes to apply.                                                    |
-| `children`      | `React.ReactNode`                                                     | Content inside the control.                                                         |
-| `as`            | `'div' \| 'p'`                                                        | Element type for the control (`div` by default).                                    |
-| `ref`           | `React.Ref<HTMLDivElement \| HTMLParagraphElement>`                   | Ref for the control element.                                                        |
-| ...             | All standard HTML and Bulma helper props                              | See [Helper Props](../helpers/usebulmaclasses.md) for available Bulma helper props. |
-
-\* [Bulma color] options include: `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'white-bis'`, `'white-ter'`.
+<!-- /bestax:generated import -->
 
 ---
 
@@ -276,3 +258,78 @@ The `Control` component can also be used with radio buttons or checkboxes. This 
 
 - [Bulma Control Documentation](https://bulma.io/documentation/form/general/#control)
 - [Storybook: Input Stories](https://bestax.io/storybook/?path=/story/form-input--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop            | Type                                                                            | Default | Description                                       |
+| --------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `as`            | `'div'` \| `'p'`                                                                | `'div'` | Element type for the control (`div` by default).  |
+| `ref`           | `React.Ref<HTMLDivElement>` \| `React.Ref<HTMLParagraphElement>`                | —       | Ref for the control element.                      |
+| `hasIconsLeft`  | `boolean`                                                                       | `false` | Adds left icon container.                         |
+| `hasIconsRight` | `boolean`                                                                       | `false` | Adds right icon container.                        |
+| `isLoading`     | `boolean`                                                                       | `false` | Shows loading indicator.                          |
+| `isExpanded`    | `boolean`                                                                       | `false` | Makes the control expand to fill available space. |
+| `size`          | `'small'` \| `'medium'` \| `'large'`                                            | —       | Sets the control size.                            |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Sets text color.                                  |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the control.                      |
+| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                 |
+| `iconLeft`      | `IconProps`                                                                     | —       | Icon props for left icon.                         |
+| `iconRight`     | `IconProps`                                                                     | —       | Icon props for right icon.                        |
+| `iconLeftName`  | `string`                                                                        | —       | Shortcut for left icon name.                      |
+| `iconLeftSize`  | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for left icon size.                      |
+| `iconRightName` | `string`                                                                        | —       | Shortcut for right icon name.                     |
+| `iconRightSize` | `'small'` \| `'medium'` \| `'large'`                                            | —       | Shortcut for right icon size.                     |
+| `className`     | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `children`      | `React.ReactNode`                                                               | —       | Content inside the control.                       |
+| `...`           | All standard `<div>` / `<p>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+\* [Bulma color] options include: `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'white-bis'`, `'white-ter'`.
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Control` registers these variables on its own `.control` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
+| `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
+| `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-border-style`               | `$input-border-style`               | `solid`                                                                                                                  |
+| `--bulma-input-border-width`               | `$input-border-width`               | `var(--bulma-control-border-width)`                                                                                      |
+| `--bulma-input-border-l`                   | `$input-border-l`                   | `var(--bulma-border-l)`                                                                                                  |
+| `--bulma-input-border-l-delta`             | `$input-border-l-delta`             | `0%`                                                                                                                     |
+| `--bulma-input-border-color`               | `$input-border-color`               | `hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))` |
+| `--bulma-input-hover-border-l-delta`       | `$input-hover-border-l-delta`       | `var(--bulma-hover-border-l-delta)`                                                                                      |
+| `--bulma-input-active-border-l-delta`      | `$input-active-border-l-delta`      | `var(--bulma-active-border-l-delta)`                                                                                     |
+| `--bulma-input-focus-h`                    | `$input-focus-h`                    | `var(--bulma-focus-h)`                                                                                                   |
+| `--bulma-input-focus-s`                    | `$input-focus-s`                    | `var(--bulma-focus-s)`                                                                                                   |
+| `--bulma-input-focus-l`                    | `$input-focus-l`                    | `var(--bulma-focus-l)`                                                                                                   |
+| `--bulma-input-focus-shadow-size`          | `$input-focus-shadow-size`          | `var(--bulma-focus-shadow-size)`                                                                                         |
+| `--bulma-input-focus-shadow-alpha`         | `$input-focus-shadow-alpha`         | `var(--bulma-focus-shadow-alpha)`                                                                                        |
+| `--bulma-input-color-l`                    | `$input-color-l`                    | `var(--bulma-text-strong-l)`                                                                                             |
+| `--bulma-input-background-l`               | `$input-background-l`               | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-background-l-delta`         | `$input-background-l-delta`         | `0%`                                                                                                                     |
+| `--bulma-input-height`                     | `$input-height`                     | `var(--bulma-control-height)`                                                                                            |
+| `--bulma-input-shadow`                     | `$input-shadow`                     | `inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)`        |
+| `--bulma-input-placeholder-color`          | `$input-placeholder-color`          | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)`                                        |
+| `--bulma-input-disabled-color`             | `$input-disabled-color`             | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-disabled-background-color`  | `$input-disabled-background-color`  | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-border-color`      | `$input-disabled-border-color`      | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-placeholder-color` | `$input-disabled-placeholder-color` | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)`                                          |
+| `--bulma-input-arrow`                      | `$input-arrow`                      | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-icon-color`                 | `$input-icon-color`                 | `var(--bulma-text-light)`                                                                                                |
+| `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+
+<!-- /bestax:generated cssvars -->

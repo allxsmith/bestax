@@ -1,13 +1,20 @@
 ---
 title: Pagination
 sidebar_label: Pagination
+description: The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.
 ---
 
 # Pagination
 
 ## Overview
 
-The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI. It supports color, size, alignment, rounded corners, disabled states, and both controlled and uncontrolled usage. Use the provided subcomponents to build complex paginations: previous/next buttons, page links, ellipsis, and custom content.
+<!-- bestax:generated overview -->
+
+The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports color, size, alignment, rounded corners, disabled states, and both controlled and uncontrolled usage. Use the provided subcomponents to build complex paginations: previous/next buttons, page links, ellipsis, and custom content.
 
 :::info
 Use `Pagination` for navigating lists of results, pages, or any content split across screens.
@@ -17,36 +24,13 @@ Use `Pagination` for navigating lists of results, pages, or any content split ac
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Pagination } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                                                                                                                                                                                                                                                                     | Default | Description                                         |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                                     | —       | Size modifier.                                      |
-| `align`        | `'centered'` \| `'right'`                                                                                                                                                                                                                                                                | —       | Alignment for the pagination.                       |
-| `rounded`      | `boolean`                                                                                                                                                                                                                                                                                | `false` | Renders pagination with rounded corners.            |
-| `total`        | `number`                                                                                                                                                                                                                                                                                 | —       | Total number of pages (for custom implementations). |
-| `current`      | `number`                                                                                                                                                                                                                                                                                 | —       | Current page (for controlled implementations).      |
-| `onPageChange` | `(page: number) => void`                                                                                                                                                                                                                                                                 | —       | Callback when a page is selected.                   |
-| `className`    | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                             |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'`                                                                                                                                                       | —       | Color modifier for the pagination.                  |
-| `textColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                  |
-| `bgColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                            |
-| `children`     | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Custom pagination content (usually subcomponents).  |
-| ...            | All standard HTML and Bulma helper props (see [Helper Props](../helpers/usebulmaclasses))                                                                                                                                                                                                |         | Utility and accessibility props.                    |
-
-**Subcomponents:**
-
-- `Pagination.List`: Container for page links and ellipsis.
-- `Pagination.Link`: Page number or navigation link.
-- `Pagination.Ellipsis`: Ellipsis separator.
-- `Pagination.Previous`: "Previous" navigation button.
-- `Pagination.Next`: "Next" navigation button.
+<!-- /bestax:generated import -->
 
 ---
 
@@ -277,3 +261,136 @@ Pagination links are rendered as `<a>` elements for accessibility and keyboard n
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagination />` and its subcomponents for utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop           | Type                                                                                                                               | Default | Description                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------ |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Color modifier for the pagination. Bulma color for the pagination. |
+| `textColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color helper. Text color for the pagination.                  |
+| `bgColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color helper. Background color for the pagination.      |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the pagination.                                  |
+| `align`        | `'centered'` \| `'right'`                                                                                                          | —       | Alignment for the pagination.                                      |
+| `rounded`      | `boolean`                                                                                                                          | `false` | Renders pagination with rounded corners.                           |
+| `total`        | `number`                                                                                                                           | —       | Total number of pages (for custom implementations).                |
+| `current`      | `number`                                                                                                                           | —       | Current page (for controlled implementations).                     |
+| `onPageChange` | `(page: number) => void`                                                                                                           | —       | Callback when a page is selected. Page change callback.            |
+| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                            |
+| `children`     | `React.ReactNode`                                                                                                                  | —       | Custom pagination content (usually subcomponents).                 |
+| `...`          | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                  |
+
+**Subcomponents:**
+
+- `Pagination.Link`: Page number or navigation link.
+- `Pagination.List`: Container for page links and ellipsis.
+- `Pagination.Previous`: "Previous" navigation button.
+- `Pagination.Next`: "Next" navigation button.
+
+### Pagination.Link
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier.                             |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                 |
+| `active`    | `boolean`                                                                       | `false` | Whether the link is for the current page.         |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the link is disabled.                     |
+| `children`  | `React.ReactNode`                                                               | —       | Link content.                                     |
+| `...`       | All standard `<a>` attributes and Bulma helper props                            | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Pagination.List
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the list.                          |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the list.                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the list.                    |
+| `children`  | `React.ReactNode`                                                               | —       | List items.                                       |
+| `...`       | All standard `<ul>` attributes and Bulma helper props                           | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Pagination.Previous
+
+| Prop        | Type                          | Default | Description                                       |
+| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                      | —       | Additional CSS classes.                           |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                |
+| `children`  | `React.ReactNode`             | —       | Button content.                                   |
+| `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Pagination.Next
+
+| Prop        | Type                          | Default | Description                                       |
+| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                      | —       | Additional CSS classes.                           |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                |
+| `children`  | `React.ReactNode`             | —       | Button content.                                   |
+| `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+**Subcomponents:**
+
+- `Pagination.List`: Container for page links and ellipsis.
+- `Pagination.Link`: Page number or navigation link.
+- `Pagination.Ellipsis`: Ellipsis separator.
+- `Pagination.Previous`: "Previous" navigation button.
+- `Pagination.Next`: "Next" navigation button.
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Pagination` registers these variables on its own `.pagination` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                        | Sass Variable                                | Default                                                                                                          |
+| --------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--bulma-pagination-margin`                         | `$pagination-margin`                         | `-0.25rem`                                                                                                       |
+| `--bulma-pagination-min-width`                      | `$pagination-min-width`                      | `var(--bulma-control-height)`                                                                                    |
+| `--bulma-pagination-item-h`                         | `$pagination-item-h`                         | `var(--bulma-scheme-h)`                                                                                          |
+| `--bulma-pagination-item-s`                         | `$pagination-item-s`                         | `var(--bulma-scheme-s)`                                                                                          |
+| `--bulma-pagination-item-l`                         | `$pagination-item-l`                         | `var(--bulma-scheme-main-l)`                                                                                     |
+| `--bulma-pagination-item-background-l-delta`        | `$pagination-item-background-l-delta`        | `0%`                                                                                                             |
+| `--bulma-pagination-item-hover-background-l-delta`  | `$pagination-item-hover-background-l-delta`  | `var(--bulma-hover-background-l-delta)`                                                                          |
+| `--bulma-pagination-item-active-background-l-delta` | `$pagination-item-active-background-l-delta` | `var(--bulma-active-background-l-delta)`                                                                         |
+| `--bulma-pagination-item-border-style`              | `$pagination-item-border-style`              | `solid`                                                                                                          |
+| `--bulma-pagination-item-border-width`              | `$pagination-item-border-width`              | `var(--bulma-control-border-width)`                                                                              |
+| `--bulma-pagination-item-border-l`                  | `$pagination-item-border-l`                  | `var(--bulma-border-l)`                                                                                          |
+| `--bulma-pagination-item-border-l-delta`            | `$pagination-item-border-l-delta`            | `0%`                                                                                                             |
+| `--bulma-pagination-item-hover-border-l-delta`      | `$pagination-item-hover-border-l-delta`      | `var(--bulma-hover-border-l-delta)`                                                                              |
+| `--bulma-pagination-item-active-border-l-delta`     | `$pagination-item-active-border-l-delta`     | `var(--bulma-active-border-l-delta)`                                                                             |
+| `--bulma-pagination-item-focus-border-l-delta`      | `$pagination-item-focus-border-l-delta`      | `var(--bulma-focus-border-l-delta)`                                                                              |
+| `--bulma-pagination-item-color-l`                   | `$pagination-item-color-l`                   | `var(--bulma-text-strong-l)`                                                                                     |
+| `--bulma-pagination-item-font-size`                 | `$pagination-item-font-size`                 | `1em`                                                                                                            |
+| `--bulma-pagination-item-margin`                    | `$pagination-item-margin`                    | `0.25rem`                                                                                                        |
+| `--bulma-pagination-item-padding-left`              | `$pagination-item-padding-left`              | `0.5em`                                                                                                          |
+| `--bulma-pagination-item-padding-right`             | `$pagination-item-padding-right`             | `0.5em`                                                                                                          |
+| `--bulma-pagination-item-outer-shadow-h`            | `$pagination-item-outer-shadow-h`            | `0`                                                                                                              |
+| `--bulma-pagination-item-outer-shadow-s`            | `$pagination-item-outer-shadow-s`            | `0%`                                                                                                             |
+| `--bulma-pagination-item-outer-shadow-l`            | `$pagination-item-outer-shadow-l`            | `20%`                                                                                                            |
+| `--bulma-pagination-item-outer-shadow-a`            | `$pagination-item-outer-shadow-a`            | `0.05`                                                                                                           |
+| `--bulma-pagination-nav-padding-left`               | `$pagination-nav-padding-left`               | `0.75em`                                                                                                         |
+| `--bulma-pagination-nav-padding-right`              | `$pagination-nav-padding-right`              | `0.75em`                                                                                                         |
+| `--bulma-pagination-disabled-color`                 | `$pagination-disabled-color`                 | `var(--bulma-text-weak)`                                                                                         |
+| `--bulma-pagination-disabled-background-color`      | `$pagination-disabled-background-color`      | `var(--bulma-border)`                                                                                            |
+| `--bulma-pagination-disabled-border-color`          | `$pagination-disabled-border-color`          | `var(--bulma-border)`                                                                                            |
+| `--bulma-pagination-current-color`                  | `$pagination-current-color`                  | `var(--bulma-link-invert)`                                                                                       |
+| `--bulma-pagination-current-background-color`       | `$pagination-current-background-color`       | `var(--bulma-link)`                                                                                              |
+| `--bulma-pagination-current-border-color`           | `$pagination-current-border-color`           | `var(--bulma-link)`                                                                                              |
+| `--bulma-pagination-ellipsis-color`                 | `$pagination-ellipsis-color`                 | `var(--bulma-text-weak)`                                                                                         |
+| `--bulma-pagination-shadow-inset`                   | `$pagination-shadow-inset`                   | `inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2)` |
+| `--bulma-pagination-selected-item-h`                | `$pagination-selected-item-h`                | `var(--bulma-link-h)`                                                                                            |
+| `--bulma-pagination-selected-item-s`                | `$pagination-selected-item-s`                | `var(--bulma-link-s)`                                                                                            |
+| `--bulma-pagination-selected-item-l`                | `$pagination-selected-item-l`                | `var(--bulma-link-l)`                                                                                            |
+| `--bulma-pagination-selected-item-background-l`     | `$pagination-selected-item-background-l`     | `var(--bulma-link-l)`                                                                                            |
+| `--bulma-pagination-selected-item-border-l`         | `$pagination-selected-item-border-l`         | `var(--bulma-link-l)`                                                                                            |
+| `--bulma-pagination-selected-item-color-l`          | `$pagination-selected-item-color-l`          | `var(--bulma-link-invert-l)`                                                                                     |
+
+<!-- /bestax:generated cssvars -->

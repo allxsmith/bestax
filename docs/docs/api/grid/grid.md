@@ -234,25 +234,33 @@ See [Cell documentation](./cell.md) for granular placement using `colStart`, `co
 
 <!-- bestax:generated props -->
 
-| Prop                  | Type                                                                            | Default | Description                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| `isFixed`             | `boolean`                                                                       | `false` | Use a fixed grid layout (Bulma's .fixed-grid > .grid).                                               |
-| `gap`                 | `BulmaGapValue`                                                                 | —       | Main gap for grid (applies is-gap-X, 0-8).                                                           |
-| `columnGap`           | `BulmaGapValue`                                                                 | —       | Column gap for grid (applies is-column-gap-X, 0-8).                                                  |
-| `rowGap`              | `BulmaGapValue`                                                                 | —       | Row gap for grid (applies is-row-gap-X, 0-8).                                                        |
-| `minCol`              | `BulmaMinColValue`                                                              | —       | Minimum column width for the grid (applies is-col-min-X, 1-32).                                      |
-| `fixedCols`           | `BulmaFixedGridColsProp`                                                        | —       | For fixed grid only: explicit column count (applies has-X-cols, 0-12), or 'auto' for has-auto-count. |
-| `fixedColsMobile`     | `BulmaFixedGridCols`                                                            | —       | For fixed grid only: explicit column count for mobile.                                               |
-| `fixedColsTablet`     | `BulmaFixedGridCols`                                                            | —       | For fixed grid only: explicit column count for tablet.                                               |
-| `fixedColsDesktop`    | `BulmaFixedGridCols`                                                            | —       | For fixed grid only: explicit column count for desktop.                                              |
-| `fixedColsWidescreen` | `BulmaFixedGridCols`                                                            | —       | For fixed grid only: explicit column count for widescreen.                                           |
-| `fixedColsFullhd`     | `BulmaFixedGridCols`                                                            | —       | For fixed grid only: explicit column count for fullhd.                                               |
-| `className`           | `string`                                                                        | —       | Additional CSS classes for the grid.                                                                 |
-| `textColor`           | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color (Bulma color, 'inherit', or 'current').                                                   |
-| `color`               | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the grid.                                                                   |
-| `bgColor`             | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color (Bulma color, 'inherit', or 'current').                                             |
-| `children`            | `React.ReactNode`                                                               | —       | Children to render inside the grid (usually `Cell` components).                                      |
-| `...`                 | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                    |
+| Prop                  | Type                                                                                                                                         | Default | Description                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `isFixed`             | `boolean`                                                                                                                                    | `false` | Use a fixed grid layout (Bulma's .fixed-grid > .grid).                                               |
+| `gap`                 | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `'0'` \| `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `'7'` \| `'8'` | —       | Main gap for grid (Bulma `is-gap-X`). Main gap for grid (applies is-gap-X, 0-8).                     |
+| `columnGap`           | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `'0'` \| `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `'7'` \| `'8'` | —       | Column gap for grid (applies is-column-gap-X, 0-8).                                                  |
+| `rowGap`              | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `'0'` \| `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `'7'` \| `'8'` | —       | Row gap for grid (applies is-row-gap-X, 0-8).                                                        |
+| `minCol`              | `BulmaMinColValue`                                                                                                                           | —       | Minimum column width for the grid (applies is-col-min-X, 1-32).                                      |
+| `fixedCols`           | `BulmaFixedGridColsProp`                                                                                                                     | —       | For fixed grid only: explicit column count (applies has-X-cols, 0-12), or 'auto' for has-auto-count. |
+| `fixedColsMobile`     | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `9` \| `10` \| `11` \| `12`                                                   | —       | For fixed grid only: explicit column count for mobile.                                               |
+| `fixedColsTablet`     | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `9` \| `10` \| `11` \| `12`                                                   | —       | For fixed grid only: explicit column count for tablet.                                               |
+| `fixedColsDesktop`    | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `9` \| `10` \| `11` \| `12`                                                   | —       | For fixed grid only: explicit column count for desktop.                                              |
+| `fixedColsWidescreen` | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `9` \| `10` \| `11` \| `12`                                                   | —       | For fixed grid only: explicit column count for widescreen.                                           |
+| `fixedColsFullhd`     | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `9` \| `10` \| `11` \| `12`                                                   | —       | For fixed grid only: explicit column count for fullhd.                                               |
+| `className`           | `string`                                                                                                                                     | —       | Additional CSS classes for the grid.                                                                 |
+| `textColor`           | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                      | —       | Text color.                                                                                          |
+| `color`               | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                              | —       | Bulma color modifier for the grid.                                                                   |
+| `bgColor`             | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                      | —       | Background color.                                                                                    |
+| `children`            | `React.ReactNode`                                                                                                                            | —       | Children to render inside the grid (usually `Cell` components).                                      |
+| `...`                 | All standard `<div>` attributes and Bulma helper props                                                                                       | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                    |
+
+**Types:**
+
+- `BulmaMinColValue`: `1` | `2` | `3` | `4` | `5` | `6` | `7` | `8` | `9` | `10` | `11` | `12` | `13` | `14` | `15` | `16` | `17` | `18` | `19` | `20` | `21` | `22` | `23` | `24` | `25` | `26` | `27` | `28` | `29` | `30` | `31` | `32` — Allowed minimum column values for Bulma grid.
+
+**Subcomponents:**
+
+- [`Grid.Cell`](cell.md): The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.
 
 <!-- /bestax:generated props -->
 

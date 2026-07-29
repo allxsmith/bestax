@@ -70,6 +70,24 @@ function frontmatterTitle(src) {
   return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
 }
 
+/**
+ * Component name -> the API page that documents it, e.g. `Column` ->
+ * `columns/column.md`. Used to link a compound sub-component to its own page
+ * rather than restating its whole table under the parent.
+ */
+let pageIndex = null;
+async function pagesByTitle() {
+  if (pageIndex) return pageIndex;
+  pageIndex = new Map();
+  for (const file of await mdFiles(API_DIR)) {
+    const title = frontmatterTitle(await readFile(file, 'utf8'));
+    if (title) {
+      pageIndex.set(title, relative(API_DIR, file).split('\\').join('/'));
+    }
+  }
+  return pageIndex;
+}
+
 let bulmaRoot = null;
 function bulmaSassPath(rel) {
   if (!bulmaRoot) {
@@ -112,10 +130,27 @@ function renderImport(info) {
   return ['', '```tsx', single, '```', ''].join('\n');
 }
 
-function renderProps(info) {
+function renderProps(info, { pages, relPath }) {
   const blocks = [];
   const [root, ...subs] = info.tables;
   if (!root) return null;
+
+  // A sub-component re-exported as a standalone component has its own page.
+  // Restating its table here would duplicate it and give it two places to
+  // drift from; link instead. Sub-components with no page of their own
+  // (`Table.Thead`, `Hero.Head`) still render in full — this page is the only
+  // documentation they have.
+  const ownPage = sub => {
+    const page = sub.component && pages.get(sub.component);
+    if (!page || page === relPath) return null;
+    const from = relPath.split('/').slice(0, -1);
+    const to = page.split('/');
+    while (from.length && to.length > 1 && from[0] === to[0]) {
+      from.shift();
+      to.shift();
+    }
+    return [...from.map(() => '..'), ...to].join('/');
+  };
 
   const table = t => {
     const rows = t.rows.map(r => [
@@ -128,7 +163,7 @@ function renderProps(info) {
       rows.push([
         `\`${extra.name}\``,
         extra.type || '—',
-        '—',
+        extra.default ? `\`${extra.default}\`` : '—',
         extra.description,
       ]);
     }
@@ -143,14 +178,70 @@ function renderProps(info) {
     return renderTable(['Prop', 'Type', 'Default', 'Description'], rows);
   };
 
-  blocks.push(table(root));
+  // Type aliases named in a cell but too long to inline. Defining them once,
+  // under the table that uses them, is the whole reason a cell is allowed to
+  // say `BulmaGapValue` instead of listing 18 members — without it the cell is
+  // strictly less informative than the prose it replaced.
+  const types = t => {
+    if (!t.types?.length) return null;
+    return [
+      '**Types:**',
+      '',
+      ...t.types.map(a => {
+        const expansion = a.expansion
+          .split(' | ')
+          .map(p => `\`${p}\``)
+          .join(' | ');
+        // Whole summary, not just the first sentence: this list IS the
+        // definition, and the sentences after the first are where the alias
+        // explains its value space.
+        const summary = a.summary
+          ? ` — ${a.summary.replace(/\s+/g, ' ').trim()}`
+          : '';
+        return `- \`${a.name}\`: ${expansion}${summary}`;
+      }),
+    ].join('\n');
+  };
+
+  const withTypes = t => [table(t), types(t)].filter(Boolean);
+
+  blocks.push(...withTypes(root));
 
   if (subs.length) {
-    blocks.push(
-      `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}.`
-    );
+    // A bullet per sub-component, carrying its TSDoc summary — the
+    // hand-written pages described each one here ("Top bar for navigation or
+    // branding") and a bare comma-separated list would drop those sentences.
+    // Falls back to the inline list when no sub has a summary to show.
+    const summaryOf = s => (s.summary ?? '').replace(/\s+/g, ' ').trim();
+    const described = subs.filter(s => summaryOf(s));
+    if (described.length === subs.length) {
+      blocks.push(
+        [
+          '**Subcomponents:**',
+          '',
+          ...subs.map(s => {
+            const link = ownPage(s);
+            const label = link ? `[\`${s.path}\`](${link})` : `\`${s.path}\``;
+            // Whole summary, not just the first sentence — this list is the
+            // only place a sub-component is described in prose, and the pages
+            // it replaces used more than one sentence for several of them.
+            return `- ${label}: ${summaryOf(s)}`;
+          }),
+        ].join('\n')
+      );
+    } else {
+      blocks.push(
+        `**Subcomponents:** ${subs
+          .map(s => {
+            const link = ownPage(s);
+            return link ? `[\`${s.path}\`](${link})` : `\`${s.path}\``;
+          })
+          .join(', ')}.`
+      );
+    }
     for (const sub of subs) {
-      blocks.push(`### ${sub.path}`, table(sub));
+      if (ownPage(sub)) continue;
+      blocks.push(`### ${sub.path}`, ...withTypes(sub));
     }
   }
   return `\n${blocks.join('\n\n')}\n`;
@@ -235,7 +326,7 @@ export async function renderPage(file, src) {
   const bodies = {
     overview: renderOverview(info),
     import: renderImport(info),
-    props: renderProps(info),
+    props: renderProps(info, { pages: await pagesByTitle(), relPath }),
     cssvars: await renderCssVars(info, { relPath }),
   };
 

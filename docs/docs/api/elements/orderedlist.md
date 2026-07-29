@@ -1,13 +1,20 @@
 ---
 title: OrderedList
 sidebar_label: OrderedList
+description: The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
 ---
 
 # OrderedList
 
 ## Overview
 
-The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration. Use it with `ListItem` components to create numbered lists with consistent styling. Supports all standard `<ol>` attributes like `type`, `start`, and `reversed`.
+<!-- bestax:generated overview -->
+
+The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it with `ListItem` components to create numbered lists with consistent styling. Supports all standard `<ol>` attributes like `type`, `start`, and `reversed`.
 
 :::info
 The OrderedList component is a thin wrapper around the HTML `<ol>` element, providing consistent Bulma styling and helper class support.
@@ -17,24 +24,13 @@ The OrderedList component is a thin wrapper around the HTML `<ol>` element, prov
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { OrderedList, ListItem } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `type`      | `'1'` \| `'a'` \| `'A'` \| `'i'` \| `'I'`                                                                                                                                                                                                                                                | `'1'`   | The numbering type for the list.                 |
-| `start`     | `number`                                                                                                                                                                                                                                                                                 | —       | The starting number for the list.                |
-| `reversed`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Whether to reverse the list numbering.           |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | List items to render inside the list.            |
-| ...         | All standard `<ol>` and Bulma helper props                                                                                                                                                                                                                                               |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -204,3 +200,26 @@ Use `OrderedList` when the order of items is significant, such as steps in a pro
 
 - [MDN: ol element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol)
 - [Storybook: OrderedList Stories](https://bestax.io/storybook/?path=/story/elements-orderedlist--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | List items to be rendered inside the list.        |
+| `type`      | `'1'` \| `'a'` \| `'A'` \| `'i'` \| `'I'`                               | `'1'`   | The numbering type for the list.                  |
+| `start`     | `number`                                                                | —       | The starting number for the list.                 |
+| `reversed`  | `boolean`                                                               | —       | Whether to reverse the list numbering.            |
+| `...`       | All standard `<ol>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- [`OrderedList.Item`](listitem.md): The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated props -->

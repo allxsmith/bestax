@@ -1,13 +1,18 @@
 ---
 title: Avatars
 sidebar_label: Avatars
+description: The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
 ---
 
 # Avatars
 
 ## Overview
 
+<!-- bestax:generated overview -->
+
 The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the "members" list pattern.
+
+<!-- /bestax:generated overview -->
 
 Clamp the visible count with `max`; the overflow renders as a single `+N` surplus avatar. It
 follows the library's sibling plural container convention ([`Tags`](../elements/tags),
@@ -17,28 +22,13 @@ follows the library's sibling plural container convention ([`Tags`](../elements/
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Avatars, Avatar } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                     | Default | Description                                                                                                                                                        |
-| -------------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `max`          | `number`                                 | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". |
-| `size`         | `AvatarProps['size']`                    | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                             |
-| `shape`        | `'circle' \| 'rounded' \| 'square'`      | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                             |
-| `spacing`      | `'sm' \| 'md' \| 'lg' \| number`         | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.                                                               |
-| `spaced`       | `boolean`                                | `false` | Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.                                                                                    |
-| `surplusLabel` | `(count: number) => string`              | —       | Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.                                               |
-| `className`    | `string`                                 | —       | Additional CSS classes.                                                                                                                                            |
-| `children`     | `React.ReactNode`                        | —       | `Avatar` elements to render inside the group.                                                                                                                      |
-| ...            | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                                   |
-
-`Avatar` is also attached as a compound static (`Avatars.Avatar`), so you can import just the
-container.
+<!-- /bestax:generated import -->
 
 ---
 
@@ -181,3 +171,46 @@ A `number` sets a pixel overlap directly:
 ## Additional Resources
 
 - [Storybook: Avatars Stories](https://bestax.io/storybook/?path=/story/components-avatars--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop           | Type                                                                                                  | Default | Description                                                                                                                                                                                    |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`    | `string`                                                                                              | —       | Additional CSS classes to apply.                                                                                                                                                               |
+| `max`          | `number`                                                                                              | —       | Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1".                             |
+| `size`         | `'16x16'` \| `'24x24'` \| `'32x32'` \| `'48x48'` \| `'64x64'` \| `'96x96'` \| `'128x128'` \| `number` | —       | Uniform size applied to every child `Avatar` (and the surplus avatar).                                                                                                                         |
+| `shape`        | `'circle'` \| `'rounded'` \| `'square'`                                                               | —       | Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.                                                                         |
+| `spacing`      | `'sm'` \| `'md'` \| `'lg'` \| `number`                                                                | `'md'`  | Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`. Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`. |
+| `spaced`       | `boolean`                                                                                             | `false` | Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`.                                                                                                 |
+| `surplusLabel` | `(count: number) => string`                                                                           | —       | Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.                                                                           |
+| `children`     | `React.ReactNode`                                                                                     | —       | `Avatar` elements to render inside the group.                                                                                                                                                  |
+| `...`          | All standard `<div>` attributes and Bulma helper props                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                              |
+
+**Subcomponents:**
+
+- [`Avatars.Avatar`](avatar.md): The `Avatar` component represents a person or entity as a compact image.
+
+<!-- /bestax:generated props -->
+
+`Avatar` is also attached as a compound static (`Avatars.Avatar`), so you can import just the
+container.
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Avatars` registers these variables on its own `.avatars` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                 | Sass Variable         | Default                    |
+| ---------------------------- | --------------------- | -------------------------- |
+| `--bulma-avatars-ring-color` | `$avatars-ring-color` | `var(--bulma-scheme-main)` |
+| `--bulma-avatars-ring-width` | `$avatars-ring-width` | `2px`                      |
+| `--bulma-avatars-spacing`    | `$avatars-spacing-md` | `0.75rem`                  |
+
+<!-- /bestax:generated cssvars -->

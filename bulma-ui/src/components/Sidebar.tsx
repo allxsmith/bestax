@@ -9,41 +9,39 @@ export type SidebarPosition = 'left' | 'right';
 
 /**
  * Props for the Sidebar component.
- *
- * @property {boolean} isOpen - Whether the sidebar is open.
- * @property {() => void} [onClose] - Callback when sidebar should close.
- * @property {SidebarPosition} [position] - Which side the sidebar appears from. Default: 'left'.
- * @property {string} [width] - Custom width. Default: '260px'.
- * @property {boolean} [fullWidth] - Sidebar takes full width (mobile-style).
- * @property {boolean} [overlay] - Show overlay behind sidebar. Default: true.
- * @property {boolean} [overlayClose] - Close sidebar when overlay is clicked. Default: true.
- * @property {boolean} [escapeClose] - Close sidebar on Escape key. Default: true.
- * @property {boolean} [canCancel] - Allow closing the sidebar. Default: true.
- * @property {React.ReactNode} [children] - Content to display in the sidebar.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the sidebar element.
  */
 export interface SidebarProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'color'>,
     BulmaClassesProps {
+  /** Whether the sidebar is open (required). */
   isOpen: boolean;
+  /** Callback when sidebar should close. */
   onClose?: () => void;
+  /** Which side the sidebar appears from. Default: 'left'. */
   position?: SidebarPosition;
+  /** Custom width of the sidebar. Custom width. Default: '260px'. */
   width?: string;
+  /** Sidebar takes full width (mobile-style). */
   fullWidth?: boolean;
+  /** Show overlay behind sidebar. Default: true. */
   overlay?: boolean;
+  /** Close sidebar when overlay is clicked. Default: true. */
   overlayClose?: boolean;
+  /** Close sidebar on Escape key. Default: true. */
   escapeClose?: boolean;
+  /** Allow closing the sidebar. Default: true. */
   canCancel?: boolean;
+  /** Content to display in the sidebar. */
   children?: React.ReactNode;
-  /** Render without portal. Default false. */
+  /** Renders inline instead of using a portal. Render without portal. Default false. */
   inline?: boolean;
 }
 
 /**
- * Sidebar component for slide-out navigation panels.
- *
- * Provides a side panel that slides in from the left or right,
- * with optional overlay, keyboard support, and customizable width.
+ * The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
  *
  * @function
  * @param {SidebarProps} props - Props for the Sidebar component.
@@ -227,10 +225,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
 /**
  * Props for the SidebarHeader component.
- *
- * @property {React.ReactNode} [children] - Header content.
  */
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Header content. */
   children?: React.ReactNode;
 }
 
@@ -256,10 +253,9 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
 /**
  * Props for the SidebarTitle component.
- *
- * @property {React.ReactNode} [children] - Title content.
  */
 interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  /** Title content. */
   children?: React.ReactNode;
 }
 
@@ -316,10 +312,9 @@ const SidebarClose: React.FC<SidebarCloseProps> = ({
 
 /**
  * Props for the SidebarBody component.
- *
- * @property {React.ReactNode} [children] - Body content.
  */
 interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Body content. */
   children?: React.ReactNode;
 }
 
@@ -345,10 +340,9 @@ const SidebarBody: React.FC<SidebarBodyProps> = ({
 
 /**
  * Props for the SidebarFooter component.
- *
- * @property {React.ReactNode} [children] - Footer content.
  */
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Footer content. */
   children?: React.ReactNode;
 }
 

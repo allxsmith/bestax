@@ -27,28 +27,25 @@ export type BreadcrumbSize = (typeof validBreadcrumbSizes)[number];
 
 /**
  * Props for the Breadcrumb component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {BreadcrumbAlignment} [alignment] - Alignment modifier for the breadcrumb.
- * @property {BreadcrumbSeparator} [separator] - Separator style for the breadcrumb.
- * @property {BreadcrumbSize} [size] - Size modifier for the breadcrumb.
- * @property {React.ReactNode} [children] - Breadcrumb items (e.g., "a" or "span" html elements).
  */
 export interface BreadcrumbProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Alignment of the breadcrumb (`is-centered`, `is-right`). Alignment modifier for the breadcrumb. */
   alignment?: BreadcrumbAlignment;
+  /** Type of separator between breadcrumb items. Separator style for the breadcrumb. */
   separator?: BreadcrumbSeparator;
+  /** Size modifier for the breadcrumb. */
   size?: BreadcrumbSize;
+  /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). Breadcrumb items (e.g., "a" or "span" html elements). */
   children?: React.ReactNode;
 }
 
 /**
- * Breadcrumb component for rendering a styled Bulma breadcrumb navigation.
- *
- * Supports alignment, separator styles, and sizes.
+ * The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.
  *
  * @function
  * @param {BreadcrumbProps} props - Props for the Breadcrumb component.

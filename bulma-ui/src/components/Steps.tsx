@@ -11,82 +11,70 @@ export type StepsColor =
 
 /**
  * Props for individual Step items.
- *
- * @property {React.ReactNode} [label] - Step label/title.
- * @property {React.ReactNode} [icon] - Icon for the step marker.
- * @property {React.ReactNode} [completedIcon] - Custom icon for completed state. Set to null to show step number instead of checkmark.
- * @property {boolean} [clickable] - Whether this step is clickable.
- * @property {string} [className] - Additional class for this step.
  */
 export interface StepItemProps {
   /** Step label/title */
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
-  /** Custom icon for completed state. Set to null to show step number instead of checkmark. */
+  /**
+   * Icon shown when the step is completed. Custom icon for completed state. Set to null to show step number instead of checkmark.
+   * @defaultValue '✓'
+   */
   completedIcon?: React.ReactNode;
   /** Whether this step is clickable */
   clickable?: boolean;
-  /** Additional class for this step */
+  /** Additional CSS classes. Additional class for this step */
   className?: string;
 }
 
 /**
  * Props for the Steps component.
- *
- * @property {number} [value] - Current active step (0-indexed).
- * @property {StepItemProps[]} [items] - Array of step items.
- * @property {StepsSize} [size] - Size of the steps.
- * @property {StepsColor} [color] - Color variant.
- * @property {boolean} [hasMarker] - Show step markers. Default: true.
- * @property {boolean} [animated] - Enable animations. Default: true.
- * @property {boolean} [rounded] - Use rounded markers. Default: true.
- * @property {boolean} [vertical] - Vertical layout.
- * @property {'bottom' | 'right' | 'left'} [labelPosition] - Position of labels.
- * @property {boolean} [showStepNumbers] - Show step numbers in markers. Default: true.
- * @property {boolean} [hasNavigation] - Render built-in prev/next buttons.
- * @property {string} [prevLabel] - Custom prev button text (default 'Previous').
- * @property {string} [nextLabel] - Custom next button text (default 'Next').
- * @property {() => void} [onPrev] - Custom prev button callback.
- * @property {() => void} [onNext] - Custom next button callback.
- * @property {(step: number) => void} [onStepClick] - Callback when a step is clicked.
- * @property {'minimal' | 'compact' | 'right'} [mobileMode] - Mobile display mode.
- * @property {React.ReactNode} [children] - Step children (alternative to items).
+ * @extraProp {React.ReactNode} [children] - Step children (alternative to items).
+ * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface StepsProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+  /** Current active step (0-indexed). */
   value?: number;
+  /** Array of step items. */
   items?: StepItemProps[];
+  /** Size of the steps. */
   size?: StepsSize;
+  /** Color variant. */
   color?: StepsColor;
+  /** Show step markers. Default: true. */
   hasMarker?: boolean;
+  /** Enable animations. Default: true. */
   animated?: boolean;
+  /** Use rounded markers. Default: true. */
   rounded?: boolean;
+  /** Vertical layout. */
   vertical?: boolean;
+  /** Position of labels. */
   labelPosition?: 'bottom' | 'right' | 'left';
+  /** Mobile display mode. */
   mobileMode?: 'minimal' | 'compact' | 'right';
+  /** Displays step numbers in the markers. Show step numbers in markers. Default: true. */
   showStepNumbers?: boolean;
+  /** Shows previous/next navigation buttons. Render built-in prev/next buttons. */
   hasNavigation?: boolean;
+  /** Label for the previous button. Custom prev button text (default 'Previous'). */
   prevLabel?: string;
+  /** Label for the next button. Custom next button text (default 'Next'). */
   nextLabel?: string;
+  /** Callback when previous button is clicked. Custom prev button callback. */
   onPrev?: () => void;
+  /** Callback when next button is clicked. Custom next button callback. */
   onNext?: () => void;
+  /** Callback when a step is clicked. */
   onStepClick?: (step: number) => void;
 }
 
 /**
  * Props for the Step subcomponent.
- *
- * @property {boolean} [isActive] - Whether this step is active.
- * @property {boolean} [isCompleted] - Whether this step is completed.
- * @property {React.ReactNode} [label] - Step label/title.
- * @property {React.ReactNode} [icon] - Icon for the step marker.
- * @property {boolean} [clickable] - Whether this step is clickable.
- * @property {() => void} [onClick] - Click handler.
- * @property {number} [stepNumber] - Step number to display in marker (1-indexed).
- * @property {React.ReactNode} [completedIcon] - Custom icon for completed state.
  */
 export interface StepProps
   extends
@@ -106,7 +94,10 @@ export interface StepProps
   onClick?: () => void;
   /** Step number to display in marker (1-indexed) */
   stepNumber?: number;
-  /** Custom icon for completed state. Set to null to show step number instead of checkmark. */
+  /**
+   * Icon shown when the step is completed. Custom icon for completed state. Set to null to show step number instead of checkmark.
+   * @defaultValue '✓'
+   */
   completedIcon?: React.ReactNode;
 }
 
@@ -189,10 +180,7 @@ export const Step: React.FC<StepProps> = ({
 };
 
 /**
- * Steps component for multi-step progress indication.
- *
- * Use for wizard flows, checkout processes, or any multi-step workflow.
- * Supports horizontal and vertical layouts with customizable markers.
+ * The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
  *
  * @function
  * @param {StepsProps} props - Props for the Steps component.

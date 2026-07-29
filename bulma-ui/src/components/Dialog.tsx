@@ -12,43 +12,41 @@ export type DialogType = 'default' | 'success' | 'danger' | 'warning' | 'info';
 
 /**
  * Props for the Dialog component.
- *
- * @property {boolean} isOpen - Whether the dialog is open.
- * @property {string} [title] - Dialog title.
- * @property {string | React.ReactNode} message - Dialog message/content.
- * @property {DialogType} [type] - The type/color of the dialog. Default: 'default'.
- * @property {string} [confirmText] - Text for confirm button. Default: 'OK'.
- * @property {string} [cancelText] - Text for cancel button. Default: 'Cancel'.
- * @property {() => void} [onConfirm] - Callback when confirm button is clicked.
- * @property {() => void} [onCancel] - Callback when cancel button is clicked or dialog is dismissed.
- * @property {boolean} [showCancel] - Whether to show cancel button. Default: true for confirm dialogs.
- * @property {boolean} [canCancel] - Whether the dialog can be dismissed. Default: true.
- * @property {boolean} [focusCancel] - Focus cancel button instead of confirm. Default: false.
- * @property {React.ReactNode} [icon] - Custom icon to display.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the dialog element.
  */
 export interface DialogProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Whether the dialog is open (required). */
   isOpen: boolean;
+  /** Dialog title. */
   title?: string;
+  /** Dialog message/content (required). */
   message: string | React.ReactNode;
+  /** The type/color of the dialog. Default: 'default'. */
   type?: DialogType;
+  /** Text for confirm button. Default: 'OK'. */
   confirmText?: string;
+  /** Text for cancel button. Default: 'Cancel'. */
   cancelText?: string;
+  /** Callback when confirm button is clicked. */
   onConfirm?: () => void;
+  /** Callback when cancel button is clicked or dialog is dismissed. */
   onCancel?: () => void;
+  /** Whether to show cancel button. Default: true for confirm dialogs. */
   showCancel?: boolean;
+  /** Whether the dialog can be dismissed. Default: true. */
   canCancel?: boolean;
+  /** Focus cancel button instead of confirm. Default: false. */
   focusCancel?: boolean;
+  /** Custom icon to display. */
   icon?: React.ReactNode;
 }
 
 /**
- * Dialog component for confirmation and alert dialogs.
- *
- * Provides a modal dialog with confirm/cancel actions, customizable
- * appearance, and keyboard support.
+ * The `Dialog` component provides confirmation and alert dialogs with customizable actions.
  *
  * @function
  * @param {DialogProps} props - Props for the Dialog component.
@@ -318,40 +316,37 @@ Dialog.displayName = 'Dialog';
 
 /**
  * Options for showing a programmatic alert dialog.
- *
- * @property {string} [title] - Dialog title.
- * @property {string | React.ReactNode} message - Dialog message/content.
- * @property {DialogType} [type] - Dialog type/color.
- * @property {string} [confirmText] - Text for the confirm button.
- * @property {React.ReactNode} [icon] - Custom icon to display.
  */
 export interface AlertOptions {
+  /** Dialog title. */
   title?: string;
+  /** Dialog message/content. */
   message: string | React.ReactNode;
+  /** Dialog type/color. */
   type?: DialogType;
+  /** Text for the confirm button. */
   confirmText?: string;
+  /** Custom icon to display. */
   icon?: React.ReactNode;
 }
 
 /**
  * Options for showing a programmatic confirm dialog.
- *
- * @property {string} [cancelText] - Text for the cancel button.
- * @property {boolean} [focusCancel] - Focus cancel button instead of confirm.
  */
 export interface ConfirmOptions extends AlertOptions {
+  /** Text for the cancel button. */
   cancelText?: string;
+  /** Focus cancel button instead of confirm. */
   focusCancel?: boolean;
 }
 
 /**
  * Options for showing a programmatic prompt dialog.
- *
- * @property {string} [placeholder] - Input placeholder text.
- * @property {string} [defaultValue] - Default input value.
  */
 export interface PromptOptions extends ConfirmOptions {
+  /** Input placeholder text. */
   placeholder?: string;
+  /** Default input value. */
   defaultValue?: string;
 }
 

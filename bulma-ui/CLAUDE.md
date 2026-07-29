@@ -43,9 +43,13 @@ improvising.
   `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
   missing one is a build error, and the component's own summary sentence becomes the page's
   Overview. Two tags: `@defaultValue` when the default is computed rather than destructured
-  (the AST can't see it), and `@extraProp {Type} [name] - desc` to document a notable prop
-  inherited from the DOM base type. Do **not** add `@property` blocks above an interface —
+  (the AST can't see it), and `@extraProp {Type} [name=default] - desc` to document a notable
+  prop inherited from the DOM base type. Do **not** add `@property` blocks above an interface —
   that older style is unverifiable and drifted from the real types; it has been migrated away.
+  A sub-component's own summary sentence becomes its line in the page's `**Subcomponents:**`
+  list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
+  Type aliases get the same treatment: a union too long to inline in a cell is rendered as its
+  name plus a `**Types:**` footnote built from the alias's own TSDoc.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships four artifacts beyond the base anatomy rule:

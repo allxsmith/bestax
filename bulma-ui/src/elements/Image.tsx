@@ -8,27 +8,20 @@ import {
 
 /**
  * Props for the Image component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the image container.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {string} [size] - Size or aspect ratio modifier (e.g., '128x128', '16by9', etc.).
- * @property {boolean} [isRounded] - Whether the image should have rounded corners.
- * @property {boolean} [isRetina] - Whether to use retina (2x) image source.
- * @property {string} [src] - Image source URL.
- * @property {string} [alt] - Alternate text for the image.
- * @property {React.ReactNode} [children] - Arbitrary children (e.g., iframe or custom content).
- * @property {'figure' | 'div' | 'p'} [as] - The tag to render. Defaults to 'figure', but can be 'p', 'div', etc.
  */
 export interface ImageProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper for the container. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the image container. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Fixed size or aspect ratio modifier for the image container. Size or aspect ratio modifier (e.g., '128x128', '16by9', etc.). */
   size?:
     | '16x16'
     | '24x24'
@@ -53,20 +46,22 @@ export interface ImageProps
     | '9by16'
     | '1by2'
     | '1by3';
+  /** Renders the image with rounded corners. Whether the image should have rounded corners. */
   isRounded?: boolean;
+  /** Whether to use retina (2x) image source. */
   isRetina?: boolean;
+  /** Image source URL. */
   src?: string;
+  /** Alternate text for the image. */
   alt?: string;
+  /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. Arbitrary children (e.g., iframe or custom content). */
   children?: React.ReactNode;
+  /** Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. The tag to render. Defaults to 'figure', but can be 'p', 'div', etc. */
   as?: 'figure' | 'div' | 'p';
 }
 
 /**
- * Image component for rendering a styled Bulma image element.
- *
- * Supports fixed-size containers, aspect ratios, rounded images, retina images, and arbitrary children (e.g., iframe).
- *
- * The "as" prop allows rendering as "figure", "p", or "div" tags etc.
+ * The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
  *
  * @function
  * @param {ImageProps} props - Props for the Image component.

@@ -226,10 +226,10 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 | `rowFromEnd` | `number`                                                                        | —       | Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).    |
 | `rowSpan`    | `CellSpanValue`                                                                 | —       | How many rows the cell will span (Bulma: `is-row-span-x`).                         |
 | `className`  | `string`                                                                        | —       | Additional CSS class names.                                                        |
-| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color (Bulma color, 'inherit', or 'current').                                 |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                                                        |
 | `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the cell.                                                 |
-| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color (Bulma color, 'inherit', or 'current').                           |
-| `children`   | `React.ReactNode`                                                               | —       | Children to render inside the cell.                                                |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                                                  |
+| `children`   | `React.ReactNode`                                                               | —       | Content to render inside the cell. Children to render inside the cell.             |
 | `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
 
 <!-- /bestax:generated props -->

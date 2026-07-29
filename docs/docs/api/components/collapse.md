@@ -1,42 +1,32 @@
 ---
 title: Collapse
 sidebar_label: Collapse
+description: The `Collapse` component provides an expandable/collapsible content panel.
 ---
 
 # Collapse
 
 ## Overview
 
-The `Collapse` component provides an expandable/collapsible content panel. It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support.
+<!-- bestax:generated overview -->
+
+The `Collapse` component provides an expandable/collapsible content panel.
+
+<!-- /bestax:generated overview -->
+
+It's perfect for accordions, FAQs, settings panels, and any content that should be hidden by default. Supports both controlled and uncontrolled modes, with smooth animations and full accessibility support.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Collapse } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop               | Type                                     | Default  | Description                                      |
-| ------------------ | ---------------------------------------- | -------- | ------------------------------------------------ |
-| `open`             | `boolean`                                | —        | Controlled open state.                           |
-| `defaultOpen`      | `boolean`                                | `false`  | Initial open state for uncontrolled usage.       |
-| `onOpen`           | `() => void`                             | —        | Callback when collapse opens.                    |
-| `onClose`          | `() => void`                             | —        | Callback when collapse closes.                   |
-| `trigger`          | `React.ReactNode`                        | —        | The clickable trigger element (header/button).   |
-| `animation`        | `'fade'` \| `'slide'` \| `false`         | `'fade'` | Animation style, or `false` to disable.          |
-| `ariaId`           | `string`                                 | auto     | Custom aria id for accessibility.                |
-| `children`         | `React.ReactNode`                        | —        | The collapsible content.                         |
-| `className`        | `string`                                 | —        | Additional CSS classes.                          |
-| `triggerClassName` | `string`                                 | —        | Additional classes for the trigger wrapper.      |
-| `contentClassName` | `string`                                 | —        | Additional classes for the content wrapper.      |
-| `position`         | `'top'` \| `'bottom'`                    | `'top'`  | Position of the trigger relative to content.     |
-| `bordered`         | `boolean`                                | —        | Adds a border around the collapse.               |
-| ...                | All standard HTML and Bulma helper props |          | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -312,6 +302,13 @@ The Collapse component supports these additional CSS classes:
 
 ---
 
+## Related
+
+- [Tabs](./tabs.md) - Tabbed content panels
+- [Panel](./panel.md) - Bulma panel component
+
+---
+
 ## Accessibility
 
 - Trigger has `role="button"` and `tabIndex="0"` for keyboard access
@@ -322,7 +319,45 @@ The Collapse component supports these additional CSS classes:
 
 ---
 
-## Related
+## Props
 
-- [Tabs](./tabs.md) - Tabbed content panels
-- [Panel](./panel.md) - Bulma panel component
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                   | Default  | Description                                                                                                                                              |
+| ------------------ | ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open`             | `boolean`                                              | `false`  | Controlled open state. If provided, component is controlled.                                                                                             |
+| `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage.                                                                                                               |
+| `onOpen`           | `() => void`                                           | —        | Callback when collapse opens.                                                                                                                            |
+| `onClose`          | `() => void`                                           | —        | Callback when collapse closes.                                                                                                                           |
+| `trigger`          | `React.ReactNode`                                      | —        | The clickable trigger element (usually a header/button).                                                                                                 |
+| `animation`        | `'fade'` \| `'slide'` \| `false`                       | `'fade'` | Animation style, or `false` to disable. Animation type. 'fade' for opacity transition, 'slide' for height transition, false to disable. Default: 'fade'. |
+| `position`         | `'top'` \| `'bottom'`                                  | `'top'`  | Position of trigger relative to content. Default: 'top'.                                                                                                 |
+| `ariaId`           | `string`                                               | `auto`   | Custom aria id for accessibility.                                                                                                                        |
+| `bordered`         | `boolean`                                              | `false`  | Adds a border around the collapse. Whether to show a border around the collapse.                                                                         |
+| `triggerClassName` | `string`                                               | —        | Additional classes for the trigger wrapper.                                                                                                              |
+| `contentClassName` | `string`                                               | —        | Additional classes for the content wrapper.                                                                                                              |
+| `children`         | `React.ReactNode`                                      | —        | The collapsible content.                                                                                                                                 |
+| `className`        | `string`                                               | —        | Additional CSS classes.                                                                                                                                  |
+| `...`              | All standard `<div>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                        |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Collapse` registers these variables on its own `.collapse` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                           | Sass Variable                   | Default                        |
+| -------------------------------------- | ------------------------------- | ------------------------------ |
+| `--bulma-collapse-margin-bottom`       | `$collapse-margin-bottom`       | `0.5rem`                       |
+| `--bulma-collapse-border-color`        | `$collapse-border-color`        | `var(--bulma-border)`          |
+| `--bulma-collapse-radius`              | `$collapse-radius`              | `var(--bulma-radius)`          |
+| `--bulma-collapse-trigger-icon-size`   | `$collapse-trigger-icon-size`   | `1.5em`                        |
+| `--bulma-collapse-trigger-icon-margin` | `$collapse-trigger-icon-margin` | `0.5em`                        |
+| `--bulma-collapse-header-weight`       | `$collapse-header-weight`       | `var(--bulma-weight-semibold)` |
+| `--bulma-collapse-group-gap`           | `$collapse-group-gap`           | `0.5rem`                       |
+
+<!-- /bestax:generated cssvars -->

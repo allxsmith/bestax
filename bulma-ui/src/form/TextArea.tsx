@@ -11,36 +11,32 @@ import { useInsideField, useInsideControl } from './FormContext';
  * Composes Field, Control, and TextAreaBase into a single convenience component.
  * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
  * Control-level (loading) props.
- *
- * @property {React.ReactNode} [label] - Field label.
- * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
- * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
- * @property {boolean} [horizontal] - Horizontal field layout.
- * @property {boolean} [isLoading] - Show loading indicator on the control.
- * @property {'small'|'medium'|'large'} [controlSize] - Control size.
- * @property {React.ReactNode} [message] - Help/validation message below the textarea.
- * @property {string} [messageColor] - Bulma color for the message.
- * @property {string} [fieldClassName] - Additional CSS classes for the Field.
- * @property {string} [controlClassName] - Additional CSS classes for the Control.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
+  /** Field label. */
   label?: React.ReactNode;
+  /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
+  /** Props for the label element. */
   labelProps?: FieldProps['labelProps'];
+  /** Horizontal field layout. */
   horizontal?: boolean;
+  /** Shows loading indicator on the wrapping Control. */
   isLoading?: boolean;
+  /** Control size. */
   controlSize?: ControlBaseProps['size'];
+  /** Help/validation message below the textarea. */
   message?: React.ReactNode;
+  /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Additional CSS classes for the Field. */
   fieldClassName?: string;
+  /** Additional CSS classes for the Control. */
   controlClassName?: string;
 }
 
 /**
- * TextArea is a convenience component that composes Field, Control, and TextAreaBase.
- *
- * Use this for typical form fields. For complex layouts (grouped fields,
- * addons, etc.), compose Field, Control, and TextAreaBase directly.
+ * The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
  *
  * @function
  * @param {TextAreaProps} props - Props for TextArea.

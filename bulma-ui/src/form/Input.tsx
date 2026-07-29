@@ -11,54 +11,50 @@ import { useInsideField, useInsideControl } from './FormContext';
  * Composes Field, Control, and Input into a single convenience component.
  * Supports all Input props, plus Field-level (label, horizontal) and
  * Control-level (icons, loading) props.
- *
- * @property {React.ReactNode} [label] - Field label.
- * @property {FieldProps['labelSize']} [labelSize] - Size for the label.
- * @property {FieldProps['labelProps']} [labelProps] - Props for the label element.
- * @property {boolean} [horizontal] - Horizontal field layout.
- * @property {ControlBaseProps['iconLeft']} [iconLeft] - Icon props for left icon.
- * @property {ControlBaseProps['iconRight']} [iconRight] - Icon props for right icon.
- * @property {string} [iconLeftName] - Shortcut for left icon name.
- * @property {string} [iconRightName] - Shortcut for right icon name.
- * @property {ControlBaseProps['iconLeftSize']} [iconLeftSize] - Shortcut for left icon size.
- * @property {ControlBaseProps['iconRightSize']} [iconRightSize] - Shortcut for right icon size.
- * @property {boolean} [hasIconsLeft] - Force left icon container.
- * @property {boolean} [hasIconsRight] - Force right icon container.
- * @property {boolean} [isLoading] - Show loading indicator on the control.
- * @property {boolean} [isExpanded] - Expand the control.
- * @property {'small'|'medium'|'large'} [controlSize] - Control size.
- * @property {React.ReactNode} [message] - Help/validation message below the input.
- * @property {string} [messageColor] - Bulma color for the message.
- * @property {string} [fieldClassName] - Additional CSS classes for the Field.
- * @property {string} [controlClassName] - Additional CSS classes for the Control.
  */
 export interface InputProps extends InputBaseProps {
+  /** Field label. */
   label?: React.ReactNode;
+  /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
+  /** Props for the label element. */
   labelProps?: FieldProps['labelProps'];
+  /** Horizontal field layout. */
   horizontal?: boolean;
+  /** Icon props for left icon. */
   iconLeft?: ControlBaseProps['iconLeft'];
+  /** Icon props for right icon. */
   iconRight?: ControlBaseProps['iconRight'];
+  /** Shortcut for left icon name. */
   iconLeftName?: string;
+  /** Shortcut for right icon name. */
   iconRightName?: string;
+  /** Shortcut for left icon size. */
   iconLeftSize?: ControlBaseProps['iconLeftSize'];
+  /** Shortcut for right icon size. */
   iconRightSize?: ControlBaseProps['iconRightSize'];
+  /** Force left icon container. */
   hasIconsLeft?: boolean;
+  /** Force right icon container. */
   hasIconsRight?: boolean;
+  /** Show loading indicator on the control. */
   isLoading?: boolean;
+  /** Expand the control. */
   isExpanded?: boolean;
+  /** Control size. */
   controlSize?: ControlBaseProps['size'];
+  /** Help/validation message below the input. */
   message?: React.ReactNode;
+  /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Additional CSS classes for the Field. */
   fieldClassName?: string;
+  /** Additional CSS classes for the Control. */
   controlClassName?: string;
 }
 
 /**
- * Input is a convenience component that composes Field, Control, and Input.
- *
- * Use this for typical form fields. For complex layouts (grouped fields,
- * addons, etc.), compose Field, Control, and Input directly.
+ * The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
  *
  * @function
  * @param {InputProps} props - Props for Input.

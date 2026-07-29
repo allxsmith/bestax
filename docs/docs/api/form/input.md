@@ -1,39 +1,32 @@
 ---
 title: Input
 sidebar_label: Input
+description: The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
 ---
 
 # Input
 
 ## Overview
 
-The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props. It is suitable for all standard text input types.
+<!-- bestax:generated overview -->
+
+The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
+
+<!-- /bestax:generated overview -->
+
+It is suitable for all standard text input types.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Input, Field, Control } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                          | Description                                      |
-| ----------- | --------------------------------------------- | ------------------------------------------------ |
-| `color`     | `'primary' \| 'link' \| ... \| 'white'`       | Bulma color modifier.                            |
-| `size`      | `'small' \| 'medium' \| 'large'`              | Size modifier.                                   |
-| `isRounded` | `boolean`                                     | Rounded input corners.                           |
-| `isStatic`  | `boolean`                                     | Renders input as static (read only, styled).     |
-| `isHovered` | `boolean`                                     | Applies hovered state.                           |
-| `isFocused` | `boolean`                                     | Applies focused state.                           |
-| `isLoading` | `boolean`                                     | Shows loading indicator.                         |
-| `className` | `string`                                      | Additional CSS classes.                          |
-| `disabled`  | `boolean`                                     | Disabled input.                                  |
-| `readOnly`  | `boolean`                                     | Read-only input.                                 |
-| ...         | All standard `<input>` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -589,3 +582,88 @@ function example() {
 
 - [Bulma Input Documentation](https://bulma.io/documentation/form/input/)
 - [Storybook: Input Stories](https://bestax.io/storybook/?path=/story/form-input--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                                                                                               | Default | Description                                                                    |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------ |
+| `label`            | `React.ReactNode`                                                                                                                  | —       | Field label.                                                                   |
+| `labelSize`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —       | Size for the label.                                                            |
+| `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                                                        | —       | Props for the label element.                                                   |
+| `horizontal`       | `boolean`                                                                                                                          | `false` | Horizontal field layout.                                                       |
+| `iconLeft`         | `IconProps`                                                                                                                        | —       | Icon props for left icon.                                                      |
+| `iconRight`        | `IconProps`                                                                                                                        | —       | Icon props for right icon.                                                     |
+| `iconLeftName`     | `string`                                                                                                                           | —       | Shortcut for left icon name.                                                   |
+| `iconRightName`    | `string`                                                                                                                           | —       | Shortcut for right icon name.                                                  |
+| `iconLeftSize`     | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for left icon size.                                                   |
+| `iconRightSize`    | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for right icon size.                                                  |
+| `hasIconsLeft`     | `boolean`                                                                                                                          | `false` | Force left icon container.                                                     |
+| `hasIconsRight`    | `boolean`                                                                                                                          | `false` | Force right icon container.                                                    |
+| `isLoading`        | `boolean`                                                                                                                          | `false` | Show loading indicator on the control.                                         |
+| `isExpanded`       | `boolean`                                                                                                                          | `false` | Expand the control.                                                            |
+| `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Control size.                                                                  |
+| `message`          | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the input.                                       |
+| `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                                   |
+| `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field.                                          |
+| `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.                                        |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the input.                                            |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the input.                                                   |
+| `isRounded`        | `boolean`                                                                                                                          | `false` | Renders the input with rounded corners.                                        |
+| `isStatic`         | `boolean`                                                                                                                          | `false` | Renders input as static (read only, styled). Renders the input as static text. |
+| `isHovered`        | `boolean`                                                                                                                          | `false` | Applies the hovered state.                                                     |
+| `isFocused`        | `boolean`                                                                                                                          | `false` | Applies the focused state.                                                     |
+| `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                                               |
+| `disabled`         | `boolean`                                                                                                                          | `false` | Whether the input is disabled.                                                 |
+| `readOnly`         | `boolean`                                                                                                                          | `false` | Whether the input is read-only.                                                |
+| `children`         | `React.ReactNode`                                                                                                                  | —       | Content rendered inside the component.                                         |
+| `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                                           |
+| `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                              |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Input` registers these variables on its own `.input` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
+| `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
+| `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-border-style`               | `$input-border-style`               | `solid`                                                                                                                  |
+| `--bulma-input-border-width`               | `$input-border-width`               | `var(--bulma-control-border-width)`                                                                                      |
+| `--bulma-input-border-l`                   | `$input-border-l`                   | `var(--bulma-border-l)`                                                                                                  |
+| `--bulma-input-border-l-delta`             | `$input-border-l-delta`             | `0%`                                                                                                                     |
+| `--bulma-input-border-color`               | `$input-border-color`               | `hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))` |
+| `--bulma-input-hover-border-l-delta`       | `$input-hover-border-l-delta`       | `var(--bulma-hover-border-l-delta)`                                                                                      |
+| `--bulma-input-active-border-l-delta`      | `$input-active-border-l-delta`      | `var(--bulma-active-border-l-delta)`                                                                                     |
+| `--bulma-input-focus-h`                    | `$input-focus-h`                    | `var(--bulma-focus-h)`                                                                                                   |
+| `--bulma-input-focus-s`                    | `$input-focus-s`                    | `var(--bulma-focus-s)`                                                                                                   |
+| `--bulma-input-focus-l`                    | `$input-focus-l`                    | `var(--bulma-focus-l)`                                                                                                   |
+| `--bulma-input-focus-shadow-size`          | `$input-focus-shadow-size`          | `var(--bulma-focus-shadow-size)`                                                                                         |
+| `--bulma-input-focus-shadow-alpha`         | `$input-focus-shadow-alpha`         | `var(--bulma-focus-shadow-alpha)`                                                                                        |
+| `--bulma-input-color-l`                    | `$input-color-l`                    | `var(--bulma-text-strong-l)`                                                                                             |
+| `--bulma-input-background-l`               | `$input-background-l`               | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-background-l-delta`         | `$input-background-l-delta`         | `0%`                                                                                                                     |
+| `--bulma-input-height`                     | `$input-height`                     | `var(--bulma-control-height)`                                                                                            |
+| `--bulma-input-shadow`                     | `$input-shadow`                     | `inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)`        |
+| `--bulma-input-placeholder-color`          | `$input-placeholder-color`          | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)`                                        |
+| `--bulma-input-disabled-color`             | `$input-disabled-color`             | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-disabled-background-color`  | `$input-disabled-background-color`  | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-border-color`      | `$input-disabled-border-color`      | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-placeholder-color` | `$input-disabled-placeholder-color` | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)`                                          |
+| `--bulma-input-arrow`                      | `$input-arrow`                      | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-icon-color`                 | `$input-icon-color`                 | `var(--bulma-text-light)`                                                                                                |
+| `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+
+<!-- /bestax:generated cssvars -->

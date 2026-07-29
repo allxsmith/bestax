@@ -32,26 +32,8 @@ export type NumberinputVariant = 'plusminus' | 'stepper';
 
 /**
  * Props for the Numberinput component.
- *
- * @property {number} [value] - Controlled numeric value.
- * @property {number} [defaultValue] - Initial value for uncontrolled mode.
- * @property {number} [min] - Minimum allowed value.
- * @property {number} [max] - Maximum allowed value.
- * @property {number} [step] - Step increment (default: 1).
- * @property {NumberinputSize} [size] - Size of the input and buttons.
- * @property {NumberinputColor} [color] - Color for the control buttons.
- * @property {NumberinputInputColor} [inputColor] - Color for the inner input element.
- * @property {NumberinputControlsPosition} [controlsPosition] - Position of increment/decrement buttons (default: 'both').
- * @property {boolean} [controlsRounded] - Whether the control buttons are rounded.
- * @property {boolean} [compact] - Whether to use compact (addons) layout.
- * @property {boolean} [bare] - Bare mode: no outer .field wrapper, for composing inside a parent Field.
- * @property {NumberinputVariant} [variant] - Control variant: 'plusminus' (default) or 'stepper'.
- * @property {boolean} [disabled] - Whether the input is disabled.
- * @property {boolean} [editable] - Whether the user can type directly into the input (default: true).
- * @property {boolean} [isLoading] - Whether to show a loading spinner on the input.
- * @property {boolean} [exponential] - Whether the step grows with the value magnitude.
- * @property {(value: number) => void} [onChange] - Callback when the value changes.
- * @see {@link https://buefy.org/documentation/numberinput | Buefy Numberinput documentation}
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export interface NumberinputProps
   extends
@@ -61,23 +43,41 @@ export interface NumberinputProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
+  /** Controlled numeric value. */
   value?: number;
+  /** Default value for uncontrolled usage. Initial value for uncontrolled mode. */
   defaultValue?: number;
+  /** Minimum allowed value. */
   min?: number;
+  /** Maximum allowed value. */
   max?: number;
+  /** Step increment (default: 1). */
   step?: number;
+  /** Size variant. Size of the input and buttons. */
   size?: NumberinputSize;
+  /** Color variant for buttons. Color for the control buttons. */
   color?: NumberinputColor;
+  /** Color of the input field itself. Color for the inner input element. */
   inputColor?: NumberinputInputColor;
+  /** Position of increment/decrement buttons (default: 'both'). */
   controlsPosition?: NumberinputControlsPosition;
+  /** Whether the control buttons are rounded. */
   controlsRounded?: boolean;
+  /** Uses compact button spacing. Whether to use compact (addons) layout. */
   compact?: boolean;
+  /** Removes button borders and background. Bare mode: no outer .field wrapper, for composing inside a parent Field. */
   bare?: boolean;
+  /** Style variant for the control buttons. Control variant: 'plusminus' (default) or 'stepper'. */
   variant?: NumberinputVariant;
+  /** Whether the input is disabled. */
   disabled?: boolean;
+  /** Whether the input can be typed in. Whether the user can type directly into the input (default: true). */
   editable?: boolean;
+  /** Shows a loading state. Whether to show a loading spinner on the input. */
   isLoading?: boolean;
+  /** Enables exponential step increments when holding buttons. Whether the step grows with the value magnitude. */
   exponential?: boolean;
+  /** Callback when the value changes. */
   onChange?: (value: number) => void;
 }
 
@@ -110,10 +110,7 @@ const ArrowDropDown = () => (
 );
 
 /**
- * Bulma-styled numeric input with increment/decrement controls.
- *
- * Supports plus/minus buttons or a compact stepper variant,
- * with configurable min/max, step, and exponential stepping.
+ * The `Numberinput` component provides a number input with increment/decrement buttons.
  *
  * @function
  * @param {NumberinputProps} props - Props for the Numberinput component.

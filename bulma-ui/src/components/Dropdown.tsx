@@ -14,40 +14,39 @@ export const isBrowser = (win?: typeof window, doc?: typeof document) =>
 
 /**
  * Props for the Dropdown component.
- *
- * @property {React.ReactNode} label - The dropdown button content.
- * @property {React.ReactNode} children - The menu items.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {string} [menuClassName] - Additional CSS classes for the dropdown menu.
- * @property {boolean} [active] - Whether the dropdown is open (controlled).
- * @property {boolean} [up] - Dropdown direction up.
- * @property {boolean} [right] - Dropdown aligned to the right.
- * @property {boolean} [hoverable] - Dropdown opens on hover.
- * @property {boolean} [disabled] - Disables the dropdown trigger.
- * @property {(active: boolean) => void} [onActiveChange] - Called when active state changes.
- * @property {boolean} [closeOnClick=true] - Close dropdown when clicking a menu item.
- * @property {string} [id] - ID for the root element.
  */
 export interface DropdownProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** The dropdown button/trigger content. */
   label: React.ReactNode;
+  /** Dropdown menu items and dividers. */
   children: React.ReactNode;
+  /** Additional CSS classes for root. Additional CSS classes to apply. */
   className?: string;
+  /** Additional CSS classes for the dropdown menu. */
   menuClassName?: string;
+  /** Whether the dropdown is open (controlled). */
   active?: boolean;
+  /** Dropdown menu opens upward. Dropdown direction up. */
   up?: boolean;
+  /** Menu is right-aligned. Dropdown aligned to the right. */
   right?: boolean;
+  /** Open on hover instead of click. Dropdown opens on hover. */
   hoverable?: boolean;
+  /** Disables the dropdown trigger. */
   disabled?: boolean;
+  /** Callback when dropdown active state changes. Called when active state changes. */
   onActiveChange?: (active: boolean) => void;
+  /** Close dropdown when a menu item is clicked. */
   closeOnClick?: boolean;
+  /** Root element ID (for aria-controls, etc). */
   id?: string;
 }
 
 /**
- * Bulma Dropdown component.
+ * The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
@@ -182,19 +181,18 @@ const DropdownComponent: React.FC<DropdownProps> = ({
 
 /**
  * Props for the DropdownItem component.
- *
- * @property {boolean} [active] - Whether the item is active.
- * @property {string} [className] - Additional CSS classes.
- * @property {'a'|'div'|'button'} [as] - The element type to render.
- * @property {React.ReactNode} [children] - Item content.
  */
 export interface DropdownItemProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
+  /** Whether the item is active. */
   active?: boolean;
+  /** Additional CSS classes. */
   className?: string;
+  /** The element type to render. */
   as?: 'a' | 'div' | 'button';
+  /** Item content. */
   children?: React.ReactNode;
 }
 

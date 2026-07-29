@@ -1,13 +1,20 @@
 ---
 title: Skeleton
 sidebar_label: Skeleton
+description: The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
 ---
 
 # Skeleton
 
 ## Overview
 
-The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading. It can be used as a placeholder for headings, paragraphs, blocks, or custom content.
+<!-- bestax:generated overview -->
+
+The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
+
+<!-- /bestax:generated overview -->
+
+It can be used as a placeholder for headings, paragraphs, blocks, or custom content.
 
 :::info
 Use `Skeleton` to improve perceived performance and give users a visual cue that content is being fetched.
@@ -17,21 +24,13 @@ Use `Skeleton` to improve perceived performance and give users a visual cue that
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Skeleton } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                 | Default   | Description                                        |
-| ----------- | ------------------------------------ | --------- | -------------------------------------------------- |
-| `className` | `string`                             | —         | Additional CSS classes.                            |
-| `variant`   | `'block' \| 'lines'`                 | `'block'` | Skeleton variant: block (single block) or lines.   |
-| `lines`     | `number`                             | `3`       | Number of lines (only for `lines` variant).        |
-| `children`  | `React.ReactNode`                    | —         | Content inside the block (only for block variant). |
-| ...         | All standard `<div>` HTML attributes |           | Passed through to the root element.                |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -238,3 +237,19 @@ The following components support the `skeleton` property for Bulma skeleton load
 
 - [Bulma Skeleton Documentation](https://bulma.io/documentation/features/skeletons/)
 - [Storybook: Skeleton Stories](https://bestax.io/storybook/?path=/story/elements-skeleton--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                            | Default   | Description                                                                                        |
+| ----------- | ------------------------------- | --------- | -------------------------------------------------------------------------------------------------- |
+| `className` | `string`                        | —         | Additional CSS classes to apply                                                                    |
+| `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines. Variant of skeleton: 'block' (default) or 'lines' |
+| `lines`     | `number`                        | `3`       | Number of lines (only used if variant="lines")                                                     |
+| `children`  | `React.ReactNode`               | —         | Render content inside the skeleton (block variant only)                                            |
+| `...`       | All standard `<div>` attributes | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                  |
+
+<!-- /bestax:generated props -->

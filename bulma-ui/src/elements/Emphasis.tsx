@@ -8,28 +8,23 @@ import {
 
 /**
  * Props for the Emphasis component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the em element.
  */
 export interface EmphasisProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to be rendered inside the em element. */
   children?: React.ReactNode;
 }
 
 /**
- * Emphasis component for rendering semantically emphasized italic text.
- *
- * An Emphasis wraps the HTML `<em>` element with Bulma helper class integration.
- * Use it for text that has stress emphasis, affecting the meaning of the sentence.
- * For visual-only italic styling without semantic meaning, use CSS font-style: italic.
+ * The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.
  *
  * @function
  * @param {EmphasisProps} props - Props for the Emphasis component.

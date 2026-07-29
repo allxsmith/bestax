@@ -1,62 +1,32 @@
 ---
 title: Sidebar
 sidebar_label: Sidebar
+description: The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 ---
 
 # Sidebar
 
 ## Overview
 
-The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen. It's ideal for mobile navigation, settings panels, or any content that should overlay the main interface.
+<!-- bestax:generated overview -->
+
+The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
+
+<!-- /bestax:generated overview -->
+
+It's ideal for mobile navigation, settings panels, or any content that should overlay the main interface.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Sidebar } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                     | Default   | Description                                      |
-| -------------- | ---------------------------------------- | --------- | ------------------------------------------------ |
-| `isOpen`       | `boolean`                                | —         | Whether the sidebar is open (required).          |
-| `onClose`      | `() => void`                             | —         | Callback when sidebar should close.              |
-| `position`     | `'left'` \| `'right'`                    | `'left'`  | Which side the sidebar appears from.             |
-| `width`        | `string`                                 | `'260px'` | Custom width of the sidebar.                     |
-| `fullWidth`    | `boolean`                                | `false`   | Sidebar takes full width (mobile-style).         |
-| `overlay`      | `boolean`                                | `true`    | Show overlay behind sidebar.                     |
-| `overlayClose` | `boolean`                                | `true`    | Close sidebar when overlay is clicked.           |
-| `escapeClose`  | `boolean`                                | `true`    | Close sidebar on Escape key.                     |
-| `canCancel`    | `boolean`                                | `true`    | Allow closing the sidebar.                       |
-| `inline`       | `boolean`                                | `false`   | Renders inline instead of using a portal.        |
-| `children`     | `React.ReactNode`                        | —         | Content to display in the sidebar.               |
-| `className`    | `string`                                 | —         | Additional CSS classes.                          |
-| `ref`          | `React.Ref<HTMLElement>`                 | —         | Ref forwarded to the sidebar element.            |
-| ...            | All standard HTML and Bulma helper props |           | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Sidebar.Header
-
-Container for the sidebar header. Accepts all standard `<div>` HTML attributes.
-
-### Sidebar.Title
-
-Title text inside the header. Accepts all standard `<p>` HTML attributes.
-
-### Sidebar.Close
-
-Close button for the sidebar. Accepts all standard `<button>` HTML attributes.
-
-### Sidebar.Body
-
-Main content area of the sidebar. Accepts all standard `<div>` HTML attributes.
-
-### Sidebar.Footer
-
-Footer area of the sidebar. Accepts all standard `<div>` HTML attributes.
+<!-- /bestax:generated import -->
 
 ---
 
@@ -414,3 +384,137 @@ When `canCancel` is true, the sidebar can be closed by:
 :::tip Pro Tip
 Use the Sidebar with a Menu component for building navigation drawers in mobile-responsive layouts.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop           | Type                                                | Default   | Description                                                                     |
+| -------------- | --------------------------------------------------- | --------- | ------------------------------------------------------------------------------- |
+| `isOpen`       | `boolean`                                           | —         | Whether the sidebar is open (required).                                         |
+| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                                             |
+| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                           |
+| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar. Custom width. Default: '260px'.                    |
+| `fullWidth`    | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                        |
+| `overlay`      | `boolean`                                           | `true`    | Show overlay behind sidebar. Default: true.                                     |
+| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                           |
+| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Default: true.                                     |
+| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                       |
+| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                              |
+| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal. Render without portal. Default false. |
+| `className`    | `string`                                            | —         | Additional CSS classes.                                                         |
+| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                           |
+| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                               |
+
+**Subcomponents:**
+
+- `Sidebar.Header`: Sidebar header section.
+- `Sidebar.Title`: Sidebar title text.
+- `Sidebar.Close`: Sidebar close button.
+- `Sidebar.Body`: Sidebar body/main content area.
+- `Sidebar.Footer`: Sidebar footer section.
+
+### Sidebar.Header
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | Header content.                                   |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Sidebar.Title
+
+| Prop        | Type                          | Default | Description                                       |
+| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
+| `children`  | `React.ReactNode`             | —       | Title content.                                    |
+| `className` | `string`                      | —       | Additional CSS classes.                           |
+| `...`       | All standard `<p>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Sidebar.Close
+
+| Prop        | Type                               | Default | Description                                       |
+| ----------- | ---------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                           | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                  | —       | Content rendered inside the component.            |
+| `...`       | All standard `<button>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Sidebar.Body
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | Body content.                                     |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Sidebar.Footer
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | Footer content.                                   |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+### Sidebar.Header
+
+Container for the sidebar header. Accepts all standard `<div>` HTML attributes.
+
+### Sidebar.Title
+
+Title text inside the header. Accepts all standard `<p>` HTML attributes.
+
+### Sidebar.Close
+
+Close button for the sidebar. Accepts all standard `<button>` HTML attributes.
+
+### Sidebar.Body
+
+Main content area of the sidebar. Accepts all standard `<div>` HTML attributes.
+
+### Sidebar.Footer
+
+Footer area of the sidebar. Accepts all standard `<div>` HTML attributes.
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Sidebar` registers these variables on its own `.sidebar` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                  | Sass Variable                          | Default                           |
+| --------------------------------------------- | -------------------------------------- | --------------------------------- |
+| `--bulma-sidebar-width`                       | `$sidebar-width`                       | `260px`                           |
+| `--bulma-sidebar-background`                  | `$sidebar-background`                  | `var(--bulma-scheme-main)`        |
+| `--bulma-sidebar-shadow`                      | `$sidebar-shadow`                      | `0 2px 8px hsla(0, 0%, 0%, 0.15)` |
+| `--bulma-sidebar-transition-duration`         | `$sidebar-transition-duration`         | `0.3s`                            |
+| `--bulma-sidebar-content-padding`             | `$sidebar-content-padding`             | `1rem`                            |
+| `--bulma-sidebar-scrollbar-width`             | `$sidebar-scrollbar-width`             | `6px`                             |
+| `--bulma-sidebar-scrollbar-color`             | `$sidebar-scrollbar-color`             | `var(--bulma-grey-light)`         |
+| `--bulma-sidebar-scrollbar-color-hover`       | `$sidebar-scrollbar-color-hover`       | `var(--bulma-grey)`               |
+| `--bulma-sidebar-header-padding`              | `$sidebar-header-padding`              | `0.75rem 1rem`                    |
+| `--bulma-sidebar-header-border-color`         | `$sidebar-header-border-color`         | `var(--bulma-border)`             |
+| `--bulma-sidebar-header-margin-bottom`        | `$sidebar-header-margin-bottom`        | `1rem`                            |
+| `--bulma-sidebar-title-size`                  | `$sidebar-title-size`                  | `1.25rem`                         |
+| `--bulma-sidebar-title-weight`                | `$sidebar-title-weight`                | `var(--bulma-weight-semibold)`    |
+| `--bulma-sidebar-title-color`                 | `$sidebar-title-color`                 | `var(--bulma-text-strong)`        |
+| `--bulma-sidebar-close-size`                  | `$sidebar-close-size`                  | `1.75rem`                         |
+| `--bulma-sidebar-close-color`                 | `$sidebar-close-color`                 | `var(--bulma-text)`               |
+| `--bulma-sidebar-close-line-width`            | `$sidebar-close-line-width`            | `2px`                             |
+| `--bulma-sidebar-close-hover-background`      | `$sidebar-close-hover-background`      | `var(--bulma-scheme-main-ter)`    |
+| `--bulma-sidebar-close-radius`                | `$sidebar-close-radius`                | `var(--bulma-radius)`             |
+| `--bulma-sidebar-footer-padding`              | `$sidebar-footer-padding`              | `0.75rem 1rem`                    |
+| `--bulma-sidebar-footer-border-color`         | `$sidebar-footer-border-color`         | `var(--bulma-border)`             |
+| `--bulma-sidebar-footer-margin-top`           | `$sidebar-footer-margin-top`           | `1rem`                            |
+| `--bulma-sidebar-menu-item-padding`           | `$sidebar-menu-item-padding`           | `0.5rem 0.75rem`                  |
+| `--bulma-sidebar-menu-item-radius`            | `$sidebar-menu-item-radius`            | `var(--bulma-radius)`             |
+| `--bulma-sidebar-menu-item-hover-background`  | `$sidebar-menu-item-hover-background`  | `var(--bulma-scheme-main-bis)`    |
+| `--bulma-sidebar-menu-item-active-background` | `$sidebar-menu-item-active-background` | `var(--bulma-link)`               |
+| `--bulma-sidebar-menu-item-active-color`      | `$sidebar-menu-item-active-color`      | `var(--bulma-link-invert)`        |
+| `--bulma-sidebar-static-border-color`         | `$sidebar-static-border-color`         | `var(--bulma-border)`             |
+
+<!-- /bestax:generated cssvars -->

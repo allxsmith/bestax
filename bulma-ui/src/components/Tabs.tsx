@@ -25,33 +25,24 @@ function useTabsContext(): TabsContextValue | null {
 
 /**
  * Props for the Tabs component.
- *
- * @property {'centered'|'right'|'left'} [align] - Tab alignment.
- * @property {'small'|'medium'|'large'} [size] - Tab size.
- * @property {boolean} [fullwidth] - Tabs are fullwidth.
- * @property {boolean} [boxed] - Tabs are boxed style.
- * @property {boolean} [toggle] - Tabs are toggle style.
- * @property {boolean} [rounded] - Tabs are rounded (if toggle).
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color.
- * @property {number} [value] - Controlled active tab index.
- * @property {(index: number) => void} [onChange] - Callback when active tab changes.
- * @property {number} [defaultValue] - Initial active tab index for uncontrolled mode.
- * @property {boolean} [vertical] - Render tabs vertically.
- * @property {'left'|'right'} [side] - Which side vertical tabs appear on.
- * @property {boolean} [expanded] - Vertical tabs fill full height.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Tab content.
  */
 export interface TabsProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Tab alignment. */
   align?: 'centered' | 'right' | 'left';
+  /** Tab size. */
   size?: 'small' | 'medium' | 'large';
+  /** Tabs expand to fill the horizontal space. Tabs are fullwidth. */
   fullwidth?: boolean;
+  /** Tabs use the boxed style. */
   boxed?: boolean;
+  /** Tabs use the toggle style. */
   toggle?: boolean;
+  /** Tabs use the rounded toggle style (only with `toggle`). Tabs are rounded (if toggle). */
   rounded?: boolean;
+  /** Bulma color for tab underlines and active state. */
   color?:
     | 'primary'
     | 'link'
@@ -63,18 +54,26 @@ export interface TabsProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Controlled active tab index. */
   value?: number;
+  /** Callback when active tab changes. */
   onChange?: (index: number) => void;
+  /** Initial active tab index for uncontrolled mode. */
   defaultValue?: number;
+  /** Renders tabs vertically. */
   vertical?: boolean;
+  /** Side placement when `vertical` is true. Which side vertical tabs appear on. */
   side?: 'left' | 'right';
+  /** Makes tabs take up the full width equally. Vertical tabs fill full height. */
   expanded?: boolean;
+  /** Additional CSS classes. */
   className?: string;
+  /** Tab list and tab items. Tab content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Tabs component with stateful tab management, content panels, and vertical layout.
+ * The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
  *
  * @function
  * @param {TabsProps} props - Props for the Tabs component.
@@ -234,17 +233,16 @@ const TabsComponent: React.FC<TabsProps> = ({
 
 /**
  * Props for the TabList component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Tab elements.
  */
 export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Tab elements. */
   children?: React.ReactNode;
 }
 
 /**
- * Tab list container. Renders a `<ul>` with `role="tablist"`.
+ * The `<ul>` container for tab items.
  *
  * @function
  * @param {TabListProps} props - Props for the TabList component.
@@ -268,29 +266,28 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Props for the Tab component.
- *
- * @property {number} index - The tab index for state management.
- * @property {boolean} [disabled] - Whether the tab is disabled.
- * @property {string} [icon] - Icon name to render before the label.
- * @property {IconLibrary} [iconLibrary] - Icon library override (defaults to ConfigProvider value or 'fa').
- * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined', 'rounded').
- * @property {'small'|'medium'|'large'} [iconSize] - Icon size modifier. Default: 'small'.
- * @property {string|string[]} [iconFeatures] - Additional icon library-specific modifiers.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Tab label content.
  */
 export interface TabProps extends Omit<
   React.LiHTMLAttributes<HTMLLIElement>,
   'onClick'
 > {
+  /** **Required.** Tab index for matching with content. The tab index for state management. */
   index: number;
+  /** Whether the tab is disabled. */
   disabled?: boolean;
+  /** Icon name for the tab. Icon name to render before the label. */
   icon?: string;
+  /** Icon library override (defaults to ConfigProvider value or 'fa'). */
   iconLibrary?: IconLibrary;
+  /** Icon style variant (e.g., 'solid', 'outlined', 'rounded'). */
   iconVariant?: string;
+  /** Size of the tab icon. Icon size modifier. Default: 'small'. */
   iconSize?: 'small' | 'medium' | 'large';
+  /** Additional icon library-specific modifiers. */
   iconFeatures?: string | string[];
+  /** Additional CSS classes. */
   className?: string;
+  /** Tab label content. */
   children?: React.ReactNode;
 }
 
@@ -359,21 +356,20 @@ export const Tab: React.FC<TabProps> = ({
 
 /**
  * Props for the TabItem component (backward-compatible).
- *
- * @property {boolean} [active] - Whether the tab is active.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Tab content.
- * @property {React.MouseEventHandler<HTMLLIElement>} [onClick] - Click handler.
  */
 export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
+  /** Whether the tab is active. */
   active?: boolean;
+  /** Additional CSS classes. */
   className?: string;
+  /** Tab content. */
   children?: React.ReactNode;
+  /** Click handler. */
   onClick?: React.MouseEventHandler<HTMLLIElement>;
 }
 
 /**
- * Legacy tab item. Does not consume context — active state is controlled via prop.
+ * Each tab; accepts `active`, `onClick`, etc.
  *
  * @function
  * @param {TabItemProps} props - Props for the TabItem component.
@@ -405,17 +401,16 @@ export const TabItem: React.FC<TabItemProps> = ({
 
 /**
  * Props for the TabsContent component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - TabContentItem elements.
  */
 export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** TabContentItem elements. */
   children?: React.ReactNode;
 }
 
 /**
- * Wrapper for tab content panels. Apply `.tabs-content` class.
+ * Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class.
  *
  * @function
  * @param {TabsContentProps} props - Props for the TabsContent component.
@@ -440,14 +435,13 @@ const TabsContentComponent: React.FC<TabsContentProps> = ({
 
 /**
  * Props for the TabContentItem component.
- *
- * @property {number} index - The tab index this content panel corresponds to.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Panel content.
  */
 export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** **Required.** Content index matching the corresponding `Tabs.Tab` index. */
   index: number;
+  /** Additional CSS classes. */
   className?: string;
+  /** Panel content. */
   children?: React.ReactNode;
 }
 

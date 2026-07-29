@@ -1,13 +1,20 @@
 ---
 title: Tag
 sidebar_label: Tag
+description: The `Tag` component renders a Bulma-styled label or badge.
 ---
 
 # Tag
 
 ## Overview
 
-The `Tag` component renders a Bulma-styled label or badge. It supports color, size, rounded, hoverable, and delete (close) variants. Use it for status indicators, categorization, dismissible tokens, or compact UI elements.
+<!-- bestax:generated overview -->
+
+The `Tag` component renders a Bulma-styled label or badge.
+
+<!-- /bestax:generated overview -->
+
+It supports color, size, rounded, hoverable, and delete (close) variants. Use it for status indicators, categorization, dismissible tokens, or compact UI elements.
 
 :::info
 Tags are perfect for highlighting statuses, categories, or adding removable tokens to your UI.
@@ -17,25 +24,13 @@ Tags are perfect for highlighting statuses, categories, or adding removable toke
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Tag } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                                                                                             | Default | Description                                      |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className`   | `string`                                                                                                         | —       | Additional CSS classes.                          |
-| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | —       | Bulma color modifier for the tag.                |
-| `size`        | `'normal' \| 'medium' \| 'large'`                                                                                | —       | Tag size.                                        |
-| `isRounded`   | `boolean`                                                                                                        | —       | Renders a rounded tag.                           |
-| `isDelete`    | `boolean`                                                                                                        | —       | Renders a delete-style tag (delete button).      |
-| `isHoverable` | `boolean`                                                                                                        | —       | Adds hover effect to the tag.                    |
-| `onDelete`    | `() => void`                                                                                                     | —       | Callback for delete tag/button.                  |
-| `children`    | `React.ReactNode`                                                                                                | —       | Tag content.                                     |
-| ...           | All standard `<span>` and Bulma helper props                                                                     |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -200,3 +195,49 @@ Combine `Tag` with `Tags` for grouped, multi-tag UIs.
 
 - [Bulma Tag Documentation](https://bulma.io/documentation/elements/tag/)
 - [Storybook: Tag Stories](https://bestax.io/storybook/?path=/story/elements-tag--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                    | Default | Description                                                                       |
+| ------------- | ------------------------------------------------------- | ------- | --------------------------------------------------------------------------------- |
+| `className`   | `string`                                                | —       | Additional CSS classes to apply.                                                  |
+| `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag.                                                 |
+| `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Size modifier for the tag.                                                        |
+| `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag. Whether the tag should have rounded corners.               |
+| `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button). Whether the tag is a delete button.   |
+| `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag. Whether the tag is hoverable.                       |
+| `onDelete`    | `() => void`                                            | —       | Callback for delete tag/button. Callback fired when the delete button is clicked. |
+| `children`    | `React.ReactNode`                                       | —       | Tag content.                                                                      |
+| `...`         | All standard `<span>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                 |
+
+**Types:**
+
+- `TagColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Tag component (Bulma tag colors).
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Tag` registers these variables on its own `.tag` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                            | Sass Variable                    | Default                                  |
+| --------------------------------------- | -------------------------------- | ---------------------------------------- |
+| `--bulma-tag-h`                         | `$tag-h`                         | `var(--bulma-scheme-h)`                  |
+| `--bulma-tag-s`                         | `$tag-s`                         | `var(--bulma-scheme-s)`                  |
+| `--bulma-tag-background-l`              | `$tag-background-l`              | `var(--bulma-background-l)`              |
+| `--bulma-tag-background-l-delta`        | `$tag-background-l-delta`        | `0%`                                     |
+| `--bulma-tag-hover-background-l-delta`  | `$tag-hover-background-l-delta`  | `var(--bulma-hover-background-l-delta)`  |
+| `--bulma-tag-active-background-l-delta` | `$tag-active-background-l-delta` | `var(--bulma-active-background-l-delta)` |
+| `--bulma-tag-color-l`                   | `$tag-color-l`                   | `var(--bulma-text-l)`                    |
+| `--bulma-tag-radius`                    | `$tag-radius`                    | `var(--bulma-radius)`                    |
+| `--bulma-tag-delete-margin`             | `$tag-delete-margin`             | `1px`                                    |
+
+<!-- /bestax:generated cssvars -->

@@ -333,32 +333,36 @@ Narrow columns only take up as much width as their content, which can be useful 
 
 <!-- bestax:generated props -->
 
-| Prop                 | Type                                                                            | Default | Description                                              |
-| -------------------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
-| `className`          | `string`                                                                        | —       | Additional CSS classes for the column.                   |
-| `textColor`          | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color (Bulma color, 'inherit', or 'current').       |
-| `color`              | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the column.                     |
-| `bgColor`            | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color (Bulma color, 'inherit', or 'current'). |
-| `size`               | `BulmaColumnSize`                                                               | —       | Column size (see Bulma docs).                            |
-| `sizeMobile`         | `BulmaColumnSize`                                                               | —       | Size for mobile breakpoint.                              |
-| `sizeTablet`         | `BulmaColumnSize`                                                               | —       | Size for tablet breakpoint.                              |
-| `sizeDesktop`        | `BulmaColumnSize`                                                               | —       | Size for desktop breakpoint.                             |
-| `sizeWidescreen`     | `BulmaColumnSize`                                                               | —       | Size for widescreen breakpoint.                          |
-| `sizeFullhd`         | `BulmaColumnSize`                                                               | —       | Size for fullhd breakpoint.                              |
-| `offset`             | `BulmaColumnSize`                                                               | —       | Offset for column.                                       |
-| `offsetMobile`       | `BulmaColumnSize`                                                               | —       | Mobile column offset.                                    |
-| `offsetTablet`       | `BulmaColumnSize`                                                               | —       | Tablet column offset.                                    |
-| `offsetDesktop`      | `BulmaColumnSize`                                                               | —       | Desktop column offset.                                   |
-| `offsetWidescreen`   | `BulmaColumnSize`                                                               | —       | Widescreen column offset.                                |
-| `offsetFullhd`       | `BulmaColumnSize`                                                               | —       | FullHD column offset.                                    |
-| `isNarrow`           | `boolean`                                                                       | `false` | Column is only as wide as its content.                   |
-| `isNarrowMobile`     | `boolean`                                                                       | `false` | The column is narrow on mobile.                          |
-| `isNarrowTablet`     | `boolean`                                                                       | `false` | The column is narrow on tablet.                          |
-| `isNarrowTouch`      | `boolean`                                                                       | `false` | The column is narrow on touch devices.                   |
-| `isNarrowDesktop`    | `boolean`                                                                       | `false` | The column is narrow on desktop.                         |
-| `isNarrowWidescreen` | `boolean`                                                                       | `false` | The column is narrow on widescreen.                      |
-| `isNarrowFullhd`     | `boolean`                                                                       | `false` | The column is narrow on fullhd.                          |
-| `children`           | `React.ReactNode`                                                               | —       | Children to render inside the column.                    |
-| `...`                | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+| Prop                 | Type                                                                            | Default | Description                                       |
+| -------------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className`          | `string`                                                                        | —       | Additional CSS classes for the column.            |
+| `textColor`          | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                       |
+| `color`              | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the column.              |
+| `bgColor`            | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                 |
+| `size`               | `BulmaColumnSize`                                                               | —       | Column size (see Bulma docs).                     |
+| `sizeMobile`         | `BulmaColumnSize`                                                               | —       | Size for mobile breakpoint.                       |
+| `sizeTablet`         | `BulmaColumnSize`                                                               | —       | Size for tablet breakpoint.                       |
+| `sizeDesktop`        | `BulmaColumnSize`                                                               | —       | Size for desktop breakpoint.                      |
+| `sizeWidescreen`     | `BulmaColumnSize`                                                               | —       | Size for widescreen breakpoint.                   |
+| `sizeFullhd`         | `BulmaColumnSize`                                                               | —       | Size for fullhd breakpoint.                       |
+| `offset`             | `BulmaColumnSize`                                                               | —       | Offset for column.                                |
+| `offsetMobile`       | `BulmaColumnSize`                                                               | —       | Mobile column offset.                             |
+| `offsetTablet`       | `BulmaColumnSize`                                                               | —       | Tablet column offset.                             |
+| `offsetDesktop`      | `BulmaColumnSize`                                                               | —       | Desktop column offset.                            |
+| `offsetWidescreen`   | `BulmaColumnSize`                                                               | —       | Widescreen column offset.                         |
+| `offsetFullhd`       | `BulmaColumnSize`                                                               | —       | FullHD column offset.                             |
+| `isNarrow`           | `boolean`                                                                       | `false` | Column is only as wide as its content.            |
+| `isNarrowMobile`     | `boolean`                                                                       | `false` | The column is narrow on mobile.                   |
+| `isNarrowTablet`     | `boolean`                                                                       | `false` | The column is narrow on tablet.                   |
+| `isNarrowTouch`      | `boolean`                                                                       | `false` | The column is narrow on touch devices.            |
+| `isNarrowDesktop`    | `boolean`                                                                       | `false` | The column is narrow on desktop.                  |
+| `isNarrowWidescreen` | `boolean`                                                                       | `false` | The column is narrow on widescreen.               |
+| `isNarrowFullhd`     | `boolean`                                                                       | `false` | The column is narrow on fullhd.                   |
+| `children`           | `React.ReactNode`                                                               | —       | Children to render inside the column.             |
+| `...`                | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Types:**
+
+- `BulmaColumnSize`: `number` | `'full'` | `'half'` | `'one-third'` | `'two-thirds'` | `'one-quarter'` | `'three-quarters'` | `'one-fifth'` | `'two-fifths'` | `'three-fifths'` | `'four-fifths'` — Possible values for Bulma column size.
 
 <!-- /bestax:generated props -->

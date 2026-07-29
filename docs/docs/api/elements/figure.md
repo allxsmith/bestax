@@ -1,13 +1,20 @@
 ---
 title: Figure
 sidebar_label: Figure
+description: The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
 ---
 
 # Figure
 
 ## Overview
 
-The `Figure` component renders a styled `<figure>` element with Bulma helper class integration. Use it to group self-contained content like images, illustrations, diagrams, or code snippets with an optional caption via `Figure.Caption`.
+<!-- bestax:generated overview -->
+
+The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it to group self-contained content like images, illustrations, diagrams, or code snippets with an optional caption via `Figure.Caption`.
 
 :::info
 The Figure component is a thin wrapper around the HTML `<figure>` element with a `Figure.Caption` subcomponent for `<figcaption>`.
@@ -17,33 +24,13 @@ The Figure component is a thin wrapper around the HTML `<figure>` element with a
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Figure } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-### Figure Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the figure.             |
-| ...         | All standard `<figure>` and Bulma helper props                                                                                                                                                                                                                                           |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Figure.Caption Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Caption text to render.                          |
-| ...         | All standard `<figcaption>` and Bulma helper props                                                                                                                                                                                                                                       |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -163,3 +150,45 @@ The `<figure>` element is ideal for images, illustrations, diagrams, code listin
 - [MDN: figure element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figure)
 - [MDN: figcaption element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/figcaption)
 - [Storybook: Figure Stories](https://bestax.io/storybook/?path=/story/elements-figure--default)
+
+---
+
+## Props
+
+### Figure Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the figure.         |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- `Figure.Caption`: FigureCaption component for rendering a styled figcaption element. A FigureCaption wraps the HTML `<figcaption>` element with Bulma helper class integration. Use it inside Figure components to provide captions for images or other media.
+
+### Figure.Caption
+
+| Prop        | Type                                                                    | Default | Description                                              |
+| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color (Bulma color, 'inherit', or 'current').       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color (Bulma color, 'inherit', or 'current'). |
+| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the figcaption.            |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+
+<!-- /bestax:generated props -->
+
+### Figure.Caption Props
+
+| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
+| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
+| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Caption text to render.                          |
+| ...         | All standard `<figcaption>` and Bulma helper props                                                                                                                                                                                                                                       |         | (See [Helper Props](../helpers/usebulmaclasses)) |

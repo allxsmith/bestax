@@ -36,37 +36,39 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Props for the Icon component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the icon.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {string} name - The icon name (without library prefix).
- * @property {IconLibrary} [library] - The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.
- * @property {string} [variant] - Icon style variant. For Font Awesome: 'solid', 'regular', 'brands', etc. For Material Icons: 'filled', 'outlined', 'round', 'sharp'. For Material Symbols: 'outlined', 'rounded', 'sharp'. For Ionicons: 'outline', 'sharp'.
- * @property {string | string[]} [features] - Additional library-specific modifiers. For Font Awesome: 'fa-lg', 'fa-spin', etc. For others: size classes like 'is-size-1', etc.
- * @property {string | string[]} [libraryFeatures] - DEPRECATED: Use 'variant' and 'features' instead. Additional library-specific classes.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the icon.
- * @property {string} [ariaLabel='icon'] - ARIA label for accessibility (default: 'icon').
- * @property {object} [style] - Inline style object.
- * @property {string} [icon] - DEPRECATED: Legacy prop, use `name` instead.
- * @property {string} [containerClassName] - Override the default 'icon' container class (e.g., 'panel-icon').
  */
 export interface IconProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the icon. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). */
   name: string; // e.g., 'star', 'account', 'home-outline'
+  /** DEPRECATED: Legacy prop, use `name` instead. */
   icon?: string; // DEPRECATED: legacy prop that should not be used
+  /**
+   * The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.
+   * @defaultValue 'fa'
+   */
   library?: IconLibrary; // defaults to ConfigProvider iconLibrary or 'fa'
+  /** Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). Icon style variant. For Font Awesome: 'solid', 'regular', 'brands', etc. For Material Icons: 'filled', 'outlined', 'round', 'sharp'. For Material Symbols: 'outlined', 'rounded', 'sharp'. For Ionicons: 'outline', 'sharp'. */
   variant?: string; // e.g., 'solid', 'outlined', 'rounded', 'sharp'
+  /** Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). Additional library-specific modifiers. For Font Awesome: 'fa-lg', 'fa-spin', etc. For others: size classes like 'is-size-1', etc. */
   features?: string | string[]; // e.g., 'fa-lg', 'fa-spin', 'is-size-1'
+  /** DEPRECATED: Use 'variant' and 'features' instead. Additional library-specific classes. */
   libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
+  /** Size modifier for the icon container. */
   size?: 'small' | 'medium' | 'large';
+  /** ARIA label for accessibility (default: 'icon'). */
   ariaLabel?: string;
+  /** Inline style object. */
   style?: React.CSSProperties;
+  /** Override the default `'icon'` container class (e.g., `'panel-icon'`). */
   containerClassName?: string; // Override the default 'icon' container class (e.g., 'panel-icon')
 }
 
@@ -173,9 +175,7 @@ function getIconClasses(
 }
 
 /**
- * Icon component for rendering a Bulma-styled icon container.
- *
- * Supports Bulma helper classes for styling, color, and size, and renders an <i></i> element for the icon itself.
+ * The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, Material Symbols, etc.).
  *
  * @function
  * @param {IconProps} props - Props for the Icon component.

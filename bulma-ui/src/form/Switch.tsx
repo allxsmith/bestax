@@ -25,21 +25,12 @@ export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Switch component.
- *
- * @property {(typeof switchColors)[number]} [color] - Color variant for the switch.
- * @property {(typeof switchSizes)[number]} [size] - Size of the switch.
- * @property {boolean} [isRounded] - Use rounded switch style.
- * @property {boolean} [isThin] - Use thin switch style.
- * @property {boolean} [isOutlined] - Use outlined switch style.
- * @property {boolean} [isRtl] - Right-to-left layout (label on left).
- * @property {(typeof switchColors)[number]} [passiveType] - Color for the unchecked (inactive) state.
- * @property {boolean} [checked] - Whether the switch is checked.
- * @property {boolean} [defaultChecked] - Default checked state for uncontrolled usage.
- * @property {boolean} [disabled] - Whether the switch is disabled.
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - Label content for the switch.
- * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Change handler.
+ * @extraProp {boolean} [checked] - Controlled checked state. Whether the switch is checked.
+ * @extraProp {boolean} [defaultChecked=false] - Default checked state for uncontrolled usage.
+ * @extraProp {boolean} [disabled=false] - Whether the switch is disabled.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Callback when switch state changes. Change handler.
+ * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
 export interface SwitchProps
   extends
@@ -48,22 +39,28 @@ export interface SwitchProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+  /** Color variant for the switch. */
   color?: (typeof switchColors)[number];
+  /** Size of the switch. */
   size?: (typeof switchSizes)[number];
+  /** Use rounded switch style. */
   isRounded?: boolean;
+  /** Use thin switch style. */
   isThin?: boolean;
+  /** Use outlined switch style. */
   isOutlined?: boolean;
+  /** Right-to-left layout (label on left). */
   isRtl?: boolean;
+  /** Color when the switch is in the off/passive state. Color for the unchecked (inactive) state. */
   passiveType?: (typeof switchColors)[number];
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Label content for the switch. */
   children?: React.ReactNode;
 }
 
 /**
- * Switch component for toggling between on/off states.
- *
- * A styled checkbox that appears as a toggle switch, commonly used for
- * settings and preferences. Supports various colors, sizes, and styles.
+ * The `Switch` component provides a toggle switch for boolean on/off states.
  *
  * @function
  * @param {SwitchProps} props - Props for the Switch component.

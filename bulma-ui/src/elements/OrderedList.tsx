@@ -10,31 +10,26 @@ import {
 
 /**
  * Props for the OrderedList component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {'1' | 'a' | 'A' | 'i' | 'I'} [type] - The numbering type for the list.
- * @property {number} [start] - The starting number for the list.
- * @property {boolean} [reversed] - Whether to reverse the list numbering.
- * @property {React.ReactNode} [children] - List items to be rendered inside the list.
+ * @extraProp {'1' | 'a' | 'A' | 'i' | 'I'} [type='1'] - The numbering type for the list.
+ * @extraProp {number} [start] - The starting number for the list.
+ * @extraProp {boolean} [reversed] - Whether to reverse the list numbering.
  */
 export interface OrderedListProps
   extends
     React.OlHTMLAttributes<HTMLOListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** List items to be rendered inside the list. */
   children?: React.ReactNode;
 }
 
 /**
- * OrderedList component for rendering a styled ordered list element.
- *
- * An OrderedList wraps the HTML `<ol>` element with Bulma helper class integration.
- * Supports Bulma helper classes for additional styling like text color, background color,
- * and spacing utilities. Also supports standard `<ol>` attributes like `type`, `start`, and `reversed`.
+ * The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
  *
  * @function
  * @param {OrderedListProps} props - Props for the OrderedList component.

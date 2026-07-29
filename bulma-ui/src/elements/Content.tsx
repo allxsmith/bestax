@@ -8,23 +8,22 @@ import {
 
 /**
  * Props for the Content component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the content.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {'small' | 'normal' | 'medium' | 'large'} [size] - Size modifier for the content.
- * @property {React.ReactNode} [children] - Content to be rendered inside the block.
  */
 interface ContentProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper (e.g., `'danger'` for `has-text-danger`). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the content. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper (e.g., `'info'` for `has-background-info`). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Size modifier for the content. */
   size?: 'small' | 'normal' | 'medium' | 'large';
+  /** Content to be rendered inside the block. */
   children?: React.ReactNode;
 }
 
@@ -32,10 +31,7 @@ interface ContentProps
 const validSizes = ['small', 'medium', 'large'] as const;
 
 /**
- * Content component for rendering a styled Bulma content block.
- *
- * Applies typographic styles to HTML content (e.g., paragraphs, headings, lists) with Bulma's content class.
- * Supports size modifiers and Bulma helper classes for additional styling.
+ * The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists, and tables.
  *
  * @function
  * @param {ContentProps} props - Props for the Content component.

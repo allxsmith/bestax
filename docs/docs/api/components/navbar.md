@@ -1,13 +1,20 @@
 ---
 title: Navbar
 sidebar_label: Navbar
+description: The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.
 ---
 
 # Navbar
 
 ## Overview
 
-The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI. It supports color, transparency, fixed positioning, dropdowns, and granular composition with subcomponents for brand, menu, items, burger (mobile toggle), start/end, and rich dropdowns. Use it for main navigation, site branding, and complex menu layouts.
+<!-- bestax:generated overview -->
+
+The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports color, transparency, fixed positioning, dropdowns, and granular composition with subcomponents for brand, menu, items, burger (mobile toggle), start/end, and rich dropdowns. Use it for main navigation, site branding, and complex menu layouts.
 
 :::info
 Compose your navigation using `Navbar`, `Navbar.Brand`, `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.Item`, `Navbar.Dropdown`, and more for full Bulma flexibility.
@@ -17,37 +24,13 @@ Compose your navigation using `Navbar`, `Navbar.Brand`, `Navbar.Burger`, `Navbar
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Navbar } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                                                                                                                                                                                                                                                                     | Default | Description                                            |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------ |
-| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'`                                                                                                                                                       | —       | Bulma color modifier for the navbar.                   |
-| `bgColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color for the navbar.                       |
-| `textColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color for the navbar.                             |
-| `transparent` | `boolean`                                                                                                                                                                                                                                                                                | false   | Renders the navbar with a transparent background.      |
-| `fixed`       | `'top'` \| `'bottom'`                                                                                                                                                                                                                                                                    | —       | Fixes the navbar to the top or bottom of the viewport. |
-| `className`   | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                |
-| `children`    | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Navbar content (compose with subcomponents).           |
-| ...           | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses))       |
-
-**Key Subcomponents:**
-
-- `Navbar.Brand`: For logo and branding (left side)
-- `Navbar.Burger`: Responsive menu toggle (mobile)
-- `Navbar.Menu`: Collapsible content (contains `Navbar.Start` and `Navbar.End`)
-- `Navbar.Start`: Left-aligned menu area
-- `Navbar.End`: Right-aligned menu area
-- `Navbar.Item`: Navigation links, buttons, or custom content
-- `Navbar.Link`: Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
-- `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
-- `Navbar.DropdownMenu`: Dropdown menu container
-- `Navbar.Divider`: Divider in dropdown menus
+<!-- /bestax:generated import -->
 
 ---
 
@@ -460,3 +443,211 @@ For full accessibility in dropdowns, ensure that focus, keyboard navigation, and
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                                                                                               | Default | Description                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                                                                   |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                                                                               |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                                                                     |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                                                                         |
+| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background. Whether the navbar is transparent.                     |
+| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. Whether the navbar is fixed to the top or bottom. |
+| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).                                                             |
+| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                        |
+
+**Subcomponents:**
+
+- `Navbar.Brand`: For logo and branding (left side)
+- `Navbar.Item`: Navigation links, buttons, or custom content
+- `Navbar.Link`: Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
+- `Navbar.Burger`: Responsive menu toggle (mobile)
+- `Navbar.Menu`: Collapsible content (contains `Navbar.Start` and `Navbar.End`)
+- `Navbar.Start`: Left-aligned menu area
+- `Navbar.End`: Right-aligned menu area
+- `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
+- `Navbar.DropdownMenu`: Dropdown menu container
+
+### Navbar.Brand
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the brand.                         |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the brand.               |
+| `children`  | `React.ReactNode`                                                               | —       | Brand content.                                    |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.Item
+
+| Prop        | Type                                                                    | Default | Description                                         |
+| ----------- | ----------------------------------------------------------------------- | ------- | --------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                             |
+| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (e.g., a router link). |
+| `active`    | `boolean`                                                               | `false` | Whether the item is active.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for the item.                            |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for the item.                      |
+| `children`  | `React.ReactNode`                                                       | —       | Navbar item content.                                |
+| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
+
+### Navbar.Link
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (default: 'a').      |
+| `arrowless` | `boolean`                                                               | `false` | Remove the dropdown arrow indicator.              |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color.                                       |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Link content.                                     |
+| `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.Burger
+
+| Prop            | Type                                                                            | Default | Description                                       |
+| --------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className`     | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the burger.                        |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the burger.              |
+| `active`        | `boolean`                                                                       | `false` | Whether the burger is active.                     |
+| `children`      | `React.ReactNode`                                                               | —       | Custom content inside the burger.                 |
+| `aria-label`    | `string`                                                                        | —       | Aria label for accessibility.                     |
+| `aria-expanded` | `boolean`                                                                       | `false` | Aria expanded state.                              |
+| `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —       | Click handler.                                    |
+| `...`           | All standard `<button>` attributes and Bulma helper props                       | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.Menu
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the menu.                          |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the menu.                |
+| `active`    | `boolean`                                                                       | `false` | Whether the menu is active.                       |
+| `children`  | `React.ReactNode`                                                               | —       | Menu content.                                     |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.Start
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                       |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier.                             |
+| `children`  | `React.ReactNode`                                                               | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.End
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                       |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier.                             |
+| `children`  | `React.ReactNode`                                                               | —       | Content.                                          |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.Dropdown
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `right`     | `boolean`                       | `false` | Dropdown aligned right.                           |
+| `up`        | `boolean`                       | `false` | Dropdown opens upwards.                           |
+| `hoverable` | `boolean`                       | `false` | Dropdown opens on hover.                          |
+| `active`    | `boolean`                       | `false` | Dropdown is open.                                 |
+| `children`  | `React.ReactNode`               | —       | Dropdown content.                                 |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Navbar.DropdownMenu
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `right`     | `boolean`                       | `false` | Dropdown aligned right.                           |
+| `up`        | `boolean`                       | `false` | Dropdown opens upwards.                           |
+| `children`  | `React.ReactNode`               | —       | Dropdown menu content.                            |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+**Key Subcomponents:**
+
+- `Navbar.Brand`: For logo and branding (left side)
+- `Navbar.Burger`: Responsive menu toggle (mobile)
+- `Navbar.Menu`: Collapsible content (contains `Navbar.Start` and `Navbar.End`)
+- `Navbar.Start`: Left-aligned menu area
+- `Navbar.End`: Right-aligned menu area
+- `Navbar.Item`: Navigation links, buttons, or custom content
+- `Navbar.Link`: Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
+- `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
+- `Navbar.DropdownMenu`: Dropdown menu container
+- `Navbar.Divider`: Divider in dropdown menus
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Navbar` registers these variables on its own `.navbar` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                    | Sass Variable                            | Default                                                                                                                                                                                                |
+| ----------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-navbar-h`                              | `$navbar-h`                              | `var(--bulma-scheme-h)`                                                                                                                                                                                |
+| `--bulma-navbar-s`                              | `$navbar-s`                              | `var(--bulma-scheme-s)`                                                                                                                                                                                |
+| `--bulma-navbar-l`                              | `$navbar-l`                              | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |
+| `--bulma-navbar-background-color`               | `$navbar-background-color`               | `var(--bulma-scheme-main)`                                                                                                                                                                             |
+| `--bulma-navbar-box-shadow-size`                | `$navbar-box-shadow-size`                | `0 0.125em 0 0`                                                                                                                                                                                        |
+| `--bulma-navbar-box-shadow-color`               | `$navbar-box-shadow-color`               | `var(--bulma-background)`                                                                                                                                                                              |
+| `--bulma-navbar-padding-vertical`               | `$navbar-padding-vertical`               | `1rem`                                                                                                                                                                                                 |
+| `--bulma-navbar-padding-horizontal`             | `$navbar-padding-horizontal`             | `2rem`                                                                                                                                                                                                 |
+| `--bulma-navbar-z`                              | `$navbar-z`                              | `30`                                                                                                                                                                                                   |
+| `--bulma-navbar-fixed-z`                        | `$navbar-fixed-z`                        | `30`                                                                                                                                                                                                   |
+| `--bulma-navbar-item-background-a`              | `$navbar-item-background-a`              | `0`                                                                                                                                                                                                    |
+| `--bulma-navbar-item-background-l`              | `$navbar-item-background-l`              | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |
+| `--bulma-navbar-item-background-l-delta`        | `$navbar-item-background-l-delta`        | `0%`                                                                                                                                                                                                   |
+| `--bulma-navbar-item-hover-background-l-delta`  | `$navbar-item-hover-background-l-delta`  | `var(--bulma-hover-background-l-delta)`                                                                                                                                                                |
+| `--bulma-navbar-item-active-background-l-delta` | `$navbar-item-active-background-l-delta` | `var(--bulma-active-background-l-delta)`                                                                                                                                                               |
+| `--bulma-navbar-item-color-l`                   | `$navbar-item-color-l`                   | `var(--bulma-text-l)`                                                                                                                                                                                  |
+| `--bulma-navbar-item-color`                     | `$navbar-item-color`                     | `hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-item-color-l))`                                                                                                                  |
+| `--bulma-navbar-item-selected-h`                | `$navbar-item-selected-h`                | `var(--bulma-link-h)`                                                                                                                                                                                  |
+| `--bulma-navbar-item-selected-s`                | `$navbar-item-selected-s`                | `var(--bulma-link-s)`                                                                                                                                                                                  |
+| `--bulma-navbar-item-selected-l`                | `$navbar-item-selected-l`                | `var(--bulma-link-l)`                                                                                                                                                                                  |
+| `--bulma-navbar-item-selected-background-l`     | `$navbar-item-selected-background-l`     | `var(--bulma-link-l)`                                                                                                                                                                                  |
+| `--bulma-navbar-item-selected-color-l`          | `$navbar-item-selected-color-l`          | `var(--bulma-link-invert-l)`                                                                                                                                                                           |
+| `--bulma-navbar-item-img-max-height`            | `$navbar-item-img-max-height`            | `1.75rem`                                                                                                                                                                                              |
+| `--bulma-navbar-burger-color`                   | `$navbar-burger-color`                   | `var(--bulma-link)`                                                                                                                                                                                    |
+| `--bulma-navbar-tab-hover-background-color`     | `$navbar-tab-hover-background-color`     | `transparent`                                                                                                                                                                                          |
+| `--bulma-navbar-tab-hover-border-bottom-color`  | `$navbar-tab-hover-border-bottom-color`  | `var(--bulma-link)`                                                                                                                                                                                    |
+| `--bulma-navbar-tab-active-color`               | `$navbar-tab-active-color`               | `var(--bulma-link)`                                                                                                                                                                                    |
+| `--bulma-navbar-tab-active-background-color`    | `$navbar-tab-active-background-color`    | `transparent`                                                                                                                                                                                          |
+| `--bulma-navbar-tab-active-border-bottom-color` | `$navbar-tab-active-border-bottom-color` | `var(--bulma-link)`                                                                                                                                                                                    |
+| `--bulma-navbar-tab-active-border-bottom-style` | `$navbar-tab-active-border-bottom-style` | `solid`                                                                                                                                                                                                |
+| `--bulma-navbar-tab-active-border-bottom-width` | `$navbar-tab-active-border-bottom-width` | `0.1875em`                                                                                                                                                                                             |
+| `--bulma-navbar-dropdown-background-color`      | `$navbar-dropdown-background-color`      | `var(--bulma-scheme-main)`                                                                                                                                                                             |
+| `--bulma-navbar-dropdown-border-l`              | `$navbar-dropdown-border-l`              | `var(--bulma-border-l)`                                                                                                                                                                                |
+| `--bulma-navbar-dropdown-border-color`          | `$navbar-dropdown-border-color`          | `hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-dropdown-border-l))`                                                                                                             |
+| `--bulma-navbar-dropdown-border-style`          | `$navbar-dropdown-border-style`          | `solid`                                                                                                                                                                                                |
+| `--bulma-navbar-dropdown-border-width`          | `$navbar-dropdown-border-width`          | `0.125em`                                                                                                                                                                                              |
+| `--bulma-navbar-dropdown-offset`                | `$navbar-dropdown-offset`                | `-0.25em`                                                                                                                                                                                              |
+| `--bulma-navbar-dropdown-arrow`                 | `$navbar-dropdown-arrow`                 | `var(--bulma-link)`                                                                                                                                                                                    |
+| `--bulma-navbar-dropdown-radius`                | `$navbar-dropdown-radius`                | `var(--bulma-radius-large)`                                                                                                                                                                            |
+| `--bulma-navbar-dropdown-z`                     | `$navbar-dropdown-z`                     | `20`                                                                                                                                                                                                   |
+| `--bulma-navbar-dropdown-boxed-radius`          | `$navbar-dropdown-boxed-radius`          | `var(--bulma-radius-large)`                                                                                                                                                                            |
+| `--bulma-navbar-dropdown-boxed-shadow`          | `$navbar-dropdown-boxed-shadow`          | `0 0.5em 0.5em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1), 0 0 0 1px hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1)` |
+| `--bulma-navbar-dropdown-item-h`                | `$navbar-dropdown-item-h`                | `var(--bulma-scheme-h)`                                                                                                                                                                                |
+| `--bulma-navbar-dropdown-item-s`                | `$navbar-dropdown-item-s`                | `var(--bulma-scheme-s)`                                                                                                                                                                                |
+| `--bulma-navbar-dropdown-item-l`                | `$navbar-dropdown-item-l`                | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |
+| `--bulma-navbar-dropdown-item-background-l`     | `$navbar-dropdown-item-background-l`     | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |
+| `--bulma-navbar-dropdown-item-color-l`          | `$navbar-dropdown-item-color-l`          | `var(--bulma-text-l)`                                                                                                                                                                                  |
+| `--bulma-navbar-divider-background-l`           | `$navbar-divider-background-l`           | `var(--bulma-background-l)`                                                                                                                                                                            |
+| `--bulma-navbar-divider-height`                 | `$navbar-divider-height`                 | `0.125em`                                                                                                                                                                                              |
+| `--bulma-navbar-bottom-box-shadow-size`         | `$navbar-bottom-box-shadow-size`         | `0 -0.125em 0 0`                                                                                                                                                                                       |
+
+<!-- /bestax:generated cssvars -->

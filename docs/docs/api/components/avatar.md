@@ -1,13 +1,20 @@
 ---
 title: Avatar
 sidebar_label: Avatar
+description: The `Avatar` component represents a person or entity as a compact image.
 ---
 
 # Avatar
 
 ## Overview
 
-The `Avatar` component represents a person or entity as a compact image. It falls back
+<!-- bestax:generated overview -->
+
+The `Avatar` component represents a person or entity as a compact image.
+
+<!-- /bestax:generated overview -->
+
+It falls back
 automatically from a photo (`src`) to initials (from `name`/`initials`) to a custom `icon`, and
 finally to a generic default icon — so you never have to hand-roll the broken-image or
 missing-photo case.
@@ -16,31 +23,13 @@ missing-photo case.
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Avatar } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop         | Type                                                                                                             | Default    | Description                                                                                                                                          |
-| ------------ | ---------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src`        | `string`                                                                                                         | —          | Image URL. On load error (or if absent), falls back to initials, then `icon`.                                                                        |
-| `alt`        | `string`                                                                                                         | —          | Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. |
-| `name`       | `string`                                                                                                         | —          | Derives initials and a deterministic background color when no `src` is shown.                                                                        |
-| `initials`   | `string`                                                                                                         | —          | Explicit initials override (else derived from `name`).                                                                                               |
-| `icon`       | `React.ReactNode`                                                                                                | —          | Final fallback, rendered when there is no `src`, `name`, or `initials`.                                                                              |
-| `size`       | `'16x16' \| '24x24' \| '32x32' \| '48x48' \| '64x64' \| '96x96' \| '128x128' \| number`                          | —          | Preset size, or a pixel size when a number.                                                                                                          |
-| `shape`      | `'circle' \| 'rounded' \| 'square'`                                                                              | `'circle'` | Avatar shape.                                                                                                                                        |
-| `color`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | —          | Background color for initials/icon avatars (else auto-derived from `name`).                                                                          |
-| `as`         | `React.ElementType`                                                                                              | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                                               |
-| `href`       | `string`                                                                                                         | —          | When set, renders the avatar as a link.                                                                                                              |
-| `target`     | `string`                                                                                                         | —          | Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).                                                            |
-| `rel`        | `string`                                                                                                         | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                                               |
-| `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                                      | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                 |
-| `className`  | `string`                                                                                                         | —          | Additional CSS classes.                                                                                                                              |
-| ...          | All standard HTML and Bulma helper props                                                                         |            | (See [Helper Props](../helpers/usebulmaclasses))                                                                                                     |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -164,3 +153,52 @@ automatic initials/icon fallback runs.
 ## Additional Resources
 
 - [Storybook: Avatar Stories](https://bestax.io/storybook/?path=/story/components-avatar--photo)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop         | Type                                                                                                  | Default    | Description                                                                                                                                                                                                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`  | `string`                                                                                              | —          | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                   |
+| `src`        | `string`                                                                                              | —          | Image URL. On load error (or if absent), falls back to initials, then `icon`.                                                                                                                                                                                                                                      |
+| `alt`        | `string`                                                                                              | —          | Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. Alternate text for the image (required for meaningful images). An explicit `alt=""` marks a non-interactive avatar as decorative (skipped by screen readers). |
+| `name`       | `string`                                                                                              | —          | Derives initials and a deterministic background color when no `src`/`initials` is shown.                                                                                                                                                                                                                           |
+| `initials`   | `string`                                                                                              | —          | Explicit initials override (else derived from `name`).                                                                                                                                                                                                                                                             |
+| `icon`       | `React.ReactNode`                                                                                     | —          | Final fallback, rendered when there is no `src`, `name`, or `initials`.                                                                                                                                                                                                                                            |
+| `size`       | `'16x16'` \| `'24x24'` \| `'32x32'` \| `'48x48'` \| `'64x64'` \| `'96x96'` \| `'128x128'` \| `number` | —          | Preset size, or a pixel size when a number.                                                                                                                                                                                                                                                                        |
+| `shape`      | `'circle'` \| `'rounded'` \| `'square'`                                                               | `'circle'` | Avatar shape. Default `'circle'`.                                                                                                                                                                                                                                                                                  |
+| `color`      | `AvatarColor`                                                                                         | —          | Background color for initials/icon avatars (else auto-derived from `name`).                                                                                                                                                                                                                                        |
+| `as`         | `React.ElementType`                                                                                   | —          | Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.                                                                                                                                                                                                                             |
+| `href`       | `string`                                                                                              | —          | When set, renders the avatar as a link.                                                                                                                                                                                                                                                                            |
+| `target`     | `string`                                                                                              | —          | Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).                                                                                                                                                                                                                          |
+| `rel`        | `string`                                                                                              | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                                                                                                                                                                                                             |
+| `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                           | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                                                                                                                                                                               |
+| `children`   | `React.ReactNode`                                                                                     | —          | Content rendered inside the component.                                                                                                                                                                                                                                                                             |
+| `...`        | All standard HTML attributes and Bulma helper props                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                  |
+
+**Types:**
+
+- `AvatarColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Avatar component.
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Avatar` registers these variables on its own `.avatar` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                    | Sass Variable            | Default                        |
+| ------------------------------- | ------------------------ | ------------------------------ |
+| `--bulma-avatar-size`           | `$avatar-size`           | `48px`                         |
+| `--bulma-avatar-background`     | `$avatar-background`     | `var(--bulma-background)`      |
+| `--bulma-avatar-color`          | `$avatar-color`          | `var(--bulma-text)`            |
+| `--bulma-avatar-weight`         | `$avatar-weight`         | `var(--bulma-weight-semibold)` |
+| `--bulma-avatar-rounded-radius` | `$avatar-rounded-radius` | `var(--bulma-radius-large)`    |
+
+<!-- /bestax:generated cssvars -->

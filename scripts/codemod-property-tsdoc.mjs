@@ -35,6 +35,8 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
+import { extractComponent } from './lib/props-extract.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +44,46 @@ const REPO = join(HERE, '..');
 const API_DIR = join(REPO, 'docs', 'docs', 'api');
 const ts = require('typescript');
 const prettier = require('prettier');
+
+/**
+ * Every prop name the generator will already emit for a component — own
+ * members, everything pulled in through `Omit<ButtonProps, …>`-style heritage,
+ * the named DOM commons, sub-component tables, and any `@extraProp` already
+ * parked. Parking a prop the generator emits anyway would put it on the page
+ * twice: `LinkButton` documents 14 props it inherits from `ButtonProps`, and
+ * `table.md`'s sub-tables document `isSelected` under `Table.Tr`.
+ *
+ * Read before any file is written, so it describes the pre-codemod source —
+ * which is what we want, since the codemod only adds comments.
+ */
+const coveredCache = new Map();
+const derivedDefaults = new Map(); // component -> prop -> default the AST found
+function coveredProps(component) {
+  if (coveredCache.has(component)) return coveredCache.get(component);
+  let set = new Set();
+  try {
+    const info = extractComponent(component);
+    // Synthetic DOM rows do not count as covered: a page that wrote its own
+    // description for `ref` or `children` still needs that text parked.
+    set = new Set(
+      info.tables.flatMap(t => [
+        ...t.rows.filter(r => !r.synthetic).map(r => r.name),
+        ...t.extraProps.map(e => e.name),
+      ])
+    );
+    const seen = new Map();
+    for (const t of info.tables) {
+      for (const r of t.rows)
+        if (!seen.has(r.name)) seen.set(r.name, r.default);
+    }
+    derivedDefaults.set(component, seen);
+  } catch {
+    // Not an exported component (a sub-component interface with no page of its
+    // own). Its `docs` map is empty anyway, so nothing is parked either way.
+  }
+  coveredCache.set(component, set);
+  return set;
+}
 
 // ---------------------------------------------------------------------------
 // Existing docs tables — the preferred description source.
@@ -73,6 +115,8 @@ async function mdFiles(dir) {
  */
 function parseDocsDescriptions(md) {
   const out = new Map();
+  const defaults = new Map();
+  const types = new Map();
   const lines = md.split(/\r?\n/);
   let headers = null;
   for (const line of lines) {
@@ -91,10 +135,26 @@ function parseDocsDescriptions(md) {
     }
     if (/^-{2,}/.test(cells[0])) continue;
     const name = cells[0].replace(/`/g, '').trim();
-    const desc = cells[cells.length - 1].trim();
+    // A leading "**Deprecated.** …" clause is NOT part of the description: the
+    // generator synthesises it from the member's `@deprecated` tag, so keeping
+    // it here would double it, and a row that says nothing else would replace a
+    // perfectly good comment with the deprecation notice alone.
+    const desc = cells[cells.length - 1]
+      .replace(/^\*\*Deprecated\.?\*\*[^.]*\.\s*/i, '')
+      .trim();
+    const ti = headers.findIndex(h => /^type$/i.test(h));
+    const ty = ti >= 0 ? (cells[ti] ?? '').replace(/\\\|/g, '|').trim() : '';
+    if (name && ty && ty !== '—' && !types.has(name)) types.set(name, ty);
+    const di = headers.indexOf('Default');
+    const def = di >= 0 ? (cells[di] ?? '').replace(/`/g, '').trim() : '';
+    if (name && def && def !== '—' && !defaults.has(name)) {
+      defaults.set(name, def);
+    }
     if (!name || name === '...' || !desc || desc === '—') continue;
     if (!out.has(name)) out.set(name, desc.replace(/\\\|/g, '|'));
   }
+  out.defaults = defaults;
+  out.types = types;
   return out;
 }
 
@@ -121,8 +181,12 @@ function parsePropertyTags(comment) {
     // `line` never contains a newline (body is split above), so `[^}]` is both
     // equivalent to a lazy `[\s\S]+?` here and free of the backtracking that
     // lazy-quantifier-before-a-literal produces.
+    // `[name='h1']` — the optional-with-default JSDoc form. The `=…` part is
+    // dropped: the destructured default is the source of truth and is read
+    // straight off the component, so keeping it here would be a second copy
+    // free to drift. Without this branch `='h1']` leaks into the description.
     const m = line.match(
-      /^\s*@property\s+(?:\{([^}]+)\}\s*)?\[?([\w'"$-]+)\]?\s*(?:-\s*)?(.*)$/
+      /^\s*@property\s+(?:\{([^}]+)\}\s*)?\[?([\w'"$-]+)(?:=[^\]]*)?\]?\s*(?:-\s*)?(.*)$/
     );
     if (m) {
       if (current) tags.push(current);
@@ -149,23 +213,130 @@ function parsePropertyTags(comment) {
   return { tags, summary: summary.join('\n').trim() };
 }
 
+/**
+ * Combine the two hand-written sources for a prop's description, page first.
+ *
+ * Containment decides: where one already says everything the other does, keep
+ * the longer. Otherwise keep BOTH. Picking the longer of two genuinely
+ * different sentences drops whatever the shorter one alone knew — breadcrumb.md
+ * says "`<li>`s with `<a>` or `<span>`" where the source says "e.g., \"a\" or
+ * \"span\" html elements", and neither is a superset of the other.
+ */
+/**
+ * Drop a trailing parenthetical that only restates the type — "(Bulma color,
+ * 'inherit', or 'current')" says exactly what the Type column already shows,
+ * and carrying it into the merge produced 40 rows reading "Text color helper.
+ * Text color (Bulma color, 'inherit', or 'current')." Nothing is lost: the same
+ * words remain in the row, in the cell that is meant to hold them.
+ */
+function stripTypeRestatement(text) {
+  return text
+    .replace(
+      /\s*\((?:Bulma\s+(?:color|size),?\s*)?(?:'[^']*'|,|\s|or)+\)(?=[.,]?$)/i,
+      ''
+    )
+    .trim();
+}
+
+function mergeDescriptions(fromDocs, other) {
+  if (!fromDocs) return other;
+  if (!other || fromDocs === other) return fromDocs;
+  if (stripTypeRestatement(other) !== other) {
+    other = stripTypeRestatement(other).replace(/\.?$/, '.');
+  }
+  if (fromDocs === other) return fromDocs;
+  const norm = t => t.toLowerCase().replace(/[.\s]+$/, '');
+  if (norm(other).includes(norm(fromDocs))) return other;
+  if (norm(fromDocs).includes(norm(other))) return fromDocs;
+  // Two phrasings of the same sentence — "Content to render inside the block"
+  // and "Content to be rendered inside the block" — carry the same words once
+  // stemmed, and concatenating them reads as a stutter. Keep the longer.
+  const a = contentWords(fromDocs);
+  const b = contentWords(other);
+  const aInB = subset(a, b);
+  const bInA = subset(b, a);
+  // Same words either way — the difference is only how they are written, and
+  // select.md's "`<option>` elements." says it better than "Option elements."
+  if (aInB && bInA) return fromDocs.length >= other.length ? fromDocs : other;
+  if (aInB) return other;
+  if (bInA) return fromDocs;
+  return `${fromDocs} ${other}`;
+}
+
+const MERGE_STOPWORDS = new Set(
+  (
+    'a an and are as at be by for from in into is it its of on or that the to ' +
+    'use used uses using with when which will you your this these'
+  ).split(' ')
+);
+
+function contentWords(text) {
+  return new Set(
+    text
+      .toLowerCase()
+      .replace(/`/g, ' ')
+      .split(/[^a-z0-9]+/)
+      // No length filter: a description whose only addition is `<li>` or `<a>`
+      // still adds something, and dropping short tokens made it look identical.
+      .filter(w => w && !MERGE_STOPWORDS.has(w))
+      .map(stem)
+  );
+}
+
+const subset = (a, b) => [...a].every(w => b.has(w));
+
+/** Crude suffix strip, enough to see "disables" and "disabled" as one word. */
+const stem = w => w.replace(/(ings|ing|edly|ed|es|s)$/, '');
+
 function memberName(member) {
   return member.name?.getText().replace(/^['"]|['"]$/g, '') ?? null;
 }
 
-function hasOwnJsDoc(member) {
-  return ts
+function memberJsDoc(member) {
+  const docs = ts
     .getJSDocCommentsAndTags(member)
-    .some(d => ts.isJSDoc(d) && d.comment);
+    .filter(d => ts.isJSDoc(d) && d.comment);
+  return docs[docs.length - 1] ?? null;
 }
 
-/** All interfaces in the file, plus a name->decl index for base lookups. */
+function hasOwnJsDoc(member) {
+  return memberJsDoc(member) != null;
+}
+
+/**
+ * All prop-carrying declarations in the file, indexed by name for base lookups.
+ * Type aliases are included: `ControlProps` and `SliderProps` are unions, and
+ * skipping them left `as` and `ref` with no description anywhere.
+ */
 function interfaceIndex(sf) {
   const map = new Map();
   for (const stmt of sf.statements) {
-    if (ts.isInterfaceDeclaration(stmt)) map.set(stmt.name.text, stmt);
+    if (ts.isInterfaceDeclaration(stmt) || ts.isTypeAliasDeclaration(stmt)) {
+      map.set(stmt.name.text, stmt);
+    }
   }
   return map;
+}
+
+/**
+ * The members a declaration can carry TSDoc on. An interface's are its own; a
+ * type alias's live in the inline `{ as?: 'div' }` literals of its union and
+ * intersection branches, which is where `ControlProps` declares `as`/`ref`.
+ */
+function documentableMembers(decl) {
+  if (ts.isInterfaceDeclaration(decl)) return [...decl.members];
+  const out = [];
+  const walk = node => {
+    if (!node) return;
+    if (ts.isParenthesizedTypeNode(node)) return walk(node.type);
+    if (ts.isUnionTypeNode(node) || ts.isIntersectionTypeNode(node)) {
+      node.types.forEach(walk);
+      return;
+    }
+    if (ts.isTypeLiteralNode(node)) out.push(...node.members);
+  };
+  walk(decl.type);
+  return out;
 }
 
 function lineIndent(src, pos) {
@@ -185,11 +356,47 @@ async function processFile(file, docsByTitle, opts) {
     ts.ScriptKind.TSX
   );
   const interfaces = interfaceIndex(sf);
+
+  // What the generator will emit for every documented component declared in
+  // this file. Keyed per FILE, not per interface: `ControlProps` is a union
+  // over `ControlBaseProps`, so `ControlBase` has no page of its own but its
+  // props all surface on control.md.
+  const fileCovered = new Set();
+  // Defaults are file-level for the same reason: `completedIcon` is declared on
+  // `StepProps`, which has no page — the `'✓'` that documents it is stated on
+  // steps.md, under the component the sub-interface belongs to.
+  const fileStated = new Map(); // prop -> default the docs table states
+  const fileDerived = new Map(); // prop -> default the AST could see
+  const fileDocs = new Map(); // prop -> description, any page this file feeds
+  for (const declName of interfaces.keys()) {
+    // `TimeInputBaseProps` has no page of its own — `TimeInput` is the thin
+    // wrapper the docs describe, and every prop it documents is declared here.
+    const candidates = [
+      declName.replace(/Props$/, ''),
+      declName.replace(/BaseProps$/, ''),
+    ];
+    for (const comp of new Set(candidates)) {
+      if (!docsByTitle.has(comp)) continue;
+      for (const prop of coveredProps(comp)) fileCovered.add(prop);
+      for (const [k, v] of docsByTitle.get(comp).defaults ?? []) {
+        if (!fileStated.has(k)) fileStated.set(k, v);
+      }
+      for (const [k, v] of docsByTitle.get(comp)) {
+        if (!fileDocs.has(k)) fileDocs.set(k, v);
+      }
+      for (const [k, v] of derivedDefaults.get(comp) ?? []) {
+        if (v && !fileDerived.has(k)) fileDerived.set(k, v);
+      }
+    }
+  }
+
   const edits = []; // { start, end, text }
   const report = {
     file: relative(REPO, file),
     inserted: 0,
     orphans: [],
+    borrowed: [],
+    rewritten: [],
     undocumented: [],
   };
 
@@ -198,7 +405,6 @@ async function processFile(file, docsByTitle, opts) {
     const jsdoc = jsdocs[jsdocs.length - 1];
     const raw = jsdoc ? original.slice(jsdoc.pos, jsdoc.end).trim() : '';
     const { tags } = raw ? parsePropertyTags(raw) : { tags: [] };
-    if (!tags.length && !jsdoc) continue;
 
     // Descriptions available for this interface's props, docs page first.
     //
@@ -209,37 +415,132 @@ async function processFile(file, docsByTitle, opts) {
     // sub-component has no page, its `@property` lines are the better source.
     const component = name.replace(/Props$/, '');
     const docs = docsByTitle.get(component) ?? new Map();
+
+    // Nothing to migrate and no page to migrate FROM. An interface with a docs
+    // page still has work to do even with no @property block: the page may
+    // document inherited props that need parking.
+    if (!tags.length && !jsdoc && !docs.size) continue;
     const byName = new Map(tags.map(t => [t.name, t.desc]));
 
-    const ownNames = new Set(decl.members.map(memberName).filter(Boolean));
+    // A default the docs table states but the destructuring does not — a
+    // computed default (`Field.tsx`'s `labelSize ?? …`) or one applied inside
+    // the component body. The AST cannot see those, so carry them across as
+    // `@defaultValue`, which the extractor prefers over what it derives.
+    const defaultValueTag = propName => {
+      const stated = docs.defaults?.get(propName) ?? fileStated.get(propName);
+      if (!stated || fileDerived.get(propName)) return null;
+      // Prose in a Default cell ("auto", "(see below)") is still a fact the
+      // table stated; keep it verbatim rather than guessing an expression.
+      return stated;
+    };
+
+    const members = documentableMembers(decl);
+    const ownNames = new Set(members.map(memberName).filter(Boolean));
+
+    // A module-private or sub-component interface (`MenuItemProps`,
+    // `SliderBaseProps`) has no page of its own, but the page of the component
+    // it feeds documents its props. Borrow that text ONLY for props this file
+    // declares in exactly one place — `children` appears on both `MenuProps`
+    // and `MenuItemProps`, and Hero.Head taking Hero's "often includes
+    // Hero.Head, Hero.Body, Hero.Foot" is the nonsense this guards against.
+    const borrow = mName => {
+      if (docs.size) return undefined;
+      for (const [otherName, other] of interfaces) {
+        if (!documentableMembers(other).some(m => memberName(m) === mName)) {
+          continue;
+        }
+        // Declared on an interface that HAS a page — that page's row belongs to
+        // it, not to us. `children` on `MenuProps` is Menu's; `MenuItemProps`
+        // must not take it.
+        if (docsByTitle.has(otherName.replace(/Props$/, ''))) return undefined;
+      }
+      return fileDocs.get(mName);
+    };
 
     // Members that lack a comment get one.
-    for (const member of decl.members) {
+    for (const member of members) {
       const mName = memberName(member);
       if (!mName) continue;
-      if (hasOwnJsDoc(member)) continue;
-      const fromDocs = docs.get(mName);
+      let fromDocs = docs.get(mName);
+      if (fromDocs === undefined) {
+        fromDocs = borrow(mName);
+        if (fromDocs !== undefined) {
+          report.borrowed.push(`${name}.${mName}: "${fromDocs}"`);
+        }
+      }
       const fromTag = byName.get(mName);
-      const desc =
-        fromDocs && fromTag
-          ? fromDocs.length >= fromTag.length
-            ? fromDocs
-            : fromTag
-          : (fromDocs ?? fromTag);
+      const desc = mergeDescriptions(fromDocs, fromTag);
+
+      const existing = memberJsDoc(member);
+      if (existing) {
+        // MERGE, don't blindly keep. 21 modules already carry inline TSDoc, and
+        // where it is terser than the docs page the page wins — `bgColor` reads
+        // "Background color for all columns" there and "Background color" here,
+        // and keeping the comment would quietly shorten the published table.
+        // Anything the comment says that the page does not is appended rather
+        // than dropped.
+        const current = (ts.getTextOfJSDocComment(existing.comment) ?? '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const merged = mergeDescriptions(fromDocs, current) || current;
+        // A stated default is carried over even when the description is
+        // unchanged — `completedIcon`'s comment is already the better text, but
+        // the table's `'✓'` lives nowhere in the source.
+        const tagged = ts
+          .getJSDocTags(member)
+          .some(t => t.tagName.text === 'defaultValue')
+          ? null
+          : defaultValueTag(mName);
+        if (merged === current && !tagged) continue;
+        const raw = original.slice(existing.pos, existing.end);
+        const lead = raw.match(/^\s*/)[0];
+        const indent = lineIndent(original, member.getStart(sf));
+        edits.push({
+          start: existing.pos,
+          end: existing.end,
+          text: tagged
+            ? `${lead}/**\n${indent} * ${merged}\n${indent} * @defaultValue ${tagged}\n${indent} */`
+            : `${lead}/** ${merged} */`,
+        });
+        if (merged !== current) {
+          report.rewritten.push(
+            `${name}.${mName}: "${current}" -> "${merged}"`
+          );
+        }
+        continue;
+      }
+
       if (!desc) {
         report.undocumented.push(`${name}.${mName}`);
         continue;
       }
       const start = member.getStart(sf);
       const indent = lineIndent(original, start);
-      edits.push({ start, end: start, text: `/** ${desc} */\n${indent}` });
+      const tag = defaultValueTag(mName);
+      edits.push({
+        start,
+        end: start,
+        text: tag
+          ? `/**\n${indent} * ${desc}\n${indent} * @defaultValue ${tag}\n${indent} */\n${indent}`
+          : `/** ${desc} */\n${indent}`,
+      });
       report.inserted++;
     }
 
     // Orphans: @property lines with no matching own member. Before parking them
     // as @extraProp, check whether a locally-declared base interface has the
     // member — SliderSingleProps documents 16 props that live on SliderBaseProps.
-    const orphans = tags.filter(t => !ownNames.has(t.name));
+    // Props the docs table documents that have no `@property` line either.
+    // These are the last loss vector: without them, everything the old table
+    // said about `skeleton`, `value`, `active`, … would simply disappear.
+    // Parking them keeps the page's information intact and puts the text in
+    // the source, where the rest of it now lives.
+    const docsOnly = [...docs.keys()]
+      .filter(n => !ownNames.has(n) && !tags.some(t => t.name === n))
+      .filter(n => /^[\w'"$-]+$/.test(n)) // skip prose-y cells like "min / max"
+      .map(n => ({ type: null, name: n, desc: docs.get(n) }));
+
+    const orphans = [...tags.filter(t => !ownNames.has(t.name)), ...docsOnly];
     const parked = [];
     for (const tag of orphans) {
       let placed = false;
@@ -263,11 +564,39 @@ async function processFile(file, docsByTitle, opts) {
           }
         }
       }
-      if (!placed) {
+      // Park only what the generator would NOT emit anyway. A tag whose member
+      // lives on a base in another module (LinkButtonProps -> ButtonProps) is
+      // already covered by heritage expansion, and that module's own codemod
+      // pass gives the member its TSDoc — parking here would duplicate the row.
+      if (!placed && !fileCovered.has(tag.name)) {
         parked.push(tag);
         report.orphans.push(`${name}.${tag.name}`);
       }
     }
+
+    // `[name=default]` when the table stated one — an @extraProp row has no
+    // member to read a destructuring default from, so this is its only source.
+    const extraPropLine = tag => {
+      // The table's Type cell beats the `@property {…}` annotation: link.md
+      // documents `target` as the four literals where the comment only says
+      // `string`. An @extraProp has no member for the compiler to check, so
+      // the richer of the two hand-written sources is the best available.
+      const stated = (docs.types?.get(tag.name) ?? '').replace(/`/g, '').trim();
+      const chosen =
+        stated && stated.length > (tag.type ?? '').length ? stated : tag.type;
+      const type = chosen ? `{${chosen}} ` : '';
+      const def = docs.defaults?.get(tag.name) ?? fileStated.get(tag.name);
+      const name = def ? `${tag.name}=${def}` : tag.name;
+      // Same merge as a real member: an orphan `@property` line and the page
+      // are two hand-written sources, and switch.md's "Controlled checked
+      // state." is not in the comment's "Whether the switch is checked."
+      const desc =
+        mergeDescriptions(
+          docs.get(tag.name) ?? fileDocs.get(tag.name),
+          tag.desc
+        ) ?? tag.desc;
+      return ` * @extraProp ${type}[${name}] - ${desc}`;
+    };
 
     // Rewrite the interface JSDoc: keep the summary, drop @property, park orphans.
     if (jsdoc && tags.length) {
@@ -282,14 +611,55 @@ async function processFile(file, docsByTitle, opts) {
       ).split('\n')) {
         lines.push(` * ${l}`.trimEnd());
       }
-      for (const tag of parked) {
-        const type = tag.type ? `{${tag.type}} ` : '';
-        lines.push(` * @extraProp ${type}[${tag.name}] - ${tag.desc}`);
-      }
+      for (const tag of parked) lines.push(extraPropLine(tag));
       lines.push(' */');
       const text = lines.map((l, i) => (i === 0 ? l : indent + l)).join('\n');
       const startsAt = jsdoc.end - raw.length;
       edits.push({ start: startsAt, end: jsdoc.end, text });
+    } else if (parked.length && !jsdoc) {
+      const start = decl.getStart(sf);
+      const indent = lineIndent(original, start);
+      const lines = [
+        '/**',
+        ` * Props for the ${component} component.`,
+        ...parked.map(extraPropLine),
+        ' */',
+      ];
+      edits.push({
+        start,
+        end: start,
+        text:
+          lines.map((l, i) => (i === 0 ? l : indent + l)).join('\n') +
+          `\n${indent}`,
+      });
+    } else if (parked.length) {
+      // Props the docs page documents that this interface inherits rather than
+      // declares — `skeleton` and `m`/`p` reach the component through
+      // BulmaClassesProps, so they have no member to hang TSDoc on and no
+      // @property line to rewrite. Re-emit the comment line for line and add
+      // the parked tags at the end: with no @property block there is no tag
+      // boundary for the summary parse to stop at, so anything it did not
+      // recognise must still be carried through verbatim. Handles the
+      // single-line `/** … */` form, which cannot simply be appended to.
+      const kept = raw
+        .replace(/^\/\*\*/, '')
+        .replace(/\*\/$/, '')
+        .split(/\r?\n/)
+        .map(l => l.replace(/^\s*\*\s?/, '').trimEnd());
+      while (kept.length && !kept[0].trim()) kept.shift();
+      while (kept.length && !kept[kept.length - 1].trim()) kept.pop();
+      const indent = lineIndent(
+        original,
+        jsdoc.pos + (original.slice(jsdoc.pos).match(/^\s*/)?.[0].length ?? 0)
+      );
+      const lines = [
+        '/**',
+        ...kept.map(l => ` * ${l}`.trimEnd()),
+        ...parked.map(extraPropLine),
+        ' */',
+      ];
+      const text = lines.map((l, i) => (i === 0 ? l : indent + l)).join('\n');
+      edits.push({ start: jsdoc.end - raw.length, end: jsdoc.end, text });
     }
   }
 
@@ -338,9 +708,18 @@ async function main() {
     process.exit(2);
   }
 
+  // `--base=origin/main` reads the PRE-migration pages. Required to re-run over
+  // an already-migrated category: those pages now carry the GENERATED table, so
+  // reading them from disk would feed the generator's own output back in.
+  const base = args.find(a => a.startsWith('--base='))?.slice('--base='.length);
   const docsByTitle = new Map();
   for (const f of await mdFiles(API_DIR)) {
-    const src = await readFile(f, 'utf8');
+    const src = base
+      ? execFileSync('git', ['show', `${base}:${relative(REPO, f)}`], {
+          cwd: REPO,
+          encoding: 'utf8',
+        })
+      : await readFile(f, 'utf8');
     const title = frontmatterTitle(src);
     if (title) docsByTitle.set(title, parseDocsDescriptions(src));
   }
@@ -353,11 +732,15 @@ async function main() {
 
   let inserted = 0;
   const orphans = [];
+  const borrowed = [];
+  const rewritten = [];
   const undocumented = [];
   for (const file of files) {
     const r = await processFile(file, docsByTitle, { dryRun });
     inserted += r.inserted;
     orphans.push(...r.orphans);
+    borrowed.push(...r.borrowed);
+    rewritten.push(...r.rewritten);
     undocumented.push(...r.undocumented);
     if (r.inserted) {
       process.stdout.write(
@@ -369,6 +752,22 @@ async function main() {
   process.stdout.write(
     `\n${inserted} member TSDoc comment(s) ${dryRun ? 'would be ' : ''}written.\n`
   );
+  if (borrowed.length) {
+    process.stdout.write(
+      `\n${borrowed.length} description(s) borrowed from the page of the ` +
+        `component this interface feeds (check each names the right sub):\n  ` +
+        borrowed.join('\n  ') +
+        '\n'
+    );
+  }
+  if (rewritten.length) {
+    process.stdout.write(
+      `\n${rewritten.length} existing member comment(s) replaced by the richer ` +
+        `docs description (read these — they ship in the .d.ts):\n  ` +
+        rewritten.join('\n  ') +
+        '\n'
+    );
+  }
   if (orphans.length) {
     process.stdout.write(
       `\n${orphans.length} @property line(s) had no matching member and were parked as ` +
