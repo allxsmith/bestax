@@ -42,8 +42,12 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      # The SBOM must describe the same tree CI builds and publishes from,
-      # so resolve it the same way the release does.
+      # NOTE ON SCOPE: this produces a *repository* SBOM — the full monorepo
+      # dev toolchain (storybook, playwright, docusaurus, jest, turbo…) as
+      # resolved by the lockfile CI builds from. It is deliberately NOT the
+      # published-package dependency closure, which for bestax-bulma is just
+      # Bulma. Useful for auditing what builds our releases; do not read it as
+      # "what a consumer installs". Per-package SBOMs are tracked separately.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -108,3 +112,22 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/verify"
           npm audit signatures
+
+      # `npm audit signatures` only fails on signatures/attestations that are
+      # *invalid*; it stays green when provenance is simply absent. On its own
+      # it would therefore never catch a release that silently lost
+      # `publishConfig.provenance` or had OIDC misconfigured. Assert presence
+      # explicitly so a dropped attestation is a hard failure.
+      - name: Assert our packages actually carry provenance
+        run: |
+          fail=0
+          for pkg in @allxsmith/bestax-bulma create-bestax; do
+            predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType 2>/dev/null || true)
+            if [ -z "$predicate" ]; then
+              echo "::error::$pkg has NO provenance attestation on the registry"
+              fail=1
+            else
+              echo "ok: $pkg -> $predicate"
+            fi
+          done
+          exit "$fail"
