@@ -12,8 +12,10 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
 back via each input's own `color`, `message`, and `messageColor` props on the convenience inputs
-(`Input`, `Select`, `TextArea`, …). `Field` accepts `color` too, but has **no** `message` /
-`messageColor` — put the validation state on the input. See **Validation without a library** below.
+(`Input`, `Select`, `TextArea`, …). Always put validation state on the **input**: `Field` has no
+`message`/`messageColor`, and although `FieldProps` types a `color`, `Field` discards it — it
+renders no class, so setting it looks right and does nothing. (`FieldLabel`/`FieldBody` do honor
+`color`, as the `has-text-*` helper.) See **Validation without a library** below.
 
 ## Use when
 
