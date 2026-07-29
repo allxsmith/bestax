@@ -1,0 +1,110 @@
+name: Supply Chain Evidence
+
+# Produces the artifacts enterprise consumers ask for and that the rest of our
+# posture only *claims*: a machine-readable SBOM per release, and an
+# independent check that what we actually published to npm carries valid
+# registry signatures and provenance attestations.
+#
+# Deliberately NOT wired into ci.yml's publish job: nothing here may be able to
+# fail a release. It runs after the release exists, on a schedule, or on demand.
+on:
+  release:
+    types: [published]
+  schedule:
+    # Mondays 08:17 UTC, offset from the Scorecard run.
+    - cron: '17 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    name: SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      # Only to attach the SBOM files to an existing release; nothing here
+      # creates or edits code.
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      # The SBOM must describe the same tree CI builds and publishes from,
+      # so resolve it the same way the release does.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: bestax-sbom.spdx.json
+          output-file: bestax-sbom.spdx.json
+
+      # Both formats on purpose: SPDX is the ISO standard procurement asks for,
+      # CycloneDX is what most scanning tools ingest natively.
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: cyclonedx-json
+          artifact-name: bestax-sbom.cdx.json
+          output-file: bestax-sbom.cdx.json
+
+      # Workflow artifacts expire; a release asset is the durable, linkable
+      # copy an auditor can actually cite.
+      - name: Attach SBOMs to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            bestax-sbom.spdx.json \
+            bestax-sbom.cdx.json \
+            --clobber --repo "$GITHUB_REPOSITORY"
+
+  verify-provenance:
+    name: Verify published provenance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '24'
+
+      # SECURITY.md tells consumers to run `npm audit signatures`; this closes
+      # the loop by running it ourselves against the real published tarballs
+      # rather than the local workspace. npm (not pnpm) on purpose: the
+      # signature audit needs an npm-resolved tree and lockfile.
+      # bestax-migrate is deliberately absent: its published manifest still
+      # carries an unresolved `workspace:^` specifier, so `npm install` of it
+      # fails outright and would mask real signature failures here. Add it back
+      # once that is fixed.
+      - name: Install published packages into a scratch tree
+        run: |
+          mkdir -p "$RUNNER_TEMP/verify"
+          cd "$RUNNER_TEMP/verify"
+          npm init -y > /dev/null
+          npm install --ignore-scripts \
+            @allxsmith/bestax-bulma create-bestax
+
+      - name: Audit registry signatures and provenance attestations
+        run: |
+          cd "$RUNNER_TEMP/verify"
+          npm audit signatures
