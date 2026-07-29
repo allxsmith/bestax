@@ -158,15 +158,31 @@ cases. Before writing \`style\`, translate each declaration with this table:
   take a \`gap\` prop, so prefer that there).
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
   \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.
+- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
+  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.
+  The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
+  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
+  component renders those elements.
+- Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
+  attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
+  \`Link\`/\`Span\` inside instead. \`Tabs.Tab\` and \`Tabs.Content.Item\` each require \`index={i}\`,
+  and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
 - \`Navbar.Burger\`/\`Navbar.Menu\` are controlled — wire \`active\` via state on both, and pair
   \`Navbar fixed="top"\` with the \`has-navbar-fixed-top\` class on \`<html>\` (never an inline
   padding offset).
+- Reusable components you write get the library's spine so helper props work on them too:
+  extend \`BulmaClassesProps\`, run your props through \`useBulmaClasses\`, merge the
+  \`bulmaHelperClasses\` it returns into \`className\`, and spread **its** \`rest\` (not the raw
+  props) — the bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
 - \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
   boilerplate — once this app has a real identity, set the title (and any meta tags) to match
   it and rewrite the README to describe *this* app, not the template.
+- Before adding a dependency, match the package manager to the app's lockfile
+  (\`pnpm-lock.yaml\` → pnpm, \`package-lock.json\` → npm, \`yarn.lock\` → yarn) — a mismatched
+  install fails or forks the lockfile.
 
 ## AI skills
 
@@ -182,6 +198,7 @@ automatically when the task matches:
 - **bestax-migrate** — migrate code off react-bulma-components (v4): run the codemod, resolve its TODOs.
 
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
+Read skill \`references/\` files with absolute paths — the shell's cwd is not stable between commands.
 
 \`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering

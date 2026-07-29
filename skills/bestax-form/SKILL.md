@@ -11,8 +11,11 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back into the components via the `color`, `message`, and `messageColor` props. See
-**Validation without a library** below.
+back via each input's own `color`, `message`, and `messageColor` props on the convenience inputs
+(`Input`, `Select`, `TextArea`, …). Always put validation state on the **input**: `Field` has no
+`message`/`messageColor`, and although `FieldProps` types a `color`, `Field` discards it — it
+renders no class, so setting it looks right and does nothing. (`FieldLabel`/`FieldBody` do honor
+`color`, as the `has-text-*` helper.) See **Validation without a library** below.
 
 ## Use when
 
@@ -113,6 +116,13 @@ Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
 
+⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
+`isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
+
+⚠️ The `label` prop renders the `<label>` but does **not** wire `htmlFor`/`id` — assistive tech
+gets no association. Pass `id` on the input plus `labelProps={{ htmlFor: sameId }}` (every
+convenience input and `Field` accept `labelProps`).
+
 ## Convenience vs composed
 
 - **Convenience** (`<Input label message … />`) — for typical, single-control fields. Fewer
@@ -195,15 +205,19 @@ Before calling a form done, **render it and look at it**: run `pnpm storybook` (
 or the docs dev server, open the form, and check field alignment/spacing, the help-text/error
 states, and the validation flow (submit empty → fields turn `danger` with messages; fix → errors
 clear). If claude-in-chrome or Playwright is available, drive the browser and screenshot the
-valid and error states; otherwise eyeball it yourself.
+valid and error states; otherwise eyeball it yourself. No browser at all (headless CI)? Fall
+back to a production build plus a Node `renderToString` smoke render, grep the emitted HTML
+for the expected classes/states, and say plainly that the visual pass is still owed.
 
 ## Checklist
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
-- [ ] Every input has an associated label (`label` prop, or a `<label htmlFor>` when composing).
+- [ ] Every label is programmatically associated: `label` prop + `id` on the input +
+      `labelProps={{ htmlFor }}`, or a `<label htmlFor>` when composing.
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
 - [ ] **Rendered and visually inspected in a browser** — layout and the error/validation states
-      look right, not just green tests.
+      look right, not just green tests. No browser available? The `renderToString` fallback above
+      counts only if you grepped the emitted classes/states **and** said the visual pass is owed.

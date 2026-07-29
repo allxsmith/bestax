@@ -49,13 +49,23 @@ label — use that instead"_ or _"No `ProfileCard` exists; I'll build one compos
 ## Composition first
 
 Build from existing components before writing any CSS: `Box`, `Card`, `Title`, `SubTitle`,
-`Icon`, `Block`, `Content`, `Tag`, plus the Bulma helper props every component accepts (spacing,
-color, typography, flexbox). Most "custom components" are a composition function — zero new
-styles. See `examples/stat-card.tsx` for a complete worked example.
+`Icon`, `Block`, `Content`, `Tag`, plus the shared Bulma helper props (spacing, color,
+typography, flexbox). Compound sub-parts are the exception — `Card.Content`, `Modal.Card`,
+`Tabs.Tab`, `Message.Body` take **no Bulma helper props**, just `className` + HTML attributes
+plus their own few (`Tabs.Tab` requires `index={i}` and has built-in `disabled` and
+`icon`/`iconLibrary`/`iconVariant`/`iconSize`/`iconFeatures` — don't nest an `<Icon>` there) —
+so put helper props on the parent or on an element inside them, never invent them there. Most "custom components" are a composition function — zero new styles.
+See `examples/stat-card.tsx` for a complete worked example.
 
 ## The component spine
 
-Same shape the library itself uses, with all imports from the package. File at
+Same shape the library itself uses, with all imports from the package. Every reusable
+component gets it — including pure compositions with zero CSS (a heading block, a labeled
+wrapper): extend `BulmaClassesProps`, run your props through `useBulmaClasses`, merge its
+`bulmaHelperClasses` into `className`, and spread the `rest` **it** returns — spreading the raw
+props instead leaks helper props onto the DOM and emits none of their classes. The
+`usePrefixedClassNames` root class is needed only when component-scoped CSS (or a variant
+class) targets it — a zero-CSS composition may omit that call. File at
 `src/components/MyComponent.tsx`:
 
 ```tsx
@@ -163,7 +173,9 @@ bestax-bulma. Then the full `register-vars`/`getVar` pattern from
 Types don't see layout. Run `npm run dev`, render the component, and actually look at it:
 vertical centering of inline text (use `display="flex" alignItems="center"`, not line-height
 hacks), balanced padding, nothing clipping, every color/size variant, and **dark mode**
-legibility. Fix what you see, then re-check.
+legibility. Fix what you see, then re-check. No browser available (headless)? Fall back to
+`npm run build` plus a Node `renderToString` smoke render, grep the emitted HTML for the
+expected classes, and flag the visual pass as not done.
 
 ## Tests and stories in an app
 
@@ -176,7 +188,7 @@ render, prop→class mapping, helper-prop passthrough (`m="3"` → `m-3`), and t
 
 - [ ] Inventory checked (catalog + bestax.io/docs/api) and the decision surfaced to the user.
 - [ ] All imports from `@allxsmith/bestax-bulma` (no deep/internal paths).
-- [ ] Composition first — existing components + helper props before any CSS.
+- [ ] Composition first — existing components + helper props before any CSS; every reusable component gets the spine.
 - [ ] No inline `style={{}}` anywhere — translate via the rung-1 mapping table; values with
       no helper equivalent get a named class (rung 2).
 - [ ] Lowest sufficient ladder rung (helper props → scoped CSS vars → Sass).

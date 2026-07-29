@@ -3,7 +3,9 @@
 //
 // A fixed-top navbar needs the `has-navbar-fixed-top` class on <html> so the page
 // is padded below it — Bulma requires this and the library does NOT add it for
-// you. The columns sit side by side on tablet and up, and stack (menu above
+// you. In a real app set it statically in index.html; the useEffect below is the
+// fallback for a conditionally-mounted navbar (and keeps this file self-contained).
+// The columns sit side by side on tablet and up, and stack (menu above
 // content) on mobile.
 //
 // `ConfigProvider` wraps the shell once at the root to set the app-wide icon

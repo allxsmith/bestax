@@ -45,16 +45,57 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `height: 100%` on the card doesn't help — the column's height is auto).
 - Rely on Bulma's responsive defaults: `Columns` sit side by side on tablet and up and stack on
   mobile. Add responsive `size*` props only to tune the breakpoints.
+- Interactive extras don't share a state API — never transfer one by analogy:
+  `Collapse trigger={node} open/defaultOpen onOpen/onClose`, `Tabs value={i}/onChange`
+  (each `Tabs.Tab`/`Tabs.Content.Item` requires `index={i}`, and `Tabs.Content` must be a
+  **child of `<Tabs>`** — the active-tab context lives on it; a sibling panel never
+  switches), `Dropdown active/onActiveChange`,
+  `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
+  `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
+  put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+- Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
+  marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
+  bullets appear only inside `Content`.
 - `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to both:
   `active` on `Navbar.Menu` shows/hides the mobile menu, while `active` + `onClick` on
   `Navbar.Burger` make the burger toggle it and animate. Left unwired, clicking the burger
   does nothing (no error, silent failure). For a `fixed="top"` `Navbar`, add the
   `has-navbar-fixed-top` class to `<html>` so content is not hidden behind it — the library
   does not do this automatically, and an inline padding offset is not a substitute.
-- **Style with helper props, not inline `style`.** Before writing `style={{ … }}` anywhere,
-  translate each declaration with the mapping table below — the helper props cover the common
-  cases. Set the app-wide icon library once with `<ConfigProvider iconLibrary="…">` at the root
-  rather than `library` on every `<Icon>`.
+- **Style with helper props — no inline `style`, no raw Bulma `className`s.** Before writing
+  `style={{ … }}` anywhere, translate each declaration with the mapping table below — the helper
+  props cover the common cases. Bare markup has wrapper elements that take all
+  helper props: `<Span textSize="7" textColor="grey">`, `Paragraph`, `Strong` — never a raw
+  `<span className="is-size-7 has-text-grey">`. Table cells: `Th`/`Td` take `textAlign="right"`,
+  `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
+  wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
+  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
+- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app — comments count:
+  at most one short inline note, never a file-header comment block — every value derived
+  from `--bulma-*`.** A marketing page gets at most one hero wash + one alternating section
+  band, applied via `className` — no resets (Bulma ships one; body/list margins are already
+  zero) and no grid textures, masks, or multi-layer backdrops; the components carry the design:
+
+  ```css
+  .hero-wash {
+    background-image: radial-gradient(
+      60rem 30rem at 20% -10%,
+      hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2),
+      transparent 60%
+    );
+  }
+  .section-alt {
+    background: var(--bulma-scheme-main-bis); /* next band: -ter */
+  }
+  ```
+
+  A highlighted/"featured" `Card`/`Box` needs **no third rule**: wrap that one element in
+  `<Theme bulmaVars={{ '--bulma-shadow': '0 0 0 2px var(--bulma-primary)' }}>`. Override the
+  **upstream token**, not the component's own var: `.card`/`.box` re-declare
+  `--bulma-card-shadow`/`--bulma-box-shadow` on their own selector, so setting those from an
+  ancestor never wins (same for `--bulma-box-radius`; `--bulma-card-radius` is a literal with
+  no ancestor route at all). The subtree stays theme- and dark-mode-aware.
+
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
   `color="primary" isInverted` — never a thin `isOutlined` secondary: a light outline + light
@@ -117,5 +158,10 @@ inline `style`.
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
-      with no helper get a named class in the stylesheet, never `style={{}}`.
+      with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
+      `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
+- [ ] Decorative CSS ≤10 lines total incl. comments — no file-header comment (hero wash + section band), `--bulma-*`-derived;
+      no resets — Bulma ships one. A featured-card ring is a scoped `<Theme bulmaVars>`, not CSS.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
+- [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
+      it, run the `bestax-optimize` skill (measure first).
