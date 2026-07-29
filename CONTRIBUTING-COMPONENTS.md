@@ -19,7 +19,9 @@ for an existing component or synonym. If one fits, use or extend it.
 ## 1. The artifacts
 
 - [ ] `bulma-ui/src/<folder>/Foo.tsx` — helper props via `useBulmaClasses`, own classes via
-      `usePrefixedClassNames`, spread `rest`
+      `usePrefixedClassNames`, spread `rest`. Document with **inline TSDoc**: a one-sentence
+      summary on the component (it becomes the docs page's Overview sentence) and a
+      `/** … */` on every `FooProps` member (they become the Props table)
 - [ ] `bulma-ui/src/<folder>/__tests__/Foo.test.tsx` — 99% all metrics; must include a
       `ConfigProvider classPrefix` test (pattern: `Reveal.test.tsx`)
 - [ ] `bulma-ui/src/<folder>/Foo.stories.tsx` — import types from `@storybook/react-vite`;
@@ -27,8 +29,13 @@ for an existing component or synonym. If one fits, use or extend it.
 - [ ] _(extras only)_ `bulma-ui/src/scss/<folder>/_foo.scss` + `@use 'foo';` in that folder's
       `_index.scss` — see `bulma-ui/src/scss/CLAUDE.md`
 - [ ] `docs/docs/api/<folder>/foo.md` — mirror `docs/docs/api/components/avatar.md`;
-      frontmatter `title:` = the exact exported name (the catalog generator parses it)
-- [ ] Export in `bulma-ui/src/index.ts`, then `pnpm gen:catalog`
+      frontmatter `title:` = the exact exported name (the catalog generator parses it).
+      Write the **Usage / Accessibility / Related Components / Additional Resources**
+      sections by hand; Overview's first sentence, Import, Props and CSS & Sass Variables
+      are generated into `<!-- bestax:generated … -->` regions — don't hand-edit those
+- [ ] _(managed categories)_ add a `SCSS_SOURCES` entry in `scripts/lib/api-sources.mjs` —
+      `[]` if the component registers no CSS variables, so the omission is a decision
+- [ ] Export in `bulma-ui/src/index.ts`, then `pnpm gen`
 
 ## 2. Listing surfaces (the step everyone misses)
 
@@ -46,7 +53,7 @@ for an existing component or synonym. If one fits, use or extend it.
 
 ## 4. Gates
 
-- [ ] `pnpm check:conformance` and `pnpm gen:catalog:check`
+- [ ] `pnpm check:conformance`, `pnpm gen:catalog:check` and `pnpm gen:api-docs:check`
 - [ ] `pnpm all` (build, typecheck, test+coverage, bundle:stats, lint, format, storybook build)
 - [ ] Works on **React 18 and 19** — CI runs both majors; avoid single-major APIs
 - [ ] Visually inspect every variant in Storybook, light and dark mode

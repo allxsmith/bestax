@@ -13,6 +13,9 @@
  * Sub-checks (run one with `--only=<name>[,<name>]`):
  *   listings-sync        new components must appear on the docs listing surfaces
  *   docs-sections        API pages must have the house sections
+ *   docs-section-order   managed API pages keep the canonical section order and
+ *                        carry their generated-region markers
+ *   docs-generated       generated regions match the source (`pnpm gen`)
  *   scss-conformance     SCSS partials follow the register-vars pattern
  *   story-per-component  every exported component module has a .stories.tsx
  *   compound-family      withSubComponents families ship a CompoundUsage story
@@ -23,14 +26,24 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
- *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
- *                        the same thing in all three deliberate copies
- *                        (CLAUDE_MD template + both JSX-generating skills),
- *                        and names only props that really exist
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, basename } from 'node:path';
+import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
+// parser — it additionally exposes values and selector nesting, which the CSS
+// variable tables need. Key extraction is byte-for-byte the behaviour this file
+// used to implement inline (verified against all 26 partials).
+import { registerVarsKeys } from './lib/scss-vars.mjs';
+import { readRegions, sectionSpans } from './lib/api-page.mjs';
+import { renderPage } from './gen-api-docs.mjs';
+import {
+  ORDERED_CATEGORIES,
+  MANAGED_CATEGORIES,
+  GENERATED_EXEMPT,
+  SCSS_SOURCES,
+} from './lib/api-sources.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -162,29 +175,6 @@ function hasHeading(src, text) {
   return new RegExp(`^#{2,3}[ \\t]+${text}[ \\t]*$`, 'm').test(src);
 }
 
-// All keys registered via `@include cv.register-vars((...))` in a partial.
-// A paren-depth scan finds each call's closing paren (values like
-// `#{hsl(cv.getVar(...))}` nest parens, so a lazy regex to `))` stops short);
-// keys are always static quoted strings, so the map-key regex is enough.
-function registerVarsKeys(src) {
-  const keys = new Set();
-  const re = /cv\.register-vars\s*\(/g;
-  while (re.exec(src)) {
-    let depth = 1;
-    let i = re.lastIndex;
-    while (i < src.length && depth > 0) {
-      if (src[i] === '(') depth++;
-      else if (src[i] === ')') depth--;
-      i++;
-    }
-    const block = src.slice(re.lastIndex, i);
-    for (const m of block.matchAll(/['"]([a-z0-9-]+)['"][ \t]*:/g)) {
-      keys.add(m[1]);
-    }
-  }
-  return keys;
-}
-
 // ---------------------------------------------------------------------------
 // Checks. Each returns an array of violation strings (already actionable).
 // ---------------------------------------------------------------------------
@@ -285,6 +275,136 @@ async function checkDocsSections() {
             `docs/docs/api/components/avatar.md.`
         );
       }
+      // The CSS variable section is data-driven, never universal: Paragraph,
+      // Span and the Table sub-elements have no SCSS at all, and Container has
+      // SCSS but registers no CSS variables.
+      //
+      // It is also only required of a MANAGED page. `SCSS_SOURCES` is derived
+      // for every component whether or not its page is generated yet, so
+      // requiring the section outside a managed category would demand a table
+      // that nothing is there to write.
+      const title = frontmatterTitle(src);
+      if (
+        MANAGED_CATEGORIES.has(rel.split('/')[0]) &&
+        SCSS_SOURCES[title]?.length &&
+        !hasHeading(src, 'CSS & Sass Variables')
+      ) {
+        violations.push(
+          `docs/docs/api/${rel} is missing its "## CSS & Sass Variables" ` +
+            `section, but ${title} registers CSS variables (see SCSS_SOURCES ` +
+            `in scripts/lib/api-sources.mjs). Run \`pnpm gen\`.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+// The canonical top-level section order for a managed API page. Sections not
+// listed keep their place in the middle bucket, so pages with extras like
+// "Keyboard Navigation" or "Form Submission" are not forced to drop them.
+const SECTION_RANK = {
+  Overview: 0,
+  Import: 1,
+  Usage: 2,
+  Accessibility: 4,
+  'Related Components': 5,
+  'Additional Resources': 6,
+  Props: 7,
+  'CSS & Sass Variables': 8,
+};
+// Order applies to every reference page; generation only to pages that really
+// are a component props table. Keeping these separate is what lets helpers/
+// share the canonical section order without growing markers it cannot fill.
+function orderedPage(rel) {
+  return ORDERED_CATEGORIES.has(rel.split('/')[0]);
+}
+
+function managedPage(rel) {
+  const cat = rel.split('/')[0];
+  return (
+    MANAGED_CATEGORIES.has(cat) &&
+    !GENERATED_EXEMPT.has(cat) &&
+    !GENERATED_EXEMPT.has(rel)
+  );
+}
+
+// Section order + marker presence on generator-managed pages. Deleting a marker
+// pair is the documented per-region opt-out, so it must not be silent.
+async function checkDocsSectionOrder() {
+  const violations = [];
+  for (const file of await mdFiles(API_DIR)) {
+    const rel = relative(API_DIR, file).split('\\').join('/');
+    if (!orderedPage(rel)) continue;
+    const src = await readFile(file, 'utf8');
+    const title = frontmatterTitle(src);
+
+    // Only the CANONICAL sections are ordered relative to each other. Sections
+    // the house format does not name (`## API`, `## Supported Props`, `## Notes`)
+    // keep whatever position their author chose — constraining them would flag
+    // helpers pages, whose `## API` legitimately precedes `## Usage`.
+    const { sections } = sectionSpans(src);
+    const known = sections.filter(s => SECTION_RANK[s.heading] !== undefined);
+    for (let i = 1; i < known.length; i++) {
+      if (SECTION_RANK[known[i].heading] < SECTION_RANK[known[i - 1].heading]) {
+        violations.push(
+          `docs/docs/api/${rel} has "## ${known[i].heading}" after ` +
+            `"## ${known[i - 1].heading}". API pages run Overview, Import, ` +
+            `Usage, …, Accessibility, Related Components, Additional ` +
+            `Resources, Props, CSS & Sass Variables.`
+        );
+        break;
+      }
+    }
+
+    if (!managedPage(rel)) continue; // ordered but not generated
+    let regions;
+    try {
+      regions = readRegions(src, `docs/docs/api/${rel}`);
+    } catch (err) {
+      violations.push(err.message);
+      continue;
+    }
+    const expected = ['overview', 'import', 'props'];
+    if (SCSS_SOURCES[title]?.length) expected.push('cssvars');
+    for (const id of expected) {
+      if (!regions.has(id)) {
+        violations.push(
+          `docs/docs/api/${rel} has no "${id}" generated region. Add the ` +
+            `<!-- bestax:generated ${id} --> / <!-- /bestax:generated ${id} --> ` +
+            `marker pair, or move the page out of MANAGED_CATEGORIES if it is ` +
+            `a deliberate exception.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
+// Staleness gate for the generated regions. Recomputes each managed page in
+// memory and diffs — no writes, so it is safe inside a read-only check. This
+// lives here rather than as a separate CI step because check:conformance is
+// already wired into the workflow, and the ai-loop refuses PRs touching
+// .github/**.
+async function checkDocsGenerated() {
+  const violations = [];
+  for (const file of await mdFiles(API_DIR)) {
+    const rel = relative(API_DIR, file).split('\\').join('/');
+    if (!managedPage(rel)) continue;
+    const src = await readFile(file, 'utf8');
+    let out;
+    try {
+      ({ src: out } = await renderPage(file, src));
+    } catch (err) {
+      violations.push(`docs/docs/api/${rel}: ${err.message}`);
+      continue;
+    }
+    if (out !== src) {
+      violations.push(
+        `docs/docs/api/${rel} has stale generated content. Run \`pnpm gen\` ` +
+          `and commit the result — the Overview sentence, Import, Props table ` +
+          `and CSS variables are generated from the source, not hand-edited.`
+      );
     }
   }
   return violations;
@@ -463,145 +583,6 @@ async function checkSkillsSync() {
       );
     }
   }
-  return violations;
-}
-
-// The inline-style → helper-prop mapping (#350) is deliberately triplicated so
-// it is in context at generation time: the scaffolded CLAUDE_MD template plus
-// the two skills that generate the most JSX. Only the template copy is guarded
-// by jest, so this check pins the mapping three ways:
-//   1. the load-bearing facts (spacing scale, value sets, the gap rule, the
-//      named-class fallback) appear verbatim in every copy;
-//   2. the copies name the same set of props, so a row added to one skill
-//      cannot silently go missing from the others;
-//   3. every prop named is really declared in bulma-ui/src — a mapping that
-//      points at a prop the library lacks makes the model emit an inert
-//      attribute, which is the exact failure #350 exists to prevent.
-// Matching strips backslashes first so the TS template's escaped backticks
-// compare equal to the markdown copies.
-const MAPPING_FILES = [
-  'create-bestax/src/constants.ts',
-  'skills/bestax-layout-scaffold/SKILL.md',
-  'skills/bestax-custom-component/SKILL.md',
-];
-
-// Prop tokens in the "Helper props instead" column. Two unambiguous forms:
-// `name="value"` (always a prop) and a bare `name` with an internal capital
-// (textColor, flexDirection). Bare all-lowercase spans are values, not props
-// (`bold`, `centered`, `primary`), and PascalCase spans are component names.
-function mappingPropTokens(source) {
-  const lines = source.replace(/\\`/g, '`').split('\n');
-  const start = lines.findIndex(
-    l => l.includes('|') && l.includes('Helper props instead')
-  );
-  if (start < 0) return null;
-  const props = new Set();
-  for (let i = start + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line.startsWith('|')) break;
-    if (/^\|[\s:|-]+\|$/.test(line)) continue; // separator row
-    // Column 1 is the CSS declaration being replaced; only scan the rest.
-    const helper = line.split('|').slice(2, -1).join('|');
-    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)="[^"]*"`/g)) {
-      props.add(m[1]);
-    }
-    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)`/g)) {
-      if (/[A-Z]/.test(m[1])) props.add(m[1]);
-    }
-  }
-  return props;
-}
-
-async function checkStyleMappingSync() {
-  const violations = [];
-  const FILES = MAPPING_FILES;
-  const FACTS = [
-    '`1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem',
-    '`textAlign="centered"`',
-    '`textColor`',
-    '`bgColor`',
-    '`textSize="1"`…`"7"`',
-    '`textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`',
-    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`',
-    '`display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`',
-    '`flexGrow="1"`',
-    '`visibility="hidden"`',
-    '`displayMobile`',
-    'no `gap` helper',
-    'take a `gap` prop',
-    'named class',
-  ];
-  for (const rel of FILES) {
-    const src = (await readFile(join(REPO, rel), 'utf8')).replace(/\\/g, '');
-    for (const fact of FACTS) {
-      if (!src.includes(fact)) {
-        violations.push(
-          `${rel} is missing "${fact}" from the inline-style → helper-prop ` +
-            `mapping (#350). The mapping is deliberately triplicated ` +
-            `(create-bestax CLAUDE_MD template + both skills) so it is ` +
-            `always in context — apply the same edit to all three copies.`
-        );
-      }
-    }
-  }
-
-  // 2. The copies must name the same props. A row added to (or dropped from)
-  //    one table but not the others is drift the FACTS list cannot see,
-  //    because FACTS only pins rows that exist today.
-  const tables = new Map();
-  for (const rel of FILES) {
-    const props = mappingPropTokens(await readFile(join(REPO, rel), 'utf8'));
-    if (props === null) {
-      violations.push(
-        `${rel} no longer contains an inline-style → helper-prop mapping ` +
-          `table (no row with a "Helper props instead" header cell). The ` +
-          `mapping must stay in all of ${FILES.join(', ')} — it is only ` +
-          `useful when it is in context as JSX is generated (#350).`
-      );
-      continue;
-    }
-    tables.set(rel, props);
-  }
-  if (tables.size !== FILES.length) return violations;
-
-  const union = new Set([...tables.values()].flatMap(s => [...s]));
-  for (const [rel, props] of tables) {
-    const missing = [...union].filter(p => !props.has(p)).sort();
-    if (missing.length) {
-      violations.push(
-        `${rel}'s mapping table omits ${missing.length} prop(s) named in the ` +
-          `other copies: ${missing.join(', ')}. Add the matching row(s) — the ` +
-          `copies in ${FILES.join(', ')} must stay in sync.`
-      );
-    }
-  }
-
-  // 3. Every prop named must really exist. Helper props live in the helpers/
-  //    interfaces; component-remapped ones (textColor, bgColor) are declared
-  //    on the components themselves, so scan the whole source tree.
-  const srcDir = join(REPO, 'bulma-ui', 'src');
-  const declared = new Set();
-  for (const file of [
-    ...(await walk(srcDir, '.ts')),
-    ...(await walk(srcDir, '.tsx')),
-  ]) {
-    const src = await readFile(file, 'utf8');
-    for (const m of src.matchAll(/^\s+([a-zA-Z][a-zA-Z0-9]*)\?:/gm)) {
-      declared.add(m[1]);
-    }
-  }
-  for (const [rel, props] of tables) {
-    const unknown = [...props].filter(p => !declared.has(p)).sort();
-    if (unknown.length) {
-      violations.push(
-        `${rel}'s mapping table names ${unknown.length} prop(s) that are not ` +
-          `declared anywhere in bulma-ui/src: ${unknown.join(', ')}. Fix the ` +
-          `name or drop the row — a mapping that points at a prop the ` +
-          `library does not have makes the model emit an inert attribute.`
-      );
-    }
-  }
-
   return violations;
 }
 
@@ -788,9 +769,10 @@ async function checkInlineStyle(updateBaseline) {
 const CHECKS = {
   'listings-sync': checkListingsSync,
   'docs-sections': checkDocsSections,
+  'docs-section-order': checkDocsSectionOrder,
+  'docs-generated': checkDocsGenerated,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
-  'style-mapping-sync': checkStyleMappingSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
