@@ -1,7 +1,7 @@
 ---
-title: 'Bulma: The 3rd Most Used CSS Framework'
-description: 'Bulma is the third most used CSS framework, behind Tailwind and Bootstrap. Here is why third place is the interesting place to be, and how to scaffold a React + Bulma site in one command with create-bestax.'
-sidebar_label: 'Bulma: The 3rd Most Used CSS Framework'
+title: 'Bulma Is the #3 CSS Framework — and AI Will Never Tell You About It'
+description: 'Bulma is the #3 CSS framework, behind Tailwind and Bootstrap. Here is why third place is the best place to be, why your AI assistant will never suggest it, and how to scaffold a React + Bulma site in one command with create-bestax.'
+sidebar_label: 'Bulma: The #3 CSS Framework'
 tags: [bulma, css, react, create-bestax, opensource]
 authors: [asmith]
 hide_table_of_contents: false
@@ -815,10 +815,35 @@ function StarDemo() {
       <Notification color="warning" isLight mt="3">
         {messages[stars]}
       </Notification>
+      <Buttons>
+        <Button
+          as="a"
+          href="https://github.com/allxsmith/bestax"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="primary"
+        >
+          <Icon library="fa" name="star" ariaLabel="star" />
+          <span>Star bestax on GitHub</span>
+        </Button>
+        <Button
+          as="a"
+          href="https://github.com/jgthms/bulma"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="primary"
+          isLight
+        >
+          <Icon library="fa" name="star" ariaLabel="star" />
+          <span>Star Bulma on GitHub</span>
+        </Button>
+      </Buttons>
     </Box>
   );
 }
 ```
+
+Those stars above are a toy — they reset the moment you reload. **The ones that count are two clicks away.** Head over to [github.com/allxsmith/bestax](https://github.com/allxsmith/bestax) and hit the ⭐ in the top right, then do the same for [Bulma itself](https://github.com/jgthms/bulma). The buttons in the demo will take you straight there.
 
 **Star the projects you actually use.** A GitHub star costs you nothing — no money, no email, no signup, no ongoing commitment. But for a legitimate open source project, stars are load-bearing:
 
@@ -918,10 +943,12 @@ None of this is fixed by complaining about AI. It's fixed by feeding the signal:
 4. **Teach your assistant.** Point it at real docs. This is why bestax publishes an [LLM index](https://bestax.io/docs/guides/llms) and ships Agent Skills: an assistant that has read the docs will happily use Bulma. The gap is availability, not capability.
 5. **Contribute upstream.** Issues, docs fixes, examples. Every one of them is a durable artifact that outlives the conversation.
 
+The two futures, side by side — `display="flex"` on each column and `flexGrow="1"` on the box keep the cards the same height no matter how much text they hold:
+
 ```tsx live
 <Columns>
-  <Column>
-    <Box>
+  <Column display="flex">
+    <Box flexGrow="1">
       <Title size="5" textColor="danger">
         Monoculture
       </Title>
@@ -934,8 +961,8 @@ None of this is fixed by complaining about AI. It's fixed by feeding the signal:
       </Content>
     </Box>
   </Column>
-  <Column>
-    <Box>
+  <Column display="flex">
+    <Box flexGrow="1">
       <Title size="5" textColor="success">
         Ecosystem
       </Title>
