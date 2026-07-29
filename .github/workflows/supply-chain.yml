@@ -58,6 +58,10 @@ jobs:
           format: spdx-json
           artifact-name: bestax-sbom.spdx.json
           output-file: bestax-sbom.spdx.json
+          # Defaults to true: the action would upload its own release asset on
+          # a release event, racing the explicit upload below and naming files
+          # by its own convention. Keep one deterministic uploader.
+          upload-release-assets: false
 
       # Both formats on purpose: SPDX is the ISO standard procurement asks for,
       # CycloneDX is what most scanning tools ingest natively.
@@ -68,6 +72,7 @@ jobs:
           format: cyclonedx-json
           artifact-name: bestax-sbom.cdx.json
           output-file: bestax-sbom.cdx.json
+          upload-release-assets: false
 
       # Workflow artifacts expire; a release asset is the durable, linkable
       # copy an auditor can actually cite.
