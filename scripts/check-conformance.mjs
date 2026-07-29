@@ -28,7 +28,7 @@
  *                        CSS variable and every color-prop component
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
-import { join, relative, dirname, basename } from 'node:path';
+import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // `registerVarsKeys` lives in lib/ so the API-docs generator can share the same
@@ -307,8 +307,6 @@ const SECTION_RANK = {
   Props: 7,
   'CSS & Sass Variables': 8,
 };
-const UNKNOWN_SECTION_RANK = 3;
-
 // Order applies to every reference page; generation only to pages that really
 // are a component props table. Keeping these separate is what lets helpers/
 // share the canonical section order without growing markers it cannot fill.

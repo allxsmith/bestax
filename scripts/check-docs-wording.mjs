@@ -163,14 +163,12 @@ async function main() {
       if (best.kind === 'unchanged') continue;
       if (only && !only.includes(best.kind)) continue;
       if (!byPage.has(apiRel)) byPage.set(apiRel, []);
-      byPage
-        .get(apiRel)
-        .push({
-          name,
-          kind: best.kind,
-          was: norm(best.was),
-          now: norm(best.now),
-        });
+      byPage.get(apiRel).push({
+        name,
+        kind: best.kind,
+        was: norm(best.was),
+        now: norm(best.now),
+      });
     }
   }
 

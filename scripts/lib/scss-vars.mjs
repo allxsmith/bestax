@@ -71,6 +71,11 @@ function eachStatement(src, visit) {
   while (i < src.length) {
     const ch = src[i];
 
+    // Comment branches sit BELOW the string branch in source order but that is
+    // presentational only: the scan is left-to-right, so a `//` inside a string
+    // is unreachable — the opening quote is always seen first and skipString
+    // consumes the whole literal. Verified against
+    // `url("https://e.com/a.png")` both inline and in a `!default`.
     if (ch === '/' && src[i + 1] === '/') {
       while (i < src.length && src[i] !== '\n') i++;
       continue;
@@ -240,8 +245,7 @@ export function registerVarsEntries(src) {
 export function registerVarsKeys(src) {
   const keys = new Set();
   const re = /cv\.register-vars\s*\(/g;
-  let m;
-  while ((m = re.exec(src))) {
+  while (re.exec(src) !== null) {
     let depth = 1;
     let i = re.lastIndex;
     while (i < src.length && depth > 0) {

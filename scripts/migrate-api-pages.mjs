@@ -32,7 +32,6 @@ import { execFileSync } from 'node:child_process';
 import {
   sectionSpans,
   sectionBody,
-  splitLines,
   openMarker,
   closeMarker,
   firstSentence,

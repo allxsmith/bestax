@@ -5,10 +5,10 @@
  *
  *   /**                                    /**
  *    * Props for the Footer component.      * Props for the Footer component.
- *    *                                      *​/
+ *    *                                      *\/
  *    * @property {string} [className] -     export interface FooterProps … {
- *    *   Additional CSS classes.              /** Additional CSS classes. *​/
- *    *​/                                       className?: string;
+ *    *   Additional CSS classes.              /** Additional CSS classes. *\/
+ *    *\/                                       className?: string;
  *
  * Why bother: `@property` is a comment ABOUT the interface. TypeScript cannot
  * check it, so its hand-typed `{Type}` drifts from the real member type, and it
@@ -259,31 +259,6 @@ function mergeDescriptions(fromDocs, other, onDiscard) {
   onDiscard?.(other);
   return fromDocs;
 }
-
-const MERGE_STOPWORDS = new Set(
-  (
-    'a an and are as at be by for from in into is it its of on or that the to ' +
-    'use used uses using with when which will you your this these'
-  ).split(' ')
-);
-
-function contentWords(text) {
-  return new Set(
-    text
-      .toLowerCase()
-      .replace(/`/g, ' ')
-      .split(/[^a-z0-9]+/)
-      // No length filter: a description whose only addition is `<li>` or `<a>`
-      // still adds something, and dropping short tokens made it look identical.
-      .filter(w => w && !MERGE_STOPWORDS.has(w))
-      .map(stem)
-  );
-}
-
-const subset = (a, b) => [...a].every(w => b.has(w));
-
-/** Crude suffix strip, enough to see "disables" and "disabled" as one word. */
-const stem = w => w.replace(/(ings|ing|edly|ed|es|s)$/, '');
 
 function memberName(member) {
   return member.name?.getText().replace(/^['"]|['"]$/g, '') ?? null;

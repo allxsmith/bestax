@@ -225,6 +225,9 @@ export function sectionBody(lines, section) {
  * makes the frontmatter parse as a nested mapping and fails the docs build.
  * Quoted only when necessary, so the other 80 pages keep their bare form.
  */
+/** Literal-ise a frontmatter key before it becomes a regex. */
+const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 function yamlScalar(value) {
   const needsQuotes =
     /: |:\t|\s#|^[\s>|&*!%@`"'{}[\],]|[:\s]$/.test(value) ||
@@ -240,13 +243,13 @@ export function upsertFrontmatter(src, key, value, after = null) {
   const eol = m[1].includes('\r\n') ? '\r\n' : '\n';
   const lines = m[2].split(/\r?\n/);
   const line = `${key}: ${yamlScalar(value)}`;
-  const at = lines.findIndex(l => new RegExp(`^${key}:`).test(l));
+  const at = lines.findIndex(l => new RegExp(`^${escapeRe(key)}:`).test(l));
 
   if (at >= 0) {
     lines[at] = line;
   } else {
     const afterAt = after
-      ? lines.findIndex(l => new RegExp(`^${after}:`).test(l))
+      ? lines.findIndex(l => new RegExp(`^${escapeRe(after)}:`).test(l))
       : -1;
     if (afterAt >= 0) lines.splice(afterAt + 1, 0, line);
     else lines.push(line);
@@ -281,10 +284,16 @@ export function firstSentence(text) {
  * code is parsed — see the hand-written `avatar.md` rows, which do the same.
  */
 export function escapeCell(text) {
-  return codeSpanBareTags(String(text))
-    .replace(/\|/g, '\\|')
-    .replace(/\r?\n/g, ' ')
-    .trim();
+  return (
+    codeSpanBareTags(String(text))
+      // Backslash first. A cell ending in `\` immediately before a `|` would
+      // otherwise produce `\\|`, where the second backslash is consumed as an
+      // escape and the pipe survives — splitting the row into an extra column.
+      .replace(/\\/g, '\\\\')
+      .replace(/\|/g, '\\|')
+      .replace(/\r?\n/g, ' ')
+      .trim()
+  );
 }
 
 /**
