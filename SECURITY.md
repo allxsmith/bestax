@@ -46,9 +46,9 @@ Measures active in this repository and its release pipeline:
   full commit SHA, not a movable tag.
 - **Socket.dev** — the Socket GitHub App reviews every pull request for
   malware, install scripts, obfuscated code, and privilege escalation in
-  dependency changes, and posts two required checks. Its policy is managed in
-  the Socket dashboard rather than in this repository, so it has no config
-  file here.
+  dependency changes, and posts two checks on every pull request. Its policy
+  is managed in the Socket dashboard rather than in this repository, so it has
+  no config file here.
 - **CodeQL** — GitHub code scanning runs on JavaScript/TypeScript and the
   workflow files themselves. It uses GitHub's _default setup_, so there is no
   `codeql.yml` in `.github/workflows/`.
