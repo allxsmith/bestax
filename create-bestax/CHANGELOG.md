@@ -1,3 +1,10 @@
+# [3.8.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.7.1...create-bestax@3.8.0) (2026-07-29)
+
+
+### Features
+
+* **create-bestax:** agent-validated guidance for skills, scaffold CLAUDE.md, and catalog ([#365](https://github.com/allxsmith/bestax/issues/365)) ([6fd06ae](https://github.com/allxsmith/bestax/commit/6fd06ae969da99d11d677be462fd4ceee29fd5ac)), closes [#2](https://github.com/allxsmith/bestax/issues/2)
+
 ## [3.7.1](https://github.com/allxsmith/bestax/compare/create-bestax@3.7.0...create-bestax@3.7.1) (2026-07-29)
 
 
