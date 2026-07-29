@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { transform, isLlmArtifact } from './flatten-llms-tabs.mjs';
+import {
+  transform,
+  isLlmArtifact,
+  NEEDS_FLATTENING,
+} from './flatten-llms-tabs.mjs';
 
 const fence = (lang, body) => '```' + lang + '\n' + body + '\n```';
 
@@ -158,6 +162,97 @@ test('content is never lost to placeholder collisions', () => {
   // for a placeholder on restore.
   const src = 'Release 5 8 0 shipped.\n\n' + fence('bash', 'pnpm add foo');
   assert.equal(transform(src), src);
+});
+
+test('a longer fence wrapping shorter fences is masked as one block', () => {
+  // Real shape: docs/api/helpers/theme.md and tutorial-basics/markdown-features
+  // wrap ``` examples in ```` fences. Mis-pairing here shifts every mask
+  // boundary after it in llms-full.txt.
+  const src = [
+    '````md',
+    '```tsx',
+    '<Tabs>',
+    '<TabItem label="Nope">not a real tab</TabItem>',
+    '</Tabs>',
+    '```',
+    '````',
+    '',
+    '<Tabs>',
+    '<TabItem label="Real">real body</TabItem>',
+    '</Tabs>',
+  ].join('\n');
+
+  const out = transform(src);
+
+  assert.match(out, /````md\n```tsx\n<Tabs>\n<TabItem label="Nope">/);
+  assert.match(out, /^#### Real$/m);
+  assert.doesNotMatch(out, /#### Nope/);
+});
+
+test('tilde fences are masked', () => {
+  const src = [
+    '~~~tsx',
+    '<Tabs>',
+    '<TabItem label="X">y</TabItem>',
+    '</Tabs>',
+    '~~~',
+  ].join('\n');
+  assert.equal(transform(src), src);
+});
+
+test('a tilde fence is not closed by a backtick fence', () => {
+  const src = [
+    '~~~md',
+    '```',
+    'still inside the tilde fence',
+    '```',
+    '~~~',
+  ].join('\n');
+  assert.equal(transform(src), src);
+});
+
+test('an indented fence (up to 3 spaces) still opens a block', () => {
+  const src = ['   ```tsx', '   <Tabs.List>x</Tabs.List>', '   ```'].join('\n');
+  assert.equal(transform(src), src);
+});
+
+test('imports inside a fenced example are preserved', () => {
+  // Regression: the cleanup used to run after code was restored, so a fenced
+  // example demonstrating the import lost the line.
+  const src = [
+    'Import it first:',
+    '',
+    fence(
+      'tsx',
+      "import Tabs from '@theme/Tabs';\n\nexport default function Demo() {}"
+    ),
+  ].join('\n');
+
+  assert.equal(transform(src), src);
+});
+
+test('deliberate blank lines inside a fence are preserved', () => {
+  const src = [
+    '<PackageManagerTabs command="add foo" />',
+    '',
+    fence('ts', 'const a = 1;\n\n\nconst b = 2;'),
+  ].join('\n');
+
+  const out = transform(src);
+
+  assert.match(out, /const a = 1;\n\n\nconst b = 2;/);
+  assert.match(out, /pnpm add foo/);
+});
+
+test('an unterminated fence is masked rather than rewritten', () => {
+  const src = ['```tsx', '<Tabs>', '<TabItem label="X">y</TabItem>'].join('\n');
+  assert.equal(transform(src), src);
+});
+
+test('NEEDS_FLATTENING matches import-only artifacts', () => {
+  assert.equal(NEEDS_FLATTENING.test("import Tabs from '@theme/Tabs';"), true);
+  assert.equal(NEEDS_FLATTENING.test('<Tabs>'), true);
+  assert.equal(NEEDS_FLATTENING.test('# Just a heading'), false);
 });
 
 test('isLlmArtifact selects .md twins and llms*.txt only', () => {

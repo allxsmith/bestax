@@ -95,6 +95,66 @@ function flattenGenericTabs(src) {
  * Mask rather than split: a `<Tabs>` block *wraps* fenced code, so the document
  * has to stay contiguous for `<Tabs>…</Tabs>` to match across it.
  */
+/**
+ * Mask fenced code blocks, per CommonMark rather than by regex.
+ *
+ * A regex can't do this: fences are variable-length and come in two characters,
+ * and the closing fence only has to be *at least* as long as the opening one.
+ * `docs/api/helpers/theme.md` and `docs/tutorial-basics/markdown-features.mdx`
+ * both wrap ``` examples in ```` fences, so mis-pairing is not hypothetical.
+ */
+function maskFences(src, hold) {
+  const out = [];
+  let open = null;
+  let buf = [];
+
+  for (const line of src.split('\n')) {
+    const fence = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+
+    if (!open) {
+      // A backtick fence's info string may not itself contain a backtick.
+      const validOpen =
+        fence && !(fence[1][0] === '`' && fence[2].includes('`'));
+      if (validOpen) {
+        open = { char: fence[1][0], len: fence[1].length };
+        buf = [line];
+      } else {
+        out.push(line);
+      }
+      continue;
+    }
+
+    buf.push(line);
+    const close = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+    if (close && close[1][0] === open.char && close[1].length >= open.len) {
+      out.push(hold(buf.join('\n')));
+      open = null;
+      buf = [];
+    }
+  }
+
+  // An unterminated fence runs to end of document (CommonMark). Mask it: never
+  // mutate content we can't confidently parse.
+  if (open) out.push(hold(buf.join('\n')));
+
+  return out.join('\n');
+}
+
+/**
+ * Apply `fn` only outside code — fenced blocks *and* inline spans.
+ *
+ * Both exclusions are load-bearing: `docs/api/components/tabs.md` documents
+ * bestax-bulma's own `<Tabs.List>` / `<Tabs.Item>` inside tsx fences, and the
+ * migration guides mention the Tabs component inline in prose. Neither is a
+ * Docusaurus theme tab and neither may be rewritten.
+ *
+ * Mask rather than split: a `<Tabs>` block *wraps* fenced code, so the document
+ * has to stay contiguous for `<Tabs>…</Tabs>` to match across it.
+ *
+ * Inline spans are matched single-line only. CommonMark allows one to wrap, but
+ * an unpaired backtick in prose would then swallow the rest of the document —
+ * the failure mode of guessing wrong here is much worse than the miss.
+ */
 function outsideCode(src, fn) {
   const held = [];
   const hold = chunk => {
@@ -102,22 +162,37 @@ function outsideCode(src, fn) {
     return NUL + (held.length - 1) + NUL;
   };
 
-  const masked = src
-    .replace(/^```[\s\S]*?^```$/gm, hold) // fenced blocks
-    .replace(/(`+)(?:(?!\1)[^\n])*?\1/g, hold); // inline spans, single line only
+  const masked = maskFences(src, hold).replace(
+    /(`+)(?:(?!\1)[^\n])*?\1/g,
+    hold
+  );
 
   const restore = new RegExp(NUL + '(\\d+)' + NUL, 'g');
   return fn(masked).replace(restore, (_m, i) => held[Number(i)]);
 }
 
-/** Rewrite one artifact's contents. Idempotent. */
+/**
+ * Rewrite one artifact's contents. Idempotent.
+ *
+ * Every rewrite happens inside `outsideCode` — including the import and blank
+ * line cleanup. Running those after restoration would reach into fenced code and
+ * strip `import Tabs …` lines out of examples, or collapse deliberate blank
+ * lines in a code block.
+ */
 export function transform(src) {
   return outsideCode(src, chunk =>
     flattenGenericTabs(flattenPackageManagerTabs(chunk))
-  )
-    .replace(/^\s*import\s+(?:Tabs|TabItem|PackageManagerTabs)\b.*$/gm, '')
-    .replace(/\n{3,}/g, '\n\n');
+      .replace(/^[ \t]*import\s+(?:Tabs|TabItem|PackageManagerTabs)\b.*$/gm, '')
+      .replace(/\n{3,}/g, '\n\n')
+  );
 }
+
+/**
+ * Cheap prefilter for `main`. Matches the imports too — `transform` strips
+ * orphaned tab imports, so an artifact carrying only those still has work to do.
+ */
+export const NEEDS_FLATTENING =
+  /<Tabs|<TabItem|<PackageManagerTabs|^[ \t]*import\s+(?:Tabs|TabItem|PackageManagerTabs)\b/m;
 
 /** True when a file is one of the artifacts this script owns. */
 export function isLlmArtifact(file) {
@@ -139,7 +214,7 @@ async function main(buildDir) {
   for await (const file of walk(buildDir)) {
     if (!isLlmArtifact(file)) continue;
     const before = await readFile(file, 'utf8');
-    if (!/<Tabs|<TabItem|<PackageManagerTabs/.test(before)) continue;
+    if (!NEEDS_FLATTENING.test(before)) continue;
     const after = transform(before);
     if (after === before) continue;
     await writeFile(file, after);
