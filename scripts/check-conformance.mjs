@@ -27,6 +27,8 @@
  *                        the same thing in all three deliberate copies
  *                        (CLAUDE_MD template + both JSX-generating skills),
  *                        and names only props that really exist
+ *   publishable-manifests  no published package ships a `workspace:` specifier
+ *                        consumers would have to resolve (#412)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, basename } from 'node:path';
@@ -783,6 +785,101 @@ async function checkInlineStyle(updateBaseline) {
   return violations;
 }
 
+// The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
+// other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
+// lists too, so scanning the whole file for `- item` would pick them up.
+function parseWorkspacePackages(yaml) {
+  const dirs = [];
+  let inBlock = false;
+  for (const line of yaml.split(/\r?\n/)) {
+    if (/^packages:\s*$/.test(line)) {
+      inBlock = true;
+      continue;
+    }
+    if (!inBlock) continue;
+    const item = line.match(/^\s+-\s*(\S+)\s*$/);
+    if (item) dirs.push(item[1].replace(/^['"]|['"]$/g, ''));
+    else if (line.trim() && !line.trimStart().startsWith('#')) break;
+  }
+  return dirs;
+}
+
+/**
+ * `npm publish` — which is what @semantic-release/npm shells out to — does NOT
+ * resolve pnpm's `workspace:` protocol the way `pnpm publish` does. A
+ * `workspace:^` left in a published manifest is uninstallable by every package
+ * manager (`EUNSUPPORTEDPROTOCOL`); that shipped as bestax-migrate@1.0.0
+ * (#412), invisibly, because nothing in CI installs the published artifact.
+ *
+ * Two rules, both about the manifest as CONSUMERS see it:
+ *   1. Sections npm resolves for consumers must have no `workspace:` at all.
+ *      A workspace package needed at runtime has to be a plain semver range.
+ *   2. A `workspace:` left in devDependencies is safe to install but still
+ *      wrong to publish, so the package must resolve it at pack time.
+ */
+async function checkPublishableManifests() {
+  const violations = [];
+  const CONSUMER_SECTIONS = [
+    'dependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ];
+
+  const packages = parseWorkspacePackages(
+    await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
+  );
+  if (!packages.length) {
+    return ['pnpm-workspace.yaml has no `packages:` entries — cannot check.'];
+  }
+
+  for (const dir of packages) {
+    const manifestPath = join(REPO, dir, 'package.json');
+    let pkg;
+    try {
+      pkg = JSON.parse(await readFile(manifestPath, 'utf8'));
+    } catch {
+      violations.push(
+        `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
+          `or unparseable.`
+      );
+      continue;
+    }
+    if (pkg.private) continue;
+
+    for (const section of CONSUMER_SECTIONS) {
+      for (const [name, spec] of Object.entries(pkg[section] ?? {})) {
+        if (typeof spec === 'string' && spec.startsWith('workspace:')) {
+          violations.push(
+            `${dir}/package.json declares "${name}": "${spec}" in ${section}. ` +
+              `npm publish does not resolve the workspace: protocol, so the ` +
+              `published package is uninstallable (EUNSUPPORTEDPROTOCOL, #412). ` +
+              `Move it to devDependencies if it is only needed to build or ` +
+              `test this package, or give it a plain semver range if consumers ` +
+              `really need it at runtime.`
+          );
+        }
+      }
+    }
+
+    const stillWorkspace = Object.values(pkg.devDependencies ?? {}).some(
+      spec => typeof spec === 'string' && spec.startsWith('workspace:')
+    );
+    const resolvesAtPack = ['prepack', 'postpack'].every(hook =>
+      (pkg.scripts?.[hook] ?? '').includes('pack-manifest.mjs')
+    );
+    if (stillWorkspace && !resolvesAtPack) {
+      violations.push(
+        `${dir}/package.json keeps a workspace: specifier in devDependencies ` +
+          `but does not resolve it at pack time, so it would be published ` +
+          `verbatim (#412). Add "prepack": "node scripts/pack-manifest.mjs ` +
+          `prepack" and the matching postpack hook — copy ` +
+          `bestax-migrate/scripts/pack-manifest.mjs.`
+      );
+    }
+  }
+  return violations;
+}
+
 // ---------------------------------------------------------------------------
 
 const CHECKS = {
@@ -794,6 +891,7 @@ const CHECKS = {
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
+  'publishable-manifests': checkPublishableManifests,
   'inline-style': null, // handled below (takes the flag)
 };
 
