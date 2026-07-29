@@ -357,7 +357,7 @@ Use the programmatic `dialog.confirm()` with async/await to create clean, sequen
 | `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                           |
 | `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                        |
 | `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                          |
-| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dialog is dismissed.    |
+| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.              |
 | `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs. |
 | `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.               |
 | `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.           |

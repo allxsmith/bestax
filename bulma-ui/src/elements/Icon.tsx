@@ -56,11 +56,11 @@ export interface IconProps
    * @defaultValue 'fa'
    */
   library?: IconLibrary; // defaults to ConfigProvider iconLibrary or 'fa'
-  /** Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). Icon style variant. For Font Awesome: 'solid', 'regular', 'brands', etc. For Material Icons: 'filled', 'outlined', 'round', 'sharp'. For Material Symbols: 'outlined', 'rounded', 'sharp'. For Ionicons: 'outline', 'sharp'. */
+  /** Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`). */
   variant?: string; // e.g., 'solid', 'outlined', 'rounded', 'sharp'
-  /** Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). Additional library-specific modifiers. For Font Awesome: 'fa-lg', 'fa-spin', etc. For others: size classes like 'is-size-1', etc. */
+  /** Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`). */
   features?: string | string[]; // e.g., 'fa-lg', 'fa-spin', 'is-size-1'
-  /** DEPRECATED: Use 'variant' and 'features' instead. Additional library-specific classes. */
+  /** **DEPRECATED:** Use `variant` and `features` instead. */
   libraryFeatures?: string | string[]; // DEPRECATED: backward compatibility
   /** Size modifier for the icon container. */
   size?: 'small' | 'medium' | 'large';

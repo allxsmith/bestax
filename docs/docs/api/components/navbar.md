@@ -450,16 +450,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                                                               | Default | Description                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                                                                   |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                                                                               |
-| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                                                                     |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                                                                         |
-| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background. Whether the navbar is transparent.                     |
-| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. Whether the navbar is fixed to the top or bottom. |
-| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).                                                             |
-| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                        |
+| Prop          | Type                                                                                                                               | Default | Description                                            |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------ |
+| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                 |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                             |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                   |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                       |
+| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background.      |
+| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. |
+| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).           |
+| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)      |
 
 **Subcomponents:**
 
@@ -599,6 +599,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 | CSS Variable                                    | Sass Variable                            | Default                                                                                                                                                                                                |
 | ----------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-navbar-height`                         | `$navbar-height`                         | `3.25rem`                                                                                                                                                                                              |
 | `--bulma-navbar-h`                              | `$navbar-h`                              | `var(--bulma-scheme-h)`                                                                                                                                                                                |
 | `--bulma-navbar-s`                              | `$navbar-s`                              | `var(--bulma-scheme-s)`                                                                                                                                                                                |
 | `--bulma-navbar-l`                              | `$navbar-l`                              | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |

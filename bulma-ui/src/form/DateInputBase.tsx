@@ -87,15 +87,15 @@ export interface DateInputBaseProps
   locale?: string;
   /** Render the calendar inline (no popover). */
   inline?: boolean;
-  /** Use native `<input type="date">` on coarse-pointer + small-viewport devices. */
+  /** Use `<input type="date">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
-  /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). Default `true`. */
+  /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
-  /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
+  /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
-  /** Open the popover when the input is focused. Open the popover on focus. Default `true`. */
+  /** Open the popover when the input is focused. */
   openOnFocus?: boolean;
-  /** Close the popover after a date is selected. Close the popover after selection. Default `true`. */
+  /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
   /** Popover anchor position relative to the input. */
   position?: PickerPosition;
@@ -107,7 +107,7 @@ export interface DateInputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Render the input with rounded corners. */
   isRounded?: boolean;
-  /** Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing. Predicate to disable specific dates. Blocked dates can't be selected in the calendar and are rejected by manual typing (segmented and free-form). */
+  /** Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing. */
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing. */
   unselectableDates?: Date[];
@@ -117,13 +117,13 @@ export interface DateInputBaseProps
   dayNames?: string[];
   /** Override the 12 month-name labels. */
   monthNames?: string[];
-  /** Show dimmed dates from adjacent months in the grid. Show dimmed dates from adjacent months. Default `true`. */
+  /** Show dimmed dates from adjacent months in the grid. */
   nearbyMonthDays?: boolean;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
   /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
-  /** Glyph name for the right launcher button. Default `'chevron-down'`. */
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
   /** Optional translatable string overrides (ARIA labels, button text). */
   labels?: PickerLabels;

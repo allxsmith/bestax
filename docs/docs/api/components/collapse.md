@@ -323,22 +323,22 @@ The Collapse component supports these additional CSS classes:
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                   | Default  | Description                                                                                                                                              |
-| ------------------ | ------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open`             | `boolean`                                              | `false`  | Controlled open state. If provided, component is controlled.                                                                                             |
-| `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage.                                                                                                               |
-| `onOpen`           | `() => void`                                           | —        | Callback when collapse opens.                                                                                                                            |
-| `onClose`          | `() => void`                                           | —        | Callback when collapse closes.                                                                                                                           |
-| `trigger`          | `React.ReactNode`                                      | —        | The clickable trigger element (usually a header/button).                                                                                                 |
-| `animation`        | `'fade'` \| `'slide'` \| `false`                       | `'fade'` | Animation style, or `false` to disable. Animation type. 'fade' for opacity transition, 'slide' for height transition, false to disable. Default: 'fade'. |
-| `position`         | `'top'` \| `'bottom'`                                  | `'top'`  | Position of trigger relative to content. Default: 'top'.                                                                                                 |
-| `ariaId`           | `string`                                               | `auto`   | Custom aria id for accessibility.                                                                                                                        |
-| `bordered`         | `boolean`                                              | `false`  | Adds a border around the collapse. Whether to show a border around the collapse.                                                                         |
-| `triggerClassName` | `string`                                               | —        | Additional classes for the trigger wrapper.                                                                                                              |
-| `contentClassName` | `string`                                               | —        | Additional classes for the content wrapper.                                                                                                              |
-| `children`         | `React.ReactNode`                                      | —        | The collapsible content.                                                                                                                                 |
-| `className`        | `string`                                               | —        | Additional CSS classes.                                                                                                                                  |
-| `...`              | All standard `<div>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                        |
+| Prop               | Type                                                   | Default  | Description                                                  |
+| ------------------ | ------------------------------------------------------ | -------- | ------------------------------------------------------------ |
+| `open`             | `boolean`                                              | `false`  | Controlled open state. If provided, component is controlled. |
+| `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage.                   |
+| `onOpen`           | `() => void`                                           | —        | Callback when collapse opens.                                |
+| `onClose`          | `() => void`                                           | —        | Callback when collapse closes.                               |
+| `trigger`          | `React.ReactNode`                                      | —        | The clickable trigger element (header/button).               |
+| `animation`        | `'fade'` \| `'slide'` \| `false`                       | `'fade'` | Animation style, or `false` to disable.                      |
+| `position`         | `'top'` \| `'bottom'`                                  | `'top'`  | Position of the trigger relative to content.                 |
+| `ariaId`           | `string`                                               | `auto`   | Custom aria id for accessibility.                            |
+| `bordered`         | `boolean`                                              | `false`  | Adds a border around the collapse.                           |
+| `triggerClassName` | `string`                                               | —        | Additional classes for the trigger wrapper.                  |
+| `contentClassName` | `string`                                               | —        | Additional classes for the content wrapper.                  |
+| `children`         | `React.ReactNode`                                      | —        | The collapsible content.                                     |
+| `className`        | `string`                                               | —        | Additional CSS classes.                                      |
+| `...`              | All standard `<div>` attributes and Bulma helper props | —        | See [Helper Props](../helpers/usebulmaclasses.md)            |
 
 <!-- /bestax:generated props -->
 

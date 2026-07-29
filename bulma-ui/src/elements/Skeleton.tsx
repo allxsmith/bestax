@@ -7,11 +7,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes to apply */
   className?: string;
-  /** Skeleton variant: block (single block) or lines. Variant of skeleton: 'block' (default) or 'lines' */
+  /** Skeleton variant: block (single block) or lines. */
   variant?: 'block' | 'lines';
-  /** Number of lines (only used if variant="lines") */
+  /** Number of lines (only for `lines` variant). */
   lines?: number;
-  /** Render content inside the skeleton (block variant only) */
+  /** Content inside the block (only for block variant). */
   children?: React.ReactNode;
 }
 

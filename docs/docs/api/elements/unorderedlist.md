@@ -171,7 +171,7 @@ Use `UnorderedList` when the order of items is not significant. For ordered cont
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | List items to be rendered inside the list.        |
+| `children`  | `React.ReactNode`                                                       | —       | List items to render inside the list.             |
 | `...`       | All standard `<ul>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**

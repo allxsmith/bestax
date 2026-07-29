@@ -43,9 +43,9 @@ export interface NumberinputProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Controlled numeric value. */
+  /** Controlled value. */
   value?: number;
-  /** Default value for uncontrolled usage. Initial value for uncontrolled mode. */
+  /** Default value for uncontrolled usage. */
   defaultValue?: number;
   /** Minimum allowed value. */
   min?: number;
@@ -53,31 +53,31 @@ export interface NumberinputProps
   max?: number;
   /** Step increment (default: 1). */
   step?: number;
-  /** Size variant. Size of the input and buttons. */
+  /** Size variant. */
   size?: NumberinputSize;
-  /** Color variant for buttons. Color for the control buttons. */
+  /** Color variant for buttons. */
   color?: NumberinputColor;
-  /** Color of the input field itself. Color for the inner input element. */
+  /** Color of the input field itself. */
   inputColor?: NumberinputInputColor;
-  /** Position of increment/decrement buttons (default: 'both'). */
+  /** Position of +/- buttons. */
   controlsPosition?: NumberinputControlsPosition;
-  /** Whether the control buttons are rounded. */
+  /** Use rounded buttons. */
   controlsRounded?: boolean;
-  /** Uses compact button spacing. Whether to use compact (addons) layout. */
+  /** Uses compact button spacing. */
   compact?: boolean;
-  /** Removes button borders and background. Bare mode: no outer .field wrapper, for composing inside a parent Field. */
+  /** Removes button borders and background. */
   bare?: boolean;
-  /** Style variant for the control buttons. Control variant: 'plusminus' (default) or 'stepper'. */
+  /** Style variant for the control buttons. */
   variant?: NumberinputVariant;
   /** Whether the input is disabled. */
   disabled?: boolean;
-  /** Whether the input can be typed in. Whether the user can type directly into the input (default: true). */
+  /** Whether the input can be typed in. */
   editable?: boolean;
-  /** Shows a loading state. Whether to show a loading spinner on the input. */
+  /** Shows a loading state. */
   isLoading?: boolean;
-  /** Enables exponential step increments when holding buttons. Whether the step grows with the value magnitude. */
+  /** Enables exponential step increments when holding buttons. */
   exponential?: boolean;
-  /** Callback when the value changes. */
+  /** Callback when value changes. */
   onChange?: (value: number) => void;
 }
 

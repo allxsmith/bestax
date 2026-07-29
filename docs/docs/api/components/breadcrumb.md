@@ -369,14 +369,14 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                | Default | Description                                                                                              |
-| ----------- | --------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                            | —       | Additional CSS classes to apply.                                                                         |
-| `alignment` | `'centered'` \| `'right'`                           | —       | Alignment of the breadcrumb (`is-centered`, `is-right`). Alignment modifier for the breadcrumb.          |
-| `separator` | `'arrow'` \| `'bullet'` \| `'dot'` \| `'succeeds'`  | —       | Type of separator between breadcrumb items. Separator style for the breadcrumb.                          |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Size modifier for the breadcrumb.                                                                        |
-| `children`  | `React.ReactNode`                                   | —       | Breadcrumb items (`<li>`s with `<a>` or `<span>`). Breadcrumb items (e.g., "a" or "span" html elements). |
-| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                        |
+| Prop        | Type                                                | Default | Description                                              |
+| ----------- | --------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className` | `string`                                            | —       | Additional CSS classes to apply.                         |
+| `alignment` | `'centered'` \| `'right'`                           | —       | Alignment of the breadcrumb (`is-centered`, `is-right`). |
+| `separator` | `'arrow'` \| `'bullet'` \| `'dot'` \| `'succeeds'`  | —       | Type of separator between breadcrumb items.              |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Breadcrumb size.                                         |
+| `children`  | `React.ReactNode`                                   | —       | Breadcrumb items (`<li>`s with `<a>` or `<span>`).       |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
 
 <!-- /bestax:generated props -->
 

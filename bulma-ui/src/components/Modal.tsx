@@ -23,7 +23,7 @@ export interface ModalProps
   active?: boolean;
   /** Alias for `active`. Whether the modal is open/visible. */
   isActive?: boolean; // Alias for active
-  /** Callback invoked when modal close is requested (background click or close button). */
+  /** Callback invoked to request modal close (background or close button). */
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
   className?: string;
@@ -36,7 +36,7 @@ export interface ModalProps
   /** Footer for modal-card variant. (Legacy API only) */
   modalCardFoot?: React.ReactNode;
   /**
-   * Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) Modal type ('card' for modal-card, 'content' for modal-content). Legacy API only.
+   * Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)
    * @defaultValue auto
    */
   type?: 'card' | 'content';

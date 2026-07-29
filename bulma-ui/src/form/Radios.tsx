@@ -26,7 +26,7 @@ export interface RadiosProps
   value?: string;
   /** Initial selected value (uncontrolled mode). */
   defaultValue?: string;
-  /** Fired when the selection changes. Receives the new value. */
+  /** Fires when the selection changes. */
   onChange?: (value: string) => void;
   /** Radio elements to render in the group. */
   children: React.ReactNode;

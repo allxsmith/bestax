@@ -244,12 +244,30 @@ The following components support the `skeleton` property for Bulma skeleton load
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                            | Default   | Description                                                                                        |
-| ----------- | ------------------------------- | --------- | -------------------------------------------------------------------------------------------------- |
-| `className` | `string`                        | —         | Additional CSS classes to apply                                                                    |
-| `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines. Variant of skeleton: 'block' (default) or 'lines' |
-| `lines`     | `number`                        | `3`       | Number of lines (only used if variant="lines")                                                     |
-| `children`  | `React.ReactNode`               | —         | Render content inside the skeleton (block variant only)                                            |
-| `...`       | All standard `<div>` attributes | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                  |
+| Prop        | Type                            | Default   | Description                                        |
+| ----------- | ------------------------------- | --------- | -------------------------------------------------- |
+| `className` | `string`                        | —         | Additional CSS classes to apply                    |
+| `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines.   |
+| `lines`     | `number`                        | `3`       | Number of lines (only for `lines` variant).        |
+| `children`  | `React.ReactNode`               | —         | Content inside the block (only for block variant). |
+| `...`       | All standard `<div>` attributes | —         | See [Helper Props](../helpers/usebulmaclasses.md)  |
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Skeleton`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable                        | Sass Variable                | Default                     |
+| ----------------------------------- | ---------------------------- | --------------------------- |
+| `--bulma-skeleton-background`       | `$skeleton-background`       | `var(--bulma-border)`       |
+| `--bulma-skeleton-radius`           | `$skeleton-radius`           | `var(--bulma-radius-small)` |
+| `--bulma-skeleton-block-min-height` | `$skeleton-block-min-height` | `4.5em`                     |
+| `--bulma-skeleton-lines-gap`        | `$skeleton-lines-gap`        | `0.75em`                    |
+| `--bulma-skeleton-line-height`      | `$skeleton-line-height`      | `0.75em`                    |
+
+<!-- /bestax:generated cssvars -->

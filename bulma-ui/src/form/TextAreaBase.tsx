@@ -23,25 +23,25 @@ export interface TextAreaBaseProps
     | 'white';
   /** Size modifier for the textarea. */
   size?: 'small' | 'medium' | 'large';
-  /** Renders the textarea with rounded corners. */
+  /** Rounded textarea corners. */
   isRounded?: boolean;
-  /** Renders textarea as static (styled readonly). Renders the textarea as static text. */
+  /** Renders textarea as static (styled readonly). */
   isStatic?: boolean;
-  /** Applies the hovered state. */
+  /** Applies hovered state. */
   isHovered?: boolean;
-  /** Applies the focused state. */
+  /** Applies focused state. */
   isFocused?: boolean;
   /** Shows loading indicator on the wrapping Control. */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
   isActive?: boolean;
-  /** Fixed textarea size (no resize). Applies Bulma's has-fixed-size modifier. */
+  /** Fixed textarea size (no resize). */
   hasFixedSize?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Whether the textarea is disabled. */
+  /** Disables the textarea. */
   disabled?: boolean;
-  /** Whether the textarea is read-only. */
+  /** Read-only textarea. */
   readOnly?: boolean;
   /** Number of visible text lines. */
   rows?: number;

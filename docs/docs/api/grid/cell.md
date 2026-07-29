@@ -229,7 +229,7 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 | `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                                                        |
 | `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the cell.                                                 |
 | `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                                                  |
-| `children`   | `React.ReactNode`                                                               | —       | Content to render inside the cell. Children to render inside the cell.             |
+| `children`   | `React.ReactNode`                                                               | —       | Content to render inside the cell.                                                 |
 | `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
 
 <!-- /bestax:generated props -->

@@ -38,9 +38,9 @@ export interface LoadingProps
   overlayClassName?: string;
   /** Additional classes for the spinner icon. */
   iconClassName?: string;
-  /** Custom loading indicator element. Custom content to replace the default CSS spinner. The Loading component wraps it in a spinning container. */
+  /** Custom loading indicator element. */
   indicator?: React.ReactNode;
-  /** Style of the loading overlay. Overlay opacity level: 'light', 'dark', or 'opaque'. Defaults to a medium opacity. */
+  /** Style of the loading overlay. */
   overlay?: LoadingOverlay;
 }
 

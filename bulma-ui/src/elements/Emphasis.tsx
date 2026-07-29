@@ -19,7 +19,7 @@ export interface EmphasisProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to be rendered inside the em element. */
+  /** Content to render inside the em element. */
   children?: React.ReactNode;
 }
 

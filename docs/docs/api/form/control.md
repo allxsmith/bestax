@@ -331,5 +331,14 @@ The `Control` component can also be used with radio buttons or checkboxes. This 
 | `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
 | `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+| `--bulma-control-radius`                   | `$control-radius`                   | `var(--bulma-radius)`                                                                                                    |
+| `--bulma-control-radius-small`             | `$control-radius-small`             | `var(--bulma-radius-small)`                                                                                              |
+| `--bulma-control-border-width`             | `$control-border-width`             | `1px`                                                                                                                    |
+| `--bulma-control-height`                   | `$control-height`                   | `2.5em`                                                                                                                  |
+| `--bulma-control-line-height`              | `$control-line-height`              | `1.5`                                                                                                                    |
+| `--bulma-control-padding-vertical`         | `$control-padding-vertical`         | `calc(0.5em - $control-border-width)`                                                                                    |
+| `--bulma-control-padding-horizontal`       | `$control-padding-horizontal`       | `calc(0.75em - $control-border-width)`                                                                                   |
+| `--bulma-control-size`                     | `$control-size`                     | `var(--bulma-size-normal)`                                                                                               |
+| `--bulma-control-focus-shadow-l`           | `$control-focus-shadow-l`           | `50%`                                                                                                                    |
 
 <!-- /bestax:generated cssvars -->

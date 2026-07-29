@@ -268,20 +268,20 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                                                                                               | Default | Description                                                        |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------ |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Color modifier for the pagination. Bulma color for the pagination. |
-| `textColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color helper. Text color for the pagination.                  |
-| `bgColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color helper. Background color for the pagination.      |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the pagination.                                  |
-| `align`        | `'centered'` \| `'right'`                                                                                                          | —       | Alignment for the pagination.                                      |
-| `rounded`      | `boolean`                                                                                                                          | `false` | Renders pagination with rounded corners.                           |
-| `total`        | `number`                                                                                                                           | —       | Total number of pages (for custom implementations).                |
-| `current`      | `number`                                                                                                                           | —       | Current page (for controlled implementations).                     |
-| `onPageChange` | `(page: number) => void`                                                                                                           | —       | Callback when a page is selected. Page change callback.            |
-| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                            |
-| `children`     | `React.ReactNode`                                                                                                                  | —       | Custom pagination content (usually subcomponents).                 |
-| `...`          | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                  |
+| Prop           | Type                                                                                                                               | Default | Description                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------- |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Color modifier for the pagination.                  |
+| `textColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color helper.                                  |
+| `bgColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color helper.                            |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the pagination.                   |
+| `align`        | `'centered'` \| `'right'`                                                                                                          | —       | Alignment for the pagination.                       |
+| `rounded`      | `boolean`                                                                                                                          | `false` | Renders pagination with rounded corners.            |
+| `total`        | `number`                                                                                                                           | —       | Total number of pages (for custom implementations). |
+| `current`      | `number`                                                                                                                           | —       | Current page (for controlled implementations).      |
+| `onPageChange` | `(page: number) => void`                                                                                                           | —       | Callback when a page is selected.                   |
+| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                             |
+| `children`     | `React.ReactNode`                                                                                                                  | —       | Custom pagination content (usually subcomponents).  |
+| `...`          | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
 
 **Subcomponents:**
 

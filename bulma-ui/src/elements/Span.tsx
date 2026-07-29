@@ -19,7 +19,7 @@ export interface SpanProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to be rendered inside the span. */
+  /** Content to render inside the span. */
   children?: React.ReactNode;
 }
 

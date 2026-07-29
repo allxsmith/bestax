@@ -84,27 +84,27 @@ export interface GridProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Use a fixed grid layout (Bulma's .fixed-grid > .grid). */
+  /** Use a fixed grid layout (`.fixed-grid > .grid`). */
   isFixed?: boolean;
-  /** Main gap for grid (Bulma `is-gap-X`). Main gap for grid (applies is-gap-X, 0-8). */
+  /** Main gap for grid (Bulma `is-gap-X`). */
   gap?: BulmaGapValue;
-  /** Column gap for grid (applies is-column-gap-X, 0-8). */
+  /** Column gap for grid (`is-column-gap-X`). */
   columnGap?: BulmaGapValue;
-  /** Row gap for grid (applies is-row-gap-X, 0-8). */
+  /** Row gap for grid (`is-row-gap-X`). */
   rowGap?: BulmaGapValue;
-  /** Minimum column width for the grid (applies is-col-min-X, 1-32). */
+  /** Minimum column width for the grid (`is-col-min-X`). */
   minCol?: BulmaMinColValue;
-  /** For fixed grid only: explicit column count (applies has-X-cols, 0-12), or 'auto' for has-auto-count. */
+  /** For fixed grids: explicit column count (`has-X-cols`), or `'auto'` for auto-count. */
   fixedCols?: BulmaFixedGridColsProp;
-  /** For fixed grid only: explicit column count for mobile. */
+  /** For fixed grids: explicit column count for mobile. */
   fixedColsMobile?: BulmaFixedGridCols;
-  /** For fixed grid only: explicit column count for tablet. */
+  /** For fixed grids: explicit column count for tablet. */
   fixedColsTablet?: BulmaFixedGridCols;
-  /** For fixed grid only: explicit column count for desktop. */
+  /** For fixed grids: explicit column count for desktop. */
   fixedColsDesktop?: BulmaFixedGridCols;
-  /** For fixed grid only: explicit column count for widescreen. */
+  /** For fixed grids: explicit column count for widescreen. */
   fixedColsWidescreen?: BulmaFixedGridCols;
-  /** For fixed grid only: explicit column count for fullhd. */
+  /** For fixed grids: explicit column count for fullhd. */
   fixedColsFullhd?: BulmaFixedGridCols;
   /** Additional CSS classes for the grid. */
   className?: string;

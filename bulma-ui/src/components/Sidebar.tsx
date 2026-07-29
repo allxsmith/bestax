@@ -22,7 +22,7 @@ export interface SidebarProps
   onClose?: () => void;
   /** Which side the sidebar appears from. Default: 'left'. */
   position?: SidebarPosition;
-  /** Custom width of the sidebar. Custom width. Default: '260px'. */
+  /** Custom width of the sidebar. */
   width?: string;
   /** Sidebar takes full width (mobile-style). */
   fullWidth?: boolean;
@@ -36,7 +36,7 @@ export interface SidebarProps
   canCancel?: boolean;
   /** Content to display in the sidebar. */
   children?: React.ReactNode;
-  /** Renders inline instead of using a portal. Render without portal. Default false. */
+  /** Renders inline instead of using a portal. */
   inline?: boolean;
 }
 

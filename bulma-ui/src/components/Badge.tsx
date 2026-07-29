@@ -32,13 +32,13 @@ export interface BadgeProps
   extends
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color'> {
-  /** Additional CSS classes applied to the root (the wrapper when `children` are present, else the badge pill). */
+  /** Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill. */
   className?: string;
   /** Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`). */
   badgeClassName?: string;
   /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. */
   content?: React.ReactNode;
-  /** Numeric `content` above this renders as `"{max}+"`. Default `99`; a negative or non-integer value falls back to the default. */
+  /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
   max?: number;
   /** Render a small dot with no content. */
   dot?: boolean;
@@ -46,9 +46,9 @@ export interface BadgeProps
   showZero?: boolean;
   /** Status color. Default `'danger'`. */
   color?: BadgeColor;
-  /** Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`). Corner to overlay the badge on, relative to `children`. Default `'top-right'`. */
+  /** Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`). */
   position?: BadgePosition;
-  /** Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`). Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Default `'square'`. */
+  /** Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`). */
   overlap?: BadgeOverlap;
   /** Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`. */
   pulse?: boolean;

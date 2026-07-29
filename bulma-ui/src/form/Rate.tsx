@@ -47,35 +47,35 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
-  /** Form field name. When set, a hidden input is rendered. Form field name. When provided, a hidden input is rendered so the rating value is submitted with the surrounding form. */
+  /** Form field name. When set, a hidden input is rendered. */
   name?: string;
   /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
   form?: string;
-  /** Controlled value (0 to max). Controlled rating value. */
+  /** Controlled value (0 to max). */
   value?: number;
-  /** Default value for uncontrolled usage. Initial value for uncontrolled mode. Default: 0. */
+  /** Default value for uncontrolled usage. */
   defaultValue?: number;
-  /** Maximum rating value. Maximum number of icons. Default: 5. */
+  /** Maximum rating value. */
   max?: number;
-  /** Size variant. Size modifier for the component. */
+  /** Size variant. */
   size?: RateSize;
   /** Whether the rating is disabled. */
   disabled?: boolean;
-  /** Show the numeric score next to stars. Display the numeric score next to icons. */
+  /** Show the numeric score next to stars. */
   showScore?: boolean;
-  /** Show custom text based on value. Display text label for the current value. */
+  /** Show custom text based on value. */
   showText?: boolean;
-  /** Array of text labels for each rating value. Text labels per rating level (used with showText). */
+  /** Array of text labels for each rating value. */
   texts?: string[];
-  /** Callback when the rating changes. */
+  /** Callback when rating changes. */
   onChange?: (value: number) => void;
-  /** Custom icon renderer. Custom icon render function. */
+  /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
   /** Add spacing between icons. */
   spaced?: boolean;
-  /** Right-to-left direction. Render icons in right-to-left order. */
+  /** Right-to-left direction. */
   rtl?: boolean;
-  /** Custom icon name for the rating stars. Font icon name (e.g., 'star'). When set, renders <Icon> instead of default SVG. */
+  /** Custom icon name for the rating stars. */
   iconName?: string;
   /** Icon library to use (defaults to ConfigProvider value or 'fa'). */
   iconLibrary?: IconLibrary;
@@ -83,11 +83,11 @@ export interface RateProps
   iconVariant?: string;
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Color of the active rating icons. Bulma color for active icons. */
+  /** Color of the active rating icons. */
   color?: BulmaColor;
-  /** Rating precision (e.g., `0.5` for half stars). Granularity: 1 for whole stars, 0.5 for half, 0.25 for quarter. */
+  /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
-  /** Custom text displayed next to the rating. Text displayed after score (e.g., "(128 reviews)"). */
+  /** Custom text displayed next to the rating. */
   customText?: string;
 }
 

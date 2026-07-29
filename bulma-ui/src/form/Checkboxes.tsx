@@ -26,7 +26,7 @@ export interface CheckboxesProps
   value?: string[];
   /** Initial selected values (uncontrolled mode). */
   defaultValue?: string[];
-  /** Fired when the selection changes. Receives the new array of selected values. */
+  /** Fires when the selection changes; receives the new array. */
   onChange?: (values: string[]) => void;
   /** Checkbox elements to render in the group. */
   children?: React.ReactNode;

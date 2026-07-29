@@ -262,7 +262,7 @@ For responsive tables, ensure your column headers are clear and concise for smal
 | Prop           | Type                                                     | Default | Description                                                   |
 | -------------- | -------------------------------------------------------- | ------- | ------------------------------------------------------------- |
 | `className`    | `string`                                                 | —       | Additional CSS classes to apply.                              |
-| `isBordered`   | `boolean`                                                | `false` | Adds borders to all the cells.                                |
+| `isBordered`   | `boolean`                                                | `false` | Adds borders to all cells.                                    |
 | `isStriped`    | `boolean`                                                | `false` | Adds zebra-striping to rows.                                  |
 | `isNarrow`     | `boolean`                                                | `false` | Makes the table more compact by cutting cell padding in half. |
 | `isHoverable`  | `boolean`                                                | `false` | Adds a hover effect on rows.                                  |

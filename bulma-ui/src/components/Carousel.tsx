@@ -138,15 +138,15 @@ export interface CarouselProps
   iconSize?: 'small' | 'medium' | 'large';
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. Show semi-transparent background on arrow buttons. Default: true. */
+  /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. */
   arrowBackground?: boolean;
-  /** Color theme for navigation arrows. Arrow icon color variant. Useful for transparent arrows on dark/light backgrounds. */
+  /** Color theme for navigation arrows. */
   arrowColor?: 'light' | 'dark';
   /** Accessible label for the carousel region. Default: 'Image carousel'. */
   ariaLabel?: string;
   /** Callback when slide changes. */
   onChange?: (value: number) => void;
-  /** CarouselItem children. Carousel slide items (CarouselItem elements). */
+  /** CarouselItem children. */
   children?: React.ReactNode;
 }
 

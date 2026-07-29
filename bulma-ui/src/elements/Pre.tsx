@@ -19,7 +19,7 @@ export interface PreProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Preformatted content to be rendered inside the element. */
+  /** Preformatted content to render. */
   children?: React.ReactNode;
 }
 

@@ -13,7 +13,7 @@ export interface TagsProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Group tags together as add-ons (no spacing). Group tags together as addons. */
+  /** Group tags together as add-ons (no spacing). */
   hasAddons?: boolean;
   /** Allow tags to wrap onto multiple lines. */
   isMultiline?: boolean;

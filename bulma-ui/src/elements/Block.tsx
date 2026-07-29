@@ -21,7 +21,7 @@ export interface BlockProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to be rendered inside the block. */
+  /** Content to render inside the block. */
   children?: React.ReactNode;
 }
 

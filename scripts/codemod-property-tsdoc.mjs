@@ -238,7 +238,7 @@ function stripTypeRestatement(text) {
     .trim();
 }
 
-function mergeDescriptions(fromDocs, other) {
+function mergeDescriptions(fromDocs, other, onDiscard) {
   if (!fromDocs) return other;
   if (!other || fromDocs === other) return fromDocs;
   if (stripTypeRestatement(other) !== other) {
@@ -246,21 +246,18 @@ function mergeDescriptions(fromDocs, other) {
   }
   if (fromDocs === other) return fromDocs;
   const norm = t => t.toLowerCase().replace(/[.\s]+$/, '');
+  // The page text is intact inside the comment, which only adds a tail — take
+  // the fuller one, nothing of the page's wording is lost.
   if (norm(other).includes(norm(fromDocs))) return other;
   if (norm(fromDocs).includes(norm(other))) return fromDocs;
-  // Two phrasings of the same sentence — "Content to render inside the block"
-  // and "Content to be rendered inside the block" — carry the same words once
-  // stemmed, and concatenating them reads as a stutter. Keep the longer.
-  const a = contentWords(fromDocs);
-  const b = contentWords(other);
-  const aInB = subset(a, b);
-  const bInA = subset(b, a);
-  // Same words either way — the difference is only how they are written, and
-  // select.md's "`<option>` elements." says it better than "Option elements."
-  if (aInB && bInA) return fromDocs.length >= other.length ? fromDocs : other;
-  if (aInB) return other;
-  if (bInA) return fromDocs;
-  return `${fromDocs} ${other}`;
+
+  // Otherwise the two disagree on WORDING, and the page wins. Its sentences
+  // were hand-corrected; the comment they are merged with may predate that
+  // correction, and silently promoting it would undo the edit — which is the
+  // one thing a docs generator must never do. What the comment said is
+  // reported instead, so the difference is reviewed rather than lost.
+  onDiscard?.(other);
+  return fromDocs;
 }
 
 const MERGE_STOPWORDS = new Set(
@@ -396,6 +393,7 @@ async function processFile(file, docsByTitle, opts) {
     inserted: 0,
     orphans: [],
     borrowed: [],
+    discarded: [],
     rewritten: [],
     undocumented: [],
   };
@@ -469,7 +467,11 @@ async function processFile(file, docsByTitle, opts) {
         }
       }
       const fromTag = byName.get(mName);
-      const desc = mergeDescriptions(fromDocs, fromTag);
+      const desc = mergeDescriptions(fromDocs, fromTag, text =>
+        report.discarded.push(
+          `${name}.${mName}\n      page:    ${fromDocs}\n      comment: ${text}`
+        )
+      );
 
       const existing = memberJsDoc(member);
       if (existing) {
@@ -482,7 +484,12 @@ async function processFile(file, docsByTitle, opts) {
         const current = (ts.getTextOfJSDocComment(existing.comment) ?? '')
           .replace(/\s+/g, ' ')
           .trim();
-        const merged = mergeDescriptions(fromDocs, current) || current;
+        const merged =
+          mergeDescriptions(fromDocs, current, text =>
+            report.discarded.push(
+              `${name}.${mName}\n      page:    ${fromDocs}\n      comment: ${text}`
+            )
+          ) || current;
         // A stated default is carried over even when the description is
         // unchanged — `completedIcon`'s comment is already the better text, but
         // the table's `'✓'` lives nowhere in the source.
@@ -733,6 +740,7 @@ async function main() {
   let inserted = 0;
   const orphans = [];
   const borrowed = [];
+  const discarded = [];
   const rewritten = [];
   const undocumented = [];
   for (const file of files) {
@@ -740,6 +748,7 @@ async function main() {
     inserted += r.inserted;
     orphans.push(...r.orphans);
     borrowed.push(...r.borrowed);
+    discarded.push(...r.discarded);
     rewritten.push(...r.rewritten);
     undocumented.push(...r.undocumented);
     if (r.inserted) {
@@ -752,6 +761,15 @@ async function main() {
   process.stdout.write(
     `\n${inserted} member TSDoc comment(s) ${dryRun ? 'would be ' : ''}written.\n`
   );
+  if (discarded.length) {
+    process.stdout.write(
+      `\n${discarded.length} source comment(s) disagreed with the docs page and ` +
+        `were DISCARDED in favour of the page's wording. Review these — where ` +
+        `the comment is the newer truth, edit the page and re-run:\n  ` +
+        discarded.join('\n  ') +
+        '\n'
+    );
+  }
   if (borrowed.length) {
     process.stdout.write(
       `\n${borrowed.length} description(s) borrowed from the page of the ` +

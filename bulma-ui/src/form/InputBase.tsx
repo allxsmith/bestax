@@ -23,21 +23,21 @@ export interface InputBaseProps
     | 'white';
   /** Size modifier for the input. */
   size?: 'small' | 'medium' | 'large';
-  /** Renders the input with rounded corners. */
+  /** Rounded input corners. */
   isRounded?: boolean;
-  /** Renders input as static (read only, styled). Renders the input as static text. */
+  /** Renders input as static (read only, styled). */
   isStatic?: boolean;
-  /** Applies the hovered state. */
+  /** Applies hovered state. */
   isHovered?: boolean;
-  /** Applies the focused state. */
+  /** Applies focused state. */
   isFocused?: boolean;
   /** Shows loading indicator. */
   isLoading?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Whether the input is disabled. */
+  /** Disabled input. */
   disabled?: boolean;
-  /** Whether the input is read-only. */
+  /** Read-only input. */
   readOnly?: boolean;
 }
 

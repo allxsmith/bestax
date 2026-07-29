@@ -134,16 +134,16 @@ Render a list of radios using the `Radios` wrapper component. This is useful for
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                             |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the radio button. Color variant for the radio. |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the radio button.                               |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                      |
-| `disabled`  | `boolean`                                                                       | `false` | Whether the radio is disabled.                          |
-| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                        |
-| `children`  | `React.ReactNode`                                                               | —       | The label/content for the radio.                        |
-| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.                    |
-| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the radio button.                        |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the radio button.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the radio is disabled.                    |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `children`  | `React.ReactNode`                                                               | —       | The label/content for the radio.                  |
+| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.              |
+| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

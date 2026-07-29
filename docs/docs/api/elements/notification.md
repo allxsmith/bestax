@@ -155,7 +155,7 @@ Always provide clear, actionable text inside notifications.
 | `isLight`   | `boolean`                                                               | `false` | Use the light color variant.                       |
 | `hasDelete` | `boolean`                                                               | `false` | Shows a close (delete) button in the notification. |
 | `onDelete`  | `() => void`                                                            | —       | Callback fired when the delete button is clicked.  |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the notification.    |
+| `children`  | `React.ReactNode`                                                       | —       | Content inside the notification.                   |
 | `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
 
 <!-- /bestax:generated props -->

@@ -22,7 +22,7 @@ import { FormFieldProps } from './fieldProps';
 export interface AutocompleteItem {
   /** The value used for filtering and selection. */
   value: string;
-  /** Display label (optional). Display label (falls back to value if omitted). */
+  /** Display label (optional). */
   label?: string;
   /** Whether the item is disabled and unselectable. */
   disabled?: boolean;
@@ -67,19 +67,19 @@ export interface AutocompleteProps
   loading?: boolean;
   /** Whether the input is disabled. */
   disabled?: boolean;
-  /** Enables infinite scroll detection in the dropdown. Enable infinite scroll detection. */
+  /** Enables infinite scroll detection in the dropdown. */
   checkInfiniteScroll?: boolean;
-  /** Distance in pixels from the bottom to trigger `onInfiniteScroll`. Distance threshold for infinite scroll. */
+  /** Distance in pixels from the bottom to trigger `onInfiniteScroll`. */
   infiniteScrollDistance?: number;
-  /** Input color variant. Bulma color modifier for the input. */
+  /** Input color variant. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Size variant. Size modifier for the input. */
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
-  /** Form field name; forwarded to the inner input so the typed/selected value submits with the surrounding form. */
+  /** Form field name. Forwarded to the inner `<input>`. */
   name?: string;
   /** Optional id of the form the input belongs to. */
   form?: string;
-  /** Marks the field as required for native HTML form validation. Whether the input is required. */
+  /** Marks the field as required for native HTML form validation. */
   required?: boolean;
   /** Callback when input value changes. */
   onInput?: (value: string) => void;

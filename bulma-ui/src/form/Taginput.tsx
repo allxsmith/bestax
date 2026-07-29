@@ -23,7 +23,7 @@ import { Icon } from '../elements/Icon';
 export interface TaginputItem {
   /** The tag value. */
   value: string;
-  /** Display label (optional). Display label for the tag. */
+  /** Display label (optional). */
   label?: string;
   [key: string]: unknown;
 }
@@ -75,25 +75,25 @@ export interface TaginputProps
   disabled?: boolean;
   /** Whether the input is read-only. */
   readonly?: boolean;
-  /** Applies rounded corners to the tags. Makes tags rounded. */
+  /** Applies rounded corners to the tags. */
   rounded?: boolean;
-  /** Truncates long tag text with ellipsis. Truncate long tag text with ellipsis and show title tooltip. */
+  /** Truncates long tag text with ellipsis. */
   ellipsis?: boolean;
-  /** Shows a counter of the number of tags. Show counter for maxTags/maxlength. Default: true. */
+  /** Shows a counter of the number of tags. */
   hasCounter?: boolean;
-  /** Characters that split pasted text into tags. Characters to split on paste. Default: [',']. */
+  /** Characters that split pasted text into tags. */
   onPasteSeparators?: string[];
-  /** Validation function called before adding a tag. Validate before adding a tag. */
+  /** Validation function called before adding a tag. */
   beforeAdding?: (tag: string) => boolean;
-  /** Custom function for creating tag objects from input. Transform input string to tag. */
+  /** Custom function for creating tag objects from input. */
   createTag?: (input: string) => TaginputTag;
-  /** Keeps the first autocomplete suggestion highlighted. Auto-highlight first autocomplete result. */
+  /** Keeps the first autocomplete suggestion highlighted. */
   keepFirst?: boolean;
-  /** Keeps the autocomplete dropdown open after selection. Keep dropdown open after selecting. Default: true. */
+  /** Keeps the autocomplete dropdown open after selection. */
   keepOpen?: boolean;
-  /** Shows a loading indicator. Show loading spinner in input. */
+  /** Shows a loading indicator. */
   loading?: boolean;
-  /** ARIA label for tag close buttons. Accessibility label for close buttons. */
+  /** ARIA label for tag close buttons. */
   ariaCloseLabel?: string;
   /** Icon name for the input field. */
   icon?: string;
@@ -103,9 +103,9 @@ export interface TaginputProps
   iconVariant?: string;
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Input color variant. Bulma color modifier for the input. */
+  /** Input color variant. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Tag color variant. Color modifier for tags. */
+  /** Tag color variant. */
   tagColor?:
     | 'primary'
     | 'link'
@@ -115,9 +115,9 @@ export interface TaginputProps
     | 'danger'
     | 'dark'
     | 'light';
-  /** Size variant. Size modifier for the component. */
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
-  /** Form field name. When set, one hidden input per tag is rendered. Form field name. When provided, one hidden input per tag is rendered so tags submit as a standard form-encoded array (e.g., `tags=react&tags=vue`). */
+  /** Form field name. When set, one hidden input per tag is rendered. */
   name?: string;
   /** Optional id of the form the hidden inputs belong to. */
   form?: string;

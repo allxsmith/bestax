@@ -34,7 +34,7 @@ export interface CheckboxProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  /** Color variant for the checkbox. */
+  /** Color of the checkbox. */
   color?: (typeof checkboxColors)[number];
   /** Size of the checkbox. */
   size?: (typeof checkboxSizes)[number];

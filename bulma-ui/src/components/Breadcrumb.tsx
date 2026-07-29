@@ -34,13 +34,13 @@ export interface BreadcrumbProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Alignment of the breadcrumb (`is-centered`, `is-right`). Alignment modifier for the breadcrumb. */
+  /** Alignment of the breadcrumb (`is-centered`, `is-right`). */
   alignment?: BreadcrumbAlignment;
-  /** Type of separator between breadcrumb items. Separator style for the breadcrumb. */
+  /** Type of separator between breadcrumb items. */
   separator?: BreadcrumbSeparator;
-  /** Size modifier for the breadcrumb. */
+  /** Breadcrumb size. */
   size?: BreadcrumbSize;
-  /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). Breadcrumb items (e.g., "a" or "span" html elements). */
+  /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). */
   children?: React.ReactNode;
 }
 

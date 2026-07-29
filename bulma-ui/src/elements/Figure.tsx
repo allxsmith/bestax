@@ -74,7 +74,7 @@ export interface FigureProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to be rendered inside the figure. */
+  /** Content to render inside the figure. */
   children?: React.ReactNode;
 }
 

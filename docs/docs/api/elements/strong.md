@@ -146,7 +146,22 @@ The `<strong>` element indicates strong importance. For visual-only bold styling
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the strong element. |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the strong element.      |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Strong`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable            | Sass Variable    | Default                        |
+| ----------------------- | ---------------- | ------------------------------ |
+| `--bulma-strong-color`  | `$strong-color`  | `var(--bulma-text-strong)`     |
+| `--bulma-strong-weight` | `$strong-weight` | `var(--bulma-weight-semibold)` |
+
+<!-- /bestax:generated cssvars -->

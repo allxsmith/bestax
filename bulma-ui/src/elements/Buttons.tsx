@@ -18,7 +18,7 @@ interface ButtonsProps
   className?: string;
   /** Text color helper for the button group. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the buttons group. */
+  /** Bulma color modifier for the button group. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper for the button group. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';

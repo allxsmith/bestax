@@ -311,7 +311,50 @@ export function renderValue(raw) {
  * @param {string} root  Root class, e.g. `hero` (from usePrefixedClassNames).
  * @returns {{cssVar: string, sassVar: string|null, value: string}[]}
  */
-export function componentVars(src, root) {
+/**
+ * Does a depth-1 registration belong to this component?
+ *
+ * Normally that means the selector IS the component's root class. But nine
+ * Bulma partials register at `$variables-host` (`:root`) instead — `Skeleton`,
+ * `Code`, `Pre`, `Strong` and `Delete` declare every one of their variables
+ * that way, so a selector-only rule showed those components no table at all
+ * while `Box` and `Card`, which register on their own class, got one. Whether
+ * Bulma writes `.skeleton-lines { … }` or `:root { … }` is an implementation
+ * detail of the stylesheet; it says nothing about whose variable it is.
+ *
+ * A host registration is claimed by KEY PREFIX, which is what keeps it honest:
+ * `base/generic.scss` hosts `body-*`, `hr-*`, `small-*`, `code-*`, `strong-*`
+ * and `pre-*` together, and only the last three reach the components that own
+ * them.
+ */
+function ownsRegistration(selector, root, prefix, key) {
+  if (root && selectorClasses(selector).includes(root)) return true;
+  if (!prefix) return false;
+  // A `@mixin delete { … }` body is the other off-selector home: Bulma declares
+  // every `--bulma-delete-*` there and applies the mixin to `.delete`.
+  const offSelector =
+    isVariablesHost(selector) ||
+    new RegExp(`^@mixin\\s+${prefix}\\b`).test(selector.trim());
+  if (!offSelector) return false;
+  return key === prefix || key.startsWith(`${prefix}-`);
+}
+
+/**
+ * `#{iv.$variables-host}` resolves to `:root` by default and is configurable to
+ * `:where(html)`; match the interpolation itself plus both concrete forms, so
+ * this keeps working whether the scan sees source or resolved CSS.
+ */
+function isVariablesHost(selector) {
+  const s = selector.trim();
+  return (
+    /\$variables-host/.test(s) ||
+    s === ':root' ||
+    /^:where\(\s*html\s*\)$/.test(s) ||
+    s === 'html'
+  );
+}
+
+export function componentVars(src, root, prefix = root) {
   const defaults = defaultDeclarations(src);
   const rows = [];
   const seen = new Set();
@@ -321,7 +364,7 @@ export function componentVars(src, root) {
     // deeper is a state re-declaration (`&:hover`) or another component's
     // variables nested inside this one (hero.scss's navbar/tabs/title blocks).
     if (chain.length !== 1) continue;
-    if (!selectorClasses(chain[0]).includes(root)) continue;
+    if (!ownsRegistration(chain[0], root, prefix, key)) continue;
     if (seen.has(key)) continue;
     seen.add(key);
 
@@ -337,6 +380,11 @@ export function componentVars(src, root) {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
+      // Where the DEFAULT is declared, which the page's lead sentence needs to
+      // state correctly: 'root' means the component's own selector, 'global'
+      // means `:root` or a mixin body.
+      scope:
+        root && selectorClasses(chain[0]).includes(root) ? 'root' : 'global',
     });
   }
   return rows;

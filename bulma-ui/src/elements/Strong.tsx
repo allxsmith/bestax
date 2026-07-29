@@ -19,7 +19,7 @@ export interface StrongProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to be rendered inside the strong element. */
+  /** Content to render inside the strong element. */
   children?: React.ReactNode;
 }
 

@@ -33,21 +33,21 @@ export interface ToastProps
     Omit<BulmaClassesProps, 'color'> {
   /** The message to display (required). */
   message: string;
-  /** Color variant — colors the toast **background**. Colors the toast background. Default: 'default'. */
+  /** Color variant — colors the toast **background**. */
   type?: ToastType;
   /** Color variant — colors the **action button** text. */
   actionType?: ToastType;
   /** Position on the screen. Default: 'top-right'. */
   position?: ToastPosition;
-  /** Duration in ms before auto-close (0 disables). Default: 2000. */
+  /** Duration in ms before auto-close. `0` disables auto-close. */
   duration?: number;
-  /** Keeps the toast visible until dismissed. Stay open until dismissed. Default: false. */
+  /** Keeps the toast visible until dismissed. */
   indefinite?: boolean;
-  /** Whether clicking the toast (or outside it) dismisses it. Click toast (or outside) to dismiss. Default: true. */
+  /** Whether clicking the toast (or outside it) dismisses it. */
   dismissible?: boolean;
   /** Show an explicit close (X) button. Default: false. */
   closable?: boolean;
-  /** Pill-shaped (rounded corners). Pill-shaped toast. Default: false. */
+  /** Pill-shaped (rounded corners). */
   rounded?: boolean;
   /** Pause auto-close timer on hover. Default: false. */
   pauseOnHover?: boolean;
@@ -61,9 +61,9 @@ export interface ToastProps
   onAction?: () => void;
   /** Callback when toast closes. */
   onClose?: () => void;
-  /** CSS selector or DOM node to mount the toast into. Custom mount target (CSS selector string or HTMLElement). */
+  /** CSS selector or DOM node to mount the toast into. */
   container?: string | HTMLElement;
-  /** Renders inline instead of using a portal. Render only the .toast element without portal/container wrapper. Default: false. */
+  /** Renders inline instead of using a portal. */
   inline?: boolean;
 }
 

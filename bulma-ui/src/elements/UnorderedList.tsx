@@ -21,7 +21,7 @@ export interface UnorderedListProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** List items to be rendered inside the list. */
+  /** List items to render inside the list. */
   children?: React.ReactNode;
 }
 

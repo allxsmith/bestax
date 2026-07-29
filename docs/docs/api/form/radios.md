@@ -302,7 +302,7 @@ function RadiosWrappedFormDemo() {
 | `name`           | `string`                                                                        | —       | Form field name shared by every Radio in the group (via context). |
 | `value`          | `string`                                                                        | —       | Currently-selected value (controlled mode).                       |
 | `defaultValue`   | `string`                                                                        | —       | Initial selected value (uncontrolled mode).                       |
-| `onChange`       | `(value: string) => void`                                                       | —       | Fired when the selection changes. Receives the new value.         |
+| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes.                                 |
 | `children`       | `React.ReactNode`                                                               | —       | Radio elements to render in the group.                            |
 | `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                           |
 | `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                  |

@@ -160,7 +160,7 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 | ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------- |
 | `className`  | `string`                                                                        | —       | Additional CSS classes to apply.                                 |
 | `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper for the button group.                          |
-| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the buttons group.                      |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the button group.                       |
 | `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper for the button group.                    |
 | `isCentered` | `boolean`                                                                       | `false` | Center the group of buttons.                                     |
 | `isRight`    | `boolean`                                                                       | `false` | Align the group of buttons to the right.                         |

@@ -288,21 +288,21 @@ When `canCancel` is true, the loading can be cancelled by:
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                                            | Default | Description                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible.                                                                                                      |
-| `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport.                                                                                                                   |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                                                                                                                 |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner. Default is light grey.                                                                                        |
-| `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing.                                                                                                      |
-| `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                                                                                                           |
-| `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                                                                                                          |
-| `iconClassName`    | `string`                                                                        | —       | Additional classes for the spinner icon.                                                                                                     |
-| `indicator`        | `React.ReactNode`                                                               | —       | Custom loading indicator element. Custom content to replace the default CSS spinner. The Loading component wraps it in a spinning container. |
-| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                             | —       | Style of the loading overlay. Overlay opacity level: 'light', 'dark', or 'opaque'. Defaults to a medium opacity.                             |
-| `children`         | `React.ReactNode`                                                               | —       | Content to display below the spinner.                                                                                                        |
-| `className`        | `string`                                                                        | —       | Additional CSS classes.                                                                                                                      |
-| `...`              | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                            |
+| Prop               | Type                                                                            | Default | Description                                           |
+| ------------------ | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible.               |
+| `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport.                            |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                          |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner. Default is light grey. |
+| `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing.               |
+| `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                    |
+| `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                   |
+| `iconClassName`    | `string`                                                                        | —       | Additional classes for the spinner icon.              |
+| `indicator`        | `React.ReactNode`                                                               | —       | Custom loading indicator element.                     |
+| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                             | —       | Style of the loading overlay.                         |
+| `children`         | `React.ReactNode`                                                               | —       | Content to display below the spinner.                 |
+| `className`        | `string`                                                                        | —       | Additional CSS classes.                               |
+| `...`              | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)     |
 
 <!-- /bestax:generated props -->
 

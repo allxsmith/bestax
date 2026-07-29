@@ -155,12 +155,28 @@ For code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics:
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                             |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes to apply.                        |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                      |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
-| `children`  | `React.ReactNode`                                                       | —       | Preformatted content to be rendered inside the element. |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Preformatted content to render.                   |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Pre`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable                 | Sass Variable         | Default          |
+| ---------------------------- | --------------------- | ---------------- |
+| `--bulma-pre-font-size`      | `$pre-font-size`      | `0.875em`        |
+| `--bulma-pre-padding`        | `$pre-padding`        | `1.25rem 1.5rem` |
+| `--bulma-pre-code-font-size` | `$pre-code-font-size` | `1em`            |
+
+<!-- /bestax:generated cssvars -->

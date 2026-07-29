@@ -167,7 +167,24 @@ Use `Code` for short inline snippets. For multi-line code blocks that need to pr
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Code content to be rendered inside the element.   |
+| `children`  | `React.ReactNode`                                                       | —       | Code content to render inside the element.        |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Code`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable           | Sass Variable   | Default                    |
+| ---------------------- | --------------- | -------------------------- |
+| `--bulma-code-family`  | `$code-family`  | `var(--bulma-family-code)` |
+| `--bulma-code-padding` | `$code-padding` | `0.25em 0.5em 0.25em`      |
+| `--bulma-code-weight`  | `$code-weight`  | `normal`                   |
+| `--bulma-code-size`    | `$code-size`    | `0.875em`                  |
+
+<!-- /bestax:generated cssvars -->

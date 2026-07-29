@@ -32,9 +32,9 @@ export interface NavbarProps
     | 'white';
   /** Background color for the navbar. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Renders the navbar with a transparent background. Whether the navbar is transparent. */
+  /** Renders the navbar with a transparent background. */
   transparent?: boolean;
-  /** Fixes the navbar to the top or bottom of the viewport. Whether the navbar is fixed to the top or bottom. */
+  /** Fixes the navbar to the top or bottom of the viewport. */
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;

@@ -311,19 +311,19 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                    | Default | Description                                                                                                                                                              |
-| ---------------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                                                                                                       |
-| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                                                                                                   |
-| `onClose`        | `() => void`                                                            | —       | Callback invoked when modal close is requested (background click or close button).                                                                                       |
-| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                                                                                                    |
-| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                                                                                                            |
-| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                                                                                                      |
-| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                                                                                                   |
-| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                                                                                                         |
-| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) Modal type ('card' for modal-card, 'content' for modal-content). Legacy API only. |
-| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                                                                                                               |
-| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                        |
+| Prop             | Type                                                                    | Default | Description                                                                            |
+| ---------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------- |
+| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                     |
+| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                 |
+| `onClose`        | `() => void`                                                            | —       | Callback invoked to request modal close (background or close button).                  |
+| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                  |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                          |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                    |
+| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                 |
+| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                       |
+| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) |
+| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                             |
+| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                      |
 
 **Subcomponents:**
 

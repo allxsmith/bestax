@@ -21,7 +21,7 @@ export interface TableProps
     Omit<BulmaClassesProps, 'backgroundColor'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Adds borders to all the cells. */
+  /** Adds borders to all cells. */
   isBordered?: boolean;
   /** Adds zebra-striping to rows. */
   isStriped?: boolean;

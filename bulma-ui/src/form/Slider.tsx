@@ -35,7 +35,7 @@ export type SliderOrientation = 'horizontal' | 'vertical';
  * A tick mark displayed along the Slider track.
  */
 export interface SliderMark {
-  /** Controlled value. Position of the mark along the slider range. */
+  /** Controlled value. */
   value: number;
   /** Optional label rendered below the tick mark. */
   label?: React.ReactNode;
@@ -52,35 +52,35 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Minimum slider value (default: 0). */
+  /** Minimum value. */
   min?: number;
-  /** Maximum slider value (default: 100). */
+  /** Maximum value. */
   max?: number;
   /** Step increment (default: 1). */
   step?: number;
-  /** Size variant. Size of the slider. */
+  /** Size variant. */
   size?: SliderSize;
-  /** Color variant. Color of the slider. */
+  /** Color variant. */
   color?: SliderColor;
-  /** Use rounded track ends. Whether the slider thumb is rounded. */
+  /** Use rounded track ends. */
   isRounded?: boolean;
-  /** Whether the slider thumb is circular. */
+  /** Use circular thumb. */
   isCircle?: boolean;
-  /** Whether to show a tooltip with the current value (maps to tooltip 'auto'). */
+  /** Show current value tooltip. */
   showOutput?: boolean;
-  /** Controls tooltip visibility on the thumb. Tooltip display mode (overrides showOutput). */
+  /** Controls tooltip visibility on the thumb. */
   tooltip?: SliderTooltip;
-  /** Shows tick marks along the track. Whether to display tick marks at each step. */
+  /** Shows tick marks along the track. */
   ticks?: boolean;
-  /** Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. Custom tick mark positions and labels. */
+  /** Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. */
   marks?: SliderMark[];
-  /** Slider orientation (default: 'horizontal'). */
+  /** Orientation of the slider. */
   orientation?: SliderOrientation;
-  /** Function to scale the displayed value. Non-linear scale function for displayed values. */
+  /** Function to scale the displayed value. */
   scale?: (value: number) => number;
-  /** Function to generate the `aria-valuetext` attribute. Custom aria-valuetext formatter. */
+  /** Function to generate the `aria-valuetext` attribute. */
   getAriaValueText?: (value: number) => string;
-  /** Format function for output display. Custom formatter for the tooltip output. */
+  /** Format function for output display. */
   formatOutput?: (value: number) => string;
 }
 
@@ -89,25 +89,25 @@ interface SliderBaseProps
  */
 export interface SliderSingleProps extends SliderBaseProps {
   /**
-   * Enables range mode with two thumbs. Must be false or omitted for single-value mode.
+   * Enables range mode with two thumbs.
    * @defaultValue false
    */
   range?: false;
-  /** Controlled slider value. */
+  /** Controlled value. */
   value?: number;
   /**
-   * Default value for uncontrolled usage. Initial value for uncontrolled mode.
+   * Default value for uncontrolled usage.
    * @defaultValue 0
    */
   defaultValue?: number;
-  /** Callback when the value changes. */
+  /** Callback when value changes. */
   onChange?: (value: number) => void;
   /**
-   * Minimum distance between thumbs in range mode. Not applicable in single-value mode.
+   * Minimum distance between thumbs in range mode.
    * @defaultValue 0
    */
   minDistance?: never;
-  /** ARIA label(s) for the slider thumb(s). Accessible label for the slider input. */
+  /** ARIA label(s) for the slider thumb(s). */
   ariaLabel?: string;
 }
 
@@ -116,25 +116,25 @@ export interface SliderSingleProps extends SliderBaseProps {
  */
 export interface SliderRangeProps extends SliderBaseProps {
   /**
-   * Enables range mode with two thumbs. Must be true to enable range mode.
+   * Enables range mode with two thumbs.
    * @defaultValue false
    */
   range: true;
-  /** Controlled range value as [low, high]. */
+  /** Controlled value. */
   value?: [number, number];
   /**
-   * Default value for uncontrolled usage. Initial range for uncontrolled mode.
+   * Default value for uncontrolled usage.
    * @defaultValue 0
    */
   defaultValue?: [number, number];
-  /** Callback when value changes. Callback when the range changes. */
+  /** Callback when value changes. */
   onChange?: (value: [number, number]) => void;
   /**
-   * Minimum distance between thumbs in range mode. Minimum distance between the two thumbs.
+   * Minimum distance between thumbs in range mode.
    * @defaultValue 0
    */
   minDistance?: number;
-  /** ARIA label(s) for the slider thumb(s). Accessible labels for the low and high thumb inputs. */
+  /** ARIA label(s) for the slider thumb(s). */
   ariaLabel?: [string, string];
   /** Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. */
   nameLow?: string;

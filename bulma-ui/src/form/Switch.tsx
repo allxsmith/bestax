@@ -25,11 +25,11 @@ export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Switch component.
- * @extraProp {boolean} [checked] - Controlled checked state. Whether the switch is checked.
+ * @extraProp {boolean} [checked] - Controlled checked state.
  * @extraProp {boolean} [defaultChecked=false] - Default checked state for uncontrolled usage.
  * @extraProp {boolean} [disabled=false] - Whether the switch is disabled.
  * @extraProp {string} [className] - Additional CSS classes.
- * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Callback when switch state changes. Change handler.
+ * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Callback when switch state changes.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
 export interface SwitchProps
@@ -51,7 +51,7 @@ export interface SwitchProps
   isOutlined?: boolean;
   /** Right-to-left layout (label on left). */
   isRtl?: boolean;
-  /** Color when the switch is in the off/passive state. Color for the unchecked (inactive) state. */
+  /** Color when the switch is in the off/passive state. */
   passiveType?: (typeof switchColors)[number];
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';

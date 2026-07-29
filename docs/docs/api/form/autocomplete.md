@@ -429,48 +429,48 @@ Use `keepFirst` combined with `Enter` to quickly select the first matching resul
 
 <!-- bestax:generated props -->
 
-| Prop                     | Type                                                                            | Default   | Description                                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------ |
-| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | `[]`      | The options data to display (required).                                                                      |
-| `value`                  | `string`                                                                        | —         | The current input value (controlled).                                                                        |
-| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                                                              |
-| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                                                              |
-| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                                                                 |
-| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button.                                                                              |
-| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                                                                         |
-| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                                                               |
-| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                                                                          |
-| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                                                                    |
-| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                                                           |
-| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                                                                    |
-| `loading`                | `boolean`                                                                       | `false`   | Show loading state.                                                                                          |
-| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                                                               |
-| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown. Enable infinite scroll detection.                         |
-| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`. Distance threshold for infinite scroll.    |
-| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant. Bulma color modifier for the input.                                                     |
-| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant. Size modifier for the input.                                                                   |
-| `name`                   | `string`                                                                        | —         | Form field name; forwarded to the inner input so the typed/selected value submits with the surrounding form. |
-| `form`                   | `string`                                                                        | —         | Optional id of the form the input belongs to.                                                                |
-| `required`               | `boolean`                                                                       | `false`   | Marks the field as required for native HTML form validation. Whether the input is required.                  |
-| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                                                           |
-| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                                                              |
-| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                                                                 |
-| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom (infinite scroll).                                                          |
-| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                                                                     |
-| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                                                                   |
-| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                                                                   |
-| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                                                             |
-| `label`                  | `React.ReactNode`                                                               | —         | Field label, rendered above the widget.                                                                      |
-| `labelSize`              | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —         | Size for the label (used in horizontal layouts).                                                             |
-| `labelProps`             | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —         | Props for the label element.                                                                                 |
-| `horizontal`             | `boolean`                                                                       | `false`   | Horizontal field layout.                                                                                     |
-| `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                                                                     |
-| `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                                                                 |
-| `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                                                                |
-| `children`               | `React.ReactNode`                                                               | —         | Content rendered inside the component.                                                                       |
-| `className`              | `string`                                                                        | —         | Additional CSS classes.                                                                                      |
-| `ref`                    | `React.Ref<HTMLElement>`                                                        | —         | Ref forwarded to the input element.                                                                          |
-| `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                            |
+| Prop                     | Type                                                                            | Default   | Description                                                       |
+| ------------------------ | ------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- |
+| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | `[]`      | The options data to display (required).                           |
+| `value`                  | `string`                                                                        | —         | The current input value (controlled).                             |
+| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                   |
+| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                   |
+| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                      |
+| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button.                                   |
+| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                              |
+| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                    |
+| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                               |
+| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                         |
+| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                |
+| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                         |
+| `loading`                | `boolean`                                                                       | `false`   | Show loading state.                                               |
+| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                    |
+| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown.                |
+| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`. |
+| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant.                                              |
+| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant.                                                     |
+| `name`                   | `string`                                                                        | —         | Form field name. Forwarded to the inner `<input>`.                |
+| `form`                   | `string`                                                                        | —         | Optional id of the form the input belongs to.                     |
+| `required`               | `boolean`                                                                       | `false`   | Marks the field as required for native HTML form validation.      |
+| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                |
+| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                   |
+| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                      |
+| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom (infinite scroll).               |
+| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                          |
+| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                        |
+| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                        |
+| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                  |
+| `label`                  | `React.ReactNode`                                                               | —         | Field label, rendered above the widget.                           |
+| `labelSize`              | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —         | Size for the label (used in horizontal layouts).                  |
+| `labelProps`             | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —         | Props for the label element.                                      |
+| `horizontal`             | `boolean`                                                                       | `false`   | Horizontal field layout.                                          |
+| `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                          |
+| `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                      |
+| `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                     |
+| `children`               | `React.ReactNode`                                                               | —         | Content rendered inside the component.                            |
+| `className`              | `string`                                                                        | —         | Additional CSS classes.                                           |
+| `ref`                    | `React.Ref<HTMLElement>`                                                        | —         | Ref forwarded to the input element.                               |
+| `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                 |
 
 <!-- /bestax:generated props -->
 

@@ -111,7 +111,7 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 
 | Prop        | Type                                                                            | Default | Description                                       |
 | ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the checkbox.                   |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the checkbox.                            |
 | `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the checkbox.                             |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
 | `disabled`  | `boolean`                                                                       | `false` | Whether the checkbox is disabled.                 |

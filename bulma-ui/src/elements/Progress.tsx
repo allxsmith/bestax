@@ -23,7 +23,7 @@ export interface ProgressProps
   value?: number;
   /** Maximum value of the progress bar. */
   max?: number;
-  /** Optional custom content inside the progress bar. Optional custom content inside the progress element. */
+  /** Optional custom content inside the progress bar. */
   children?: React.ReactNode;
 }
 

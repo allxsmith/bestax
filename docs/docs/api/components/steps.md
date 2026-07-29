@@ -284,28 +284,28 @@ Use the `onStepClick` callback with `clickable: true` on items to allow users to
 
 <!-- bestax:generated props -->
 
-| Prop              | Type                                                                            | Default    | Description                                                                        |
-| ----------------- | ------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------- |
-| `value`           | `number`                                                                        | `0`        | Current active step (0-indexed).                                                   |
-| `items`           | `StepItemProps[]`                                                               | —          | Array of step items.                                                               |
-| `size`            | `'small'` \| `'medium'` \| `'large'`                                            | —          | Size of the steps.                                                                 |
-| `color`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Color variant.                                                                     |
-| `hasMarker`       | `boolean`                                                                       | `true`     | Show step markers. Default: true.                                                  |
-| `animated`        | `boolean`                                                                       | `true`     | Enable animations. Default: true.                                                  |
-| `rounded`         | `boolean`                                                                       | `true`     | Use rounded markers. Default: true.                                                |
-| `vertical`        | `boolean`                                                                       | `false`    | Vertical layout.                                                                   |
-| `labelPosition`   | `'bottom'` \| `'right'` \| `'left'`                                             | `'bottom'` | Position of labels.                                                                |
-| `mobileMode`      | `'minimal'` \| `'compact'` \| `'right'`                                         | —          | Mobile display mode.                                                               |
-| `showStepNumbers` | `boolean`                                                                       | `true`     | Displays step numbers in the markers. Show step numbers in markers. Default: true. |
-| `hasNavigation`   | `boolean`                                                                       | `false`    | Shows previous/next navigation buttons. Render built-in prev/next buttons.         |
-| `prevLabel`       | `string`                                                                        | —          | Label for the previous button. Custom prev button text (default 'Previous').       |
-| `nextLabel`       | `string`                                                                        | —          | Label for the next button. Custom next button text (default 'Next').               |
-| `onPrev`          | `() => void`                                                                    | —          | Callback when previous button is clicked. Custom prev button callback.             |
-| `onNext`          | `() => void`                                                                    | —          | Callback when next button is clicked. Custom next button callback.                 |
-| `onStepClick`     | `(step: number) => void`                                                        | —          | Callback when a step is clicked.                                                   |
-| `children`        | `React.ReactNode`                                                               | —          | Step children (alternative to items).                                              |
-| `className`       | `string`                                                                        | —          | Additional CSS classes.                                                            |
-| `...`             | All standard `<div>` attributes and Bulma helper props                          | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
+| Prop              | Type                                                                            | Default    | Description                                       |
+| ----------------- | ------------------------------------------------------------------------------- | ---------- | ------------------------------------------------- |
+| `value`           | `number`                                                                        | `0`        | Current active step (0-indexed).                  |
+| `items`           | `StepItemProps[]`                                                               | —          | Array of step items.                              |
+| `size`            | `'small'` \| `'medium'` \| `'large'`                                            | —          | Size of the steps.                                |
+| `color`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Color variant.                                    |
+| `hasMarker`       | `boolean`                                                                       | `true`     | Show step markers. Default: true.                 |
+| `animated`        | `boolean`                                                                       | `true`     | Enable animations. Default: true.                 |
+| `rounded`         | `boolean`                                                                       | `true`     | Use rounded markers. Default: true.               |
+| `vertical`        | `boolean`                                                                       | `false`    | Vertical layout.                                  |
+| `labelPosition`   | `'bottom'` \| `'right'` \| `'left'`                                             | `'bottom'` | Position of labels.                               |
+| `mobileMode`      | `'minimal'` \| `'compact'` \| `'right'`                                         | —          | Mobile display mode.                              |
+| `showStepNumbers` | `boolean`                                                                       | `true`     | Displays step numbers in the markers.             |
+| `hasNavigation`   | `boolean`                                                                       | `false`    | Shows previous/next navigation buttons.           |
+| `prevLabel`       | `string`                                                                        | —          | Label for the previous button.                    |
+| `nextLabel`       | `string`                                                                        | —          | Label for the next button.                        |
+| `onPrev`          | `() => void`                                                                    | —          | Callback when previous button is clicked.         |
+| `onNext`          | `() => void`                                                                    | —          | Callback when next button is clicked.             |
+| `onStepClick`     | `(step: number) => void`                                                        | —          | Callback when a step is clicked.                  |
+| `children`        | `React.ReactNode`                                                               | —          | Step children (alternative to items).             |
+| `className`       | `string`                                                                        | —          | Additional CSS classes.                           |
+| `...`             | All standard `<div>` attributes and Bulma helper props                          | —          | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
 
@@ -313,19 +313,19 @@ Use the `onStepClick` callback with `clickable: true` on items to allow users to
 
 ### Steps.Step
 
-| Prop            | Type                                                  | Default | Description                                                                                                                   |
-| --------------- | ----------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `isActive`      | `boolean`                                             | `false` | Whether this step is active                                                                                                   |
-| `isCompleted`   | `boolean`                                             | `false` | Whether this step is completed                                                                                                |
-| `label`         | `React.ReactNode`                                     | —       | Step label/title                                                                                                              |
-| `icon`          | `React.ReactNode`                                     | —       | Icon for the step marker                                                                                                      |
-| `clickable`     | `boolean`                                             | `false` | Whether this step is clickable                                                                                                |
-| `onClick`       | `() => void`                                          | —       | Click handler                                                                                                                 |
-| `stepNumber`    | `number`                                              | —       | Step number to display in marker (1-indexed)                                                                                  |
-| `completedIcon` | `React.ReactNode`                                     | `'✓'`   | Icon shown when the step is completed. Custom icon for completed state. Set to null to show step number instead of checkmark. |
-| `className`     | `string`                                              | —       | Additional CSS classes.                                                                                                       |
-| `children`      | `React.ReactNode`                                     | —       | Content rendered inside the component.                                                                                        |
-| `...`           | All standard `<li>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                             |
+| Prop            | Type                                                  | Default | Description                                       |
+| --------------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
+| `isActive`      | `boolean`                                             | `false` | Whether this step is active                       |
+| `isCompleted`   | `boolean`                                             | `false` | Whether this step is completed                    |
+| `label`         | `React.ReactNode`                                     | —       | Step label/title                                  |
+| `icon`          | `React.ReactNode`                                     | —       | Icon for the step marker                          |
+| `clickable`     | `boolean`                                             | `false` | Whether this step is clickable                    |
+| `onClick`       | `() => void`                                          | —       | Click handler                                     |
+| `stepNumber`    | `number`                                              | —       | Step number to display in marker (1-indexed)      |
+| `completedIcon` | `React.ReactNode`                                     | `'✓'`   | Icon shown when the step is completed.            |
+| `className`     | `string`                                              | —       | Additional CSS classes.                           |
+| `children`      | `React.ReactNode`                                     | —       | Content rendered inside the component.            |
+| `...`           | All standard `<li>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

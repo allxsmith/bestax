@@ -38,7 +38,7 @@ export interface CellProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Content to render inside the cell. Children to render inside the cell. */
+  /** Content to render inside the cell. */
   children?: React.ReactNode;
 }
 

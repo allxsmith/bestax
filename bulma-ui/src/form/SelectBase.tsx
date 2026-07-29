@@ -23,25 +23,25 @@ export interface SelectBaseProps
     | 'white';
   /** Size modifier for the select. */
   size?: 'small' | 'medium' | 'large';
-  /** Renders the select with rounded corners. */
+  /** Rounded select corners. */
   isRounded?: boolean;
   /** Shows loading indicator. */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
   isActive?: boolean;
-  /** Forces the hovered state on the inner select element. */
+  /** Forces hovered state on the inner select. */
   isHovered?: boolean;
-  /** Forces the focused state on the inner select element. */
+  /** Forces focused state on the inner select. */
   isFocused?: boolean;
-  /** Makes the select span the full width of its parent. */
+  /** Makes the select span the full width of parent. */
   isFullwidth?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Whether the select is disabled. */
+  /** Disables the select. */
   disabled?: boolean;
-  /** Allows multiple selections. Whether the select allows multiple values. */
+  /** Allows multiple selections. */
   multiple?: boolean;
-  /** Number of visible options in multiselect. For multiple select: number of visible options. */
+  /** Number of visible options in multiselect. */
   multipleSize?: number;
   /** `<option>` elements. */
   children?: React.ReactNode;

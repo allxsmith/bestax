@@ -31,19 +31,19 @@ export interface TitleProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Size of the title (Bulma sizes). Size of the title (1-6). */
+  /** Size of the title (Bulma sizes). */
   size?: TitleSize;
   /** Adds margin below the title. */
   isSpaced?: boolean;
   /** HTML element to render as (h1-h6 or p). */
   as?: TitleElement;
-  /** Applies the `has-skeleton` class to part of the content. Adds the has-skeleton CSS class. */
+  /** Applies the `has-skeleton` class to part of the content. */
   hasSkeleton?: boolean;
   /** Title content. */
   children?: React.ReactNode;
-  /** Text color class (maps to Bulma's color helper). */
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color class (maps to Bulma's backgroundColor helper). */
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 

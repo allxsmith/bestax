@@ -29,7 +29,7 @@ export interface SelectProps extends SelectBaseProps {
   iconLeftSize?: ControlBaseProps['iconLeftSize'];
   /** Force left icon container. */
   hasIconsLeft?: boolean;
-  /** Show loading indicator on the control. */
+  /** Shows loading indicator. */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;

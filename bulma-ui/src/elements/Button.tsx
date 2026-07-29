@@ -13,7 +13,7 @@ export interface ButtonProps
   extends
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'color' | 'onClick'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  /** Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. Bulma color modifier for the button. */
+  /** Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. */
   color?:
     | 'primary'
     | 'link'
@@ -29,29 +29,29 @@ export interface ButtonProps
     | 'ghost';
   /** Size of the button. */
   size?: 'small' | 'normal' | 'medium' | 'large';
-  /** Applies a lighter color variant. Use the light version of the color. */
+  /** Applies a lighter color variant. */
   isLight?: boolean;
-  /** Makes the button rounded. Button is fully rounded. */
+  /** Makes the button rounded. */
   isRounded?: boolean;
-  /** Displays a loading spinner. Button shows a loading spinner. */
+  /** Displays a loading spinner. */
   isLoading?: boolean;
-  /** Makes the button non-interactive. Button is static and non-interactive. */
+  /** Makes the button non-interactive. */
   isStatic?: boolean;
-  /** Makes the button full-width. Button takes the full width of parent. */
+  /** Makes the button full-width. */
   isFullWidth?: boolean;
-  /** Applies outlined styling (requires color). Use outlined button style. */
+  /** Applies outlined styling (requires color). */
   isOutlined?: boolean;
-  /** Applies inverted styling (requires color). Use inverted color style. */
+  /** Applies inverted styling (requires color). */
   isInverted?: boolean;
-  /** Applies focused styling (visual only). Button is styled as focused. */
+  /** Applies focused styling (visual only). */
   isFocused?: boolean;
-  /** Applies active styling (visual only). Button is styled as active. */
+  /** Applies active styling (visual only). */
   isActive?: boolean;
-  /** Applies hovered styling (visual only). Button is styled as hovered. */
+  /** Applies hovered styling (visual only). */
   isHovered?: boolean;
-  /** Applies disabled styling. Button is disabled. */
+  /** Applies disabled styling. */
   isDisabled?: boolean;
-  /** Custom class name. Additional CSS classes to apply. */
+  /** Custom class name. */
   className?: string;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -59,17 +59,17 @@ export interface ButtonProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. */
   as?: React.ElementType;
-  /** Href value (if rendering as `<a>`). Specifies the URL for anchor buttons. */
+  /** Href value (if rendering as `<a>`). */
   href?: string;
-  /** Click event handler. Click handler for the button or anchor. */
+  /** Click event handler. */
   onClick?:
     | React.MouseEventHandler<HTMLButtonElement>
     | React.MouseEventHandler<HTMLAnchorElement>;
-  /** Anchor tag target. Target for anchor element. */
+  /** Anchor tag target. */
   target?: string;
-  /** Anchor tag rel. Rel attribute for anchor element. */
+  /** Anchor tag rel. */
   rel?: string;
-  /** Content to be rendered inside the button. */
+  /** Button content. */
   children?: React.ReactNode;
 }
 

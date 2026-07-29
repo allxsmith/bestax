@@ -202,17 +202,17 @@ Combine `Tag` with `Tags` for grouped, multi-tag UIs.
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                    | Default | Description                                                                       |
-| ------------- | ------------------------------------------------------- | ------- | --------------------------------------------------------------------------------- |
-| `className`   | `string`                                                | —       | Additional CSS classes to apply.                                                  |
-| `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag.                                                 |
-| `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Size modifier for the tag.                                                        |
-| `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag. Whether the tag should have rounded corners.               |
-| `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button). Whether the tag is a delete button.   |
-| `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag. Whether the tag is hoverable.                       |
-| `onDelete`    | `() => void`                                            | —       | Callback for delete tag/button. Callback fired when the delete button is clicked. |
-| `children`    | `React.ReactNode`                                       | —       | Tag content.                                                                      |
-| `...`         | All standard `<span>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                 |
+| Prop          | Type                                                    | Default | Description                                       |
+| ------------- | ------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className`   | `string`                                                | —       | Additional CSS classes to apply.                  |
+| `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag.                 |
+| `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Tag size.                                         |
+| `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag.                            |
+| `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button).       |
+| `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag.                     |
+| `onDelete`    | `() => void`                                            | —       | Callback for delete tag/button.                   |
+| `children`    | `React.ReactNode`                                       | —       | Tag content.                                      |
+| `...`         | All standard `<span>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Types:**
 

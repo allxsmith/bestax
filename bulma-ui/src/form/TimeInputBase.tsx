@@ -109,15 +109,15 @@ export interface TimeInputBaseProps
   locale?: string;
   /** Render the spinner inline (no popover). */
   inline?: boolean;
-  /** Use `<input type="time">` on coarse-pointer + small-viewport devices. Use native `<input type="time">` on coarse-pointer devices. */
+  /** Use `<input type="time">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
-  /** Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only. Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). Default `true`. */
+  /** Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
-  /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
+  /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
-  /** Open the popover when the input is focused. Open the popover on focus. Default `true`. */
+  /** Open the popover when the input is focused. */
   openOnFocus?: boolean;
-  /** Close the popover after a time is selected (off by default). Close after selection. Default `false`. */
+  /** Close the popover after a time is selected (off by default). */
   closeOnSelect?: boolean;
   /** Popover anchor position relative to the input. */
   position?: PickerPosition;
@@ -129,29 +129,29 @@ export interface TimeInputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Render the input with rounded corners. */
   isRounded?: boolean;
-  /** Hour format. `'12'` shows an AM/PM toggle. `'12'` or `'24'`. Default `'24'`. */
+  /** Hour format. `'12'` shows an AM/PM toggle. */
   hourFormat?: HourFormat;
-  /** Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. Show a seconds column. Note: iOS Safari's native time picker has no seconds wheel; combine with `mobileNative={false}` if a seconds wheel is required on iOS. */
+  /** Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
-  /** Hour step for the spinner. Hour step. Default `1`. */
+  /** Hour step for the spinner. */
   incrementHours?: number;
-  /** Minute step. Combine with `min`/`max` for slot-style pickers. Minute step. Default `1`. */
+  /** Minute step. Combine with `min`/`max` for slot-style pickers. */
   incrementMinutes?: number;
   /** Second step. Default `1`. */
   incrementSeconds?: number;
-  /** Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing. Predicate for blocked times (the spinner skips ahead; manual typing rejects them). */
+  /** Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing. */
   unselectableTimes?: (d: Date) => boolean;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
   /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
-  /** Glyph name for the right launcher button. Default `'chevron-down'`. */
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
   /** Optional translatable string overrides. */
   labels?: PickerLabels;
-  /** Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless. Play a short audible tick on each wheel-item crossing. Provides a substitute for haptic feedback on iOS Safari, which has no web- accessible haptic API as of May 2026. Off by default to avoid surprising users with sound; the tick respects the device's silent switch and is suppressed when no audio device is available. */
+  /** Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless. */
   audioTick?: boolean;
-  /** Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins. Auto-route platform-appropriate tactile feedback per wheel tick. When `true`: - On platforms where `navigator.vibrate` is implemented (Android Chrome / Firefox Android / Samsung Internet), the existing unconditional `navigator.vibrate(5)` carries the haptic — no audio is added (don't want to subject Android users to extra sound). - On platforms where `navigator.vibrate` is absent (notably iOS Safari, which has no web-accessible haptic API as of May 2026), the audio thunk is enabled automatically — same as setting `audioTick={true}` manually. - The visual band pulse fires regardless (gated only by `prefers-reduced-motion`). Off by default for backward compat. If `audioTick` is also set, the audio fires regardless of detection (manual opt-in wins). */
+  /** Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins. */
   haptics?: boolean;
 }
 

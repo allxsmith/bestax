@@ -53,15 +53,15 @@ export interface ColumnProps
 
   /** Offset for column. */
   offset?: BulmaColumnSize;
-  /** Mobile column offset. */
+  /** Offset for mobile. */
   offsetMobile?: BulmaColumnSize;
-  /** Tablet column offset. */
+  /** Offset for tablet. */
   offsetTablet?: BulmaColumnSize;
-  /** Desktop column offset. */
+  /** Offset for desktop. */
   offsetDesktop?: BulmaColumnSize;
-  /** Widescreen column offset. */
+  /** Offset for widescreen. */
   offsetWidescreen?: BulmaColumnSize;
-  /** FullHD column offset. */
+  /** Offset for fullhd. */
   offsetFullhd?: BulmaColumnSize;
 
   /** Column is only as wide as its content. */

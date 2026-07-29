@@ -34,13 +34,13 @@ export interface TabsProps
   align?: 'centered' | 'right' | 'left';
   /** Tab size. */
   size?: 'small' | 'medium' | 'large';
-  /** Tabs expand to fill the horizontal space. Tabs are fullwidth. */
+  /** Tabs expand to fill the horizontal space. */
   fullwidth?: boolean;
   /** Tabs use the boxed style. */
   boxed?: boolean;
   /** Tabs use the toggle style. */
   toggle?: boolean;
-  /** Tabs use the rounded toggle style (only with `toggle`). Tabs are rounded (if toggle). */
+  /** Tabs use the rounded toggle style (only with `toggle`). */
   rounded?: boolean;
   /** Bulma color for tab underlines and active state. */
   color?:
@@ -58,17 +58,17 @@ export interface TabsProps
   value?: number;
   /** Callback when active tab changes. */
   onChange?: (index: number) => void;
-  /** Initial active tab index for uncontrolled mode. */
+  /** Initial active tab index (uncontrolled). */
   defaultValue?: number;
   /** Renders tabs vertically. */
   vertical?: boolean;
-  /** Side placement when `vertical` is true. Which side vertical tabs appear on. */
+  /** Side placement when `vertical` is true. */
   side?: 'left' | 'right';
-  /** Makes tabs take up the full width equally. Vertical tabs fill full height. */
+  /** Makes tabs take up the full width equally. */
   expanded?: boolean;
   /** Additional CSS classes. */
   className?: string;
-  /** Tab list and tab items. Tab content. */
+  /** Tab list and tab items. */
   children?: React.ReactNode;
 }
 
@@ -271,19 +271,19 @@ export interface TabProps extends Omit<
   React.LiHTMLAttributes<HTMLLIElement>,
   'onClick'
 > {
-  /** **Required.** Tab index for matching with content. The tab index for state management. */
+  /** **Required.** Tab index for matching with content. */
   index: number;
-  /** Whether the tab is disabled. */
+  /** Disables the tab. */
   disabled?: boolean;
-  /** Icon name for the tab. Icon name to render before the label. */
+  /** Icon name for the tab. */
   icon?: string;
-  /** Icon library override (defaults to ConfigProvider value or 'fa'). */
+  /** Icon library to use. */
   iconLibrary?: IconLibrary;
   /** Icon style variant (e.g., 'solid', 'outlined', 'rounded'). */
   iconVariant?: string;
-  /** Size of the tab icon. Icon size modifier. Default: 'small'. */
+  /** Size of the tab icon. */
   iconSize?: 'small' | 'medium' | 'large';
-  /** Additional icon library-specific modifiers. */
+  /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Additional CSS classes. */
   className?: string;
@@ -437,7 +437,7 @@ const TabsContentComponent: React.FC<TabsContentProps> = ({
  * Props for the TabContentItem component.
  */
 export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** **Required.** Content index matching the corresponding `Tabs.Tab` index. */
+  /** **Required.** Tab index for matching with content. */
   index: number;
   /** Additional CSS classes. */
   className?: string;

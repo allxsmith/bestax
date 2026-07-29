@@ -346,11 +346,11 @@ Narrow columns only take up as much width as their content, which can be useful 
 | `sizeWidescreen`     | `BulmaColumnSize`                                                               | —       | Size for widescreen breakpoint.                   |
 | `sizeFullhd`         | `BulmaColumnSize`                                                               | —       | Size for fullhd breakpoint.                       |
 | `offset`             | `BulmaColumnSize`                                                               | —       | Offset for column.                                |
-| `offsetMobile`       | `BulmaColumnSize`                                                               | —       | Mobile column offset.                             |
-| `offsetTablet`       | `BulmaColumnSize`                                                               | —       | Tablet column offset.                             |
-| `offsetDesktop`      | `BulmaColumnSize`                                                               | —       | Desktop column offset.                            |
-| `offsetWidescreen`   | `BulmaColumnSize`                                                               | —       | Widescreen column offset.                         |
-| `offsetFullhd`       | `BulmaColumnSize`                                                               | —       | FullHD column offset.                             |
+| `offsetMobile`       | `BulmaColumnSize`                                                               | —       | Offset for mobile.                                |
+| `offsetTablet`       | `BulmaColumnSize`                                                               | —       | Offset for tablet.                                |
+| `offsetDesktop`      | `BulmaColumnSize`                                                               | —       | Offset for desktop.                               |
+| `offsetWidescreen`   | `BulmaColumnSize`                                                               | —       | Offset for widescreen.                            |
+| `offsetFullhd`       | `BulmaColumnSize`                                                               | —       | Offset for fullhd.                                |
 | `isNarrow`           | `boolean`                                                                       | `false` | Column is only as wide as its content.            |
 | `isNarrowMobile`     | `boolean`                                                                       | `false` | The column is narrow on mobile.                   |
 | `isNarrowTablet`     | `boolean`                                                                       | `false` | The column is narrow on tablet.                   |
@@ -366,3 +366,17 @@ Narrow columns only take up as much width as their content, which can be useful 
 - `BulmaColumnSize`: `number` | `'full'` | `'half'` | `'one-third'` | `'two-thirds'` | `'one-quarter'` | `'three-quarters'` | `'one-fifth'` | `'two-fifths'` | `'three-fifths'` | `'four-fifths'` — Possible values for Bulma column size.
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Column`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable         | Sass Variable | Default   |
+| -------------------- | ------------- | --------- |
+| `--bulma-column-gap` | `$column-gap` | `0.75rem` |
+
+<!-- /bestax:generated cssvars -->

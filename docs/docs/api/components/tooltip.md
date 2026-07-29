@@ -295,24 +295,24 @@ function example() {
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                                                                     | Default | Description                                                                                                       |
-| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
-| `label`            | `string`                                                                                                 | —       | The tooltip text content.                                                                                         |
-| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`). Custom rich content for the tooltip (takes precedence over label). |
-| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip. Default: 'top'.                                                                          |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant for the tooltip.                                                                                    |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size variant for the tooltip.                                                                                     |
-| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.                                                                               |
-| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.                                                                          |
-| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation. Default: true.                                                                             |
-| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.                                                                            |
-| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                                                                                 |
-| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).                                                                                |
-| `closeDelay`       | `number`                                                                                                 | `0`     | Delay before hiding tooltip after mouse leave (ms).                                                               |
-| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.                                                                       |
-| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.                                                                            |
-| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                                                                                           |
-| `...`              | All standard `<span>` attributes and Bulma helper props                                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                 |
+| Prop               | Type                                                                                                     | Default | Description                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `label`            | `string`                                                                                                 | —       | The tooltip text content.                         |
+| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`).    |
+| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip. Default: 'top'.          |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant for the tooltip.                    |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                              |
+| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.               |
+| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.          |
+| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation. Default: true.             |
+| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.            |
+| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                 |
+| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).                |
+| `closeDelay`       | `number`                                                                                                 | `0`     | Delay in ms before hiding the tooltip.            |
+| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.       |
+| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.            |
+| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                           |
+| `...`              | All standard `<span>` attributes and Bulma helper props                                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

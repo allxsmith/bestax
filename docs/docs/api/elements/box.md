@@ -146,7 +146,7 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 | `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the box.                 |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                          |
 | `hasShadow` | `boolean`                                                                       | `true`  | Whether the box has a shadow (default: true).     |
-| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the box.            |
+| `children`  | `React.ReactNode`                                                               | —       | Content to render inside the box.                 |
 | `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

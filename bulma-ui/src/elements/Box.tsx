@@ -24,7 +24,7 @@ export interface BoxProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the box has a shadow (default: true). */
   hasShadow?: boolean;
-  /** Content to be rendered inside the box. */
+  /** Content to render inside the box. */
   children?: React.ReactNode;
 }
 

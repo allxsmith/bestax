@@ -156,7 +156,7 @@ The `<em>` element indicates stress emphasis that subtly changes the meaning of 
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the em element.     |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the em element.          |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

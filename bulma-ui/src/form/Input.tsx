@@ -37,7 +37,7 @@ export interface InputProps extends InputBaseProps {
   hasIconsLeft?: boolean;
   /** Force right icon container. */
   hasIconsRight?: boolean;
-  /** Show loading indicator on the control. */
+  /** Shows loading indicator. */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;

@@ -224,14 +224,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.Item
 
-| Prop        | Type                | Default | Description                                                                    |
-| ----------- | ------------------- | ------- | ------------------------------------------------------------------------------ |
-| `className` | `string`            | —       | Additional CSS classes.                                                        |
-| `children`  | `React.ReactNode`   | —       | Item content and optional nested MenuList.                                     |
-| `active`    | `boolean`           | `false` | Highlight item as active. Whether the item is active.                          |
-| `href`      | `string`            | —       | Href for link items (if rendered as `<a>`).                                    |
-| `as`        | `React.ElementType` | `'a'`   | Custom link component (e.g. `Link` from router). Render as a custom component. |
-| `...`       | Bulma helper props  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                              |
+| Prop        | Type                | Default | Description                                       |
+| ----------- | ------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`            | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`   | —       | Item content and optional nested MenuList.        |
+| `active`    | `boolean`           | `false` | Highlight item as active.                         |
+| `href`      | `string`            | —       | Href for link items (if rendered as `<a>`).       |
+| `as`        | `React.ElementType` | `'a'`   | Custom link component (e.g. `Link` from router).  |
+| `...`       | Bulma helper props  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

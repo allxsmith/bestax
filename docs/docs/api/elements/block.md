@@ -170,7 +170,7 @@ Use `Block` for logical, visually separated sections of content.
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
 | `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the block.               |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the block.          |
+| `children`  | `React.ReactNode`                                                               | —       | Content to render inside the block.               |
 | `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

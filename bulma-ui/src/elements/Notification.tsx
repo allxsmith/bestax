@@ -26,7 +26,7 @@ export interface NotificationProps
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
-  /** Content to be rendered inside the notification. */
+  /** Content inside the notification. */
   children?: React.ReactNode;
 }
 

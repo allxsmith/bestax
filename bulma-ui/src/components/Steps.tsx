@@ -18,13 +18,13 @@ export interface StepItemProps {
   /** Icon for the step marker */
   icon?: React.ReactNode;
   /**
-   * Icon shown when the step is completed. Custom icon for completed state. Set to null to show step number instead of checkmark.
+   * Icon shown when the step is completed.
    * @defaultValue '✓'
    */
   completedIcon?: React.ReactNode;
   /** Whether this step is clickable */
   clickable?: boolean;
-  /** Additional CSS classes. Additional class for this step */
+  /** Additional CSS classes. */
   className?: string;
 }
 
@@ -57,17 +57,17 @@ export interface StepsProps
   labelPosition?: 'bottom' | 'right' | 'left';
   /** Mobile display mode. */
   mobileMode?: 'minimal' | 'compact' | 'right';
-  /** Displays step numbers in the markers. Show step numbers in markers. Default: true. */
+  /** Displays step numbers in the markers. */
   showStepNumbers?: boolean;
-  /** Shows previous/next navigation buttons. Render built-in prev/next buttons. */
+  /** Shows previous/next navigation buttons. */
   hasNavigation?: boolean;
-  /** Label for the previous button. Custom prev button text (default 'Previous'). */
+  /** Label for the previous button. */
   prevLabel?: string;
-  /** Label for the next button. Custom next button text (default 'Next'). */
+  /** Label for the next button. */
   nextLabel?: string;
-  /** Callback when previous button is clicked. Custom prev button callback. */
+  /** Callback when previous button is clicked. */
   onPrev?: () => void;
-  /** Callback when next button is clicked. Custom next button callback. */
+  /** Callback when next button is clicked. */
   onNext?: () => void;
   /** Callback when a step is clicked. */
   onStepClick?: (step: number) => void;
@@ -95,7 +95,7 @@ export interface StepProps
   /** Step number to display in marker (1-indexed) */
   stepNumber?: number;
   /**
-   * Icon shown when the step is completed. Custom icon for completed state. Set to null to show step number instead of checkmark.
+   * Icon shown when the step is completed.
    * @defaultValue '✓'
    */
   completedIcon?: React.ReactNode;

@@ -32,6 +32,8 @@ import { createRequire } from 'node:module';
 import {
   readRegions,
   replaceRegion,
+  openMarker,
+  closeMarker,
   upsertFrontmatter,
   renderTable,
   firstSentence,
@@ -258,6 +260,7 @@ async function renderCssVars(info, { relPath }) {
   // to all four. Dedupe across files by CSS variable name, first source wins —
   // the same rule componentVars() applies within a file.
   const seen = new Set();
+  let onRoot = false;
   for (const source of sources) {
     const file =
       source.pkg === 'bulma'
@@ -265,15 +268,17 @@ async function renderCssVars(info, { relPath }) {
         : join(REPO, source.path);
     const src = await readFile(file, 'utf8');
     const root = source.root ?? info.rootClass;
-    if (!root) {
+    const prefix = source.root ?? info.varPrefix;
+    if (!root && !prefix) {
       throw new Error(
         `${info.name}: cannot determine the root class for ${source.path}. Add a ` +
           `\`root\` to its SCSS_SOURCES entry in scripts/lib/api-sources.mjs.`
       );
     }
-    for (const row of componentVars(src, root)) {
+    for (const row of componentVars(src, root, prefix)) {
       if (seen.has(row.cssVar)) continue;
       seen.add(row.cssVar);
+      if (row.scope === 'root') onRoot = true;
       rows.push([
         `\`${row.cssVar}\``,
         row.sassVar ? `\`${row.sassVar}\`` : '—',
@@ -285,11 +290,22 @@ async function renderCssVars(info, { relPath }) {
 
   const depth = relPath.split('/').length - 1;
   const themeLink = `${'../'.repeat(depth)}helpers/theme.md`;
-  const lead =
-    `\`${info.name}\` registers these variables on its own ` +
-    `\`.${info.rootClass}\` element. Override them there (or via \`className\`) — ` +
-    `a value set on an ancestor is only inherited, and loses to the ` +
-    `component-level declaration. See [Theme](${themeLink}).`;
+  // Where Bulma declares the defaults decides how to phrase this. Most
+  // components register on their own selector; the semantic wrappers and
+  // `Skeleton` get theirs from `:root` (or a mixin), and claiming otherwise
+  // would send a reader looking for a declaration that is not there. Either way
+  // the override advice is the same, because custom properties inherit.
+  const target = info.rootClass ? `\`.${info.rootClass}\`` : 'its own';
+  const lead = onRoot
+    ? `\`${info.name}\` registers these variables on its own ` +
+      `${target} element. Override them there (or via \`className\`) — ` +
+      `a value set on an ancestor is only inherited, and loses to the ` +
+      `component-level declaration. See [Theme](${themeLink}).`
+    : `Bulma declares these variables globally rather than on ` +
+      `\`${info.name}\`'s own element, so the defaults come from the theme. ` +
+      `Override them anywhere above the component — on the element itself ` +
+      `(via \`className\`/\`style\`) for a one-off, or on \`:root\` to retheme ` +
+      `every instance. See [Theme](${themeLink}).`;
 
   return `\n${lead}\n\n${renderTable(['CSS Variable', 'Sass Variable', 'Default'], rows)}\n`;
 }
@@ -331,6 +347,20 @@ export async function renderPage(file, src) {
   };
 
   let out = src;
+
+  // `cssvars` is the one region the generator may CREATE. Every other region
+  // keeps the never-create rule, where a missing marker pair is the opt-out —
+  // but this section is not opt-outable: `docs-sections` requires it whenever
+  // the component has SCSS_SOURCES, so a page without it is simply broken.
+  // Creating it means a Bulma upgrade that introduces variables is a `pnpm gen`
+  // away, not six hand-edits plus a conformance failure telling you so.
+  if (bodies.cssvars && !regions.has('cssvars')) {
+    out = `${out.replace(/\s*$/, '')}\n\n---\n\n## CSS & Sass Variables\n\n${openMarker(
+      'cssvars'
+    )}\n${closeMarker('cssvars')}\n`;
+    regions.set('cssvars', true);
+  }
+
   for (const [id, body] of Object.entries(bodies)) {
     if (body == null || !regions.has(id)) continue;
     out = replaceRegion(out, id, body, `docs/docs/api/${relPath}`);

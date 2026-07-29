@@ -164,7 +164,7 @@ The `<figure>` element is ideal for images, illustrations, diagrams, code listin
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the figure.         |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the figure.              |
 | `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**

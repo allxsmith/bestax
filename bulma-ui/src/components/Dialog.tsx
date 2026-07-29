@@ -33,7 +33,7 @@ export interface DialogProps
   cancelText?: string;
   /** Callback when confirm button is clicked. */
   onConfirm?: () => void;
-  /** Callback when cancel button is clicked or dialog is dismissed. */
+  /** Callback when cancel button is clicked or dismissed. */
   onCancel?: () => void;
   /** Whether to show cancel button. Default: true for confirm dialogs. */
   showCancel?: boolean;

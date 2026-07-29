@@ -23,21 +23,21 @@ export interface DropdownProps
   label: React.ReactNode;
   /** Dropdown menu items and dividers. */
   children: React.ReactNode;
-  /** Additional CSS classes for root. Additional CSS classes to apply. */
+  /** Additional CSS classes for root. */
   className?: string;
   /** Additional CSS classes for the dropdown menu. */
   menuClassName?: string;
   /** Whether the dropdown is open (controlled). */
   active?: boolean;
-  /** Dropdown menu opens upward. Dropdown direction up. */
+  /** Dropdown menu opens upward. */
   up?: boolean;
-  /** Menu is right-aligned. Dropdown aligned to the right. */
+  /** Menu is right-aligned. */
   right?: boolean;
-  /** Open on hover instead of click. Dropdown opens on hover. */
+  /** Open on hover instead of click. */
   hoverable?: boolean;
   /** Disables the dropdown trigger. */
   disabled?: boolean;
-  /** Callback when dropdown active state changes. Called when active state changes. */
+  /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
   /** Close dropdown when a menu item is clicked. */
   closeOnClick?: boolean;

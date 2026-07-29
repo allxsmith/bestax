@@ -97,9 +97,9 @@ export interface AvatarProps
   className?: string;
   /** Image URL. On load error (or if absent), falls back to initials, then `icon`. */
   src?: string;
-  /** Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. Alternate text for the image (required for meaningful images). An explicit `alt=""` marks a non-interactive avatar as decorative (skipped by screen readers). */
+  /** Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=""` marks a non-interactive avatar as decorative. */
   alt?: string;
-  /** Derives initials and a deterministic background color when no `src`/`initials` is shown. */
+  /** Derives initials and a deterministic background color when no `src` is shown. */
   name?: string;
   /** Explicit initials override (else derived from `name`). */
   initials?: string;

@@ -22,9 +22,9 @@ export interface AvatarsProps
   size?: AvatarProps['size'];
   /** Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset. */
   shape?: AvatarProps['shape'];
-  /** Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`. Space between avatars: a `'sm'`/`'md'`/`'lg'` preset or a pixel `number`. Default `'md'`. */
+  /** Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`. */
   spacing?: AvatarsSpacing | number;
-  /** Lay the avatars out side by side (non-overlapping) with `spacing` as the gap. Default `false`. */
+  /** Lay the avatars out side by side (non-overlapping), using `spacing` as the gap. */
   spaced?: boolean;
   /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. */
   surplusLabel?: (count: number) => string;

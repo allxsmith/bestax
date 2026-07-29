@@ -35,17 +35,17 @@ export interface FileProps
     | 'white';
   /** Size modifier for the file input. */
   size?: 'small' | 'medium' | 'large';
-  /** Whether the file input is boxed. */
+  /** Boxed file input. */
   isBoxed?: boolean;
   /** Whether the file input expands to full width. */
   isFullwidth?: boolean;
-  /** Position the CTA on the right (with `hasName`). Align file input to the right. */
+  /** Position the CTA on the right (with `hasName`). */
   isRight?: boolean;
   /** Center the file input within its container. */
   isCentered?: boolean;
   /** Show a file name indicator. */
   hasName?: boolean;
-  /** Text on the file CTA button (defaults to "Choose a file…"). Custom button label text or node. */
+  /** Text on the file CTA button (defaults to "Choose a file…"). */
   buttonLabel?: React.ReactNode;
   /** Left icon element. */
   iconLeft?: React.ReactNode;

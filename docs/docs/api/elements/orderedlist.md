@@ -212,7 +212,7 @@ Use `OrderedList` when the order of items is significant, such as steps in a pro
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | List items to be rendered inside the list.        |
+| `children`  | `React.ReactNode`                                                       | —       | List items to render inside the list.             |
 | `type`      | `'1'` \| `'a'` \| `'A'` \| `'i'` \| `'I'`                               | `'1'`   | The numbering type for the list.                  |
 | `start`     | `number`                                                                | —       | The starting number for the list.                 |
 | `reversed`  | `boolean`                                                               | —       | Whether to reverse the list numbering.            |

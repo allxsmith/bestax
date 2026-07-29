@@ -215,16 +215,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Messa
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                                                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes.                                                                           |
-| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section). Title displayed in the message header.                |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper). Text color (Bulma or 'inherit'/'current').             |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.                                                             |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper). Background color (Bulma or 'inherit'/'current'). |
-| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button. Called when the close button is clicked.                     |
-| `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                                                                     |
-| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                 |
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section).       |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).        |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).  |
+| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.              |
+| `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                     |
+| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
 

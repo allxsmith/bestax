@@ -216,10 +216,10 @@ Per [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](http
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                 |
 | `isActive`  | `boolean`                                                               | `false` | Whether the link appears active.                                                         |
 | `as`        | `React.ElementType`                                                     | `'a'`   | Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the link.                                                  |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the link.                                                       |
 | `href`      | `string`                                                                | —       | The URL the link points to.                                                              |
 | `target`    | `'_self'` \| `'_blank'` \| `'_parent'` \| `'_top'`                      | —       | Where to open the linked document.                                                       |
-| `rel`       | `string`                                                                | —       | Relationship between the current and linked document.                                    |
+| `rel`       | `string`                                                                | —       | Relationship between current and linked document.                                        |
 | `...`       | All standard `<a>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                        |
 
 <!-- /bestax:generated props -->

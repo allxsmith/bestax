@@ -21,15 +21,15 @@ export interface MessageProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
   className?: string;
-  /** Title string/node (renders header section). Title displayed in the message header. */
+  /** Title string/node (renders header section). */
   title?: React.ReactNode;
-  /** Text color for the message (Bulma helper). Text color (Bulma or 'inherit'/'current'). */
+  /** Text color for the message (Bulma helper). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the message. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color for the message (Bulma helper). Background color (Bulma or 'inherit'/'current'). */
+  /** Background color for the message (Bulma helper). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Callback for the close ("X") button. Called when the close button is clicked. */
+  /** Callback for the close ("X") button. */
   onClose?: () => void;
   /** Body content for the message. */
   children?: React.ReactNode;

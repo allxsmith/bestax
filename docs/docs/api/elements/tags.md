@@ -165,13 +165,13 @@ Use `hasAddons` for tightly grouped tags (no space between them).
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                   | Default | Description                                                                 |
-| ------------- | ------------------------------------------------------ | ------- | --------------------------------------------------------------------------- |
-| `className`   | `string`                                               | —       | Additional CSS classes to apply.                                            |
-| `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing). Group tags together as addons. |
-| `isMultiline` | `boolean`                                              | `false` | Allow tags to wrap onto multiple lines.                                     |
-| `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.                                |
-| `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                           |
+| Prop          | Type                                                   | Default | Description                                       |
+| ------------- | ------------------------------------------------------ | ------- | ------------------------------------------------- |
+| `className`   | `string`                                               | —       | Additional CSS classes to apply.                  |
+| `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing).      |
+| `isMultiline` | `boolean`                                              | `false` | Allow tags to wrap onto multiple lines.           |
+| `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.      |
+| `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
 

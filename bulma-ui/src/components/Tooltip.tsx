@@ -34,13 +34,13 @@ export interface TooltipProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** The tooltip text content. */
   label?: string;
-  /** Rich tooltip content (alternative to `label`). Custom rich content for the tooltip (takes precedence over label). */
+  /** Rich tooltip content (alternative to `label`). */
   content?: React.ReactNode;
   /** Position of the tooltip. Default: 'top'. */
   position?: TooltipPosition;
   /** Color variant for the tooltip. */
   color?: TooltipColor;
-  /** Size variant for the tooltip. */
+  /** Size of the tooltip. */
   size?: TooltipSize;
   /** Force tooltip to be always visible. */
   active?: boolean;
@@ -54,7 +54,7 @@ export interface TooltipProps
   dashed?: boolean;
   /** Delay before showing tooltip (ms). */
   delay?: number;
-  /** Delay before hiding tooltip after mouse leave (ms). */
+  /** Delay in ms before hiding the tooltip. */
   closeDelay?: number;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;

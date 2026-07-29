@@ -14,7 +14,7 @@ export interface PaginationProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Color modifier for the pagination. Bulma color for the pagination. */
+  /** Color modifier for the pagination. */
   color?:
     | 'primary'
     | 'link'
@@ -26,9 +26,9 @@ export interface PaginationProps
     | 'dark'
     | 'light'
     | 'white';
-  /** Text color helper. Text color for the pagination. */
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color helper. Background color for the pagination. */
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Size modifier for the pagination. */
   size?: 'small' | 'medium' | 'large';
@@ -40,7 +40,7 @@ export interface PaginationProps
   total?: number;
   /** Current page (for controlled implementations). */
   current?: number;
-  /** Callback when a page is selected. Page change callback. */
+  /** Callback when a page is selected. */
   onPageChange?: (page: number) => void;
   /** Additional CSS classes. */
   className?: string;

@@ -19,18 +19,18 @@ export interface CollapseProps
   onOpen?: () => void;
   /** Callback when collapse closes. */
   onClose?: () => void;
-  /** The clickable trigger element (usually a header/button). */
+  /** The clickable trigger element (header/button). */
   trigger?: React.ReactNode;
-  /** Animation style, or `false` to disable. Animation type. 'fade' for opacity transition, 'slide' for height transition, false to disable. Default: 'fade'. */
+  /** Animation style, or `false` to disable. */
   animation?: 'fade' | 'slide' | false;
-  /** Position of trigger relative to content. Default: 'top'. */
+  /** Position of the trigger relative to content. */
   position?: 'top' | 'bottom';
   /**
    * Custom aria id for accessibility.
    * @defaultValue auto
    */
   ariaId?: string;
-  /** Adds a border around the collapse. Whether to show a border around the collapse. */
+  /** Adds a border around the collapse. */
   bordered?: boolean;
   /** Additional classes for the trigger wrapper. */
   triggerClassName?: string;

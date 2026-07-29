@@ -34,7 +34,7 @@ export interface RadioProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  /** Color of the radio button. Color variant for the radio. */
+  /** Color of the radio button. */
   color?: (typeof radioColors)[number];
   /** Size of the radio button. */
   size?: (typeof radioSizes)[number];

@@ -437,24 +437,24 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                                                                                               | Default | Description                                                                           |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------- |
-| `align`        | `'centered'` \| `'right'` \| `'left'`                                                                                              | —       | Tab alignment.                                                                        |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Tab size.                                                                             |
-| `fullwidth`    | `boolean`                                                                                                                          | `false` | Tabs expand to fill the horizontal space. Tabs are fullwidth.                         |
-| `boxed`        | `boolean`                                                                                                                          | `false` | Tabs use the boxed style.                                                             |
-| `toggle`       | `boolean`                                                                                                                          | `false` | Tabs use the toggle style.                                                            |
-| `rounded`      | `boolean`                                                                                                                          | `false` | Tabs use the rounded toggle style (only with `toggle`). Tabs are rounded (if toggle). |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color for tab underlines and active state.                                      |
-| `value`        | `number`                                                                                                                           | —       | Controlled active tab index.                                                          |
-| `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes.                                                     |
-| `defaultValue` | `number`                                                                                                                           | `0`     | Initial active tab index for uncontrolled mode.                                       |
-| `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically.                                                              |
-| `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true. Which side vertical tabs appear on.           |
-| `expanded`     | `boolean`                                                                                                                          | `false` | Makes tabs take up the full width equally. Vertical tabs fill full height.            |
-| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                                               |
-| `children`     | `React.ReactNode`                                                                                                                  | —       | Tab list and tab items. Tab content.                                                  |
-| `...`          | All standard `<div>` attributes and Bulma helper props                                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                     |
+| Prop           | Type                                                                                                                               | Default | Description                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `align`        | `'centered'` \| `'right'` \| `'left'`                                                                                              | —       | Tab alignment.                                          |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Tab size.                                               |
+| `fullwidth`    | `boolean`                                                                                                                          | `false` | Tabs expand to fill the horizontal space.               |
+| `boxed`        | `boolean`                                                                                                                          | `false` | Tabs use the boxed style.                               |
+| `toggle`       | `boolean`                                                                                                                          | `false` | Tabs use the toggle style.                              |
+| `rounded`      | `boolean`                                                                                                                          | `false` | Tabs use the rounded toggle style (only with `toggle`). |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color for tab underlines and active state.        |
+| `value`        | `number`                                                                                                                           | —       | Controlled active tab index.                            |
+| `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes.                       |
+| `defaultValue` | `number`                                                                                                                           | `0`     | Initial active tab index (uncontrolled).                |
+| `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically.                                |
+| `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true.                 |
+| `expanded`     | `boolean`                                                                                                                          | `false` | Makes tabs take up the full width equally.              |
+| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                 |
+| `children`     | `React.ReactNode`                                                                                                                  | —       | Tab list and tab items.                                 |
+| `...`          | All standard `<div>` attributes and Bulma helper props                                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 **Subcomponents:**
 
@@ -474,18 +474,18 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.Tab
 
-| Prop           | Type                                                                       | Default   | Description                                                                            |
-| -------------- | -------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------- |
-| `index`        | `number`                                                                   | —         | **Required.** Tab index for matching with content. The tab index for state management. |
-| `disabled`     | `boolean`                                                                  | `false`   | Whether the tab is disabled.                                                           |
-| `icon`         | `string`                                                                   | —         | Icon name for the tab. Icon name to render before the label.                           |
-| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —         | Icon library override (defaults to ConfigProvider value or 'fa').                      |
-| `iconVariant`  | `string`                                                                   | —         | Icon style variant (e.g., 'solid', 'outlined', 'rounded').                             |
-| `iconSize`     | `'small'` \| `'medium'` \| `'large'`                                       | `'small'` | Size of the tab icon. Icon size modifier. Default: 'small'.                            |
-| `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon library-specific modifiers.                                            |
-| `className`    | `string`                                                                   | —         | Additional CSS classes.                                                                |
-| `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                                                     |
-| `...`          | All standard `<li>` attributes                                             | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                      |
+| Prop           | Type                                                                       | Default   | Description                                                |
+| -------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
+| `index`        | `number`                                                                   | —         | **Required.** Tab index for matching with content.         |
+| `disabled`     | `boolean`                                                                  | `false`   | Disables the tab.                                          |
+| `icon`         | `string`                                                                   | —         | Icon name for the tab.                                     |
+| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —         | Icon library to use.                                       |
+| `iconVariant`  | `string`                                                                   | —         | Icon style variant (e.g., 'solid', 'outlined', 'rounded'). |
+| `iconSize`     | `'small'` \| `'medium'` \| `'large'`                                       | `'small'` | Size of the tab icon.                                      |
+| `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon modifiers.                                 |
+| `className`    | `string`                                                                   | —         | Additional CSS classes.                                    |
+| `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                         |
+| `...`          | All standard `<li>` attributes                                             | —         | See [Helper Props](../helpers/usebulmaclasses.md)          |
 
 ### Tabs.Item
 
@@ -507,12 +507,12 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.Content.Item
 
-| Prop        | Type                            | Default | Description                                                              |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------------------------------ |
-| `index`     | `number`                        | —       | **Required.** Content index matching the corresponding `Tabs.Tab` index. |
-| `className` | `string`                        | —       | Additional CSS classes.                                                  |
-| `children`  | `React.ReactNode`               | —       | Panel content.                                                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)                        |
+| Prop        | Type                            | Default | Description                                        |
+| ----------- | ------------------------------- | ------- | -------------------------------------------------- |
+| `index`     | `number`                        | —       | **Required.** Tab index for matching with content. |
+| `className` | `string`                        | —       | Additional CSS classes.                            |
+| `children`  | `React.ReactNode`               | —       | Panel content.                                     |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
 
 <!-- /bestax:generated props -->
 

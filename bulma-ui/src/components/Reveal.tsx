@@ -31,15 +31,15 @@ export type RevealAnimation =
  */
 export interface RevealProps
   extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>, BulmaClassesProps {
-  /** Animation style applied when the element enters the viewport. Animation style used when the element enters the viewport. Default: 'fade-up'. */
+  /** Animation style applied when the element enters the viewport. */
   animation?: RevealAnimation;
   /** Delay in milliseconds before the animation starts. Default: 0. */
   delay?: number;
   /** Animation duration in milliseconds. Default: 600. */
   duration?: number;
-  /** Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. Fraction (0-1) of the element that must be visible to trigger the reveal. Values are clamped to the 0-1 range and fall back to 0.15 when not a finite number. Default: 0.15. */
+  /** Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. */
   threshold?: number;
-  /** Animate only the first time the element enters the viewport; if `false`, it re-animates on every entry/exit. Default: true. */
+  /** Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. */
   once?: boolean;
   /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
   as?: React.ElementType;

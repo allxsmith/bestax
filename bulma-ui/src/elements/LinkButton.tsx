@@ -9,7 +9,7 @@ export interface LinkButtonProps extends Omit<
   ButtonProps,
   'color' | 'isOutlined' | 'isInverted' | 'isLight'
 > {
-  /** Display mode. `text` has no underline; `ghost` uses default text color. Display mode. 'text' renders a minimal button without underline; 'ghost' renders a link-like button with default text color; 'underline' renders a text button that underlines on hover/focus. Defaults to 'text'. */
+  /** Display mode. `text` has no underline; `ghost` uses default text color. */
   variant?: 'text' | 'ghost' | 'underline';
   /** Text color override for the button. */
   color?:

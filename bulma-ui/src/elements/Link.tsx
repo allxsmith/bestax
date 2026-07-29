@@ -10,7 +10,7 @@ import {
  * Props for the Link component.
  * @extraProp {string} [href] - The URL the link points to.
  * @extraProp {'_self' | '_blank' | '_parent' | '_top'} [target] - Where to open the linked document.
- * @extraProp {string} [rel] - Relationship between the current and linked document.
+ * @extraProp {string} [rel] - Relationship between current and linked document.
  */
 export interface LinkProps
   extends
@@ -26,7 +26,7 @@ export interface LinkProps
   isActive?: boolean;
   /** Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
   as?: React.ElementType;
-  /** Content to be rendered inside the link. */
+  /** Content to render inside the link. */
   children?: React.ReactNode;
 }
 

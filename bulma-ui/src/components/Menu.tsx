@@ -141,11 +141,11 @@ export interface MenuItemProps
   className?: string;
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
-  /** Highlight item as active. Whether the item is active. */
+  /** Highlight item as active. */
   active?: boolean;
   /** Href for link items (if rendered as `<a>`). */
   href?: string;
-  /** Custom link component (e.g. `Link` from router). Render as a custom component. */
+  /** Custom link component (e.g. `Link` from router). */
   as?: React.ElementType;
   [key: string]: unknown;
 }

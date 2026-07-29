@@ -71,7 +71,21 @@ async function candidatePartials() {
       'Cannot resolve the `bulma` package — run `pnpm install --frozen-lockfile` first.'
     );
   }
-  for (const dir of ['elements', 'components', 'form', 'layout', 'grid']) {
+  // `base` and `utilities` are in the list because Bulma does not keep every
+  // component's variables in its own folder: `--bulma-skeleton-*` lives in
+  // `base/skeleton.scss`, `--bulma-code-*`/`pre-*`/`strong-*` in
+  // `base/generic.scss`, and `--bulma-delete-*` inside a mixin in
+  // `utilities/mixins.scss`. Scanning only the component folders is why those
+  // pages showed no CSS variable table at all.
+  for (const dir of [
+    'base',
+    'elements',
+    'components',
+    'form',
+    'layout',
+    'grid',
+    'utilities',
+  ]) {
     const d = join(bulmaRoot, 'sass', dir);
     if (!existsSync(d)) continue;
     for (const f of (await readdir(d)).sort(byCodePoint)) {
@@ -123,21 +137,26 @@ async function main() {
       continue; // no resolvable component declaration (type-only export)
     }
     const root = info.rootClass;
+    // The variable family, which is not always the root class — the semantic
+    // wrappers (Code, Pre, Strong) render a bare element and own a `--bulma-…`
+    // family anyway. See VAR_PREFIX_OVERRIDES in props-extract.mjs.
+    const prefix = info.varPrefix;
     // Candidates but no confident pick means the name rule could not decide.
     // Refuse rather than guess — a wrong root class silently attaches another
     // component's CSS variables to this page.
-    if (!root && info.rootClassCandidates.length) {
+    if (!root && !prefix && info.rootClassCandidates.length) {
       unresolved.push(
         `${name}: renders [${info.rootClassCandidates.join(', ')}] but none ` +
           `matches its name`
       );
       continue;
     }
-    const hits = root
-      ? partials
-          .filter(p => componentVars(p.src, root).length > 0)
-          .sort((a, b) => byCodePoint(a.path, b.path))
-      : [];
+    const hits =
+      root || prefix
+        ? partials
+            .filter(p => componentVars(p.src, root, prefix).length > 0)
+            .sort((a, b) => byCodePoint(a.path, b.path))
+        : [];
     scss.push({ name, hits, root });
   }
 

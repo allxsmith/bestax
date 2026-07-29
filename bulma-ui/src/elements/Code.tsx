@@ -19,7 +19,7 @@ export interface CodeProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Code content to be rendered inside the element. */
+  /** Code content to render inside the element. */
   children?: React.ReactNode;
 }
 

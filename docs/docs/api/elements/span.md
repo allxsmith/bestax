@@ -165,7 +165,7 @@ For text that has semantic importance, consider using `<strong>` (Strong) or `<e
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the span.           |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the span.                |
 | `...`       | All standard `<span>` attributes and Bulma helper props                 | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

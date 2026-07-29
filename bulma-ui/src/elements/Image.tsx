@@ -21,7 +21,7 @@ export interface ImageProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Fixed size or aspect ratio modifier for the image container. Size or aspect ratio modifier (e.g., '128x128', '16by9', etc.). */
+  /** Fixed size or aspect ratio modifier for the image container. */
   size?:
     | '16x16'
     | '24x24'
@@ -46,17 +46,17 @@ export interface ImageProps
     | '9by16'
     | '1by2'
     | '1by3';
-  /** Renders the image with rounded corners. Whether the image should have rounded corners. */
+  /** Renders the image with rounded corners. */
   isRounded?: boolean;
-  /** Whether to use retina (2x) image source. */
+  /** Uses retina (2x) image source. */
   isRetina?: boolean;
   /** Image source URL. */
   src?: string;
   /** Alternate text for the image. */
   alt?: string;
-  /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. Arbitrary children (e.g., iframe or custom content). */
+  /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. */
   children?: React.ReactNode;
-  /** Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. The tag to render. Defaults to 'figure', but can be 'p', 'div', etc. */
+  /** Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. */
   as?: 'figure' | 'div' | 'p';
 }
 

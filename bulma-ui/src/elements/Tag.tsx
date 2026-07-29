@@ -37,15 +37,15 @@ export interface TagProps
   className?: string;
   /** Bulma color modifier for the tag. */
   color?: TagColor;
-  /** Size modifier for the tag. */
+  /** Tag size. */
   size?: TagSize;
-  /** Renders a rounded tag. Whether the tag should have rounded corners. */
+  /** Renders a rounded tag. */
   isRounded?: boolean;
-  /** Renders a delete-style tag (delete button). Whether the tag is a delete button. */
+  /** Renders a delete-style tag (delete button). */
   isDelete?: boolean;
-  /** Adds hover effect to the tag. Whether the tag is hoverable. */
+  /** Adds hover effect to the tag. */
   isHoverable?: boolean;
-  /** Callback for delete tag/button. Callback fired when the delete button is clicked. */
+  /** Callback for delete tag/button. */
   onDelete?: () => void;
   /** Tag content. */
   children?: React.ReactNode;

@@ -193,21 +193,21 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                        | Default | Description                                                                    |
-| ---------------- | --------------------------- | ------- | ------------------------------------------------------------------------------ |
-| `label`          | `React.ReactNode`           | —       | The dropdown button/trigger content.                                           |
-| `children`       | `React.ReactNode`           | —       | Dropdown menu items and dividers.                                              |
-| `className`      | `string`                    | —       | Additional CSS classes for root. Additional CSS classes to apply.              |
-| `menuClassName`  | `string`                    | —       | Additional CSS classes for the dropdown menu.                                  |
-| `active`         | `boolean`                   | `false` | Whether the dropdown is open (controlled).                                     |
-| `up`             | `boolean`                   | `false` | Dropdown menu opens upward. Dropdown direction up.                             |
-| `right`          | `boolean`                   | `false` | Menu is right-aligned. Dropdown aligned to the right.                          |
-| `hoverable`      | `boolean`                   | `false` | Open on hover instead of click. Dropdown opens on hover.                       |
-| `disabled`       | `boolean`                   | `false` | Disables the dropdown trigger.                                                 |
-| `onActiveChange` | `(active: boolean) => void` | —       | Callback when dropdown active state changes. Called when active state changes. |
-| `closeOnClick`   | `boolean`                   | `true`  | Close dropdown when a menu item is clicked.                                    |
-| `id`             | `string`                    | —       | Root element ID (for aria-controls, etc).                                      |
-| `...`            | Bulma helper props          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                              |
+| Prop             | Type                        | Default | Description                                       |
+| ---------------- | --------------------------- | ------- | ------------------------------------------------- |
+| `label`          | `React.ReactNode`           | —       | The dropdown button/trigger content.              |
+| `children`       | `React.ReactNode`           | —       | Dropdown menu items and dividers.                 |
+| `className`      | `string`                    | —       | Additional CSS classes for root.                  |
+| `menuClassName`  | `string`                    | —       | Additional CSS classes for the dropdown menu.     |
+| `active`         | `boolean`                   | `false` | Whether the dropdown is open (controlled).        |
+| `up`             | `boolean`                   | `false` | Dropdown menu opens upward.                       |
+| `right`          | `boolean`                   | `false` | Menu is right-aligned.                            |
+| `hoverable`      | `boolean`                   | `false` | Open on hover instead of click.                   |
+| `disabled`       | `boolean`                   | `false` | Disables the dropdown trigger.                    |
+| `onActiveChange` | `(active: boolean) => void` | —       | Callback when dropdown active state changes.      |
+| `closeOnClick`   | `boolean`                   | `true`  | Close dropdown when a menu item is clicked.       |
+| `id`             | `string`                    | —       | Root element ID (for aria-controls, etc).         |
+| `...`            | Bulma helper props          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
 

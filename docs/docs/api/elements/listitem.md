@@ -166,7 +166,7 @@ Always use `ListItem` inside `UnorderedList` or `OrderedList` for proper semanti
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Content to be rendered inside the list item.      |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the list item.           |
 | `value`     | `number`                                                                | —       | Custom value for ordered list items.              |
 | `...`       | All standard `<li>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 

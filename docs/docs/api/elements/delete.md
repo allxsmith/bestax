@@ -166,7 +166,7 @@ For custom close actions, use the `onClick` prop.
 | ----------- | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------- |
 | `className` | `string`                                                                        | —         | Additional CSS classes to apply.                  |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Text color helper.                                |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color modifier for the delete button.       |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color modifier for the button.              |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Background color helper.                          |
 | `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                          | —         | Click handler for the button.                     |
 | `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.              |
@@ -176,3 +176,20 @@ For custom close actions, use the `onClick` prop.
 | `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Delete`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable                      | Sass Variable | Default              |
+| --------------------------------- | ------------- | -------------------- |
+| `--bulma-delete-dimensions`       | —             | `1.25rem`            |
+| `--bulma-delete-background-l`     | —             | `0%`                 |
+| `--bulma-delete-background-alpha` | —             | `0.5`                |
+| `--bulma-delete-color`            | —             | `var(--bulma-white)` |
+
+<!-- /bestax:generated cssvars -->

@@ -92,7 +92,7 @@ export interface DateTimeInputBaseProps
   value?: Date | null;
   /** Initial value for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when either the date or time portion changes. Fired when either half changes. */
+  /** Fired when either the date or time portion changes. */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -119,15 +119,15 @@ export interface DateTimeInputBaseProps
   locale?: string;
   /** Render the panel inline (no popover). */
   inline?: boolean;
-  /** Use native `<input type="datetime-local">` on coarse-pointer devices. */
+  /** Use `<input type="datetime-local">` on coarse-pointer devices. */
   mobileNative?: boolean | 'auto';
-  /** Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only. Allow segmented keyboard typing in the input (type the date-time directly, auto-advancing across segments). Default `true`. */
+  /** Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
   popover?: boolean;
   /** Open the popover on focus. Default `true`. */
   openOnFocus?: boolean;
-  /** Off by default — users typically tweak both halves before committing. Close after selection. Default `false`. */
+  /** Off by default — users typically tweak both halves before committing. */
   closeOnSelect?: boolean;
   /** Popover anchor position. */
   position?: PickerPosition;
@@ -140,7 +140,7 @@ export interface DateTimeInputBaseProps
   /** Rounded input corners. */
   isRounded?: boolean;
   // date subset
-  /** Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). Predicate for disabled dates. Blocked dates can't be picked in the calendar and are rejected by manual typing; during entry the predicate receives the full candidate date-time, so prefer day-based checks. */
+  /** Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). */
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates, matched by calendar day; also rejected by manual typing. */
   unselectableDates?: Date[];
@@ -153,9 +153,9 @@ export interface DateTimeInputBaseProps
   /** Show dimmed dates from adjacent months. */
   nearbyMonthDays?: boolean;
   // time subset
-  /** Time format. `'12'` or `'24'`. Default `'24'`. */
+  /** Time format. */
   hourFormat?: HourFormat;
-  /** Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. Show a seconds column. Note: iOS Safari's native datetime-local picker has no seconds wheel; combine with `mobileNative={false}` if a seconds wheel is required on iOS. */
+  /** Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
   /** Hour step. */
   incrementHours?: number;
@@ -163,13 +163,13 @@ export interface DateTimeInputBaseProps
   incrementMinutes?: number;
   /** Step between second-wheel values (only with `enableSeconds`). */
   incrementSeconds?: number;
-  /** Block specific times. Blocked times are also rejected during manual typing. Predicate for blocked times (the wheels skip ahead; manual typing rejects them). */
+  /** Block specific times. Blocked times are also rejected during manual typing. */
   unselectableTimes?: (d: Date) => boolean;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
   /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
-  /** Glyph name for the right launcher button. Default `'chevron-down'`. */
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
   /** Play a short audible tick on each time-wheel crossing. Default `false`. */
   audioTick?: boolean;

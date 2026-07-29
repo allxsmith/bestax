@@ -803,6 +803,25 @@ const kebab = name => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
  * exists because a wrong root class is silent, so anything the name rule
  * cannot decide is stated explicitly rather than guessed.
  */
+/**
+ * The CSS-variable FAMILY a component owns, when it differs from its root class.
+ *
+ * These are two different questions. The root class is what the component
+ * renders (`.skeleton-lines`); the variable family is what Bulma names its
+ * variables after (`--bulma-skeleton-*`). They usually coincide, and where they
+ * do this map stays out of the way.
+ *
+ * The semantic wrappers have no Bulma class at all — `Code` renders a bare
+ * `<code>` — so without an entry here they can never find the variables that
+ * `base/generic.scss` very much does define for them.
+ */
+const VAR_PREFIX_OVERRIDES = {
+  Skeleton: 'skeleton', // root class is the `.skeleton-lines` variant
+  Code: 'code', // bare <code>, styled by base/generic.scss
+  Pre: 'pre',
+  Strong: 'strong',
+};
+
 const ROOT_CLASS_OVERRIDES = {
   Checkbox: 'styled-checkbox', // renders a styled span, not `.checkbox`
   Radio: 'styled-radio',
@@ -844,7 +863,7 @@ function pickRootClass(name, candidates) {
  * @param {string} name    Exported component name (the page's frontmatter title).
  * @param {object} [opts]
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
- * @returns {{name, tsdoc, rootClass, tables: [{path, rows, catchAll, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll, extraProps}]}}
  */
 export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
   const { ts, program, checker } = createProgram();
@@ -1142,6 +1161,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
     name,
     tsdoc,
     rootClass,
+    varPrefix: VAR_PREFIX_OVERRIDES[name] ?? rootClass,
     rootClassCandidates: candidates,
     tables,
     sourceFile: sf.fileName,
