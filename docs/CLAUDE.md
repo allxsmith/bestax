@@ -24,6 +24,12 @@ The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`), 
 - `/llms.txt` (curated index) and `/llms-full.txt` (full concatenation)
 - a per-page `.md` twin for every doc page (so `llms.txt` links resolve)
 
+`build` then chains `scripts/strip-generated-markers.mjs`, which removes the
+`<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
+strip HTML comments, and the markers are a source-control device no reader of the site needs.
+It is a build step rather than a Docusaurus plugin because `postBuild` hooks run under
+`Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it.
+
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs
 guide (`docs/guides/llms/` → https://bestax.io/docs/guides/llms) — don't add new competing
