@@ -55,6 +55,18 @@ Here's the leaderboard, rendered in the framework that placed third. Every code 
 </Panel>
 ```
 
+### Why That Was React and Not Raw Bulma
+
+You may have noticed that example is not hand-written Bulma markup. There is no `class="panel is-primary"` anywhere in it. It is a `<Panel>` component from [`@allxsmith/bestax-bulma`](https://bestax.io), and so is every other example in this post. That is a deliberate choice, and it is worth a paragraph before we go any further.
+
+Bulma ships CSS and nothing else. That is precisely what makes it pleasant to write by hand, and precisely what makes it hard for an AI assistant to write correctly. A class string has no schema behind it. Nothing tells a model which modifiers are legal on which element, nothing catches `is-primaryy`, nothing knows that `is-large` belongs on the button and not the wrapper. The mistake does not surface until a human looks at the page, and class soup is close to invisible in code review.
+
+Typed components close that gap. `color="primary"` has six legal values and an editor that lists them. A wrong prop is a red squiggle, not a silently unstyled div. The component owns the class names, so an assistant never has to remember Bulma's naming rules, only the props. On top of that, bestax publishes its full API as a machine-readable [LLM index](https://bestax.io/docs/guides/llms) and ships Agent Skills, so an assistant can read the real component surface instead of reconstructing it from whatever it half-remembers about Bulma.
+
+That is the whole point of bestax. Not to replace Bulma, but to give it the surface that modern tooling expects: types, autocomplete, docs a machine can parse, and skills an agent can load. **A framework that AI cannot use confidently is a framework AI will not recommend**, and as we will get to at the end of this post, not being recommended is how a perfectly good framework quietly disappears. Making Bulma AI-native is how third place stays on the board.
+
+So: Bulma underneath, bestax on top, and every example below is real, running code you can edit.
+
 ## What Bulma Actually Gives You
 
 Bulma v1 (2024) was not a maintenance release. It was a rebuild of the foundations:
@@ -940,7 +952,7 @@ None of this is fixed by complaining about AI. It's fixed by feeding the signal:
 1. **Write about the tools you use.** A blog post, a Stack Overflow answer, a README, a comment in a thread. Text is the substrate now. If your framework isn't written about, it doesn't exist to the next model.
 2. **Star and link.** Both are signals. Both are free. Both take seconds.
 3. **Evaluate at least once.** Before you accept a scaffold recommendation, spend five minutes on the second and third options. You'll sometimes change your mind, and even when you don't, you've made a real choice instead of an inherited one.
-4. **Teach your assistant.** Point it at real docs. This is why bestax publishes an [LLM index](https://bestax.io/docs/guides/llms) and ships Agent Skills: an assistant that has read the docs will happily use Bulma. The gap is availability, not capability.
+4. **Teach your assistant.** Point it at real docs. This is the reasoning behind the typed components, the [LLM index](https://bestax.io/docs/guides/llms) and the Agent Skills described at the top of this post: an assistant that can read a real API will happily use Bulma. The gap is availability, not capability.
 5. **Contribute upstream.** Issues, docs fixes, examples. Every one of them is a durable artifact that outlives the conversation.
 
 The two futures, side by side. `display="flex"` on each column and `flexGrow="1"` on the box keep the cards the same height no matter how much text they hold:
