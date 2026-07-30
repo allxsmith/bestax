@@ -40,9 +40,13 @@ each source library registers in `src/sources/registry.ts`; the first is
 - Fixture pairs: `__testfixtures__/<case>.input.tsx` → `.output.tsx`, exact-match. To
   update outputs after changing the transform, regenerate them by running the built
   transform over the inputs and reviewing the diff — do not hand-edit drift in.
-- Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to
-  `.e2e-tmp/`, migrates it, and runs `tsc --noEmit` on the output against the built
-  bulma-ui (`turbo` orders the build; see `bestax-migrate#test` in root turbo.json).
+- Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
+  `mkdtemp`'d dir under `.e2e-tmp/`, migrates it, and runs `tsc --noEmit` on the output
+  against the built bulma-ui (`turbo` orders the build; see `bestax-migrate#test` in root
+  turbo.json). The scratch dir is **per process, never a fixed path**: `pnpm all` runs
+  `test` and `test:coverage` in one turbo invocation, so two jest processes run this file
+  concurrently and a shared path lets them clobber each other's rmSync/cpSync — the suite
+  then fails as though the codemod had not run. `BESTAX_E2E_KEEP=1` leaves the dir behind.
   `src/leftovers.tsx` holds every intentionally-unsupported pattern — excluded from the
   typecheck, asserted via TODO rules instead. New unsupported patterns go there; new
   supported ones go in the other fixture files, which must stay TODO-free.
