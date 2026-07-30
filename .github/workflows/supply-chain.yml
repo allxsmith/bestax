@@ -19,13 +19,14 @@ permissions:
   contents: read
 
 jobs:
+  # Generation is read-only. It runs `pnpm install` and third-party actions, so
+  # it must never hold a write-scoped token — a compromised dependency or
+  # action would inherit it. The release upload is split into its own job below.
   sbom:
     name: SBOM
     runs-on: ubuntu-latest
     permissions:
-      # Only to attach the SBOM files to an existing release; nothing here
-      # creates or edits code.
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -74,10 +75,26 @@ jobs:
           output-file: bestax-sbom.cdx.json
           upload-release-assets: false
 
-      # Workflow artifacts expire; a release asset is the durable, linkable
-      # copy an auditor can actually cite.
-      - name: Attach SBOMs to the release
-        if: github.event_name == 'release'
+  # Workflow artifacts expire; a release asset is the durable, linkable copy an
+  # auditor can actually cite. Isolated from generation so the write-scoped
+  # token exists only on release runs, in a job that installs nothing and runs
+  # no third-party code beyond the artifact download.
+  attach-sbom:
+    name: Attach SBOMs to the release
+    runs-on: ubuntu-latest
+    needs: sbom
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: bestax-sbom.*
+          merge-multiple: true
+
+      - name: Upload to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
@@ -127,7 +144,13 @@ jobs:
         run: |
           fail=0
           for pkg in @allxsmith/bestax-bulma create-bestax; do
-            predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType 2>/dev/null || true)
+            # --json + a type guard so only a real string counts as present.
+            # Bare `npm view` of a missing field is empty today, but null /
+            # undefined / a non-string would otherwise read as success. Any
+            # failure (network, 404, missing dist-tag) yields empty and fails
+            # closed, which is the right default for a security assertion.
+            predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType --json 2>/dev/null \
+              | jq -r 'select(type=="string")' 2>/dev/null || true)
             if [ -z "$predicate" ]; then
               echo "::error::$pkg has NO provenance attestation on the registry"
               fail=1
