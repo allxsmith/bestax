@@ -19,7 +19,12 @@
  *
  * A `command` may hold several lines separated by `;`. A segment whose first
  * token is a known verb gets translated; anything else (`cd my-app`, a `#`
- * comment) is emitted byte-identically in all four tabs.
+ * comment) is a passthrough — emitted identically across all four tabs.
+ *
+ * Every segment is whitespace-normalized first (trimmed, runs of spaces
+ * collapsed), so authoring can pad around the `;` separators freely. Passthrough
+ * means "the same on every tab", not "byte-identical to the source" — don't rely
+ * on internal alignment surviving.
  */
 
 /** Tab order. pnpm is first, and therefore the default. */

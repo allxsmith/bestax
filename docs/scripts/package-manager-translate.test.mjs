@@ -101,6 +101,20 @@ test('an unknown first token passes through identically for all managers', () =>
   }
 });
 
+test('passthrough segments are normalized, not byte-preserved', () => {
+  // The guarantee is "the same on every tab", not "identical to the source" —
+  // splitSegments collapses whitespace so authors can pad around the separators.
+  const authored = '#   Remove    the  old  dep; remove node-sass';
+  const rendered = PACKAGE_MANAGERS.map(pm => renderCommand(authored, pm));
+
+  for (const out of rendered) {
+    assert.match(out, /^# Remove the old dep$/m);
+  }
+  // Same passthrough line on all four tabs.
+  const firstLines = rendered.map(out => out.split('\n')[0]);
+  assert.equal(new Set(firstLines).size, 1);
+});
+
 test('a trailing comment rides along untouched', () => {
   assert.equal(
     translateSegment('dlx bestax-migrate src/ --dry # preview', 'npm'),

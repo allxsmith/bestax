@@ -329,11 +329,16 @@ async function main(buildDir) {
     const before = await readFile(file, 'utf8');
     if (!NEEDS_FLATTENING.test(before)) continue;
     const after = transform(before);
-    if (after === before) continue;
 
+    // Verify whether or not anything changed. A no-op transform is exactly the
+    // case worth checking: a mid-line tag that the line-anchored pattern
+    // deliberately skips leaves the artifact untouched, so gating verification on
+    // `after !== before` would silently exempt the very shape this catches.
     for (const problem of verifyArtifact(after)) {
       failures.push(`${path.relative(buildDir, file)}: ${problem}`);
     }
+
+    if (after === before) continue;
     await writeFile(file, after);
     changed += 1;
   }
@@ -342,8 +347,8 @@ async function main(buildDir) {
     `flatten-llms-tabs: rewrote ${changed} file(s) under ${buildDir}`
   );
 
-  // Fail the build. These artifacts are what agents consume, and both failure
-  // modes are invisible in the rendered site.
+  // Fail the build. These artifacts are what agents consume, and every failure
+  // mode here is invisible in the rendered site.
   if (failures.length) {
     throw new Error(
       `${failures.length} artifact(s) failed verification:\n  ${failures.join('\n  ')}`
