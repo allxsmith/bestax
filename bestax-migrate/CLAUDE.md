@@ -66,7 +66,11 @@ a **devDependency** (it is only the typecheck target for the e2e, never
 imported at runtime — consumers of a codemod CLI must not be made to install
 the component library), and `scripts/pack-manifest.mjs` resolves any remaining
 `workspace:` specifier during `prepack`/`postpack`. `pnpm check:conformance
---only=publishable-manifests` enforces both. The skill lives at repo-root
+--only=publishable-manifests` enforces the protocol half of both: no
+`workspace:`/`catalog:` specifier in the sections consumers resolve, and one
+left in `devDependencies` only with the pack hooks present. It does **not**
+check which section `@allxsmith/bestax-bulma` sits in — re-adding it as a
+plain-semver runtime dependency passes CI, so that one is on review. The skill lives at repo-root
 `skills/bestax-migrate/` and is deliberately **not** bundled into create-bestax (existing
 sites only) — keep `create-bestax/scripts/sync-skills.mjs` untouched. When the mapping
 gains or loses coverage, update `skills/bestax-migrate/references/` and the docs migration

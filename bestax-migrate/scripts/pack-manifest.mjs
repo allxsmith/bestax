@@ -58,12 +58,14 @@ function resolveWorkspaceVersion(name) {
  * `workspace:^` / `workspace:~` / `workspace:*` take the prefix from the
  * protocol and the version from the linked package; `workspace:<range>`
  * (e.g. `workspace:^5.0.0`) already carries its own range, so just unwrap it.
+ * A bare `workspace:` is pnpm's shorthand for `workspace:*` — leaving it to the
+ * unwrap branch would emit an empty specifier.
  */
 function resolveSpecifier(name, spec) {
   const rest = spec.slice('workspace:'.length);
+  if (rest === '*' || rest === '') return resolveWorkspaceVersion(name);
   if (rest === '^' || rest === '~')
     return `${rest}${resolveWorkspaceVersion(name)}`;
-  if (rest === '*') return resolveWorkspaceVersion(name);
   return rest;
 }
 
@@ -84,7 +86,21 @@ if (mode === 'prepack') {
 
   for (const section of DEP_SECTIONS) {
     for (const [name, spec] of Object.entries(pkg[section] ?? {})) {
-      if (typeof spec !== 'string' || !spec.startsWith('workspace:')) continue;
+      if (typeof spec !== 'string') continue;
+      // `catalog:` is the other protocol `pnpm publish` resolves and
+      // `npm publish` ships verbatim — the exact shape of #412. This script
+      // cannot resolve it (the range lives in pnpm-workspace.yaml, not in the
+      // linked package), so fail the release rather than pack a broken tarball.
+      if (spec.startsWith('catalog:')) {
+        console.error(
+          `pack-manifest: ${section}.${name} is "${spec}", and this script ` +
+            `cannot resolve the catalog: protocol.\n` +
+            'Give it a plain semver range, or teach pack-manifest.mjs to read ' +
+            '`catalog`/`catalogs` from pnpm-workspace.yaml.'
+        );
+        process.exit(1);
+      }
+      if (!spec.startsWith('workspace:')) continue;
       const resolved = resolveSpecifier(name, spec);
       pkg[section][name] = resolved;
       rewritten.push(`${section}.${name}: ${spec} -> ${resolved}`);

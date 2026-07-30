@@ -71,9 +71,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 - Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
 - `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
-- Published packages must not ship a `workspace:` specifier — `npm publish` (what
-  semantic-release runs) does not resolve it, and the tarball becomes uninstallable (#412).
-  `check:conformance --only=publishable-manifests` enforces this.
+- Published packages must not ship a `workspace:` or `catalog:` specifier — `npm publish`
+  (what semantic-release runs) resolves neither, and the tarball becomes uninstallable
+  (#412). `check:conformance --only=publishable-manifests` enforces this.
 
 ## Workflow
 
