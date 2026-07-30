@@ -81,6 +81,53 @@ test('the gate fails on a dedented fence body', async () => {
   assert.match(result.stderr, /dedented below its opening fence/);
 });
 
+test('the gate fails on a dedented fence body nested past 3 spaces', async () => {
+  // Two list levels deep, and with a following page whose fence pairs with the
+  // stray column-0 one — the shape that used to reach publication silently,
+  // because a fence opened at 4+ spaces was invisible to the check entirely.
+  const result = await runGate({
+    'llms-full.txt': [
+      '1. Outer step:',
+      '',
+      '   - Inner step:',
+      '',
+      '     ```bash',
+      'pnpm add foo',
+      '```',
+      '',
+      '# Next page',
+      '',
+      '```ts',
+      'const a = 1;',
+      '```',
+      '',
+      '<PackageManagerTabs command="install" />',
+    ].join('\n'),
+  });
+
+  assert.equal(result.ok, false, 'expected the build to fail');
+  assert.match(result.stderr, /dedented below its opening fence/);
+});
+
+test('the gate passes an indented code block that quotes a fence', async () => {
+  // The other side of that widening. At the top level this is indented code, not
+  // a nested fence, so neither its unclosed ``` nor its column-0 neighbours may
+  // be read as damage — otherwise closing the gap above would redden valid pages.
+  const result = await runGate({
+    'docs/guide.md': [
+      'An indented code block showing a fence:',
+      '',
+      '    ```bash',
+      '    pnpm add foo',
+      '',
+      '<PackageManagerTabs command="install" />',
+    ].join('\n'),
+  });
+
+  assert.ok(result.ok, `expected success, got: ${result.stderr}`);
+  assert.match(result.stdout, /rewrote 1 file/);
+});
+
 test('artifacts with no tab JSX are not even read for problems', async () => {
   // The NEEDS_FLATTENING prefilter still applies — an unrelated malformed page
   // must not start failing the docs build.

@@ -247,6 +247,88 @@ test('a blank line inside an indented fence is not a dedent', () => {
   assert.deepEqual(verifyArtifact(fine), []);
 });
 
+// --- the gate past the 3-space break -----------------------------------------
+
+test('verifyArtifact catches the corruption shape nested past 3 spaces', () => {
+  // The same damage as above, one list level deeper, and inside a *concatenated*
+  // artifact — which is the case that used to escape entirely. CommonMark reads
+  // an opening fence at 4+ spaces as indented code, so the dedent check could not
+  // see this fence at all; the stray column-0 ``` then paired with the next
+  // page's fence instead, masking the whole region as code. Nothing was reported.
+  const corrupted = [
+    '1. Outer step:',
+    '',
+    '   - Inner step:',
+    '',
+    '     ```bash',
+    'pnpm add foo',
+    '```',
+    '',
+    '# Next page',
+    '',
+    '```ts',
+    'const a = 1;',
+    '```',
+  ].join('\n');
+
+  assert.deepEqual(verifyArtifact(corrupted), [
+    'fenced block dedented below its opening fence',
+  ]);
+});
+
+test('a correctly indented fence past 3 spaces is not flagged', () => {
+  // Also pins the closing fence rule: a closer at 6 spaces has to pair with an
+  // opener at 6 spaces, or this would report an unterminated fence instead.
+  const fine = [
+    '1. Outer step:',
+    '',
+    '   - Inner step:',
+    '',
+    '      ```bash',
+    '      pnpm add foo',
+    '      ```',
+    '',
+    '2. Done.',
+  ].join('\n');
+
+  assert.deepEqual(verifyArtifact(fine), []);
+});
+
+test('an unclosed fence past 3 spaces is not reported as unterminated', () => {
+  // Deliberate: at the top level this is an indented code block that happens to
+  // contain a ``` line, which is valid and harms nothing. The wide view is
+  // trusted with the dedent signal only, so it cannot redden a build over this.
+  const indentedCodeBlock = [
+    'An indented code block showing a fence:',
+    '',
+    '    ```bash',
+    '    pnpm add foo',
+    '',
+    '<PackageManagerTabs command="install" />',
+  ].join('\n');
+
+  assert.deepEqual(verifyArtifact(transform(indentedCodeBlock)), []);
+});
+
+test('a tab-indented fence line is indented code, not a fence', () => {
+  // A tab advances to the next multiple of four, so this sits at column 4 — the
+  // same indented-code reading as four spaces. Measuring it as one column would
+  // open a fence here and report the document as unterminated.
+  assert.deepEqual(verifyArtifact('\t```bash\n\tpnpm add foo\n'), []);
+});
+
+test('the JSX scan keeps the transform view of code, not the wide one', () => {
+  // A tag inside a fence opened at 4 spaces *is* rewritten by transform (that
+  // fence is indented code in the top-level reading), so the residual-JSX scan
+  // has to read the document the same way. Scanning it through the wide view
+  // would mask this region and call a genuine miss clean.
+  const src = ['    ```mdx', '    <Tabs>', '    </Tabs>', '    ```'].join('\n');
+
+  assert.match(transform(src), /^\s*```mdx$/m);
+  assert.doesNotMatch(transform(src), /<Tabs>/);
+  assert.deepEqual(verifyArtifact(transform(src)), []);
+});
+
 // --- generic <Tabs> in a list item -------------------------------------------
 
 test('an indented generic Tabs block keeps its indentation', () => {

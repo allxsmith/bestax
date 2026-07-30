@@ -133,6 +133,55 @@ function flattenGenericTabs(src) {
   );
 }
 
+/** A fence line at any indentation; how far in it may sit is decided per mode. */
+const FENCE = /^[ \t]*(`{3,}|~{3,})(.*)$/;
+
+/**
+ * Column width of a prefix, with a tab advancing to the next multiple of four as
+ * CommonMark expands it. Counting a tab as one character would read a
+ * tab-indented fence as sitting at column 1 — a fence — when it is four columns
+ * in and therefore indented code.
+ */
+function widthOf(prefix) {
+  let columns = 0;
+  for (const char of prefix) columns += char === '\t' ? 4 - (columns % 4) : 1;
+  return columns;
+}
+
+/** Indentation of a line, in columns. */
+const indentOf = line => widthOf(line.match(/^[ \t]*/)[0]);
+
+/**
+ * Track the content column of the innermost open list item; 0 at the top level.
+ *
+ * CommonMark's "an opening fence may be indented 0-3 spaces" is relative to the
+ * *enclosing container*, not to the document, so a fence nested two list levels
+ * deep legitimately opens at 4+ spaces. Without the container column there is no
+ * way to tell that fence from a top-level indented code block that happens to
+ * contain a ``` line — and the two want opposite treatment.
+ *
+ * Deliberately a small approximation of block parsing, not an implementation of
+ * it: enough for that one distinction, which is all the caller asks of it. Lazy
+ * continuation lines and non-list containers (blockquotes) are not modelled, and
+ * only `verifyArtifact`'s structural pass consults it.
+ */
+function listColumnTracker() {
+  const columns = [];
+
+  return line => {
+    // A blank line does not end a list item — indented content may follow it.
+    if (line.trim() === '') return columns.at(-1) ?? 0;
+
+    const indent = indentOf(line);
+    while (columns.length && indent < columns.at(-1)) columns.pop();
+
+    const marker = line.match(/^[ \t]*(?:[-*+]|\d{1,9}[.)])[ \t]+(?=\S)/);
+    if (marker) columns.push(widthOf(marker[0]));
+
+    return columns.at(-1) ?? 0;
+  };
+}
+
 /**
  * Mask fenced code blocks, per CommonMark rather than by regex.
  *
@@ -140,24 +189,37 @@ function flattenGenericTabs(src) {
  * and the closing fence only has to be *at least* as long as the opening one.
  * `docs/api/helpers/theme.md` and `docs/tutorial-basics/markdown-features.mdx`
  * both wrap ``` examples in ```` fences, so mis-pairing is not hypothetical.
+ *
+ * `listAware` widens which lines can open a fence, from "0-3 spaces" to "0-3
+ * spaces past the enclosing list item's content column". Off (the default) is
+ * the reading that decides what `transform` may rewrite, and is exactly the
+ * top-level CommonMark rule; on, it lets the dedent signal below see a fence
+ * nested past the 3-space break at all. See `verifyArtifact`.
  */
-function maskFences(src, hold, report) {
+function maskFences(src, hold, report, { listAware = false } = {}) {
   const out = [];
+  const listColumn = listColumnTracker();
   let open = null;
   let buf = [];
 
   for (const line of src.split('\n')) {
-    const fence = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
-
     if (!open) {
+      // Container column of *this* line, so the fence is judged in its own
+      // context. Fed only outside fences: a `1.` inside a code sample is not a
+      // list item, and letting one in would move the column under the fence.
+      const column = listAware ? listColumn(line) : 0;
+      const fence = line.match(FENCE);
       // A backtick fence's info string may not itself contain a backtick.
       const validOpen =
-        fence && !(fence[1][0] === '`' && fence[2].includes('`'));
+        fence &&
+        indentOf(line) <= column + 3 &&
+        !(fence[1][0] === '`' && fence[2].includes('`'));
       if (validOpen) {
         open = {
           char: fence[1][0],
           len: fence[1].length,
-          indent: line.match(/^[ \t]*/)[0].length,
+          indent: indentOf(line),
+          column,
         };
         buf = [line];
       } else {
@@ -167,22 +229,27 @@ function maskFences(src, hold, report) {
     }
 
     buf.push(line);
-    const close = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
-    if (close && close[1][0] === open.char && close[1].length >= open.len) {
+    // A closing fence may be indented up to three spaces past its container —
+    // the same allowance the opener got, which is why it is measured against
+    // `open.column` and not against `open.indent`. So a closer may legally sit
+    // *below* the opening fence, and does in the corruption shape below.
+    const close = line.match(/^[ \t]*(`{3,}|~{3,})[ \t]*$/);
+    if (
+      close &&
+      close[1][0] === open.char &&
+      close[1].length >= open.len &&
+      indentOf(line) <= open.column + 3
+    ) {
       // A fence opened inside a list item whose body or closer is *less*
-      // indented than the opening fence. CommonMark still pairs the two (a
-      // closer may sit at 0-3 spaces regardless), so parity looks fine — but the
+      // indented than the opening fence. CommonMark still pairs the two (the
+      // closer gets its own allowance, as above), so parity looks fine — but the
       // under-indented lines have terminated the list item, ejecting the command
       // into prose and swallowing whatever followed. This is the exact signature
       // of a rewrite that forgot to carry the tag's indentation.
       if (report && open.indent > 0) {
         const dedented = buf
           .slice(1)
-          .some(
-            body =>
-              body.trim() !== '' &&
-              body.match(/^[ \t]*/)[0].length < open.indent
-          );
+          .some(body => body.trim() !== '' && indentOf(body) < open.indent);
         if (dedented) report.dedentedFenceBody = true;
       }
       out.push(hold(buf.join('\n')));
@@ -272,10 +339,29 @@ export const NEEDS_FLATTENING =
  *   the enclosing list item and swallowed what followed.
  * - An unterminated fence corrupts everything after it in a concatenated
  *   artifact.
+ *
+ * Two passes, because the two questions want different views of what code is:
+ *
+ *   1. *Did the flattener miss a tag?* Scanned through the same view `transform`
+ *      uses. A wider one here would mask a region the flattener does rewrite,
+ *      and so would call a genuine miss clean.
+ *   2. *Is a fence structurally broken?* Scanned again with `listAware`, because
+ *      the plain top-level reading cannot see a fence opened past the 3-space
+ *      break: `open.indent` was only ever 1-3, so a corrupted emission nested
+ *      deeper than one list level fell through to the unterminated-fence signal
+ *      — and in `llms-full.txt` not even reliably, since a later page's fence can
+ *      pair with the stray one and mask the whole region as code.
+ *
+ * Only the dedent signal is taken from the second pass; the first stays the
+ * authority on unterminated fences. `listAware` reaches past where a top-level
+ * reading would stop, so an *unclosed* deep fence there is often just an indented
+ * code block quoting a fence — valid, and not something to redden a build over.
+ * The dedent signal carries no such risk: it only fires once a pair was found.
  */
 export function verifyArtifact(src) {
   const problems = [];
   const report = {};
+  const deep = {};
   const residual = new Set();
 
   outsideCode(
@@ -291,12 +377,14 @@ export function verifyArtifact(src) {
     report
   );
 
+  maskFences(src, chunk => chunk, deep, { listAware: true });
+
   if (residual.size) {
     problems.push(
       `unflattened tab JSX outside code: ${[...residual].join(', ')}`
     );
   }
-  if (report.dedentedFenceBody) {
+  if (report.dedentedFenceBody || deep.dedentedFenceBody) {
     problems.push('fenced block dedented below its opening fence');
   }
   if (report.unterminatedFence) {
