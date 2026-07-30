@@ -1,43 +1,32 @@
 ---
 title: File
 sidebar_label: File
+description: The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
 ---
 
 # File
 
 ## Overview
 
-The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display. It is highly customizable for all file upload UI needs.
+<!-- bestax:generated overview -->
+
+The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
+
+<!-- /bestax:generated overview -->
+
+It is highly customizable for all file upload UI needs.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { File, Icon } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop             | Type                                                      | Description                                                 |
-| ---------------- | --------------------------------------------------------- | ----------------------------------------------------------- |
-| `color`          | `'primary' \| 'link' \| ... \| 'white'`                   | Bulma color modifier for the file input.                    |
-| `size`           | `'small' \| 'medium' \| 'large'`                          | Size modifier for the file input.                           |
-| `isBoxed`        | `boolean`                                                 | Boxed file input.                                           |
-| `isFullwidth`    | `boolean`                                                 | File input expands to full width.                           |
-| `isRight`        | `boolean`                                                 | Position the CTA on the right (with `hasName`).             |
-| `isCentered`     | `boolean`                                                 | Center the file input within its container.                 |
-| `hasName`        | `boolean`                                                 | Show a file name indicator.                                 |
-| `buttonLabel`    | `React.ReactNode`                                         | Text on the file CTA button (defaults to "Choose a file…"). |
-| `label`          | `React.ReactNode`                                         | Field label rendered above the widget.                      |
-| `iconLeft`       | `React.ReactNode`                                         | Left icon element.                                          |
-| `iconRight`      | `React.ReactNode`                                         | Right icon element.                                         |
-| `className`      | `string`                                                  | Additional CSS classes.                                     |
-| `inputClassName` | `string`                                                  | Additional CSS classes for the `<input>`.                   |
-| `fileName`       | `string`                                                  | File name to display.                                       |
-| ...              | All standard `<input type="file">` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses))            |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -431,3 +420,70 @@ function example() {
 
 - [Bulma File Documentation](https://bulma.io/documentation/form/file/)
 - [Storybook: File Stories](https://bestax.io/storybook/?path=/story/form-file--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                                                                               | Default | Description                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------- |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the file input.                    |
+| `size`           | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the file input.                           |
+| `isBoxed`        | `boolean`                                                                                                                          | `false` | Boxed file input.                                           |
+| `isFullwidth`    | `boolean`                                                                                                                          | `false` | Whether the file input expands to full width.               |
+| `isRight`        | `boolean`                                                                                                                          | `false` | Position the CTA on the right (with `hasName`).             |
+| `isCentered`     | `boolean`                                                                                                                          | `false` | Center the file input within its container.                 |
+| `hasName`        | `boolean`                                                                                                                          | `false` | Show a file name indicator.                                 |
+| `buttonLabel`    | `React.ReactNode`                                                                                                                  | —       | Text on the file CTA button (defaults to "Choose a file…"). |
+| `iconLeft`       | `React.ReactNode`                                                                                                                  | —       | Left icon element.                                          |
+| `iconRight`      | `React.ReactNode`                                                                                                                  | —       | Right icon element.                                         |
+| `className`      | `string`                                                                                                                           | —       | Additional CSS classes to apply.                            |
+| `inputClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the `<input>`.                   |
+| `fileName`       | `string`                                                                                                                           | —       | File name to display.                                       |
+| `label`          | `React.ReactNode`                                                                                                                  | —       | Field label, rendered above the widget.                     |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —       | Size for the label (used in horizontal layouts).            |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                                                        | —       | Props for the label element.                                |
+| `horizontal`     | `boolean`                                                                                                                          | `false` | Horizontal field layout.                                    |
+| `message`        | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the input.                    |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                |
+| `fieldClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Field wrapper.               |
+| `children`       | `React.ReactNode`                                                                                                                  | —       | Content rendered inside the component.                      |
+| `ref`            | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                        |
+| `...`            | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)           |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`File` registers these variables on its own `.file` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                             | Sass Variable                     | Default                          |
+| ---------------------------------------- | --------------------------------- | -------------------------------- |
+| `--bulma-file-radius`                    | `$file-radius`                    | `var(--bulma-radius)`            |
+| `--bulma-file-name-border-color`         | `$file-name-border-color`         | `var(--bulma-border)`            |
+| `--bulma-file-name-border-style`         | `$file-name-border-style`         | `solid`                          |
+| `--bulma-file-name-border-width`         | `$file-name-border-width`         | `1px 1px 1px 0`                  |
+| `--bulma-file-name-max-width`            | `$file-name-max-width`            | `16em`                           |
+| `--bulma-file-h`                         | `$file-h`                         | `var(--bulma-scheme-h)`          |
+| `--bulma-file-s`                         | `$file-s`                         | `var(--bulma-scheme-s)`          |
+| `--bulma-file-background-l`              | `$file-background-l`              | `var(--bulma-scheme-main-ter-l)` |
+| `--bulma-file-background-l-delta`        | `$file-background-l-delta`        | `0%`                             |
+| `--bulma-file-hover-background-l-delta`  | `$file-hover-background-l-delta`  | `-5%`                            |
+| `--bulma-file-active-background-l-delta` | `$file-active-background-l-delta` | `-10%`                           |
+| `--bulma-file-border-l`                  | `$file-border-l`                  | `var(--bulma-border-l)`          |
+| `--bulma-file-border-l-delta`            | `$file-border-l-delta`            | `0%`                             |
+| `--bulma-file-hover-border-l-delta`      | `$file-hover-border-l-delta`      | `-10%`                           |
+| `--bulma-file-active-border-l-delta`     | `$file-active-border-l-delta`     | `-20%`                           |
+| `--bulma-file-cta-color-l`               | `$file-cta-color-l`               | `var(--bulma-text-strong-l)`     |
+| `--bulma-file-name-color-l`              | `$file-name-color-l`              | `var(--bulma-text-strong-l)`     |
+| `--bulma-file-color-l-delta`             | `$file-color-l-delta`             | `0%`                             |
+| `--bulma-file-hover-color-l-delta`       | `$file-hover-color-l-delta`       | `-5%`                            |
+| `--bulma-file-active-color-l-delta`      | `$file-active-color-l-delta`      | `-10%`                           |
+
+<!-- /bestax:generated cssvars -->

@@ -6,7 +6,7 @@ import React from 'react';
  * it will automatically render a Field around itself.
  */
 export interface FormFieldProps {
-  /** Field label. */
+  /** Field label, rendered above the widget. */
   label?: React.ReactNode;
   /** Size for the label (used in horizontal layouts). */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';

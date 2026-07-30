@@ -1,13 +1,20 @@
 ---
 title: Message
 sidebar_label: Message
+description: The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
 ---
 
 # Message
 
 ## Overview
 
-The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI. It supports color, optional headers, close buttons, custom content, and Bulma helper classes for text/background. Use it for inline feedback, status messages, alerts, or general notifications.
+<!-- bestax:generated overview -->
+
+The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports color, optional headers, close buttons, custom content, and Bulma helper classes for text/background. Use it for inline feedback, status messages, alerts, or general notifications.
 
 :::info
 Supports Bulma color modifiers, sizes, and both header/body sections. The close button is optional and triggers your `onClose` callback.
@@ -17,46 +24,13 @@ Supports Bulma color modifiers, sizes, and both header/body sections. The close 
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Message } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | —       | Bulma color modifier for the message.            |
-| `title`     | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Title string/node (renders header section).      |
-| `onClose`   | `() => void`                                                                                                                                                                                                                                                                             | —       | Callback for the close ("X") button.             |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color for the message (Bulma helper).       |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color for the message (Bulma helper). |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Body content for the message.                    |
-| ...         | All standard HTML and Bulma helper props (see [Helper Props](../helpers/usebulmaclasses))                                                                                                                                                                                                |         | Utility and accessibility props.                 |
-
-### Compound component props
-
-The `Message` component also supports a compound component API for maximum flexibility. This allows you to compose messages with fine-grained control over each section.
-
-#### Message.Header
-
-Renders the message header section with proper styling.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-#### Message.Body
-
-Renders the message body section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
+<!-- /bestax:generated import -->
 
 ---
 
@@ -234,3 +208,98 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
+| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section).       |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).        |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).  |
+| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.              |
+| `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                     |
+| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- `Message.Header`: Message header compound component. Renders a `.message-header` element.
+- `Message.Body`: Message body compound component. Renders a `.message-body` element.
+
+### Message.Header
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`               | —       | Header content (title, close button, etc.).       |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Message.Body
+
+| Prop        | Type                            | Default | Description                                       |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`               | —       | Message body content.                             |
+| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+### Compound component props
+
+The `Message` component also supports a compound component API for maximum flexibility. This allows you to compose messages with fine-grained control over each section.
+
+#### Message.Header
+
+Renders the message header section with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Message.Body
+
+Renders the message body section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Message` registers these variables on its own `.message` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                     | Sass Variable                             | Default                           |
+| ------------------------------------------------ | ----------------------------------------- | --------------------------------- |
+| `--bulma-message-border-l-delta`                 | `$message-border-l-delta`                 | `-20%`                            |
+| `--bulma-message-radius`                         | `$message-radius`                         | `var(--bulma-radius)`             |
+| `--bulma-message-header-weight`                  | `$message-header-weight`                  | `var(--bulma-weight-semibold)`    |
+| `--bulma-message-header-padding`                 | `$message-header-padding`                 | `1em 1.25em`                      |
+| `--bulma-message-header-radius`                  | `$message-header-radius`                  | `var(--bulma-radius)`             |
+| `--bulma-message-body-border-width`              | `$message-body-border-width`              | `0 0 0 4px`                       |
+| `--bulma-message-body-color`                     | `$message-body-color`                     | `var(--bulma-text)`               |
+| `--bulma-message-body-padding`                   | `$message-body-padding`                   | `1.25em 1.5em`                    |
+| `--bulma-message-body-radius`                    | `$message-body-radius`                    | `var(--bulma-radius-small)`       |
+| `--bulma-message-body-pre-code-background-color` | `$message-body-pre-code-background-color` | `transparent`                     |
+| `--bulma-message-header-body-border-width`       | `$message-header-body-border-width`       | `0`                               |
+| `--bulma-message-h`                              | `$message-h`                              | `var(--bulma-scheme-h)`           |
+| `--bulma-message-s`                              | `$message-s`                              | `var(--bulma-scheme-s)`           |
+| `--bulma-message-background-l`                   | `$message-background-l`                   | `var(--bulma-background-l)`       |
+| `--bulma-message-border-l`                       | `$message-border-l`                       | `var(--bulma-border-l)`           |
+| `--bulma-message-border-style`                   | `$message-border-style`                   | `solid`                           |
+| `--bulma-message-border-width`                   | `$message-border-width`                   | `0.25em`                          |
+| `--bulma-message-color-l`                        | `$message-color-l`                        | `var(--bulma-text-l)`             |
+| `--bulma-message-header-background-l`            | `$message-header-background-l`            | `var(--bulma-dark-l)`             |
+| `--bulma-message-header-color-l`                 | `$message-header-color-l`                 | `var(--bulma-text-dark-invert-l)` |
+
+<!-- /bestax:generated cssvars -->

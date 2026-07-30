@@ -1,44 +1,32 @@
 ---
 title: Tooltip
 sidebar_label: Tooltip
+description: The `Tooltip` component displays helpful information when users hover over or focus on an element.
 ---
 
 # Tooltip
 
 ## Overview
 
-The `Tooltip` component displays helpful information when users hover over or focus on an element. It supports multiple positions, colors, and styles. Perfect for providing additional context, abbreviation expansions, or action descriptions.
+<!-- bestax:generated overview -->
+
+The `Tooltip` component displays helpful information when users hover over or focus on an element.
+
+<!-- /bestax:generated overview -->
+
+It supports multiple positions, colors, and styles. Perfect for providing additional context, abbreviation expansions, or action descriptions.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Tooltip } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop               | Type                                                                                                     | Default | Description                                      |
-| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `label`            | `string`                                                                                                 | —       | The tooltip text content.                        |
-| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip.                         |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant.                                   |
-| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.              |
-| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.         |
-| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation.                           |
-| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.           |
-| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                |
-| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).               |
-| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.           |
-| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                          |
-| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.      |
-| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`).   |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                             |
-| `closeDelay`       | `number`                                                                                                 | `0`     | Delay in ms before hiding the tooltip.           |
-| ...                | All standard HTML and Bulma helper props                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -287,6 +275,13 @@ function example() {
 
 ---
 
+## Related
+
+- [Icon](../elements/icon.md) - Icon component
+- [Button](../elements/button.md) - Button component
+
+---
+
 ## Accessibility
 
 - Tooltip content has `role="tooltip"` for screen reader announcement
@@ -296,7 +291,41 @@ function example() {
 
 ---
 
-## Related
+## Props
 
-- [Icon](../elements/icon.md) - Icon component
-- [Button](../elements/button.md) - Button component
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                                                                     | Default | Description                                       |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `label`            | `string`                                                                                                 | —       | The tooltip text content.                         |
+| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`).    |
+| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip. Default: 'top'.          |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant for the tooltip.                    |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                              |
+| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.               |
+| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.          |
+| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation. Default: true.             |
+| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.            |
+| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                 |
+| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).                |
+| `closeDelay`       | `number`                                                                                                 | `0`     | Delay in ms before hiding the tooltip.            |
+| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.       |
+| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.            |
+| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                           |
+| `...`              | All standard `<span>` attributes and Bulma helper props                                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Tooltip` registers these variables on its own `.tooltip` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                   | Sass Variable           | Default           |
+| ------------------------------ | ----------------------- | ----------------- |
+| `--bulma-tooltip-dashed-color` | `$tooltip-dashed-color` | `hsl(0, 0%, 60%)` |
+
+<!-- /bestax:generated cssvars -->

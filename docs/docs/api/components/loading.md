@@ -1,41 +1,32 @@
 ---
 title: Loading
 sidebar_label: Loading
+description: The `Loading` component provides a loading overlay with a spinner animation.
 ---
 
 # Loading
 
 ## Overview
 
-The `Loading` component provides a loading overlay with a spinner animation. It can be used as a full-page overlay or a container overlay to indicate loading states. Supports different sizes, color variants, optional cancel functionality, and custom loading messages.
+<!-- bestax:generated overview -->
+
+The `Loading` component provides a loading overlay with a spinner animation.
+
+<!-- /bestax:generated overview -->
+
+It can be used as a full-page overlay or a container overlay to indicate loading states. Supports different sizes, color variants, optional cancel functionality, and custom loading messages.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Loading } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop               | Type                                                                            | Default | Description                                           |
-| ------------------ | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
-| `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible.               |
-| `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport.                            |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                          |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner. Default is light grey. |
-| `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing.               |
-| `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                    |
-| `children`         | `React.ReactNode`                                                               | —       | Content to display below the spinner.                 |
-| `className`        | `string`                                                                        | —       | Additional CSS classes.                               |
-| `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                   |
-| `iconClassName`    | `string`                                                                        | —       | Additional classes for the spinner icon.              |
-| `indicator`        | `React.ReactNode`                                                               | —       | Custom loading indicator element.                     |
-| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                             | —       | Style of the loading overlay.                         |
-| ...                | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses))      |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -276,6 +267,13 @@ When `canCancel` is true, the loading can be cancelled by:
 
 ---
 
+## Related
+
+- [Skeleton](../elements/skeleton.md) - Placeholder loading states
+- [Progress](../elements/progress.md) - Progress bar component
+
+---
+
 ## Accessibility
 
 - Uses `role="alert"` to announce loading state to screen readers
@@ -286,7 +284,63 @@ When `canCancel` is true, the loading can be cancelled by:
 
 ---
 
-## Related
+## Props
 
-- [Skeleton](../elements/skeleton.md) - Placeholder loading states
-- [Progress](../elements/progress.md) - Progress bar component
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                                            | Default | Description                                           |
+| ------------------ | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------- |
+| `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible.               |
+| `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport.                            |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                          |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner. Default is light grey. |
+| `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing.               |
+| `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                    |
+| `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                   |
+| `iconClassName`    | `string`                                                                        | —       | Additional classes for the spinner icon.              |
+| `indicator`        | `React.ReactNode`                                                               | —       | Custom loading indicator element.                     |
+| `overlay`          | `'light'` \| `'dark'` \| `'opaque'`                                             | —       | Style of the loading overlay.                         |
+| `children`         | `React.ReactNode`                                                               | —       | Content to display below the spinner.                 |
+| `className`        | `string`                                                                        | —       | Additional CSS classes.                               |
+| `...`              | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)     |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Loading` registers these variables on its own `.loading` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                | Sass Variable                        | Default                    |
+| ------------------------------------------- | ------------------------------------ | -------------------------- |
+| `--bulma-loading-overlay-background`        | `$loading-overlay-background`        | `var(--bulma-scheme-main)` |
+| `--bulma-loading-overlay-opacity`           | `$loading-overlay-opacity`           | `0.7`                      |
+| `--bulma-loading-overlay-fullpage-opacity`  | `$loading-overlay-fullpage-opacity`  | `0.8`                      |
+| `--bulma-loading-overlay-opacity-light`     | `$loading-overlay-opacity-light`     | `0.4`                      |
+| `--bulma-loading-overlay-opacity-dark`      | `$loading-overlay-opacity-dark`      | `0.85`                     |
+| `--bulma-loading-overlay-opacity-opaque`    | `$loading-overlay-opacity-opaque`    | `1`                        |
+| `--bulma-loading-icon-size`                 | `$loading-icon-size`                 | `4.5em`                    |
+| `--bulma-loading-icon-size-small`           | `$loading-icon-size-small`           | `3em`                      |
+| `--bulma-loading-icon-size-medium`          | `$loading-icon-size-medium`          | `6em`                      |
+| `--bulma-loading-icon-size-large`           | `$loading-icon-size-large`           | `7.5em`                    |
+| `--bulma-loading-icon-border-width`         | `$loading-icon-border-width`         | `0.25em`                   |
+| `--bulma-loading-icon-border-width-small`   | `$loading-icon-border-width-small`   | `0.2em`                    |
+| `--bulma-loading-icon-border-width-medium`  | `$loading-icon-border-width-medium`  | `0.3em`                    |
+| `--bulma-loading-icon-border-width-large`   | `$loading-icon-border-width-large`   | `0.375em`                  |
+| `--bulma-loading-icon-spin-color`           | `$loading-icon-spin-color`           | `var(--bulma-grey-light)`  |
+| `--bulma-loading-text-color`                | `$loading-text-color`                | `var(--bulma-text)`        |
+| `--bulma-loading-text-size`                 | `$loading-text-size`                 | `var(--bulma-size-normal)` |
+| `--bulma-loading-content-gap`               | `$loading-content-gap`               | `1rem`                     |
+| `--bulma-loading-cancel-color`              | `$loading-cancel-color`              | `var(--bulma-text-light)`  |
+| `--bulma-loading-cancel-border-color`       | `$loading-cancel-border-color`       | `var(--bulma-border)`      |
+| `--bulma-loading-cancel-background`         | `$loading-cancel-background`         | `var(--bulma-scheme-main)` |
+| `--bulma-loading-cancel-hover-color`        | `$loading-cancel-hover-color`        | `var(--bulma-text)`        |
+| `--bulma-loading-cancel-hover-border-color` | `$loading-cancel-hover-border-color` | `var(--bulma-text-light)`  |
+| `--bulma-loading-cancel-radius`             | `$loading-cancel-radius`             | `var(--bulma-radius)`      |
+| `--bulma-loading-cancel-size`               | `$loading-cancel-size`               | `var(--bulma-size-small)`  |
+| `--bulma-loading-animation-duration`        | `$loading-animation-duration`        | `0.75s`                    |
+
+<!-- /bestax:generated cssvars -->

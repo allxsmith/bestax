@@ -1,13 +1,20 @@
 ---
 title: Dropdown
 sidebar_label: Dropdown
+description: The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 ---
 
 # Dropdown
 
 ## Overview
 
-The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI. It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and full Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
+<!-- bestax:generated overview -->
+
+The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and full Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
 
 :::info
 Dropdowns can be fully controlled, used as hoverable, or triggered by click. Menu items and dividers are included.
@@ -17,45 +24,13 @@ Dropdowns can be fully controlled, used as hoverable, or triggered by click. Men
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Dropdown } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-### Dropdown
-
-| Prop             | Type                        | Default | Description                                      |
-| ---------------- | --------------------------- | ------- | ------------------------------------------------ |
-| `label`          | `React.ReactNode`           | —       | The dropdown button/trigger content.             |
-| `children`       | `React.ReactNode`           | —       | Dropdown menu items and dividers.                |
-| `className`      | `string`                    | —       | Additional CSS classes for root.                 |
-| `menuClassName`  | `string`                    | —       | Additional CSS classes for the dropdown menu.    |
-| `active`         | `boolean`                   | —       | Whether the dropdown is open (controlled).       |
-| `up`             | `boolean`                   | false   | Dropdown menu opens upward.                      |
-| `right`          | `boolean`                   | false   | Menu is right-aligned.                           |
-| `hoverable`      | `boolean`                   | false   | Open on hover instead of click.                  |
-| `disabled`       | `boolean`                   | false   | Disables the dropdown trigger.                   |
-| `onActiveChange` | `(active: boolean) => void` | —       | Callback when dropdown active state changes.     |
-| `closeOnClick`   | `boolean`                   | `true`  | Close dropdown when a menu item is clicked.      |
-| `id`             | `string`                    | —       | Root element ID (for aria-controls, etc).        |
-| ...              | All Bulma helper props      |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Dropdown.Item
-
-| Prop        | Type                                     | Default | Description                                      |
-| ----------- | ---------------------------------------- | ------- | ------------------------------------------------ |
-| `active`    | `boolean`                                | —       | Makes this item appear active.                   |
-| `className` | `string`                                 | —       | Additional CSS classes.                          |
-| `as`        | `'a'` \| `'div'` \| `'button'`           | `'a'`   | Element type to render.                          |
-| `children`  | `React.ReactNode`                        | —       | Content for the menu item.                       |
-| ...         | All standard HTML and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Dropdown.Divider
-
-No props. Renders as a menu divider (`<hr>`).
+<!-- /bestax:generated import -->
 
 ---
 
@@ -209,3 +184,82 @@ For custom keyboard navigation or focus management, add handlers as needed.
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />`, `<Dropdown.Item />`, and `<Dropdown.Divider />` for utility-based styling.
 :::
+
+---
+
+## Props
+
+### Dropdown
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                        | Default | Description                                       |
+| ---------------- | --------------------------- | ------- | ------------------------------------------------- |
+| `label`          | `React.ReactNode`           | —       | The dropdown button/trigger content.              |
+| `children`       | `React.ReactNode`           | —       | Dropdown menu items and dividers.                 |
+| `className`      | `string`                    | —       | Additional CSS classes for root.                  |
+| `menuClassName`  | `string`                    | —       | Additional CSS classes for the dropdown menu.     |
+| `active`         | `boolean`                   | `false` | Whether the dropdown is open (controlled).        |
+| `up`             | `boolean`                   | `false` | Dropdown menu opens upward.                       |
+| `right`          | `boolean`                   | `false` | Menu is right-aligned.                            |
+| `hoverable`      | `boolean`                   | `false` | Open on hover instead of click.                   |
+| `disabled`       | `boolean`                   | `false` | Disables the dropdown trigger.                    |
+| `onActiveChange` | `(active: boolean) => void` | —       | Callback when dropdown active state changes.      |
+| `closeOnClick`   | `boolean`                   | `true`  | Close dropdown when a menu item is clicked.       |
+| `id`             | `string`                    | —       | Root element ID (for aria-controls, etc).         |
+| `...`            | Bulma helper props          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- `Dropdown.Item`: Bulma Dropdown item.
+
+### Dropdown.Item
+
+| Prop        | Type                           | Default | Description                                       |
+| ----------- | ------------------------------ | ------- | ------------------------------------------------- |
+| `active`    | `boolean`                      | `false` | Whether the item is active.                       |
+| `className` | `string`                       | —       | Additional CSS classes.                           |
+| `as`        | `'a'` \| `'div'` \| `'button'` | `'a'`   | The element type to render.                       |
+| `children`  | `React.ReactNode`              | —       | Item content.                                     |
+| `...`       | Bulma helper props             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+### Dropdown.Divider
+
+No props. Renders as a menu divider (`<hr>`).
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Dropdown` registers these variables on its own `.dropdown` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                      | Sass Variable                              | Default                                  |
+| ------------------------------------------------- | ------------------------------------------ | ---------------------------------------- |
+| `--bulma-dropdown-menu-min-width`                 | `$dropdown-menu-min-width`                 | `12rem`                                  |
+| `--bulma-dropdown-content-background-color`       | `$dropdown-content-background-color`       | `var(--bulma-scheme-main)`               |
+| `--bulma-dropdown-content-offset`                 | `$dropdown-content-offset`                 | `0.25rem`                                |
+| `--bulma-dropdown-content-padding-bottom`         | `$dropdown-content-padding-bottom`         | `0.5rem`                                 |
+| `--bulma-dropdown-content-padding-top`            | `$dropdown-content-padding-top`            | `0.5rem`                                 |
+| `--bulma-dropdown-content-radius`                 | `$dropdown-content-radius`                 | `var(--bulma-radius)`                    |
+| `--bulma-dropdown-content-shadow`                 | `$dropdown-content-shadow`                 | `var(--bulma-shadow)`                    |
+| `--bulma-dropdown-content-z`                      | `$dropdown-content-z`                      | `20`                                     |
+| `--bulma-dropdown-item-h`                         | `$dropdown-item-h`                         | `var(--bulma-scheme-h)`                  |
+| `--bulma-dropdown-item-s`                         | `$dropdown-item-s`                         | `var(--bulma-scheme-s)`                  |
+| `--bulma-dropdown-item-l`                         | `$dropdown-item-l`                         | `var(--bulma-scheme-main-l)`             |
+| `--bulma-dropdown-item-background-l`              | `$dropdown-item-background-l`              | `var(--bulma-scheme-main-l)`             |
+| `--bulma-dropdown-item-background-l-delta`        | `$dropdown-item-background-l-delta`        | `0%`                                     |
+| `--bulma-dropdown-item-hover-background-l-delta`  | `$dropdown-item-hover-background-l-delta`  | `var(--bulma-hover-background-l-delta)`  |
+| `--bulma-dropdown-item-active-background-l-delta` | `$dropdown-item-active-background-l-delta` | `var(--bulma-active-background-l-delta)` |
+| `--bulma-dropdown-item-color-l`                   | `$dropdown-item-color-l`                   | `var(--bulma-text-strong-l)`             |
+| `--bulma-dropdown-item-selected-h`                | `$dropdown-item-selected-h`                | `var(--bulma-link-h)`                    |
+| `--bulma-dropdown-item-selected-s`                | `$dropdown-item-selected-s`                | `var(--bulma-link-s)`                    |
+| `--bulma-dropdown-item-selected-l`                | `$dropdown-item-selected-l`                | `var(--bulma-link-l)`                    |
+| `--bulma-dropdown-item-selected-background-l`     | `$dropdown-item-selected-background-l`     | `var(--bulma-link-l)`                    |
+| `--bulma-dropdown-item-selected-color-l`          | `$dropdown-item-selected-color-l`          | `var(--bulma-link-invert-l)`             |
+| `--bulma-dropdown-divider-background-color`       | `$dropdown-divider-background-color`       | `var(--bulma-border-weak)`               |
+
+<!-- /bestax:generated cssvars -->

@@ -1,53 +1,32 @@
 ---
 title: DateTimeInput
 sidebar_label: DateTimeInput
+description: The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
 ---
 
 # DateTimeInput
 
 ## Overview
 
-The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout. The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `TimeInput` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `DateInput` and `TimeInput`, plus a native `<input type="datetime-local">` fallback for touch devices. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry.
+<!-- bestax:generated overview -->
+
+The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
+
+<!-- /bestax:generated overview -->
+
+The popover opens to the **calendar** with an iOS-style footer: the selected **time** as a tappable value, a **Reset** button (reverts your edits to the value the popover opened with), and a circular **✓** confirm button. **Clicking the time floats the wheel spinner over the calendar** (hours, minutes, and optionally seconds — the same wheels the `TimeInput` uses), so the popover never grows or scrolls; clicking the time again, clicking outside the wheel card, or pressing `Escape` hides it. It supports the full prop surface of both `DateInput` and `TimeInput`, plus a native `<input type="datetime-local">` fallback for touch devices. A clickable launcher icon on the right opens the popover, and you can type directly in the field with segmented keyboard entry.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { DateTimeInput } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [TimeInput](./timeinput.md) props. Notable additions and overrides:
-
-| Prop                | Type                                     | Default              | Description                                                                                                                                                   |
-| ------------------- | ---------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`             | `Date \| null`                           | —                    | Controlled selected date-time.                                                                                                                                |
-| `defaultValue`      | `Date \| null`                           | —                    | Initial value for uncontrolled usage.                                                                                                                         |
-| `onChange`          | `(d: Date \| null) => void`              | —                    | Fired when either the date or time portion changes.                                                                                                           |
-| `format`            | `string \| Intl.DateTimeFormatOptions`   | `'YYYY-MM-DD HH:mm'` | Token format string or `Intl.DateTimeFormat` options.                                                                                                         |
-| `closeOnSelect`     | `boolean`                                | `false`              | Off by default — users typically tweak both halves before committing.                                                                                         |
-| `editable`          | `boolean`                                | `true`               | Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only.                                       |
-| `popover`           | `boolean`                                | `true`               | Whether the calendar + time popover exists. `false` makes the field input-only.                                                                               |
-| `incrementMinutes`  | `number`                                 | `1`                  | Step between minute-wheel values (`1` = every minute, iOS-style).                                                                                             |
-| `incrementSeconds`  | `number`                                 | `1`                  | Step between second-wheel values (only with `enableSeconds`).                                                                                                 |
-| `iconLeftName`      | `string`                                 | `'calendar-alt'`     | Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.                                                                   |
-| `triggerIcon`       | `boolean`                                | `true`               | Show a clickable launcher button on the right that toggles the popover.                                                                                       |
-| `triggerIconName`   | `string`                                 | `'chevron-down'`     | Glyph for the right launcher button.                                                                                                                          |
-| `mobileNative`      | `boolean \| 'auto'`                      | `'auto'`             | Use `<input type="datetime-local">` on coarse-pointer devices.                                                                                                |
-| `min` / `max`       | `Date`                                   | —                    | Bounds enforced across both date and time.                                                                                                                    |
-| `shouldDisableDate` | `(d: Date) => boolean`                   | —                    | Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). |
-| `unselectableTimes` | `(d: Date) => boolean`                   | —                    | Block specific times. Blocked times are also rejected during manual typing.                                                                                   |
-| `firstDayOfWeek`    | `0..6`                                   | `0`                  | Calendar week start.                                                                                                                                          |
-| `hourFormat`        | `'12' \| '24'`                           | `'24'`               | Time format.                                                                                                                                                  |
-| `enableSeconds`     | `boolean`                                | `false`              | Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. |
-| ...                 | All DateInput + TimeInput props          |                      | See those pages for the full list.                                                                                                                            |
-| ...                 | All standard HTML and Bulma helper props |                      | (See [Helper Props](../../helpers/usebulmaclasses))                                                                                                           |
-
-When you pass an explicit token `format`, **that format is the source of truth for the time wheels and the footer time pill**: a 12-hour format (`h`/`hh` with `A`/`a`) drives a 12-hour wheel with an AM/PM column, and a 24-hour format (`H`/`HH`) drives a 24-hour wheel — regardless of `hourFormat`. So `hourFormat` only applies when you don't pass a `format`. (If `format` is an `Intl.DateTimeFormat` options object rather than a token string, the cycle can't be read from it and the wheel/pill fall back to `hourFormat`.)
+<!-- /bestax:generated import -->
 
 ---
 
@@ -843,3 +822,128 @@ function DateTimeInputFormDemo() {
 :::tip Pro Tip
 Pair `DateTimeInput` with `closeOnSelect={false}` (the default) so users can tweak both date and time before committing via OK — closing on the first date click would surprise them.
 :::
+
+---
+
+## Props
+
+The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [TimeInput](./timeinput.md) props. Notable additions and overrides:
+
+<!-- bestax:generated props -->
+
+| Prop                | Type                                                                             | Default              | Description                                                                                                                                                   |
+| ------------------- | -------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`             | `React.ReactNode`                                                                | —                    | Field label.                                                                                                                                                  |
+| `labelSize`         | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —                    | Size for the label.                                                                                                                                           |
+| `labelProps`        | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —                    | Props for the label element.                                                                                                                                  |
+| `horizontal`        | `boolean`                                                                        | `false`              | Render the field with horizontal layout.                                                                                                                      |
+| `iconLeft`          | `IconProps`                                                                      | —                    | Icon props for the left icon.                                                                                                                                 |
+| `iconRight`         | `IconProps`                                                                      | —                    | Icon props for the right icon.                                                                                                                                |
+| `iconRightName`     | `string`                                                                         | —                    | Shortcut for the right icon name.                                                                                                                             |
+| `iconLeftSize`      | `'small'` \| `'medium'` \| `'large'`                                             | —                    | Shortcut for left icon size.                                                                                                                                  |
+| `iconRightSize`     | `'small'` \| `'medium'` \| `'large'`                                             | —                    | Shortcut for right icon size.                                                                                                                                 |
+| `hasIconsLeft`      | `boolean`                                                                        | `false`              | Force the left icon container.                                                                                                                                |
+| `hasIconsRight`     | `boolean`                                                                        | `false`              | Force the right icon container.                                                                                                                               |
+| `isLoading`         | `boolean`                                                                        | `false`              | Show a loading indicator on the control.                                                                                                                      |
+| `isExpanded`        | `boolean`                                                                        | `false`              | Expand the control to fill its container.                                                                                                                     |
+| `controlSize`       | `'small'` \| `'medium'` \| `'large'`                                             | —                    | Size of the wrapping Control.                                                                                                                                 |
+| `message`           | `React.ReactNode`                                                                | —                    | Help/validation text below the input.                                                                                                                         |
+| `messageColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                    | Message color.                                                                                                                                                |
+| `fieldClassName`    | `string`                                                                         | —                    | Additional CSS classes for the Field wrapper.                                                                                                                 |
+| `controlClassName`  | `string`                                                                         | —                    | Additional CSS classes for the Control wrapper.                                                                                                               |
+| `value`             | `Date` \| `null`                                                                 | —                    | Controlled selected date-time.                                                                                                                                |
+| `defaultValue`      | `Date` \| `null`                                                                 | —                    | Initial value for uncontrolled usage.                                                                                                                         |
+| `onChange`          | `(d: Date \| null) => void`                                                      | —                    | Fired when either the date or time portion changes.                                                                                                           |
+| `onOpen`            | `() => void`                                                                     | —                    | Fired when the popover opens.                                                                                                                                 |
+| `onClose`           | `() => void`                                                                     | —                    | Fired when the popover closes.                                                                                                                                |
+| `min`               | `Date`                                                                           | —                    | Lower bound for the combined date-time.                                                                                                                       |
+| `max`               | `Date`                                                                           | —                    | Upper bound for the combined date-time.                                                                                                                       |
+| `disabled`          | `boolean`                                                                        | `false`              | Disable the input.                                                                                                                                            |
+| `readOnly`          | `boolean`                                                                        | `false`              | Read-only input.                                                                                                                                              |
+| `placeholder`       | `string`                                                                         | —                    | Placeholder text.                                                                                                                                             |
+| `format`            | `DateFormatOption`                                                               | `'YYYY-MM-DD HH:mm'` | Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD HH:mm'`.                                                                           |
+| `parse`             | `(s: string) => Date \| null`                                                    | —                    | Custom parser.                                                                                                                                                |
+| `locale`            | `string`                                                                         | —                    | BCP-47 locale tag.                                                                                                                                            |
+| `inline`            | `boolean`                                                                        | `false`              | Render the panel inline (no popover).                                                                                                                         |
+| `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`             | Use `<input type="datetime-local">` on coarse-pointer devices.                                                                                                |
+| `editable`          | `boolean`                                                                        | `true`               | Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only.                                       |
+| `popover`           | `boolean`                                                                        | `true`               | Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.                            |
+| `openOnFocus`       | `boolean`                                                                        | `true`               | Open the popover on focus. Default `true`.                                                                                                                    |
+| `closeOnSelect`     | `boolean`                                                                        | `false`              | Off by default — users typically tweak both halves before committing.                                                                                         |
+| `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`      | Popover anchor position.                                                                                                                                      |
+| `appendToBody`      | `boolean`                                                                        | `false`              | Render the popover into `document.body` via portal.                                                                                                           |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                    | Bulma color modifier.                                                                                                                                         |
+| `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                    | Size variant.                                                                                                                                                 |
+| `isRounded`         | `boolean`                                                                        | `false`              | Rounded input corners.                                                                                                                                        |
+| `shouldDisableDate` | `(d: Date) => boolean`                                                           | —                    | Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). |
+| `unselectableDates` | `Date[]`                                                                         | —                    | Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.                                                                 |
+| `firstDayOfWeek`    | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6`                                    | `0`                  | Day the calendar week starts on.                                                                                                                              |
+| `dayNames`          | `string[]`                                                                       | —                    | Override the 7 day-name labels.                                                                                                                               |
+| `monthNames`        | `string[]`                                                                       | —                    | Override the 12 month-name labels.                                                                                                                            |
+| `nearbyMonthDays`   | `boolean`                                                                        | `true`               | Show dimmed dates from adjacent months.                                                                                                                       |
+| `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`               | Time format.                                                                                                                                                  |
+| `enableSeconds`     | `boolean`                                                                        | `false`              | Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. |
+| `incrementHours`    | `number`                                                                         | `1`                  | Hour step.                                                                                                                                                    |
+| `incrementMinutes`  | `number`                                                                         | `1`                  | Step between minute-wheel values (`1` = every minute, iOS-style).                                                                                             |
+| `incrementSeconds`  | `number`                                                                         | `1`                  | Step between second-wheel values (only with `enableSeconds`).                                                                                                 |
+| `unselectableTimes` | `(d: Date) => boolean`                                                           | —                    | Block specific times. Blocked times are also rejected during manual typing.                                                                                   |
+| `iconLeftName`      | `string`                                                                         | `'calendar-alt'`     | Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.                                                                   |
+| `triggerIcon`       | `boolean`                                                                        | `true`               | Show a clickable launcher button on the right that toggles the popover. Default `true`.                                                                       |
+| `triggerIconName`   | `string`                                                                         | `'chevron-down'`     | Glyph for the right launcher button.                                                                                                                          |
+| `audioTick`         | `boolean`                                                                        | `false`              | Play a short audible tick on each time-wheel crossing. Default `false`.                                                                                       |
+| `haptics`           | `boolean`                                                                        | `false`              | Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`.                                                         |
+| `labels`            | `PickerLabels`                                                                   | —                    | Optional translatable string overrides.                                                                                                                       |
+| `className`         | `string`                                                                         | —                    | Additional CSS classes.                                                                                                                                       |
+| `children`          | `React.ReactNode`                                                                | —                    | Content rendered inside the component.                                                                                                                        |
+| `ref`               | `React.Ref<HTMLInputElement>`                                                    | —                    | Forwarded to the underlying element.                                                                                                                          |
+| `name`              | —                                                                                | —                    | Form field name.                                                                                                                                              |
+| `form`              | —                                                                                | —                    | Optional id of the form the input belongs to.                                                                                                                 |
+| `required`          | —                                                                                | —                    | Marks the field as required for native HTML form validation.                                                                                                  |
+| `...`               | All standard `<input>` attributes and Bulma helper props                         | —                    | See [Helper Props](../../helpers/usebulmaclasses.md)                                                                                                          |
+
+<!-- /bestax:generated props -->
+
+When you pass an explicit token `format`, **that format is the source of truth for the time wheels and the footer time pill**: a 12-hour format (`h`/`hh` with `A`/`a`) drives a 12-hour wheel with an AM/PM column, and a 24-hour format (`H`/`HH`) drives a 24-hour wheel — regardless of `hourFormat`. So `hourFormat` only applies when you don't pass a `format`. (If `format` is an `Intl.DateTimeFormat` options object rather than a token string, the cycle can't be read from it and the wheel/pill fall back to `hourFormat`.)
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`DateTimeInput` registers these variables on its own `.input` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../../helpers/theme.md).
+
+| CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
+| `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
+| `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-border-style`               | `$input-border-style`               | `solid`                                                                                                                  |
+| `--bulma-input-border-width`               | `$input-border-width`               | `var(--bulma-control-border-width)`                                                                                      |
+| `--bulma-input-border-l`                   | `$input-border-l`                   | `var(--bulma-border-l)`                                                                                                  |
+| `--bulma-input-border-l-delta`             | `$input-border-l-delta`             | `0%`                                                                                                                     |
+| `--bulma-input-border-color`               | `$input-border-color`               | `hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))` |
+| `--bulma-input-hover-border-l-delta`       | `$input-hover-border-l-delta`       | `var(--bulma-hover-border-l-delta)`                                                                                      |
+| `--bulma-input-active-border-l-delta`      | `$input-active-border-l-delta`      | `var(--bulma-active-border-l-delta)`                                                                                     |
+| `--bulma-input-focus-h`                    | `$input-focus-h`                    | `var(--bulma-focus-h)`                                                                                                   |
+| `--bulma-input-focus-s`                    | `$input-focus-s`                    | `var(--bulma-focus-s)`                                                                                                   |
+| `--bulma-input-focus-l`                    | `$input-focus-l`                    | `var(--bulma-focus-l)`                                                                                                   |
+| `--bulma-input-focus-shadow-size`          | `$input-focus-shadow-size`          | `var(--bulma-focus-shadow-size)`                                                                                         |
+| `--bulma-input-focus-shadow-alpha`         | `$input-focus-shadow-alpha`         | `var(--bulma-focus-shadow-alpha)`                                                                                        |
+| `--bulma-input-color-l`                    | `$input-color-l`                    | `var(--bulma-text-strong-l)`                                                                                             |
+| `--bulma-input-background-l`               | `$input-background-l`               | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-background-l-delta`         | `$input-background-l-delta`         | `0%`                                                                                                                     |
+| `--bulma-input-height`                     | `$input-height`                     | `var(--bulma-control-height)`                                                                                            |
+| `--bulma-input-shadow`                     | `$input-shadow`                     | `inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)`        |
+| `--bulma-input-placeholder-color`          | `$input-placeholder-color`          | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)`                                        |
+| `--bulma-input-disabled-color`             | `$input-disabled-color`             | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-disabled-background-color`  | `$input-disabled-background-color`  | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-border-color`      | `$input-disabled-border-color`      | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-placeholder-color` | `$input-disabled-placeholder-color` | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)`                                          |
+| `--bulma-input-arrow`                      | `$input-arrow`                      | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-icon-color`                 | `$input-icon-color`                 | `var(--bulma-text-light)`                                                                                                |
+| `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+
+<!-- /bestax:generated cssvars -->

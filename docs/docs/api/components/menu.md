@@ -1,13 +1,20 @@
 ---
 title: Menu
 sidebar_label: Menu
+description: "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI."
 ---
 
 # Menu
 
 ## Overview
 
-The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI. It supports labels, nested menu lists, active states, custom links, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
+<!-- bestax:generated overview -->
+
+The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports labels, nested menu lists, active states, custom links, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
 
 :::info
 Menu supports unlimited nesting and lets you use any link or router component via the `as` prop on `Menu.Item`.
@@ -17,46 +24,13 @@ Menu supports unlimited nesting and lets you use any link or router component vi
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Menu } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-### Menu
-
-| Prop        | Type                   | Default | Description                                      |
-| ----------- | ---------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`               | —       | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`      | —       | Menu content (labels, lists, items, etc).        |
-| ...         | All Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Menu.Label
-
-| Prop        | Type              | Default | Description         |
-| ----------- | ----------------- | ------- | ------------------- |
-| `className` | `string`          | —       | Additional classes. |
-| `children`  | `React.ReactNode` | —       | Label content.      |
-
-### Menu.List
-
-| Prop        | Type              | Default | Description                                 |
-| ----------- | ----------------- | ------- | ------------------------------------------- |
-| `className` | `string`          | —       | Additional classes.                         |
-| `children`  | `React.ReactNode` | —       | List items (`Menu.Item`). Supports nesting. |
-
-### Menu.Item
-
-| Prop        | Type                        | Default | Description                                      |
-| ----------- | --------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                    | —       | Additional classes.                              |
-| `children`  | `React.ReactNode`           | —       | Label, and optionally nested `Menu.List`.        |
-| `active`    | `boolean`                   | —       | Highlight item as active.                        |
-| `href`      | `string`                    | —       | Href for link items (if rendered as `<a>`).      |
-| `as`        | `React.ElementType`         | `'a'`   | Custom link component (e.g. `Link` from router). |
-| ...         | All `<li>` and helper props |         | Standard HTML/li/utility props.                  |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -211,3 +185,88 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+### Menu
+
+<!-- bestax:generated props -->
+
+| Prop        | Type               | Default | Description                                       |
+| ----------- | ------------------ | ------- | ------------------------------------------------- |
+| `className` | `string`           | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`  | —       | Menu content (labels, lists, items, etc).         |
+| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- `Menu.Label`: Bulma Menu label component.
+- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists).
+- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
+
+### Menu.Label
+
+| Prop        | Type               | Default | Description                                       |
+| ----------- | ------------------ | ------- | ------------------------------------------------- |
+| `className` | `string`           | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`  | —       | Label content.                                    |
+| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Menu.List
+
+| Prop        | Type               | Default | Description                                       |
+| ----------- | ------------------ | ------- | ------------------------------------------------- |
+| `className` | `string`           | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`  | —       | List items.                                       |
+| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### Menu.Item
+
+| Prop        | Type                | Default | Description                                       |
+| ----------- | ------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`            | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`   | —       | Item content and optional nested MenuList.        |
+| `active`    | `boolean`           | `false` | Highlight item as active.                         |
+| `href`      | `string`            | —       | Href for link items (if rendered as `<a>`).       |
+| `as`        | `React.ElementType` | `'a'`   | Custom link component (e.g. `Link` from router).  |
+| `...`       | Bulma helper props  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Menu` registers these variables on its own `.menu` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                  | Sass Variable                          | Default                                  |
+| --------------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `--bulma-menu-item-h`                         | `$menu-item-h`                         | `var(--bulma-scheme-h)`                  |
+| `--bulma-menu-item-s`                         | `$menu-item-s`                         | `var(--bulma-scheme-s)`                  |
+| `--bulma-menu-item-l`                         | `$menu-item-l`                         | `var(--bulma-scheme-main-l)`             |
+| `--bulma-menu-item-background-l`              | `$menu-item-background-l`              | `var(--bulma-scheme-main-l)`             |
+| `--bulma-menu-item-background-l-delta`        | `$menu-item-background-l-delta`        | `0%`                                     |
+| `--bulma-menu-item-hover-background-l-delta`  | `$menu-item-hover-background-l-delta`  | `var(--bulma-hover-background-l-delta)`  |
+| `--bulma-menu-item-active-background-l-delta` | `$menu-item-active-background-l-delta` | `var(--bulma-active-background-l-delta)` |
+| `--bulma-menu-item-color-l`                   | `$menu-item-color-l`                   | `var(--bulma-text-l)`                    |
+| `--bulma-menu-item-radius`                    | `$menu-item-radius`                    | `var(--bulma-radius-small)`              |
+| `--bulma-menu-item-selected-h`                | `$menu-item-selected-h`                | `var(--bulma-link-h)`                    |
+| `--bulma-menu-item-selected-s`                | `$menu-item-selected-s`                | `var(--bulma-link-s)`                    |
+| `--bulma-menu-item-selected-l`                | `$menu-item-selected-l`                | `var(--bulma-link-l)`                    |
+| `--bulma-menu-item-selected-background-l`     | `$menu-item-selected-background-l`     | `var(--bulma-link-l)`                    |
+| `--bulma-menu-item-selected-color-l`          | `$menu-item-selected-color-l`          | `var(--bulma-link-invert-l)`             |
+| `--bulma-menu-list-border-left`               | `$menu-list-border-left`               | `1px solid var(--bulma-border)`          |
+| `--bulma-menu-list-line-height`               | `$menu-list-line-height`               | `1.25`                                   |
+| `--bulma-menu-list-link-padding`              | `$menu-list-link-padding`              | `0.5em 0.75em`                           |
+| `--bulma-menu-nested-list-margin`             | `$menu-nested-list-margin`             | `0.75em`                                 |
+| `--bulma-menu-nested-list-padding-left`       | `$menu-nested-list-padding-left`       | `0.75em`                                 |
+| `--bulma-menu-label-color`                    | `$menu-label-color`                    | `var(--bulma-text-weak)`                 |
+| `--bulma-menu-label-font-size`                | `$menu-label-font-size`                | `0.75em`                                 |
+| `--bulma-menu-label-letter-spacing`           | `$menu-label-letter-spacing`           | `0.1em`                                  |
+| `--bulma-menu-label-spacing`                  | `$menu-label-spacing`                  | `1em`                                    |
+
+<!-- /bestax:generated cssvars -->

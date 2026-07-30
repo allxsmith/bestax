@@ -1,35 +1,32 @@
 ---
 title: Radios
 sidebar_label: Radios
+description: The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.
 ---
 
 # Radios
 
 ## Overview
 
-The `Radios` component wraps multiple `Radio` components in a Bulma-styled group. Use it for lists of mutually exclusive choices, such as RSVP or selection lists.
+<!-- bestax:generated overview -->
+
+The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.
+
+<!-- /bestax:generated overview -->
+
+Use it for lists of mutually exclusive choices, such as RSVP or selection lists.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Radios, Radio } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                      | Description                                                       |
-| -------------- | ------------------------- | ----------------------------------------------------------------- |
-| `name`         | `string`                  | Form field name shared by every Radio in the group (via context). |
-| `value`        | `string`                  | Currently-selected value (controlled mode).                       |
-| `defaultValue` | `string`                  | Initial selected value (uncontrolled mode).                       |
-| `onChange`     | `(value: string) => void` | Fires when the selection changes.                                 |
-| `className`    | `string`                  | Additional CSS classes.                                           |
-| `children`     | `React.ReactNode`         | Radio elements to render in the group.                            |
-| ...            | All Bulma helper props    | (See [Helper Props](../helpers/usebulmaclasses))                  |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -292,3 +289,32 @@ function RadiosWrappedFormDemo() {
 
 - [Bulma Radios Documentation](https://bulma.io/documentation/form/radio/#grouped-radios)
 - [Storybook: Radio Stories](https://bestax.io/storybook/?path=/story/form-radio--listofradios)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                            | Default | Description                                                       |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
+| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                  |
+| `name`           | `string`                                                                        | —       | Form field name shared by every Radio in the group (via context). |
+| `value`          | `string`                                                                        | —       | Currently-selected value (controlled mode).                       |
+| `defaultValue`   | `string`                                                                        | —       | Initial selected value (uncontrolled mode).                       |
+| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes.                                 |
+| `children`       | `React.ReactNode`                                                               | —       | Radio elements to render in the group.                            |
+| `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                           |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                  |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                      |
+| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                          |
+| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                          |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                      |
+| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                     |
+| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+
+**Subcomponents:**
+
+- [`Radios.Radio`](radio.md): The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
+
+<!-- /bestax:generated props -->

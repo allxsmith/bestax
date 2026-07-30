@@ -14,35 +14,35 @@ import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Card component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the card.
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the card.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the card.
- * @property {boolean} [hasShadow] - Whether the card has a shadow (default: true).
- * @property {React.ReactNode} [header] - Card header content, rendered inside `.card-header-title`.
- * @property {boolean} [headerCentered] - If true, centers the header title.
- * @property {React.ReactNode} [headerIcon] - Card header icon, rendered as a sibling to the header title.
- * @property {React.ReactNode|React.ReactNode[]} [footer] - Card footer content, each wrapped in `.card-footer-item`.
- * @property {React.ReactNode|string} [image] - Card image node or image src string.
- * @property {string} [imageAlt] - Alternate text for the card image.
- * @property {React.ReactNode} [children] - Card content.
+ * @extraProp {'centered' | 'justified' | 'left' | 'right'} [textAlign] - Text alignment.
  */
 export interface CardProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color for the card. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the card. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the card. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the card has a shadow (default: `true`). */
   hasShadow?: boolean;
+  /** Card header content, rendered inside `.card-header-title`. */
   header?: React.ReactNode;
+  /** If true, centers the header title. */
   headerCentered?: boolean;
+  /** Card header icon, rendered as a sibling to the header title. */
   headerIcon?: React.ReactNode;
+  /** Card footer content; each item is wrapped in `.card-footer-item`. */
   footer?: React.ReactNode | React.ReactNode[];
+  /** Card image node or image src string. */
   image?: React.ReactNode | string;
+  /** Alternate text for the card image. */
   imageAlt?: string;
+  /** Card content (body). */
   children?: React.ReactNode;
 }
 
@@ -90,7 +90,7 @@ const hasCompoundComponents = (children: React.ReactNode): boolean => {
 };
 
 /**
- * Card component for rendering a styled Bulma card.
+ * The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
  *
  * @function
  * @param {CardProps} props - Props for the Card component.
@@ -213,82 +213,75 @@ const CardComponent: React.FC<CardProps> = ({
 
 /**
  * Props for the Card.Header compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Header content. Wrap in Card.Header.Title for Bulma styling.
- * @property {boolean} [centered] - Whether to center the header title text.
  */
 export interface CardHeaderProps extends React.HTMLAttributes<HTMLElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Header content. Wrap in Card.Header.Title for Bulma styling. */
   children?: React.ReactNode;
+  /** Whether to center the header title text. */
   centered?: boolean;
 }
 
 /**
  * Props for the Card.Image compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Image content (e.g. a `<figure>` with an `<img>`).
  */
 export interface CardImageProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Image content (e.g. a `<figure>` with an `<img>`). */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Card.Content compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Card body content.
  */
 export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Card body content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Card.Footer compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Footer content, typically Card.FooterItem elements.
  */
 export interface CardFooterProps extends React.HTMLAttributes<HTMLElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Footer content, typically Card.FooterItem elements. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Card.FooterItem compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Footer item content (link, button, text, etc.).
  */
 export interface CardFooterItemProps extends React.HTMLAttributes<HTMLSpanElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Footer item content (link, button, text, etc.). */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Card.Header.Title compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Title text content.
- * @property {boolean} [centered] - Whether to center the title text.
  */
 export interface CardHeaderTitleProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Title text content. */
   children?: React.ReactNode;
+  /** Whether to center the title text. */
   centered?: boolean;
 }
 
 /**
  * Props for the Card.Header.Icon compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Icon content (e.g. an icon element).
  */
 export interface CardHeaderIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Icon content (e.g. an icon element). */
   children?: React.ReactNode;
 }
 

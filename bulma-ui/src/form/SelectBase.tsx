@@ -4,25 +4,12 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the Select component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the select.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the select.
- * @property {boolean} [isRounded] - Renders the select with rounded corners.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
- * @property {boolean} [isHovered] - Forces the hovered state on the inner select element.
- * @property {boolean} [isFocused] - Forces the focused state on the inner select element.
- * @property {boolean} [isFullwidth] - Makes the select span the full width of its parent.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the select is disabled.
- * @property {boolean} [multiple] - Whether the select allows multiple values.
- * @property {number} [multipleSize] - For multiple select: number of visible options.
- * @property {React.ReactNode} [children] - Option elements.
  */
 export interface SelectBaseProps
   extends
     Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Bulma color modifier for the select. */
   color?:
     | 'primary'
     | 'link'
@@ -34,17 +21,29 @@ export interface SelectBaseProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Size modifier for the select. */
   size?: 'small' | 'medium' | 'large';
+  /** Rounded select corners. */
   isRounded?: boolean;
+  /** Shows loading indicator. */
   isLoading?: boolean;
+  /** Applies Bulma's is-active modifier. */
   isActive?: boolean;
+  /** Forces hovered state on the inner select. */
   isHovered?: boolean;
+  /** Forces focused state on the inner select. */
   isFocused?: boolean;
+  /** Makes the select span the full width of parent. */
   isFullwidth?: boolean;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Disables the select. */
   disabled?: boolean;
+  /** Allows multiple selections. */
   multiple?: boolean;
+  /** Number of visible options in multiselect. */
   multipleSize?: number;
+  /** `<option>` elements. */
   children?: React.ReactNode;
 }
 

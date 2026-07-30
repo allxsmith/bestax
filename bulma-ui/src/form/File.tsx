@@ -12,20 +12,6 @@ import { FormFieldProps } from './fieldProps';
 
 /**
  * Props for the File component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the file input.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the file input.
- * @property {boolean} [isBoxed] - Whether the file input is boxed.
- * @property {boolean} [isFullwidth] - Whether the file input expands to full width.
- * @property {boolean} [isRight] - Align file input to the right.
- * @property {boolean} [isCentered] - Center the file input.
- * @property {boolean} [hasName] - Show a file name indicator.
- * @property {React.ReactNode} [buttonLabel] - Custom button label text or node.
- * @property {React.ReactNode} [iconLeft] - Left icon element.
- * @property {React.ReactNode} [iconRight] - Right icon element.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {string} [inputClassName] - Additional CSS classes for the input.
- * @property {string} [fileName] - File name to display.
  */
 export interface FileProps
   extends
@@ -35,6 +21,7 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** Bulma color modifier for the file input. */
   color?:
     | 'primary'
     | 'link'
@@ -46,23 +33,34 @@ export interface FileProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Size modifier for the file input. */
   size?: 'small' | 'medium' | 'large';
+  /** Boxed file input. */
   isBoxed?: boolean;
+  /** Whether the file input expands to full width. */
   isFullwidth?: boolean;
+  /** Position the CTA on the right (with `hasName`). */
   isRight?: boolean;
+  /** Center the file input within its container. */
   isCentered?: boolean;
+  /** Show a file name indicator. */
   hasName?: boolean;
+  /** Text on the file CTA button (defaults to "Choose a file…"). */
   buttonLabel?: React.ReactNode;
+  /** Left icon element. */
   iconLeft?: React.ReactNode;
+  /** Right icon element. */
   iconRight?: React.ReactNode;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Additional CSS classes for the `<input>`. */
   inputClassName?: string;
+  /** File name to display. */
   fileName?: string;
 }
 
 /**
- * Bulma File upload component with full Bulma helper class support.
- * isRight and isCentered are mutually exclusive (Bulma spec).
+ * The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
  *
  * @function
  * @param {FileProps} props - Props for the File component.

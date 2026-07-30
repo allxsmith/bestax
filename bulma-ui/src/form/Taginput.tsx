@@ -19,12 +19,11 @@ import { Icon } from '../elements/Icon';
 
 /**
  * Represents a tag item object with a value and optional label.
- *
- * @property {string} value - The tag value.
- * @property {string} [label] - Display label for the tag.
  */
 export interface TaginputItem {
+  /** The tag value. */
   value: string;
+  /** Display label (optional). */
   label?: string;
   [key: string]: unknown;
 }
@@ -36,84 +35,77 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Props for the Taginput component.
- *
- * @property {TaginputTag[]} [value] - The current tags (controlled).
- * @property {TaginputTag[]} [defaultValue] - Default tags (uncontrolled).
- * @property {string[]} [data] - Autocomplete suggestions.
- * @property {string} [placeholder] - Placeholder text when no tags.
- * @property {string} [field] - Object property to use as display field.
- * @property {boolean} [allowNew] - Allow creating new tags not in suggestions.
- * @property {boolean} [allowDuplicates] - Allow duplicate tags.
- * @property {boolean} [openOnFocus] - Open autocomplete dropdown on focus.
- * @property {boolean} [removeOnKeys] - Remove tag on backspace. Default: true.
- * @property {string[]} [confirmKeys] - Keys to confirm tag creation. Default: ['Enter', ','].
- * @property {boolean} [closable] - Show close button on tags. Default: true.
- * @property {boolean} [attached] - Attach tags visually.
- * @property {number} [maxTags] - Maximum number of tags allowed.
- * @property {number} [maxlength] - Maximum length of input.
- * @property {boolean} [disabled] - Whether the input is disabled.
- * @property {boolean} [readonly] - Whether the input is read-only.
- * @property {boolean} [rounded] - Makes tags rounded.
- * @property {boolean} [ellipsis] - Truncate long tag text with ellipsis and show title tooltip.
- * @property {boolean} [hasCounter] - Show counter for maxTags/maxlength. Default: true.
- * @property {string[]} [onPasteSeparators] - Characters to split on paste. Default: [','].
- * @property {(tag: string) => boolean} [beforeAdding] - Validate before adding a tag.
- * @property {(input: string) => TaginputTag} [createTag] - Transform input string to tag.
- * @property {boolean} [keepFirst] - Auto-highlight first autocomplete result.
- * @property {boolean} [keepOpen] - Keep dropdown open after selecting. Default: true.
- * @property {boolean} [loading] - Show loading spinner in input.
- * @property {string} [ariaCloseLabel] - Accessibility label for close buttons.
- * @property {(tags: TaginputTag[]) => void} [onChange] - Callback when tags change.
- * @property {(tag: TaginputTag) => void} [onAdd] - Callback when tag is added.
- * @property {(tag: TaginputTag, index: number) => void} [onRemove] - Callback when tag is removed.
- * @property {(value: string) => void} [onTyping] - Callback when typing in input.
- * @property {(tag: TaginputTag) => React.ReactNode} [tagTemplate] - Custom render for tags.
- * @property {string} [name] - Form field name. When provided, one hidden input per tag is rendered so tags submit as a standard form-encoded array (e.g., `tags=react&tags=vue`).
- * @property {string} [form] - The id of the form the hidden inputs belong to.
- * @property {string} [icon] - Icon name for the input field.
- * @property {IconLibrary} [iconLibrary] - Icon library to use.
- * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined').
- * @property {string | string[]} [iconFeatures] - Additional icon modifiers.
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the input.
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'dark' | 'light'} [tagColor] - Color modifier for tags.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the component.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export interface TaginputProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** The current tags (controlled). */
   value?: TaginputTag[];
+  /** Default tags (uncontrolled). */
   defaultValue?: TaginputTag[];
+  /** Autocomplete suggestions. */
   data?: string[];
+  /** Placeholder text when no tags. */
   placeholder?: string;
+  /** Object property to use as display field. */
   field?: string;
+  /** Allow creating new tags not in suggestions. */
   allowNew?: boolean;
+  /** Allow duplicate tags. */
   allowDuplicates?: boolean;
+  /** Open autocomplete dropdown on focus. */
   openOnFocus?: boolean;
+  /** Remove tag on backspace. Default: true. */
   removeOnKeys?: boolean;
+  /** Keys to confirm tag creation. Default: ['Enter', ',']. */
   confirmKeys?: string[];
+  /** Show close button on tags. Default: true. */
   closable?: boolean;
+  /** Attach tags visually. */
   attached?: boolean;
+  /** Maximum number of tags allowed. */
   maxTags?: number;
+  /** Maximum length of input. */
   maxlength?: number;
+  /** Whether the input is disabled. */
   disabled?: boolean;
+  /** Whether the input is read-only. */
   readonly?: boolean;
+  /** Applies rounded corners to the tags. */
   rounded?: boolean;
+  /** Truncates long tag text with ellipsis. */
   ellipsis?: boolean;
+  /** Shows a counter of the number of tags. */
   hasCounter?: boolean;
+  /** Characters that split pasted text into tags. */
   onPasteSeparators?: string[];
+  /** Validation function called before adding a tag. */
   beforeAdding?: (tag: string) => boolean;
+  /** Custom function for creating tag objects from input. */
   createTag?: (input: string) => TaginputTag;
+  /** Keeps the first autocomplete suggestion highlighted. */
   keepFirst?: boolean;
+  /** Keeps the autocomplete dropdown open after selection. */
   keepOpen?: boolean;
+  /** Shows a loading indicator. */
   loading?: boolean;
+  /** ARIA label for tag close buttons. */
   ariaCloseLabel?: string;
+  /** Icon name for the input field. */
   icon?: string;
+  /** Icon library to use. */
   iconLibrary?: IconLibrary;
+  /** Icon style variant (e.g., 'solid', 'outlined'). */
   iconVariant?: string;
+  /** Additional icon modifiers. */
   iconFeatures?: string | string[];
+  /** Input color variant. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Tag color variant. */
   tagColor?:
     | 'primary'
     | 'link'
@@ -123,21 +115,26 @@ export interface TaginputProps
     | 'danger'
     | 'dark'
     | 'light';
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
+  /** Form field name. When set, one hidden input per tag is rendered. */
   name?: string;
+  /** Optional id of the form the hidden inputs belong to. */
   form?: string;
+  /** Callback when tags change. */
   onChange?: (tags: TaginputTag[]) => void;
+  /** Callback when tag is added. */
   onAdd?: (tag: TaginputTag) => void;
+  /** Callback when tag is removed. */
   onRemove?: (tag: TaginputTag, index: number) => void;
+  /** Callback when typing in input. */
   onTyping?: (value: string) => void;
+  /** Custom render for tags. */
   tagTemplate?: (tag: TaginputTag) => React.ReactNode;
 }
 
 /**
- * Taginput component for managing multiple tags.
- *
- * Allows users to create, edit, and remove tags with optional
- * autocomplete suggestions.
+ * The `Taginput` component provides a tag/chip input field for managing multiple tags.
  *
  * @function
  * @param {TaginputProps} props - Props for the Taginput component.

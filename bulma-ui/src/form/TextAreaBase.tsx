@@ -4,25 +4,12 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the TextArea component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the textarea.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the textarea.
- * @property {boolean} [isRounded] - Renders the textarea with rounded corners.
- * @property {boolean} [isStatic] - Renders the textarea as static text.
- * @property {boolean} [isHovered] - Applies the hovered state.
- * @property {boolean} [isFocused] - Applies the focused state.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {boolean} [isActive] - Applies Bulma's is-active modifier.
- * @property {boolean} [hasFixedSize] - Applies Bulma's has-fixed-size modifier.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the textarea is disabled.
- * @property {boolean} [readOnly] - Whether the textarea is read-only.
- * @property {number} [rows] - Number of visible text lines.
  */
 export interface TextAreaBaseProps
   extends
     Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Bulma color modifier for the textarea. */
   color?:
     | 'primary'
     | 'link'
@@ -34,17 +21,29 @@ export interface TextAreaBaseProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Size modifier for the textarea. */
   size?: 'small' | 'medium' | 'large';
+  /** Rounded textarea corners. */
   isRounded?: boolean;
+  /** Renders textarea as static (styled readonly). */
   isStatic?: boolean;
+  /** Applies hovered state. */
   isHovered?: boolean;
+  /** Applies focused state. */
   isFocused?: boolean;
+  /** Shows loading indicator on the wrapping Control. */
   isLoading?: boolean;
+  /** Applies Bulma's is-active modifier. */
   isActive?: boolean;
+  /** Fixed textarea size (no resize). */
   hasFixedSize?: boolean;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Disables the textarea. */
   disabled?: boolean;
+  /** Read-only textarea. */
   readOnly?: boolean;
+  /** Number of visible text lines. */
   rows?: number;
 }
 

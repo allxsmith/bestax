@@ -1,34 +1,32 @@
 ---
 title: Breadcrumb
 sidebar_label: Breadcrumb
+description: The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.
 ---
 
 # Breadcrumb
 
 ## Overview
 
-The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation. It supports alignment, separator styles, sizes, and works naturally with icons and text. Use it to help users understand their location in an app or website.
+<!-- bestax:generated overview -->
+
+The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.
+
+<!-- /bestax:generated overview -->
+
+It supports alignment, separator styles, sizes, and works naturally with icons and text. Use it to help users understand their location in an app or website.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                         | Description                                              |
-| ----------- | -------------------------------------------- | -------------------------------------------------------- |
-| `className` | `string`                                     | Additional CSS classes to apply.                         |
-| `alignment` | `'centered' \| 'right'`                      | Alignment of the breadcrumb (`is-centered`, `is-right`). |
-| `separator` | `'arrow' \| 'bullet' \| 'dot' \| 'succeeds'` | Type of separator between breadcrumb items.              |
-| `size`      | `'small' \| 'medium' \| 'large'`             | Breadcrumb size.                                         |
-| `children`  | `React.ReactNode`                            | Breadcrumb items (`<li>`s with `<a>` or `<span>`).       |
-| ...         | All standard HTML and Bulma helper props     | (See [Helper Props](../helpers/usebulmaclasses))         |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -364,3 +362,39 @@ Combine multiple props such as `alignment`, `separator`, `size`, and `textWeight
 
 - [Bulma Breadcrumb Documentation](https://bulma.io/documentation/components/breadcrumb/)
 - [Storybook: Breadcrumb Stories](https://bestax.io/storybook/?path=/story/components-breadcrumb--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                | Default | Description                                              |
+| ----------- | --------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className` | `string`                                            | —       | Additional CSS classes to apply.                         |
+| `alignment` | `'centered'` \| `'right'`                           | —       | Alignment of the breadcrumb (`is-centered`, `is-right`). |
+| `separator` | `'arrow'` \| `'bullet'` \| `'dot'` \| `'succeeds'`  | —       | Type of separator between breadcrumb items.              |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Breadcrumb size.                                         |
+| `children`  | `React.ReactNode`                                   | —       | Breadcrumb items (`<li>`s with `<a>` or `<span>`).       |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Breadcrumb` registers these variables on its own `.breadcrumb` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                 | Sass Variable                         | Default                         |
+| -------------------------------------------- | ------------------------------------- | ------------------------------- |
+| `--bulma-breadcrumb-item-color`              | `$breadcrumb-item-color`              | `var(--bulma-link-text)`        |
+| `--bulma-breadcrumb-item-hover-color`        | `$breadcrumb-item-hover-color`        | `var(--bulma-link-text-hover)`  |
+| `--bulma-breadcrumb-item-active-color`       | `$breadcrumb-item-active-color`       | `var(--bulma-link-text-active)` |
+| `--bulma-breadcrumb-item-padding-vertical`   | `$breadcrumb-item-padding-vertical`   | `0`                             |
+| `--bulma-breadcrumb-item-padding-horizontal` | `$breadcrumb-item-padding-horizontal` | `0.75em`                        |
+| `--bulma-breadcrumb-item-separator-color`    | `$breadcrumb-item-separator-color`    | `var(--bulma-border)`           |
+
+<!-- /bestax:generated cssvars -->

@@ -1,35 +1,32 @@
 ---
 title: Checkboxes
 sidebar_label: Checkboxes
+description: The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
 ---
 
 # Checkboxes
 
 ## Overview
 
-The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group. Use for lists of boolean choices, such as preference lists or to-do checklists.
+<!-- bestax:generated overview -->
+
+The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
+
+<!-- /bestax:generated overview -->
+
+Use for lists of boolean choices, such as preference lists or to-do checklists.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                         | Description                                                          |
-| -------------- | ---------------------------- | -------------------------------------------------------------------- |
-| `name`         | `string`                     | Form field name shared by every Checkbox in the group (via context). |
-| `value`        | `string[]`                   | Currently-selected values (controlled mode).                         |
-| `defaultValue` | `string[]`                   | Initial selected values (uncontrolled mode).                         |
-| `onChange`     | `(values: string[]) => void` | Fires when the selection changes; receives the new array.            |
-| `className`    | `string`                     | Additional CSS classes.                                              |
-| `children`     | `React.ReactNode`            | Checkbox elements to render in the group.                            |
-| ...            | All Bulma helper props       | (See [Helper Props](../helpers/usebulmaclasses))                     |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -256,3 +253,32 @@ function CheckboxesFormDemo() {
 
 - [Bulma Checkboxes Documentation](https://bulma.io/documentation/form/checkbox/#grouped-checkboxes)
 - [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                            | Default | Description                                                          |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
+| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                     |
+| `name`           | `string`                                                                        | —       | Form field name shared by every Checkbox in the group (via context). |
+| `value`          | `string[]`                                                                      | —       | Currently-selected values (controlled mode).                         |
+| `defaultValue`   | `string[]`                                                                      | —       | Initial selected values (uncontrolled mode).                         |
+| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array.            |
+| `children`       | `React.ReactNode`                                                               | —       | Checkbox elements to render in the group.                            |
+| `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                              |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                     |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                         |
+| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                             |
+| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                             |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                         |
+| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                        |
+| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                    |
+
+**Subcomponents:**
+
+- [`Checkboxes.Checkbox`](checkbox.md): The `Checkbox` component provides a Bulma-styled checkbox input.
+
+<!-- /bestax:generated props -->

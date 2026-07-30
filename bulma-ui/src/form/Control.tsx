@@ -15,63 +15,67 @@ import { ControlProvider } from './FormContext';
 
 /**
  * Props for the Control component.
- *
- * @property {boolean} [hasIconsLeft] - Adds left icon container.
- * @property {boolean} [hasIconsRight] - Adds right icon container.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {boolean} [isExpanded] - Makes the control expand to fill available space.
- * @property {'small'|'medium'|'large'} [size] - Sets the control size.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Sets text color.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color for the control.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {IconProps} [iconLeft] - Icon props for left icon.
- * @property {IconProps} [iconRight] - Icon props for right icon.
- * @property {string} [iconLeftName] - Shortcut for left icon name.
- * @property {'small'|'medium'|'large'} [iconLeftSize] - Shortcut for left icon size.
- * @property {string} [iconRightName] - Shortcut for right icon name.
- * @property {'small'|'medium'|'large'} [iconRightSize] - Shortcut for right icon size.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {React.ReactNode} [children] - Content inside the control.
- * @property {'div'|'p'} [as] - Element type for the control (default: 'div').
- * @property {React.Ref<HTMLDivElement|HTMLParagraphElement>} [ref] - Ref for the control element.
  */
 export interface ControlBaseProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Adds left icon container. */
   hasIconsLeft?: boolean;
+  /** Adds right icon container. */
   hasIconsRight?: boolean;
+  /** Shows loading indicator. */
   isLoading?: boolean;
+  /** Makes the control expand to fill available space. */
   isExpanded?: boolean;
+  /** Sets the control size. */
   size?: 'small' | 'medium' | 'large';
+  /** Sets text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color for the control. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Icon props for left icon. */
   iconLeft?: IconProps;
+  /** Icon props for right icon. */
   iconRight?: IconProps;
+  /** Shortcut for left icon name. */
   iconLeftName?: string;
+  /** Shortcut for left icon size. */
   iconLeftSize?: 'small' | 'medium' | 'large';
+  /** Shortcut for right icon name. */
   iconRightName?: string;
+  /** Shortcut for right icon size. */
   iconRightSize?: 'small' | 'medium' | 'large';
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Content inside the control. */
   children?: React.ReactNode;
 }
 
 /** Props for the Control component, supporting either `div` or `p` as the root element. */
 type ControlProps =
-  | ({ as?: 'div' } & ControlBaseProps & { ref?: React.Ref<HTMLDivElement> })
-  | ({ as: 'p' } & Omit<
-      ControlBaseProps,
-      keyof React.HTMLAttributes<HTMLDivElement>
-    > &
+  | ({
+      /** Element type for the control (`div` by default). */
+      as?: 'div';
+    } & ControlBaseProps & {
+        /** Ref for the control element. */
+        ref?: React.Ref<HTMLDivElement>;
+      })
+  | ({
+      /** Element type for the control (`div` by default). */
+      as: 'p';
+    } & Omit<ControlBaseProps, keyof React.HTMLAttributes<HTMLDivElement>> &
       React.HTMLAttributes<HTMLParagraphElement> & {
+        /** Ref for the control element. */
         ref?: React.Ref<HTMLParagraphElement>;
       });
 
 const allowedColors = [...validColors, 'inherit', 'current'] as const;
 
 /**
- * Bulma Control component for form controls, with icons, loading, and Bulma helper support.
+ * The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
  *
  * @function
  * @param {ControlProps} props - Props for the Control component.

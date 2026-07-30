@@ -1,59 +1,32 @@
 ---
 title: Rate
 sidebar_label: Rate
+description: The `Rate` component provides a star/icon-based rating system.
 ---
 
 # Rate
 
 ## Overview
 
-The `Rate` component provides a star/icon-based rating system. It supports custom icons, sizes, and display options for building rating interfaces.
+<!-- bestax:generated overview -->
+
+The `Rate` component provides a star/icon-based rating system.
+
+<!-- /bestax:generated overview -->
+
+It supports custom icons, sizes, and display options for building rating interfaces.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Rate } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                                                            | Default | Description                                      |
-| -------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `value`        | `number`                                                                        | —       | Controlled value (0 to max).                     |
-| `defaultValue` | `number`                                                                        | `0`     | Default value for uncontrolled usage.            |
-| `max`          | `number`                                                                        | `5`     | Maximum rating value.                            |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size variant.                                    |
-| `disabled`     | `boolean`                                                                       | `false` | Whether the rating is disabled.                  |
-| `showScore`    | `boolean`                                                                       | `false` | Show the numeric score next to stars.            |
-| `showText`     | `boolean`                                                                       | `false` | Show custom text based on value.                 |
-| `texts`        | `string[]`                                                                      | —       | Array of text labels for each rating value.      |
-| `onChange`     | `(value: number) => void`                                                       | —       | Callback when rating changes.                    |
-| `customIcon`   | `(props: RateIconProps) => React.ReactNode`                                     | —       | Custom icon renderer.                            |
-| `iconName`     | `string`                                                                        | —       | Custom icon name for the rating stars.           |
-| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`      | —       | Icon library to use.                             |
-| `iconVariant`  | `string`                                                                        | —       | Icon style variant.                              |
-| `iconFeatures` | `string` \| `string[]`                                                          | —       | Additional icon modifiers.                       |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the active rating icons.                |
-| `precision`    | `number`                                                                        | `1`     | Rating precision (e.g., `0.5` for half stars).   |
-| `customText`   | `string`                                                                        | —       | Custom text displayed next to the rating.        |
-| `spaced`       | `boolean`                                                                       | `false` | Add spacing between icons.                       |
-| `rtl`          | `boolean`                                                                       | `false` | Right-to-left direction.                         |
-| `className`    | `string`                                                                        | —       | Additional CSS classes.                          |
-| `ref`          | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the container element.          |
-| ...            | All standard HTML and Bulma helper props                                        |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### RateIconProps
-
-| Prop        | Type      | Description                                     |
-| ----------- | --------- | ----------------------------------------------- |
-| `index`     | `number`  | The index of this icon (0-based).               |
-| `isActive`  | `boolean` | Whether this icon is currently active (filled). |
-| `isHovered` | `boolean` | Whether this icon is currently hovered.         |
-| `value`     | `number`  | The current value.                              |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -361,3 +334,91 @@ function RateFormDemo() {
 :::tip Pro Tip
 Use the `texts` prop to provide context for each rating level, helping users understand what each star value means.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                            | Default | Description                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `name`           | `string`                                                                        | —       | Form field name. When set, a hidden input is rendered.                                                    |
+| `form`           | `string`                                                                        | —       | Optional id of the form this hidden input belongs to (use when the input lives outside the form element). |
+| `value`          | `number`                                                                        | —       | Controlled value (0 to max).                                                                              |
+| `defaultValue`   | `number`                                                                        | `0`     | Default value for uncontrolled usage.                                                                     |
+| `max`            | `number`                                                                        | `5`     | Maximum rating value.                                                                                     |
+| `size`           | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size variant.                                                                                             |
+| `disabled`       | `boolean`                                                                       | `false` | Whether the rating is disabled.                                                                           |
+| `showScore`      | `boolean`                                                                       | `false` | Show the numeric score next to stars.                                                                     |
+| `showText`       | `boolean`                                                                       | `false` | Show custom text based on value.                                                                          |
+| `texts`          | `string[]`                                                                      | —       | Array of text labels for each rating value.                                                               |
+| `onChange`       | `(value: number) => void`                                                       | —       | Callback when rating changes.                                                                             |
+| `customIcon`     | `(props: RateIconProps) => React.ReactNode`                                     | —       | Custom icon renderer.                                                                                     |
+| `spaced`         | `boolean`                                                                       | `false` | Add spacing between icons.                                                                                |
+| `rtl`            | `boolean`                                                                       | `false` | Right-to-left direction.                                                                                  |
+| `iconName`       | `string`                                                                        | —       | Custom icon name for the rating stars.                                                                    |
+| `iconLibrary`    | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'`      | —       | Icon library to use (defaults to ConfigProvider value or 'fa').                                           |
+| `iconVariant`    | `string`                                                                        | —       | Icon style variant (e.g., 'solid', 'outlined').                                                           |
+| `iconFeatures`   | `string` \| `string[]`                                                          | —       | Additional icon modifiers.                                                                                |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the active rating icons.                                                                         |
+| `precision`      | `number`                                                                        | `1`     | Rating precision (e.g., `0.5` for half stars).                                                            |
+| `customText`     | `string`                                                                        | —       | Custom text displayed next to the rating.                                                                 |
+| `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                                                                   |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                          |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                                                              |
+| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                                                                  |
+| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                                                                  |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                                                              |
+| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                                                             |
+| `children`       | `React.ReactNode`                                                               | —       | Content rendered inside the component.                                                                    |
+| `className`      | `string`                                                                        | —       | Additional CSS classes.                                                                                   |
+| `ref`            | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the container element.                                                                   |
+| `index`          | `number`                                                                        | —       | The index of this icon (0-based).                                                                         |
+| `isActive`       | `boolean`                                                                       | —       | Whether this icon is currently active (filled).                                                           |
+| `isHovered`      | `boolean`                                                                       | —       | Whether this icon is currently hovered.                                                                   |
+| `...`            | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                         |
+
+<!-- /bestax:generated props -->
+
+### RateIconProps
+
+| Prop        | Type      | Description                                     |
+| ----------- | --------- | ----------------------------------------------- |
+| `index`     | `number`  | The index of this icon (0-based).               |
+| `isActive`  | `boolean` | Whether this icon is currently active (filled). |
+| `isHovered` | `boolean` | Whether this icon is currently hovered.         |
+| `value`     | `number`  | The current value.                              |
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Rate` registers these variables on its own `.rate` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                         | Sass Variable                 | Default                    |
+| ------------------------------------ | ----------------------------- | -------------------------- |
+| `--bulma-rate-color-inactive`        | `$rate-color-inactive`        | `var(--bulma-grey-light)`  |
+| `--bulma-rate-color-active`          | `$rate-color-active`          | `hsl(48, 100%, 50%)`       |
+| `--bulma-rate-color-hover`           | `$rate-color-hover`           | `hsl(48, 100%, 67%)`       |
+| `--bulma-rate-icon-size`             | `$rate-icon-size`             | `1.5em`                    |
+| `--bulma-rate-icon-size-small`       | `$rate-icon-size-small`       | `1em`                      |
+| `--bulma-rate-icon-size-medium`      | `$rate-icon-size-medium`      | `2em`                      |
+| `--bulma-rate-icon-size-large`       | `$rate-icon-size-large`       | `2.5em`                    |
+| `--bulma-rate-font-icon-size`        | `$rate-font-icon-size`        | `1.35em`                   |
+| `--bulma-rate-font-icon-size-small`  | `$rate-font-icon-size-small`  | `0.9em`                    |
+| `--bulma-rate-font-icon-size-medium` | `$rate-font-icon-size-medium` | `1.8em`                    |
+| `--bulma-rate-font-icon-size-large`  | `$rate-font-icon-size-large`  | `2.25em`                   |
+| `--bulma-rate-gap`                   | `$rate-gap`                   | `0.5rem`                   |
+| `--bulma-rate-spaced-gap`            | `$rate-spaced-gap`            | `0.25rem`                  |
+| `--bulma-rate-score-weight`          | `$rate-score-weight`          | `600`                      |
+| `--bulma-rate-score-color`           | `$rate-score-color`           | `var(--bulma-text-strong)` |
+| `--bulma-rate-text-color`            | `$rate-text-color`            | `var(--bulma-text)`        |
+| `--bulma-rate-text-size`             | `$rate-text-size`             | `0.875em`                  |
+| `--bulma-rate-transition-duration`   | `$rate-transition-duration`   | `var(--bulma-duration)`    |
+| `--bulma-rate-disabled-opacity`      | `$rate-disabled-opacity`      | `0.5`                      |
+| `--bulma-rate-pop-scale`             | `$rate-pop-scale`             | `1.2`                      |
+
+<!-- /bestax:generated cssvars -->

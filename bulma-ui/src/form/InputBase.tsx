@@ -4,22 +4,12 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the Input component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the input.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the input.
- * @property {boolean} [isRounded] - Renders the input with rounded corners.
- * @property {boolean} [isStatic] - Renders the input as static text.
- * @property {boolean} [isHovered] - Applies the hovered state.
- * @property {boolean} [isFocused] - Applies the focused state.
- * @property {boolean} [isLoading] - Shows loading indicator.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [disabled] - Whether the input is disabled.
- * @property {boolean} [readOnly] - Whether the input is read-only.
  */
 export interface InputBaseProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Bulma color modifier for the input. */
   color?:
     | 'primary'
     | 'link'
@@ -31,14 +21,23 @@ export interface InputBaseProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Size modifier for the input. */
   size?: 'small' | 'medium' | 'large';
+  /** Rounded input corners. */
   isRounded?: boolean;
+  /** Renders input as static (read only, styled). */
   isStatic?: boolean;
+  /** Applies hovered state. */
   isHovered?: boolean;
+  /** Applies focused state. */
   isFocused?: boolean;
+  /** Shows loading indicator. */
   isLoading?: boolean;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Disabled input. */
   disabled?: boolean;
+  /** Read-only input. */
   readOnly?: boolean;
 }
 

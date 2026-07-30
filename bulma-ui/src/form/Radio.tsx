@@ -26,14 +26,6 @@ export const radioSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Radio component.
- *
- * @property {(typeof radioColors)[number]} [color] - Color variant for the radio.
- * @property {(typeof radioSizes)[number]} [size] - Size of the radio.
- * @property {boolean} [disabled] - Whether the radio is disabled.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - The label/content for the radio.
- * @see Bulma Radio documentation: https://bulma.io/documentation/form/radio/
  */
 export interface RadioProps
   extends
@@ -42,25 +34,22 @@ export interface RadioProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+  /** Color of the radio button. */
   color?: (typeof radioColors)[number];
+  /** Size of the radio button. */
   size?: (typeof radioSizes)[number];
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the radio is disabled. */
   disabled?: boolean;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** The label/content for the radio. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Radio component with themed styling support.
- *
- * Renders a custom-styled radio button with a visual indicator,
- * supporting colors, sizes, and various states. Inside a `<Radios>` group,
- * Radio inherits `name` and (when the group is in controlled or uncontrolled
- * mode) derives its `checked` state from the group's `value` and dispatches
- * the group's `onChange` when clicked.
- *
- * Local props always win over group context (`name`, `checked`, `onChange`
- * on Radio override the group). Required for opt-out scenarios.
+ * The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
  *
  * @function
  * @param {RadioProps} props - Props for the Radio component.

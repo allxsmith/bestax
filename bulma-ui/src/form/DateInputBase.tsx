@@ -40,40 +40,6 @@ const fromIsoDate = (s: string): Date | null => {
 /**
  * Props for the raw DateInput base. Use the higher-level `DateInput` for
  * Field/Control composition; `DateInputBase` is the input + popover only.
- *
- * @property {Date | null} [value] - Controlled selected date.
- * @property {Date | null} [defaultValue] - Initial date for uncontrolled usage.
- * @property {(d: Date | null) => void} [onChange] - Fired when the value changes.
- * @property {() => void} [onOpen] - Fired when the popover opens.
- * @property {() => void} [onClose] - Fired when the popover closes.
- * @property {Date} [min] - Earliest selectable date.
- * @property {Date} [max] - Latest selectable date.
- * @property {boolean} [disabled] - Disable the input.
- * @property {boolean} [readOnly] - Make the input read-only.
- * @property {string} [placeholder] - Placeholder text.
- * @property {DateFormatOption} [format] - Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD'`.
- * @property {(s: string) => Date | null} [parse] - Custom parser (use when `format` is `Intl.DateTimeFormatOptions`).
- * @property {string} [locale] - BCP-47 locale tag for day/month names.
- * @property {boolean} [inline] - Render the calendar inline (no popover).
- * @property {boolean | 'auto'} [mobileNative] - Use native `<input type="date">` on coarse-pointer + small-viewport devices.
- * @property {boolean} [editable] - Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). Default `true`.
- * @property {boolean} [popover] - Whether the calendar popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.
- * @property {boolean} [openOnFocus] - Open the popover on focus. Default `true`.
- * @property {boolean} [closeOnSelect] - Close the popover after selection. Default `true`.
- * @property {PickerPosition} [position] - Popover anchor position.
- * @property {boolean} [appendToBody] - Render the popover into `document.body` via portal.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {'small'|'medium'|'large'} [size] - Size variant.
- * @property {boolean} [isRounded] - Render the input with rounded corners.
- * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate to disable specific dates. Blocked dates can't be selected in the calendar and are rejected by manual typing (segmented and free-form).
- * @property {Date[]} [unselectableDates] - Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.
- * @property {DayOfWeek} [firstDayOfWeek] - Day the week starts on (0 = Sunday).
- * @property {string[]} [dayNames] - Override the 7 day-name labels.
- * @property {string[]} [monthNames] - Override the 12 month-name labels.
- * @property {boolean} [nearbyMonthDays] - Show dimmed dates from adjacent months. Default `true`.
- * @property {string} [iconLeftName] - Decorative left icon glyph for the wrapping Control (shown by default; set to '' to hide).
- * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
- * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
  */
 export interface DateInputBaseProps
   extends
@@ -90,38 +56,74 @@ export interface DateInputBaseProps
       | 'popover'
     >,
     Omit<BulmaClassesProps, 'color'> {
+  /** Controlled selected date. */
   value?: Date | null;
+  /** Initial date for uncontrolled usage. */
   defaultValue?: Date | null;
+  /** Fired when the value changes. */
   onChange?: (d: Date | null) => void;
+  /** Fired when the popover opens. */
   onOpen?: () => void;
+  /** Fired when the popover closes. */
   onClose?: () => void;
+  /** Earliest selectable date. */
   min?: Date;
+  /** Latest selectable date. */
   max?: Date;
+  /** Disable the input. */
   disabled?: boolean;
+  /** Make the input read-only. */
   readOnly?: boolean;
+  /** Placeholder text for the input. */
   placeholder?: string;
+  /**
+   * Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD'`.
+   * @defaultValue 'YYYY-MM-DD'
+   */
   format?: DateFormatOption;
+  /** Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). */
   parse?: (s: string) => Date | null;
+  /** BCP-47 locale tag for day/month names and Intl formatting. */
   locale?: string;
+  /** Render the calendar inline (no popover). */
   inline?: boolean;
+  /** Use `<input type="date">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
+  /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
+  /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
+  /** Open the popover when the input is focused. */
   openOnFocus?: boolean;
+  /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
+  /** Popover anchor position relative to the input. */
   position?: PickerPosition;
+  /** Render the popover into `document.body` via portal. */
   appendToBody?: boolean;
+  /** Bulma color modifier. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
+  /** Render the input with rounded corners. */
   isRounded?: boolean;
+  /** Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing. */
   shouldDisableDate?: (d: Date) => boolean;
+  /** Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing. */
   unselectableDates?: Date[];
+  /** Day the week starts on (0 = Sunday). */
   firstDayOfWeek?: DayOfWeek;
+  /** Override the 7 day-name labels (in calendar order, post-rotation). */
   dayNames?: string[];
+  /** Override the 12 month-name labels. */
   monthNames?: string[];
+  /** Show dimmed dates from adjacent months in the grid. */
   nearbyMonthDays?: boolean;
+  /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
+  /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
   /** Optional translatable string overrides (ARIA labels, button text). */
   labels?: PickerLabels;

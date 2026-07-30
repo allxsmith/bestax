@@ -15,42 +15,37 @@ export type LoadingColor =
 
 /**
  * Props for the Loading component.
- *
- * @property {boolean} [active] - Whether the loading overlay is visible.
- * @property {boolean} [isFullPage] - Cover the entire viewport.
- * @property {'small' | 'medium' | 'large'} [size] - Size of the loading spinner.
- * @property {LoadingColor} [color] - Color variant for the spinner. Default is light grey.
- * @property {boolean} [canCancel] - Show a cancel button/allow closing.
- * @property {() => void} [onCancel] - Callback when cancel is triggered.
- * @property {React.ReactNode} [children] - Content to display below the spinner.
- * @property {string} [className] - Additional CSS classes.
- * @property {string} [overlayClassName] - Additional classes for the overlay.
- * @property {string} [iconClassName] - Additional classes for the spinner icon.
- * @property {React.ReactNode} [indicator] - Custom content to replace the default CSS spinner. The Loading component wraps it in a spinning container.
- * @property {LoadingOverlay} [overlay] - Overlay opacity level: 'light', 'dark', or 'opaque'. Defaults to a medium opacity.
+ * @extraProp {React.ReactNode} [children] - Content to display below the spinner.
+ * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface LoadingProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size' | 'overlay'> {
+  /** Whether the loading overlay is visible. */
   active?: boolean;
+  /** Cover the entire viewport. */
   isFullPage?: boolean;
+  /** Size of the loading spinner. */
   size?: 'small' | 'medium' | 'large';
+  /** Color variant for the spinner. Default is light grey. */
   color?: LoadingColor;
+  /** Show a cancel button and allow closing. */
   canCancel?: boolean;
+  /** Callback when cancel is triggered. */
   onCancel?: () => void;
+  /** Additional classes for the overlay. */
   overlayClassName?: string;
+  /** Additional classes for the spinner icon. */
   iconClassName?: string;
+  /** Custom loading indicator element. */
   indicator?: React.ReactNode;
+  /** Style of the loading overlay. */
   overlay?: LoadingOverlay;
 }
 
 /**
- * Loading component for displaying a loading overlay with spinner.
- *
- * Can be used as a full-page overlay or a container overlay to indicate
- * loading states. Supports different sizes, color variants, and optional
- * cancel functionality.
+ * The `Loading` component provides a loading overlay with a spinner animation.
  *
  * @function
  * @param {LoadingProps} props - Props for the Loading component.

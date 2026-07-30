@@ -27,27 +27,27 @@ export type RevealAnimation =
 
 /**
  * Props for the Reveal component.
- *
- * @property {RevealAnimation} [animation] - Animation style used when the element enters the viewport. Default: 'fade-up'.
- * @property {number} [delay] - Delay in milliseconds before the animation starts. Default: 0.
- * @property {number} [duration] - Animation duration in milliseconds. Default: 600.
- * @property {number} [threshold] - Fraction (0-1) of the element that must be visible to trigger the reveal. Values are clamped to the 0-1 range and fall back to 0.15 when not a finite number. Default: 0.15.
- * @property {boolean} [once] - Animate only the first time the element enters the viewport; if `false`, it re-animates on every entry/exit. Default: true.
- * @property {React.ElementType} [as] - Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component.
- * @property {boolean} [cascade] - Stagger direct children with an incrementing delay instead of animating this element as a single block.
- * @property {number} [cascadeInterval] - Milliseconds added to each successive child's delay when `cascade` is set. Default: 80.
- * @property {React.ReactNode} [children] - Content to reveal.
+ * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface RevealProps
   extends Omit<React.HTMLAttributes<HTMLElement>, 'color'>, BulmaClassesProps {
+  /** Animation style applied when the element enters the viewport. */
   animation?: RevealAnimation;
+  /** Delay in milliseconds before the animation starts. Default: 0. */
   delay?: number;
+  /** Animation duration in milliseconds. Default: 600. */
   duration?: number;
+  /** Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. */
   threshold?: number;
+  /** Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. */
   once?: boolean;
+  /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
   as?: React.ElementType;
+  /** Stagger direct children with an incrementing delay instead of animating this element as a single block. */
   cascade?: boolean;
+  /** Milliseconds added to each successive child's delay when `cascade` is set. Default: 80. */
   cascadeInterval?: number;
+  /** Content to reveal. */
   children?: React.ReactNode;
 }
 
@@ -81,13 +81,7 @@ function usePrefersReducedMotion(): boolean {
 }
 
 /**
- * Reveal component that animates its content into view as it scrolls into
- * the viewport, backed by `IntersectionObserver`.
- *
- * Renders in its final, visible state during SSR and on the first client
- * render, so content is never hidden if JavaScript never runs (crawlers,
- * disabled JS). Automatically skips the animation (renders the final state
- * immediately) when the user prefers reduced motion.
+ * The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.
  *
  * @function
  * @param {RevealProps} props - Props for the Reveal component.

@@ -33,33 +33,16 @@ export type SliderOrientation = 'horizontal' | 'vertical';
 
 /**
  * A tick mark displayed along the Slider track.
- *
- * @property {number} value - Position of the mark along the slider range.
- * @property {React.ReactNode} [label] - Optional label rendered below the tick mark.
  */
 export interface SliderMark {
+  /** Controlled value. */
   value: number;
+  /** Optional label rendered below the tick mark. */
   label?: React.ReactNode;
 }
 
 /**
  * Shared base props for single and range Slider modes.
- *
- * @property {number} [min] - Minimum slider value (default: 0).
- * @property {number} [max] - Maximum slider value (default: 100).
- * @property {number} [step] - Step increment (default: 1).
- * @property {SliderSize} [size] - Size of the slider.
- * @property {SliderColor} [color] - Color of the slider.
- * @property {boolean} [isRounded] - Whether the slider thumb is rounded.
- * @property {boolean} [isCircle] - Whether the slider thumb is circular.
- * @property {boolean} [showOutput] - Whether to show a tooltip with the current value (maps to tooltip 'auto').
- * @property {SliderTooltip} [tooltip] - Tooltip display mode (overrides showOutput).
- * @property {boolean} [ticks] - Whether to display tick marks at each step.
- * @property {SliderMark[]} [marks] - Custom tick mark positions and labels.
- * @property {SliderOrientation} [orientation] - Slider orientation (default: 'horizontal').
- * @property {(value: number) => number} [scale] - Non-linear scale function for displayed values.
- * @property {(value: number) => string} [getAriaValueText] - Custom aria-valuetext formatter.
- * @property {(value: number) => string} [formatOutput] - Custom formatter for the tooltip output.
  */
 interface SliderBaseProps
   extends
@@ -69,66 +52,102 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
+  /** Minimum value. */
   min?: number;
+  /** Maximum value. */
   max?: number;
+  /** Step increment (default: 1). */
   step?: number;
+  /** Size variant. */
   size?: SliderSize;
+  /** Color variant. */
   color?: SliderColor;
+  /** Use rounded track ends. */
   isRounded?: boolean;
+  /** Use circular thumb. */
   isCircle?: boolean;
+  /** Show current value tooltip. */
   showOutput?: boolean;
+  /** Controls tooltip visibility on the thumb. */
   tooltip?: SliderTooltip;
+  /** Shows tick marks along the track. */
   ticks?: boolean;
+  /** Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. */
   marks?: SliderMark[];
+  /** Orientation of the slider. */
   orientation?: SliderOrientation;
+  /** Function to scale the displayed value. */
   scale?: (value: number) => number;
+  /** Function to generate the `aria-valuetext` attribute. */
   getAriaValueText?: (value: number) => string;
+  /** Format function for output display. */
   formatOutput?: (value: number) => string;
 }
 
 /**
  * Props for the Slider in single-value mode.
- *
- * @property {false} [range] - Must be false or omitted for single-value mode.
- * @property {number} [value] - Controlled slider value.
- * @property {number} [defaultValue] - Initial value for uncontrolled mode.
- * @property {(value: number) => void} [onChange] - Callback when the value changes.
- * @property {never} [minDistance] - Not applicable in single-value mode.
- * @property {string} [ariaLabel] - Accessible label for the slider input.
  */
 export interface SliderSingleProps extends SliderBaseProps {
+  /**
+   * Enables range mode with two thumbs.
+   * @defaultValue false
+   */
   range?: false;
+  /** Controlled value. */
   value?: number;
+  /**
+   * Default value for uncontrolled usage.
+   * @defaultValue 0
+   */
   defaultValue?: number;
+  /** Callback when value changes. */
   onChange?: (value: number) => void;
+  /**
+   * Minimum distance between thumbs in range mode.
+   * @defaultValue 0
+   */
   minDistance?: never;
+  /** ARIA label(s) for the slider thumb(s). */
   ariaLabel?: string;
 }
 
 /**
  * Props for the Slider in range (dual-thumb) mode.
- *
- * @property {true} range - Must be true to enable range mode.
- * @property {[number, number]} [value] - Controlled range value as [low, high].
- * @property {[number, number]} [defaultValue] - Initial range for uncontrolled mode.
- * @property {(value: [number, number]) => void} [onChange] - Callback when the range changes.
- * @property {number} [minDistance] - Minimum distance between the two thumbs.
- * @property {[string, string]} [ariaLabel] - Accessible labels for the low and high thumb inputs.
- * @property {string} [nameLow] - Form field name for the low thumb. Use this in range mode so each thumb submits with its own name.
- * @property {string} [nameHigh] - Form field name for the high thumb.
  */
 export interface SliderRangeProps extends SliderBaseProps {
+  /**
+   * Enables range mode with two thumbs.
+   * @defaultValue false
+   */
   range: true;
+  /** Controlled value. */
   value?: [number, number];
+  /**
+   * Default value for uncontrolled usage.
+   * @defaultValue 0
+   */
   defaultValue?: [number, number];
+  /** Callback when value changes. */
   onChange?: (value: [number, number]) => void;
+  /**
+   * Minimum distance between thumbs in range mode.
+   * @defaultValue 0
+   */
   minDistance?: number;
+  /** ARIA label(s) for the slider thumb(s). */
   ariaLabel?: [string, string];
+  /** Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. */
   nameLow?: string;
+  /** Form field name for the high thumb. */
   nameHigh?: string;
 }
 
-/** Props for the Slider component — a discriminated union of single and range modes. */
+/**
+ *  Props for the Slider component — a discriminated union of single and range modes.
+ * @extraProp {boolean} [disabled=false] - Whether the slider is disabled.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
+ */
 export type SliderProps = SliderSingleProps | SliderRangeProps;
 
 /**
@@ -164,11 +183,7 @@ function getTickPositions(
 }
 
 /**
- * Slider component for selecting a value or range from a range.
- *
- * A styled range input that supports different sizes, colors,
- * optional value display, ticks/marks, range mode (dual thumb),
- * vertical orientation, and non-linear scale.
+ * The `Slider` component provides a range slider input for selecting values within a range.
  *
  * @function
  * @param {SliderProps} props - Props for the Slider component.
