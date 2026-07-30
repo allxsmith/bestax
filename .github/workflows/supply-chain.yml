@@ -144,13 +144,23 @@ jobs:
         run: |
           fail=0
           for pkg in @allxsmith/bestax-bulma create-bestax; do
-            # --json + a type guard so only a real string counts as present.
-            # Bare `npm view` of a missing field is empty today, but null /
-            # undefined / a non-string would otherwise read as success. Any
-            # failure (network, 404, missing dist-tag) yields empty and fails
-            # closed, which is the right default for a security assertion.
-            predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType --json 2>/dev/null \
-              | jq -r 'select(type=="string")' 2>/dev/null || true)
+            # --json + a type guard so only a real string counts as present:
+            # null, undefined, [] and non-strings all collapse to empty. The
+            # array branch covers npm aggregating a bare spec into one element.
+            # Any failure (network, 404, missing dist-tag) also yields empty and
+            # fails closed — the right default for a security assertion.
+            #
+            # Retried because this runs weekly and failing closed means a
+            # registry blip would otherwise report the same red as a genuinely
+            # dropped attestation. A gate that cries wolf gets ignored, so
+            # spend three attempts before believing provenance is really gone.
+            predicate=""
+            for attempt in 1 2 3; do
+              predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType --json 2>/dev/null \
+                | jq -r 'if type=="array" then .[0] else . end | select(type=="string")' 2>/dev/null || true)
+              [ -n "$predicate" ] && break
+              [ "$attempt" -lt 3 ] && sleep $((attempt * 5))
+            done
             if [ -z "$predicate" ]; then
               echo "::error::$pkg has NO provenance attestation on the registry"
               fail=1
