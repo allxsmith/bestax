@@ -9,32 +9,29 @@ import {
 
 /**
  * Props for the Notification component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number]} [color] - Bulma color modifier for the notification.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {boolean} [isLight] - Use the light color variant.
- * @property {boolean} [hasDelete] - Show a delete (close) button.
- * @property {() => void} [onDelete] - Callback fired when the delete button is clicked.
- * @property {React.ReactNode} [children] - Content to be rendered inside the notification.
  */
 export interface NotificationProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Bulma color modifier for the notification. */
   color?: (typeof validColors)[number];
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Use the light color variant. */
   isLight?: boolean;
+  /** Shows a close (delete) button in the notification. */
   hasDelete?: boolean;
+  /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
+  /** Content inside the notification. */
   children?: React.ReactNode;
 }
 
 /**
- * Notification component for rendering a styled Bulma notification.
- *
- * Supports colors, light variants, a delete button, and arbitrary content.
+ * The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
  *
  * @function
  * @param {NotificationProps} props - Props for the Notification component.
@@ -94,20 +91,13 @@ export type NotificationPosition =
 
 /**
  * Options for showing a programmatic notification.
- *
- * @property {string|React.ReactNode} message - The message to display.
- * @property {(typeof validColors)[number]} [color] - Bulma color modifier.
- * @property {boolean} [isLight] - Use the light color variant.
- * @property {number} [duration] - Duration in ms before auto-close. Default: 3000.
- * @property {NotificationPosition} [position] - Position on the screen. Default: 'top-right'.
- * @property {boolean} [queue] - Display notifications one at a time in FIFO order.
- * @property {boolean} [hasDelete] - Show a delete (close) button. Default: true.
- * @property {boolean} [indefinite] - Stay open until dismissed.
- * @property {boolean} [pauseOnHover] - Pause auto-close timer on hover. Default: true.
  */
 export interface NotificationOptions {
+  /** The message to display. */
   message: string | React.ReactNode;
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number];
+  /** Use the light color variant. */
   isLight?: boolean;
   /** Duration in ms before auto-close. Default 3000. */
   duration?: number;
@@ -125,12 +115,11 @@ export interface NotificationOptions {
 
 /**
  * Internal representation of a notification instance.
- *
- * @property {string} id - Unique identifier for this notification.
- * @property {NotificationOptions} options - Configuration options for the notification.
  */
 interface NotificationInstance {
+  /** Unique identifier for this notification. */
   id: string;
+  /** Configuration options for the notification. */
   options: NotificationOptions;
 }
 

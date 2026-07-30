@@ -8,34 +8,30 @@ import {
 
 /**
  * Props for the Link component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {string} [href] - The URL the link points to.
- * @property {string} [target] - Where to open the linked document.
- * @property {string} [rel] - Relationship between the current and linked document.
- * @property {boolean} [isActive] - Whether the link appears active.
- * @property {React.ElementType} [as] - Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`.
- * @property {React.ReactNode} [children] - Content to be rendered inside the link.
+ * @extraProp {string} [href] - The URL the link points to.
+ * @extraProp {'_self' | '_blank' | '_parent' | '_top'} [target] - Where to open the linked document.
+ * @extraProp {string} [rel] - Relationship between current and linked document.
  */
 export interface LinkProps
   extends
     React.AnchorHTMLAttributes<HTMLAnchorElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the link appears active. */
   isActive?: boolean;
+  /** Render as a custom component (e.g. a router `Link`) instead of `<a>`. Defaults to `'a'`. */
   as?: React.ElementType;
+  /** Content to render inside the link. */
   children?: React.ReactNode;
 }
 
 /**
- * Link component for rendering a styled Bulma anchor element.
- *
- * A Link wraps the HTML `<a>` element with Bulma styling support and helper class integration.
- * Supports Bulma helper classes for additional styling like text color, background color, and layout.
+ * The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
  *
  * @function
  * @param {LinkProps} props - Props for the Link component.

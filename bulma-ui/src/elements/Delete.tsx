@@ -8,32 +8,29 @@ import {
 
 /**
  * Props for the Delete component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the delete button.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {(event: React.MouseEvent<HTMLButtonElement>) => void} [onClick] - Click handler for the button.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the delete button.
- * @property {string} [ariaLabel='Close'] - ARIA label for accessibility (default: 'Close').
- * @property {boolean} [disabled=false] - Whether the button is disabled (default: false).
  */
 interface DeleteProps
   extends React.HTMLAttributes<HTMLButtonElement>, BulmaClassesProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the button. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Click handler for the button. */
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Size modifier for the delete button. */
   size?: 'small' | 'medium' | 'large';
+  /** ARIA label for accessibility (default: 'Close'). */
   ariaLabel?: string;
+  /** Whether the button is disabled (default: false). */
   disabled?: boolean;
 }
 
 /**
- * Delete component for rendering a Bulma-styled delete/close button.
- *
- * Supports Bulma helper classes for styling, color, and size, and includes accessibility and disabled state.
+ * The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
  *
  * @function
  * @param {DeleteProps} props - Props for the Delete component.

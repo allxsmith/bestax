@@ -8,28 +8,23 @@ import {
 
 /**
  * Props for the Pre component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Preformatted content to be rendered inside the element.
  */
 export interface PreProps
   extends
     React.HTMLAttributes<HTMLPreElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Preformatted content to render. */
   children?: React.ReactNode;
 }
 
 /**
- * Pre component for rendering preformatted text blocks.
- *
- * A Pre wraps the HTML `<pre>` element with Bulma helper class integration.
- * Use it for multi-line code blocks, ASCII art, or any content where whitespace
- * formatting must be preserved. Often used together with the Code component.
+ * The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.
  *
  * @function
  * @param {PreProps} props - Props for the Pre component.

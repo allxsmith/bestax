@@ -1,13 +1,20 @@
 ---
 title: Divider
 sidebar_label: Divider
+description: The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
 ---
 
 # Divider
 
 ## Overview
 
-The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration. Use it to visually separate content sections with a clean horizontal line.
+<!-- bestax:generated overview -->
+
+The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it to visually separate content sections with a clean horizontal line.
 
 :::info
 The Divider component is a thin wrapper around the HTML `<hr>` element, providing consistent Bulma styling and helper class support.
@@ -17,19 +24,13 @@ The Divider component is a thin wrapper around the HTML `<hr>` element, providin
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Divider } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| ...         | All standard `<hr>` and Bulma helper props                                                                                                                                                                                                                                               |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -136,3 +137,18 @@ Use dividers for thematic breaks between content sections, not just for visual s
 
 - [MDN: hr element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/hr)
 - [Storybook: Divider Stories](https://bestax.io/storybook/?path=/story/elements-divider--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content rendered inside the component.            |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

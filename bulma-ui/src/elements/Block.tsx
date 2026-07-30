@@ -8,29 +8,25 @@ import {
 
 /**
  * Props for the Block component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the block.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the block.
  */
 export interface BlockProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the block. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to render inside the block. */
   children?: React.ReactNode;
 }
 
 /**
- * Block component for rendering a styled Bulma block element.
- *
- * A block is a simple utility element that adds spacing (margin-bottom) between elements.
- * Supports Bulma helper classes for additional styling like text color, background color, and layout.
+ * The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.
  *
  * @function
  * @param {BlockProps} props - Props for the Block component.

@@ -8,30 +8,27 @@ import {
 
 /**
  * Props for the Progress component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number]} [color] - Bulma color modifier for the progress bar.
- * @property {'small' | 'medium' | 'large'} [size] - Size modifier for the progress bar.
- * @property {number} [value] - Current value of the progress bar.
- * @property {number} [max] - Maximum value of the progress bar.
- * @property {React.ReactNode} [children] - Optional custom content inside the progress element.
  */
 export interface ProgressProps
   extends
     React.ProgressHTMLAttributes<HTMLProgressElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Bulma color modifier for the progress bar. */
   color?: (typeof validColors)[number];
+  /** Size modifier for the progress bar. */
   size?: 'small' | 'medium' | 'large';
+  /** Current value of the progress bar. */
   value?: number;
+  /** Maximum value of the progress bar. */
   max?: number;
+  /** Optional custom content inside the progress bar. */
   children?: React.ReactNode;
 }
 
 /**
- * Progress component for rendering a styled Bulma progress bar.
- *
- * Supports Bulma color and size modifiers, value/max attributes, and optional custom content.
+ * The `Progress` component displays a Bulma-styled progress bar.
  *
  * @function
  * @param {ProgressProps} props - Props for the Progress component.

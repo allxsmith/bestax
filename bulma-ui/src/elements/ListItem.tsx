@@ -8,29 +8,24 @@ import {
 
 /**
  * Props for the ListItem component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the list item.
+ * @extraProp {number} [value] - Custom value for ordered list items.
  */
 export interface ListItemProps
   extends
     React.LiHTMLAttributes<HTMLLIElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to render inside the list item. */
   children?: React.ReactNode;
 }
 
 /**
- * ListItem component for rendering a styled list item element.
- *
- * A ListItem wraps the HTML `<li>` element with Bulma helper class integration.
- * Use it inside UnorderedList or OrderedList components.
- * Supports Bulma helper classes for additional styling like text color, background color,
- * and spacing utilities.
+ * The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
  *
  * @function
  * @param {ListItemProps} props - Props for the ListItem component.

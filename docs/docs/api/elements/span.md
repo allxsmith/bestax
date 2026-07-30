@@ -1,13 +1,20 @@
 ---
 title: Span
 sidebar_label: Span
+description: The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
 ---
 
 # Span
 
 ## Overview
 
-The `Span` component renders a styled inline `<span>` element with Bulma helper class integration. Use it for highlighting text, applying inline styles, or wrapping content that needs Bulma's typography and color utilities without affecting the document flow.
+<!-- bestax:generated overview -->
+
+The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for highlighting text, applying inline styles, or wrapping content that needs Bulma's typography and color utilities without affecting the document flow.
 
 :::info
 The Span component is a thin wrapper around the HTML `<span>` element, providing consistent Bulma styling and helper class support for inline content.
@@ -17,21 +24,13 @@ The Span component is a thin wrapper around the HTML `<span>` element, providing
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Span } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the span.               |
-| ...         | All standard `<span>` and Bulma helper props                                                                                                                                                                                                                                             |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -154,3 +153,19 @@ For text that has semantic importance, consider using `<strong>` (Strong) or `<e
 
 - [Bulma Typography Helpers](https://bulma.io/documentation/helpers/typography-helpers/)
 - [Storybook: Span Stories](https://bestax.io/storybook/?path=/story/elements-span--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the span.                |
+| `...`       | All standard `<span>` attributes and Bulma helper props                 | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

@@ -11,32 +11,29 @@ import {
 
 /**
  * Props for the Buttons component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the buttons group.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {boolean} [isCentered] - Center the group of buttons.
- * @property {boolean} [isRight] - Align the group of buttons to the right.
- * @property {boolean} [hasAddons] - Group buttons together as addons.
- * @property {React.ReactNode} children - The button elements to render inside the group.
  */
 interface ButtonsProps
   extends React.HTMLAttributes<HTMLDivElement>, BulmaClassesProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper for the button group. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the button group. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper for the button group. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Center the group of buttons. */
   isCentered?: boolean;
+  /** Align the group of buttons to the right. */
   isRight?: boolean;
+  /** Group buttons together as addons (removes spacing between them). */
   hasAddons?: boolean;
+  /** The button elements to render inside the group. */
   children: React.ReactNode;
 }
 
 /**
- * Buttons component for rendering a group of Bulma-styled buttons.
- *
- * Supports Bulma helper classes for styling, color, and layout, including centering, right alignment, and grouping as addons.
+ * The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.
  *
  * @function
  * @param {ButtonsProps} props - Props for the Buttons component.

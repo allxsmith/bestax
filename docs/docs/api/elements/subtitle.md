@@ -1,13 +1,20 @@
 ---
 title: SubTitle
 sidebar_label: SubTitle
+description: The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).
 ---
 
 # SubTitle
 
 ## Overview
 
-The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`). Use it for subheadings, section titles, and supporting text.
+<!-- bestax:generated overview -->
+
+The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).
+
+<!-- /bestax:generated overview -->
+
+Use it for subheadings, section titles, and supporting text.
 
 :::info
 `SubTitle` helps create clarity in content structure, especially when paired with `Title`.
@@ -17,25 +24,13 @@ The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), su
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { SubTitle } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                                                                                                                                                                                                                                                                     | Default | Description                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
-| `className`   | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                  |
-| `size`        | `'1' \| '2' \| '3' \| '4' \| '5' \| '6'`                                                                                                                                                                                                                                                 | —       | Size of the subtitle (Bulma sizes).                      |
-| `as`          | `'h1' \| 'h2' \| 'h3' \| 'h4' \| 'h5' \| 'h6' \| 'p'`                                                                                                                                                                                                                                    | `'h1'`  | HTML element to render as.                               |
-| `hasSkeleton` | `boolean`                                                                                                                                                                                                                                                                                | —       | Applies the `has-skeleton` class to part of the content. |
-| `skeleton`    | `boolean`                                                                                                                                                                                                                                                                                | —       | Applies the `is-skeleton` class to the entire component. |
-| `children`    | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Subtitle content.                                        |
-| `textColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                       |
-| `bgColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                                 |
-| ...           | All standard heading/paragraph and Bulma helper props                                                                                                                                                                                                                                    |         | (See [Helper Props](../helpers/usebulmaclasses))         |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -152,3 +147,52 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 - [Bulma Title Documentation (Subtitle)](https://bulma.io/documentation/elements/title/#subtitle)
 - [Storybook: SubTitle Stories](https://bestax.io/storybook/?path=/story/elements-subtitle--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                                    | Default | Description                                              |
+| ------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
+| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                         |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'`                      | —       | Size of the subtitle (Bulma sizes).                      |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`       | `'h1'`  | HTML element to render as (h1-h6 or p).                  |
+| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content. |
+| `children`    | `React.ReactNode`                                                       | —       | Subtitle content.                                        |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                       |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                 |
+| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component. |
+| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props            | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`SubTitle` registers these variables on its own `.subtitle` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                     | Sass Variable             | Default                         |
+| -------------------------------- | ------------------------- | ------------------------------- |
+| `--bulma-title-color`            | `$title-color`            | `var(--bulma-text-strong)`      |
+| `--bulma-title-family`           | `$title-family`           | `false`                         |
+| `--bulma-title-size`             | `$title-size`             | `var(--bulma-size-3)`           |
+| `--bulma-title-weight`           | `$title-weight`           | `var(--bulma-weight-extrabold)` |
+| `--bulma-title-line-height`      | `$title-line-height`      | `1.125`                         |
+| `--bulma-title-strong-color`     | `$title-strong-color`     | `inherit`                       |
+| `--bulma-title-strong-weight`    | `$title-strong-weight`    | `inherit`                       |
+| `--bulma-title-sub-size`         | `$title-sub-size`         | `0.75em`                        |
+| `--bulma-title-sup-size`         | `$title-sup-size`         | `0.75em`                        |
+| `--bulma-subtitle-color`         | `$subtitle-color`         | `var(--bulma-text)`             |
+| `--bulma-subtitle-family`        | `$subtitle-family`        | `false`                         |
+| `--bulma-subtitle-size`          | `$subtitle-size`          | `var(--bulma-size-5)`           |
+| `--bulma-subtitle-weight`        | `$subtitle-weight`        | `var(--bulma-weight-normal)`    |
+| `--bulma-subtitle-line-height`   | `$subtitle-line-height`   | `1.25`                          |
+| `--bulma-subtitle-strong-color`  | `$subtitle-strong-color`  | `var(--bulma-text-strong)`      |
+| `--bulma-subtitle-strong-weight` | `$subtitle-strong-weight` | `var(--bulma-weight-semibold)`  |
+
+<!-- /bestax:generated cssvars -->

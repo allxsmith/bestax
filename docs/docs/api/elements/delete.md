@@ -1,13 +1,20 @@
 ---
 title: Delete
 sidebar_label: Delete
+description: The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
 ---
 
 # Delete
 
 ## Overview
 
-The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more. It supports all Bulma size and color helpers, and includes accessibility best practices.
+<!-- bestax:generated overview -->
+
+The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
+
+<!-- /bestax:generated overview -->
+
+It supports all Bulma size and color helpers, and includes accessibility best practices.
 
 :::info
 This component is ideal for adding a visually consistent, accessible close button to any Bulma-styled element.
@@ -17,25 +24,13 @@ This component is ideal for adding a visually consistent, accessible close butto
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Delete } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default   | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —         | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —         | Text color helper.                               |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —         | Bulma color modifier for the button.             |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —         | Background color helper.                         |
-| `size`      | `'small' \| 'medium' \| 'large'`                                                                                                                                                                                                                                                         | —         | Size modifier for the delete button.             |
-| `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                                                                                                                                                                                                                                   | —         | Click handler for the button.                    |
-| `ariaLabel` | `string`                                                                                                                                                                                                                                                                                 | `'Close'` | ARIA label for accessibility.                    |
-| `disabled`  | `boolean`                                                                                                                                                                                                                                                                                | `false`   | Whether the button is disabled.                  |
-| ...         | All standard `<button>` and Bulma helper props                                                                                                                                                                                                                                           |           | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -160,3 +155,41 @@ For custom close actions, use the `onClick` prop.
 
 - [Bulma Delete Documentation](https://bulma.io/documentation/elements/delete/)
 - [Storybook: Delete Stories](https://bestax.io/storybook/?path=/story/elements-delete--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default   | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —         | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Text color helper.                                |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color modifier for the button.              |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Background color helper.                          |
+| `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                          | —         | Click handler for the button.                     |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.              |
+| `ariaLabel` | `string`                                                                        | `'Close'` | ARIA label for accessibility (default: 'Close').  |
+| `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).  |
+| `children`  | `React.ReactNode`                                                               | —         | Content rendered inside the component.            |
+| `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Delete`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable                      | Sass Variable | Default              |
+| --------------------------------- | ------------- | -------------------- |
+| `--bulma-delete-dimensions`       | —             | `1.25rem`            |
+| `--bulma-delete-background-l`     | —             | `0%`                 |
+| `--bulma-delete-background-alpha` | —             | `0.5`                |
+| `--bulma-delete-color`            | —             | `var(--bulma-white)` |
+
+<!-- /bestax:generated cssvars -->

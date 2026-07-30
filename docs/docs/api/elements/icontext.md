@@ -1,13 +1,20 @@
 ---
 title: IconText
 sidebar_label: IconText
+description: The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
 ---
 
 # IconText
 
 ## Overview
 
-The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text. Use it for icon-and-label patterns, ratings, button content, or any visual+text UI. Supports all Bulma helper props for spacing, color, and layout.
+<!-- bestax:generated overview -->
+
+The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
+
+<!-- /bestax:generated overview -->
+
+Use it for icon-and-label patterns, ratings, button content, or any visual+text UI. Supports all Bulma helper props for spacing, color, and layout.
 
 :::tip
 Use `IconText` to keep icons and text vertically aligned and spaced, as recommended by Bulma.
@@ -17,24 +24,13 @@ Use `IconText` to keep icons and text vertically aligned and spaced, as recommen
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { IconText } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                               |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------- |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                   |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                        |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the icon text group.             |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                                  |
-| `iconProps` | `IconProps`                                                                                                                                                                                                                                                                              | —       | Props for a single Icon component (for single icon mode). |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Text for a single icon (for single icon mode).            |
-| `items`     | `{ iconProps: IconProps, text?: string }[]`                                                                                                                                                                                                                                              | —       | Array of icon/text pairs (for multiple icons mode).       |
-| ...         | All standard `<span>` and Bulma helper props                                                                                                                                                                                                                                             |         | (See [Helper Props](../helpers/usebulmaclasses))          |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -295,3 +291,44 @@ For star ratings or icon lists, use `items` with `iconProps` and optional `text`
 
 - [Bulma IconText Documentation](https://bulma.io/documentation/elements/icon/#icon-text)
 - [Storybook: IconText Stories](https://bestax.io/storybook/?path=/story/elements-icontext--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                               |
+| ----------- | ------------------------------------------------------------------------------- | ------- | --------------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                          |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                        |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the icon text group.             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                  |
+| `iconProps` | `IconProps`                                                                     | —       | Props for a single Icon component (for single icon mode). |
+| `children`  | `React.ReactNode`                                                               | —       | Text for a single icon (for single icon mode).            |
+| `items`     | `IconTextItem[]`                                                                | —       | Array of icon/text pairs (for multiple icons mode).       |
+| `...`       | All standard `<span>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)         |
+
+**Subcomponents:**
+
+- [`IconText.Icon`](icon.md): The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, Material Symbols, etc.).
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`IconText` registers these variables on its own `.icon-text` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                     | Sass Variable             | Default  |
+| -------------------------------- | ------------------------- | -------- |
+| `--bulma-icon-dimensions`        | `$icon-dimensions`        | `1.5rem` |
+| `--bulma-icon-dimensions-small`  | `$icon-dimensions-small`  | `1rem`   |
+| `--bulma-icon-dimensions-medium` | `$icon-dimensions-medium` | `2rem`   |
+| `--bulma-icon-dimensions-large`  | `$icon-dimensions-large`  | `3rem`   |
+| `--bulma-icon-text-spacing`      | `$icon-text-spacing`      | `0.25em` |
+
+<!-- /bestax:generated cssvars -->

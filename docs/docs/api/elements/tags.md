@@ -1,13 +1,20 @@
 ---
 title: Tags
 sidebar_label: Tags
+description: The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
 ---
 
 # Tags
 
 ## Overview
 
-The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container. Use it for tag clouds, keyword lists, multi-select UIs, or displaying collections of dismissible tokens.
+<!-- bestax:generated overview -->
+
+The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.
+
+<!-- /bestax:generated overview -->
+
+Use it for tag clouds, keyword lists, multi-select UIs, or displaying collections of dismissible tokens.
 
 :::info
 Use `Tags` to organize tags with add-on and multiline layouts for a clean, compact UI.
@@ -17,21 +24,13 @@ Use `Tags` to organize tags with add-on and multiline layouts for a clean, compa
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Tags } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                        | Default | Description                                      |
-| ------------- | ------------------------------------------- | ------- | ------------------------------------------------ |
-| `className`   | `string`                                    | —       | Additional CSS classes.                          |
-| `hasAddons`   | `boolean`                                   | —       | Group tags together as add-ons (no spacing).     |
-| `isMultiline` | `boolean`                                   | —       | Allow tags to wrap onto multiple lines.          |
-| `children`    | `ReactNode`                                 | —       | Tag elements to render inside the container.     |
-| ...           | All standard `<div>` and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -159,3 +158,23 @@ Use `hasAddons` for tightly grouped tags (no space between them).
 
 - [Bulma Tags Documentation](https://bulma.io/documentation/elements/tag/#list-of-tags)
 - [Storybook: Tag Stories](https://bestax.io/storybook/?path=/story/elements-tag--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                   | Default | Description                                       |
+| ------------- | ------------------------------------------------------ | ------- | ------------------------------------------------- |
+| `className`   | `string`                                               | —       | Additional CSS classes to apply.                  |
+| `hasAddons`   | `boolean`                                              | `false` | Group tags together as add-ons (no spacing).      |
+| `isMultiline` | `boolean`                                              | `false` | Allow tags to wrap onto multiple lines.           |
+| `children`    | `React.ReactNode`                                      | —       | Tag elements to render inside the container.      |
+| `...`         | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+**Subcomponents:**
+
+- [`Tags.Tag`](tag.md): The `Tag` component renders a Bulma-styled label or badge.
+
+<!-- /bestax:generated props -->

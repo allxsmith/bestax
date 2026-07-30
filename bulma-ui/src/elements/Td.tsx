@@ -26,17 +26,16 @@ export type TableColor = (typeof validTableColors)[number];
 
 /**
  * Props for the Td component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {TableColor} [color] - Bulma color modifier for the table cell.
- * @property {React.ReactNode} [children] - Table cell content.
  */
 export interface TdProps
   extends
     Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Bulma color modifier for the table cell. */
   color?: TableColor;
+  /** Table cell content. */
   children?: React.ReactNode;
 }
 

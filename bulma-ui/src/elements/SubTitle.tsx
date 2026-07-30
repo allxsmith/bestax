@@ -28,14 +28,7 @@ export type SubTitleElement = (typeof validSubTitleElements)[number];
 
 /**
  * Props for the SubTitle component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {SubTitleSize} [size] - Size of the subtitle (1-6).
- * @property {SubTitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
- * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
- * @property {React.ReactNode} [children] - Subtitle content.
- * @property {string} [textColor] - Text color class (maps to Bulma's color helper).
- * @property {string} [bgColor] - Background color class (maps to Bulma's backgroundColor helper).
+ * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component.
  */
 export interface SubTitleProps
   extends
@@ -44,19 +37,24 @@ export interface SubTitleProps
       'color'
     >,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Size of the subtitle (Bulma sizes). */
   size?: SubTitleSize;
+  /** HTML element to render as (h1-h6 or p). */
   as?: SubTitleElement;
+  /** Applies the `has-skeleton` class to part of the content. */
   hasSkeleton?: boolean;
+  /** Subtitle content. */
   children?: React.ReactNode;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
 /**
- * SubTitle component for rendering a styled Bulma subtitle.
- *
- * Supports Bulma subtitle sizes and rendering as different HTML elements (h1-h6, p).
+ * The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).
  *
  * @function
  * @param {SubTitleProps} props - Props for the SubTitle component.
