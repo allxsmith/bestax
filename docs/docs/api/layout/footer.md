@@ -1,13 +1,20 @@
 ---
 title: Footer
 sidebar_label: Footer
+description: The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.
 ---
 
 # Footer
 
 ## Overview
 
-The `Footer` component provides a semantic and accessible site footer for your Bulma React UI. It supports Bulma color and background helpers, accepts any content as children, and can be rendered as either a `<footer>` or `<div>`. Use it to display copyright, links, or extra information at the bottom of your pages.
+<!-- bestax:generated overview -->
+
+The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports Bulma color and background helpers, accepts any content as children, and can be rendered as either a `<footer>` or `<div>`. Use it to display copyright, links, or extra information at the bottom of your pages.
 
 :::info
 `Footer` is usually placed at the end of your layout and is styled to stand out as a distinct section.
@@ -17,23 +24,13 @@ The `Footer` component provides a semantic and accessible site footer for your B
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Footer } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Field       | Type                                                                                                                                                                                                                                                                                     | Default    | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------ |
-| `as`        | `'footer'` \| `'div'`                                                                                                                                                                                                                                                                    | `'footer'` | The HTML tag to render as.                       |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —          | Bulma color modifier.                            |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —          | Background color.                                |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —          | Text color.                                      |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —          | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —          | Content inside the footer.                       |
-| ...         | All Bulma helper and HTML props                                                                                                                                                                                                                                                          | —          | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -94,3 +91,37 @@ When using only icons or non-text content, add `aria-label` or screen-reader-onl
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Footer />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default    | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ---------- | ------------------------------------------------- |
+| `as`        | `'footer'` \| `'div'`                                                   | `'footer'` | The HTML tag to render as.                        |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Bulma color modifier.                             |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Background color.                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Text color.                                       |
+| `className` | `string`                                                                | —          | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —          | Content inside the footer.                        |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —          | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Footer` registers these variables on its own `.footer` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                      | Sass Variable              | Default                        |
+| --------------------------------- | -------------------------- | ------------------------------ |
+| `--bulma-footer-background-color` | `$footer-background-color` | `var(--bulma-scheme-main-bis)` |
+| `--bulma-footer-color`            | `$footer-color`            | `false`                        |
+| `--bulma-footer-padding`          | `$footer-padding`          | `3rem 1.5rem 6rem`             |
+
+<!-- /bestax:generated cssvars -->

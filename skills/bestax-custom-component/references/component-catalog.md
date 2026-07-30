@@ -10,30 +10,12 @@ instead of hand-writing markup.
 
 - **Full props are not listed here** (that would be too large to keep in context).
   Follow a component's link for its complete prop table, or see the per-skill
-  references. Value unions (`size`, `color`, variants) differ per component —
-  never reuse one by analogy (`Tag size` is `normal|medium|large`; `Button`
-  adds `small`): the bestax-theming skill's
-  `references/themeable-components.md` lists them verbatim. The installed
-  types are at `node_modules/@allxsmith/bestax-bulma/dist/types/` (the
-  symlink resolves under pnpm's isolated linker — go straight there, no
-  `find` hunt), and when a `.d.ts` shows an opaque alias (`size?: TagSize`),
-  grep the alias name in that same file for the literals instead of guessing.
-  Top-level components accept the shared Bulma **helper props**
+  references. Every component also accepts the shared Bulma **helper props**
   (`m`/`p` spacing, `textColor`/`bgColor`, `textAlign`, `display`, flex, …) —
-  documented once in `references/api.md` — with rare exceptions (`Skeleton`).
+  documented once in `references/api.md`.
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,
   `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
-  component's linked page for the full set. Sub-parts do **not** all take helper
-  props: the `Table.*`, `Menu.*`, and `Hero.*` families do (most `Navbar.*`
-  too), but `Card.*`, `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take none —
-  just `className`, HTML attributes, and their own few (`Tabs.Tab` requires
-  `index` and has built-in `icon`/`disabled` props). Put helper props on the
-  parent or on an element inside (`Span`, `Paragraph`, …) instead.
-- **Composing these into your own reusable component?** Use the spine in this
-  skill's `SKILL.md`: extend `BulmaClassesProps`, run your props through
-  `useBulmaClasses`, merge its `bulmaHelperClasses` into `className`, and spread
-  the `rest` it returns — so it takes the same helper props as the library
-  components.
+  component's linked page for the full set.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 

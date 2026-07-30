@@ -17,7 +17,12 @@
  * makes sense where a page really is a component props table. `helpers/` is
  * ordered but not generated — see `GENERATED_EXEMPT`.
  */
-export const ORDERED_CATEGORIES = new Set([]);
+export const ORDERED_CATEGORIES = new Set([
+  'columns',
+  'grid',
+  'helpers',
+  'layout',
+]);
 
 // Both sets start EMPTY and grow one category per follow-up PR, so a category is
 // policed from the commit that migrates it and never before. The final state is
@@ -30,7 +35,7 @@ export const ORDERED_CATEGORIES = new Set([]);
 // lands the tooling and its CI gates, and each category is migrated in its own
 // follow-up so the page diffs stay reviewable. The gates below are live from
 // this commit — they simply have nothing to police yet.
-export const MANAGED_CATEGORIES = new Set([]);
+export const MANAGED_CATEGORIES = new Set(['columns', 'grid', 'layout']);
 
 /**
  * Pages that are ordered but never generated.

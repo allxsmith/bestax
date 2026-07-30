@@ -9,28 +9,27 @@ import {
 
 /**
  * Props for the Media component.
- *
- * @property {'article'|'div'} [as] - Element type to render.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type for the root Media container. */
   as?: 'article' | 'div';
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content inside the media container. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Media component root.
+ * The `Media` component implements Bulma’s powerful media object layout for React.
  *
  * @function
  * @param {MediaProps} props - Props for the Media component.
@@ -63,28 +62,27 @@ const MediaComponent: React.FC<MediaProps> = ({
 
 /**
  * Props for the MediaLeft component.
- *
- * @property {'figure'|'div'} [as] - Element type to render.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaLeftProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render. */
   as?: 'figure' | 'div';
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Media left section.
+ * For avatars, thumbnails, icons (renders as `figure` or `div`)
  *
  * @function
  * @param {MediaLeftProps} props - Props for the MediaLeft component.
@@ -116,26 +114,25 @@ export const MediaLeft: React.FC<MediaLeftProps> = ({
 
 /**
  * Props for the MediaContent component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaContentProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Media content section.
+ * Main content (renders as `div`)
  *
  * @function
  * @param {MediaContentProps} props - Props for the MediaContent component.
@@ -169,26 +166,25 @@ export const MediaContent: React.FC<MediaContentProps> = ({
 
 /**
  * Props for the MediaRight component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface MediaRightProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Media right section.
+ * Actions or controls (renders as `div`)
  *
  * @function
  * @param {MediaRightProps} props - Props for the MediaRight component.

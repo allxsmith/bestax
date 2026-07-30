@@ -13,38 +13,37 @@ export type CellSpanValue = number;
 
 /**
  * Props for the Cell component.
- *
- * @property {number} [colStart] - Which column the cell starts at (Bulma: is-col-start-x).
- * @property {number} [colFromEnd] - Which column the cell ends at, counting from the end (Bulma: is-col-from-end-x).
- * @property {CellSpanValue} [colSpan] - How many columns the cell will span (Bulma: is-col-span-x).
- * @property {number} [rowStart] - Which row the cell starts at (Bulma: is-row-start-x).
- * @property {number} [rowFromEnd] - Which row the cell ends at, counting from the end (Bulma: is-row-from-end-x).
- * @property {CellSpanValue} [rowSpan] - How many rows the cell will span (Bulma: is-row-span-x).
- * @property {string} [className] - Additional CSS class names.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the cell.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Children to render inside the cell.
  */
 export interface CellProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Which column the cell starts at (Bulma: `is-col-start-x`). */
   colStart?: number;
+  /** Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`). */
   colFromEnd?: number;
+  /** How many columns the cell will span (Bulma: `is-col-span-x`). */
   colSpan?: CellSpanValue;
+  /** Which row the cell starts at (Bulma: `is-row-start-x`). */
   rowStart?: number;
+  /** Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`). */
   rowFromEnd?: number;
+  /** How many rows the cell will span (Bulma: `is-row-span-x`). */
   rowSpan?: CellSpanValue;
+  /** Additional CSS class names. */
   className?: string;
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the cell. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to render inside the cell. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Cell component for CSS Grid layouts.
+ * The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.
  *
  * @function
  * @param {CellProps} props - Props for the Cell component.
