@@ -23,7 +23,17 @@ const packageRoot = path.join(
   '..'
 );
 const fixtureDir = path.join(packageRoot, 'fixtures', 'kitchen-sink');
-const tmpDir = path.join(packageRoot, '.e2e-tmp', 'kitchen-sink');
+
+// One scratch directory PER PROCESS, not one shared path. `pnpm all` runs
+// `test` and `test:coverage` inside a single turbo invocation, so two jest
+// processes execute this file at the same time; against a fixed
+// `.e2e-tmp/kitchen-sink` they interleave each other's rmSync/cpSync and the
+// suite fails claiming the codemod did nothing ("Expected substring: not
+// 'react-bulma-components'") on files that migrate correctly in isolation.
+// Set BESTAX_E2E_KEEP=1 to leave the directory behind for inspection.
+const tmpRoot = path.join(packageRoot, '.e2e-tmp');
+fs.mkdirSync(tmpRoot, { recursive: true });
+const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'kitchen-sink-'));
 
 interface MigratedApp {
   todosByFile: Map<string, TodoEntry[]>;
@@ -86,6 +96,12 @@ describe('kitchen-sink e2e', () => {
 
   beforeAll(() => {
     app = migrateKitchenSink();
+  });
+
+  afterAll(() => {
+    if (!process.env.BESTAX_E2E_KEEP) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   it('migrates every kitchen-sink file', () => {
