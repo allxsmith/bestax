@@ -151,7 +151,9 @@
   border: 2px solid var(--ifm-color-emphasis-300);
   border-radius: 8px;
   padding: 1rem 1.5rem;
-  margin: 2rem auto;
+  /* Bottom margin tightened from 2rem so .pmSwitcher reads as belonging to this
+     box rather than floating between it and .buttons. */
+  margin: 2rem auto 0.6rem;
   max-width: 500px;
   font-family: var(--ifm-font-family-monospace);
   font-size: 1rem;
@@ -185,6 +187,74 @@
   padding: 0;
   border: none;
   color: inherit;
+}
+
+/*
+ * Package-manager switches under the install box. Deliberately small and quiet —
+ * these are an affordance, not a call to action; Get Started and GitHub below are
+ * the CTAs. Writes the same storage slot as the docs pages' <Tabs>, so the choice
+ * follows the reader into the guides.
+ */
+.pmSwitcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.pmSwitcherItem {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  /* Vertical padding keeps the hit target at 24px+, per WCAG 2.2 target size. */
+  padding: 0.25rem 0.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--ifm-color-emphasis-700);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.pmSwitcherItem:hover {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-900);
+}
+
+.pmSwitcherItem:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+}
+
+.pmSwitcherItemActive,
+.pmSwitcherItemActive:hover {
+  color: var(--bestax-primary);
+  font-weight: 700;
+  background: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .pmSwitcherItem {
+  color: var(--ifm-color-emphasis-600);
+}
+
+[data-theme='dark'] .pmSwitcherItem:hover {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-800);
+}
+
+/*
+ * Dark mode drops the brand hue for the active label on purpose. Against the
+ * emphasis-200 chip no primary variant reaches WCAG AA at this size — the
+ * lightest gets 3.8:1 — which would leave the *selected* item the least legible
+ * one in the row. The chip background and bold weight already carry the
+ * selection, so this uses a high-contrast foreground (8.4:1) instead.
+ */
+[data-theme='dark'] .pmSwitcherItemActive,
+[data-theme='dark'] .pmSwitcherItemActive:hover {
+  color: var(--ifm-color-emphasis-900);
+  background: var(--ifm-color-emphasis-200);
 }
 
 .buttons {

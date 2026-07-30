@@ -12,6 +12,11 @@ import EnhancedAddons from '@site/src/components/EnhancedAddons';
 import PickerShowcase from '@site/src/components/PickerShowcase';
 import AiReady from '@site/src/components/AiReady';
 import Heading from '@theme/Heading';
+import { useStorageSlot } from '@docusaurus/theme-common';
+import {
+  PACKAGE_MANAGERS,
+  renderCommand,
+} from '@site/src/components/PackageManagerTabs/translate.mjs';
 import {
   Skeleton,
   Grid,
@@ -167,14 +172,37 @@ const formSlides = [
   },
 ];
 
+/** The command the hero advertises, in pnpm's authoring vocabulary. */
+const HERO_COMMAND = 'add @allxsmith/bestax-bulma';
+
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   const [copied, setCopied] = React.useState(false);
 
-  const handleCopyNpm = () => {
-    navigator.clipboard.writeText('pnpm add @allxsmith/bestax-bulma');
+  // The same storage slot Docusaurus uses for <Tabs groupId="package-manager">,
+  // so a choice made here is already selected on every docs page and vice versa.
+  // useStorageSlot rather than localStorage directly: its server snapshot is null,
+  // so SSR renders pnpm and hydration matches, and its setter dispatches a
+  // synthetic storage event that live-updates any mounted tab group.
+  const [storedManager, managerSlot] = useStorageSlot(
+    'docusaurus.tab.package-manager'
+  );
+  const manager = PACKAGE_MANAGERS.includes(storedManager)
+    ? storedManager
+    : PACKAGE_MANAGERS[0];
+  const command = renderCommand(HERO_COMMAND, manager);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(command);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyKeyDown = event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCopy();
+    }
   };
 
   // GitHub Icon SVG
@@ -230,11 +258,39 @@ function HomepageHeader() {
           </p>
           <div
             className={styles.npmInstallBox}
-            onClick={handleCopyNpm}
+            onClick={handleCopy}
+            onKeyDown={handleCopyKeyDown}
+            role="button"
+            tabIndex={0}
             title={copied ? 'Copied!' : 'Click to copy'}
           >
-            <code>pnpm add @allxsmith/bestax-bulma</code>
+            <code>{command}</code>
             {copied ? <CheckIcon /> : <CopyIcon />}
+          </div>
+          {/*
+            Outside the copy box on purpose: nesting these inside it would bubble
+            every switch into handleCopy, so picking "npm" would flash "Copied!"
+            and put the previous manager's command on the clipboard.
+          */}
+          <div
+            className={styles.pmSwitcher}
+            role="group"
+            aria-label="Package manager"
+          >
+            {PACKAGE_MANAGERS.map(name => (
+              <button
+                key={name}
+                type="button"
+                className={clsx(
+                  styles.pmSwitcherItem,
+                  name === manager && styles.pmSwitcherItemActive
+                )}
+                aria-pressed={name === manager}
+                onClick={() => managerSlot.set(name)}
+              >
+                {name}
+              </button>
+            ))}
           </div>
           <div className={styles.buttons}>
             <Link
