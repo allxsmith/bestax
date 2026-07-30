@@ -1,0 +1,20 @@
+/*
+ * Most of these commands sit inside a numbered step in the getting-started
+ * guides, where Docusaurus's default tab spacing leaves the block floating well
+ * clear of the step text. Tighten it so the tabs read as part of the step.
+ */
+.tabs {
+  margin-bottom: var(--ifm-leading);
+}
+
+/* Monospace the tab labels — they are command names, not prose. */
+.tabs :global(.tabs__item) {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+  padding: 0.4rem 0.9rem;
+}
+
+/* The wrapper owns the bottom margin, so the panel's code block shouldn't. */
+.tabs :global([class*='tabItem_']) > *:last-child {
+  margin-bottom: 0;
+}

@@ -29,9 +29,7 @@ That's it! Visit http://localhost:5173 to see your app. Skip ahead to [Next Step
 
 ### Install Dependencies
 
-```bash
-pnpm add @allxsmith/bestax-bulma
-```
+<PackageManagerTabs command="add @allxsmith/bestax-bulma" />
 
 ### Add Bestax CSS
 
