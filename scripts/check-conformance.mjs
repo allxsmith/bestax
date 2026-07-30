@@ -874,15 +874,20 @@ async function checkPublishableManifests() {
     const stillUnresolved = Object.values(pkg.devDependencies ?? {}).some(
       hasPackTimeProtocol
     );
+    if (!stillUnresolved) continue;
+
     // Deliberately matched by name: only pack-manifest.mjs is known to perform
     // this rewrite. A package with its own differently-named pack hook (e.g.
     // bulma-ui/scripts/pack-pointer-files.mjs) should call pack-manifest.mjs as
     // well rather than be waved through — a false positive here costs one line
     // of config, a false negative ships another uninstallable tarball.
-    const resolvesAtPack = ['prepack', 'postpack'].every(hook =>
-      (pkg.scripts?.[hook] ?? '').includes('pack-manifest.mjs')
+    const hookScripts = ['prepack', 'postpack'].map(hook =>
+      (pkg.scripts?.[hook] ?? '')
+        .split(/\s+/)
+        .find(token => token.endsWith('pack-manifest.mjs'))
     );
-    if (stillUnresolved && !resolvesAtPack) {
+
+    if (!hookScripts.every(Boolean)) {
       violations.push(
         `${dir}/package.json keeps a workspace:/catalog: specifier in ` +
           `devDependencies but does not resolve it at pack time, so it would ` +
@@ -890,6 +895,24 @@ async function checkPublishableManifests() {
           `scripts/pack-manifest.mjs prepack" and the matching postpack hook — ` +
           `copy bestax-migrate/scripts/pack-manifest.mjs.`
       );
+      continue;
+    }
+
+    // Naming the script is not the same as shipping it. A hook left pointing at
+    // a moved or deleted path satisfies the check above and then fails at
+    // `npm publish` — the one moment where a failure is most expensive.
+    for (const rel of new Set(hookScripts)) {
+      try {
+        await access(join(REPO, dir, rel));
+      } catch {
+        violations.push(
+          `${dir}/package.json points its prepack/postpack hooks at "${rel}", ` +
+            `but ${dir}/${rel} does not exist. The workspace:/catalog: ` +
+            `specifier in devDependencies would go out unresolved (#412), and ` +
+            `the failure would surface during the release rather than in CI. ` +
+            `Restore the script or fix the path in both hooks.`
+        );
+      }
     }
   }
   return violations;

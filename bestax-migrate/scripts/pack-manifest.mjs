@@ -19,6 +19,16 @@
  * scripts/check-conformance.mjs, which fails CI if a published package ever
  * declares a workspace dep in `dependencies` (a runtime dep the tarball would
  * need) rather than `devDependencies`.
+ *
+ * Note for reviewers: the published manifest still carries the `prepack` /
+ * `postpack` hooks pointing here, while `files: ["dist"]` keeps this script out
+ * of the tarball. That is deliberate and inert — npm runs those hooks on
+ * pack/publish, never on install from a tarball, so the path is never followed
+ * by a consumer. Shipping `scripts/` to fix the dangling reference would add
+ * dead weight to every install, and stripping the hooks during `prepack` would
+ * risk npm not running `postpack` and leaving the repo manifest rewritten for
+ * @semantic-release/git to commit — the exact failure the backup below exists
+ * to prevent.
  */
 import fs from 'node:fs';
 import path from 'node:path';
