@@ -1,0 +1,171 @@
+name: Supply Chain Evidence
+
+# Produces the artifacts enterprise consumers ask for and that the rest of our
+# posture only *claims*: a machine-readable SBOM per release, and an
+# independent check that what we actually published to npm carries valid
+# registry signatures and provenance attestations.
+#
+# Deliberately NOT wired into ci.yml's publish job: nothing here may be able to
+# fail a release. It runs after the release exists, on a schedule, or on demand.
+on:
+  release:
+    types: [published]
+  schedule:
+    # Mondays 08:17 UTC, offset from the Scorecard run.
+    - cron: '17 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Generation is read-only. It runs `pnpm install` and third-party actions, so
+  # it must never hold a write-scoped token — a compromised dependency or
+  # action would inherit it. The release upload is split into its own job below.
+  sbom:
+    name: SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      # NOTE ON SCOPE: this produces a *repository* SBOM — the full monorepo
+      # dev toolchain (storybook, playwright, docusaurus, jest, turbo…) as
+      # resolved by the lockfile CI builds from. It is deliberately NOT the
+      # published-package dependency closure, which for bestax-bulma is just
+      # Bulma. Useful for auditing what builds our releases; do not read it as
+      # "what a consumer installs". Per-package SBOMs are tracked separately.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: bestax-sbom.spdx.json
+          output-file: bestax-sbom.spdx.json
+          # Defaults to true: the action would upload its own release asset on
+          # a release event, racing the explicit upload below and naming files
+          # by its own convention. Keep one deterministic uploader.
+          upload-release-assets: false
+
+      # Both formats on purpose: SPDX is the ISO standard procurement asks for,
+      # CycloneDX is what most scanning tools ingest natively.
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: cyclonedx-json
+          artifact-name: bestax-sbom.cdx.json
+          output-file: bestax-sbom.cdx.json
+          upload-release-assets: false
+
+  # Workflow artifacts expire; a release asset is the durable, linkable copy an
+  # auditor can actually cite. Isolated from generation so the write-scoped
+  # token exists only on release runs, in a job that installs nothing and runs
+  # no third-party code beyond the artifact download.
+  attach-sbom:
+    name: Attach SBOMs to the release
+    runs-on: ubuntu-latest
+    needs: sbom
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: bestax-sbom.*
+          merge-multiple: true
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            bestax-sbom.spdx.json \
+            bestax-sbom.cdx.json \
+            --clobber --repo "$GITHUB_REPOSITORY"
+
+  verify-provenance:
+    name: Verify published provenance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      # SECURITY.md tells consumers to run `npm audit signatures`; this closes
+      # the loop by running it ourselves against the real published tarballs
+      # rather than the local workspace. npm (not pnpm) on purpose: the
+      # signature audit needs an npm-resolved tree and lockfile.
+      # bestax-migrate is deliberately absent: its published manifest still
+      # carries an unresolved `workspace:^` specifier, so `npm install` of it
+      # fails outright and would mask real signature failures here. Add it back
+      # once that is fixed.
+      - name: Install published packages into a scratch tree
+        run: |
+          mkdir -p "$RUNNER_TEMP/verify"
+          cd "$RUNNER_TEMP/verify"
+          npm init -y > /dev/null
+          npm install --ignore-scripts \
+            @allxsmith/bestax-bulma create-bestax
+
+      - name: Audit registry signatures and provenance attestations
+        run: |
+          cd "$RUNNER_TEMP/verify"
+          npm audit signatures
+
+      # `npm audit signatures` only fails on signatures/attestations that are
+      # *invalid*; it stays green when provenance is simply absent. On its own
+      # it would therefore never catch a release that silently lost
+      # `publishConfig.provenance` or had OIDC misconfigured. Assert presence
+      # explicitly so a dropped attestation is a hard failure.
+      - name: Assert our packages actually carry provenance
+        run: |
+          fail=0
+          for pkg in @allxsmith/bestax-bulma create-bestax; do
+            # --json + a type guard so only a real string counts as present:
+            # null, undefined, [] and non-strings all collapse to empty. The
+            # array branch covers npm aggregating a bare spec into one element.
+            # Any failure (network, 404, missing dist-tag) also yields empty and
+            # fails closed — the right default for a security assertion.
+            #
+            # Retried because this runs weekly and failing closed means a
+            # registry blip would otherwise report the same red as a genuinely
+            # dropped attestation. A gate that cries wolf gets ignored, so
+            # spend three attempts before believing provenance is really gone.
+            predicate=""
+            for attempt in 1 2 3; do
+              predicate=$(npm view "$pkg" dist.attestations.provenance.predicateType --json 2>/dev/null \
+                | jq -r 'if type=="array" then .[0] else . end | select(type=="string")' 2>/dev/null || true)
+              [ -n "$predicate" ] && break
+              [ "$attempt" -lt 3 ] && sleep $((attempt * 5))
+            done
+            if [ -z "$predicate" ]; then
+              echo "::error::$pkg has NO provenance attestation on the registry"
+              fail=1
+            else
+              echo "ok: $pkg -> $predicate"
+            fi
+          done
+          exit "$fail"
