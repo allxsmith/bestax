@@ -266,6 +266,7 @@ function StyledTheme() {
     </Theme>
   );
 }
+```
 
 ### Nested Themes
 
