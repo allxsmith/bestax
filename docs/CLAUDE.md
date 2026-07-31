@@ -24,6 +24,14 @@ The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`), 
 - `/llms.txt` (curated index) and `/llms-full.txt` (full concatenation)
 - a per-page `.md` twin for every doc page (so `llms.txt` links resolve)
 
+The plugin reads **source** markdown and has no transform hook, so MDX tab JSX would land
+verbatim in those artifacts. `scripts/flatten-llms-tabs.mjs` runs after `docusaurus build`
+(chained in the `build` script — it can't be a plugin, since core runs every `postBuild` under
+`Promise.all`) and flattens it: `<PackageManagerTabs command="…" />` collapses to the pnpm
+command, `<Tabs>` linearizes to `####` headings keeping every `TabItem` body. It never touches
+code — fenced _or_ inline — because `docs/api/components/tabs.md` documents bestax-bulma's own
+`<Tabs.List>`/`<Tabs.Item>`. Covered by `scripts/flatten-llms-tabs.test.mjs` (`pnpm test`).
+
 `build` then chains `scripts/strip-generated-markers.mjs`, which removes the
 `<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
 strip HTML comments, and the markers are a source-control device no reader of the site needs.
