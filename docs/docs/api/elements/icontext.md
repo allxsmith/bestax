@@ -306,7 +306,7 @@ For star ratings or icon lists, use `items` with `iconProps` and optional `text`
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                  |
 | `iconProps` | `IconProps`                                                                     | —       | Props for a single Icon component (for single icon mode). |
 | `children`  | `React.ReactNode`                                                               | —       | Text for a single icon (for single icon mode).            |
-| `items`     | `IconTextItem[]`                                                                | —       | Array of icon/text pairs (for multiple icons mode).       |
+| `items`     | `{ iconProps: IconProps; text?: string }[]`                                     | —       | Array of icon/text pairs (for multiple icons mode).       |
 | `...`       | All standard `<span>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)         |
 
 **Subcomponents:**

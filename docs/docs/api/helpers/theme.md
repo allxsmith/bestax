@@ -246,8 +246,6 @@ function ForestTheme() {
 }
 ```
 
-````
-
 ### Theme with Styling
 
 ```tsx
@@ -268,7 +266,6 @@ function StyledTheme() {
     </Theme>
   );
 }
-````
 
 ### Nested Themes
 
