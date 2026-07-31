@@ -24,72 +24,67 @@ export type BulmaColumnSize =
 
 /**
  * Props for the Column component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the column.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- *
- * @property {BulmaColumnSize} [size] - Column size.
- * @property {BulmaColumnSize} [sizeMobile] - Mobile column size.
- * @property {BulmaColumnSize} [sizeTablet] - Tablet column size.
- * @property {BulmaColumnSize} [sizeDesktop] - Desktop column size.
- * @property {BulmaColumnSize} [sizeWidescreen] - Widescreen column size.
- * @property {BulmaColumnSize} [sizeFullhd] - FullHD column size.
- *
- * @property {BulmaColumnSize} [offset] - Column offset.
- * @property {BulmaColumnSize} [offsetMobile] - Mobile column offset.
- * @property {BulmaColumnSize} [offsetTablet] - Tablet column offset.
- * @property {BulmaColumnSize} [offsetDesktop] - Desktop column offset.
- * @property {BulmaColumnSize} [offsetWidescreen] - Widescreen column offset.
- * @property {BulmaColumnSize} [offsetFullhd] - FullHD column offset.
- *
- * @property {boolean} [isNarrow] - The column is narrow.
- * @property {boolean} [isNarrowMobile] - The column is narrow on mobile.
- * @property {boolean} [isNarrowTablet] - The column is narrow on tablet.
- * @property {boolean} [isNarrowTouch] - The column is narrow on touch devices.
- * @property {boolean} [isNarrowDesktop] - The column is narrow on desktop.
- * @property {boolean} [isNarrowWidescreen] - The column is narrow on widescreen.
- * @property {boolean} [isNarrowFullhd] - The column is narrow on fullhd.
- *
- * @property {React.ReactNode} [children] - Children to render inside the column.
  */
 export interface ColumnProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes for the column. */
   className?: string;
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the column. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 
+  /** Column size (see Bulma docs). */
   size?: BulmaColumnSize;
+  /** Size for mobile breakpoint. */
   sizeMobile?: BulmaColumnSize;
+  /** Size for tablet breakpoint. */
   sizeTablet?: BulmaColumnSize;
+  /** Size for desktop breakpoint. */
   sizeDesktop?: BulmaColumnSize;
+  /** Size for widescreen breakpoint. */
   sizeWidescreen?: BulmaColumnSize;
+  /** Size for fullhd breakpoint. */
   sizeFullhd?: BulmaColumnSize;
 
+  /** Offset for column. */
   offset?: BulmaColumnSize;
+  /** Offset for mobile. */
   offsetMobile?: BulmaColumnSize;
+  /** Offset for tablet. */
   offsetTablet?: BulmaColumnSize;
+  /** Offset for desktop. */
   offsetDesktop?: BulmaColumnSize;
+  /** Offset for widescreen. */
   offsetWidescreen?: BulmaColumnSize;
+  /** Offset for fullhd. */
   offsetFullhd?: BulmaColumnSize;
 
+  /** Column is only as wide as its content. */
   isNarrow?: boolean;
+  /** The column is narrow on mobile. */
   isNarrowMobile?: boolean;
+  /** The column is narrow on tablet. */
   isNarrowTablet?: boolean;
+  /** The column is narrow on touch devices. */
   isNarrowTouch?: boolean;
+  /** The column is narrow on desktop. */
   isNarrowDesktop?: boolean;
+  /** The column is narrow on widescreen. */
   isNarrowWidescreen?: boolean;
+  /** The column is narrow on fullhd. */
   isNarrowFullhd?: boolean;
 
+  /** Children to render inside the column. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Column component for responsive grid layouts.
+ * The `Column` component provides a single responsive layout column using Bulma's flexbox-based column system.
  *
  * @function
  * @param {ColumnProps} props - Props for the Column component.

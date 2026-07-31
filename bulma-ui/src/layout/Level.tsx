@@ -9,28 +9,28 @@ import {
 
 /**
  * Props for the Level component.
- *
- * @property {boolean} [isMobile] - Enable mobile mode.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Level content.
  */
 export interface LevelProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it
+   * the level stacks vertically below tablet. */
   isMobile?: boolean;
+  /** Bulma color modifier for the level. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Level content (`Level.Left`, `Level.Right`, `Level.Item`). */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Level component for horizontal layouts.
+ * The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right, distributing items evenly, or centering statistics and controls.
  *
  * @function
  * @param {LevelProps} props - Props for the Level component.
@@ -64,26 +64,25 @@ const LevelComponent: React.FC<LevelProps> = ({
 
 /**
  * Props for the LevelLeft component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface LevelLeftProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Level left section.
+ * Left-aligned content.
  *
  * @function
  * @param {LevelLeftProps} props - Props for the LevelLeft component.
@@ -113,26 +112,25 @@ export const LevelLeft: React.FC<LevelLeftProps> = ({
 
 /**
  * Props for the LevelRight component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface LevelRightProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Level right section.
+ * Right-aligned content.
  *
  * @function
  * @param {LevelRightProps} props - Props for the LevelRight component.
@@ -166,17 +164,6 @@ export const LevelRight: React.FC<LevelRightProps> = ({
 
 /**
  * Props for the LevelItem component.
- *
- * @property {'div'|'p'|'a'} [as] - Element type to render.
- * @property {boolean} [hasTextCentered] - Center the text in the item.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Content.
- * @property {string} [href] - Href for "a" tag.
- * @property {string} [target] - Target for "a" tag
- * @property {string} [rel] - Rel for "a" tag
  */
 export interface LevelItemProps
   extends
@@ -184,20 +171,30 @@ export interface LevelItemProps
       HTMLDivElement | HTMLParagraphElement | HTMLAnchorElement
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Element type to render. */
   as?: 'div' | 'p' | 'a';
+  /** Center the text in the item. */
   hasTextCentered?: boolean;
+  /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Content. */
   children?: React.ReactNode;
+  /** Href for "a" tag. */
   href?: string;
+  /** Target for "a" tag */
   target?: string;
+  /** Rel for "a" tag */
   rel?: string;
 }
 
 /**
- * Bulma Level item section.
+ * Individual item, can be rendered as `div`, `p`, or `a`.
  *
  * @function
  * @param {LevelItemProps} props - Props for the LevelItem component.

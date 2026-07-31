@@ -13,28 +13,27 @@ type SectionSize = 'medium' | 'large';
 
 /**
  * Props for the Section component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {'medium'|'large'} [size] - Section size.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Section content.
  */
 export interface SectionProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Section size for extra vertical spacing. */
   size?: SectionSize;
+  /** Additional CSS classes. */
   className?: string;
+  /** Section content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Section component for general layout.
+ * The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
  *
  * @function
  * @param {SectionProps} props - Props for the Section component.

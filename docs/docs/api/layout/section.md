@@ -1,13 +1,20 @@
 ---
 title: Section
 sidebar_label: Section
+description: The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
 ---
 
 # Section
 
 ## Overview
 
-The `Section` component provides vertical spacing and visual separation for your Bulma React UI. Use it to divide your page into large blocks of content, ensure consistent spacing, and apply Bulma helper props for color, background, and more. `Section` supports all Bulma section sizes and can be combined with containers, titles, and other layout components.
+<!-- bestax:generated overview -->
+
+The `Section` component provides vertical spacing and visual separation for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+Use it to divide your page into large blocks of content, ensure consistent spacing, and apply Bulma helper props for color, background, and more. `Section` supports all Bulma section sizes and can be combined with containers, titles, and other layout components.
 
 :::info
 Use `Section` to break up your page into logical, visually distinct areas—such as headers, main content, and footers.
@@ -17,23 +24,13 @@ Use `Section` to break up your page into logical, visually distinct areas—such
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Section } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `size`      | `'medium'` \| `'large'`                                                                                                                                                                                                                                                                  | —       | Section size for extra vertical spacing.         |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                   |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                   |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                         |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Section content.                                 |
-| ...         | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -113,3 +110,38 @@ Sections help organize your document outline for screen readers and SEO.
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Section />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                    |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                    |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                          |
+| `size`      | `'medium'` \| `'large'`                                                 | —       | Section size for extra vertical spacing.          |
+| `className` | `string`                                                                | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                                       | —       | Section content.                                  |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Section` registers these variables on its own `.section` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                      | Sass Variable              | Default       |
+| --------------------------------- | -------------------------- | ------------- |
+| `--bulma-section-padding`         | `$section-padding`         | `3rem 1.5rem` |
+| `--bulma-section-padding-desktop` | `$section-padding-desktop` | `3rem 3rem`   |
+| `--bulma-section-padding-medium`  | `$section-padding-medium`  | `9rem 4.5rem` |
+| `--bulma-section-padding-large`   | `$section-padding-large`   | `18rem 6rem`  |
+
+<!-- /bestax:generated cssvars -->

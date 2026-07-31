@@ -19,30 +19,6 @@ import { classNames } from '@allxsmith/bestax-bulma';
 
 ---
 
-## API
-
-```ts
-function classNames(
-  ...args: (
-    | string
-    | number
-    | undefined
-    | null
-    | false
-    | Record<string, unknown>
-    | unknown[]
-  )[]
-): string;
-```
-
-- Accepts any mix of:
-  - `string` or `number`
-  - Array of valid values (including nested arrays)
-  - Object (`{ className: boolean }`), where keys are included if their value is truthy
-  - Falsy values (`null`, `undefined`, `false`, `''`) are ignored
-
----
-
 ## Usage
 
 ### Basic Usage with Strings
@@ -223,6 +199,30 @@ function example() {
   // Example output: 'breadcrumb custom-breadcrumb is-centered has-dot-separator is-large'
 }
 ```
+
+---
+
+## API
+
+```ts
+function classNames(
+  ...args: (
+    | string
+    | number
+    | undefined
+    | null
+    | false
+    | Record<string, unknown>
+    | unknown[]
+  )[]
+): string;
+```
+
+- Accepts any mix of:
+  - `string` or `number`
+  - Array of valid values (including nested arrays)
+  - Object (`{ className: boolean }`), where keys are included if their value is truthy
+  - Falsy values (`null`, `undefined`, `false`, `''`) are ignored
 
 ---
 

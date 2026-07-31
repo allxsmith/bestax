@@ -1,13 +1,20 @@
 ---
 title: Container
 sidebar_label: Container
+description: The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
 ---
 
 # Container
 
 ## Overview
 
-The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI. It supports all Bulma container features, including fixed and fluid layouts, different breakpoints, widescreen/fullhd options, and helper props for colors, spacing, and more. It is typically used to center and constrain content horizontally within your page.
+<!-- bestax:generated overview -->
+
+The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports all Bulma container features, including fixed and fluid layouts, different breakpoints, widescreen/fullhd options, and helper props for colors, spacing, and more. It is typically used to center and constrain content horizontally within your page.
 
 :::tip
 Use `Container` to ensure your content maintains consistent margins and maximum width across different devices and breakpoints.
@@ -17,27 +24,13 @@ Use `Container` to ensure your content maintains consistent margins and maximum 
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Container } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop         | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                                       |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------- |
-| `fluid`      | `boolean`                                                                                                                                                                                                                                                                                | `false` | Makes the container full-width with a 32px gap on each side.                      |
-| `widescreen` | `boolean`                                                                                                                                                                                                                                                                                | `false` | Makes the container full-width until the `widescreen` breakpoint.                 |
-| `fullhd`     | `boolean`                                                                                                                                                                                                                                                                                | `false` | Makes the container full-width until the `fullhd` breakpoint.                     |
-| `breakpoint` | `'tablet' \| 'desktop' \| 'widescreen'`                                                                                                                                                                                                                                                  | —       | Responsive breakpoint for container (`is-tablet`, `is-desktop`, `is-widescreen`). |
-| `isMax`      | `boolean`                                                                                                                                                                                                                                                                                | `false` | Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width.   |
-| `color`      | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for text.                                                    |
-| `textColor`  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                |
-| `bgColor`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                                                          |
-| `className`  | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                                           |
-| `children`   | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content inside the container.                                                     |
-| ...          | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses))                                  |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -175,3 +168,25 @@ The `fluid` prop makes the container expand to the full width of the screen, wit
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Container />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop         | Type                                                                            | Default | Description                                                                       |
+| ------------ | ------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------- |
+| `className`  | `string`                                                                        | —       | Additional CSS classes.                                                           |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for text.                                                    |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                          |
+| `fluid`      | `boolean`                                                                       | `false` | Makes the container full-width with a 32px gap on each side.                      |
+| `widescreen` | `boolean`                                                                       | `false` | Makes the container full-width until the `widescreen` breakpoint.                 |
+| `fullhd`     | `boolean`                                                                       | `false` | Makes the container full-width until the `fullhd` breakpoint.                     |
+| `breakpoint` | `'tablet'` \| `'desktop'` \| `'widescreen'`                                     | —       | Responsive breakpoint for container (`is-tablet`, `is-desktop`, `is-widescreen`). |
+| `isMax`      | `boolean`                                                                       | `false` | Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width.   |
+| `children`   | `React.ReactNode`                                                               | —       | Content inside the container.                                                     |
+| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                 |
+
+<!-- /bestax:generated props -->

@@ -23,53 +23,6 @@ import {
 
 ---
 
-## API
-
-```ts
-// Hook: reads classPrefix from the nearest ConfigProvider
-function usePrefixedClassNames(
-  ...args: (
-    | string
-    | number
-    | undefined
-    | null
-    | false
-    | Record<string, unknown>
-    | unknown[]
-  )[]
-): string;
-
-// Plain function: pass the prefix explicitly (undefined ⇒ plain classNames)
-function prefixedClassNames(
-  prefix: string | undefined,
-  ...args: (
-    | string
-    | number
-    | undefined
-    | null
-    | false
-    | Record<string, unknown>
-    | unknown[]
-  )[]
-): string;
-
-// Factory: returns a classNames function bound to a fixed prefix
-function createPrefixedClassNames(classPrefix: string): (...args) => string; // args: same union as classNames
-```
-
-### Parameters
-
-| Function                   | Parameter     | Type                  | Description                                                                                        |
-| -------------------------- | ------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
-| `usePrefixedClassNames`    | `...args`     | same as `classNames`  | Class values to join. The `classPrefix` from `ConfigProvider` is applied to every resulting class. |
-| `prefixedClassNames`       | `prefix`      | `string \| undefined` | Prefix to apply. When `undefined` (or empty), behaves exactly like `classNames`.                   |
-| `prefixedClassNames`       | `...args`     | same as `classNames`  | Class values to join.                                                                              |
-| `createPrefixedClassNames` | `classPrefix` | `string`              | Prefix baked into the returned function.                                                           |
-
-All three return a space-separated string of unique class names. With no `ConfigProvider` (or no `classPrefix` set), `usePrefixedClassNames` produces the same output as `classNames`.
-
----
-
 ## Usage
 
 ### In a custom component (honors `ConfigProvider`)
@@ -146,6 +99,53 @@ const cx = createPrefixedClassNames('bulma-');
 cx('card', ['has-shadow', { 'is-active': true }]);
 // => 'bulma-card bulma-has-shadow bulma-is-active'
 ```
+
+---
+
+## API
+
+```ts
+// Hook: reads classPrefix from the nearest ConfigProvider
+function usePrefixedClassNames(
+  ...args: (
+    | string
+    | number
+    | undefined
+    | null
+    | false
+    | Record<string, unknown>
+    | unknown[]
+  )[]
+): string;
+
+// Plain function: pass the prefix explicitly (undefined ⇒ plain classNames)
+function prefixedClassNames(
+  prefix: string | undefined,
+  ...args: (
+    | string
+    | number
+    | undefined
+    | null
+    | false
+    | Record<string, unknown>
+    | unknown[]
+  )[]
+): string;
+
+// Factory: returns a classNames function bound to a fixed prefix
+function createPrefixedClassNames(classPrefix: string): (...args) => string; // args: same union as classNames
+```
+
+### Parameters
+
+| Function                   | Parameter     | Type                  | Description                                                                                        |
+| -------------------------- | ------------- | --------------------- | -------------------------------------------------------------------------------------------------- |
+| `usePrefixedClassNames`    | `...args`     | same as `classNames`  | Class values to join. The `classPrefix` from `ConfigProvider` is applied to every resulting class. |
+| `prefixedClassNames`       | `prefix`      | `string \| undefined` | Prefix to apply. When `undefined` (or empty), behaves exactly like `classNames`.                   |
+| `prefixedClassNames`       | `...args`     | same as `classNames`  | Class values to join.                                                                              |
+| `createPrefixedClassNames` | `classPrefix` | `string`              | Prefix baked into the returned function.                                                           |
+
+All three return a space-separated string of unique class names. With no `ConfigProvider` (or no `classPrefix` set), `usePrefixedClassNames` produces the same output as `classNames`.
 
 ---
 
