@@ -172,9 +172,9 @@ function renderProps(info, { pages, relPath }) {
     if (t.catchAll) {
       rows.push([
         '`...`',
-        t.catchAll,
+        t.catchAll.text,
         '—',
-        `See [Helper Props](${t.helpersLink})`,
+        t.catchAll.helpers ? `See [Helper Props](${t.helpersLink})` : '',
       ]);
     }
     return renderTable(['Prop', 'Type', 'Default', 'Description'], rows);
