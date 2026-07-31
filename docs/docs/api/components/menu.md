@@ -194,11 +194,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 <!-- bestax:generated props -->
 
-| Prop        | Type               | Default | Description                                       |
-| ----------- | ------------------ | ------- | ------------------------------------------------- |
-| `className` | `string`           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`  | —       | Menu content (labels, lists, items, etc).         |
-| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                | Default | Description                                       |
+| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                            | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                   | —       | Menu content (labels, lists, items, etc).         |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 **Subcomponents:**
 
@@ -208,30 +208,30 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.Label
 
-| Prop        | Type               | Default | Description                                       |
-| ----------- | ------------------ | ------- | ------------------------------------------------- |
-| `className` | `string`           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`  | —       | Label content.                                    |
-| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                 | Default | Description                                       |
+| ----------- | ---------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                             | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                    | —       | Label content.                                    |
+| `...`       | All standard `<p>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Menu.List
 
-| Prop        | Type               | Default | Description                                       |
-| ----------- | ------------------ | ------- | ------------------------------------------------- |
-| `className` | `string`           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`  | —       | List items.                                       |
-| `...`       | Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                  | Default | Description                                       |
+| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                              | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                     | —       | List items.                                       |
+| `...`       | All standard `<ul>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Menu.Item
 
-| Prop        | Type                | Default | Description                                       |
-| ----------- | ------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`            | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`   | —       | Item content and optional nested MenuList.        |
-| `active`    | `boolean`           | `false` | Highlight item as active.                         |
-| `href`      | `string`            | —       | Href for link items (if rendered as `<a>`).       |
-| `as`        | `React.ElementType` | `'a'`   | Custom link component (e.g. `Link` from router).  |
-| `...`       | Bulma helper props  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                  | Default | Description                                       |
+| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                              | —       | Additional CSS classes.                           |
+| `children`  | `React.ReactNode`                                     | —       | Item content and optional nested MenuList.        |
+| `active`    | `boolean`                                             | `false` | Highlight item as active.                         |
+| `href`      | `string`                                              | —       | Href for link items (if rendered as `<a>`).       |
+| `as`        | `React.ElementType`                                   | `'a'`   | Custom link component (e.g. `Link` from router).  |
+| `...`       | All standard `<li>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

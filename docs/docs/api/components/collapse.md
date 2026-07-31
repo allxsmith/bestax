@@ -325,7 +325,7 @@ The Collapse component supports these additional CSS classes:
 
 | Prop               | Type                                                   | Default  | Description                                                  |
 | ------------------ | ------------------------------------------------------ | -------- | ------------------------------------------------------------ |
-| `open`             | `boolean`                                              | `false`  | Controlled open state. If provided, component is controlled. |
+| `open`             | `boolean`                                              | —        | Controlled open state. If provided, component is controlled. |
 | `defaultOpen`      | `boolean`                                              | `false`  | Initial open state for uncontrolled usage.                   |
 | `onOpen`           | `() => void`                                           | —        | Callback when collapse opens.                                |
 | `onClose`          | `() => void`                                           | —        | Callback when collapse closes.                               |
