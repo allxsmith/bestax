@@ -284,6 +284,47 @@ function jsdocTag(ts, node, tagName) {
   return null;
 }
 
+/**
+ * Whether a component implementation actually names `children` — an AST walk,
+ * not a text match. Scanning source text counted the word in a comment or in an
+ * unrelated string, which is the one way this check can wrongly restore the
+ * synthesized `children` row for a component that never renders it (Divider
+ * spreads onto `<hr>`, where React throws on children).
+ */
+function namesChildren(ts, node) {
+  if (!node) return false;
+  let found = false;
+  const walk = n => {
+    if (found || !n) return;
+    if (ts.isIdentifier(n) && n.text === 'children') {
+      found = true;
+      return;
+    }
+    ts.forEachChild(n, walk);
+  };
+  walk(node);
+  return found;
+}
+
+/**
+ * A small interface rendered as its object shape, or null when it is too
+ * complex to read as one cell (extends a base, or carries a method/index
+ * signature). Property-only and short is the bar — anything else belongs in a
+ * table of its own, not inlined into a Type column.
+ */
+function interfaceShape(ts, decl) {
+  if (decl.heritageClauses?.length) return null;
+  if (!decl.members.length || decl.members.length > 4) return null;
+  const parts = [];
+  for (const m of decl.members) {
+    if (!ts.isPropertySignature(m) || !m.type || !m.name) return null;
+    parts.push(
+      `${m.name.getText()}${m.questionToken ? '?' : ''}: ${m.type.getText()}`
+    );
+  }
+  return `{ ${parts.join('; ')} }`;
+}
+
 /** Local `type X = 'a' | 'b'` aliases, for inlining short unions. */
 function localStringUnionAliases(ts, sf) {
   const out = new Map();
@@ -380,6 +421,25 @@ function allAliases(ts, program) {
   for (const sf of program.getSourceFiles()) {
     if (!sf.fileName.includes('/bulma-ui/src/')) continue;
     for (const stmt of sf.statements) {
+      // A small local INTERFACE named in a type cell, rendered as its object
+      // shape. `IconTextItem` is declared (not exported) in IconText.tsx, so a
+      // reader meeting `IconTextItem[]` could neither import it nor find it on
+      // the page — icontext.md had regressed from main's self-describing
+      // `{ iconProps: IconProps, text?: string }[]` to that bare name.
+      if (ts.isInterfaceDeclaration(stmt)) {
+        const shape = interfaceShape(ts, stmt);
+        if (
+          shape &&
+          shape.length <= ALIAS_INLINE_MAX &&
+          !aliasIndex.has(stmt.name.text)
+        ) {
+          aliasIndex.set(stmt.name.text, {
+            expansion: shape,
+            summary: jsdocText(ts, stmt),
+          });
+        }
+        continue;
+      }
       if (!ts.isTypeAliasDeclaration(stmt)) continue;
       const name = stmt.name.text;
       if (aliasIndex.has(name) || indirect.has(name)) continue;
@@ -405,10 +465,14 @@ function allAliases(ts, program) {
       }
     }
   }
-  // Fixpoint: each round can only widen the index, so it converges. Bounded so
-  // a mutually-recursive pair can never spin.
+  // Fixpoint over BOTH deferred kinds together. Resolving the mixed unions
+  // first and the renames afterwards — as this did originally — leaves a mixed
+  // union whose member names a forward-only alias permanently opaque, and a
+  // rename pointing at a mixed alias equally so. Interleaving settles both
+  // directions. Each round can only widen the index, so it converges; the
+  // bound stops a mutually-recursive pair spinning.
   const resolve = n => aliasIndex.get(n)?.expansion ?? null;
-  for (let round = 0; round < 8 && mixed.size; round += 1) {
+  for (let round = 0; round < 8 && (mixed.size || indirect.size); round += 1) {
     let progressed = false;
     for (const [name, stmt] of mixed) {
       const expansion = unionExpansion(ts, stmt, resolve);
@@ -417,20 +481,22 @@ function allAliases(ts, program) {
       mixed.delete(name);
       progressed = true;
     }
+    for (const [name, { to, summary }] of indirect) {
+      const target = aliasIndex.get(to);
+      if (!target) continue;
+      // Keep BOTH summaries. The rename usually restates the purpose in the
+      // consumer's terms ("Possible values for the Bulma columns gap size")
+      // while the target explains the values ("0-8 spacing scale… as a number
+      // or a numeric string"); either alone loses half of what the old cell
+      // said.
+      aliasIndex.set(name, {
+        expansion: target.expansion,
+        summary: [summary, target.summary].filter(Boolean).join(' '),
+      });
+      indirect.delete(name);
+      progressed = true;
+    }
     if (!progressed) break;
-  }
-
-  for (const [name, { to, summary }] of indirect) {
-    const target = aliasIndex.get(to);
-    if (!target) continue;
-    // Keep BOTH summaries. The rename usually restates the purpose in the
-    // consumer's terms ("Possible values for the Bulma columns gap size")
-    // while the target explains the values ("0-8 spacing scale… as a number or
-    // a numeric string"); either alone loses half of what the old cell said.
-    aliasIndex.set(name, {
-      expansion: target.expansion,
-      summary: [summary, target.summary].filter(Boolean).join(' '),
-    });
   }
   return aliasIndex;
 }
@@ -534,6 +600,15 @@ function renderTypeText(ts, member, aliases, linkBase, used) {
 
   const parts = splitUnion(text).flatMap(part => {
     if (aliases.has(part)) return splitUnion(aliases.get(part));
+    // `IconTextItem[]` — an ARRAY of a known alias. Looking up the whole cell
+    // text missed it, so icontext.md kept a bare name where main spelled the
+    // shape out. Only object shapes are re-wrapped: expanding an array of a
+    // long union inline would be unreadable, and those keep the footnote.
+    const arr = part.match(/^(\w+)\[\]$/);
+    if (arr && aliases.has(arr[1])) {
+      const inner = aliases.get(arr[1]);
+      if (inner.startsWith('{')) return [`${inner}[]`];
+    }
     const looked = expandPart(part);
     if (looked) {
       return looked.flatMap(p =>
@@ -1159,7 +1234,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
       // always supplies its own JSX children, so anything passed is silently
       // dropped. Emit the row only where the implementation actually names
       // `children` — the catch-all still covers the pass-through cases.
-      const rendersChildren = /\bchildren\b/.test(implInit?.getText() ?? '');
+      const rendersChildren = namesChildren(ts, implInit);
       for (const [name, type, description] of DOM_COMMON_PROPS) {
         if (byName.has(name)) continue;
         if (name === 'ref' && !isForwardRef) continue;

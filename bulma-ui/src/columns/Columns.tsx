@@ -57,23 +57,17 @@ export interface ColumnsProps
   /** Gap size for fullhd. Wins over `gapSizeFullhd` if both are set. */
   gapFullhd?: BulmaGapValue;
 
-  /** @deprecated Use `gap` instead — `gap` wins if both are set. */
-  /** Gap size for all breakpoints. @deprecated Use `gap` instead. */
+  /** Gap size for all breakpoints. @deprecated Use `gap` instead — `gap` wins if both are set. */
   gapSize?: BulmaGapSize;
-  /** @deprecated Use `gapMobile` instead — `gapMobile` wins if both are set. */
-  /** Gap size for mobile. @deprecated Use `gapMobile` instead. */
+  /** Gap size for mobile. @deprecated Use `gapMobile` instead — `gapMobile` wins if both are set. */
   gapSizeMobile?: BulmaGapSize;
-  /** @deprecated Use `gapTablet` instead — `gapTablet` wins if both are set. */
-  /** Gap size for tablet. @deprecated Use `gapTablet` instead. */
+  /** Gap size for tablet. @deprecated Use `gapTablet` instead — `gapTablet` wins if both are set. */
   gapSizeTablet?: BulmaGapSize;
-  /** @deprecated Use `gapDesktop` instead — `gapDesktop` wins if both are set. */
-  /** Gap size for desktop. @deprecated Use `gapDesktop` instead. */
+  /** Gap size for desktop. @deprecated Use `gapDesktop` instead — `gapDesktop` wins if both are set. */
   gapSizeDesktop?: BulmaGapSize;
-  /** @deprecated Use `gapWidescreen` instead — `gapWidescreen` wins if both are set. */
-  /** Gap size for widescreen. @deprecated Use `gapWidescreen` instead. */
+  /** Gap size for widescreen. @deprecated Use `gapWidescreen` instead — `gapWidescreen` wins if both are set. */
   gapSizeWidescreen?: BulmaGapSize;
-  /** @deprecated Use `gapFullhd` instead — `gapFullhd` wins if both are set. */
-  /** Gap size for fullhd. @deprecated Use `gapFullhd` instead. */
+  /** Gap size for fullhd. @deprecated Use `gapFullhd` instead — `gapFullhd` wins if both are set. */
   gapSizeFullhd?: BulmaGapSize;
 
   /** Columns to render within the container. */
