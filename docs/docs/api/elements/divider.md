@@ -148,6 +148,6 @@ Use dividers for thematic breaks between content sections, not just for visual s
 | ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| `...`       | All standard `<hr>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

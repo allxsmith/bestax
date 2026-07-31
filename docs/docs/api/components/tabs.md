@@ -466,11 +466,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.List
 
-| Prop        | Type                           | Default | Description                                       |
-| ----------- | ------------------------------ | ------- | ------------------------------------------------- |
-| `className` | `string`                       | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`              | —       | Tab elements.                                     |
-| `...`       | All standard `<ul>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                           | Default | Description             |
+| ----------- | ------------------------------ | ------- | ----------------------- |
+| `className` | `string`                       | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`              | —       | Tab elements.           |
+| `...`       | All standard `<ul>` attributes | —       |                         |
 
 ### Tabs.Tab
 
@@ -485,25 +485,25 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon modifiers.                                 |
 | `className`    | `string`                                                                   | —         | Additional CSS classes.                                    |
 | `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                         |
-| `...`          | All standard `<li>` attributes                                             | —         | See [Helper Props](../helpers/usebulmaclasses.md)          |
+| `...`          | All standard `<li>` attributes                                             | —         |                                                            |
 
 ### Tabs.Item
 
-| Prop        | Type                                     | Default | Description                                       |
-| ----------- | ---------------------------------------- | ------- | ------------------------------------------------- |
-| `active`    | `boolean`                                | `false` | Whether the tab is active.                        |
-| `className` | `string`                                 | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                        | —       | Tab content.                                      |
-| `onClick`   | `React.MouseEventHandler<HTMLLIElement>` | —       | Click handler.                                    |
-| `...`       | All standard `<li>` attributes           | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                     | Default | Description                |
+| ----------- | ---------------------------------------- | ------- | -------------------------- |
+| `active`    | `boolean`                                | `false` | Whether the tab is active. |
+| `className` | `string`                                 | —       | Additional CSS classes.    |
+| `children`  | `React.ReactNode`                        | —       | Tab content.               |
+| `onClick`   | `React.MouseEventHandler<HTMLLIElement>` | —       | Click handler.             |
+| `...`       | All standard `<li>` attributes           | —       |                            |
 
 ### Tabs.Content
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | TabContentItem elements.                          |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description              |
+| ----------- | ------------------------------- | ------- | ------------------------ |
+| `className` | `string`                        | —       | Additional CSS classes.  |
+| `children`  | `React.ReactNode`               | —       | TabContentItem elements. |
+| `...`       | All standard `<div>` attributes | —       |                          |
 
 ### Tabs.Content.Item
 
@@ -512,7 +512,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | `index`     | `number`                        | —       | **Required.** Tab index for matching with content. |
 | `className` | `string`                        | —       | Additional CSS classes.                            |
 | `children`  | `React.ReactNode`               | —       | Panel content.                                     |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
+| `...`       | All standard `<div>` attributes | —       |                                                    |
 
 <!-- /bestax:generated props -->
 

@@ -211,28 +211,28 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 
 ### Panel.Heading
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`             | —       | Heading content.                                  |
-| `...`       | All standard `<p>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description             |
+| ----------- | ----------------------------- | ------- | ----------------------- |
+| `className` | `string`                      | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`             | —       | Heading content.        |
+| `...`       | All standard `<p>` attributes | —       |                         |
 
 ### Panel.Tabs
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Tabs content.                                     |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`               | —       | Tabs content.           |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Panel.Block
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `active`    | `boolean`                     | `false` | Whether the block is active.                      |
-| `children`  | `React.ReactNode`             | —       | Block content.                                    |
-| `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description                  |
+| ----------- | ----------------------------- | ------- | ---------------------------- |
+| `className` | `string`                      | —       | Additional CSS classes.      |
+| `active`    | `boolean`                     | `false` | Whether the block is active. |
+| `children`  | `React.ReactNode`             | —       | Block content.               |
+| `...`       | All standard `<a>` attributes | —       |                              |
 
 ### Panel.Icon
 
@@ -262,25 +262,25 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 | `placeholder`   | `string`                                     | —                 | Input placeholder.                                  |
 | `iconClassName` | `string`                                     | `'fas fa-search'` | Icon class for left icon (default 'fas fa-search'). |
 | `className`     | `string`                                     | —                 | Additional CSS classes.                             |
-| `...`           | All standard `<div>` attributes              | —                 | See [Helper Props](../helpers/usebulmaclasses.md)   |
+| `...`           | All standard `<div>` attributes              | —                 |                                                     |
 
 ### Panel.CheckboxBlock
 
-| Prop        | Type                                         | Default | Description                                       |
-| ----------- | -------------------------------------------- | ------- | ------------------------------------------------- |
-| `checked`   | `boolean`                                    | `false` | Whether the checkbox is checked.                  |
-| `onChange`  | `React.ChangeEventHandler<HTMLInputElement>` | —       | Checkbox change handler.                          |
-| `children`  | `React.ReactNode`                            | —       | Label/content.                                    |
-| `className` | `string`                                     | —       | Additional CSS classes.                           |
-| `...`       | All standard `<label>` attributes            | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                         | Default | Description                      |
+| ----------- | -------------------------------------------- | ------- | -------------------------------- |
+| `checked`   | `boolean`                                    | `false` | Whether the checkbox is checked. |
+| `onChange`  | `React.ChangeEventHandler<HTMLInputElement>` | —       | Checkbox change handler.         |
+| `children`  | `React.ReactNode`                            | —       | Label/content.                   |
+| `className` | `string`                                     | —       | Additional CSS classes.          |
+| `...`       | All standard `<label>` attributes            | —       |                                  |
 
 ### Panel.ButtonBlock
 
-| Prop        | Type                               | Default | Description                                       |
-| ----------- | ---------------------------------- | ------- | ------------------------------------------------- |
-| `children`  | `React.ReactNode`                  | —       | Button content.                                   |
-| `className` | `string`                           | —       | Additional CSS classes.                           |
-| `...`       | All standard `<button>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                               | Default | Description             |
+| ----------- | ---------------------------------- | ------- | ----------------------- |
+| `children`  | `React.ReactNode`                  | —       | Button content.         |
+| `className` | `string`                           | —       | Additional CSS classes. |
+| `...`       | All standard `<button>` attributes | —       |                         |
 
 <!-- /bestax:generated props -->
 

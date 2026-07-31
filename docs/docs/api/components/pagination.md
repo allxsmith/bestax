@@ -317,21 +317,21 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 ### Pagination.Previous
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                |
-| `children`  | `React.ReactNode`             | —       | Button content.                                   |
-| `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description                        |
+| ----------- | ----------------------------- | ------- | ---------------------------------- |
+| `className` | `string`                      | —       | Additional CSS classes.            |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled. |
+| `children`  | `React.ReactNode`             | —       | Button content.                    |
+| `...`       | All standard `<a>` attributes | —       |                                    |
 
 ### Pagination.Next
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                |
-| `children`  | `React.ReactNode`             | —       | Button content.                                   |
-| `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description                        |
+| ----------- | ----------------------------- | ------- | ---------------------------------- |
+| `className` | `string`                      | —       | Additional CSS classes.            |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled. |
+| `children`  | `React.ReactNode`             | —       | Button content.                    |
+| `...`       | All standard `<a>` attributes | —       |                                    |
 
 <!-- /bestax:generated props -->
 

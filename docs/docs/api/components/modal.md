@@ -338,52 +338,52 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 ### Modal.Background
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Modal.Content
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Modal.Card
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Modal.Card.Head
 
-| Prop        | Type                         | Default | Description                                       |
-| ----------- | ---------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                     | —       | Additional CSS classes.                           |
-| `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
 
 ### Modal.Card.Title
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `...`       | All standard `<p>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description             |
+| ----------- | ----------------------------- | ------- | ----------------------- |
+| `className` | `string`                      | —       | Additional CSS classes. |
+| `...`       | All standard `<p>` attributes | —       |                         |
 
 ### Modal.Card.Body
 
-| Prop        | Type                         | Default | Description                                       |
-| ----------- | ---------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                     | —       | Additional CSS classes.                           |
-| `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
 
 ### Modal.Card.Foot
 
-| Prop        | Type                         | Default | Description                                       |
-| ----------- | ---------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                     | —       | Additional CSS classes.                           |
-| `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
 
 ### Modal.Close
 
@@ -392,7 +392,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | `className` | `string`                             | —          | Additional CSS classes.                                                                         |
 | `size`      | `'small'` \| `'medium'` \| `'large'` | `'large'`  | Size of the close button (only applies to 'floating' variant).                                  |
 | `variant`   | `'delete'` \| `'floating'`           | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. |
-| `...`       | All standard `<button>` attributes   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                               |
+| `...`       | All standard `<button>` attributes   | —          |                                                                                                 |
 
 <!-- /bestax:generated props -->
 

@@ -555,25 +555,25 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Dropdown
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `right`     | `boolean`                       | `false` | Dropdown aligned right.                           |
-| `up`        | `boolean`                       | `false` | Dropdown opens upwards.                           |
-| `hoverable` | `boolean`                       | `false` | Dropdown opens on hover.                          |
-| `active`    | `boolean`                       | `false` | Dropdown is open.                                 |
-| `children`  | `React.ReactNode`               | —       | Dropdown content.                                 |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description              |
+| ----------- | ------------------------------- | ------- | ------------------------ |
+| `className` | `string`                        | —       | Additional CSS classes.  |
+| `right`     | `boolean`                       | `false` | Dropdown aligned right.  |
+| `up`        | `boolean`                       | `false` | Dropdown opens upwards.  |
+| `hoverable` | `boolean`                       | `false` | Dropdown opens on hover. |
+| `active`    | `boolean`                       | `false` | Dropdown is open.        |
+| `children`  | `React.ReactNode`               | —       | Dropdown content.        |
+| `...`       | All standard `<div>` attributes | —       |                          |
 
 ### Navbar.DropdownMenu
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `right`     | `boolean`                       | `false` | Dropdown aligned right.                           |
-| `up`        | `boolean`                       | `false` | Dropdown opens upwards.                           |
-| `children`  | `React.ReactNode`               | —       | Dropdown menu content.                            |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `right`     | `boolean`                       | `false` | Dropdown aligned right. |
+| `up`        | `boolean`                       | `false` | Dropdown opens upwards. |
+| `children`  | `React.ReactNode`               | —       | Dropdown menu content.  |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 <!-- /bestax:generated props -->
 

@@ -83,6 +83,7 @@ const DOM_ELEMENT_LABELS = {
   HTMLButtonElement: '`<button>`',
   HTMLDivElement: '`<div>`',
   HTMLElement: 'HTML',
+  HTMLHRElement: '`<hr>`',
   HTMLHeadingElement: '`<h1>`–`<h6>`',
   HTMLImageElement: '`<img>`',
   HTMLInputElement: '`<input>`',
@@ -90,6 +91,8 @@ const DOM_ELEMENT_LABELS = {
   HTMLLabelElement: '`<label>`',
   HTMLOListElement: '`<ol>`',
   HTMLParagraphElement: '`<p>`',
+  HTMLPreElement: '`<pre>`',
+  HTMLProgressElement: '`<progress>`',
   HTMLSelectElement: '`<select>`',
   HTMLSpanElement: '`<span>`',
   HTMLTableCellElement: '`<td>`/`<th>`',
@@ -747,7 +750,11 @@ function catchAllRow(external) {
   }
   if (helpers) parts.push('Bulma helper props');
   if (!parts.length) return null;
-  return parts.join(' and ');
+  // `helpers` records whether BulmaClassesProps is actually in the heritage —
+  // a component like Skeleton that only inherits DOM attributes has nowhere
+  // to send a "See Helper Props" link, and pointing there anyway describes
+  // props the component doesn't accept.
+  return { text: parts.join(' and '), helpers };
 }
 
 /**
@@ -915,7 +922,7 @@ function pickRootClass(name, candidates) {
  * @param {string} name    Exported component name (the page's frontmatter title).
  * @param {object} [opts]
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll, extraProps}]}}
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
  */
 export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
   const { ts, program, checker } = createProgram();

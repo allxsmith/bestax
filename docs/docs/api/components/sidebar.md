@@ -418,43 +418,43 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 ### Sidebar.Header
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `children`  | `React.ReactNode`               | —       | Header content.                                   |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `children`  | `React.ReactNode`               | —       | Header content.         |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Sidebar.Title
 
-| Prop        | Type                          | Default | Description                                       |
-| ----------- | ----------------------------- | ------- | ------------------------------------------------- |
-| `children`  | `React.ReactNode`             | —       | Title content.                                    |
-| `className` | `string`                      | —       | Additional CSS classes.                           |
-| `...`       | All standard `<p>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                          | Default | Description             |
+| ----------- | ----------------------------- | ------- | ----------------------- |
+| `children`  | `React.ReactNode`             | —       | Title content.          |
+| `className` | `string`                      | —       | Additional CSS classes. |
+| `...`       | All standard `<p>` attributes | —       |                         |
 
 ### Sidebar.Close
 
-| Prop        | Type                               | Default | Description                                       |
-| ----------- | ---------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                  | —       | Content rendered inside the component.            |
-| `...`       | All standard `<button>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                               | Default | Description                            |
+| ----------- | ---------------------------------- | ------- | -------------------------------------- |
+| `className` | `string`                           | —       | Additional CSS classes.                |
+| `children`  | `React.ReactNode`                  | —       | Content rendered inside the component. |
+| `...`       | All standard `<button>` attributes | —       |                                        |
 
 ### Sidebar.Body
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `children`  | `React.ReactNode`               | —       | Body content.                                     |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `children`  | `React.ReactNode`               | —       | Body content.           |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Sidebar.Footer
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `children`  | `React.ReactNode`               | —       | Footer content.                                   |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `children`  | `React.ReactNode`               | —       | Footer content.         |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 <!-- /bestax:generated props -->
 

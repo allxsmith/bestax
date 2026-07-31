@@ -233,19 +233,19 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Messa
 
 ### Message.Header
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Header content (title, close button, etc.).       |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description                                 |
+| ----------- | ------------------------------- | ------- | ------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                     |
+| `children`  | `React.ReactNode`               | —       | Header content (title, close button, etc.). |
+| `...`       | All standard `<div>` attributes | —       |                                             |
 
 ### Message.Body
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Message body content.                             |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`               | —       | Message body content.   |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 <!-- /bestax:generated props -->
 

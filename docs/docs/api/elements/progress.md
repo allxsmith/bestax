@@ -141,15 +141,15 @@ Ensure your progress bars have sufficient color contrast for users with visual i
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                | Default | Description                                       |
-| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                            | —       | Additional CSS classes to apply.                  |
-| `color`     | [Bulma color](../helpers/valid-values.md)           | —       | Bulma color modifier for the progress bar.        |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                | —       | Size modifier for the progress bar.               |
-| `value`     | `number`                                            | —       | Current value of the progress bar.                |
-| `max`       | `number`                                            | —       | Maximum value of the progress bar.                |
-| `children`  | `React.ReactNode`                                   | —       | Optional custom content inside the progress bar.  |
-| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                        | Default | Description                                       |
+| ----------- | ----------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                    | —       | Additional CSS classes to apply.                  |
+| `color`     | [Bulma color](../helpers/valid-values.md)                   | —       | Bulma color modifier for the progress bar.        |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                        | —       | Size modifier for the progress bar.               |
+| `value`     | `number`                                                    | —       | Current value of the progress bar.                |
+| `max`       | `number`                                                    | —       | Maximum value of the progress bar.                |
+| `children`  | `React.ReactNode`                                           | —       | Optional custom content inside the progress bar.  |
+| `...`       | All standard `<progress>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
 

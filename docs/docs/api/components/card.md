@@ -341,24 +341,24 @@ You can combine the traditional prop-based API with compound components:
 | `className` | `string`                     | —       | Additional CSS classes.                                      |
 | `children`  | `React.ReactNode`            | —       | Header content. Wrap in Card.Header.Title for Bulma styling. |
 | `centered`  | `boolean`                    | `false` | Whether to center the header title text.                     |
-| `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)            |
+| `...`       | All standard HTML attributes | —       |                                                              |
 
 ### Card.Header.Title
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Title text content.                               |
-| `centered`  | `boolean`                       | `false` | Whether to center the title text.                 |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description                       |
+| ----------- | ------------------------------- | ------- | --------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.           |
+| `children`  | `React.ReactNode`               | —       | Title text content.               |
+| `centered`  | `boolean`                       | `false` | Whether to center the title text. |
+| `...`       | All standard `<div>` attributes | —       |                                   |
 
 ### Card.Header.Icon
 
-| Prop        | Type                               | Default | Description                                       |
-| ----------- | ---------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                  | —       | Icon content (e.g. an icon element).              |
-| `...`       | All standard `<button>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                               | Default | Description                          |
+| ----------- | ---------------------------------- | ------- | ------------------------------------ |
+| `className` | `string`                           | —       | Additional CSS classes.              |
+| `children`  | `React.ReactNode`                  | —       | Icon content (e.g. an icon element). |
+| `...`       | All standard `<button>` attributes | —       |                                      |
 
 ### Card.Image
 
@@ -366,15 +366,15 @@ You can combine the traditional prop-based API with compound components:
 | ----------- | ------------------------------- | ------- | -------------------------------------------------- |
 | `className` | `string`                        | —       | Additional CSS classes.                            |
 | `children`  | `React.ReactNode`               | —       | Image content (e.g. a `<figure>` with an `<img>`). |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
+| `...`       | All standard `<div>` attributes | —       |                                                    |
 
 ### Card.Content
 
-| Prop        | Type                            | Default | Description                                       |
-| ----------- | ------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Card body content.                                |
-| `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`               | —       | Card body content.      |
+| `...`       | All standard `<div>` attributes | —       |                         |
 
 ### Card.Footer
 
@@ -382,15 +382,15 @@ You can combine the traditional prop-based API with compound components:
 | ----------- | ---------------------------- | ------- | --------------------------------------------------- |
 | `className` | `string`                     | —       | Additional CSS classes.                             |
 | `children`  | `React.ReactNode`            | —       | Footer content, typically Card.FooterItem elements. |
-| `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md)   |
+| `...`       | All standard HTML attributes | —       |                                                     |
 
 ### Card.FooterItem
 
-| Prop        | Type                             | Default | Description                                       |
-| ----------- | -------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                         | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                | —       | Footer item content (link, button, text, etc.).   |
-| `...`       | All standard `<span>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                             | Default | Description                                     |
+| ----------- | -------------------------------- | ------- | ----------------------------------------------- |
+| `className` | `string`                         | —       | Additional CSS classes.                         |
+| `children`  | `React.ReactNode`                | —       | Footer item content (link, button, text, etc.). |
+| `...`       | All standard `<span>` attributes | —       |                                                 |
 
 <!-- /bestax:generated props -->
 
