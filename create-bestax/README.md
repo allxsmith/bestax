@@ -3,6 +3,10 @@
 [![npm version](https://img.shields.io/npm/v/create-bestax.svg)](https://www.npmjs.com/package/create-bestax)
 [![npm downloads](https://img.shields.io/npm/dm/create-bestax.svg)](https://www.npmjs.com/package/create-bestax)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/create-bestax)](https://socket.dev/npm/package/create-bestax/overview)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/create-bestax#provenance)
+[![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
 
 The scaffolder for [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) — spin up a Vite app pre-wired for the **Bulma v1** React component library in one command. Picks your framework (JS or TypeScript), CSS flavor, and icon library, and can drop in the bestax **AI skills** so an agent like Claude Code knows the library from the first prompt.
 
@@ -126,6 +130,20 @@ npm run typecheck # Type check CLI source code
 ```
 
 **Note on Templates:** Template files in `templates/` are excluded from linting. They should be manually validated by scaffolding a test project and running lint/build there before releasing.
+
+## Hardened by default
+
+A scaffolder runs with write access to your filesystem and picks your starting dependencies, so how it is built and published matters:
+
+- **Signed provenance** — every release carries a sigstore attestation linking the tarball to the exact commit and CI run that built it. Check the **Provenance** section on the [npm page](https://www.npmjs.com/package/create-bestax#provenance), or run `npm audit signatures`.
+- **npm OIDC trusted publishing** — short-lived, per-run credentials; no long-lived `NPM_TOKEN` exists to be stolen. Release commits and tags are GPG-signed.
+- **Socket.dev scans every PR** for malware, install scripts, obfuscated code, and privilege escalation before it can reach `main`.
+- **Dependencies are a deliberate act** — install scripts are blocked unless individually allow-listed, freshly published versions are refused for 3 days, and CI installs only what the reviewed lockfile resolves.
+- **Every GitHub Action is pinned to a full commit SHA**, so a compromised action release can't roll silently into a build of this CLI.
+- **CodeQL, Dependency Review, and Dependabot** run continuously, alongside a high-severity `pnpm audit` gate.
+- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent adversarial Claude review (a different model from the one writing AI-authored changes), on top of required green CI, an approving review, and a human merge.
+
+Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
 ## Publishing
 
