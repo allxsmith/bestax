@@ -28,34 +28,31 @@ export type TagSize = (typeof validTagSizes)[number];
 
 /**
  * Props for the Tag component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {TagColor} [color] - Bulma color modifier for the tag.
- * @property {TagSize} [size] - Size modifier for the tag.
- * @property {boolean} [isRounded] - Whether the tag should have rounded corners.
- * @property {boolean} [isDelete] - Whether the tag is a delete button.
- * @property {boolean} [isHoverable] - Whether the tag is hoverable.
- * @property {() => void} [onDelete] - Callback fired when the delete button is clicked.
- * @property {React.ReactNode} [children] - Tag content.
  */
 export interface TagProps
   extends
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Bulma color modifier for the tag. */
   color?: TagColor;
+  /** Tag size. */
   size?: TagSize;
+  /** Renders a rounded tag. */
   isRounded?: boolean;
+  /** Renders a delete-style tag (delete button). */
   isDelete?: boolean;
+  /** Adds hover effect to the tag. */
   isHoverable?: boolean;
+  /** Callback for delete tag/button. */
   onDelete?: () => void;
+  /** Tag content. */
   children?: React.ReactNode;
 }
 
 /**
- * Tag component for rendering a styled Bulma tag.
- *
- * Supports colors, sizes, rounded, delete, and hoverable variants.
+ * The `Tag` component renders a Bulma-styled label or badge.
  *
  * @function
  * @param {TagProps} props - Props for the Tag component.

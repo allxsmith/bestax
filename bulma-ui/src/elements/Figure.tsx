@@ -9,19 +9,18 @@ import {
 
 /**
  * Props for the FigureCaption component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the figcaption.
  */
 export interface FigureCaptionProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color (Bulma color, 'inherit', or 'current'). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color (Bulma color, 'inherit', or 'current'). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to be rendered inside the figcaption. */
   children?: React.ReactNode;
 }
 
@@ -64,28 +63,23 @@ const FigureCaption: React.FC<FigureCaptionProps> = ({
 
 /**
  * Props for the Figure component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the figure.
  */
 export interface FigureProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to render inside the figure. */
   children?: React.ReactNode;
 }
 
 /**
- * Figure component for rendering a styled figure element.
- *
- * A Figure wraps the HTML `<figure>` element with Bulma helper class integration.
- * Use it to group self-contained content like images, illustrations, diagrams, or code snippets
- * with an optional caption via Figure.Caption.
+ * The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.
  *
  * @function
  * @param {FigureProps} props - Props for the Figure component.

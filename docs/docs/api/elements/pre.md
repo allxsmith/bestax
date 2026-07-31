@@ -1,13 +1,20 @@
 ---
 title: Pre
 sidebar_label: Pre
+description: The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.
 ---
 
 # Pre
 
 ## Overview
 
-The `Pre` component renders a styled `<pre>` element with Bulma helper class integration. Use it for multi-line code blocks, terminal output, ASCII art, or any content where whitespace formatting must be preserved.
+<!-- bestax:generated overview -->
+
+The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for multi-line code blocks, terminal output, ASCII art, or any content where whitespace formatting must be preserved.
 
 :::info
 Often used together with the `Code` component for semantically correct code blocks: `<Pre><Code>...</Code></Pre>`.
@@ -17,21 +24,13 @@ Often used together with the `Code` component for semantically correct code bloc
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Pre, Code } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Preformatted content to render.                  |
-| ...         | All standard `<pre>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -149,3 +148,35 @@ For code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics:
 
 - [MDN: pre element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/pre)
 - [Storybook: Pre Stories](https://bestax.io/storybook/?path=/story/elements-pre--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Preformatted content to render.                   |
+| `...`       | All standard `<pre>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+Bulma declares these variables globally rather than on `Pre`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+
+| CSS Variable                 | Sass Variable         | Default          |
+| ---------------------------- | --------------------- | ---------------- |
+| `--bulma-pre-font-size`      | `$pre-font-size`      | `0.875em`        |
+| `--bulma-pre-padding`        | `$pre-padding`        | `1.25rem 1.5rem` |
+| `--bulma-pre-code-font-size` | `$pre-code-font-size` | `1em`            |
+
+<!-- /bestax:generated cssvars -->

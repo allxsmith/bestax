@@ -1,13 +1,20 @@
 ---
 title: ListItem
 sidebar_label: ListItem
+description: The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
 ---
 
 # ListItem
 
 ## Overview
 
-The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration. Use it inside `UnorderedList` or `OrderedList` components to create list items with consistent styling.
+<!-- bestax:generated overview -->
+
+The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it inside `UnorderedList` or `OrderedList` components to create list items with consistent styling.
 
 :::info
 The ListItem component is a thin wrapper around the HTML `<li>` element, providing consistent Bulma styling and helper class support.
@@ -17,22 +24,13 @@ The ListItem component is a thin wrapper around the HTML `<li>` element, providi
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { ListItem, UnorderedList, OrderedList } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `value`     | `number`                                                                                                                                                                                                                                                                                 | —       | Custom value for ordered list items.             |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the list item.          |
-| ...         | All standard `<li>` and Bulma helper props                                                                                                                                                                                                                                               |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -156,3 +154,20 @@ Always use `ListItem` inside `UnorderedList` or `OrderedList` for proper semanti
 
 - [MDN: li element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/li)
 - [Storybook: ListItem Stories](https://bestax.io/storybook/?path=/story/elements-listitem--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the list item.           |
+| `value`     | `number`                                                                | —       | Custom value for ordered list items.              |
+| `...`       | All standard `<li>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

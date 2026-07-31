@@ -7,15 +7,14 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 
 /**
  * Props for the Tbody component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {React.ReactNode} [children] - Table body content (rows).
  */
 export interface TbodyProps
   extends
     Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Table body content (rows). */
   children?: React.ReactNode;
 }
 

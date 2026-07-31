@@ -1,13 +1,20 @@
 ---
 title: Notification
 sidebar_label: Notification
+description: The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
 ---
 
 # Notification
 
 ## Overview
 
-The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users. It supports color themes, light variants, an optional close (delete) button, custom content, and all Bulma helper props for spacing, etc.
+<!-- bestax:generated overview -->
+
+The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
+
+<!-- /bestax:generated overview -->
+
+It supports color themes, light variants, an optional close (delete) button, custom content, and all Bulma helper props for spacing, etc.
 
 :::info
 Notifications are perfect for status updates, alerts, and dismissible feedback in your UI.
@@ -17,24 +24,13 @@ Notifications are perfect for status updates, alerts, and dismissible feedback i
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Notification } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                        |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------- |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                            |
-| `color`     | `Bulma color` (e.g. `'primary'`, `'info'`, etc.)                                                                                                                                                                                                                                         | —       | Bulma color modifier for the notification.         |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                 |
-| `isLight`   | `boolean`                                                                                                                                                                                                                                                                                | —       | Use the light color variant.                       |
-| `hasDelete` | `boolean`                                                                                                                                                                                                                                                                                | —       | Shows a close (delete) button in the notification. |
-| `onDelete`  | `() => void`                                                                                                                                                                                                                                                                             | —       | Callback fired when the delete button is clicked.  |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content inside the notification.                   |
-| ...         | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses))   |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -144,3 +140,42 @@ Always provide clear, actionable text inside notifications.
 
 - [Bulma Notification Documentation](https://bulma.io/documentation/elements/notification/)
 - [Storybook: Notification Stories](https://bestax.io/storybook/?path=/story/elements-notification--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                        |
+| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                   |
+| `color`     | [Bulma color](../helpers/valid-values.md)                               | —       | Bulma color modifier for the notification.         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                 |
+| `isLight`   | `boolean`                                                               | `false` | Use the light color variant.                       |
+| `hasDelete` | `boolean`                                                               | `false` | Shows a close (delete) button in the notification. |
+| `onDelete`  | `() => void`                                                            | —       | Callback fired when the delete button is clicked.  |
+| `children`  | `React.ReactNode`                                                       | —       | Content inside the notification.                   |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Notification` registers these variables on its own `.notification` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                 | Sass Variable                         | Default                      |
+| -------------------------------------------- | ------------------------------------- | ---------------------------- |
+| `--bulma-notification-h`                     | —                                     | `var(--bulma-scheme-h)`      |
+| `--bulma-notification-s`                     | —                                     | `var(--bulma-scheme-s)`      |
+| `--bulma-notification-background-l`          | —                                     | `var(--bulma-background-l)`  |
+| `--bulma-notification-color-l`               | —                                     | `var(--bulma-text-strong-l)` |
+| `--bulma-notification-code-background-color` | `$notification-code-background-color` | `var(--bulma-scheme-main)`   |
+| `--bulma-notification-radius`                | `$notification-radius`                | `var(--bulma-radius)`        |
+| `--bulma-notification-padding`               | `$notification-padding`               | `1.375em 1.5em`              |
+
+<!-- /bestax:generated cssvars -->

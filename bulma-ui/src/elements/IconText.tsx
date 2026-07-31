@@ -10,41 +10,37 @@ import { Icon, IconProps } from './Icon';
 
 /**
  * Represents an item for the IconText component, containing icon props and optional text.
- *
- * @property {IconProps} iconProps - Props for the Icon component.
- * @property {string} [text] - Optional text to display next to the icon.
  */
 interface IconTextItem {
+  /** Props for the Icon component. */
   iconProps: IconProps;
+  /** Optional text to display next to the icon. */
   text?: string;
 }
 
 /**
  * Props for the IconText component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the icon text.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {IconProps} [iconProps] - Props for a single Icon component.
- * @property {React.ReactNode} [children] - Text for a single icon.
- * @property {IconTextItem[]} [items] - Array of icon/text pairs for multiple icons.
  */
 interface IconTextProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the icon text group. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Props for a single Icon component (for single icon mode). */
   iconProps?: IconProps; // For single icon
+  /** Text for a single icon (for single icon mode). */
   children?: React.ReactNode; // Text for single icon
+  /** Array of icon/text pairs (for multiple icons mode). */
   items?: IconTextItem[]; // For multiple icons
 }
 
 /**
- * IconText component for rendering one or more icons with optional text, styled with Bulma.
- *
- * Supports Bulma helper classes for styling, color, and layout. Can render a single icon with text or multiple icon/text pairs.
+ * The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
  *
  * @function
  * @param {IconTextProps} props - Props for the IconText component.

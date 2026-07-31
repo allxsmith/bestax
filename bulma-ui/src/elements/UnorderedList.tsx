@@ -10,28 +10,23 @@ import {
 
 /**
  * Props for the UnorderedList component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - List items to be rendered inside the list.
  */
 export interface UnorderedListProps
   extends
     React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** List items to render inside the list. */
   children?: React.ReactNode;
 }
 
 /**
- * UnorderedList component for rendering a styled unordered list element.
- *
- * An UnorderedList wraps the HTML `<ul>` element with Bulma helper class integration.
- * Supports Bulma helper classes for additional styling like text color, background color,
- * and spacing utilities.
+ * The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.
  *
  * @function
  * @param {UnorderedListProps} props - Props for the UnorderedList component.

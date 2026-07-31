@@ -19,6 +19,7 @@
  */
 export const ORDERED_CATEGORIES = new Set([
   'columns',
+  'elements',
   'grid',
   'helpers',
   'layout',
@@ -35,7 +36,12 @@ export const ORDERED_CATEGORIES = new Set([
 // lands the tooling and its CI gates, and each category is migrated in its own
 // follow-up so the page diffs stay reviewable. The gates below are live from
 // this commit — they simply have nothing to police yet.
-export const MANAGED_CATEGORIES = new Set(['columns', 'grid', 'layout']);
+export const MANAGED_CATEGORIES = new Set([
+  'columns',
+  'elements',
+  'grid',
+  'layout',
+]);
 
 /**
  * Pages that are ordered but never generated.

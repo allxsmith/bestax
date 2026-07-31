@@ -8,28 +8,23 @@ import {
 
 /**
  * Props for the Paragraph component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {React.ReactNode} [children] - Content to be rendered inside the paragraph.
  */
 export interface ParagraphProps
   extends
     React.HTMLAttributes<HTMLParagraphElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Content to render inside the paragraph. */
   children?: React.ReactNode;
 }
 
 /**
- * Paragraph component for rendering a styled paragraph element.
- *
- * A Paragraph wraps the HTML `<p>` element with Bulma helper class integration.
- * Supports Bulma helper classes for additional styling like text color, background color,
- * typography, and spacing utilities.
+ * The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
  *
  * @function
  * @param {ParagraphProps} props - Props for the Paragraph component.

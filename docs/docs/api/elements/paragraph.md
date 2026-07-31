@@ -1,13 +1,20 @@
 ---
 title: Paragraph
 sidebar_label: Paragraph
+description: The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
 ---
 
 # Paragraph
 
 ## Overview
 
-The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration. Use it for text content that benefits from Bulma's typography utilities, including text color, size, alignment, weight, and spacing.
+<!-- bestax:generated overview -->
+
+The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
+
+<!-- /bestax:generated overview -->
+
+Use it for text content that benefits from Bulma's typography utilities, including text color, size, alignment, weight, and spacing.
 
 :::info
 The Paragraph component is a thin wrapper around the HTML `<p>` element, providing consistent Bulma styling and helper class support for text content.
@@ -17,21 +24,13 @@ The Paragraph component is a thin wrapper around the HTML `<p>` element, providi
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Paragraph } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the paragraph.          |
-| ...         | All standard `<p>` and Bulma helper props                                                                                                                                                                                                                                                |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -183,3 +182,19 @@ For semantic emphasis within paragraphs, use `<strong>` (Strong) or `<em>` (Emph
 
 - [Bulma Typography Helpers](https://bulma.io/documentation/helpers/typography-helpers/)
 - [Storybook: Paragraph Stories](https://bestax.io/storybook/?path=/story/elements-paragraph--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the paragraph.           |
+| `...`       | All standard `<p>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

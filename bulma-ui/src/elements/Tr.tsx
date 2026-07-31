@@ -8,19 +8,18 @@ import { TableColor, validTableColors } from './Td'; // Import TableColor from T
 
 /**
  * Props for the Tr component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {boolean} [isSelected] - Whether the row is selected (adds Bulma's is-selected class).
- * @property {TableColor} [color] - Bulma color modifier for the table row.
- * @property {React.ReactNode} [children] - Table row content (cells).
  */
 export interface TrProps
   extends
     Omit<React.HTMLAttributes<HTMLTableRowElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Whether the row is selected (adds Bulma's is-selected class). */
   isSelected?: boolean;
+  /** Bulma color modifier for the table row. */
   color?: TableColor;
+  /** Table row content (cells). */
   children?: React.ReactNode;
 }
 

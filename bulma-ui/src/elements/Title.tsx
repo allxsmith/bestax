@@ -20,15 +20,7 @@ export type TitleElement = (typeof validTitleElements)[number];
 
 /**
  * Props for the Title component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {TitleSize} [size] - Size of the title (1-6).
- * @property {boolean} [isSpaced] - Adds margin below the title.
- * @property {TitleElement} [as='h1'] - HTML element to render as (h1-h6 or p).
- * @property {boolean} [hasSkeleton] - Adds the has-skeleton CSS class.
- * @property {React.ReactNode} [children] - Title content.
- * @property {string} [textColor] - Text color class (maps to Bulma's color helper).
- * @property {string} [bgColor] - Background color class (maps to Bulma's backgroundColor helper).
+ * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component.
  */
 export interface TitleProps
   extends
@@ -37,20 +29,26 @@ export interface TitleProps
       'color'
     >,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Size of the title (Bulma sizes). */
   size?: TitleSize;
+  /** Adds margin below the title. */
   isSpaced?: boolean;
+  /** HTML element to render as (h1-h6 or p). */
   as?: TitleElement;
+  /** Applies the `has-skeleton` class to part of the content. */
   hasSkeleton?: boolean;
+  /** Title content. */
   children?: React.ReactNode;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
 /**
- * Title component for rendering a styled Bulma title.
- *
- * Supports sizes, spacing, and rendering as different HTML elements.
+ * The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`).
  *
  * @function
  * @param {TitleProps} props - Props for the Title component.

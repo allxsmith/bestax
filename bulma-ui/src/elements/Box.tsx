@@ -8,31 +8,28 @@ import {
 
 /**
  * Props for the Box component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma color, 'inherit', or 'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the box.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma color, 'inherit', or 'current').
- * @property {boolean} [hasShadow=true] - Whether the box has a shadow (default: true).
- * @property {React.ReactNode} [children] - Content to be rendered inside the box.
  */
 export interface BoxProps
   /** @ignore */
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the box. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the box has a shadow (default: true). */
   hasShadow?: boolean;
+  /** Content to render inside the box. */
   children?: React.ReactNode;
 }
 
 /**
- * Box component for rendering a styled Bulma box element.
- *
- * Supports Bulma helper classes for styling and layout, with optional shadow control.
+ * The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
  *
  * @function
  * @param {BoxProps} props - Props for the Box component.

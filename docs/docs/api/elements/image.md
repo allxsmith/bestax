@@ -1,13 +1,18 @@
 ---
 title: Image
 sidebar_label: Image
+description: The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
 ---
 
 # Image
 
 ## Overview
 
+<!-- bestax:generated overview -->
+
 The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
+
+<!-- /bestax:generated overview -->
 
 :::info
 Use `Image` for consistent responsive image containers, or to embed arbitrary media (like iframes) with Bulma styling.
@@ -17,28 +22,13 @@ Use `Image` for consistent responsive image containers, or to embed arbitrary me
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Image } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                                                     |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                                                         |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper for the container.                                                            |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the image container.                                                   |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper for the container.                                                      |
-| `size`      | Bulma size string (e.g., `'128x128'`, `'16by9'`, `'square'`)                                                                                                                                                                                                                             | —       | Fixed size or aspect ratio modifier for the image container.                                    |
-| `isRounded` | `boolean`                                                                                                                                                                                                                                                                                | —       | Renders the image with rounded corners.                                                         |
-| `isRetina`  | `boolean`                                                                                                                                                                                                                                                                                | —       | Uses retina (2x) image source.                                                                  |
-| `src`       | `string`                                                                                                                                                                                                                                                                                 | —       | Image source URL.                                                                               |
-| `alt`       | `string`                                                                                                                                                                                                                                                                                 | —       | Alternate text for the image.                                                                   |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Arbitrary content (e.g., iframe, custom HTML) inside the image container.                       |
-| `as`        | `'figure' \| 'div' \| 'p'`                                                                                                                                                                                                                                                               | —       | Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. |
-| ...         | All standard `<figure>`/`<div>` and Bulma helper props                                                                                                                                                                                                                                   |         | (See [Helper Props](../helpers/usebulmaclasses))                                                |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -199,3 +189,26 @@ Do not use `Image` for decorative images without `alt=""`, unless purely present
 
 - [Bulma Image Documentation](https://bulma.io/documentation/elements/image/)
 - [Storybook: Image Stories](https://bestax.io/storybook/?path=/story/elements-image--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                                                                                                                                                                                                                                          | Default | Description                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                                                                                                                                                                                                                                      | —       | Additional CSS classes to apply.                                                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                                                                                                                                                       | —       | Text color helper for the container.                                                            |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                               | —       | Bulma color modifier for the image container.                                                   |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                                                                                                                                                       | —       | Background color helper for the container.                                                      |
+| `size`      | `'16x16'` \| `'24x24'` \| `'32x32'` \| `'48x48'` \| `'64x64'` \| `'96x96'` \| `'128x128'` \| `'square'` \| `'1by1'` \| `'5by4'` \| `'4by3'` \| `'3by2'` \| `'5by3'` \| `'16by9'` \| `'2by1'` \| `'3by1'` \| `'4by5'` \| `'3by4'` \| `'2by3'` \| `'3by5'` \| `'9by16'` \| `'1by2'` \| `'1by3'` | —       | Fixed size or aspect ratio modifier for the image container.                                    |
+| `isRounded` | `boolean`                                                                                                                                                                                                                                                                                     | `false` | Renders the image with rounded corners.                                                         |
+| `isRetina`  | `boolean`                                                                                                                                                                                                                                                                                     | `false` | Uses retina (2x) image source.                                                                  |
+| `src`       | `string`                                                                                                                                                                                                                                                                                      | —       | Image source URL.                                                                               |
+| `alt`       | `string`                                                                                                                                                                                                                                                                                      | —       | Alternate text for the image.                                                                   |
+| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                             | —       | Arbitrary content (e.g., iframe, custom HTML) inside the image container.                       |
+| `as`        | `'figure'` \| `'div'` \| `'p'`                                                                                                                                                                                                                                                                | —       | Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. |
+| `...`       | All standard HTML attributes and Bulma helper props                                                                                                                                                                                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                               |
+
+<!-- /bestax:generated props -->

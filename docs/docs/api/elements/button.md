@@ -1,13 +1,20 @@
 ---
 title: Button
 sidebar_label: Button
+description: The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 ---
 
 # Button
 
 ## Overview
 
-The `Button` component provides a flexible and highly customizable button for your Bulma React UI. It supports all Bulma color, size, and state modifiers, as well as additional helper classes for text, spacing, and more.
+<!-- bestax:generated overview -->
+
+The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports all Bulma color, size, and state modifiers, as well as additional helper classes for text, spacing, and more.
 
 :::caution Accessibility
 Use `Button` for real button actions (submit, toggle, open a dialog). For a link-styled click target or client-side navigation, prefer [`LinkButton`](./linkbutton.md) — using `Button` as a fake link/`<div onClick>` loses proper anchor and a11y semantics.
@@ -21,39 +28,13 @@ Make sure to provide meaningful text or accessible content for screen readers.
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Button } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                                                                                                                  | Description                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `color`       | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'white' \| 'light' \| 'dark' \| 'black' \| 'text' \| 'ghost'` | Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button. |
-| `size`        | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                                          | Size of the button.                                                                                                |
-| `isLight`     | `boolean`                                                                                                                             | Applies a lighter color variant.                                                                                   |
-| `isRounded`   | `boolean`                                                                                                                             | Makes the button rounded.                                                                                          |
-| `isLoading`   | `boolean`                                                                                                                             | Displays a loading spinner.                                                                                        |
-| `isStatic`    | `boolean`                                                                                                                             | Makes the button non-interactive.                                                                                  |
-| `isFullWidth` | `boolean`                                                                                                                             | Makes the button full-width.                                                                                       |
-| `isOutlined`  | `boolean`                                                                                                                             | Applies outlined styling (requires color).                                                                         |
-| `isInverted`  | `boolean`                                                                                                                             | Applies inverted styling (requires color).                                                                         |
-| `isFocused`   | `boolean`                                                                                                                             | Applies focused styling (visual only).                                                                             |
-| `isActive`    | `boolean`                                                                                                                             | Applies active styling (visual only).                                                                              |
-| `isHovered`   | `boolean`                                                                                                                             | Applies hovered styling (visual only).                                                                             |
-| `isDisabled`  | `boolean`                                                                                                                             | Applies disabled styling.                                                                                          |
-| `as`          | `React.ElementType`                                                                                                                   | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`.               |
-| `href`        | `string`                                                                                                                              | Href value (if rendering as `<a>`).                                                                                |
-| `onClick`     | `function`                                                                                                                            | Click event handler.                                                                                               |
-| `target`      | `string`                                                                                                                              | Anchor tag target.                                                                                                 |
-| `rel`         | `string`                                                                                                                              | Anchor tag rel.                                                                                                    |
-| `textColor`   | `'primary'` \| ... (see docs)                                                                                                         | Text color helper.                                                                                                 |
-| `bgColor`     | `'primary'` \| ... (see docs)                                                                                                         | Background color helper.                                                                                           |
-| `className`   | `string`                                                                                                                              | Custom class name.                                                                                                 |
-| `children`    | `React.ReactNode`                                                                                                                     | Button content.                                                                                                    |
-| ...           | All standard `<button>` and Bulma helper props                                                                                        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                  |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -336,3 +317,97 @@ If your button has only an icon, use `aria-label` to provide accessible text.
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Button />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                                                                                                                        | Default    | Description                                                                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'white'` \| `'light'` \| `'dark'` \| `'black'` \| `'text'` \| `'ghost'` | —          | Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.                                                    |
+| `size`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                          | —          | Size of the button.                                                                                                                                                   |
+| `isLight`     | `boolean`                                                                                                                                                   | `false`    | Applies a lighter color variant.                                                                                                                                      |
+| `isRounded`   | `boolean`                                                                                                                                                   | `false`    | Makes the button rounded.                                                                                                                                             |
+| `isLoading`   | `boolean`                                                                                                                                                   | `false`    | Displays a loading spinner.                                                                                                                                           |
+| `isStatic`    | `boolean`                                                                                                                                                   | `false`    | Makes the button non-interactive.                                                                                                                                     |
+| `isFullWidth` | `boolean`                                                                                                                                                   | `false`    | Makes the button full-width.                                                                                                                                          |
+| `isOutlined`  | `boolean`                                                                                                                                                   | `false`    | Applies outlined styling (requires color).                                                                                                                            |
+| `isInverted`  | `boolean`                                                                                                                                                   | `false`    | Applies inverted styling (requires color).                                                                                                                            |
+| `isFocused`   | `boolean`                                                                                                                                                   | `false`    | Applies focused styling (visual only).                                                                                                                                |
+| `isActive`    | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only).                                                                                                                                 |
+| `isHovered`   | `boolean`                                                                                                                                                   | `false`    | Applies hovered styling (visual only).                                                                                                                                |
+| `isDisabled`  | `boolean`                                                                                                                                                   | `false`    | Applies disabled styling.                                                                                                                                             |
+| `className`   | `string`                                                                                                                                                    | —          | Custom class name.                                                                                                                                                    |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                     | —          | Text color helper.                                                                                                                                                    |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                     | —          | Background color helper.                                                                                                                                              |
+| `as`          | `React.ElementType`                                                                                                                                         | `'button'` | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. |
+| `href`        | `string`                                                                                                                                                    | —          | Href value (if rendering as `<a>`).                                                                                                                                   |
+| `onClick`     | `React.MouseEventHandler<HTMLButtonElement>` \| `React.MouseEventHandler<HTMLAnchorElement>`                                                                | —          | Click event handler.                                                                                                                                                  |
+| `target`      | `string`                                                                                                                                                    | —          | Anchor tag target.                                                                                                                                                    |
+| `rel`         | `string`                                                                                                                                                    | —          | Anchor tag rel.                                                                                                                                                       |
+| `children`    | `React.ReactNode`                                                                                                                                           | —          | Button content.                                                                                                                                                       |
+| `...`         | All standard `<button>` attributes and Bulma helper props                                                                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                     |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Button` registers these variables on its own `.button` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                 | Sass Variable                         | Default                                                                               |
+| -------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------- |
+| `--bulma-button-family`                      | `$button-family`                      | `false`                                                                               |
+| `--bulma-button-weight`                      | `$button-weight`                      | `var(--bulma-weight-medium)`                                                          |
+| `--bulma-button-border-color`                | `$button-border-color`                | `var(--bulma-border)`                                                                 |
+| `--bulma-button-border-style`                | `$button-border-style`                | `solid`                                                                               |
+| `--bulma-button-border-width`                | `$button-border-width`                | `var(--bulma-control-border-width)`                                                   |
+| `--bulma-button-padding-vertical`            | `$button-padding-vertical`            | `0.5em`                                                                               |
+| `--bulma-button-padding-horizontal`          | `$button-padding-horizontal`          | `1em`                                                                                 |
+| `--bulma-button-focus-border-color`          | `$button-focus-border-color`          | `var(--bulma-link-focus-border)`                                                      |
+| `--bulma-button-focus-box-shadow-size`       | `$button-focus-box-shadow-size`       | `0 0 0 0.125em`                                                                       |
+| `--bulma-button-focus-box-shadow-color`      | `$button-focus-box-shadow-color`      | `hsla(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-on-scheme-l), 0.25)` |
+| `--bulma-button-active-color`                | `$button-active-color`                | `var(--bulma-link-active)`                                                            |
+| `--bulma-button-active-border-color`         | `$button-active-border-color`         | `var(--bulma-link-active-border)`                                                     |
+| `--bulma-button-text-color`                  | `$button-text-color`                  | `var(--bulma-text)`                                                                   |
+| `--bulma-button-text-decoration`             | `$button-text-decoration`             | `underline`                                                                           |
+| `--bulma-button-text-hover-background-color` | `$button-text-hover-background-color` | `var(--bulma-background)`                                                             |
+| `--bulma-button-text-hover-color`            | `$button-text-hover-color`            | `var(--bulma-text-strong)`                                                            |
+| `--bulma-button-ghost-background`            | `$button-ghost-background`            | `none`                                                                                |
+| `--bulma-button-ghost-border-color`          | `$button-ghost-border-color`          | `transparent`                                                                         |
+| `--bulma-button-ghost-color`                 | `$button-ghost-color`                 | `var(--bulma-link-text)`                                                              |
+| `--bulma-button-ghost-decoration`            | `$button-ghost-decoration`            | `none`                                                                                |
+| `--bulma-button-ghost-hover-color`           | `$button-ghost-hover-color`           | `var(--bulma-link)`                                                                   |
+| `--bulma-button-ghost-hover-decoration`      | `$button-ghost-hover-decoration`      | `underline`                                                                           |
+| `--bulma-button-disabled-background-color`   | `$button-disabled-background-color`   | `var(--bulma-scheme-main)`                                                            |
+| `--bulma-button-disabled-border-color`       | `$button-disabled-border-color`       | `var(--bulma-border)`                                                                 |
+| `--bulma-button-disabled-shadow`             | `$button-disabled-shadow`             | `none`                                                                                |
+| `--bulma-button-disabled-opacity`            | `$button-disabled-opacity`            | `0.5`                                                                                 |
+| `--bulma-button-static-color`                | `$button-static-color`                | `var(--bulma-text-weak)`                                                              |
+| `--bulma-button-static-background-color`     | `$button-static-background-color`     | `var(--bulma-scheme-main-ter)`                                                        |
+| `--bulma-button-static-border-color`         | `$button-static-border-color`         | `var(--bulma-border)`                                                                 |
+| `--bulma-button-h`                           | `$button-h`                           | `var(--bulma-scheme-h)`                                                               |
+| `--bulma-button-s`                           | `$button-s`                           | `var(--bulma-scheme-s)`                                                               |
+| `--bulma-button-l`                           | `$button-l`                           | `var(--bulma-scheme-main-l)`                                                          |
+| `--bulma-button-background-l`                | `$button-background-l`                | `var(--bulma-scheme-main-l)`                                                          |
+| `--bulma-button-background-l-delta`          | `$button-background-l-delta`          | `0%`                                                                                  |
+| `--bulma-button-hover-background-l-delta`    | `$button-hover-background-l-delta`    | `var(--bulma-hover-background-l-delta)`                                               |
+| `--bulma-button-active-background-l-delta`   | `$button-active-background-l-delta`   | `var(--bulma-active-background-l-delta)`                                              |
+| `--bulma-button-color-l`                     | `$button-color-l`                     | `var(--bulma-text-strong-l)`                                                          |
+| `--bulma-button-border-l`                    | `$button-border-l`                    | `var(--bulma-border-l)`                                                               |
+| `--bulma-button-border-l-delta`              | `$button-border-l-delta`              | `0%`                                                                                  |
+| `--bulma-button-hover-border-l-delta`        | `$button-hover-border-l-delta`        | `var(--bulma-hover-border-l-delta)`                                                   |
+| `--bulma-button-active-border-l-delta`       | `$button-active-border-l-delta`       | `var(--bulma-active-border-l-delta)`                                                  |
+| `--bulma-button-focus-border-l-delta`        | `$button-focus-border-l-delta`        | `var(--bulma-focus-border-l-delta)`                                                   |
+| `--bulma-button-outer-shadow-h`              | `$button-outer-shadow-h`              | `0`                                                                                   |
+| `--bulma-button-outer-shadow-s`              | `$button-outer-shadow-s`              | `0%`                                                                                  |
+| `--bulma-button-outer-shadow-l`              | `$button-outer-shadow-l`              | `20%`                                                                                 |
+| `--bulma-button-outer-shadow-a`              | `$button-outer-shadow-a`              | `0.05`                                                                                |
+| `--bulma-loading-color`                      | —                                     | `hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))`      |
+
+<!-- /bestax:generated cssvars -->

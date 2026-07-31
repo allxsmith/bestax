@@ -1,13 +1,20 @@
 ---
 title: Block
 sidebar_label: Block
+description: The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.
 ---
 
 # Block
 
 ## Overview
 
-The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content. Use it for grouping or spacing elements, especially in forms or stacked layouts. It supports all Bulma helper props for color, spacing, and more.
+<!-- bestax:generated overview -->
+
+The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.
+
+<!-- /bestax:generated overview -->
+
+Use it for grouping or spacing elements, especially in forms or stacked layouts. It supports all Bulma helper props for color, spacing, and more.
 
 :::info
 Bulma’s `.block` adds margin-bottom. For visual separation, combine with color or background helpers.
@@ -17,22 +24,13 @@ Bulma’s `.block` adds margin-bottom. For visual separation, combine with color
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Block } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                          |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                               |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the block.              |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper.                         |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to render inside the block.              |
-| ...         | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -159,3 +157,20 @@ Use `Block` for logical, visually separated sections of content.
 
 - [Bulma Block Documentation](https://bulma.io/documentation/elements/block/)
 - [Storybook: Block Stories](https://bestax.io/storybook/?path=/story/elements-block--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the block.               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                               | —       | Content to render inside the block.               |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->

@@ -1,13 +1,20 @@
 ---
 title: Content
 sidebar_label: Content
+description: The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists, and tables.
 ---
 
 # Content
 
 ## Overview
 
-The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists, and tables. It supports Bulma size modifiers and helper classes for color, alignment, spacing, and more, making it ideal for rendering rich or markdown-like HTML content.
+<!-- bestax:generated overview -->
+
+The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists, and tables.
+
+<!-- /bestax:generated overview -->
+
+It supports Bulma size modifiers and helper classes for color, alignment, spacing, and more, making it ideal for rendering rich or markdown-like HTML content.
 
 :::info
 The `Content` component is perfect for displaying user-generated content, documentation, or any HTML you want styled consistently.
@@ -17,23 +24,13 @@ The `Content` component is perfect for displaying user-generated content, docume
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Content } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                         |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                                             |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper (e.g., `'danger'` for `has-text-danger`).         |
-| `color`     | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | —       | Bulma color modifier for the content.                               |
-| `bgColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color helper (e.g., `'info'` for `has-background-info`). |
-| `size`      | `'small' \| 'normal' \| 'medium' \| 'large'`                                                                                                                                                                                                                                             | —       | Size modifier for the content.                                      |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Content to be rendered inside the block.                            |
-| ...         | All standard `<div>` and Bulma helper props                                                                                                                                                                                                                                              |         | (See [Helper Props](../helpers/usebulmaclasses))                    |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -204,3 +201,51 @@ The `Content` component does not add ARIA roles. You are responsible for semanti
 :::info
 Use `Content` for any rich HTML or markdown output to ensure consistent Bulma styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                                         |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                    |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper (e.g., `'danger'` for `has-text-danger`).         |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the content.                               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper (e.g., `'info'` for `has-background-info`). |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size modifier for the content.                                      |
+| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the block.                            |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                   |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Content` registers these variables on its own `.content` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                                   | Sass Variable                                           | Default                         |
+| -------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------- |
+| `--bulma-content-heading-color`                                | `$content-heading-color`                                | `var(--bulma-text-strong)`      |
+| `--bulma-content-heading-weight`                               | `$content-heading-weight`                               | `var(--bulma-weight-extrabold)` |
+| `--bulma-content-heading-line-height`                          | `$content-heading-line-height`                          | `1.125`                         |
+| `--bulma-content-block-margin-bottom`                          | `$content-block-margin-bottom`                          | `1em`                           |
+| `--bulma-content-blockquote-background-color`                  | `$content-blockquote-background-color`                  | `var(--bulma-background)`       |
+| `--bulma-content-blockquote-border-left`                       | `$content-blockquote-border-left`                       | `5px solid var(--bulma-border)` |
+| `--bulma-content-blockquote-padding`                           | `$content-blockquote-padding`                           | `1.25em 1.5em`                  |
+| `--bulma-content-pre-padding`                                  | `$content-pre-padding`                                  | `1.25em 1.5em`                  |
+| `--bulma-content-table-cell-border`                            | `$content-table-cell-border`                            | `1px solid var(--bulma-border)` |
+| `--bulma-content-table-cell-border-width`                      | `$content-table-cell-border-width`                      | `0 0 1px`                       |
+| `--bulma-content-table-cell-padding`                           | `$content-table-cell-padding`                           | `0.5em 0.75em`                  |
+| `--bulma-content-table-cell-heading-color`                     | `$content-table-cell-heading-color`                     | `var(--bulma-text-strong)`      |
+| `--bulma-content-table-head-cell-border-width`                 | `$content-table-head-cell-border-width`                 | `0 0 2px`                       |
+| `--bulma-content-table-head-cell-color`                        | `$content-table-head-cell-color`                        | `var(--bulma-text-strong)`      |
+| `--bulma-content-table-body-last-row-cell-border-bottom-width` | `$content-table-body-last-row-cell-border-bottom-width` | `0`                             |
+| `--bulma-content-table-foot-cell-border-width`                 | `$content-table-foot-cell-border-width`                 | `2px 0 0`                       |
+| `--bulma-content-table-foot-cell-color`                        | `$content-table-foot-cell-color`                        | `var(--bulma-text-strong)`      |
+
+<!-- /bestax:generated cssvars -->
