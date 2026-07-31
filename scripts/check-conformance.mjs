@@ -819,7 +819,9 @@ function parseWorkspacePackages(yaml) {
  *      all. A workspace package needed at runtime has to be a plain semver
  *      range.
  *   2. One left in devDependencies is safe to install but still wrong to
- *      publish, so the package must resolve it at pack time.
+ *      publish, so the package must resolve it at pack time. That escape hatch
+ *      is `workspace:`-only: pack-manifest.mjs fails on `catalog:` rather than
+ *      resolving it, so wiring up the hooks does not redeem a catalog spec.
  */
 const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:'];
 
@@ -871,8 +873,29 @@ async function checkPublishableManifests() {
       }
     }
 
-    const stillUnresolved = Object.values(pkg.devDependencies ?? {}).some(
-      hasPackTimeProtocol
+    const devDeps = pkg.devDependencies ?? {};
+
+    // The pack hooks make `workspace:` publishable; they do NOT make `catalog:`
+    // publishable. pack-manifest.mjs deliberately fails on a catalog specifier
+    // rather than invent a range that lives in pnpm-workspace.yaml, so hooks
+    // present is no defence — this has to be a violation on its own terms, or
+    // the check goes green and the release is what breaks.
+    for (const [name, spec] of Object.entries(devDeps)) {
+      if (typeof spec === 'string' && spec.startsWith('catalog:')) {
+        violations.push(
+          `${dir}/package.json declares "${name}": "${spec}" in ` +
+            `devDependencies. The prepack/postpack hooks do not make that ` +
+            `publishable — pack-manifest.mjs cannot resolve catalog: (the ` +
+            `range lives in pnpm-workspace.yaml, not in the linked package) ` +
+            `and fails the pack instead (#412). Give it a plain semver range.`
+        );
+      }
+    }
+
+    // `workspace:` is the case the hooks genuinely cover, so it is the only one
+    // whose violation they suppress.
+    const stillUnresolved = Object.values(devDeps).some(
+      spec => typeof spec === 'string' && spec.startsWith('workspace:')
     );
     if (!stillUnresolved) continue;
 
@@ -889,11 +912,11 @@ async function checkPublishableManifests() {
 
     if (!hookScripts.every(Boolean)) {
       violations.push(
-        `${dir}/package.json keeps a workspace:/catalog: specifier in ` +
-          `devDependencies but does not resolve it at pack time, so it would ` +
-          `be published verbatim (#412). Add "prepack": "node ` +
-          `scripts/pack-manifest.mjs prepack" and the matching postpack hook — ` +
-          `copy bestax-migrate/scripts/pack-manifest.mjs.`
+        `${dir}/package.json keeps a workspace: specifier in devDependencies ` +
+          `but does not resolve it at pack time, so it would be published ` +
+          `verbatim (#412). Add "prepack": "node scripts/pack-manifest.mjs ` +
+          `prepack" and the matching postpack hook — copy ` +
+          `bestax-migrate/scripts/pack-manifest.mjs.`
       );
       continue;
     }
@@ -907,8 +930,8 @@ async function checkPublishableManifests() {
       } catch {
         violations.push(
           `${dir}/package.json points its prepack/postpack hooks at "${rel}", ` +
-            `but ${dir}/${rel} does not exist. The workspace:/catalog: ` +
-            `specifier in devDependencies would go out unresolved (#412), and ` +
+            `but ${dir}/${rel} does not exist. The workspace: specifier in ` +
+            `devDependencies would go out unresolved (#412), and ` +
             `the failure would surface during the release rather than in CI. ` +
             `Restore the script or fix the path in both hooks.`
         );
