@@ -301,8 +301,13 @@ function localStringUnionAliases(ts, sf) {
  * and restricting this to string literals is what made columns.md's `gap` cell
  * regress from "number | string (0-8)" to a bare alias name.
  */
-function unionExpansion(ts, decl) {
+function unionExpansion(ts, decl, resolve = () => null) {
   const t = decl.type;
+  const isSimple = n =>
+    ts.isLiteralTypeNode(n) ||
+    n.kind === ts.SyntaxKind.NumberKeyword ||
+    n.kind === ts.SyntaxKind.StringKeyword ||
+    n.kind === ts.SyntaxKind.BooleanKeyword;
   // `(typeof validSubTitleSizes)[number]` — the dominant shape in this repo.
   // Reading it off the `as const` array is what lets `SubTitleSize` inline as
   // `'1' | … | '6'` instead of leaving a bare name where the page listed six
@@ -328,17 +333,27 @@ function unionExpansion(ts, decl) {
     }
     return null;
   }
+  // A one-member "union": `export type CellSpanValue = number`. Not a union
+  // node at all, so the check below never saw it and cell.md rendered
+  // `colSpan`/`rowSpan` as a bare `CellSpanValue` — strictly less than the
+  // `number` the hand-written table said.
+  if (t && isSimple(t)) return t.getText();
+
   const nodes = t && ts.isUnionTypeNode(t) ? t.types : null;
   if (!nodes) return null;
-  const simple = nodes.every(
-    n =>
-      ts.isLiteralTypeNode(n) ||
-      n.kind === ts.SyntaxKind.NumberKeyword ||
-      n.kind === ts.SyntaxKind.StringKeyword ||
-      n.kind === ts.SyntaxKind.BooleanKeyword
-  );
-  if (!simple) return null;
-  return nodes.map(n => n.getText()).join(' | ');
+  // Members may be other aliases: `BulmaFixedGridColsProp = BulmaFixedGridCols
+  // | 'auto'`. Requiring every member to be simple left grid.md's primary
+  // `fixedCols` opaque while its five per-breakpoint siblings — typed with the
+  // inner alias directly — expanded to `0 | … | 12` in the same table.
+  const parts = nodes.map(n => {
+    if (isSimple(n)) return n.getText();
+    if (ts.isTypeReferenceNode(n) && ts.isIdentifier(n.typeName)) {
+      return resolve(n.typeName.text);
+    }
+    return null;
+  });
+  if (parts.some(p => !p)) return null;
+  return parts.join(' | ');
 }
 
 /**
@@ -352,6 +367,7 @@ function allAliases(ts, program) {
   if (aliasIndex) return aliasIndex;
   aliasIndex = new Map();
   const indirect = new Map(); // alias -> alias it forwards to
+  const mixed = new Map(); // alias -> decl, unions naming other aliases
   for (const sf of program.getSourceFiles()) {
     if (!sf.fileName.includes('/bulma-ui/src/')) continue;
     for (const stmt of sf.statements) {
@@ -361,6 +377,11 @@ function allAliases(ts, program) {
       const expansion = unionExpansion(ts, stmt);
       if (expansion) {
         aliasIndex.set(name, { expansion, summary: jsdocText(ts, stmt) });
+      } else if (stmt.type && ts.isUnionTypeNode(stmt.type)) {
+        // Deferred: a member names an alias this pass may not have reached yet.
+        // Resolved to a fixpoint below, once every directly-expandable alias
+        // is in the index.
+        mixed.set(name, stmt);
       } else if (
         ts.isTypeReferenceNode(stmt.type) &&
         ts.isIdentifier(stmt.type.typeName)
@@ -375,6 +396,21 @@ function allAliases(ts, program) {
       }
     }
   }
+  // Fixpoint: each round can only widen the index, so it converges. Bounded so
+  // a mutually-recursive pair can never spin.
+  const resolve = n => aliasIndex.get(n)?.expansion ?? null;
+  for (let round = 0; round < 8 && mixed.size; round += 1) {
+    let progressed = false;
+    for (const [name, stmt] of mixed) {
+      const expansion = unionExpansion(ts, stmt, resolve);
+      if (!expansion) continue;
+      aliasIndex.set(name, { expansion, summary: jsdocText(ts, stmt) });
+      mixed.delete(name);
+      progressed = true;
+    }
+    if (!progressed) break;
+  }
+
   for (const [name, { to, summary }] of indirect) {
     const target = aliasIndex.get(to);
     if (!target) continue;
@@ -503,6 +539,22 @@ function renderTypeText(ts, member, aliases, linkBase, used) {
     return [part];
   });
 
+  // Normalise what merging the members of a union PROPS TYPE throws up.
+  // `SliderProps` is `SliderSingleProps | SliderRangeProps`, and the branch
+  // that forbids a prop types it `never` — so `minDistance` merged to
+  // `never | number` and `range` to `false | true`, neither of which means
+  // anything to a reader of a props table.
+  const seen = new Set();
+  let members = parts.filter(p => !seen.has(p) && seen.add(p));
+  if (members.length > 1) members = members.filter(p => p !== 'never');
+  if (
+    members.length === 2 &&
+    members.includes('false') &&
+    members.includes('true')
+  ) {
+    members = ['boolean'];
+  }
+
   // Render each union member separately. Working per-member (rather than doing
   // string surgery on the whole type) is what lets a TYPE_DISPLAY label contain
   // spaces — "Bulma color" — without the renderer having to tokenise prose.
@@ -510,7 +562,7 @@ function renderTypeText(ts, member, aliases, linkBase, used) {
   // Pipes are emitted RAW: escapeCell() owns table escaping, and escaping in
   // both places yields a stray backslash that ends the escape and splits the
   // cell into extra columns.
-  return parts
+  return members
     .map(member => {
       const display = TYPE_DISPLAY.find(d => d.from === member);
       if (display) return `[${display.label}](${linkBase}${display.link}.md)`;
@@ -949,6 +1001,20 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
             summary: sub.tsdoc,
           });
         }
+      } else if (inits.get(impl)) {
+        // A sub whose props are an inline DOM type rather than a named
+        // `*Props` interface — `NavbarDivider: React.FC<
+        // React.HTMLAttributes<HTMLHRElement>>`. There is no table to render,
+        // but dropping it outright left `Navbar.Divider` and
+        // `Pagination.Ellipsis` off the Subcomponents list entirely, which is
+        // why both pages still carried a hand-written duplicate of it.
+        tables.push({
+          path,
+          impl,
+          rows: [],
+          listOnly: true,
+          summary: jsdocText(ts, inits.get(impl)),
+        });
       }
       continue;
     }
@@ -1043,6 +1109,19 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
         prev.type = `${prev.type} | ${row.type}`;
       }
     }
+    // The forbidding branch types the prop `never`, which merged into cells
+    // like ``never` | `number`` on slider.md — noise standing where the
+    // reader needs a type. Dropping it leaves exactly what may be passed, and
+    // the two boolean literals a discriminant contributes read as `boolean`.
+    for (const row of byName.values()) {
+      const seen = new Set();
+      let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
+      if (ms.length > 1) ms = ms.filter(m => m !== '`never`');
+      if (ms.length === 2 && ms.includes('`false`') && ms.includes('`true`')) {
+        ms = ['`boolean`'];
+      }
+      row.type = ms.join(' | ');
+    }
     rows.length = 0;
     rows.push(...byName.values());
 
@@ -1060,9 +1139,18 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
     // named it.
     const refTarget = isForwardRef && implInit.typeArguments?.[0]?.getText();
     if (inheritsDom) {
+      // `children` is inherited by every DOM-attribute type, but inheriting it
+      // is not the same as rendering it. Divider spreads onto `<hr>`, so the
+      // synthesized row told readers to do the one thing React throws on
+      // ("hr is a void element tag and must neither have `children`…"); Icon
+      // always supplies its own JSX children, so anything passed is silently
+      // dropped. Emit the row only where the implementation actually names
+      // `children` — the catch-all still covers the pass-through cases.
+      const rendersChildren = /\bchildren\b/.test(implInit?.getText() ?? '');
       for (const [name, type, description] of DOM_COMMON_PROPS) {
         if (byName.has(name)) continue;
         if (name === 'ref' && !isForwardRef) continue;
+        if (name === 'children' && !rendersChildren) continue;
         const shown =
           name === 'ref' && refTarget ? `React.Ref<${refTarget}>` : type;
         rows.push({

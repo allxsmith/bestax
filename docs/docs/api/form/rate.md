@@ -371,12 +371,8 @@ Use the `texts` prop to provide context for each rating level, helping users und
 | `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                                                                  |
 | `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                                                              |
 | `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                                                             |
-| `children`       | `React.ReactNode`                                                               | —       | Content rendered inside the component.                                                                    |
 | `className`      | `string`                                                                        | —       | Additional CSS classes.                                                                                   |
 | `ref`            | `React.Ref<HTMLElement>`                                                        | —       | Ref forwarded to the container element.                                                                   |
-| `index`          | `number`                                                                        | —       | The index of this icon (0-based).                                                                         |
-| `isActive`       | `boolean`                                                                       | —       | Whether this icon is currently active (filled).                                                           |
-| `isHovered`      | `boolean`                                                                       | —       | Whether this icon is currently hovered.                                                                   |
 | `...`            | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                         |
 
 <!-- /bestax:generated props -->

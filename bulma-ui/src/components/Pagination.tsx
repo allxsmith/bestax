@@ -315,7 +315,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
 };
 
 /**
- * Bulma Pagination ellipsis element.
+ * Ellipsis separator.
  *
  * @function
  * @param {React.LiHTMLAttributes<HTMLLIElement>} props - Standard li props.

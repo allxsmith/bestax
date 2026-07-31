@@ -8,9 +8,9 @@ import { useInsideField, useInsideControl } from './FormContext';
 /**
  * Props for the DateTimeInput convenience wrapper. Extends
  * `DateTimeInputBaseProps` with Field-level and Control-level props.
- * @extraProp [name] - Form field name.
- * @extraProp [form] - Optional id of the form the input belongs to.
- * @extraProp [required] - Marks the field as required for native HTML form validation.
+ * @extraProp {string} [name] - Form field name.
+ * @extraProp {string} [form] - Optional id of the form the input belongs to.
+ * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
  */
 export interface DateTimeInputProps extends DateTimeInputBaseProps {
   /** Field label. */

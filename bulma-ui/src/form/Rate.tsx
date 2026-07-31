@@ -38,9 +38,6 @@ export interface RateIconProps {
  * Props for the Rate component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the container element.
- * @extraProp {number} [index] - The index of this icon (0-based).
- * @extraProp {boolean} [isActive] - Whether this icon is currently active (filled).
- * @extraProp {boolean} [isHovered] - Whether this icon is currently hovered.
  */
 export interface RateProps
   extends

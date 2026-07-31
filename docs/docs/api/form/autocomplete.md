@@ -467,7 +467,6 @@ Use `keepFirst` combined with `Enter` to quickly select the first matching resul
 | `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                          |
 | `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                      |
 | `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                     |
-| `children`               | `React.ReactNode`                                                               | —         | Content rendered inside the component.                            |
 | `className`              | `string`                                                                        | —         | Additional CSS classes.                                           |
 | `ref`                    | `React.Ref<HTMLElement>`                                                        | —         | Ref forwarded to the input element.                               |
 | `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                 |

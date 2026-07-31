@@ -203,6 +203,7 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
 
 /**
  * Icon wrapper with panel styling (renders as `<span class="panel-icon"><i/></span>`).
+ * Accepts all Icon props (`name`, `variant`, `features`, etc.)
  *
  * @function
  * @param {PanelIconProps} props - Props for the PanelIcon component.

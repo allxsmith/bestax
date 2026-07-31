@@ -377,7 +377,6 @@ Use the programmatic `toast` API for showing notifications from event handlers o
 | `onClose`      | `() => void`                                                                                                | —             | Callback when toast closes.                                    |
 | `container`    | `string` \| `HTMLElement`                                                                                   | —             | CSS selector or DOM node to mount the toast into.              |
 | `inline`       | `boolean`                                                                                                   | `false`       | Renders inline instead of using a portal.                      |
-| `children`     | `React.ReactNode`                                                                                           | —             | Content rendered inside the component.                         |
 | `className`    | `string`                                                                                                    | —             | Additional CSS classes.                                        |
 | `ref`          | `React.Ref<HTMLDivElement>`                                                                                 | —             | Ref forwarded to the toast element.                            |
 | `...`          | All standard `<div>` attributes and Bulma helper props                                                      | —             | See [Helper Props](../helpers/usebulmaclasses.md)              |

@@ -538,7 +538,7 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
 );
 
 /**
- * Bulma Navbar divider.
+ * Divider in dropdown menus.
  *
  * @function
  * @param {React.HTMLAttributes<HTMLHRElement>} props - Standard hr props.

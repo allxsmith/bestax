@@ -93,7 +93,6 @@ const DefaultNextIcon = () => (
  * Props for the Carousel component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the carousel element.
- * @extraProp {boolean} [active] - Whether this item is active (set automatically).
  */
 export interface CarouselProps
   extends

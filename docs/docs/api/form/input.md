@@ -619,7 +619,6 @@ function example() {
 | `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                  |
 | `disabled`         | `boolean`                                                                                                                          | `false` | Disabled input.                                   |
 | `readOnly`         | `boolean`                                                                                                                          | `false` | Read-only input.                                  |
-| `children`         | `React.ReactNode`                                                                                                                  | —       | Content rendered inside the component.            |
 | `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.              |
 | `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 

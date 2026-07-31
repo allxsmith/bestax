@@ -268,19 +268,19 @@ function example() {
 
 ---
 
-## Related
-
-- [Checkbox](./checkbox.md) - Standard checkbox input
-- [Field](./field.md) - Form field wrapper
-
----
-
 ## Accessibility
 
 - The Switch is built on a native checkbox input for proper keyboard navigation
 - Use the `children` prop to provide a visible label
 - For icon-only switches, provide an `aria-label` prop
 - The switch can be focused and toggled with keyboard (Space/Enter)
+
+---
+
+## Related
+
+- [Checkbox](./checkbox.md) - Standard checkbox input
+- [Field](./field.md) - Form field wrapper
 
 ---
 

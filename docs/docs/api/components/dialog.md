@@ -362,7 +362,6 @@ Use the programmatic `dialog.confirm()` with async/await to create clean, sequen
 | `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.               |
 | `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.           |
 | `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                                           |
-| `children`    | `React.ReactNode`                                                   | —           | Content rendered inside the component.                            |
 | `className`   | `string`                                                            | —           | Additional CSS classes.                                           |
 | `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                              |
 | `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                 |

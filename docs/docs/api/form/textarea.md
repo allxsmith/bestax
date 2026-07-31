@@ -278,7 +278,6 @@ function example() {
 | `disabled`         | `boolean`                                                                                                                          | `false` | Disables the textarea.                            |
 | `readOnly`         | `boolean`                                                                                                                          | `false` | Read-only textarea.                               |
 | `rows`             | `number`                                                                                                                           | —       | Number of visible text lines.                     |
-| `children`         | `React.ReactNode`                                                                                                                  | —       | Content rendered inside the component.            |
 | `ref`              | `React.Ref<HTMLTextAreaElement>`                                                                                                   | —       | Forwarded to the underlying element.              |
 | `...`              | All standard `<textarea>` attributes and Bulma helper props                                                                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 

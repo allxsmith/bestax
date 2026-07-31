@@ -410,11 +410,11 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 **Subcomponents:**
 
-- `Sidebar.Header`: Sidebar header section.
-- `Sidebar.Title`: Sidebar title text.
-- `Sidebar.Close`: Sidebar close button.
-- `Sidebar.Body`: Sidebar body/main content area.
-- `Sidebar.Footer`: Sidebar footer section.
+- `Sidebar.Header`: Container for the sidebar header.
+- `Sidebar.Title`: Title text inside the header.
+- `Sidebar.Close`: Close button for the sidebar.
+- `Sidebar.Body`: Main content area of the sidebar.
+- `Sidebar.Footer`: Footer area of the sidebar.
 
 ### Sidebar.Header
 
@@ -457,26 +457,6 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 | `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
-
-### Sidebar.Header
-
-Container for the sidebar header. Accepts all standard `<div>` HTML attributes.
-
-### Sidebar.Title
-
-Title text inside the header. Accepts all standard `<p>` HTML attributes.
-
-### Sidebar.Close
-
-Close button for the sidebar. Accepts all standard `<button>` HTML attributes.
-
-### Sidebar.Body
-
-Main content area of the sidebar. Accepts all standard `<div>` HTML attributes.
-
-### Sidebar.Footer
-
-Footer area of the sidebar. Accepts all standard `<div>` HTML attributes.
 
 ---
 

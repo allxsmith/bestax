@@ -275,19 +275,19 @@ function example() {
 
 ---
 
-## Related
-
-- [Icon](../elements/icon.md) - Icon component
-- [Button](../elements/button.md) - Button component
-
----
-
 ## Accessibility
 
 - Tooltip content has `role="tooltip"` for screen reader announcement
 - Has `aria-hidden` that toggles based on visibility
 - Tooltip shows on both hover and focus for keyboard users
 - The `dashed` style provides a visual cue that more information is available
+
+---
+
+## Related
+
+- [Icon](../elements/icon.md) - Icon component
+- [Button](../elements/button.md) - Button component
 
 ---
 

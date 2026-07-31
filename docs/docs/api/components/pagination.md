@@ -287,6 +287,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 - `Pagination.Link`: Page number or navigation link.
 - `Pagination.List`: Container for page links and ellipsis.
+- `Pagination.Ellipsis`: Ellipsis separator.
 - `Pagination.Previous`: "Previous" navigation button.
 - `Pagination.Next`: "Next" navigation button.
 
@@ -333,16 +334,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 | `...`       | All standard `<a>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
-
-**Subcomponents:**
-
-- `Pagination.List`: Container for page links and ellipsis.
-- `Pagination.Link`: Page number or navigation link.
-- `Pagination.Ellipsis`: Ellipsis separator.
-- `Pagination.Previous`: "Previous" navigation button.
-- `Pagination.Next`: "Next" navigation button.
-
----
 
 ## CSS & Sass Variables
 

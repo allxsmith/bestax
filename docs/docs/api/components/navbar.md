@@ -472,6 +472,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 - `Navbar.End`: Right-aligned menu area
 - `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
 - `Navbar.DropdownMenu`: Dropdown menu container
+- `Navbar.Divider`: Divider in dropdown menus.
 
 ### Navbar.Brand
 
@@ -575,21 +576,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->
-
-**Key Subcomponents:**
-
-- `Navbar.Brand`: For logo and branding (left side)
-- `Navbar.Burger`: Responsive menu toggle (mobile)
-- `Navbar.Menu`: Collapsible content (contains `Navbar.Start` and `Navbar.End`)
-- `Navbar.Start`: Left-aligned menu area
-- `Navbar.End`: Right-aligned menu area
-- `Navbar.Item`: Navigation links, buttons, or custom content
-- `Navbar.Link`: Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
-- `Navbar.Dropdown`: Dropdown parent (with options for hover, up, right, active)
-- `Navbar.DropdownMenu`: Dropdown menu container
-- `Navbar.Divider`: Divider in dropdown menus
-
----
 
 ## CSS & Sass Variables
 

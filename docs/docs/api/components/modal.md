@@ -341,7 +341,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                            | Default | Description                                       |
 | ----------- | ------------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Content rendered inside the component.            |
 | `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Content
@@ -349,7 +348,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                            | Default | Description                                       |
 | ----------- | ------------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Content rendered inside the component.            |
 | `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Card
@@ -357,7 +355,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                            | Default | Description                                       |
 | ----------- | ------------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                        | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`               | —       | Content rendered inside the component.            |
 | `...`       | All standard `<div>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Card.Head
@@ -365,7 +362,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                         | Default | Description                                       |
 | ----------- | ---------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                     | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`            | —       | Content rendered inside the component.            |
 | `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Card.Title
@@ -373,7 +369,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                          | Default | Description                                       |
 | ----------- | ----------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                      | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`             | —       | Content rendered inside the component.            |
 | `...`       | All standard `<p>` attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Card.Body
@@ -381,7 +376,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                         | Default | Description                                       |
 | ----------- | ---------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                     | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`            | —       | Content rendered inside the component.            |
 | `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Card.Foot
@@ -389,7 +383,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | Prop        | Type                         | Default | Description                                       |
 | ----------- | ---------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                     | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`            | —       | Content rendered inside the component.            |
 | `...`       | All standard HTML attributes | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Modal.Close
@@ -399,7 +392,6 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | `className` | `string`                             | —          | Additional CSS classes.                                                                         |
 | `size`      | `'small'` \| `'medium'` \| `'large'` | `'large'`  | Size of the close button (only applies to 'floating' variant).                                  |
 | `variant`   | `'delete'` \| `'floating'`           | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. |
-| `children`  | `React.ReactNode`                    | —          | Content rendered inside the component.                                                          |
 | `...`       | All standard `<button>` attributes   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                               |
 
 <!-- /bestax:generated props -->

@@ -468,7 +468,6 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `children`          | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                  |
 | `className`         | `string`                                                                   | —                  | Additional CSS classes.                                                                 |
 | `ref`               | `React.Ref<HTMLElement>`                                                   | —                  | Ref forwarded to the carousel element.                                                  |
-| `active`            | `boolean`                                                                  | —                  | Whether this item is active (set automatically).                                        |
 | `...`               | All standard `<div>` attributes and Bulma helper props                     | —                  | See [Helper Props](../helpers/usebulmaclasses.md)                                       |
 
 <!-- /bestax:generated props -->

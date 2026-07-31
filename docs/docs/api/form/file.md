@@ -449,7 +449,6 @@ function example() {
 | `message`        | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the input.                    |
 | `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                |
 | `fieldClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Field wrapper.               |
-| `children`       | `React.ReactNode`                                                                                                                  | —       | Content rendered inside the component.                      |
 | `ref`            | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                        |
 | `...`            | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)           |
 

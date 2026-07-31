@@ -232,7 +232,7 @@ interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Sidebar header section.
+ * Container for the sidebar header.
  *
  * @function
  * @param {SidebarHeaderProps} props - Props for the SidebarHeader component.
@@ -260,7 +260,7 @@ interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
 }
 
 /**
- * Sidebar title text.
+ * Title text inside the header.
  *
  * @function
  * @param {SidebarTitleProps} props - Props for the SidebarTitle component.
@@ -286,7 +286,7 @@ const SidebarTitle: React.FC<SidebarTitleProps> = ({
 type SidebarCloseProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 /**
- * Sidebar close button.
+ * Close button for the sidebar.
  *
  * @function
  * @param {SidebarCloseProps} props - Props for the SidebarClose component.
@@ -319,7 +319,7 @@ interface SidebarBodyProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Sidebar body/main content area.
+ * Main content area of the sidebar.
  *
  * @function
  * @param {SidebarBodyProps} props - Props for the SidebarBody component.
@@ -347,7 +347,7 @@ interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Sidebar footer section.
+ * Footer area of the sidebar.
  *
  * @function
  * @param {SidebarFooterProps} props - Props for the SidebarFooter component.

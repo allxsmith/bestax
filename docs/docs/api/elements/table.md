@@ -348,46 +348,6 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 <!-- /bestax:generated props -->
 
-### Thead / Tbody / Tfoot
-
-| Prop        | Type                                      | Default | Description                                      |
-| ----------- | ----------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                  | —       | Additional CSS classes.                          |
-| `children`  | `ReactNode`                               | —       | Section content (typically `Tr` rows).           |
-| ...         | All standard props and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Tr
-
-| Prop         | Type                                      | Default | Description                                      |
-| ------------ | ----------------------------------------- | ------- | ------------------------------------------------ |
-| `className`  | `string`                                  | —       | Additional CSS classes.                          |
-| `isSelected` | `boolean`                                 | —       | Adds Bulma's `is-selected` class.                |
-| `color`      | `TableColor`                              | —       | Bulma color modifier for the row.                |
-| `children`   | `ReactNode`                               | —       | Row content (typically `Th`/`Td`).               |
-| ...          | All standard props and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Th
-
-| Prop        | Type                                      | Default | Description                                      |
-| ----------- | ----------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                  | —       | Additional CSS classes.                          |
-| `isAligned` | `'left' \| 'right' \| 'centered'`         | —       | Text alignment.                                  |
-| `width`     | `string \| number`                        | —       | Cell width (e.g., `'100px'`, `100`).             |
-| `color`     | `TableColor`                              | —       | Bulma color modifier for the header cell.        |
-| `children`  | `ReactNode`                               | —       | Header cell content.                             |
-| ...         | All standard props and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
-### Td
-
-| Prop        | Type                                      | Default | Description                                      |
-| ----------- | ----------------------------------------- | ------- | ------------------------------------------------ |
-| `className` | `string`                                  | —       | Additional CSS classes.                          |
-| `color`     | `TableColor`                              | —       | Bulma color modifier for the cell.               |
-| `children`  | `ReactNode`                               | —       | Cell content.                                    |
-| ...         | All standard props and Bulma helper props |         | (See [Helper Props](../helpers/usebulmaclasses)) |
-
----
-
 ## CSS & Sass Variables
 
 <!-- bestax:generated cssvars -->

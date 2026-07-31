@@ -176,7 +176,6 @@ automatic initials/icon fallback runs.
 | `target`     | `string`                                                                                              | —          | Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).                                                            |
 | `rel`        | `string`                                                                                              | —          | Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).                                                               |
 | `imageProps` | `React.ImgHTMLAttributes<HTMLImageElement>`                                                           | —          | Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.                 |
-| `children`   | `React.ReactNode`                                                                                     | —          | Content rendered inside the component.                                                                                                               |
 | `...`        | All standard HTML attributes and Bulma helper props                                                   | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                    |
 
 **Types:**

@@ -267,13 +267,6 @@ When `canCancel` is true, the loading can be cancelled by:
 
 ---
 
-## Related
-
-- [Skeleton](../elements/skeleton.md) - Placeholder loading states
-- [Progress](../elements/progress.md) - Progress bar component
-
----
-
 ## Accessibility
 
 - Uses `role="alert"` to announce loading state to screen readers
@@ -281,6 +274,13 @@ When `canCancel` is true, the loading can be cancelled by:
 - Has `aria-label="Loading"` for the loading container
 - Cancel button has proper `aria-label` for accessibility
 - Escape key support for cancelling (when `canCancel` is true)
+
+---
+
+## Related
+
+- [Skeleton](../elements/skeleton.md) - Placeholder loading states
+- [Progress](../elements/progress.md) - Progress bar component
 
 ---
 

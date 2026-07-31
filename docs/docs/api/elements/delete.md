@@ -172,7 +172,6 @@ For custom close actions, use the `onClick` prop.
 | `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.              |
 | `ariaLabel` | `string`                                                                        | `'Close'` | ARIA label for accessibility (default: 'Close').  |
 | `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).  |
-| `children`  | `React.ReactNode`                                                               | —         | Content rendered inside the component.            |
 | `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 <!-- /bestax:generated props -->

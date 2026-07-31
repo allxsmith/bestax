@@ -302,13 +302,6 @@ The Collapse component supports these additional CSS classes:
 
 ---
 
-## Related
-
-- [Tabs](./tabs.md) - Tabbed content panels
-- [Panel](./panel.md) - Bulma panel component
-
----
-
 ## Accessibility
 
 - Trigger has `role="button"` and `tabIndex="0"` for keyboard access
@@ -316,6 +309,13 @@ The Collapse component supports these additional CSS classes:
 - Trigger has `aria-controls` pointing to the content element
 - Content has `aria-hidden` matching the collapsed state
 - Supports keyboard navigation (Enter and Space to toggle)
+
+---
+
+## Related
+
+- [Tabs](./tabs.md) - Tabbed content panels
+- [Panel](./panel.md) - Bulma panel component
 
 ---
 

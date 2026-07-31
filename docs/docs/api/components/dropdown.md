@@ -212,6 +212,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 **Subcomponents:**
 
 - `Dropdown.Item`: Bulma Dropdown item.
+- `Dropdown.Divider`: Bulma Dropdown divider.
 
 ### Dropdown.Item
 
