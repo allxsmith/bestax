@@ -5,6 +5,7 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `bulma-ui/` — the library, published as `@allxsmith/bestax-bulma` (has its own CLAUDE.md)
 - `docs/` — Docusaurus site → https://bestax.io (has its own CLAUDE.md)
 - `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
+- `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 
@@ -70,6 +71,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 - Install/postinstall scripts are **blocked by default** — new native deps need an `allowBuilds` entry.
 - `minimumReleaseAge` cooldown: versions younger than 3 days won't install.
 - Isolated node linker: undeclared (phantom) dependencies fail — declare everything you import.
+- Published packages must not ship a `workspace:` or `catalog:` specifier — `npm publish`
+  (what semantic-release runs) resolves neither, and the tarball becomes uninstallable
+  (#412). `check:conformance --only=publishable-manifests` enforces this.
 
 ## Workflow
 
