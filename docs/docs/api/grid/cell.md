@@ -221,10 +221,10 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 | ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
 | `colStart`   | `number`                                                                        | —       | Which column the cell starts at (Bulma: `is-col-start-x`).                         |
 | `colFromEnd` | `number`                                                                        | —       | Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`). |
-| `colSpan`    | `CellSpanValue`                                                                 | —       | How many columns the cell will span (Bulma: `is-col-span-x`).                      |
+| `colSpan`    | `number`                                                                        | —       | How many columns the cell will span (Bulma: `is-col-span-x`).                      |
 | `rowStart`   | `number`                                                                        | —       | Which row the cell starts at (Bulma: `is-row-start-x`).                            |
 | `rowFromEnd` | `number`                                                                        | —       | Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).    |
-| `rowSpan`    | `CellSpanValue`                                                                 | —       | How many rows the cell will span (Bulma: `is-row-span-x`).                         |
+| `rowSpan`    | `number`                                                                        | —       | How many rows the cell will span (Bulma: `is-row-span-x`).                         |
 | `className`  | `string`                                                                        | —       | Additional CSS class names.                                                        |
 | `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                                                        |
 | `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the cell.                                                 |
