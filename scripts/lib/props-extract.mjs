@@ -353,6 +353,12 @@ function unionExpansion(ts, decl, resolve = () => null) {
     if (ts.isTypeReferenceNode(n) && ts.isIdentifier(n.typeName)) {
       return resolve(n.typeName.text);
     }
+    // A member naming a type we cannot expand — `Intl.DateTimeFormatOptions`
+    // is a qualified name, not an identifier we index. Its own source text is
+    // what the reader wants: `DateFormatOption` had regressed the three
+    // datetime pages from main's `string | Intl.DateTimeFormatOptions` to a
+    // bare alias that isn't even exported from the barrel.
+    if (ts.isTypeReferenceNode(n)) return n.getText();
     return null;
   });
   if (parts.some(p => !p)) return null;
