@@ -66,6 +66,69 @@ function BrowserEditor({ title }) {
   );
 }
 
+/**
+ * Reports when the returned ref first comes within `rootMargin` of the
+ * viewport, then stops observing — previews mount once and stay mounted.
+ *
+ * Degrades to "always in view" where IntersectionObserver is missing, so the
+ * page behaves exactly as it did before deferral.
+ */
+function useInView(rootMargin = '600px') {
+  const ref = React.useRef(null);
+  const [inView, setInView] = React.useState(false);
+
+  React.useEffect(() => {
+    if (inView) {
+      return undefined;
+    }
+    if (typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return undefined;
+    }
+    const node = ref.current;
+    if (!node) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [inView, rootMargin]);
+
+  return [ref, inView];
+}
+
+/**
+ * Holds a preview's place until it scrolls near the viewport.
+ *
+ * A page like api/form/datetime/timeinput has 42 previews; mounting all of
+ * them up front means 42 react-live evaluations and 42 shadow roots before
+ * first paint, when only the first two are visible. The slot keeps its own
+ * height reserved (see `.live-preview-slot` in custom.css) so deferred
+ * previews do not collapse the page.
+ */
+function DeferredShadowPreview() {
+  const [ref, inView] = useInView();
+
+  return (
+    <div ref={ref} className="live-preview-slot">
+      {inView && (
+        <React.Suspense fallback={null}>
+          <ShadowLivePreview />
+        </React.Suspense>
+      )}
+    </div>
+  );
+}
+
 export default function CodeBlockEnhancer(props) {
   const liveTitle = props.title ?? extractTitleFromMeta(props.metastring);
 
@@ -79,12 +142,8 @@ export default function CodeBlockEnhancer(props) {
       scope={scope} /* other props as needed */
       transformCode={transformCode}
     >
-      <BrowserOnly fallback={<div className="live-preview" />}>
-        {() => (
-          <React.Suspense fallback={<div className="live-preview" />}>
-            <ShadowLivePreview />
-          </React.Suspense>
-        )}
+      <BrowserOnly fallback={<div className="live-preview-slot" />}>
+        {() => <DeferredShadowPreview />}
       </BrowserOnly>
       <LiveError className="live-error alert alert--danger" />
       <BrowserEditor title={liveTitle} />
