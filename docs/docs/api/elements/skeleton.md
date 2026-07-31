@@ -250,7 +250,7 @@ The following components support the `skeleton` property for Bulma skeleton load
 | `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines.   |
 | `lines`     | `number`                        | `3`       | Number of lines (only for `lines` variant).        |
 | `children`  | `React.ReactNode`               | —         | Content inside the block (only for block variant). |
-| `...`       | All standard `<div>` attributes | —         | See [Helper Props](../helpers/usebulmaclasses.md)  |
+| `...`       | All standard `<div>` attributes | —         |                                                    |
 
 <!-- /bestax:generated props -->
 
