@@ -48,6 +48,11 @@ function loadTs() {
 // this the alias name is clearer than its expansion.
 const ALIAS_INLINE_MAX = 96;
 
+// Rounds the alias fixpoint may take before it is treated as non-converging.
+// Chains in this repo settle in two; the bound only exists to stop a
+// mutually-recursive pair spinning.
+const ALIAS_FIXPOINT_ROUNDS = 8;
+
 // Type source-text substitutions, applied after alias inlining. `LINK` targets
 // are resolved to a page-relative path by the caller.
 const TYPE_DISPLAY = [
@@ -471,9 +476,25 @@ function allAliases(ts, program) {
   // rename pointing at a mixed alias equally so. Interleaving settles both
   // directions. Each round can only widen the index, so it converges; the
   // bound stops a mutually-recursive pair spinning.
+  //
+  // Running OUT of rounds is different from settling: an alias that genuinely
+  // cannot expand stops making progress and the loop exits clean, leaving it to
+  // the `**Types:**` footnote. But if the bound cuts the loop off while it is
+  // still resolving, the surviving aliases silently degrade to bare names —
+  // exactly the regression this generator exists to prevent. Fail instead.
   const resolve = n => aliasIndex.get(n)?.expansion ?? null;
-  for (let round = 0; round < 8 && (mixed.size || indirect.size); round += 1) {
-    let progressed = false;
+  let progressed = true;
+  for (let round = 0; progressed && (mixed.size || indirect.size); round += 1) {
+    if (round === ALIAS_FIXPOINT_ROUNDS) {
+      throw new Error(
+        `alias resolution was still making progress after ` +
+          `${ALIAS_FIXPOINT_ROUNDS} rounds — unresolved: ` +
+          `${[...mixed.keys(), ...indirect.keys()].sort().join(', ')}. ` +
+          `Raise ALIAS_FIXPOINT_ROUNDS or break the alias chain; leaving these ` +
+          `unexpanded would render them as bare names.`
+      );
+    }
+    progressed = false;
     for (const [name, stmt] of mixed) {
       const expansion = unionExpansion(ts, stmt, resolve);
       if (!expansion) continue;
@@ -496,7 +517,6 @@ function allAliases(ts, program) {
       indirect.delete(name);
       progressed = true;
     }
-    if (!progressed) break;
   }
   return aliasIndex;
 }
@@ -731,16 +751,32 @@ function classifyTypeNode(ts, checker, node, out, _seen) {
   }
 
   const text = node.getText();
-  if (/BulmaClassesProps/.test(text)) {
-    out.external.push({ kind: 'helpers' });
-    return;
-  }
 
   // Omit<T, K> / Pick<T, K> — expand T, then filter its members by K.
   const ref = ts.isTypeReferenceNode(node)
     ? node.typeName
     : (node.expression ?? null);
   const name = ref && ts.isIdentifier(ref) ? ref.text : null;
+
+  // The helper props, matched STRUCTURALLY. A substring test on the node's
+  // source text also fired for `Omit<React.HTMLAttributes<HTMLElement>, keyof
+  // BulmaClassesProps>` — where the name appears as the omit KEY LIST, not as
+  // the base being omitted. That returned before the Omit branch below ever
+  // ran, so `HTMLElement` never reached catchAllRow and menu.md's four tables
+  // plus dropdown.md's two rendered "Bulma helper props" with the "All standard
+  // HTML attributes" half silently dropped.
+  const isHelpers =
+    name === 'BulmaClassesProps' ||
+    ((name === 'Omit' || name === 'Pick') &&
+      node.typeArguments?.[0] &&
+      ts.isTypeReferenceNode(node.typeArguments[0]) &&
+      ts.isIdentifier(node.typeArguments[0].typeName) &&
+      node.typeArguments[0].typeName.text === 'BulmaClassesProps');
+  if (isHelpers) {
+    out.external.push({ kind: 'helpers' });
+    return;
+  }
+
   if ((name === 'Omit' || name === 'Pick') && node.typeArguments?.length >= 1) {
     const inner = resolveInterface(ts, checker, node.typeArguments[0]);
     const keys = literalKeys(ts, node.typeArguments[1]);
@@ -881,8 +917,18 @@ function memberRows(
     // information on every boolean flag in the library. Safe because nothing in
     // src/ defaults a boolean to true outside the destructuring pattern (an
     // explicit default or `@defaultValue` still wins).
+    //
+    // Except in controlled mode, where `undefined` is not "off" — it is what
+    // selects UNCONTROLLED. `Collapse`'s `open` says so in its own comment
+    // ("If provided, component is controlled"), and documenting `false` there
+    // tells the reader the component starts closed and is controlled, which
+    // are contradictory. A prop whose description says it controls the
+    // component keeps an empty Default.
+    const controlled = /\bcontrolled\b/i.test(jsdocText(ts, member));
     const impliedFalse =
-      member.questionToken && member.type?.kind === ts.SyntaxKind.BooleanKeyword
+      member.questionToken &&
+      member.type?.kind === ts.SyntaxKind.BooleanKeyword &&
+      !controlled
         ? 'false'
         : null;
     // `@deprecated` must reach the table. The hand-written pages led these rows
