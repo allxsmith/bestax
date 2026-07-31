@@ -39,7 +39,7 @@ function example() {
 
   return JSON.stringify({ bulmaHelperClasses, rest });
   // bulmaHelperClasses: 'has-text-link has-background-primary p-4 has-text-centered'
-  // rest: { className: 'custom-card', id: 'card1' }
+  // rest: { id: 'card1' }
 }
 ```
 
@@ -77,7 +77,7 @@ function example() {
     viewport: 'mobile',
   });
   return JSON.stringify({ bulmaHelperClasses });
-  // bulmaHelperClasses: 'has-text-info-mobile m-2-mobile has-text-centered-mobile'
+  // bulmaHelperClasses: 'has-text-link-mobile m-2-mobile has-text-centered-mobile'
 }
 ```
 
