@@ -48,6 +48,11 @@ function loadTs() {
 // this the alias name is clearer than its expansion.
 const ALIAS_INLINE_MAX = 96;
 
+// Rounds the alias fixpoint may take before it is treated as non-converging.
+// Chains in this repo settle in two; the bound only exists to stop a
+// mutually-recursive pair spinning.
+const ALIAS_FIXPOINT_ROUNDS = 8;
+
 // Type source-text substitutions, applied after alias inlining. `LINK` targets
 // are resolved to a page-relative path by the caller.
 const TYPE_DISPLAY = [
@@ -471,9 +476,25 @@ function allAliases(ts, program) {
   // rename pointing at a mixed alias equally so. Interleaving settles both
   // directions. Each round can only widen the index, so it converges; the
   // bound stops a mutually-recursive pair spinning.
+  //
+  // Running OUT of rounds is different from settling: an alias that genuinely
+  // cannot expand stops making progress and the loop exits clean, leaving it to
+  // the `**Types:**` footnote. But if the bound cuts the loop off while it is
+  // still resolving, the surviving aliases silently degrade to bare names —
+  // exactly the regression this generator exists to prevent. Fail instead.
   const resolve = n => aliasIndex.get(n)?.expansion ?? null;
-  for (let round = 0; round < 8 && (mixed.size || indirect.size); round += 1) {
-    let progressed = false;
+  let progressed = true;
+  for (let round = 0; progressed && (mixed.size || indirect.size); round += 1) {
+    if (round === ALIAS_FIXPOINT_ROUNDS) {
+      throw new Error(
+        `alias resolution was still making progress after ` +
+          `${ALIAS_FIXPOINT_ROUNDS} rounds — unresolved: ` +
+          `${[...mixed.keys(), ...indirect.keys()].sort().join(', ')}. ` +
+          `Raise ALIAS_FIXPOINT_ROUNDS or break the alias chain; leaving these ` +
+          `unexpanded would render them as bare names.`
+      );
+    }
+    progressed = false;
     for (const [name, stmt] of mixed) {
       const expansion = unionExpansion(ts, stmt, resolve);
       if (!expansion) continue;
@@ -496,7 +517,6 @@ function allAliases(ts, program) {
       indirect.delete(name);
       progressed = true;
     }
-    if (!progressed) break;
   }
   return aliasIndex;
 }
