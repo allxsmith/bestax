@@ -32,6 +32,12 @@ command, `<Tabs>` linearizes to `####` headings keeping every `TabItem` body. It
 code — fenced _or_ inline — because `docs/api/components/tabs.md` documents bestax-bulma's own
 `<Tabs.List>`/`<Tabs.Item>`. Covered by `scripts/flatten-llms-tabs.test.mjs` (`pnpm test`).
 
+`build` then chains `scripts/strip-generated-markers.mjs`, which removes the
+`<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
+strip HTML comments, and the markers are a source-control device no reader of the site needs.
+It is a build step rather than a Docusaurus plugin because `postBuild` hooks run under
+`Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it.
+
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs
 guide (`docs/guides/llms/` → https://bestax.io/docs/guides/llms) — don't add new competing
@@ -44,6 +50,23 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).
+- **Parts of an API page are generated** (`pnpm gen`, `scripts/gen-api-docs.mjs`). Regions
+  delimited by `<!-- bestax:generated <id> -->` / `<!-- /bestax:generated <id> -->` are
+  machine-owned and hand-edits are reverted: `overview` (the summary sentence, from the
+  component's TSDoc), `import`, `props` (from the `<X>Props` interfaces) and `cssvars` (parsed
+  from the SCSS). To change a props table, change the TSDoc on the interface member. Prose
+  outside the markers — including admonitions right below the Overview sentence — is yours.
+  Deleting a marker pair opts that region out; `docs-section-order` makes that visible rather
+  than silent. Managed categories are listed in `scripts/lib/api-sources.mjs` — the set starts
+  empty and grows one category per PR, so a page is only generated once its category lands.
+- Section order on a managed page: Overview, Import, Usage, _(page-specific extras)_,
+  Accessibility, Related Components, Additional Resources, Props, CSS & Sass Variables.
+  Every category except `helpers/` is managed; the four hook pages there have no `## Props`
+  at all, and `config.md`/`theme.md` follow the order but keep their hand-written tables.
+- The `props` region owns the tables and nothing else. Prose inside `## Props` is preserved
+  above the opening marker or below the closing one — but prose sitting _between_ two tables
+  has nowhere to go, so move it out first. A `###` heading that is not one of the component's
+  sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
 - No inline `style={{}}` in examples — use `Block`/helper props; there is no `gap` helper,
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
