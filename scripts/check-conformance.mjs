@@ -26,6 +26,12 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
+ *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
+ *                        the same thing in all three deliberate copies
+ *                        (CLAUDE_MD template + both JSX-generating skills),
+ *                        and names only props that really exist
+ *   publishable-manifests  no published package ships a `workspace:`/`catalog:`
+ *                        specifier consumers would have to resolve (#412)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname } from 'node:path';
@@ -586,6 +592,145 @@ async function checkSkillsSync() {
   return violations;
 }
 
+// The inline-style → helper-prop mapping (#350) is deliberately triplicated so
+// it is in context at generation time: the scaffolded CLAUDE_MD template plus
+// the two skills that generate the most JSX. Only the template copy is guarded
+// by jest, so this check pins the mapping three ways:
+//   1. the load-bearing facts (spacing scale, value sets, the gap rule, the
+//      named-class fallback) appear verbatim in every copy;
+//   2. the copies name the same set of props, so a row added to one skill
+//      cannot silently go missing from the others;
+//   3. every prop named is really declared in bulma-ui/src — a mapping that
+//      points at a prop the library lacks makes the model emit an inert
+//      attribute, which is the exact failure #350 exists to prevent.
+// Matching strips backslashes first so the TS template's escaped backticks
+// compare equal to the markdown copies.
+const MAPPING_FILES = [
+  'create-bestax/src/constants.ts',
+  'skills/bestax-layout-scaffold/SKILL.md',
+  'skills/bestax-custom-component/SKILL.md',
+];
+
+// Prop tokens in the "Helper props instead" column. Two unambiguous forms:
+// `name="value"` (always a prop) and a bare `name` with an internal capital
+// (textColor, flexDirection). Bare all-lowercase spans are values, not props
+// (`bold`, `centered`, `primary`), and PascalCase spans are component names.
+function mappingPropTokens(source) {
+  const lines = source.replace(/\\`/g, '`').split('\n');
+  const start = lines.findIndex(
+    l => l.includes('|') && l.includes('Helper props instead')
+  );
+  if (start < 0) return null;
+  const props = new Set();
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line.startsWith('|')) break;
+    if (/^\|[\s:|-]+\|$/.test(line)) continue; // separator row
+    // Column 1 is the CSS declaration being replaced; only scan the rest.
+    const helper = line.split('|').slice(2, -1).join('|');
+    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)="[^"]*"`/g)) {
+      props.add(m[1]);
+    }
+    for (const m of helper.matchAll(/`([a-z][a-zA-Z0-9]*)`/g)) {
+      if (/[A-Z]/.test(m[1])) props.add(m[1]);
+    }
+  }
+  return props;
+}
+
+async function checkStyleMappingSync() {
+  const violations = [];
+  const FILES = MAPPING_FILES;
+  const FACTS = [
+    '`1`=0.25rem, `2`=0.5rem, `3`=0.75rem, `4`=1rem, `5`=1.5rem, `6`=3rem',
+    '`textAlign="centered"`',
+    '`textColor`',
+    '`bgColor`',
+    '`textSize="1"`…`"7"`',
+    '`textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`',
+    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`',
+    '`display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`',
+    '`flexGrow="1"`',
+    '`visibility="hidden"`',
+    '`displayMobile`',
+    'no `gap` helper',
+    'take a `gap` prop',
+    'named class',
+  ];
+  for (const rel of FILES) {
+    const src = (await readFile(join(REPO, rel), 'utf8')).replace(/\\/g, '');
+    for (const fact of FACTS) {
+      if (!src.includes(fact)) {
+        violations.push(
+          `${rel} is missing "${fact}" from the inline-style → helper-prop ` +
+            `mapping (#350). The mapping is deliberately triplicated ` +
+            `(create-bestax CLAUDE_MD template + both skills) so it is ` +
+            `always in context — apply the same edit to all three copies.`
+        );
+      }
+    }
+  }
+
+  // 2. The copies must name the same props. A row added to (or dropped from)
+  //    one table but not the others is drift the FACTS list cannot see,
+  //    because FACTS only pins rows that exist today.
+  const tables = new Map();
+  for (const rel of FILES) {
+    const props = mappingPropTokens(await readFile(join(REPO, rel), 'utf8'));
+    if (props === null) {
+      violations.push(
+        `${rel} no longer contains an inline-style → helper-prop mapping ` +
+          `table (no row with a "Helper props instead" header cell). The ` +
+          `mapping must stay in all of ${FILES.join(', ')} — it is only ` +
+          `useful when it is in context as JSX is generated (#350).`
+      );
+      continue;
+    }
+    tables.set(rel, props);
+  }
+  if (tables.size !== FILES.length) return violations;
+
+  const union = new Set([...tables.values()].flatMap(s => [...s]));
+  for (const [rel, props] of tables) {
+    const missing = [...union].filter(p => !props.has(p)).sort();
+    if (missing.length) {
+      violations.push(
+        `${rel}'s mapping table omits ${missing.length} prop(s) named in the ` +
+          `other copies: ${missing.join(', ')}. Add the matching row(s) — the ` +
+          `copies in ${FILES.join(', ')} must stay in sync.`
+      );
+    }
+  }
+
+  // 3. Every prop named must really exist. Helper props live in the helpers/
+  //    interfaces; component-remapped ones (textColor, bgColor) are declared
+  //    on the components themselves, so scan the whole source tree.
+  const srcDir = join(REPO, 'bulma-ui', 'src');
+  const declared = new Set();
+  for (const file of [
+    ...(await walk(srcDir, '.ts')),
+    ...(await walk(srcDir, '.tsx')),
+  ]) {
+    const src = await readFile(file, 'utf8');
+    for (const m of src.matchAll(/^\s+([a-zA-Z][a-zA-Z0-9]*)\?:/gm)) {
+      declared.add(m[1]);
+    }
+  }
+  for (const [rel, props] of tables) {
+    const unknown = [...props].filter(p => !declared.has(p)).sort();
+    if (unknown.length) {
+      violations.push(
+        `${rel}'s mapping table names ${unknown.length} prop(s) that are not ` +
+          `declared anywhere in bulma-ui/src: ${unknown.join(', ')}. Fix the ` +
+          `name or drop the row — a mapping that points at a prop the ` +
+          `library does not have makes the model emit an inert attribute.`
+      );
+    }
+  }
+
+  return violations;
+}
+
 async function checkStoryPerComponent() {
   const violations = [];
   const modules = parseExportedModules(await readFile(INDEX_TS, 'utf8'));
@@ -764,6 +909,191 @@ async function checkInlineStyle(updateBaseline) {
   return violations;
 }
 
+// The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
+// other keys in the file (minimumReleaseAgeExclude, publicHoistPattern) are
+// lists too, so scanning the whole file for `- item` would pick them up.
+function parseWorkspacePackages(yaml) {
+  const dirs = [];
+  let inBlock = false;
+  for (const line of yaml.split(/\r?\n/)) {
+    if (/^packages:\s*$/.test(line)) {
+      inBlock = true;
+      continue;
+    }
+    if (!inBlock) continue;
+    const item = line.match(/^\s+-\s*(\S+)\s*$/);
+    if (item) dirs.push(item[1].replace(/^['"]|['"]$/g, ''));
+    else if (line.trim() && !line.trimStart().startsWith('#')) break;
+  }
+  return dirs;
+}
+
+/**
+ * `npm publish` — which is what @semantic-release/npm shells out to — does NOT
+ * resolve pnpm's `workspace:` protocol the way `pnpm publish` does. A
+ * `workspace:^` left in a published manifest is uninstallable by every package
+ * manager (`EUNSUPPORTEDPROTOCOL`); that shipped as bestax-migrate@1.0.0
+ * (#412), invisibly, because nothing in CI installs the published artifact.
+ *
+ * `catalog:` has the same asymmetry — pnpm resolves it at pack time, npm does
+ * not — so it is guarded here too, before the repo grows its first catalog.
+ *
+ * Two rules, both about the manifest as CONSUMERS see it:
+ *   1. Sections npm resolves for consumers must have no pack-time protocol at
+ *      all. A workspace package needed at runtime has to be a plain semver
+ *      range.
+ *   2. One left in devDependencies is safe to install but still wrong to
+ *      publish, so the package must resolve it at pack time. That escape hatch
+ *      is `workspace:`-only: pack-manifest.mjs fails on `catalog:` rather than
+ *      resolving it, so wiring up the hooks does not redeem a catalog spec.
+ */
+const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:'];
+
+const hasPackTimeProtocol = spec =>
+  typeof spec === 'string' && PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p));
+
+// The two shapes the pack hooks refuse rather than guess at, so devDependencies
+// carrying them are violations no matter how the hooks are wired. Kept in step
+// with bestax-migrate/scripts/pack-manifest.mjs, which exits 1 on both.
+const UNRESOLVABLE_AT_PACK = [
+  {
+    matches: spec => spec.startsWith('catalog:'),
+    why:
+      'pack-manifest.mjs cannot resolve catalog: — the range lives in ' +
+      'pnpm-workspace.yaml, not in the linked package',
+  },
+  {
+    // `workspace:<name>@<range>`. A semver range holds neither "/" nor a
+    // non-leading "@", so this does not catch `workspace:^5.0.0`.
+    matches: spec => {
+      if (!spec.startsWith('workspace:')) return false;
+      const rest = spec.slice('workspace:'.length);
+      return rest.includes('/') || rest.lastIndexOf('@') > 0;
+    },
+    why:
+      "pnpm's alias form publishes as `npm:<name>@<version>`, which " +
+      'pack-manifest.mjs does not synthesize',
+  },
+];
+
+const unresolvableAtPack = spec =>
+  typeof spec === 'string' &&
+  UNRESOLVABLE_AT_PACK.find(rule => rule.matches(spec));
+
+async function checkPublishableManifests() {
+  const violations = [];
+  const CONSUMER_SECTIONS = [
+    'dependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ];
+
+  const packages = parseWorkspacePackages(
+    await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
+  );
+  if (!packages.length) {
+    return ['pnpm-workspace.yaml has no `packages:` entries — cannot check.'];
+  }
+
+  for (const dir of packages) {
+    const manifestPath = join(REPO, dir, 'package.json');
+    let pkg;
+    try {
+      pkg = JSON.parse(await readFile(manifestPath, 'utf8'));
+    } catch {
+      violations.push(
+        `pnpm-workspace.yaml lists "${dir}" but ${dir}/package.json is missing ` +
+          `or unparseable.`
+      );
+      continue;
+    }
+    if (pkg.private) continue;
+
+    for (const section of CONSUMER_SECTIONS) {
+      for (const [name, spec] of Object.entries(pkg[section] ?? {})) {
+        if (hasPackTimeProtocol(spec)) {
+          const protocol = spec.slice(0, spec.indexOf(':') + 1);
+          violations.push(
+            `${dir}/package.json declares "${name}": "${spec}" in ${section}. ` +
+              `npm publish does not resolve the ${protocol} protocol, so the ` +
+              `published package is uninstallable (EUNSUPPORTEDPROTOCOL, #412). ` +
+              `Move it to devDependencies if it is only needed to build or ` +
+              `test this package, or give it a plain semver range if consumers ` +
+              `really need it at runtime.`
+          );
+        }
+      }
+    }
+
+    const devDeps = pkg.devDependencies ?? {};
+
+    // Hooks present is no defence for the shapes pack-manifest.mjs refuses:
+    // the check would go green and the release would be what breaks. So these
+    // are violations on their own terms, reported alongside the hook rules
+    // below rather than instead of them.
+    for (const [name, spec] of Object.entries(devDeps)) {
+      const rule = unresolvableAtPack(spec);
+      if (!rule) continue;
+      violations.push(
+        `${dir}/package.json declares "${name}": "${spec}" in ` +
+          `devDependencies. The prepack/postpack hooks do not make that ` +
+          `publishable — ${rule.why} — so the pack fails instead (#412). ` +
+          `Give it a plain semver range.`
+      );
+    }
+
+    // A plain `workspace:` range is the one case the hooks genuinely cover, so
+    // it is the only one whose violation they suppress.
+    const stillUnresolved = Object.values(devDeps).some(
+      spec =>
+        typeof spec === 'string' &&
+        spec.startsWith('workspace:') &&
+        !unresolvableAtPack(spec)
+    );
+    if (!stillUnresolved) continue;
+
+    // Deliberately matched by name: only pack-manifest.mjs is known to perform
+    // this rewrite. A package with its own differently-named pack hook (e.g.
+    // bulma-ui/scripts/pack-pointer-files.mjs) should call pack-manifest.mjs as
+    // well rather than be waved through — a false positive here costs one line
+    // of config, a false negative ships another uninstallable tarball.
+    const hookScripts = ['prepack', 'postpack'].map(hook =>
+      (pkg.scripts?.[hook] ?? '')
+        .split(/\s+/)
+        .find(token => token.endsWith('pack-manifest.mjs'))
+    );
+
+    if (!hookScripts.every(Boolean)) {
+      violations.push(
+        `${dir}/package.json keeps a workspace: specifier in devDependencies ` +
+          `but does not resolve it at pack time, so it would be published ` +
+          `verbatim (#412). Add "prepack": "node scripts/pack-manifest.mjs ` +
+          `prepack" and the matching postpack hook — copy ` +
+          `bestax-migrate/scripts/pack-manifest.mjs.`
+      );
+      continue;
+    }
+
+    // Naming the script is not the same as shipping it. A hook left pointing at
+    // a moved or deleted path satisfies the check above and then fails at
+    // `npm publish` — the one moment where a failure is most expensive.
+    for (const rel of new Set(hookScripts)) {
+      try {
+        await access(join(REPO, dir, rel));
+      } catch {
+        violations.push(
+          `${dir}/package.json points its prepack/postpack hooks at "${rel}", ` +
+            `but ${dir}/${rel} does not exist. The workspace: specifier in ` +
+            `devDependencies would go out unresolved (#412), and ` +
+            `the failure would surface during the release rather than in CI. ` +
+            `Restore the script or fix the path in both hooks.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
 // ---------------------------------------------------------------------------
 
 const CHECKS = {
@@ -773,9 +1103,11 @@ const CHECKS = {
   'docs-generated': checkDocsGenerated,
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
+  'style-mapping-sync': checkStyleMappingSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
+  'publishable-manifests': checkPublishableManifests,
   'inline-style': null, // handled below (takes the flag)
 };
 

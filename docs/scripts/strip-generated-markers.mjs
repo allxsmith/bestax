@@ -24,7 +24,9 @@ import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'build');
+const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
+const OUT_DIR = join(DOCS, 'build');
+const SRC_DIR = join(DOCS, 'docs', 'api');
 const MARKER =
   /^[ \t]*<!--[ \t]*\/?bestax:generated[ \t][^>]*-->[ \t]*\r?\n?/gm;
 
@@ -64,6 +66,29 @@ async function main() {
     stripped += hits.length;
     touched++;
   }
+  // Stripping nothing is only correct when there was nothing to strip. This
+  // step exists BECAUSE a postBuild plugin silently ran too early and found no
+  // markers (see the header), so a quiet no-op is precisely the failure to
+  // guard against: the markers would ship into llms-full.txt and every `.md`
+  // twin with a green build. Compare against the SOURCE pages, which is the
+  // only way to tell "no managed pages yet" from "this step stopped working".
+  if (stripped === 0) {
+    const sources = existsSync(SRC_DIR) ? await markdownFiles(SRC_DIR) : [];
+    let inSource = 0;
+    for (const file of sources) {
+      inSource += (await readFile(file, 'utf8')).match(MARKER)?.length ?? 0;
+    }
+    if (inSource > 0) {
+      console.error(
+        `strip-generated-markers: stripped nothing, but the source pages carry ` +
+          `${inSource} marker(s). The built markdown moved, the marker format ` +
+          `changed, or this step ran before docusaurus-plugin-llms — the ` +
+          `markers would ship to the LLM surface. Refusing to pass silently.`
+      );
+      process.exit(1);
+    }
+  }
+
   console.log(
     `strip-generated-markers: removed ${stripped} marker(s) from ${touched} file(s)`
   );
