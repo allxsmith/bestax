@@ -7,6 +7,10 @@
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@allxsmith/bestax-bulma)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance)
+[![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
 
 TypeScript-first React component library for the **Bulma v1** CSS framework — 80+ fully typed, tree-shakeable components, including extras like Carousel, Dialog, Sidebar, Steps, and date/time pickers.
 
@@ -121,6 +125,22 @@ import { Theme } from '@allxsmith/bestax-bulma';
 
 View the package on npmjs:  
 👉 [https://www.npmjs.com/package/@allxsmith/bestax-bulma](https://www.npmjs.com/package/@allxsmith/bestax-bulma)
+
+---
+
+## 🔒 Hardened by default
+
+This package is one runtime dependency deep (Bulma) and is published under a deliberately strict pipeline:
+
+- **Signed provenance** — every release carries a sigstore attestation linking the tarball to the exact commit and CI run that built it. Verify it in the **Provenance** section of the [npm page](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance), or run `npm audit signatures` in your project.
+- **npm OIDC trusted publishing** — short-lived, per-run credentials; no long-lived `NPM_TOKEN` exists to be stolen. Release commits and tags are GPG-signed.
+- **Socket.dev scans every PR** for malware, install scripts, obfuscated code, and privilege escalation before it can reach `main`.
+- **Dependencies are a deliberate act** — install scripts are blocked unless individually allow-listed, freshly published versions are refused for 3 days, and CI installs only what the reviewed lockfile resolves.
+- **Every GitHub Action is pinned to a full commit SHA**, so a compromised action release can't roll silently into a build of this package.
+- **CodeQL, Dependency Review, and Dependabot** run continuously, alongside a high-severity `pnpm audit` gate.
+- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent adversarial Claude review (a different model from the one writing AI-authored changes), on top of required green CI, an approving review, and a human merge.
+
+Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
 ---
 

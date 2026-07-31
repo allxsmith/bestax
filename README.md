@@ -8,6 +8,10 @@
 [![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)](https://github.com/allxsmith/bestax/blob/main/bulma-ui/jest.config.js)
 [![Bulma](https://img.shields.io/badge/Bulma-v1.0+-00d1b2.svg)](https://bulma.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@allxsmith/bestax-bulma)](https://socket.dev/npm/package/@allxsmith/bestax-bulma/overview)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/allxsmith/bestax/badge)](https://scorecard.dev/viewer/?uri=github.com/allxsmith/bestax)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance)
+[![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
 
 TypeScript-first React component library for the **Bulma v1** CSS framework — 80+ fully typed components — plus a project scaffolder and AI agent tooling.
 
@@ -170,6 +174,25 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 - **Lightweight** — see the live [bundlephobia badge](https://bundlephobia.com/package/@allxsmith/bestax-bulma); tree-shakeable ESM + CJS
 - **99% test coverage** — enforced in CI by the [jest config](bulma-ui/jest.config.js), not just claimed
 - **Active developer support** — issues, questions, and PRs get fast responses
+
+---
+
+## 🔒 Hardened by default
+
+Supply-chain security here is a standing constraint on how the project is built, not a checklist we filled in once:
+
+- **Signed provenance on every release** — each tarball carries a sigstore attestation linking it to the exact commit and CI run that produced it. Check it yourself with `npm audit signatures`, or on the package page's Provenance section.
+- **npm OIDC trusted publishing** — releases authenticate with short-lived, per-run tokens. There is no long-lived `NPM_TOKEN` in this repo to steal.
+- **Signed release commits** — release commits and tags are GPG-signed, and `main` rejects unsigned commits outright.
+- **Socket.dev scans every PR** — dependency changes are checked for malware, install scripts, obfuscated code, and privilege escalation before they can reach `main`.
+- **Every GitHub Action pinned to a full commit SHA** — no movable tags, so a compromised action release can't roll silently into the pipeline.
+- **Install scripts blocked by default** — dependency `install`/`postinstall` scripts don't run unless explicitly allow-listed one at a time, each with a written rationale ([`pnpm-workspace.yaml`](pnpm-workspace.yaml)).
+- **3-day dependency cooldown** — freshly published versions won't install. This is the main defense against account-takeover worms, which are usually yanked within hours.
+- **Frozen lockfile + audit gate** — CI installs exactly what the reviewed lockfile resolves and fails on high-severity advisories.
+- **CodeQL, Dependency Review, and Dependabot** — static analysis over both the source and the workflow files, PR-level advisory blocking, and weekly grouped dependency updates.
+- **Layered AI review before merge** — every PR gets a [CodeRabbit](https://coderabbit.ai) review plus an independent adversarial Claude review that deliberately runs a different model from the one writing AI-authored changes. On top of that, `main` requires green CI, one approving review, and a human merge. AI agents are structurally barred from editing the workflows, release config, or supply-chain settings that gate them.
+
+Full detail: [`SECURITY.md`](SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
 ---
 
