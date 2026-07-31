@@ -14,7 +14,8 @@ export interface LevelProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Enables mobile layout (stacks vertically on mobile). */
+  /** Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it
+   * the level stacks vertically below tablet. */
   isMobile?: boolean;
   /** Bulma color modifier for the level. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
