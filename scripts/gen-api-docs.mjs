@@ -242,7 +242,7 @@ function renderProps(info, { pages, relPath }) {
       );
     }
     for (const sub of subs) {
-      if (ownPage(sub)) continue;
+      if (ownPage(sub) || sub.listOnly) continue;
       blocks.push(`### ${sub.path}`, ...withTypes(sub));
     }
   }
