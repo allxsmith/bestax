@@ -76,6 +76,20 @@ function resolveSpecifier(name, spec) {
   if (rest === '*' || rest === '') return resolveWorkspaceVersion(name);
   if (rest === '^' || rest === '~')
     return `${rest}${resolveWorkspaceVersion(name)}`;
+  // `workspace:<name>@<range>` is pnpm's alias form, and it does NOT publish as
+  // a bare range: pnpm emits `npm:<name>@<version>`. Unwrapping it would write
+  // "@scope/pkg@^5", which no package manager can install — #412 again, wearing
+  // a different hat. A semver range never contains "/" or a non-leading "@",
+  // so this only catches the alias form.
+  if (rest.includes('/') || rest.lastIndexOf('@') > 0) {
+    console.error(
+      `pack-manifest: "${name}": "${spec}" is pnpm's alias form, which ` +
+        `publishes as \`npm:<name>@<version>\`.\n` +
+        'This script does not synthesize that. Depend on the package under its ' +
+        'real name, or teach pack-manifest.mjs the npm: alias rewrite.'
+    );
+    process.exit(1);
+  }
   return rest;
 }
 

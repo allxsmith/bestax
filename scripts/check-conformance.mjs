@@ -828,6 +828,34 @@ const PACK_TIME_PROTOCOLS = ['workspace:', 'catalog:'];
 const hasPackTimeProtocol = spec =>
   typeof spec === 'string' && PACK_TIME_PROTOCOLS.some(p => spec.startsWith(p));
 
+// The two shapes the pack hooks refuse rather than guess at, so devDependencies
+// carrying them are violations no matter how the hooks are wired. Kept in step
+// with bestax-migrate/scripts/pack-manifest.mjs, which exits 1 on both.
+const UNRESOLVABLE_AT_PACK = [
+  {
+    matches: spec => spec.startsWith('catalog:'),
+    why:
+      'pack-manifest.mjs cannot resolve catalog: — the range lives in ' +
+      'pnpm-workspace.yaml, not in the linked package',
+  },
+  {
+    // `workspace:<name>@<range>`. A semver range holds neither "/" nor a
+    // non-leading "@", so this does not catch `workspace:^5.0.0`.
+    matches: spec => {
+      if (!spec.startsWith('workspace:')) return false;
+      const rest = spec.slice('workspace:'.length);
+      return rest.includes('/') || rest.lastIndexOf('@') > 0;
+    },
+    why:
+      "pnpm's alias form publishes as `npm:<name>@<version>`, which " +
+      'pack-manifest.mjs does not synthesize',
+  },
+];
+
+const unresolvableAtPack = spec =>
+  typeof spec === 'string' &&
+  UNRESOLVABLE_AT_PACK.find(rule => rule.matches(spec));
+
 async function checkPublishableManifests() {
   const violations = [];
   const CONSUMER_SECTIONS = [
@@ -875,27 +903,28 @@ async function checkPublishableManifests() {
 
     const devDeps = pkg.devDependencies ?? {};
 
-    // The pack hooks make `workspace:` publishable; they do NOT make `catalog:`
-    // publishable. pack-manifest.mjs deliberately fails on a catalog specifier
-    // rather than invent a range that lives in pnpm-workspace.yaml, so hooks
-    // present is no defence — this has to be a violation on its own terms, or
-    // the check goes green and the release is what breaks.
+    // Hooks present is no defence for the shapes pack-manifest.mjs refuses:
+    // the check would go green and the release would be what breaks. So these
+    // are violations on their own terms, reported alongside the hook rules
+    // below rather than instead of them.
     for (const [name, spec] of Object.entries(devDeps)) {
-      if (typeof spec === 'string' && spec.startsWith('catalog:')) {
-        violations.push(
-          `${dir}/package.json declares "${name}": "${spec}" in ` +
-            `devDependencies. The prepack/postpack hooks do not make that ` +
-            `publishable — pack-manifest.mjs cannot resolve catalog: (the ` +
-            `range lives in pnpm-workspace.yaml, not in the linked package) ` +
-            `and fails the pack instead (#412). Give it a plain semver range.`
-        );
-      }
+      const rule = unresolvableAtPack(spec);
+      if (!rule) continue;
+      violations.push(
+        `${dir}/package.json declares "${name}": "${spec}" in ` +
+          `devDependencies. The prepack/postpack hooks do not make that ` +
+          `publishable — ${rule.why} — so the pack fails instead (#412). ` +
+          `Give it a plain semver range.`
+      );
     }
 
-    // `workspace:` is the case the hooks genuinely cover, so it is the only one
-    // whose violation they suppress.
+    // A plain `workspace:` range is the one case the hooks genuinely cover, so
+    // it is the only one whose violation they suppress.
     const stillUnresolved = Object.values(devDeps).some(
-      spec => typeof spec === 'string' && spec.startsWith('workspace:')
+      spec =>
+        typeof spec === 'string' &&
+        spec.startsWith('workspace:') &&
+        !unresolvableAtPack(spec)
     );
     if (!stillUnresolved) continue;
 
