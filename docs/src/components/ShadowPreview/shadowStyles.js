@@ -1,5 +1,12 @@
 // Shared shadow-DOM style pipeline for live previews.
 // Used by the docs live examples (src/theme/CodeBlock) and homepage previews.
+//
+// The style set is ~1.1 MB of CSS. There is one live preview per `live` code
+// fence and the heaviest API page has 42 of them, so the sheets are parsed
+// once at module scope into constructable CSSStyleSheets and *shared* by every
+// shadow root via `adoptedStyleSheets` (see getSharedStyleSheets below).
+// Emitting them as <style> children instead would reparse the whole set per
+// preview — 42x on that page.
 
 // Import CSS for document head (fonts get processed by Docusaurus)
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -10,7 +17,6 @@ import 'material-symbols/index.css';
 
 // Import raw CSS for shadow DOM processing
 import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
-import rawBulmaPrefixedStyles from '!!raw-loader!bulma/css/versions/bulma-prefixed.min.css';
 import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
 import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css';
 // Note: ionicons now uses web components, no raw CSS needed
@@ -20,9 +26,40 @@ import rawExtrasStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/extras.cs
 // Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
 import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
 
+/** Custom properties only reach the preview when scoped to the shadow host. */
+function toHost(rawStyles) {
+  return rawStyles.replace(/:root/g, ':host');
+}
+
+/**
+ * Drops `@font-face` from a sheet bound for a shadow root.
+ *
+ * These sheets are read through `raw-loader`, which — unlike Docusaurus' normal
+ * CSS pipeline — does not rewrite `url()`, so the rules keep package-relative
+ * paths (`url(../webfonts/fa-solid-900.woff2)`) that would resolve against the
+ * page URL rather than the stylesheet.
+ *
+ * They are dead weight rather than a live bug: browsers do not register
+ * `@font-face` declared inside a shadow tree (verified in Chromium 141 — no
+ * request is issued for such a rule, and the docs previews make no failing font
+ * requests either way). What actually registers the families is the plain CSS
+ * imports at the top of this file, where webpack rewrites the URLs and emits
+ * the webfonts to assets/fonts/; shadow content matches against those.
+ *
+ * This runs at module init, not build time, so the raw text still ships in the
+ * chunk — it drops ~14 inert rules from the shared sheets once per page load,
+ * not once per preview, since every root now adopts the same objects. The point
+ * is uniformity rather than volume: `materialIconsStyles` already did exactly
+ * this, with the same reasoning, and the other three sheets were simply never
+ * given the same fix.
+ */
+function stripFontFace(rawStyles) {
+  return rawStyles.replace(/@font-face\s*{[^}]*}/g, '');
+}
+
 // Enhanced preprocessing function for better CSS variable handling
 function preprocessBulmaStyles(rawStyles) {
-  let processedStyles = rawStyles.replace(/:root/g, ':host');
+  let processedStyles = toHost(rawStyles);
 
   // Handle dark mode variables more comprehensively with nested group matching
   processedStyles = processedStyles.replace(
@@ -39,28 +76,51 @@ function preprocessBulmaStyles(rawStyles) {
   return processedStyles;
 }
 
+/**
+ * The eight `--bulma-*` variables the previews must pin per color mode.
+ *
+ * Exported because the same map is needed twice: baked into `colorModeStyles`
+ * below (the declarative path, used by every preview) and pushed imperatively
+ * through the per-instance theme sheet when the color mode changes.
+ */
+export const colorModeVars = {
+  dark: {
+    '--bulma-text-strong': 'hsl(0, 0%, 96%)',
+    '--bulma-label-color': 'hsl(0, 0%, 96%)',
+    '--bulma-text': 'hsl(0, 0%, 96%)',
+    '--bulma-text-weak': 'hsl(0, 0%, 71%)',
+    '--bulma-background': 'hsl(0, 0%, 14%)',
+    '--bulma-surface': 'hsl(0, 0%, 21%)',
+    '--bulma-border': 'hsl(0, 0%, 29%)',
+    '--bulma-border-weak': 'hsl(0, 0%, 24%)',
+  },
+  light: {
+    '--bulma-text-strong': 'hsl(221, 14%, 21%)',
+    '--bulma-label-color': 'hsl(221, 14%, 21%)',
+    '--bulma-text': 'hsl(221, 14%, 31%)',
+    '--bulma-text-weak': 'hsl(221, 14%, 41%)',
+    '--bulma-background': 'hsl(0, 0%, 100%)',
+    '--bulma-surface': 'hsl(0, 0%, 98%)',
+    '--bulma-border': 'hsl(221, 14%, 86%)',
+    '--bulma-border-weak': 'hsl(221, 14%, 93%)',
+  },
+};
+
+/** Renders a `{ '--var': value }` map as declarations, one per line. */
+function declarations(vars, indent = '    ') {
+  return Object.entries(vars)
+    .map(([key, value]) => `${indent}${key}: ${value} !important;`)
+    .join('\n');
+}
+
 // Add explicit color mode variables to ensure proper dark/light mode switching
 export const colorModeStyles = `
   :host(.dark) {
-    --bulma-text-strong: hsl(0, 0%, 96%) !important;
-    --bulma-label-color: hsl(0, 0%, 96%) !important;
-    --bulma-text: hsl(0, 0%, 96%) !important;
-    --bulma-text-weak: hsl(0, 0%, 71%) !important;
-    --bulma-background: hsl(0, 0%, 14%) !important;
-    --bulma-surface: hsl(0, 0%, 21%) !important;
-    --bulma-border: hsl(0, 0%, 29%) !important;
-    --bulma-border-weak: hsl(0, 0%, 24%) !important;
+${declarations(colorModeVars.dark)}
   }
 
   :host(.light), :host {
-    --bulma-text-strong: hsl(221, 14%, 21%) !important;
-    --bulma-label-color: hsl(221, 14%, 21%) !important;
-    --bulma-text: hsl(221, 14%, 31%) !important;
-    --bulma-text-weak: hsl(221, 14%, 41%) !important;
-    --bulma-background: hsl(0, 0%, 100%) !important;
-    --bulma-surface: hsl(0, 0%, 98%) !important;
-    --bulma-border: hsl(221, 14%, 86%) !important;
-    --bulma-border-weak: hsl(221, 14%, 93%) !important;
+${declarations(colorModeVars.light)}
   }
 
   /* bestax primary override (#1e6b99) — the previews load stock Bulma
@@ -85,35 +145,24 @@ export const colorModeStyles = `
 // Also handle color mode classes instead of media queries
 export const bulmaStyles = preprocessBulmaStyles(rawBulmaStyles);
 
-export const bulmaPrefixedStyles = preprocessBulmaStyles(
-  rawBulmaPrefixedStyles
-);
+export const fontAwesomeStyles = stripFontFace(toHost(rawFontAwesomeStyles));
 
-export const fontAwesomeStyles = rawFontAwesomeStyles.replace(
-  /:root/g,
-  ':host'
-);
-
-export const mdiStyles = rawMDIStyles.replace(/:root/g, ':host');
+export const mdiStyles = stripFontFace(toHost(rawMDIStyles));
 
 // Note: ionicons now uses web components, no CSS processing needed
 
-export const materialIconsStyles = rawMaterialIconsStyles
-  .replace(/:root/g, ':host')
-  .replace(/@font-face\s*{[^}]*}/g, ''); // Remove @font-face rules - use fonts from document head
-
-export const materialSymbolsStyles = rawMaterialSymbolsStyles.replace(
-  /:root/g,
-  ':host'
+export const materialIconsStyles = stripFontFace(
+  toHost(rawMaterialIconsStyles)
 );
 
-export const extrasStyles = rawExtrasStyles.replace(/:root/g, ':host');
+export const materialSymbolsStyles = stripFontFace(
+  toHost(rawMaterialSymbolsStyles)
+);
+
+export const extrasStyles = toHost(rawExtrasStyles);
 
 // Docs-only Skill Example (ProfileCard) styles for the shadow-DOM live previews.
-export const profileCardStyles = rawProfileCardStyles.replace(
-  /:root/g,
-  ':host'
-);
+export const profileCardStyles = toHost(rawProfileCardStyles);
 
 // Add specific CSS for ionicons web components
 export const ioniconStyles = `
@@ -132,11 +181,10 @@ export const ioniconStyles = `
   }
 `;
 
-// Ordered as the <style> tags should appear inside a shadow root.
+// Ordered as the sheets should cascade inside a shadow root.
 export const shadowStyleSheets = [
   materialIconsStyles,
   bulmaStyles,
-  bulmaPrefixedStyles,
   fontAwesomeStyles,
   mdiStyles,
   ioniconStyles,
@@ -145,3 +193,37 @@ export const shadowStyleSheets = [
   profileCardStyles,
   colorModeStyles,
 ];
+
+/** True when the browser supports constructable stylesheets. */
+export function supportsConstructableStyleSheets() {
+  return (
+    typeof CSSStyleSheet !== 'undefined' &&
+    typeof CSSStyleSheet.prototype.replaceSync === 'function'
+  );
+}
+
+let sharedStyleSheets = null;
+
+/**
+ * The shared, immutable base sheets every preview adopts.
+ *
+ * Parsed lazily on first use and memoized for the life of the page, so N
+ * previews cost one parse rather than N. Returns `null` during SSR (no
+ * `CSSStyleSheet` in Node) and on browsers without constructable stylesheets
+ * (Safari < 16.4) — both callers fall back to <style> children there.
+ */
+export function getSharedStyleSheets() {
+  if (!supportsConstructableStyleSheets()) {
+    return null;
+  }
+
+  if (!sharedStyleSheets) {
+    sharedStyleSheets = shadowStyleSheets.map(css => {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      return sheet;
+    });
+  }
+
+  return sharedStyleSheets;
+}
