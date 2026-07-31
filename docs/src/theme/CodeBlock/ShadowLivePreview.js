@@ -2,6 +2,7 @@ import React from 'react';
 import root from 'react-shadow';
 import { LivePreview } from 'react-live';
 import { useColorMode } from '@docusaurus/theme-common';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import {
   shadowStyleSheets,
   colorModeVars,
@@ -51,25 +52,28 @@ export default function ShadowLivePreview() {
     updateShadowTheme(colorModeVars[colorMode] ?? colorModeVars.light);
   }, [colorMode, updateShadowTheme]);
 
-  // Load ionicons v8 web components support in live examples
+  // Load ionicons v8 web components support in live examples.
+  // Served from this origin by plugins/local-ionicons.js; script tags rather
+  // than an import because the Stencil bundle resolves its own lazy chunks and
+  // per-icon SVGs relative to the loader's URL.
+  const esmUrl = useBaseUrl('/ionicons/ionicons.esm.js');
+  const nomoduleUrl = useBaseUrl('/ionicons/ionicons.js');
+
   React.useEffect(() => {
-    // Load ionicons via script tags for better compatibility with shadow DOM
     if (!document.querySelector('script[src*="ionicons"]')) {
       // Load ESM version
       const esmScript = document.createElement('script');
       esmScript.type = 'module';
-      esmScript.src =
-        'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js';
+      esmScript.src = esmUrl;
       document.head.appendChild(esmScript);
 
       // Load fallback version
       const fallbackScript = document.createElement('script');
       fallbackScript.setAttribute('nomodule', '');
-      fallbackScript.src =
-        'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.js';
+      fallbackScript.src = nomoduleUrl;
       document.head.appendChild(fallbackScript);
     }
-  }, []);
+  }, [esmUrl, nomoduleUrl]);
 
   return (
     <ShadowThemeContext.Provider value={updateShadowTheme}>
