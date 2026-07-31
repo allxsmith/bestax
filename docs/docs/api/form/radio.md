@@ -1,35 +1,32 @@
 ---
 title: Radio
 sidebar_label: Radio
+description: The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
 ---
 
 # Radio
 
 ## Overview
 
-The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes. Use it for mutually exclusive choices in forms—either standalone or grouped (with the same `name`).
+<!-- bestax:generated overview -->
+
+The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
+
+<!-- /bestax:generated overview -->
+
+Use it for mutually exclusive choices in forms—either standalone or grouped (with the same `name`).
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop        | Type                                                                                                                                                                                                                                                                                     | Description                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `disabled`  | `boolean`                                                                                                                                                                                                                                                                                | Whether the radio is disabled.                   |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | Color of the radio button.                       |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | Size of the radio button.                        |
-| `textColor` | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color helper.                               |
-| `className` | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes.                          |
-| `children`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | Label/content for the radio.                     |
-| ...         | All standard `<input type="radio">` and Bulma helper props                                                                                                                                                                                                                               | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -130,3 +127,44 @@ Render a list of radios using the `Radios` wrapper component. This is useful for
 
 - [Bulma Radio Documentation](https://bulma.io/documentation/form/radio/)
 - [Storybook: Radio Stories](https://bestax.io/storybook/?path=/story/form-radio--mutuallyexclusive)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop        | Type                                                                            | Default | Description                                       |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the radio button.                        |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the radio button.                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the radio is disabled.                    |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
+| `children`  | `React.ReactNode`                                                               | —       | The label/content for the radio.                  |
+| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.              |
+| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Radio` registers these variables on its own `.styled-radio` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                        | Sass Variable                | Default                    |
+| ----------------------------------- | ---------------------------- | -------------------------- |
+| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                   |
+| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                      |
+| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-border)`      |
+| `--bulma-radio-background`          | `$radio-background`          | `transparent`              |
+| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-scheme-main)` |
+| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`     |
+| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                    |
+| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`            |
+| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`    |
+
+<!-- /bestax:generated cssvars -->

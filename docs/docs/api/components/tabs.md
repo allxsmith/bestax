@@ -1,13 +1,20 @@
 ---
 title: Tabs
 sidebar_label: Tabs
+description: The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
 ---
 
 # Tabs
 
 ## Overview
 
-The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI. It supports alignment, size, color, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Compose tabs using the `Tabs.List` and `Tabs.Item` subcomponents for maximum flexibility.
+<!-- bestax:generated overview -->
+
+The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports alignment, size, color, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Compose tabs using the `Tabs.List` and `Tabs.Item` subcomponents for maximum flexibility.
 
 :::info
 Use `Tabs` for navigation, filtering, or switching between views. Combine with icons and Bulma helpers for advanced layouts.
@@ -17,61 +24,13 @@ Use `Tabs` for navigation, filtering, or switching between views. Combine with i
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Tabs } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                                | Default | Description                                             |
-| -------------- | --------------------------------------------------- | ------- | ------------------------------------------------------- |
-| `value`        | `number`                                            | —       | Controlled active tab index.                            |
-| `defaultValue` | `number`                                            | `0`     | Initial active tab index (uncontrolled).                |
-| `onChange`     | `(index: number) => void`                           | —       | Callback when active tab changes.                       |
-| `align`        | `'centered'` \| `'right'` \| `'left'`               | —       | Tab alignment.                                          |
-| `size`         | `'small'` \| `'medium'` \| `'large'`                | —       | Tab size.                                               |
-| `fullwidth`    | `boolean`                                           | `false` | Tabs expand to fill the horizontal space.               |
-| `expanded`     | `boolean`                                           | —       | Makes tabs take up the full width equally.              |
-| `boxed`        | `boolean`                                           | `false` | Tabs use the boxed style.                               |
-| `toggle`       | `boolean`                                           | `false` | Tabs use the toggle style.                              |
-| `rounded`      | `boolean`                                           | `false` | Tabs use the rounded toggle style (only with `toggle`). |
-| `vertical`     | `boolean`                                           | —       | Renders tabs vertically.                                |
-| `side`         | `'left'` \| `'right'`                               | —       | Side placement when `vertical` is true.                 |
-| `color`        | Bulma color (`'primary'`, `'link'`, `'info'`, etc.) | —       | Bulma color for tab underlines and active state.        |
-| `className`    | `string`                                            | —       | Additional CSS classes.                                 |
-| `children`     | `React.ReactNode`                                   | —       | Tab list and tab items.                                 |
-| ...            | All standard HTML and Bulma helper props            |         | (See [Helper Props](../helpers/usebulmaclasses))        |
-
-**Subcomponents:**
-
-- `Tabs.List`: The `<ul>` container for tab items.
-- `Tabs.Item`: Each tab; accepts `active`, `onClick`, etc.
-
-### Tabs.Tab
-
-| Prop           | Type                                                               | Default   | Description                                        |
-| -------------- | ------------------------------------------------------------------ | --------- | -------------------------------------------------- |
-| `index`        | `number`                                                           | —         | **Required.** Tab index for matching with content. |
-| `disabled`     | `boolean`                                                          | —         | Disables the tab.                                  |
-| `icon`         | `string`                                                           | —         | Icon name for the tab.                             |
-| `iconLibrary`  | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | —         | Icon library to use.                               |
-| `iconVariant`  | `string`                                                           | —         | Icon style variant.                                |
-| `iconSize`     | `'small' \| 'medium' \| 'large'`                                   | `'small'` | Size of the tab icon.                              |
-| `iconFeatures` | `string \| string[]`                                               | —         | Additional icon modifiers.                         |
-| `children`     | `React.ReactNode`                                                  | —         | Tab label content.                                 |
-
-### Tabs.Content
-
-Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes.
-
-### Tabs.Content.Item
-
-| Prop       | Type              | Default | Description                                                              |
-| ---------- | ----------------- | ------- | ------------------------------------------------------------------------ |
-| `index`    | `number`          | —       | **Required.** Content index matching the corresponding `Tabs.Tab` index. |
-| `children` | `React.ReactNode` | —       | Content for this tab panel.                                              |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -471,3 +430,125 @@ Tabs do not manage tab panels or keyboard focus automatically—implement those 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` and its subcomponents for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop           | Type                                                                                                                               | Default | Description                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `align`        | `'centered'` \| `'right'` \| `'left'`                                                                                              | —       | Tab alignment.                                          |
+| `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Tab size.                                               |
+| `fullwidth`    | `boolean`                                                                                                                          | `false` | Tabs expand to fill the horizontal space.               |
+| `boxed`        | `boolean`                                                                                                                          | `false` | Tabs use the boxed style.                               |
+| `toggle`       | `boolean`                                                                                                                          | `false` | Tabs use the toggle style.                              |
+| `rounded`      | `boolean`                                                                                                                          | `false` | Tabs use the rounded toggle style (only with `toggle`). |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color for tab underlines and active state.        |
+| `value`        | `number`                                                                                                                           | —       | Controlled active tab index.                            |
+| `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes.                       |
+| `defaultValue` | `number`                                                                                                                           | `0`     | Initial active tab index (uncontrolled).                |
+| `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically.                                |
+| `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true.                 |
+| `expanded`     | `boolean`                                                                                                                          | `false` | Makes tabs take up the full width equally.              |
+| `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                 |
+| `children`     | `React.ReactNode`                                                                                                                  | —       | Tab list and tab items.                                 |
+| `...`          | All standard `<div>` attributes and Bulma helper props                                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
+
+**Subcomponents:**
+
+- `Tabs.List`: The `<ul>` container for tab items.
+- `Tabs.Tab`: Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children.
+- `Tabs.Item`: Each tab; accepts `active`, `onClick`, etc.
+- `Tabs.Content`: Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class.
+- `Tabs.Content.Item`: Individual content panel. Shows/hides based on active tab from context.
+
+### Tabs.List
+
+| Prop        | Type                           | Default | Description             |
+| ----------- | ------------------------------ | ------- | ----------------------- |
+| `className` | `string`                       | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`              | —       | Tab elements.           |
+| `...`       | All standard `<ul>` attributes | —       |                         |
+
+### Tabs.Tab
+
+| Prop           | Type                                                                       | Default   | Description                                                |
+| -------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
+| `index`        | `number`                                                                   | —         | **Required.** Tab index for matching with content.         |
+| `disabled`     | `boolean`                                                                  | `false`   | Disables the tab.                                          |
+| `icon`         | `string`                                                                   | —         | Icon name for the tab.                                     |
+| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —         | Icon library to use.                                       |
+| `iconVariant`  | `string`                                                                   | —         | Icon style variant (e.g., 'solid', 'outlined', 'rounded'). |
+| `iconSize`     | `'small'` \| `'medium'` \| `'large'`                                       | `'small'` | Size of the tab icon.                                      |
+| `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon modifiers.                                 |
+| `className`    | `string`                                                                   | —         | Additional CSS classes.                                    |
+| `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                         |
+| `...`          | All standard `<li>` attributes                                             | —         |                                                            |
+
+### Tabs.Item
+
+| Prop        | Type                                     | Default | Description                |
+| ----------- | ---------------------------------------- | ------- | -------------------------- |
+| `active`    | `boolean`                                | `false` | Whether the tab is active. |
+| `className` | `string`                                 | —       | Additional CSS classes.    |
+| `children`  | `React.ReactNode`                        | —       | Tab content.               |
+| `onClick`   | `React.MouseEventHandler<HTMLLIElement>` | —       | Click handler.             |
+| `...`       | All standard `<li>` attributes           | —       |                            |
+
+### Tabs.Content
+
+| Prop        | Type                            | Default | Description              |
+| ----------- | ------------------------------- | ------- | ------------------------ |
+| `className` | `string`                        | —       | Additional CSS classes.  |
+| `children`  | `React.ReactNode`               | —       | TabContentItem elements. |
+| `...`       | All standard `<div>` attributes | —       |                          |
+
+### Tabs.Content.Item
+
+| Prop        | Type                            | Default | Description                                        |
+| ----------- | ------------------------------- | ------- | -------------------------------------------------- |
+| `index`     | `number`                        | —       | **Required.** Tab index for matching with content. |
+| `className` | `string`                        | —       | Additional CSS classes.                            |
+| `children`  | `React.ReactNode`               | —       | Panel content.                                     |
+| `...`       | All standard `<div>` attributes | —       |                                                    |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Tabs` registers these variables on its own `.tabs` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                         | Sass Variable                                 | Default                     |
+| ---------------------------------------------------- | --------------------------------------------- | --------------------------- |
+| `--bulma-tabs-border-bottom-color`                   | `$tabs-border-bottom-color`                   | `var(--bulma-border)`       |
+| `--bulma-tabs-border-bottom-style`                   | `$tabs-border-bottom-style`                   | `solid`                     |
+| `--bulma-tabs-border-bottom-width`                   | `$tabs-border-bottom-width`                   | `1px`                       |
+| `--bulma-tabs-link-color`                            | `$tabs-link-color`                            | `var(--bulma-text)`         |
+| `--bulma-tabs-link-hover-border-bottom-color`        | `$tabs-link-hover-border-bottom-color`        | `var(--bulma-text-strong)`  |
+| `--bulma-tabs-link-hover-color`                      | `$tabs-link-hover-color`                      | `var(--bulma-text-strong)`  |
+| `--bulma-tabs-link-active-border-bottom-color`       | `$tabs-link-active-border-bottom-color`       | `var(--bulma-link-text)`    |
+| `--bulma-tabs-link-active-color`                     | `$tabs-link-active-color`                     | `var(--bulma-link-text)`    |
+| `--bulma-tabs-link-padding`                          | `$tabs-link-padding`                          | `0.5em 1em`                 |
+| `--bulma-tabs-boxed-link-radius`                     | `$tabs-boxed-link-radius`                     | `var(--bulma-radius)`       |
+| `--bulma-tabs-boxed-link-hover-background-color`     | `$tabs-boxed-link-hover-background-color`     | `var(--bulma-background)`   |
+| `--bulma-tabs-boxed-link-hover-border-bottom-color`  | `$tabs-boxed-link-hover-border-bottom-color`  | `var(--bulma-border)`       |
+| `--bulma-tabs-boxed-link-active-background-color`    | `$tabs-boxed-link-active-background-color`    | `var(--bulma-scheme-main)`  |
+| `--bulma-tabs-boxed-link-active-border-color`        | `$tabs-boxed-link-active-border-color`        | `var(--bulma-border)`       |
+| `--bulma-tabs-boxed-link-active-border-bottom-color` | `$tabs-boxed-link-active-border-bottom-color` | `transparent`               |
+| `--bulma-tabs-toggle-link-border-color`              | `$tabs-toggle-link-border-color`              | `var(--bulma-border)`       |
+| `--bulma-tabs-toggle-link-border-style`              | `$tabs-toggle-link-border-style`              | `solid`                     |
+| `--bulma-tabs-toggle-link-border-width`              | `$tabs-toggle-link-border-width`              | `1px`                       |
+| `--bulma-tabs-toggle-link-hover-background-color`    | `$tabs-toggle-link-hover-background-color`    | `var(--bulma-background)`   |
+| `--bulma-tabs-toggle-link-hover-border-color`        | `$tabs-toggle-link-hover-border-color`        | `var(--bulma-border-hover)` |
+| `--bulma-tabs-toggle-link-radius`                    | `$tabs-toggle-link-radius`                    | `var(--bulma-radius)`       |
+| `--bulma-tabs-toggle-link-active-background-color`   | `$tabs-toggle-link-active-background-color`   | `var(--bulma-link)`         |
+| `--bulma-tabs-toggle-link-active-border-color`       | `$tabs-toggle-link-active-border-color`       | `var(--bulma-link)`         |
+| `--bulma-tabs-toggle-link-active-color`              | `$tabs-toggle-link-active-color`              | `var(--bulma-link-invert)`  |
+
+<!-- /bestax:generated cssvars -->

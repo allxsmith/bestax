@@ -14,32 +14,29 @@ import { useConfig } from '../helpers/Config';
 
 /**
  * Props for the Message component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [title] - Title displayed in the message header.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color (Bulma or 'inherit'/'current').
- * @property {'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'} [color] - Bulma color modifier for the message.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color (Bulma or 'inherit'/'current').
- * @property {() => void} [onClose] - Called when the close button is clicked.
- * @property {React.ReactNode} [children] - Message body content.
  */
 export interface MessageProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Title string/node (renders header section). */
   title?: React.ReactNode;
+  /** Text color for the message (Bulma helper). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the message. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the message (Bulma helper). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Callback for the close ("X") button. */
   onClose?: () => void;
+  /** Body content for the message. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma-styled Message component.
- *
- * Supports Bulma helper classes, color, and an optional close button.
+ * The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
  *
  * @function
  * @param {MessageProps} props - Props for the Message component.
@@ -107,23 +104,21 @@ const MessageComponent: React.FC<MessageProps> = ({
 
 /**
  * Props for the Message.Header compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Header content (title, close button, etc.).
  */
 export interface MessageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Header content (title, close button, etc.). */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Message.Body compound component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Message body content.
  */
 export interface MessageBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Message body content. */
   children?: React.ReactNode;
 }
 

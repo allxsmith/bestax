@@ -26,14 +26,6 @@ export const checkboxSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Checkbox component.
- *
- * @property {(typeof checkboxColors)[number]} [color] - Color variant for the checkbox.
- * @property {(typeof checkboxSizes)[number]} [size] - Size of the checkbox.
- * @property {boolean} [disabled] - Whether the checkbox is disabled.
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {React.ReactNode} [children] - The label/content for the checkbox.
- * @see Bulma Checkbox documentation: https://bulma.io/documentation/form/checkbox/
  */
 export interface CheckboxProps
   extends
@@ -42,25 +34,22 @@ export interface CheckboxProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
+  /** Color of the checkbox. */
   color?: (typeof checkboxColors)[number];
+  /** Size of the checkbox. */
   size?: (typeof checkboxSizes)[number];
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the checkbox is disabled. */
   disabled?: boolean;
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** The label/content for the checkbox. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Checkbox component with themed styling support.
- *
- * Renders a custom-styled checkbox with a visual check indicator,
- * supporting colors, sizes, and various states. Inside a `<Checkboxes>`
- * group, Checkbox inherits `name` and (when the group is in controlled or
- * uncontrolled mode) derives its `checked` state from membership in the
- * group's `value` array. On click, dispatches the new array via the group's
- * `onChange`.
- *
- * Local props always win over group context.
+ * The `Checkbox` component provides a Bulma-styled checkbox input.
  *
  * @function
  * @param {CheckboxProps} props - Props for the Checkbox component.

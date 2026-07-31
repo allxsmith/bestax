@@ -1,53 +1,32 @@
 ---
 title: Slider
 sidebar_label: Slider
+description: The `Slider` component provides a range slider input for selecting values within a range.
 ---
 
 # Slider
 
 ## Overview
 
-The `Slider` component provides a range slider input for selecting values within a range. It supports different sizes, colors, and optional value display.
+<!-- bestax:generated overview -->
+
+The `Slider` component provides a range slider input for selecting values within a range.
+
+<!-- /bestax:generated overview -->
+
+It supports different sizes, colors, and optional value display.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Slider } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop               | Type                                                                            | Default        | Description                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `value`            | `number`                                                                        | —              | Controlled value.                                                                           |
-| `defaultValue`     | `number`                                                                        | `0`            | Default value for uncontrolled usage.                                                       |
-| `min`              | `number`                                                                        | `0`            | Minimum value.                                                                              |
-| `max`              | `number`                                                                        | `100`          | Maximum value.                                                                              |
-| `step`             | `number`                                                                        | `1`            | Step increment.                                                                             |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —              | Size variant.                                                                               |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —              | Color variant.                                                                              |
-| `isRounded`        | `boolean`                                                                       | `false`        | Use rounded track ends.                                                                     |
-| `isCircle`         | `boolean`                                                                       | `false`        | Use circular thumb.                                                                         |
-| `disabled`         | `boolean`                                                                       | `false`        | Whether the slider is disabled.                                                             |
-| `showOutput`       | `boolean`                                                                       | `false`        | Show current value tooltip.                                                                 |
-| `onChange`         | `(value: number) => void`                                                       | —              | Callback when value changes.                                                                |
-| `formatOutput`     | `(value: number) => string`                                                     | —              | Format function for output display.                                                         |
-| `tooltip`          | `'auto'` \| `'always'` \| `'hidden'`                                            | —              | Controls tooltip visibility on the thumb.                                                   |
-| `ticks`            | `boolean`                                                                       | —              | Shows tick marks along the track.                                                           |
-| `marks`            | `SliderMark[]`                                                                  | —              | Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. |
-| `orientation`      | `'horizontal'` \| `'vertical'`                                                  | `'horizontal'` | Orientation of the slider.                                                                  |
-| `scale`            | `(value: number) => number`                                                     | —              | Function to scale the displayed value.                                                      |
-| `getAriaValueText` | `(value: number) => string`                                                     | —              | Function to generate the `aria-valuetext` attribute.                                        |
-| `range`            | `boolean`                                                                       | `false`        | Enables range mode with two thumbs.                                                         |
-| `minDistance`      | `number`                                                                        | `0`            | Minimum distance between thumbs in range mode.                                              |
-| `ariaLabel`        | `string` \| `[string, string]`                                                  | —              | ARIA label(s) for the slider thumb(s).                                                      |
-| `className`        | `string`                                                                        | —              | Additional CSS classes.                                                                     |
-| `ref`              | `React.Ref<HTMLElement>`                                                        | —              | Ref forwarded to the input element.                                                         |
-| ...                | All standard HTML and Bulma helper props                                        |                | (See [Helper Props](../helpers/usebulmaclasses))                                            |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -355,3 +334,88 @@ function SliderRangeFormDemo() {
 :::tip Pro Tip
 Use the `formatOutput` prop to display values with units like percentages, currencies, or custom formats.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                                            | Default        | Description                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `range`            | `boolean`                                                                       | `false`        | Enables range mode with two thumbs.                                                                |
+| `value`            | `number` \| `[number, number]`                                                  | —              | Controlled value.                                                                                  |
+| `defaultValue`     | `number` \| `[number, number]`                                                  | `0`            | Default value for uncontrolled usage.                                                              |
+| `onChange`         | `(value: number) => void` \| `(value: [number, number]) => void`                | —              | Callback when value changes.                                                                       |
+| `minDistance`      | `number`                                                                        | `0`            | Minimum distance between thumbs in range mode.                                                     |
+| `ariaLabel`        | `string` \| `[string, string]`                                                  | —              | ARIA label(s) for the slider thumb(s).                                                             |
+| `nameLow`          | `string`                                                                        | —              | Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. |
+| `nameHigh`         | `string`                                                                        | —              | Form field name for the high thumb.                                                                |
+| `min`              | `number`                                                                        | `0`            | Minimum value.                                                                                     |
+| `max`              | `number`                                                                        | `100`          | Maximum value.                                                                                     |
+| `step`             | `number`                                                                        | `1`            | Step increment (default: 1).                                                                       |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —              | Size variant.                                                                                      |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —              | Color variant.                                                                                     |
+| `isRounded`        | `boolean`                                                                       | `false`        | Use rounded track ends.                                                                            |
+| `isCircle`         | `boolean`                                                                       | `false`        | Use circular thumb.                                                                                |
+| `showOutput`       | `boolean`                                                                       | `false`        | Show current value tooltip.                                                                        |
+| `tooltip`          | `'auto'` \| `'always'` \| `'hidden'`                                            | —              | Controls tooltip visibility on the thumb.                                                          |
+| `ticks`            | `boolean`                                                                       | `false`        | Shows tick marks along the track.                                                                  |
+| `marks`            | `{ value: number; label?: React.ReactNode }[]`                                  | —              | Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.        |
+| `orientation`      | `'horizontal'` \| `'vertical'`                                                  | `'horizontal'` | Orientation of the slider.                                                                         |
+| `scale`            | `(value: number) => number`                                                     | —              | Function to scale the displayed value.                                                             |
+| `getAriaValueText` | `(value: number) => string`                                                     | —              | Function to generate the `aria-valuetext` attribute.                                               |
+| `formatOutput`     | `(value: number) => string`                                                     | —              | Format function for output display.                                                                |
+| `label`            | `React.ReactNode`                                                               | —              | Field label, rendered above the widget.                                                            |
+| `labelSize`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —              | Size for the label (used in horizontal layouts).                                                   |
+| `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —              | Props for the label element.                                                                       |
+| `horizontal`       | `boolean`                                                                       | `false`        | Horizontal field layout.                                                                           |
+| `message`          | `React.ReactNode`                                                               | —              | Help/validation message below the input.                                                           |
+| `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —              | Bulma color for the message.                                                                       |
+| `fieldClassName`   | `string`                                                                        | —              | Additional CSS classes for the Field wrapper.                                                      |
+| `disabled`         | `boolean`                                                                       | `false`        | Whether the slider is disabled.                                                                    |
+| `className`        | `string`                                                                        | —              | Additional CSS classes.                                                                            |
+| `ref`              | `React.Ref<HTMLElement>`                                                        | —              | Ref forwarded to the input element.                                                                |
+| `...`              | All standard `<input>` attributes and Bulma helper props                        | —              | See [Helper Props](../helpers/usebulmaclasses.md)                                                  |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Slider` registers these variables on its own `.slider` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                          | Sass Variable                  | Default                          |
+| ------------------------------------- | ------------------------------ | -------------------------------- |
+| `--bulma-slider-track-height`         | `$slider-track-height`         | `0.5rem`                         |
+| `--bulma-slider-track-height-small`   | `$slider-track-height-small`   | `0.375rem`                       |
+| `--bulma-slider-track-height-medium`  | `$slider-track-height-medium`  | `0.625rem`                       |
+| `--bulma-slider-track-height-large`   | `$slider-track-height-large`   | `0.75rem`                        |
+| `--bulma-slider-thumb-size`           | `$slider-thumb-size`           | `1.25rem`                        |
+| `--bulma-slider-thumb-size-small`     | `$slider-thumb-size-small`     | `1rem`                           |
+| `--bulma-slider-thumb-size-medium`    | `$slider-thumb-size-medium`    | `1.5rem`                         |
+| `--bulma-slider-thumb-size-large`     | `$slider-thumb-size-large`     | `1.75rem`                        |
+| `--bulma-slider-track-color`          | `$slider-track-color`          | `var(--bulma-border)`            |
+| `--bulma-slider-fill-color`           | `$slider-fill-color`           | `var(--bulma-primary)`           |
+| `--bulma-slider-thumb-color`          | `$slider-thumb-color`          | `var(--bulma-scheme-main)`       |
+| `--bulma-slider-thumb-border`         | `$slider-thumb-border`         | `var(--bulma-border)`            |
+| `--bulma-slider-thumb-shadow`         | `$slider-thumb-shadow`         | `0 2px 4px rgba(0, 0, 0, 0.1)`   |
+| `--bulma-slider-radius`               | `$slider-radius`               | `var(--bulma-radius)`            |
+| `--bulma-slider-disabled-opacity`     | `$slider-disabled-opacity`     | `0.5`                            |
+| `--bulma-slider-transition-duration`  | `$slider-transition-duration`  | `var(--bulma-duration)`          |
+| `--bulma-slider-output-background`    | `$slider-output-background`    | `var(--bulma-slider-fill-color)` |
+| `--bulma-slider-output-color`         | `$slider-output-color`         | `var(--bulma-scheme-main)`       |
+| `--bulma-slider-output-font-size`     | `$slider-output-font-size`     | `var(--bulma-size-small)`        |
+| `--bulma-slider-output-font-weight`   | `$slider-output-font-weight`   | `var(--bulma-weight-medium)`     |
+| `--bulma-slider-tick-width`           | `$slider-tick-width`           | `2px`                            |
+| `--bulma-slider-tick-height`          | `$slider-tick-height`          | `1rem`                           |
+| `--bulma-slider-tick-color`           | `$slider-tick-color`           | `var(--bulma-grey-light)`        |
+| `--bulma-slider-tick-opacity`         | `$slider-tick-opacity`         | `0.5`                            |
+| `--bulma-slider-tick-label-font-size` | `$slider-tick-label-font-size` | `0.75rem`                        |
+| `--bulma-slider-tick-label-color`     | `$slider-tick-label-color`     | `var(--bulma-text-light)`        |
+| `--bulma-slider-vertical-height`      | `$slider-vertical-height`      | `200px`                          |
+
+<!-- /bestax:generated cssvars -->

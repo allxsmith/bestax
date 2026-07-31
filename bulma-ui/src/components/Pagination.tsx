@@ -9,23 +9,12 @@ import {
 
 /**
  * Props for the Pagination component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color for the pagination.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the pagination.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the pagination.
- * @property {'small'|'medium'|'large'} [size] - Size modifier for the pagination.
- * @property {'centered'|'right'} [align] - Alignment for the pagination.
- * @property {boolean} [rounded] - Renders pagination with rounded corners.
- * @property {number} [total] - Total number of pages.
- * @property {number} [current] - Current page.
- * @property {(page: number) => void} [onPageChange] - Page change callback.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Custom pagination content.
  */
 export interface PaginationProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Color modifier for the pagination. */
   color?:
     | 'primary'
     | 'link'
@@ -37,33 +26,42 @@ export interface PaginationProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Size modifier for the pagination. */
   size?: 'small' | 'medium' | 'large';
+  /** Alignment for the pagination. */
   align?: 'centered' | 'right';
+  /** Renders pagination with rounded corners. */
   rounded?: boolean;
+  /** Total number of pages (for custom implementations). */
   total?: number;
+  /** Current page (for controlled implementations). */
   current?: number;
+  /** Callback when a page is selected. */
   onPageChange?: (page: number) => void;
+  /** Additional CSS classes. */
   className?: string;
+  /** Custom pagination content (usually subcomponents). */
   children?: React.ReactNode;
 }
 
 /**
  * Props for PaginationPrevious and PaginationNext components.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {boolean} [disabled] - Whether previous/next is disabled.
- * @property {React.ReactNode} [children] - Button content.
  */
 export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Whether previous/next is disabled. */
   disabled?: boolean;
+  /** Button content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Pagination previous button.
+ * "Previous" navigation button.
  *
  * @function
  * @param {PaginationPreviousNextProps} props - Props for the PaginationPrevious component.
@@ -100,7 +98,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
 );
 
 /**
- * Bulma Pagination next button.
+ * "Next" navigation button.
  *
  * @function
  * @param {PaginationPreviousNextProps} props - Props for the PaginationNext component.
@@ -133,7 +131,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
 );
 
 /**
- * Bulma Pagination navigation component.
+ * The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.
  *
  * @function
  * @param {PaginationProps} props - Props for the Pagination component.
@@ -185,26 +183,25 @@ const PaginationComponent: React.FC<PaginationProps> = ({
 
 /**
  * Props for the PaginationList component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the list.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the list.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the list.
- * @property {React.ReactNode} [children] - List items.
  */
 export interface PaginationListProps
   extends
     React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color for the list. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the list. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the list. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** List items. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Pagination list container.
+ * Container for page links and ellipsis.
  *
  * @function
  * @param {PaginationListProps} props - Props for the PaginationList component.
@@ -238,30 +235,29 @@ export const PaginationList: React.FC<PaginationListProps> = ({
 
 /**
  * Props for the PaginationLink component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {boolean} [active] - Whether the link is for the current page.
- * @property {boolean} [disabled] - Whether the link is disabled.
- * @property {React.ReactNode} [children] - Link content.
  */
 export interface PaginationLinkProps
   extends
     React.AnchorHTMLAttributes<HTMLAnchorElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Bulma color modifier. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Whether the link is for the current page. */
   active?: boolean;
+  /** Whether the link is disabled. */
   disabled?: boolean;
+  /** Link content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Pagination link (page number).
+ * Page number or navigation link.
  *
  * @function
  * @param {PaginationLinkProps} props - Props for the PaginationLink component.
@@ -319,7 +315,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
 };
 
 /**
- * Bulma Pagination ellipsis element.
+ * Ellipsis separator.
  *
  * @function
  * @param {React.LiHTMLAttributes<HTMLLIElement>} props - Standard li props.

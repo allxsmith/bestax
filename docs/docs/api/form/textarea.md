@@ -1,42 +1,30 @@
 ---
 title: TextArea
 sidebar_label: TextArea
+description: The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
 ---
 
 # TextArea
 
 ## Overview
 
+<!-- bestax:generated overview -->
+
 The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
+
+<!-- /bestax:generated overview -->
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop           | Type                                             | Description                                      |
-| -------------- | ------------------------------------------------ | ------------------------------------------------ |
-| `color`        | `'primary' \| 'link' \| ... \| 'white'`          | Bulma color modifier.                            |
-| `size`         | `'small' \| 'medium' \| 'large'`                 | Size modifier.                                   |
-| `isRounded`    | `boolean`                                        | Rounded textarea corners.                        |
-| `isStatic`     | `boolean`                                        | Renders textarea as static (styled readonly).    |
-| `isHovered`    | `boolean`                                        | Applies hovered state.                           |
-| `isFocused`    | `boolean`                                        | Applies focused state.                           |
-| `isLoading`    | `boolean`                                        | Shows loading indicator on the wrapping Control. |
-| `isActive`     | `boolean`                                        | Applies Bulma's is-active modifier.              |
-| `hasFixedSize` | `boolean`                                        | Fixed textarea size (no resize).                 |
-| `className`    | `string`                                         | Additional CSS classes.                          |
-| `disabled`     | `boolean`                                        | Disables the textarea.                           |
-| `readOnly`     | `boolean`                                        | Read-only textarea.                              |
-| `rows`         | `number`                                         | Number of visible text lines.                    |
-| ...            | All standard `<textarea>` and Bulma helper props | (See [Helper Props](../helpers/usebulmaclasses)) |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -259,3 +247,84 @@ function example() {
 
 - [Bulma Textarea Documentation](https://bulma.io/documentation/form/textarea/)
 - [Storybook: TextArea Stories](https://bestax.io/storybook/?path=/story/form-textarea--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop               | Type                                                                                                                               | Default | Description                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `label`            | `React.ReactNode`                                                                                                                  | —       | Field label.                                      |
+| `labelSize`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —       | Size for the label.                               |
+| `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                                                        | —       | Props for the label element.                      |
+| `horizontal`       | `boolean`                                                                                                                          | `false` | Horizontal field layout.                          |
+| `isLoading`        | `boolean`                                                                                                                          | `false` | Shows loading indicator on the wrapping Control.  |
+| `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Control size.                                     |
+| `message`          | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the textarea.       |
+| `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                      |
+| `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field.             |
+| `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.           |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the textarea.            |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the textarea.                   |
+| `isRounded`        | `boolean`                                                                                                                          | `false` | Rounded textarea corners.                         |
+| `isStatic`         | `boolean`                                                                                                                          | `false` | Renders textarea as static (styled readonly).     |
+| `isHovered`        | `boolean`                                                                                                                          | `false` | Applies hovered state.                            |
+| `isFocused`        | `boolean`                                                                                                                          | `false` | Applies focused state.                            |
+| `isActive`         | `boolean`                                                                                                                          | `false` | Applies Bulma's is-active modifier.               |
+| `hasFixedSize`     | `boolean`                                                                                                                          | `false` | Fixed textarea size (no resize).                  |
+| `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                  |
+| `disabled`         | `boolean`                                                                                                                          | `false` | Disables the textarea.                            |
+| `readOnly`         | `boolean`                                                                                                                          | `false` | Read-only textarea.                               |
+| `rows`             | `number`                                                                                                                           | —       | Number of visible text lines.                     |
+| `ref`              | `React.Ref<HTMLTextAreaElement>`                                                                                                   | —       | Forwarded to the underlying element.              |
+| `...`              | All standard `<textarea>` attributes and Bulma helper props                                                                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`TextArea` registers these variables on its own `.textarea` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                               | Sass Variable                       | Default                                                                                                                  |
+| ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `--bulma-textarea-padding`                 | `$textarea-padding`                 | `var(--bulma-control-padding-horizontal)`                                                                                |
+| `--bulma-textarea-max-height`              | `$textarea-max-height`              | `40em`                                                                                                                   |
+| `--bulma-textarea-min-height`              | `$textarea-min-height`              | `8em`                                                                                                                    |
+| `--bulma-input-h`                          | `$input-h`                          | `var(--bulma-scheme-h)`                                                                                                  |
+| `--bulma-input-s`                          | `$input-s`                          | `var(--bulma-scheme-s)`                                                                                                  |
+| `--bulma-input-l`                          | `$input-l`                          | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-border-style`               | `$input-border-style`               | `solid`                                                                                                                  |
+| `--bulma-input-border-width`               | `$input-border-width`               | `var(--bulma-control-border-width)`                                                                                      |
+| `--bulma-input-border-l`                   | `$input-border-l`                   | `var(--bulma-border-l)`                                                                                                  |
+| `--bulma-input-border-l-delta`             | `$input-border-l-delta`             | `0%`                                                                                                                     |
+| `--bulma-input-border-color`               | `$input-border-color`               | `hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))` |
+| `--bulma-input-hover-border-l-delta`       | `$input-hover-border-l-delta`       | `var(--bulma-hover-border-l-delta)`                                                                                      |
+| `--bulma-input-active-border-l-delta`      | `$input-active-border-l-delta`      | `var(--bulma-active-border-l-delta)`                                                                                     |
+| `--bulma-input-focus-h`                    | `$input-focus-h`                    | `var(--bulma-focus-h)`                                                                                                   |
+| `--bulma-input-focus-s`                    | `$input-focus-s`                    | `var(--bulma-focus-s)`                                                                                                   |
+| `--bulma-input-focus-l`                    | `$input-focus-l`                    | `var(--bulma-focus-l)`                                                                                                   |
+| `--bulma-input-focus-shadow-size`          | `$input-focus-shadow-size`          | `var(--bulma-focus-shadow-size)`                                                                                         |
+| `--bulma-input-focus-shadow-alpha`         | `$input-focus-shadow-alpha`         | `var(--bulma-focus-shadow-alpha)`                                                                                        |
+| `--bulma-input-color-l`                    | `$input-color-l`                    | `var(--bulma-text-strong-l)`                                                                                             |
+| `--bulma-input-background-l`               | `$input-background-l`               | `var(--bulma-scheme-main-l)`                                                                                             |
+| `--bulma-input-background-l-delta`         | `$input-background-l-delta`         | `0%`                                                                                                                     |
+| `--bulma-input-height`                     | `$input-height`                     | `var(--bulma-control-height)`                                                                                            |
+| `--bulma-input-shadow`                     | `$input-shadow`                     | `inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)`        |
+| `--bulma-input-placeholder-color`          | `$input-placeholder-color`          | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)`                                        |
+| `--bulma-input-disabled-color`             | `$input-disabled-color`             | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-disabled-background-color`  | `$input-disabled-background-color`  | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-border-color`      | `$input-disabled-border-color`      | `var(--bulma-background)`                                                                                                |
+| `--bulma-input-disabled-placeholder-color` | `$input-disabled-placeholder-color` | `hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)`                                          |
+| `--bulma-input-arrow`                      | `$input-arrow`                      | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-icon-color`                 | `$input-icon-color`                 | `var(--bulma-text-light)`                                                                                                |
+| `--bulma-input-icon-hover-color`           | `$input-icon-hover-color`           | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-input-icon-focus-color`           | `$input-icon-focus-color`           | `var(--bulma-link)`                                                                                                      |
+| `--bulma-input-radius`                     | `$input-radius`                     | `var(--bulma-radius)`                                                                                                    |
+
+<!-- /bestax:generated cssvars -->

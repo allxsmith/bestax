@@ -9,21 +9,16 @@ import {
 
 /**
  * Props for the Navbar component.
- *
- * @property {string} [className] - Additional CSS classes for the navbar.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Color for text.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the navbar.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the navbar.
- * @property {boolean} [transparent] - Whether the navbar is transparent.
- * @property {'top'|'bottom'} [fixed] - Whether the navbar is fixed to the top or bottom.
- * @property {React.ReactNode} [children] - Navbar content.
  */
 export interface NavbarProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes for the navbar. */
   className?: string;
+  /** Text color for the navbar. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the navbar. */
   color?:
     | 'primary'
     | 'link'
@@ -35,14 +30,18 @@ export interface NavbarProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Background color for the navbar. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Renders the navbar with a transparent background. */
   transparent?: boolean;
+  /** Fixes the navbar to the top or bottom of the viewport. */
   fixed?: 'top' | 'bottom';
+  /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar component, supports subcomponents for structured navigation.
+ * The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.
  *
  * @function
  * @param {NavbarProps} props - Props for the Navbar component.
@@ -88,24 +87,23 @@ const NavbarComponent: React.FC<NavbarProps> = ({
 
 /**
  * Props for the NavbarBrand component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the brand.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the brand.
- * @property {React.ReactNode} [children] - Brand content.
  */
 export interface NavbarBrandProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color for the brand. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the brand. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Brand content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar brand area (usually left side).
+ * For logo and branding (left side)
  *
  * @function
  * @param {NavbarBrandProps} props - Props for the NavbarBrand component.
@@ -138,30 +136,29 @@ export const NavbarBrand: React.FC<NavbarBrandProps> = ({
 
 /**
  * Props for the NavbarItem component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ElementType} [as] - Render as a custom component (e.g., a router link).
- * @property {boolean} [active] - Whether the item is active.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the item.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the item.
- * @property {React.ReactNode} [children] - Navbar item content.
  */
 export interface NavbarItemProps
   extends
     Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Render as a custom component (e.g., a router link). */
   as?: React.ElementType;
+  /** Whether the item is active. */
   active?: boolean;
+  /** Text color for the item. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color for the item. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Navbar item content. */
   children?: React.ReactNode;
   // Allow router props like `to` when rendering via `as` (matches MenuItemProps)
   [key: string]: unknown;
 }
 
 /**
- * Bulma Navbar item (link, button, etc).
+ * Navigation links, buttons, or custom content
  *
  * @function
  * @param {NavbarItemProps} props - Props for the NavbarItem component.
@@ -200,32 +197,31 @@ export const NavbarItem: React.FC<NavbarItemProps> = ({
 
 /**
  * Props for the NavbarBurger component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the burger.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the burger.
- * @property {boolean} [active] - Whether the burger is active.
- * @property {React.ReactNode} [children] - Custom content inside the burger.
- * @property {string} ['aria-label'] - Aria label for accessibility.
- * @property {boolean} ['aria-expanded'] - Aria expanded state.
- * @property {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Click handler.
  */
 export interface NavbarBurgerProps
   extends
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color for the burger. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the burger. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Whether the burger is active. */
   active?: boolean;
+  /** Custom content inside the burger. */
   children?: React.ReactNode;
+  /** Aria label for accessibility. */
   'aria-label'?: string;
+  /** Aria expanded state. */
   'aria-expanded'?: boolean;
+  /** Click handler. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 /**
- * Bulma Navbar burger (responsive menu toggle).
+ * Responsive menu toggle (mobile)
  *
  * @function
  * @param {NavbarBurgerProps} props - Props for the NavbarBurger component.
@@ -265,26 +261,25 @@ export const NavbarBurger: React.FC<NavbarBurgerProps> = ({
 
 /**
  * Props for the NavbarMenu component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the menu.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier for the menu.
- * @property {boolean} [active] - Whether the menu is active.
- * @property {React.ReactNode} [children] - Menu content.
  */
 export interface NavbarMenuProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color for the menu. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier for the menu. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Whether the menu is active. */
   active?: boolean;
+  /** Menu content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar menu area (collapsible content).
+ * Collapsible content (contains `Navbar.Start` and `Navbar.End`)
  *
  * @function
  * @param {NavbarMenuProps} props - Props for the NavbarMenu component.
@@ -318,24 +313,23 @@ export const NavbarMenu: React.FC<NavbarMenuProps> = ({
 
 /**
  * Props for the NavbarStartEnd component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {React.ReactNode} [children] - Content.
  */
 export interface NavbarStartEndProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color modifier. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar start area (left-aligned).
+ * Left-aligned menu area
  *
  * @function
  * @param {NavbarStartEndProps} props - Props for the NavbarStart component.
@@ -364,7 +358,7 @@ export const NavbarStart: React.FC<NavbarStartEndProps> = ({
 };
 
 /**
- * Bulma Navbar end area (right-aligned).
+ * Right-aligned menu area
  *
  * @function
  * @param {NavbarStartEndProps} props - Props for the NavbarEnd component.
@@ -394,31 +388,27 @@ export const NavbarEnd: React.FC<NavbarStartEndProps> = ({
 
 /**
  * Props for the NavbarLink component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ElementType} [as] - Render as a custom component (default: 'a').
- * @property {boolean} [arrowless] - Remove the dropdown arrow indicator.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color.
- * @property {React.ReactNode} [children] - Link content.
  */
 export interface NavbarLinkProps
   extends
     Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Render as a custom component (default: 'a'). */
   as?: React.ElementType;
+  /** Remove the dropdown arrow indicator. */
   arrowless?: boolean;
+  /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Link content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar link — the dropdown trigger inside a `Navbar.Dropdown`.
- *
- * Renders with the `navbar-link` class, which adds a dropdown arrow indicator
- * automatically. Use `arrowless` to remove the arrow.
+ * Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)
  *
  * @function
  * @param {NavbarLinkProps} props - Props for the NavbarLink component.
@@ -457,25 +447,24 @@ export const NavbarLink: React.FC<NavbarLinkProps> = ({
 
 /**
  * Props for the NavbarDropdown component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {boolean} [right] - Dropdown aligned right.
- * @property {boolean} [up] - Dropdown opens upwards.
- * @property {boolean} [hoverable] - Dropdown opens on hover.
- * @property {boolean} [active] - Dropdown is open.
- * @property {React.ReactNode} [children] - Dropdown content.
  */
 export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Dropdown aligned right. */
   right?: boolean;
+  /** Dropdown opens upwards. */
   up?: boolean;
+  /** Dropdown opens on hover. */
   hoverable?: boolean;
+  /** Dropdown is open. */
   active?: boolean;
+  /** Dropdown content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar dropdown (for nested dropdown menus).
+ * Dropdown parent (with options for hover, up, right, active)
  *
  * @function
  * @param {NavbarDropdownProps} props - Props for the NavbarDropdown component.
@@ -508,21 +497,20 @@ export const NavbarDropdown: React.FC<NavbarDropdownProps> = ({
 
 /**
  * Props for the NavbarDropdownMenu component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {boolean} [right] - Dropdown aligned right.
- * @property {boolean} [up] - Dropdown opens upwards.
- * @property {React.ReactNode} [children] - Dropdown menu content.
  */
 export interface NavbarDropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Dropdown aligned right. */
   right?: boolean;
+  /** Dropdown opens upwards. */
   up?: boolean;
+  /** Dropdown menu content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Navbar dropdown menu container.
+ * Dropdown menu container
  *
  * @function
  * @param {NavbarDropdownMenuProps} props - Props for the NavbarDropdownMenu component.
@@ -550,7 +538,7 @@ export const NavbarDropdownMenu: React.FC<NavbarDropdownMenuProps> = ({
 );
 
 /**
- * Bulma Navbar divider.
+ * Divider in dropdown menus.
  *
  * @function
  * @param {React.HTMLAttributes<HTMLHRElement>} props - Standard hr props.

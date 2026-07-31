@@ -1,13 +1,18 @@
 ---
 title: Badge
 sidebar_label: Badge
+description: The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
 ---
 
 # Badge
 
 ## Overview
 
+<!-- bestax:generated overview -->
+
 The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.
+
+<!-- /bestax:generated overview -->
 
 Use it for online-status dots, unread counts, or "pending" bubbles — [`Tag`](../elements/tag) is
 an inline label; `Badge` is a positioned overlay.
@@ -16,29 +21,13 @@ an inline label; `Badge` is a positioned overlay.
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Badge } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop             | Type                                                                                                             | Default       | Description                                                                                                                      |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `content`        | `React.ReactNode`                                                                                                | —             | Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. |
-| `max`            | `number`                                                                                                         | `99`          | Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default.                   |
-| `dot`            | `boolean`                                                                                                        | `false`       | Render a small dot with no content.                                                                                              |
-| `showZero`       | `boolean`                                                                                                        | `false`       | Show the badge when `content` is `0`.                                                                                            |
-| `color`          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` | `'danger'`    | Status color.                                                                                                                    |
-| `position`       | `'top-right' \| 'top-left' \| 'bottom-right' \| 'bottom-left'`                                                   | `'top-right'` | Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`).                           |
-| `overlap`        | `'circle' \| 'square'`                                                                                           | `'square'`    | Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`).     |
-| `pulse`          | `boolean`                                                                                                        | `false`       | Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.                                                       |
-| `invisible`      | `boolean`                                                                                                        | `false`       | Hide the badge pill without unmounting it (the wrapper and `children` stay visible).                                             |
-| `className`      | `string`                                                                                                         | —             | Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill.                              |
-| `badgeClassName` | `string`                                                                                                         | —             | Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`).                       |
-| `children`       | `React.ReactNode`                                                                                                | —             | The element the badge overlays. Omit to render a standalone badge.                                                               |
-| ...              | All standard HTML and Bulma helper props                                                                         |               | (See [Helper Props](../helpers/usebulmaclasses))                                                                                 |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -279,3 +268,54 @@ A plain-text `children` value renders at its natural height alongside the badge.
 ## Additional Resources
 
 - [Storybook: Badge Stories](https://bestax.io/storybook/?path=/story/components-badge--unread-count)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                 | Default       | Description                                                                                                                      |
+| ---------------- | -------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `className`      | `string`                                                             | —             | Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill.                              |
+| `badgeClassName` | `string`                                                             | —             | Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`).                       |
+| `content`        | `React.ReactNode`                                                    | —             | Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. |
+| `max`            | `number`                                                             | `99`          | Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default.                   |
+| `dot`            | `boolean`                                                            | `false`       | Render a small dot with no content.                                                                                              |
+| `showZero`       | `boolean`                                                            | `false`       | Show the badge when `content` is `0`. Default `false`.                                                                           |
+| `color`          | `BadgeColor`                                                         | `'danger'`    | Status color. Default `'danger'`.                                                                                                |
+| `position`       | `'top-right'` \| `'top-left'` \| `'bottom-right'` \| `'bottom-left'` | `'top-right'` | Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`).                           |
+| `overlap`        | `'circle'` \| `'square'`                                             | `'square'`    | Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`).     |
+| `pulse`          | `boolean`                                                            | `false`       | Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.                                                       |
+| `invisible`      | `boolean`                                                            | `false`       | Hide the badge pill without unmounting it (the wrapper and `children` stay visible).                                             |
+| `children`       | `React.ReactNode`                                                    | —             | The element the badge overlays. Omit to render a standalone badge.                                                               |
+| `...`            | All standard `<span>` attributes and Bulma helper props              | —             | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                |
+
+**Types:**
+
+- `BadgeColor`: `'primary'` | `'link'` | `'info'` | `'success'` | `'warning'` | `'danger'` | `'black'` | `'dark'` | `'light'` | `'white'` — Valid color values for the Badge component.
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Badge` registers these variables on its own `.badge` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                       | Sass Variable               | Default                       |
+| ---------------------------------- | --------------------------- | ----------------------------- |
+| `--bulma-badge-height`             | `$badge-height`             | `1.25em`                      |
+| `--bulma-badge-min-width`          | `$badge-min-width`          | `1.25em`                      |
+| `--bulma-badge-padding`            | `$badge-padding`            | `0 0.4em`                     |
+| `--bulma-badge-font-size`          | `$badge-font-size`          | `0.7rem`                      |
+| `--bulma-badge-radius`             | `$badge-radius`             | `var(--bulma-radius-rounded)` |
+| `--bulma-badge-ring-color`         | `$badge-ring-color`         | `var(--bulma-scheme-main)`    |
+| `--bulma-badge-ring-width`         | `$badge-ring-width`         | `2px`                         |
+| `--bulma-badge-dot-size`           | `$badge-dot-size`           | `0.65em`                      |
+| `--bulma-badge-inset-circle`       | `$badge-inset-circle`       | `12%`                         |
+| `--bulma-badge-animation-duration` | `$badge-animation-duration` | `1.4s`                        |
+
+<!-- /bestax:generated cssvars -->

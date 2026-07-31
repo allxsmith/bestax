@@ -1,13 +1,20 @@
 ---
 title: Reveal
 sidebar_label: Reveal
+description: The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.
 ---
 
 # Reveal
 
 ## Overview
 
-The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`. It's a lightweight, CSS-driven wrapper for "fade/slide/zoom in on scroll" effects on landing pages — no animation runtime dependency required.
+<!-- bestax:generated overview -->
+
+The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.
+
+<!-- /bestax:generated overview -->
+
+It's a lightweight, CSS-driven wrapper for "fade/slide/zoom in on scroll" effects on landing pages — no animation runtime dependency required.
 
 Accessibility and progressive enhancement are built in, not opt-in:
 
@@ -21,27 +28,13 @@ Accessibility and progressive enhancement are built in, not opt-in:
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Reveal } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop              | Type                                                                                                  | Default     | Description                                                                                                                                |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `animation`       | `'fade'` \| `'fade-up'` \| `'fade-down'` \| `'slide-left'` \| `'slide-right'` \| `'zoom'` \| `'flip'` | `'fade-up'` | Animation style applied when the element enters the viewport.                                                                              |
-| `delay`           | `number`                                                                                              | `0`         | Delay in milliseconds before the animation starts.                                                                                         |
-| `duration`        | `number`                                                                                              | `600`       | Animation duration in milliseconds.                                                                                                        |
-| `threshold`       | `number`                                                                                              | `0.15`      | Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. |
-| `once`            | `boolean`                                                                                             | `true`      | Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit.                               |
-| `as`              | `React.ElementType`                                                                                   | `'div'`     | Element or component to render as.                                                                                                         |
-| `cascade`         | `boolean`                                                                                             | `false`     | Stagger direct children with an incrementing delay instead of animating this element as a single block.                                    |
-| `cascadeInterval` | `number`                                                                                              | `80`        | Milliseconds added to each successive child's delay when `cascade` is set.                                                                 |
-| `children`        | `React.ReactNode`                                                                                     | —           | Content to reveal.                                                                                                                         |
-| `className`       | `string`                                                                                              | —           | Additional CSS classes.                                                                                                                    |
-| ...               | All standard HTML and Bulma helper props                                                              |             | (See [Helper Props](../helpers/usebulmaclasses))                                                                                           |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -193,3 +186,44 @@ function example() {
 - During server-side rendering and the first client render (before hydration effects run),
   `Reveal` renders the final, visible state — content is never hidden if JavaScript fails to
   load, ensuring crawlers and no-JS visitors always see the full page.
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop              | Type                                                                                                  | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `animation`       | `'fade'` \| `'fade-up'` \| `'fade-down'` \| `'slide-left'` \| `'slide-right'` \| `'zoom'` \| `'flip'` | `'fade-up'` | Animation style applied when the element enters the viewport.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `delay`           | `number`                                                                                              | `0`         | Delay in milliseconds before the animation starts. Default: 0.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `duration`        | `number`                                                                                              | `600`       | Animation duration in milliseconds. Default: 600.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `threshold`       | `number`                                                                                              | `0.15`      | Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `once`            | `boolean`                                                                                             | `true`      | Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit.                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `as`              | `React.ElementType`                                                                                   | `'div'`     | Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. |
+| `cascade`         | `boolean`                                                                                             | `false`     | Stagger direct children with an incrementing delay instead of animating this element as a single block.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `cascadeInterval` | `number`                                                                                              | `80`        | Milliseconds added to each successive child's delay when `cascade` is set. Default: 80.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `children`        | `React.ReactNode`                                                                                     | —           | Content to reveal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `className`       | `string`                                                                                              | —           | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `...`             | All standard HTML attributes and Bulma helper props                                                   | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Reveal` registers these variables on its own `.reveal` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                  | Sass Variable          | Default                 |
+| ----------------------------- | ---------------------- | ----------------------- |
+| `--bulma-reveal-offset`       | `$reveal-offset`       | `24px`                  |
+| `--bulma-reveal-offset-large` | `$reveal-offset-large` | `64px`                  |
+| `--bulma-reveal-scale`        | `$reveal-scale`        | `0.92`                  |
+| `--bulma-reveal-flip-angle`   | `$reveal-flip-angle`   | `-15deg`                |
+| `--bulma-reveal-duration`     | `$reveal-duration`     | `var(--bulma-duration)` |
+| `--bulma-reveal-easing`       | `$reveal-easing`       | `var(--bulma-easing)`   |
+
+<!-- /bestax:generated cssvars -->

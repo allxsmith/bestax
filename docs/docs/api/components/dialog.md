@@ -1,43 +1,32 @@
 ---
 title: Dialog
 sidebar_label: Dialog
+description: The `Dialog` component provides confirmation and alert dialogs with customizable actions.
 ---
 
 # Dialog
 
 ## Overview
 
-The `Dialog` component provides confirmation and alert dialogs with customizable actions. Dialogs are modal and require user interaction before they can be dismissed.
+<!-- bestax:generated overview -->
+
+The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+
+<!-- /bestax:generated overview -->
+
+Dialogs are modal and require user interaction before they can be dismissed.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Dialog, DialogContainer, dialog } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop          | Type                                                                | Default     | Description                                          |
-| ------------- | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------- |
-| `isOpen`      | `boolean`                                                           | —           | Whether the dialog is open (required).               |
-| `title`       | `string`                                                            | —           | Dialog title.                                        |
-| `message`     | `string` \| `React.ReactNode`                                       | —           | Dialog message/content (required).                   |
-| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | Type/color of the dialog.                            |
-| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button.                             |
-| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button.                              |
-| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.             |
-| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed. |
-| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button.                       |
-| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed.                 |
-| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm.              |
-| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                              |
-| `className`   | `string`                                                            | —           | Additional CSS classes.                              |
-| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                 |
-| ...           | All standard HTML and Bulma helper props                            |             | (See [Helper Props](../helpers/usebulmaclasses))     |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -352,3 +341,60 @@ function example() {
 :::tip Pro Tip
 Use the programmatic `dialog.confirm()` with async/await to create clean, sequential flows without managing dialog state manually.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop          | Type                                                                | Default     | Description                                                       |
+| ------------- | ------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------- |
+| `isOpen`      | `boolean`                                                           | —           | Whether the dialog is open (required).                            |
+| `title`       | `string`                                                            | —           | Dialog title.                                                     |
+| `message`     | `string` \| `React.ReactNode`                                       | —           | Dialog message/content (required).                                |
+| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'.                 |
+| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                           |
+| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                        |
+| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                          |
+| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.              |
+| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs. |
+| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.               |
+| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.           |
+| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                                           |
+| `className`   | `string`                                                            | —           | Additional CSS classes.                                           |
+| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                              |
+| `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Dialog` registers these variables on its own `.dialog` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                        | Sass Variable                | Default                           |
+| ----------------------------------- | ---------------------------- | --------------------------------- |
+| `--bulma-dialog-width`              | `$dialog-width`              | `420px`                           |
+| `--bulma-dialog-max-width`          | `$dialog-max-width`          | `90%`                             |
+| `--bulma-dialog-radius`             | `$dialog-radius`             | `var(--bulma-radius)`             |
+| `--bulma-dialog-background`         | `$dialog-background`         | `var(--bulma-scheme-main)`        |
+| `--bulma-dialog-shadow`             | `$dialog-shadow`             | `0 8px 24px hsla(0, 0%, 0%, 0.2)` |
+| `--bulma-dialog-header-padding`     | `$dialog-header-padding`     | `1rem 1.25rem`                    |
+| `--bulma-dialog-body-padding`       | `$dialog-body-padding`       | `1.25rem`                         |
+| `--bulma-dialog-body-color`         | `$dialog-body-color`         | `var(--bulma-text)`               |
+| `--bulma-dialog-body-line-height`   | `$dialog-body-line-height`   | `1.5`                             |
+| `--bulma-dialog-footer-padding`     | `$dialog-footer-padding`     | `1rem 1.25rem`                    |
+| `--bulma-dialog-footer-gap`         | `$dialog-footer-gap`         | `0.75rem`                         |
+| `--bulma-dialog-border-color`       | `$dialog-border-color`       | `var(--bulma-border)`             |
+| `--bulma-dialog-title-size`         | `$dialog-title-size`         | `var(--bulma-size-5)`             |
+| `--bulma-dialog-title-weight`       | `$dialog-title-weight`       | `var(--bulma-weight-semibold)`    |
+| `--bulma-dialog-title-color`        | `$dialog-title-color`        | `var(--bulma-text-strong)`        |
+| `--bulma-dialog-icon-size`          | `$dialog-icon-size`          | `1.5rem`                          |
+| `--bulma-dialog-icon-margin`        | `$dialog-icon-margin`        | `0.75rem`                         |
+| `--bulma-dialog-animation-duration` | `$dialog-animation-duration` | `0.2s`                            |
+
+<!-- /bestax:generated cssvars -->

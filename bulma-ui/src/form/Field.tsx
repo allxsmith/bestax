@@ -11,79 +11,76 @@ import { Control } from './Control';
 
 /**
  * Props for the Field component.
- *
- * @property {boolean} [horizontal] - Renders the field as horizontal (label and control side by side).
- * @property {boolean|'centered'|'right'|'multiline'} [grouped] - Group controls in a row (optionally centered, right, or multiline).
- * @property {boolean|'centered'|'right'} [hasAddons] - Group controls as addons (optionally centered or right-aligned).
- * @property {boolean} [narrow] - Constrains the field to its content's width (used inside horizontal field bodies).
- * @property {React.ReactNode} [label] - Field label.
- * @property {'small'|'normal'|'medium'|'large'} [labelSize] - Size for the label.
- * @property {object} [labelProps] - Props for the label element.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the field.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color for the field.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the field.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Field content.
  */
 export interface FieldProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Renders the field as horizontal (label and control side by side). */
   horizontal?: boolean;
+  /** Group controls in a row (optionally centered, right, or multiline). */
   grouped?: boolean | 'centered' | 'right' | 'multiline';
+  /** Group controls as addons (optionally centered or right-aligned). */
   hasAddons?: boolean | 'centered' | 'right';
+  /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
+  /** Field label, rendered above the widget. */
   label?: React.ReactNode;
+  /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
+  /** Props for the label element. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
+  /** Text color for the field. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color for the field. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the field. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Field content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the FieldLabel component.
- *
- * @property {'small'|'normal'|'medium'|'large'} [size] - Size for the field label.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the label.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color for the label.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the label.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Field label content.
  */
 export interface FieldLabelProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Size for the field label. */
   size?: 'small' | 'normal' | 'medium' | 'large';
+  /** Text color for the label. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color for the label. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the label. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Field label content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the FieldBody component.
- *
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [textColor] - Text color for the field body.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color for the field body.
- * @property {(typeof validColors)[number] | 'inherit' | 'current'} [bgColor] - Background color for the field body.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Field body content.
  */
 export interface FieldBodyProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Text color for the field body. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Bulma color for the field body. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Background color for the field body. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Additional CSS classes. */
   className?: string;
+  /** Field body content. */
   children?: React.ReactNode;
 }
 
@@ -157,8 +154,7 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
 };
 
 /**
- * Field component for rendering a Bulma field container.
- * Supports horizontal, grouped, and labelled fields.
+ * The `Field` component is a Bulma-styled form field container.
  *
  * @function
  * @param {FieldProps} props - Props for the Field component.

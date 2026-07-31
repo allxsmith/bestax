@@ -15,39 +15,25 @@ import { Checkbox } from './Checkbox';
 
 /**
  * Props for the Checkboxes component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {string} [name] - Form field name shared by every Checkbox in the group.
- * @property {string[]} [value] - Currently-selected values (controlled mode).
- * @property {string[]} [defaultValue] - Initial selected values (uncontrolled mode).
- * @property {(values: string[]) => void} [onChange] - Fired when the selection changes. Receives the new array of selected values.
- * @property {React.ReactNode} [children] - Checkbox elements to render in the group.
  */
 export interface CheckboxesProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Form field name shared by every Checkbox in the group (via context). */
   name?: string;
+  /** Currently-selected values (controlled mode). */
   value?: string[];
+  /** Initial selected values (uncontrolled mode). */
   defaultValue?: string[];
+  /** Fires when the selection changes; receives the new array. */
   onChange?: (values: string[]) => void;
+  /** Checkbox elements to render in the group. */
   children?: React.ReactNode;
 }
 
 /**
- * Wraps Checkbox components inside a Bulma 'checkboxes' wrapper. Manages the
- * selected-values array for the entire group when given
- * `value`/`defaultValue`/`onChange`.
- *
- * Three usage modes:
- *
- * 1. **Name-only** — pass `name`. Each child Checkbox manages its own checked
- *    state via `defaultChecked` or `checked`. Backwards compatible.
- *
- * 2. **Controlled** — pass `value` (array) and `onChange`. The group owns
- *    selection; each child derives `checked` from `value.includes(my.value)`.
- *
- * 3. **Uncontrolled** — pass `defaultValue` (array) and optionally `onChange`.
- *    The group manages internal state; `onChange` fires with the new array.
+ * The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
  *
  * @function
  * @param {CheckboxesProps} props - Props for the Checkboxes component.

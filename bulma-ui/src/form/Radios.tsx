@@ -15,40 +15,25 @@ import { Radio } from './Radio';
 
 /**
  * Props for the Radios component.
- *
- * @property {string} [className] - Additional CSS classes to apply.
- * @property {string} [name] - Form field name shared by every Radio in the group.
- * @property {string} [value] - Currently-selected value (controlled mode).
- * @property {string} [defaultValue] - Initial selected value (uncontrolled mode).
- * @property {(value: string) => void} [onChange] - Fired when the selection changes. Receives the new value.
- * @property {React.ReactNode} children - Radio elements to render in the group.
  */
 export interface RadiosProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
+  /** Additional CSS classes to apply. */
   className?: string;
+  /** Form field name shared by every Radio in the group (via context). */
   name?: string;
+  /** Currently-selected value (controlled mode). */
   value?: string;
+  /** Initial selected value (uncontrolled mode). */
   defaultValue?: string;
+  /** Fires when the selection changes. */
   onChange?: (value: string) => void;
+  /** Radio elements to render in the group. */
   children: React.ReactNode;
 }
 
 /**
- * Wraps Radio components inside a Bulma 'radios' wrapper. Manages selection
- * state for the entire group when given `value`/`defaultValue`/`onChange`,
- * matching the pattern used by MUI's RadioGroup, Radix's RadioGroup, and React
- * Aria's RadioGroup.
- *
- * Three usage modes:
- *
- * 1. **Name-only** — pass `name`. Each child Radio manages its own checked
- *    state via `defaultChecked` or `checked`. Backwards compatible.
- *
- * 2. **Controlled** — pass `value` and `onChange`. The group owns selection;
- *    each child derives `checked` from `value === my.value`.
- *
- * 3. **Uncontrolled** — pass `defaultValue` (and optionally `onChange`). The
- *    group manages internal state; `onChange` fires on selection change.
+ * The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.
  *
  * @function
  * @param {RadiosProps} props - Props for the Radios component.

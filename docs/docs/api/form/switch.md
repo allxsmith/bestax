@@ -1,44 +1,32 @@
 ---
 title: Switch
 sidebar_label: Switch
+description: The `Switch` component provides a toggle switch for boolean on/off states.
 ---
 
 # Switch
 
 ## Overview
 
-The `Switch` component provides a toggle switch for boolean on/off states. It's built on top of a checkbox input and supports multiple colors, sizes, and style variants. Perfect for settings pages, feature toggles, and preference selections.
+<!-- bestax:generated overview -->
+
+The `Switch` component provides a toggle switch for boolean on/off states.
+
+<!-- /bestax:generated overview -->
+
+It's built on top of a checkbox input and supports multiple colors, sizes, and style variants. Perfect for settings pages, feature toggles, and preference selections.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Switch } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop             | Type                                                                                                                                                                                                                                                                                     | Default | Description                                        |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------- |
-| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | —       | Color variant for the switch.                      |
-| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                                                                                                                                                       | —       | Size of the switch.                                |
-| `isRounded`      | `boolean`                                                                                                                                                                                                                                                                                | `false` | Use rounded switch style.                          |
-| `isThin`         | `boolean`                                                                                                                                                                                                                                                                                | `false` | Use thin switch style.                             |
-| `isOutlined`     | `boolean`                                                                                                                                                                                                                                                                                | `false` | Use outlined switch style.                         |
-| `isRtl`          | `boolean`                                                                                                                                                                                                                                                                                | `false` | Right-to-left layout (label on left).              |
-| `disabled`       | `boolean`                                                                                                                                                                                                                                                                                | `false` | Whether the switch is disabled.                    |
-| `checked`        | `boolean`                                                                                                                                                                                                                                                                                | —       | Controlled checked state.                          |
-| `defaultChecked` | `boolean`                                                                                                                                                                                                                                                                                | `false` | Default checked state for uncontrolled usage.      |
-| `onChange`       | `(e: ChangeEvent<HTMLInputElement>) => void`                                                                                                                                                                                                                                             | —       | Callback when switch state changes.                |
-| `passiveType`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                                                                                                                                                                          | —       | Color when the switch is in the off/passive state. |
-| `textColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color helper.                                 |
-| `children`       | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Label content for the switch.                      |
-| `className`      | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes.                            |
-| `ref`            | `React.Ref<HTMLInputElement>`                                                                                                                                                                                                                                                            | —       | Ref forwarded to the input element.                |
-| ...              | All standard HTML input props and Bulma helper props                                                                                                                                                                                                                                     |         | (See [Helper Props](../helpers/usebulmaclasses))   |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -293,3 +281,57 @@ function example() {
 
 - [Checkbox](./checkbox.md) - Standard checkbox input
 - [Field](./field.md) - Form field wrapper
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                            | Default | Description                                        |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------- |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the switch.                      |
+| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the switch.                                |
+| `isRounded`      | `boolean`                                                                       | `false` | Use rounded switch style.                          |
+| `isThin`         | `boolean`                                                                       | `false` | Use thin switch style.                             |
+| `isOutlined`     | `boolean`                                                                       | `false` | Use outlined switch style.                         |
+| `isRtl`          | `boolean`                                                                       | `false` | Right-to-left layout (label on left).              |
+| `passiveType`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color when the switch is in the off/passive state. |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                 |
+| `children`       | `React.ReactNode`                                                               | —       | Label content for the switch.                      |
+| `checked`        | `boolean`                                                                       | —       | Controlled checked state.                          |
+| `defaultChecked` | `boolean`                                                                       | `false` | Default checked state for uncontrolled usage.      |
+| `disabled`       | `boolean`                                                                       | `false` | Whether the switch is disabled.                    |
+| `className`      | `string`                                                                        | —       | Additional CSS classes.                            |
+| `onChange`       | `(event: React.ChangeEvent<HTMLInputElement>) => void`                          | —       | Callback when switch state changes.                |
+| `ref`            | `React.Ref<HTMLInputElement>`                                                   | —       | Ref forwarded to the input element.                |
+| `...`            | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md)  |
+
+<!-- /bestax:generated props -->
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Switch` registers these variables on its own `.switch` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                         | Sass Variable                 | Default                            |
+| ------------------------------------ | ----------------------------- | ---------------------------------- |
+| `--bulma-switch-width`               | `$switch-width`               | `2.75em`                           |
+| `--bulma-switch-height`              | `$switch-height`              | `1.5em`                            |
+| `--bulma-switch-padding`             | `$switch-padding`             | `0.1875em`                         |
+| `--bulma-switch-border-width`        | `$switch-border-width`        | `1px`                              |
+| `--bulma-switch-background`          | `$switch-background`          | `var(--bulma-grey-light)`          |
+| `--bulma-switch-circle-color`        | `$switch-circle-color`        | `var(--bulma-scheme-main)`         |
+| `--bulma-switch-active-color`        | `$switch-active-color`        | `var(--bulma-primary)`             |
+| `--bulma-switch-radius`              | `$switch-radius`              | `var(--bulma-radius-rounded)`      |
+| `--bulma-switch-label-gap`           | `$switch-label-gap`           | `0.5em`                            |
+| `--bulma-switch-transition-duration` | `$switch-transition-duration` | `var(--bulma-duration)`            |
+| `--bulma-switch-circle-shadow`       | `$switch-circle-shadow`       | `0 2px 3px rgba(10, 10, 10, 0.1)`  |
+| `--bulma-switch-focus-shadow`        | `$switch-focus-shadow`        | `0 0 0 0.125em rgba(0, 0, 0, 0.1)` |
+| `--bulma-switch-thin-height`         | `$switch-thin-height`         | `0.75em`                           |
+| `--bulma-switch-thin-circle-size`    | `$switch-thin-circle-size`    | `1.25em`                           |
+
+<!-- /bestax:generated cssvars -->

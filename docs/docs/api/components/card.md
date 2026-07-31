@@ -1,113 +1,32 @@
 ---
 title: Card
 sidebar_label: Card
+description: The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
 ---
 
 # Card
 
 ## Overview
 
-The `Card` component renders a Bulma-styled card with optional header, image, content, and footer. It supports custom colors, shadows, spacing, alignment, and more for flexible, attractive UI blocks.
+<!-- bestax:generated overview -->
+
+The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
+
+<!-- /bestax:generated overview -->
+
+It supports custom colors, shadows, spacing, alignment, and more for flexible, attractive UI blocks.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Card } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop             | Type                                                                                                                                                                                                                                                                                     | Description                                                       |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `className`      | `string`                                                                                                                                                                                                                                                                                 | Additional CSS classes to apply.                                  |
-| `textColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Text color for the card.                                          |
-| `color`          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'`                                                                                                                                                                                                                    | Bulma color modifier for the card.                                |
-| `bgColor`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | Background color for the card.                                    |
-| `hasShadow`      | `boolean`                                                                                                                                                                                                                                                                                | Whether the card has a shadow (default: `true`).                  |
-| `header`         | `React.ReactNode`                                                                                                                                                                                                                                                                        | Card header content, rendered inside `.card-header-title`.        |
-| `headerCentered` | `boolean`                                                                                                                                                                                                                                                                                | If true, centers the header title.                                |
-| `headerIcon`     | `React.ReactNode`                                                                                                                                                                                                                                                                        | Card header icon, rendered as a sibling to the header title.      |
-| `footer`         | `React.ReactNode \| React.ReactNode[]`                                                                                                                                                                                                                                                   | Card footer content; each item is wrapped in `.card-footer-item`. |
-| `image`          | `React.ReactNode \| string`                                                                                                                                                                                                                                                              | Card image node or image src string.                              |
-| `imageAlt`       | `string`                                                                                                                                                                                                                                                                                 | Alternate text for the card image.                                |
-| `children`       | `React.ReactNode`                                                                                                                                                                                                                                                                        | Card content (body).                                              |
-| `m`/`p`          | `string`                                                                                                                                                                                                                                                                                 | Bulma margin/padding helper props (e.g. `'4'`, `'auto'`).         |
-| `textAlign`      | `'centered' \| 'justified' \| 'left' \| 'right'`                                                                                                                                                                                                                                         | Text alignment.                                                   |
-| ...              | All Bulma and standard HTML props                                                                                                                                                                                                                                                        | (See [Helper Props](../helpers/usebulmaclasses))                  |
-
-### Compound component props
-
-The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
-
-#### Card.Header
-
-Renders the card header section with proper styling. When used without `Card.Header.Title`, it automatically wraps content in a `.card-header-title` div. When used with `Card.Header.Title`, it renders the title component directly without additional wrapping.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
-- All standard HTML attributes for `<header>`
-
-#### Card.Header.Title
-
-Renders the card header title with proper styling. This provides more granular control over the header title when using compound components. When used inside `Card.Header`, it prevents automatic wrapping.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `centered?`: Whether to center the header title
-- All standard HTML attributes for `<div>`
-
-#### Card.Header.Icon
-
-Renders the card header icon button with proper styling. This is typically placed after `Card.Header.Title` for actions like expand/collapse or accessing more options.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- `aria-label?`: Accessibility label (defaults to "more options")
-- All standard HTML attributes for `<button>`
-
-#### Card.Image
-
-Renders the card image section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-#### Card.Content
-
-Renders the main card content section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
-
-#### Card.Footer
-
-Renders the card footer section.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<footer>`
-
-#### Card.FooterItem
-
-Renders individual footer items with proper styling.
-
-**Props:**
-
-- `className?`: Additional CSS classes
-- All standard HTML attributes for `<span>`
+<!-- /bestax:generated import -->
 
 ---
 
@@ -381,3 +300,194 @@ You can combine the traditional prop-based API with compound components:
 ## Additional Resources
 
 - [Storybook: Card Stories](https://bestax.io/storybook/?path=/story/components-card--default)
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                            | Default | Description                                                       |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
+| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                  |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the card.                                          |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the card.                                |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the card.                                    |
+| `hasShadow`      | `boolean`                                                                       | `true`  | Whether the card has a shadow (default: `true`).                  |
+| `header`         | `React.ReactNode`                                                               | —       | Card header content, rendered inside `.card-header-title`.        |
+| `headerCentered` | `boolean`                                                                       | `false` | If true, centers the header title.                                |
+| `headerIcon`     | `React.ReactNode`                                                               | —       | Card header icon, rendered as a sibling to the header title.      |
+| `footer`         | `React.ReactNode` \| `React.ReactNode[]`                                        | —       | Card footer content; each item is wrapped in `.card-footer-item`. |
+| `image`          | `React.ReactNode` \| `string`                                                   | —       | Card image node or image src string.                              |
+| `imageAlt`       | `string`                                                                        | —       | Alternate text for the card image.                                |
+| `children`       | `React.ReactNode`                                                               | —       | Card content (body).                                              |
+| `textAlign`      | `'centered'` \| `'justified'` \| `'left'` \| `'right'`                          | —       | Text alignment.                                                   |
+| `...`            | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+
+**Subcomponents:**
+
+- `Card.Header`: Card header compound component. Wraps children in a `.card-header` element.
+- `Card.Header.Title`: Card header title compound component. Renders a `.card-header-title` element.
+- `Card.Header.Icon`: Card header icon compound component. Renders a `.card-header-icon` button.
+- `Card.Image`: Card image compound component. Wraps children in a `.card-image` element.
+- `Card.Content`: Card content compound component. Wraps children in a `.card-content` element.
+- `Card.Footer`: Card footer compound component. Wraps children in a `.card-footer` element.
+- `Card.FooterItem`: Card footer item compound component. Wraps children in a `.card-footer-item` span.
+
+### Card.Header
+
+| Prop        | Type                         | Default | Description                                                  |
+| ----------- | ---------------------------- | ------- | ------------------------------------------------------------ |
+| `className` | `string`                     | —       | Additional CSS classes.                                      |
+| `children`  | `React.ReactNode`            | —       | Header content. Wrap in Card.Header.Title for Bulma styling. |
+| `centered`  | `boolean`                    | `false` | Whether to center the header title text.                     |
+| `...`       | All standard HTML attributes | —       |                                                              |
+
+### Card.Header.Title
+
+| Prop        | Type                            | Default | Description                       |
+| ----------- | ------------------------------- | ------- | --------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.           |
+| `children`  | `React.ReactNode`               | —       | Title text content.               |
+| `centered`  | `boolean`                       | `false` | Whether to center the title text. |
+| `...`       | All standard `<div>` attributes | —       |                                   |
+
+### Card.Header.Icon
+
+| Prop        | Type                               | Default | Description                          |
+| ----------- | ---------------------------------- | ------- | ------------------------------------ |
+| `className` | `string`                           | —       | Additional CSS classes.              |
+| `children`  | `React.ReactNode`                  | —       | Icon content (e.g. an icon element). |
+| `...`       | All standard `<button>` attributes | —       |                                      |
+
+### Card.Image
+
+| Prop        | Type                            | Default | Description                                        |
+| ----------- | ------------------------------- | ------- | -------------------------------------------------- |
+| `className` | `string`                        | —       | Additional CSS classes.                            |
+| `children`  | `React.ReactNode`               | —       | Image content (e.g. a `<figure>` with an `<img>`). |
+| `...`       | All standard `<div>` attributes | —       |                                                    |
+
+### Card.Content
+
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `children`  | `React.ReactNode`               | —       | Card body content.      |
+| `...`       | All standard `<div>` attributes | —       |                         |
+
+### Card.Footer
+
+| Prop        | Type                         | Default | Description                                         |
+| ----------- | ---------------------------- | ------- | --------------------------------------------------- |
+| `className` | `string`                     | —       | Additional CSS classes.                             |
+| `children`  | `React.ReactNode`            | —       | Footer content, typically Card.FooterItem elements. |
+| `...`       | All standard HTML attributes | —       |                                                     |
+
+### Card.FooterItem
+
+| Prop        | Type                             | Default | Description                                     |
+| ----------- | -------------------------------- | ------- | ----------------------------------------------- |
+| `className` | `string`                         | —       | Additional CSS classes.                         |
+| `children`  | `React.ReactNode`                | —       | Footer item content (link, button, text, etc.). |
+| `...`       | All standard `<span>` attributes | —       |                                                 |
+
+<!-- /bestax:generated props -->
+
+### Compound component props
+
+The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
+
+#### Card.Header
+
+Renders the card header section with proper styling. When used without `Card.Header.Title`, it automatically wraps content in a `.card-header-title` div. When used with `Card.Header.Title`, it renders the title component directly without additional wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
+- All standard HTML attributes for `<header>`
+
+#### Card.Header.Title
+
+Renders the card header title with proper styling. This provides more granular control over the header title when using compound components. When used inside `Card.Header`, it prevents automatic wrapping.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `centered?`: Whether to center the header title
+- All standard HTML attributes for `<div>`
+
+#### Card.Header.Icon
+
+Renders the card header icon button with proper styling. This is typically placed after `Card.Header.Title` for actions like expand/collapse or accessing more options.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- `aria-label?`: Accessibility label (defaults to "more options")
+- All standard HTML attributes for `<button>`
+
+#### Card.Image
+
+Renders the card image section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Card.Content
+
+Renders the main card content section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<div>`
+
+#### Card.Footer
+
+Renders the card footer section.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<footer>`
+
+#### Card.FooterItem
+
+Renders individual footer items with proper styling.
+
+**Props:**
+
+- `className?`: Additional CSS classes
+- All standard HTML attributes for `<span>`
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Card` registers these variables on its own `.card` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                            | Sass Variable                    | Default                                                                                                  |
+| --------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `--bulma-card-color`                    | `$card-color`                    | `var(--bulma-text)`                                                                                      |
+| `--bulma-card-background-color`         | `$card-background-color`         | `var(--bulma-scheme-main)`                                                                               |
+| `--bulma-card-shadow`                   | `$card-shadow`                   | `var(--bulma-shadow)`                                                                                    |
+| `--bulma-card-radius`                   | `$card-radius`                   | `0.75rem`                                                                                                |
+| `--bulma-card-header-background-color`  | `$card-header-background-color`  | `transparent`                                                                                            |
+| `--bulma-card-header-color`             | `$card-header-color`             | `var(--bulma-text-strong)`                                                                               |
+| `--bulma-card-header-padding`           | `$card-header-padding`           | `0.75rem 1rem`                                                                                           |
+| `--bulma-card-header-shadow`            | `$card-header-shadow`            | `0 0.125em 0.25em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1)` |
+| `--bulma-card-header-weight`            | `$card-header-weight`            | `var(--bulma-weight-bold)`                                                                               |
+| `--bulma-card-content-background-color` | `$card-content-background-color` | `transparent`                                                                                            |
+| `--bulma-card-content-padding`          | `$card-content-padding`          | `1.5rem`                                                                                                 |
+| `--bulma-card-footer-background-color`  | `$card-footer-background-color`  | `transparent`                                                                                            |
+| `--bulma-card-footer-border-top`        | `$card-footer-border-top`        | `1px solid var(--bulma-border-weak)`                                                                     |
+| `--bulma-card-footer-padding`           | `$card-footer-padding`           | `0.75rem`                                                                                                |
+| `--bulma-card-media-margin`             | `$card-media-margin`             | `var(--bulma-block-spacing)`                                                                             |
+
+<!-- /bestax:generated cssvars -->

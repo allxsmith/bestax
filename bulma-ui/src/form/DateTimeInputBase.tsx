@@ -72,48 +72,6 @@ const fromIsoDateTime = (s: string): Date | null => {
  * Props for the raw DateTimeInput base. Use the higher-level `DateTimeInput`
  * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
  * and `TimeInputBaseProps`.
- *
- * @property {Date | null} [value] - Controlled selected date-time.
- * @property {Date | null} [defaultValue] - Initial value for uncontrolled usage.
- * @property {(d: Date | null) => void} [onChange] - Fired when either half changes.
- * @property {() => void} [onOpen] - Fired when the popover opens.
- * @property {() => void} [onClose] - Fired when the popover closes.
- * @property {Date} [min] - Lower bound for the combined date-time.
- * @property {Date} [max] - Upper bound for the combined date-time.
- * @property {boolean} [disabled] - Disable the input.
- * @property {boolean} [readOnly] - Read-only input.
- * @property {string} [placeholder] - Placeholder text.
- * @property {DateFormatOption} [format] - Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD HH:mm'`.
- * @property {(s: string) => Date | null} [parse] - Custom parser.
- * @property {string} [locale] - BCP-47 locale tag.
- * @property {boolean} [inline] - Render the panel inline (no popover).
- * @property {boolean | 'auto'} [mobileNative] - Use native `<input type="datetime-local">` on coarse-pointer devices.
- * @property {boolean} [editable] - Allow segmented keyboard typing in the input (type the date-time directly, auto-advancing across segments). Default `true`.
- * @property {boolean} [popover] - Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.
- * @property {boolean} [openOnFocus] - Open the popover on focus. Default `true`.
- * @property {boolean} [closeOnSelect] - Close after selection. Default `false`.
- * @property {PickerPosition} [position] - Popover anchor position.
- * @property {boolean} [appendToBody] - Render the popover into `document.body` via portal.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {'small'|'medium'|'large'} [size] - Size variant.
- * @property {boolean} [isRounded] - Rounded input corners.
- * @property {(d: Date) => boolean} [shouldDisableDate] - Predicate for disabled dates. Blocked dates can't be picked in the calendar and are rejected by manual typing; during entry the predicate receives the full candidate date-time, so prefer day-based checks.
- * @property {Date[]} [unselectableDates] - Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.
- * @property {DayOfWeek} [firstDayOfWeek] - Day the calendar week starts on.
- * @property {string[]} [dayNames] - Override the 7 day-name labels.
- * @property {string[]} [monthNames] - Override the 12 month-name labels.
- * @property {boolean} [nearbyMonthDays] - Show dimmed dates from adjacent months.
- * @property {HourFormat} [hourFormat] - `'12'` or `'24'`. Default `'24'`.
- * @property {boolean} [enableSeconds] - Show a seconds column. Note: iOS Safari's native datetime-local picker has no seconds wheel; combine with `mobileNative={false}` if a seconds wheel is required on iOS.
- * @property {number} [incrementHours] - Hour step.
- * @property {number} [incrementMinutes] - Minute step.
- * @property {number} [incrementSeconds] - Second step.
- * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times (the wheels skip ahead; manual typing rejects them).
- * @property {string} [iconLeftName] - Decorative left icon glyph for the wrapping Control (shown by default; set to '' to hide).
- * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
- * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
- * @property {boolean} [audioTick] - Play a short audible tick on each time-wheel crossing. Default `false`.
- * @property {boolean} [haptics] - Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`.
  */
 export interface DateTimeInputBaseProps
   extends
@@ -130,48 +88,92 @@ export interface DateTimeInputBaseProps
       | 'popover'
     >,
     Omit<BulmaClassesProps, 'color'> {
+  /** Controlled selected date-time. */
   value?: Date | null;
+  /** Initial value for uncontrolled usage. */
   defaultValue?: Date | null;
+  /** Fired when either the date or time portion changes. */
   onChange?: (d: Date | null) => void;
+  /** Fired when the popover opens. */
   onOpen?: () => void;
+  /** Fired when the popover closes. */
   onClose?: () => void;
+  /** Lower bound for the combined date-time. */
   min?: Date;
+  /** Upper bound for the combined date-time. */
   max?: Date;
+  /** Disable the input. */
   disabled?: boolean;
+  /** Read-only input. */
   readOnly?: boolean;
+  /** Placeholder text. */
   placeholder?: string;
+  /**
+   * Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD HH:mm'`.
+   * @defaultValue 'YYYY-MM-DD HH:mm'
+   */
   format?: DateFormatOption;
+  /** Custom parser. */
   parse?: (s: string) => Date | null;
+  /** BCP-47 locale tag. */
   locale?: string;
+  /** Render the panel inline (no popover). */
   inline?: boolean;
+  /** Use `<input type="datetime-local">` on coarse-pointer devices. */
   mobileNative?: boolean | 'auto';
+  /** Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only. */
   editable?: boolean;
+  /** Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
   popover?: boolean;
+  /** Open the popover on focus. Default `true`. */
   openOnFocus?: boolean;
+  /** Off by default — users typically tweak both halves before committing. */
   closeOnSelect?: boolean;
+  /** Popover anchor position. */
   position?: PickerPosition;
+  /** Render the popover into `document.body` via portal. */
   appendToBody?: boolean;
+  /** Bulma color modifier. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
+  /** Rounded input corners. */
   isRounded?: boolean;
   // date subset
+  /** Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks). */
   shouldDisableDate?: (d: Date) => boolean;
+  /** Convenience array of disabled dates, matched by calendar day; also rejected by manual typing. */
   unselectableDates?: Date[];
+  /** Day the calendar week starts on. */
   firstDayOfWeek?: DayOfWeek;
+  /** Override the 7 day-name labels. */
   dayNames?: string[];
+  /** Override the 12 month-name labels. */
   monthNames?: string[];
+  /** Show dimmed dates from adjacent months. */
   nearbyMonthDays?: boolean;
   // time subset
+  /** Time format. */
   hourFormat?: HourFormat;
+  /** Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
+  /** Hour step. */
   incrementHours?: number;
+  /** Step between minute-wheel values (`1` = every minute, iOS-style). */
   incrementMinutes?: number;
+  /** Step between second-wheel values (only with `enableSeconds`). */
   incrementSeconds?: number;
+  /** Block specific times. Blocked times are also rejected during manual typing. */
   unselectableTimes?: (d: Date) => boolean;
+  /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
+  /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
+  /** Play a short audible tick on each time-wheel crossing. Default `false`. */
   audioTick?: boolean;
+  /** Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`. */
   haptics?: boolean;
   /** Optional translatable string overrides. */
   labels?: PickerLabels;

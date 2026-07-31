@@ -1,65 +1,32 @@
 ---
 title: Autocomplete
 sidebar_label: Autocomplete
+description: The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
 ---
 
 # Autocomplete
 
 ## Overview
 
-The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input. It supports both string arrays and object data, keyboard navigation, and custom templates.
+<!-- bestax:generated overview -->
+
+The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
+
+<!-- /bestax:generated overview -->
+
+It supports both string arrays and object data, keyboard navigation, and custom templates.
 
 ---
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Autocomplete } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-| Prop                     | Type                                                                            | Default   | Description                                                       |
-| ------------------------ | ------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- |
-| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | —         | The options data to display (required).                           |
-| `value`                  | `string`                                                                        | —         | The current input value (controlled).                             |
-| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                   |
-| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                   |
-| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                      |
-| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button.                                   |
-| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                              |
-| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                    |
-| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                               |
-| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                         |
-| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                |
-| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                         |
-| `loading`                | `boolean`                                                                       | `false`   | Show loading state.                                               |
-| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                    |
-| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant.                                              |
-| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant.                                                     |
-| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                |
-| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                   |
-| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                      |
-| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom.                                 |
-| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown.                |
-| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`. |
-| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                          |
-| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                        |
-| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                        |
-| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                  |
-| `className`              | `string`                                                                        | —         | Additional CSS classes.                                           |
-| `ref`                    | `React.Ref<HTMLElement>`                                                        | —         | Ref forwarded to the input element.                               |
-| ...                      | All standard HTML and Bulma helper props                                        |           | (See [Helper Props](../helpers/usebulmaclasses))                  |
-
-### AutocompleteItem
-
-| Prop       | Type      | Description               |
-| ---------- | --------- | ------------------------- |
-| `value`    | `string`  | The item value.           |
-| `label`    | `string`  | Display label (optional). |
-| `disabled` | `boolean` | Whether item is disabled. |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -455,3 +422,103 @@ function AutocompleteFormDemo() {
 :::tip Pro Tip
 Use `keepFirst` combined with `Enter` to quickly select the first matching result without using the mouse.
 :::
+
+---
+
+## Props
+
+<!-- bestax:generated props -->
+
+| Prop                     | Type                                                                            | Default   | Description                                                       |
+| ------------------------ | ------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- |
+| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | `[]`      | The options data to display (required).                           |
+| `value`                  | `string`                                                                        | —         | The current input value (controlled).                             |
+| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                   |
+| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                   |
+| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                      |
+| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button.                                   |
+| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                              |
+| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                    |
+| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                               |
+| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                         |
+| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                |
+| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                         |
+| `loading`                | `boolean`                                                                       | `false`   | Show loading state.                                               |
+| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                    |
+| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown.                |
+| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`. |
+| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant.                                              |
+| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant.                                                     |
+| `name`                   | `string`                                                                        | —         | Form field name. Forwarded to the inner `<input>`.                |
+| `form`                   | `string`                                                                        | —         | Optional id of the form the input belongs to.                     |
+| `required`               | `boolean`                                                                       | `false`   | Marks the field as required for native HTML form validation.      |
+| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                |
+| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                   |
+| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                      |
+| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom (infinite scroll).               |
+| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                          |
+| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                        |
+| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                        |
+| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                  |
+| `label`                  | `React.ReactNode`                                                               | —         | Field label, rendered above the widget.                           |
+| `labelSize`              | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —         | Size for the label (used in horizontal layouts).                  |
+| `labelProps`             | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —         | Props for the label element.                                      |
+| `horizontal`             | `boolean`                                                                       | `false`   | Horizontal field layout.                                          |
+| `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                          |
+| `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                      |
+| `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                     |
+| `className`              | `string`                                                                        | —         | Additional CSS classes.                                           |
+| `ref`                    | `React.Ref<HTMLElement>`                                                        | —         | Ref forwarded to the input element.                               |
+| `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+
+<!-- /bestax:generated props -->
+
+### AutocompleteItem
+
+| Prop       | Type      | Description               |
+| ---------- | --------- | ------------------------- |
+| `value`    | `string`  | The item value.           |
+| `label`    | `string`  | Display label (optional). |
+| `disabled` | `boolean` | Whether item is disabled. |
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Autocomplete` registers these variables on its own `.autocomplete` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                 | Sass Variable                         | Default                        |
+| -------------------------------------------- | ------------------------------------- | ------------------------------ |
+| `--bulma-autocomplete-dropdown-z-index`      | `$autocomplete-dropdown-z-index`      | `20`                           |
+| `--bulma-autocomplete-dropdown-offset`       | `$autocomplete-dropdown-offset`       | `4px`                          |
+| `--bulma-autocomplete-dropdown-background`   | `$autocomplete-dropdown-background`   | `var(--bulma-scheme-main)`     |
+| `--bulma-autocomplete-dropdown-radius`       | `$autocomplete-dropdown-radius`       | `var(--bulma-radius)`          |
+| `--bulma-autocomplete-dropdown-shadow`       | `$autocomplete-dropdown-shadow`       | `var(--bulma-shadow)`          |
+| `--bulma-autocomplete-dropdown-padding-y`    | `$autocomplete-dropdown-padding-y`    | `0.5rem`                       |
+| `--bulma-autocomplete-item-padding`          | `$autocomplete-item-padding`          | `0.375rem 1rem`                |
+| `--bulma-autocomplete-item-color`            | `$autocomplete-item-color`            | `var(--bulma-text)`            |
+| `--bulma-autocomplete-item-hover-background` | `$autocomplete-item-hover-background` | `hsla(0, 0%, 50%, 0.13)`       |
+| `--bulma-autocomplete-item-hover-color`      | `$autocomplete-item-hover-color`      | `var(--bulma-text-strong)`     |
+| `--bulma-autocomplete-item-disabled-color`   | `$autocomplete-item-disabled-color`   | `var(--bulma-text-weak)`       |
+| `--bulma-autocomplete-item-disabled-opacity` | `$autocomplete-item-disabled-opacity` | `0.5`                          |
+| `--bulma-autocomplete-header-footer-padding` | `$autocomplete-header-footer-padding` | `0.5rem 1rem`                  |
+| `--bulma-autocomplete-header-footer-color`   | `$autocomplete-header-footer-color`   | `var(--bulma-text-weak)`       |
+| `--bulma-autocomplete-header-footer-size`    | `$autocomplete-header-footer-size`    | `var(--bulma-size-small)`      |
+| `--bulma-autocomplete-border-color`          | `$autocomplete-border-color`          | `var(--bulma-border)`          |
+| `--bulma-autocomplete-border-hover-color`    | `$autocomplete-border-hover-color`    | `var(--bulma-border-hover)`    |
+| `--bulma-autocomplete-icon-hover-color`      | `$autocomplete-icon-hover-color`      | `var(--bulma-text-strong)`     |
+| `--bulma-autocomplete-loader-border-color`   | `$autocomplete-loader-border-color`   | `var(--bulma-border)`          |
+| `--bulma-autocomplete-loader-active-color`   | `$autocomplete-loader-active-color`   | `var(--bulma-primary)`         |
+| `--bulma-autocomplete-loader-duration`       | `$autocomplete-loader-duration`       | `0.6s`                         |
+| `--bulma-autocomplete-empty-color`           | `$autocomplete-empty-color`           | `var(--bulma-text-weak)`       |
+| `--bulma-autocomplete-scrollbar-width`       | `$autocomplete-scrollbar-width`       | `8px`                          |
+| `--bulma-autocomplete-scrollbar-track`       | `$autocomplete-scrollbar-track`       | `var(--bulma-scheme-main-bis)` |
+| `--bulma-autocomplete-scrollbar-thumb`       | `$autocomplete-scrollbar-thumb`       | `var(--bulma-border)`          |
+| `--bulma-autocomplete-scrollbar-thumb-hover` | `$autocomplete-scrollbar-thumb-hover` | `var(--bulma-border-hover)`    |
+| `--bulma-autocomplete-item-small-padding`    | `$autocomplete-item-small-padding`    | `0.25rem 0.75rem`              |
+| `--bulma-autocomplete-item-medium-padding`   | `$autocomplete-item-medium-padding`   | `0.5rem 1.25rem`               |
+| `--bulma-autocomplete-item-large-padding`    | `$autocomplete-item-large-padding`    | `0.625rem 1.5rem`              |
+
+<!-- /bestax:generated cssvars -->

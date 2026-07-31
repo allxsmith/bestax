@@ -62,42 +62,6 @@ const fromIsoTime = (s: string): Date | null => {
 /**
  * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
  * Field/Control composition; `TimeInputBase` is the input + popover only.
- *
- * @property {Date | null} [value] - Controlled selected time.
- * @property {Date | null} [defaultValue] - Initial value for uncontrolled usage.
- * @property {(d: Date | null) => void} [onChange] - Fired when the value changes.
- * @property {() => void} [onOpen] - Fired when the popover opens.
- * @property {() => void} [onClose] - Fired when the popover closes.
- * @property {Date} [min] - Earliest selectable time.
- * @property {Date} [max] - Latest selectable time.
- * @property {boolean} [disabled] - Disable the input.
- * @property {boolean} [readOnly] - Make the input read-only.
- * @property {string} [placeholder] - Placeholder text.
- * @property {DateFormatOption} [format] - Token format string or `Intl.DateTimeFormat` options.
- * @property {(s: string) => Date | null} [parse] - Custom parser.
- * @property {string} [locale] - BCP-47 locale tag.
- * @property {boolean} [inline] - Render the spinner inline (no popover).
- * @property {boolean | 'auto'} [mobileNative] - Use native `<input type="time">` on coarse-pointer devices.
- * @property {boolean} [editable] - Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). Default `true`.
- * @property {boolean} [popover] - Whether the spinner popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.
- * @property {boolean} [openOnFocus] - Open the popover on focus. Default `true`.
- * @property {boolean} [closeOnSelect] - Close after selection. Default `false`.
- * @property {PickerPosition} [position] - Popover anchor position.
- * @property {boolean} [appendToBody] - Render the popover into `document.body` via portal.
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'} [color] - Bulma color modifier.
- * @property {'small'|'medium'|'large'} [size] - Size variant.
- * @property {boolean} [isRounded] - Rounded input corners.
- * @property {HourFormat} [hourFormat] - `'12'` or `'24'`. Default `'24'`.
- * @property {boolean} [enableSeconds] - Show a seconds column. Note: iOS Safari's native time picker has no seconds wheel; combine with `mobileNative={false}` if a seconds wheel is required on iOS.
- * @property {number} [incrementHours] - Hour step. Default `1`.
- * @property {number} [incrementMinutes] - Minute step. Default `1`.
- * @property {number} [incrementSeconds] - Second step. Default `1`.
- * @property {(d: Date) => boolean} [unselectableTimes] - Predicate for blocked times (the spinner skips ahead; manual typing rejects them).
- * @property {string} [iconLeftName] - Decorative left icon glyph for the wrapping Control (shown by default; set to '' to hide).
- * @property {boolean} [triggerIcon] - Show a clickable launcher button on the right that toggles the popover. Default `true`.
- * @property {string} [triggerIconName] - Glyph name for the right launcher button. Default `'chevron-down'`.
- * @property {boolean} [audioTick] - Play a short audible tick on each wheel-item crossing. Useful as a substitute for haptic feedback on iOS Safari, which has no web-accessible haptic API. Off by default.
- * @property {boolean} [haptics] - Auto-route platform-appropriate tactile feedback per wheel tick: real vibration on Android (via `navigator.vibrate`) and an audible thunk on iOS (where no haptic API exists). Adds the audio thunk only when vibrate is unavailable, so Android devices aren't subjected to extra sound. The visual band pulse fires regardless. Off by default for backward compat.
  */
 export interface TimeInputBaseProps
   extends
@@ -114,65 +78,80 @@ export interface TimeInputBaseProps
       | 'popover'
     >,
     Omit<BulmaClassesProps, 'color'> {
+  /** Controlled selected time (date portion is preserved). */
   value?: Date | null;
+  /** Initial value for uncontrolled usage. */
   defaultValue?: Date | null;
+  /** Fired when the value changes. */
   onChange?: (d: Date | null) => void;
+  /** Fired when the popover opens. */
   onOpen?: () => void;
+  /** Fired when the popover closes. */
   onClose?: () => void;
+  /** Earliest selectable time. */
   min?: Date;
+  /** Latest selectable time. */
   max?: Date;
+  /** Disable the input. */
   disabled?: boolean;
+  /** Make the input read-only. */
   readOnly?: boolean;
+  /** Placeholder text for the input. */
   placeholder?: string;
+  /**
+   * Token format string or `Intl.DateTimeFormat` options.
+   * @defaultValue (see below)
+   */
   format?: DateFormatOption;
+  /** Custom parser. */
   parse?: (s: string) => Date | null;
+  /** BCP-47 locale tag for Intl formatting. */
   locale?: string;
+  /** Render the spinner inline (no popover). */
   inline?: boolean;
+  /** Use `<input type="time">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
+  /** Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
+  /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
+  /** Open the popover when the input is focused. */
   openOnFocus?: boolean;
+  /** Close the popover after a time is selected (off by default). */
   closeOnSelect?: boolean;
+  /** Popover anchor position relative to the input. */
   position?: PickerPosition;
+  /** Render the popover into `document.body` via portal. */
   appendToBody?: boolean;
+  /** Bulma color modifier. */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /** Size variant. */
   size?: 'small' | 'medium' | 'large';
+  /** Render the input with rounded corners. */
   isRounded?: boolean;
+  /** Hour format. `'12'` shows an AM/PM toggle. */
   hourFormat?: HourFormat;
+  /** Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
+  /** Hour step for the spinner. */
   incrementHours?: number;
+  /** Minute step. Combine with `min`/`max` for slot-style pickers. */
   incrementMinutes?: number;
+  /** Second step. Default `1`. */
   incrementSeconds?: number;
+  /** Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing. */
   unselectableTimes?: (d: Date) => boolean;
+  /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
+  /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
   triggerIcon?: boolean;
+  /** Glyph for the right launcher button. */
   triggerIconName?: string;
   /** Optional translatable string overrides. */
   labels?: PickerLabels;
-  /**
-   * Play a short audible tick on each wheel-item crossing. Provides a
-   * substitute for haptic feedback on iOS Safari, which has no web-
-   * accessible haptic API as of May 2026. Off by default to avoid
-   * surprising users with sound; the tick respects the device's silent
-   * switch and is suppressed when no audio device is available.
-   */
+  /** Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless. */
   audioTick?: boolean;
-  /**
-   * Auto-route platform-appropriate tactile feedback per wheel tick. When
-   * `true`:
-   *  - On platforms where `navigator.vibrate` is implemented (Android
-   *    Chrome / Firefox Android / Samsung Internet), the existing
-   *    unconditional `navigator.vibrate(5)` carries the haptic — no audio
-   *    is added (don't want to subject Android users to extra sound).
-   *  - On platforms where `navigator.vibrate` is absent (notably iOS
-   *    Safari, which has no web-accessible haptic API as of May 2026),
-   *    the audio thunk is enabled automatically — same as setting
-   *    `audioTick={true}` manually.
-   *  - The visual band pulse fires regardless (gated only by
-   *    `prefers-reduced-motion`).
-   * Off by default for backward compat. If `audioTick` is also set, the
-   * audio fires regardless of detection (manual opt-in wins).
-   */
+  /** Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins. */
   haptics?: boolean;
 }
 

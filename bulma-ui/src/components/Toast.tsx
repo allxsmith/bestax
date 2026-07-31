@@ -24,53 +24,51 @@ export type ToastPosition =
 
 /**
  * Props for the Toast component.
- *
- * @property {string} message - The message to display.
- * @property {ToastType} [type] - Colors the toast background. Default: 'default'.
- * @property {ToastType} [actionType] - Colors the action button text.
- * @property {ToastPosition} [position] - Position on the screen. Default: 'top-right'.
- * @property {number} [duration] - Duration in ms before auto-close (0 disables). Default: 2000.
- * @property {boolean} [indefinite] - Stay open until dismissed. Default: false.
- * @property {boolean} [dismissible] - Click toast (or outside) to dismiss. Default: true.
- * @property {boolean} [closable] - Show an explicit close (X) button. Default: false.
- * @property {boolean} [rounded] - Pill-shaped toast. Default: false.
- * @property {boolean} [pauseOnHover] - Pause auto-close timer on hover. Default: false.
- * @property {boolean} [cancelable] - Whether the toast can be dismissed with Escape. Default: true.
- * @property {string} [actionText] - Text for action button.
- * @property {string} [cancelText] - Text for cancel button.
- * @property {() => void} [onAction] - Callback when action button is clicked.
- * @property {() => void} [onClose] - Callback when toast closes.
- * @property {string | HTMLElement} [container] - Custom mount target (CSS selector string or HTMLElement).
- * @property {boolean} [inline] - Render only the .toast element without portal/container wrapper. Default: false.
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the toast element.
  */
 export interface ToastProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
+  /** The message to display (required). */
   message: string;
+  /** Color variant — colors the toast **background**. */
   type?: ToastType;
+  /** Color variant — colors the **action button** text. */
   actionType?: ToastType;
+  /** Position on the screen. Default: 'top-right'. */
   position?: ToastPosition;
+  /** Duration in ms before auto-close. `0` disables auto-close. */
   duration?: number;
+  /** Keeps the toast visible until dismissed. */
   indefinite?: boolean;
+  /** Whether clicking the toast (or outside it) dismisses it. */
   dismissible?: boolean;
+  /** Show an explicit close (X) button. Default: false. */
   closable?: boolean;
+  /** Pill-shaped (rounded corners). */
   rounded?: boolean;
+  /** Pause auto-close timer on hover. Default: false. */
   pauseOnHover?: boolean;
+  /** Whether the toast can be dismissed with Escape. Default: true. */
   cancelable?: boolean;
+  /** Text for an action button (e.g. "Undo"). */
   actionText?: string;
+  /** Text for a cancel button. */
   cancelText?: string;
+  /** Callback when the action button is clicked. */
   onAction?: () => void;
+  /** Callback when toast closes. */
   onClose?: () => void;
+  /** CSS selector or DOM node to mount the toast into. */
   container?: string | HTMLElement;
+  /** Renders inline instead of using a portal. */
   inline?: boolean;
 }
 
 /**
- * Toast component for displaying brief notification messages with optional action buttons.
- *
- * Appears at a configurable screen position with auto-close, pause-on-hover,
- * keyboard dismiss, action/cancel buttons, and an optional explicit close button.
+ * The `Toast` component provides brief notification messages with optional action and cancel buttons.
  *
  * @function
  * @param {ToastProps} props - Props for the Toast component.
@@ -308,11 +306,9 @@ Toast.displayName = 'Toast';
 
 /**
  * Options for showing a programmatic toast. Extends ToastProps with a required message.
- *
- * @property {string} message - The message to display.
- * @property {boolean} [queue] - When true, toasts enter a FIFO queue and display one at a time. Default: false.
  */
 export interface ToastOptions extends Omit<ToastProps, 'message'> {
+  /** The message to display. */
   message: string;
   /** When true, toasts enter a FIFO queue and display one at a time. Default false. */
   queue?: boolean;
@@ -320,12 +316,11 @@ export interface ToastOptions extends Omit<ToastProps, 'message'> {
 
 /**
  * Internal representation of a toast instance.
- *
- * @property {string} id - Unique identifier for this toast.
- * @property {ToastOptions} props - Configuration options for the toast.
  */
 export interface ToastInstance {
+  /** Unique identifier for this toast. */
   id: string;
+  /** Configuration options for the toast. */
   props: ToastOptions;
 }
 

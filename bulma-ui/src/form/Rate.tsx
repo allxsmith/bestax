@@ -20,12 +20,6 @@ type BulmaColor =
 
 /**
  * Props for individual rate icons.
- *
- * @property {number} index - The index of this icon (0-based).
- * @property {boolean} isActive - Whether this icon is currently active (filled).
- * @property {boolean} isHovered - Whether this icon is currently hovered.
- * @property {number} value - The current value.
- * @property {number} fillPercent - Fill percentage for partial icons (0-100). Used with precision < 1.
  */
 export interface RateIconProps {
   /** The index of this icon (0-based) */
@@ -42,49 +36,43 @@ export interface RateIconProps {
 
 /**
  * Props for the Rate component.
- *
- * @property {number} [value] - Controlled rating value.
- * @property {number} [defaultValue] - Initial value for uncontrolled mode. Default: 0.
- * @property {number} [max] - Maximum number of icons. Default: 5.
- * @property {RateSize} [size] - Size modifier for the component.
- * @property {boolean} [disabled] - Whether the rating is disabled.
- * @property {boolean} [showScore] - Display the numeric score next to icons.
- * @property {boolean} [showText] - Display text label for the current value.
- * @property {string[]} [texts] - Text labels per rating level (used with showText).
- * @property {(value: number) => void} [onChange] - Callback when the rating changes.
- * @property {(props: RateIconProps) => React.ReactNode} [customIcon] - Custom icon render function.
- * @property {boolean} [spaced] - Add spacing between icons.
- * @property {boolean} [rtl] - Render icons in right-to-left order.
- * @property {string} [iconName] - Font icon name (e.g., 'star'). When set, renders Icon instead of default SVG.
- * @property {IconLibrary} [iconLibrary] - Icon library to use (defaults to ConfigProvider value or 'fa').
- * @property {string} [iconVariant] - Icon style variant (e.g., 'solid', 'outlined').
- * @property {string|string[]} [iconFeatures] - Additional icon modifiers.
- * @property {BulmaColor} [color] - Bulma color for active icons.
- * @property {number} [precision] - Granularity: 1 for whole stars, 0.5 for half, 0.25 for quarter. Default: 1.
- * @property {string} [customText] - Text displayed after score (e.g., "(128 reviews)").
- * @property {string} [name] - Form field name. When provided, a hidden input is rendered so the rating value is submitted with the surrounding form.
- * @property {string} [form] - The id of the form this hidden input belongs to (for use outside the form element).
+ * @extraProp {string} [className] - Additional CSS classes.
+ * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the container element.
  */
 export interface RateProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
+  /** Form field name. When set, a hidden input is rendered. */
   name?: string;
+  /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
   form?: string;
+  /** Controlled value (0 to max). */
   value?: number;
+  /** Default value for uncontrolled usage. */
   defaultValue?: number;
+  /** Maximum rating value. */
   max?: number;
+  /** Size variant. */
   size?: RateSize;
+  /** Whether the rating is disabled. */
   disabled?: boolean;
+  /** Show the numeric score next to stars. */
   showScore?: boolean;
+  /** Show custom text based on value. */
   showText?: boolean;
+  /** Array of text labels for each rating value. */
   texts?: string[];
+  /** Callback when rating changes. */
   onChange?: (value: number) => void;
+  /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
+  /** Add spacing between icons. */
   spaced?: boolean;
+  /** Right-to-left direction. */
   rtl?: boolean;
-  /** Font icon name (e.g., 'star'). When set, renders <Icon> instead of default SVG. */
+  /** Custom icon name for the rating stars. */
   iconName?: string;
   /** Icon library to use (defaults to ConfigProvider value or 'fa'). */
   iconLibrary?: IconLibrary;
@@ -92,11 +80,11 @@ export interface RateProps
   iconVariant?: string;
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Bulma color for active icons. */
+  /** Color of the active rating icons. */
   color?: BulmaColor;
-  /** Granularity: 1 for whole stars, 0.5 for half, 0.25 for quarter. */
+  /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
-  /** Text displayed after score (e.g., "(128 reviews)"). */
+  /** Custom text displayed next to the rating. */
   customText?: string;
 }
 
@@ -133,11 +121,7 @@ function getFillPercent(iconIndex: number, value: number): number {
 }
 
 /**
- * Rate component for star/icon-based ratings.
- *
- * Provides an interactive rating system with customizable icons,
- * sizes, and display options. Works in controlled or uncontrolled modes.
- * Supports icon libraries, Bulma color variants, and fractional precision.
+ * The `Rate` component provides a star/icon-based rating system.
  *
  * @function
  * @param {RateProps} props - Props for the Rate component.

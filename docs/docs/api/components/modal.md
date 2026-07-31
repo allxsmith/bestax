@@ -1,13 +1,20 @@
 ---
 title: Modal
 sidebar_label: Modal
+description: The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
 ---
 
 # Modal
 
 ## Overview
 
-The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI. It supports both Bulma's modal-card and modal-content variants, with options for title, footer, custom content, color helpers, and close callbacks. Easily control visibility via the `active` or `isActive` prop and handle closing with `onClose`.
+<!-- bestax:generated overview -->
+
+The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
+
+<!-- /bestax:generated overview -->
+
+It supports both Bulma's modal-card and modal-content variants, with options for title, footer, custom content, color helpers, and close callbacks. Easily control visibility via the `active` or `isActive` prop and handle closing with `onClose`.
 
 The Modal component supports two APIs:
 
@@ -22,42 +29,13 @@ Use `Modal` for dialogs, confirmations, forms, or custom popover content. Suppor
 
 ## Import
 
+<!-- bestax:generated import -->
+
 ```tsx
 import { Modal } from '@allxsmith/bestax-bulma';
 ```
 
----
-
-## Props
-
-### Main Modal Props
-
-| Prop             | Type                                                                                                                                                                                                                                                                                     | Default | Description                                                                            |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------- |
-| `active`         | `boolean`                                                                                                                                                                                                                                                                                | `false` | Whether the modal is open/visible.                                                     |
-| `isActive`       | `boolean`                                                                                                                                                                                                                                                                                | `false` | Alias for `active`. Whether the modal is open/visible.                                 |
-| `onClose`        | `() => void`                                                                                                                                                                                                                                                                             | —       | Callback invoked to request modal close (background or close button).                  |
-| `type`           | `'card'` \| `'content'`                                                                                                                                                                                                                                                                  | auto    | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) |
-| `modalCardTitle` | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Title/header for modal-card variant. (Legacy API only)                                 |
-| `modalCardFoot`  | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Footer for modal-card variant. (Legacy API only)                                       |
-| `textColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                          |
-| `bgColor`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'black-bis'` \| `'black-ter'` \| `'grey-darker'` \| `'grey-dark'` \| `'grey'` \| `'grey-light'` \| `'grey-lighter'` \| `'white'` \| `'light'` \| `'dark'` \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                    |
-| `className`      | `string`                                                                                                                                                                                                                                                                                 | —       | Additional CSS classes for the modal.                                                  |
-| `children`       | `React.ReactNode`                                                                                                                                                                                                                                                                        | —       | Modal body/content.                                                                    |
-| ...              | All standard HTML and Bulma helper props                                                                                                                                                                                                                                                 |         | (See [Helper Props](../helpers/usebulmaclasses))                                       |
-
-### Compound component props
-
-| Component          | Description                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Modal.Background` | Modal background overlay (supports onClick)                                                                                                                  |
-| `Modal.Content`    | Modal content wrapper                                                                                                                                        |
-| `Modal.Card`       | Modal card wrapper                                                                                                                                           |
-| `Modal.Card.Head`  | Modal card header                                                                                                                                            |
-| `Modal.Card.Title` | Modal card title                                                                                                                                             |
-| `Modal.Card.Body`  | Modal card body                                                                                                                                              |
-| `Modal.Card.Foot`  | Modal card footer                                                                                                                                            |
-| `Modal.Close`      | Modal close button. Props: `variant` ('delete' [default] for card headers, 'floating' for overlay), `size` ('small', 'medium', 'large') for floating variant |
+<!-- /bestax:generated import -->
 
 ---
 
@@ -324,3 +302,142 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.
 :::
+
+---
+
+## Props
+
+### Main Modal Props
+
+<!-- bestax:generated props -->
+
+| Prop             | Type                                                                    | Default | Description                                                                            |
+| ---------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------- |
+| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                     |
+| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                 |
+| `onClose`        | `() => void`                                                            | —       | Callback invoked to request modal close (background or close button).                  |
+| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                  |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                          |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                    |
+| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                 |
+| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                       |
+| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only) |
+| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                             |
+| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                      |
+
+**Subcomponents:**
+
+- `Modal.Background`: Modal.Background - Renders the modal background overlay.
+- `Modal.Content`: Modal.Content - Renders modal content wrapper for custom content.
+- `Modal.Card`: Modal.Card - Renders modal card wrapper with compound components. Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.
+- `Modal.Card.Head`: Modal.Card.Head - Renders modal card header section.
+- `Modal.Card.Title`: Modal.Card.Title - Renders modal card title.
+- `Modal.Card.Body`: Modal.Card.Body - Renders modal card body section.
+- `Modal.Card.Foot`: Modal.Card.Foot - Renders modal card footer section.
+- `Modal.Close`: Modal.Close - Renders modal close button with two variant styles.
+
+### Modal.Background
+
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
+
+### Modal.Content
+
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
+
+### Modal.Card
+
+| Prop        | Type                            | Default | Description             |
+| ----------- | ------------------------------- | ------- | ----------------------- |
+| `className` | `string`                        | —       | Additional CSS classes. |
+| `...`       | All standard `<div>` attributes | —       |                         |
+
+### Modal.Card.Head
+
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
+
+### Modal.Card.Title
+
+| Prop        | Type                          | Default | Description             |
+| ----------- | ----------------------------- | ------- | ----------------------- |
+| `className` | `string`                      | —       | Additional CSS classes. |
+| `...`       | All standard `<p>` attributes | —       |                         |
+
+### Modal.Card.Body
+
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
+
+### Modal.Card.Foot
+
+| Prop        | Type                         | Default | Description             |
+| ----------- | ---------------------------- | ------- | ----------------------- |
+| `className` | `string`                     | —       | Additional CSS classes. |
+| `...`       | All standard HTML attributes | —       |                         |
+
+### Modal.Close
+
+| Prop        | Type                                 | Default    | Description                                                                                     |
+| ----------- | ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------- |
+| `className` | `string`                             | —          | Additional CSS classes.                                                                         |
+| `size`      | `'small'` \| `'medium'` \| `'large'` | `'large'`  | Size of the close button (only applies to 'floating' variant).                                  |
+| `variant`   | `'delete'` \| `'floating'`           | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. |
+| `...`       | All standard `<button>` attributes   | —          |                                                                                                 |
+
+<!-- /bestax:generated props -->
+
+### Compound component props
+
+| Component          | Description                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Modal.Background` | Modal background overlay (supports onClick)                                                                                                                  |
+| `Modal.Content`    | Modal content wrapper                                                                                                                                        |
+| `Modal.Card`       | Modal card wrapper                                                                                                                                           |
+| `Modal.Card.Head`  | Modal card header                                                                                                                                            |
+| `Modal.Card.Title` | Modal card title                                                                                                                                             |
+| `Modal.Card.Body`  | Modal card body                                                                                                                                              |
+| `Modal.Card.Foot`  | Modal card footer                                                                                                                                            |
+| `Modal.Close`      | Modal close button. Props: `variant` ('delete' [default] for card headers, 'floating' for overlay), `size` ('small', 'medium', 'large') for floating variant |
+
+---
+
+## CSS & Sass Variables
+
+<!-- bestax:generated cssvars -->
+
+`Modal` registers these variables on its own `.modal` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                | Sass Variable                        | Default                                                                                  |
+| ------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `--bulma-modal-z`                           | `$modal-z`                           | `40`                                                                                     |
+| `--bulma-modal-background-background-color` | `$modal-background-background-color` | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.86)` |
+| `--bulma-modal-content-width`               | `$modal-content-width`               | `40rem`                                                                                  |
+| `--bulma-modal-content-margin-mobile`       | `$modal-content-margin-mobile`       | `1.25rem`                                                                                |
+| `--bulma-modal-content-spacing-mobile`      | `$modal-content-spacing-mobile`      | `10rem`                                                                                  |
+| `--bulma-modal-content-spacing-tablet`      | `$modal-content-spacing-tablet`      | `2.5rem`                                                                                 |
+| `--bulma-modal-close-dimensions`            | `$modal-close-dimensions`            | `2.5rem`                                                                                 |
+| `--bulma-modal-close-right`                 | `$modal-close-right`                 | `1.25rem`                                                                                |
+| `--bulma-modal-close-top`                   | `$modal-close-top`                   | `1.25rem`                                                                                |
+| `--bulma-modal-card-spacing`                | `$modal-card-spacing`                | `2.5rem`                                                                                 |
+| `--bulma-modal-card-head-background-color`  | `$modal-card-head-background-color`  | `var(--bulma-scheme-main)`                                                               |
+| `--bulma-modal-card-head-padding`           | `$modal-card-head-padding`           | `2rem`                                                                                   |
+| `--bulma-modal-card-head-radius`            | `$modal-card-head-radius`            | `var(--bulma-radius-large)`                                                              |
+| `--bulma-modal-card-title-color`            | `$modal-card-title-color`            | `var(--bulma-text-strong)`                                                               |
+| `--bulma-modal-card-title-line-height`      | `$modal-card-title-line-height`      | `1`                                                                                      |
+| `--bulma-modal-card-title-size`             | `$modal-card-title-size`             | `var(--bulma-size-4)`                                                                    |
+| `--bulma-modal-card-foot-background-color`  | `$modal-card-foot-background-color`  | `var(--bulma-scheme-main-bis)`                                                           |
+| `--bulma-modal-card-foot-radius`            | `$modal-card-foot-radius`            | `var(--bulma-radius-large)`                                                              |
+| `--bulma-modal-card-body-background-color`  | `$modal-card-body-background-color`  | `var(--bulma-scheme-main)`                                                               |
+| `--bulma-modal-card-body-padding`           | `$modal-card-body-padding`           | `2rem`                                                                                   |
+
+<!-- /bestax:generated cssvars -->

@@ -6,15 +6,12 @@ import { Icon, IconProps } from '../elements/Icon';
 
 /**
  * Props for the Panel component.
- *
- * @property {'primary'|'link'|'info'|'success'|'warning'|'danger'|'black'|'dark'|'light'|'white'} [color] - Bulma color modifier for the panel.
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Panel content.
  */
 export interface PanelProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier for the panel. */
   color?:
     | 'primary'
     | 'link'
@@ -26,42 +23,41 @@ export interface PanelProps
     | 'dark'
     | 'light'
     | 'white';
+  /** Additional CSS classes. */
   className?: string;
+  /** Panel content (usually includes subcomponents). */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the PanelHeading component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Heading content.
  */
 export interface PanelHeadingProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Heading content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the PanelTabs component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {React.ReactNode} [children] - Tabs content.
  */
 export interface PanelTabsProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Tabs content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the PanelBlock component.
- *
- * @property {string} [className] - Additional CSS classes.
- * @property {boolean} [active] - Whether the block is active.
- * @property {React.ReactNode} [children] - Block content.
  */
 export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** Additional CSS classes. */
   className?: string;
+  /** Whether the block is active. */
   active?: boolean;
+  /** Block content. */
   children?: React.ReactNode;
 }
 
@@ -73,46 +69,43 @@ export type PanelIconProps = Omit<IconProps, 'containerClassName'>;
 
 /**
  * Props for the PanelInputBlock component.
- *
- * @property {string} [value] - Input value.
- * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Input change handler.
- * @property {string} [placeholder] - Input placeholder.
- * @property {string} [iconClassName] - Icon class for left icon (default 'fas fa-search').
  */
 export interface PanelInputBlockProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** Input value. */
   value?: string;
+  /** Input change handler. */
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  /** Input placeholder. */
   placeholder?: string;
+  /** Icon class for left icon (default 'fas fa-search'). */
   iconClassName?: string;
 }
 
 /**
  * Props for the PanelCheckboxBlock component.
- *
- * @property {boolean} [checked] - Whether the checkbox is checked.
- * @property {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Checkbox change handler.
- * @property {React.ReactNode} [children] - Label/content.
  */
 export interface PanelCheckboxBlockProps extends Omit<
   React.LabelHTMLAttributes<HTMLLabelElement>,
   'onChange'
 > {
+  /** Whether the checkbox is checked. */
   checked?: boolean;
+  /** Checkbox change handler. */
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  /** Label/content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the PanelButtonBlock component.
- *
- * @property {React.ReactNode} [children] - Button content.
  */
 export interface PanelButtonBlockProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** Button content. */
   children?: React.ReactNode;
 }
 
 /**
- * Bulma Panel component, supports various panel subcomponents.
+ * The `Panel` component implements Bulma's versatile panel block for React.
  *
  * @function
  * @param {PanelProps} props - Props for the Panel component.
@@ -145,7 +138,7 @@ const PanelComponent: React.FC<PanelProps> = ({
 };
 
 /**
- * Bulma Panel heading.
+ * Main heading (renders as `<p class="panel-heading">`)
  *
  * @function
  * @param {PanelHeadingProps} props - Props for the PanelHeading component.
@@ -165,7 +158,7 @@ export const PanelHeading: React.FC<PanelHeadingProps> = ({
 );
 
 /**
- * Bulma Panel tabs.
+ * Panel tabs (renders as `<p class="panel-tabs">`)
  *
  * @function
  * @param {PanelTabsProps} props - Props for the PanelTabs component.
@@ -185,7 +178,7 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
 );
 
 /**
- * Bulma Panel block.
+ * Individual panel block (renders as `<a class="panel-block">`)
  *
  * @function
  * @param {PanelBlockProps} props - Props for the PanelBlock component.
@@ -209,8 +202,8 @@ export const PanelBlock: React.FC<PanelBlockProps> = ({
 );
 
 /**
- * Bulma Panel icon.
- * Wraps the Icon component with 'panel-icon' container class.
+ * Icon wrapper with panel styling (renders as `<span class="panel-icon"><i/></span>`).
+ * Accepts all Icon props (`name`, `variant`, `features`, etc.)
  *
  * @function
  * @param {PanelIconProps} props - Props for the PanelIcon component.
@@ -230,7 +223,7 @@ export const PanelIcon: React.FC<PanelIconProps> = ({
 );
 
 /**
- * Bulma Panel input block.
+ * Search input with icon (renders as `<div class="panel-block">`)
  *
  * @function
  * @param {PanelInputBlockProps} props - Props for the PanelInputBlock component.
@@ -264,7 +257,7 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
 };
 
 /**
- * Bulma Panel checkbox block.
+ * Checkbox block (renders as `<label class="panel-block">`)
  *
  * @function
  * @param {PanelCheckboxBlockProps} props - Props for the PanelCheckboxBlock component.
@@ -283,7 +276,7 @@ export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
 );
 
 /**
- * Bulma Panel button block.
+ * Call-to-action button (renders as `<div class="panel-block"><button /></div>`)
  *
  * @function
  * @param {PanelButtonBlockProps} props - Props for the PanelButtonBlock component.
