@@ -146,7 +146,7 @@ This example shows how to create a centered navigation menu using the `Level` co
 
 ### Mobile Level
 
-This example demonstrates the `Level` component's mobile layout. When the `isMobile` prop is set, the `Level` component stacks its items vertically, making it suitable for mobile interfaces.
+This example demonstrates the `Level` component's mobile layout. A level stacks its items vertically below tablet by default; setting the `isMobile` prop keeps them laid out horizontally on mobile too.
 
 ```tsx live
 <Level isMobile>
@@ -243,15 +243,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                                |
-| ----------- | ----------------------------------------------------------------------- | ------- | ---------------------------------------------------------- |
-| `isMobile`  | `boolean`                                                               | `false` | Enables mobile layout (stacks vertically on mobile).       |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                        |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                             |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                   |
-| `className` | `string`                                                                | —       | Additional CSS classes.                                    |
-| `children`  | `React.ReactNode`                                                       | —       | Level content (`Level.Left`, `Level.Right`, `Level.Item`). |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)          |
+| Prop        | Type                                                                    | Default | Description                                                                                                    |
+| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `isMobile`  | `boolean`                                                               | `false` | Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it the level stacks vertically below tablet. |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                                                                            |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                                                                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                                                                       |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                                                                        |
+| `children`  | `React.ReactNode`                                                       | —       | Level content (`Level.Left`, `Level.Right`, `Level.Item`).                                                     |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                              |
 
 **Subcomponents:**
 
