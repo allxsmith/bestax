@@ -1,3 +1,72 @@
+# [4.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.8.0...create-bestax@4.0.0) (2026-08-01)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give the kitchen-sink e2e a per-process scratch dir ([2211ea5](https://github.com/allxsmith/bestax/commit/2211ea514475f6cc2de7c60c1433b1797cb02199))
+* **bestax-migrate:** reject pnpm's workspace alias form instead of unwrapping it ([de6a900](https://github.com/allxsmith/bestax/commit/de6a90081c749ca8e3a761ce9cb9c1bee9e2386a))
+* **bestax-migrate:** require the pack script to exist, not just be named ([5315efe](https://github.com/allxsmith/bestax/commit/5315efe86c89205dc4ac97ec94f89b853832b696))
+* **bestax-migrate:** resolve bare workspace: and guard the catalog: protocol ([7fda9db](https://github.com/allxsmith/bestax/commit/7fda9dbd1537439edc9ec694a9a9d140c2bfc467)), closes [#417](https://github.com/allxsmith/bestax/issues/417) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** resolve workspace: specifiers before publishing ([782829a](https://github.com/allxsmith/bestax/commit/782829a7672e3a44827b53651b738ff37b3581b7)), closes [bestax-migrate#test](https://github.com/bestax-migrate/issues/test) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** stop the pack hooks excusing a catalog: devDependency ([4127ead](https://github.com/allxsmith/bestax/commit/4127ead622f052808ae17644f06af2b77ae89c56)), closes [#412-shaped](https://github.com/allxsmith/bestax/issues/412-shaped)
+* **docs:** stop cssnano stripping Font Awesome [@font-face](https://github.com/font-face), add [#3](https://github.com/allxsmith/bestax/issues/3) CSS framework blog post ([#401](https://github.com/allxsmith/bestax/issues/401)) ([5d114e1](https://github.com/allxsmith/bestax/commit/5d114e143e84a4898432e25f8a879f6b4851394c)), closes [#400](https://github.com/allxsmith/bestax/issues/400)
+
+
+### chore
+
+* **deps:** consolidate the dependabot backlog, require Node 22 in both CLIs ([#447](https://github.com/allxsmith/bestax/issues/447)) ([e68148c](https://github.com/allxsmith/bestax/commit/e68148cd3817482d7db21286ba39773ce4c2bf50)), closes [#427](https://github.com/allxsmith/bestax/issues/427) [#428](https://github.com/allxsmith/bestax/issues/428) [#431](https://github.com/allxsmith/bestax/issues/431) [#432](https://github.com/allxsmith/bestax/issues/432) [#440](https://github.com/allxsmith/bestax/issues/440) [#393](https://github.com/allxsmith/bestax/issues/393)
+
+
+### Features
+
+* **bestax-migrate:** require Node 22 and take chalk 6 ([#449](https://github.com/allxsmith/bestax/issues/449)) ([4c0e1e2](https://github.com/allxsmith/bestax/commit/4c0e1e2ad4d620b196ff8a0f8b635f5e2672a935)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+* **create-bestax:** require Node 22 and take chalk 6 ([#448](https://github.com/allxsmith/bestax/issues/448)) ([90fced2](https://github.com/allxsmith/bestax/commit/90fced292ffa3433159270a2267dcf18265d791e)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+
+
+### BREAKING CHANGES
+
+* **bestax-migrate:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1. This applies to the runtime the codemod executes
+on, not to the app being migrated.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **create-bestax:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **deps:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+
+* feat(bestax-migrate): require Node 22 and take chalk 6
+
+chalk 6 drops support for Node below 22. The API surface this package uses is
+unchanged, so no calling code changes.
+
+The version guard in src/index.ts moves ahead of every import and no longer
+depends on anything: import declarations are hoisted and evaluated before any
+statement in the module, and chalk 6 itself requires Node >= 22, so a static
+import would fail to load on exactly the runtimes the guard exists to catch.
+./cli.js is now imported dynamically for the same reason.
+
+@babel/parser deliberately stays on 7.x. Babel 8 removes the
+`deprecatedImportAssert` plugin with no replacement, and this package parses
+the legacy `import x from 'y' assert { type: 'json' }` form on purpose — a
+codemod that migrates older codebases must not crash on the syntax those
+codebases still contain. There is a regression test for it ("parses the legacy
+import-assert syntax"), which Babel 8 fails outright. jscodeshift 17 bundles
+its own Babel 7 regardless, so staying on 7 also keeps a single parser in the
+tree rather than two.
+* **deps:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+
 # [3.8.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.7.1...create-bestax@3.8.0) (2026-07-29)
 
 
