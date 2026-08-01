@@ -16,6 +16,14 @@ Currently supported source libraries:
 | -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | [`react-bulma-components`](https://github.com/couds/react-bulma-components) (v4) | ✅ All 32 components mapped (a few patterns are flagged as TODOs) |
 
+## Requirements
+
+**Node.js 22 or newer.** Node 18 and 20 are both past end-of-life. On an older runtime the CLI
+exits immediately with an explicit upgrade message.
+
+This applies only to the Node version the codemod itself runs on. It places no requirement on
+the app being migrated — the source is read as text and is never executed.
+
 ## Usage
 
 ```bash
