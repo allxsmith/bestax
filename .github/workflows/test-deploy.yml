@@ -75,6 +75,31 @@ jobs:
     name: Test and Preview Deployment
     runs-on: ubuntu-latest
     needs: build
+    # Dependabot-triggered runs are scoped to the *Dependabot* secrets store,
+    # not the Actions one, so `secrets.CLOUDFLARE_API_TOKEN` interpolates to an
+    # empty string and wrangler aborts with "it's necessary to set a
+    # CLOUDFLARE_API_TOKEN environment variable". That made this check red on
+    # every dependency PR — noise that trains reviewers to ignore a red check.
+    #
+    # `github.actor` is the right condition because it is the same thing GitHub
+    # keys the secret scoping on: a human pushing to a dependabot/* branch
+    # becomes the actor and does get the Actions secrets, so the preview still
+    # deploys in exactly the cases where it can.
+    #
+    # Only this job is guarded. `build` still runs on dependency PRs, so a bump
+    # that breaks the Docusaurus or Storybook build is still caught.
+    #
+    # This reports as *skipped*, not success. Fine while the check is not
+    # required (the main ruleset requires Build and Test, the React 18/19
+    # matrix, and Dependency Review). If it is ever promoted to required, move
+    # this condition down to the steps so the job itself still concludes green.
+    #
+    # Adding the Cloudflare credentials to the Dependabot secrets store would
+    # also turn the check green, and is deliberately not done: it would hand a
+    # live deploy token to auto-generated PRs that pull in unreviewed
+    # transitive dependencies — the exact exposure the build/deploy split above
+    # exists to prevent.
+    if: github.actor != 'dependabot[bot]'
     permissions:
       pull-requests: write # comment the preview URL
     steps:
