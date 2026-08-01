@@ -110,7 +110,15 @@ const config = {
         generateMarkdownFiles: true,
         excludeImports: true,
         removeDuplicateHeadings: true,
-        docsDir: 'docs',
+        // Read the flattened mirror, not docs/ itself. Since 0.5.0 the plugin
+        // strips PascalCase JSX tags — and content carried in props goes with the
+        // tag, so `<PackageManagerTabs command="…" />` and `<TabItem label="…">`
+        // silently lost their command and label. scripts/prepare-llms-source.mjs
+        // (chained ahead of `docusaurus build`) writes .llms-src with the tabs
+        // already flattened, so the plugin's strip has nothing left to remove.
+        // `path` is the directory to read; `routeBasePath` is what URLs are built
+        // from, so published links are identical to reading docs/ directly.
+        docsDir: [{ path: '.llms-src', routeBasePath: 'docs' }],
         title: 'Bestax-Bulma',
         description:
           'A Bulma React component library. LLM-friendly documentation for @allxsmith/bestax-bulma.',

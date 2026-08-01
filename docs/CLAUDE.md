@@ -24,13 +24,24 @@ The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`), 
 - `/llms.txt` (curated index) and `/llms-full.txt` (full concatenation)
 - a per-page `.md` twin for every doc page (so `llms.txt` links resolve)
 
-The plugin reads **source** markdown and has no transform hook, so MDX tab JSX would land
-verbatim in those artifacts. `scripts/flatten-llms-tabs.mjs` runs after `docusaurus build`
-(chained in the `build` script — it can't be a plugin, since core runs every `postBuild` under
-`Promise.all`) and flattens it: `<PackageManagerTabs command="…" />` collapses to the pnpm
-command, `<Tabs>` linearizes to `####` headings keeping every `TabItem` body. It never touches
-code — fenced _or_ inline — because `docs/api/components/tabs.md` documents bestax-bulma's own
-`<Tabs.List>`/`<Tabs.Item>`. Covered by `scripts/flatten-llms-tabs.test.mjs` (`pnpm test`).
+The plugin reads **source** markdown and has no transform hook, so tab JSX has to be flattened
+out of the way _before_ it runs. `scripts/prepare-llms-source.mjs` (chained ahead of
+`docusaurus build`) mirrors `docs/` into a gitignored `.llms-src/` with the tabs already
+flattened: `<PackageManagerTabs command="…" />` collapses to the pnpm command, and `<Tabs>`
+linearizes to `####` headings keeping every `TabItem` body. The plugin is pointed at that
+mirror via `docsDir: [{ path: '.llms-src', routeBasePath: 'docs' }]` — `path` is what it reads,
+`routeBasePath` is what URLs are built from, so published links are unchanged. Flattening never
+touches code — fenced _or_ inline — because `docs/api/components/tabs.md` documents
+bestax-bulma's own `<Tabs.List>`/`<Tabs.Item>`.
+
+**Order is the whole point, so don't "simplify" it back.** Flattening used to run _after_ the
+build, rewriting the artifacts in place. Plugin 0.5.0 broke that by stripping PascalCase JSX
+tags itself — and content carried in **props** goes with the tag, so
+`<PackageManagerTabs command="…" />` lost its entire command and `<TabItem label="…">` lost its
+label, both silently. Nothing caught it: `verifyArtifact` looks for JSX that _survived_, never
+for content that _vanished_. Flattening first leaves the plugin's strip with nothing to remove.
+Covered by `scripts/flatten-llms-tabs.test.mjs` and `scripts/prepare-llms-source.test.mjs`, the
+latter asserting the plugin's own regex is a no-op against the mirror (`pnpm test`).
 
 `build` then chains `scripts/strip-generated-markers.mjs`, which removes the
 `<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
