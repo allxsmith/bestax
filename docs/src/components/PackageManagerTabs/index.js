@@ -6,6 +6,7 @@ import {
   DEFAULT_PACKAGE_MANAGER,
   TAB_GROUP_ID,
   renderCommand,
+  unrenderPnpm,
   lintCommand,
 } from './translate.mjs';
 import styles from './styles.module.css';
@@ -87,13 +88,22 @@ export default function PackageManagerTabs({ children }) {
     );
   }
 
+  // A fence delimiter reaching us as *text* means MDX didn't parse the block —
+  // almost always the missing blank lines around it. Worth its own check because
+  // the round trip below cannot catch it: ```bash is not a known verb, so it
+  // passes through untouched on every tab and the equality still holds. The tabs
+  // would then render the fence markers inside the code block, silently.
+  if (/^\s*(?:```|~~~)/m.test(authored)) {
+    throw new Error(
+      'PackageManagerTabs: the code fence was not parsed as markdown — its\n' +
+        'delimiters arrived as text. Put a blank line before and after it:\n' +
+        '<PackageManagerTabs>\n\n```bash\npnpm add @allxsmith/bestax-bulma\n```\n\n</PackageManagerTabs>'
+    );
+  }
+
   // Recover the authoring vocabulary translate.mjs expects (`add foo`) from the
-  // rendered pnpm form (`pnpm add foo`). Lines without the prefix are passthrough
-  // (`cd my-app`) and survive as themselves.
-  const command = authored
-    .split('\n')
-    .map(line => line.replace(/^pnpm /, ''))
-    .join('; ');
+  // rendered pnpm form (`pnpm add foo`).
+  const command = unrenderPnpm(authored);
 
   // The round trip has to be exact, or the other three tabs are derived from
   // something the reader never saw. This fires on a fence that isn't canonical
