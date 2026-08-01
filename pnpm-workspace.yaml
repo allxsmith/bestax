@@ -61,6 +61,16 @@ overrides:
   # majors too. Safe here because 5.x keeps a `require` export condition and
   # every consumer is dev-tooling only, never published output.
   brace-expansion: '>=5.0.8'
+  # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
+  # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
+  # "^9.0.3"), so the range no longer floats to a patched release the way it did
+  # on 0.4.x. 9.0.3 carries three high ReDoS advisories — GHSA-3ppc-4f35-3m26,
+  # GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74 — and the pinned yaml 2.8.1 carries
+  # GHSA-48c2-rrv3-qjmp (stack overflow on deeply nested collections). Scoped to
+  # the affected major so the minimatch 10.x already in the tree is untouched.
+  # Prune both once the plugin widens its ranges again.
+  'minimatch@9': '>=9.0.7 <10'
+  'yaml@2': '>=2.8.3'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
