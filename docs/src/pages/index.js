@@ -174,11 +174,53 @@ const formSlides = [
   },
 ];
 
+/*
+ * Icons live at module scope, not inside HomepageHeader.
+ *
+ * A component declared during render is a new component type on every render, so
+ * React unmounts and remounts the old one instead of updating it — which is what
+ * react-hooks/static-components flags. Harmless-looking for three static SVGs,
+ * but the copy box swaps between CheckIcon and CopyIcon on every copy, so it was
+ * the one place the remount actually happened.
+ */
+// GitHub Icon SVG
+const GitHubIcon = () => (
+  <svg className={styles.githubIcon} viewBox="0 0 16 16" aria-hidden="true">
+    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+  </svg>
+);
+
+// Copy Icon SVG
+const CopyIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    style={{ marginLeft: '8px' }}
+  >
+    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z" />
+    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
+  </svg>
+);
+
+// Check Icon SVG (for copied state)
+const CheckIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="currentColor"
+    style={{ marginLeft: '8px' }}
+  >
+    <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
+  </svg>
+);
+
 /** The command the hero advertises, in pnpm's authoring vocabulary. */
 const HERO_COMMAND = 'add @allxsmith/bestax-bulma';
 
 function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext();
   const [copied, setCopied] = React.useState(false);
 
   // The same storage slot Docusaurus uses for the docs tab group, so a choice
@@ -257,40 +299,6 @@ function HomepageHeader() {
     selectManager(move);
   };
 
-  // GitHub Icon SVG
-  const GitHubIcon = () => (
-    <svg className={styles.githubIcon} viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-    </svg>
-  );
-
-  // Copy Icon SVG
-  const CopyIcon = () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      style={{ marginLeft: '8px' }}
-    >
-      <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z" />
-      <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z" />
-    </svg>
-  );
-
-  // Check Icon SVG (for copied state)
-  const CheckIcon = () => (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      style={{ marginLeft: '8px' }}
-    >
-      <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z" />
-    </svg>
-  );
-
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
@@ -308,16 +316,33 @@ function HomepageHeader() {
           <p className={clsx('hero__subtitle', styles.hero__subtitle)}>
             A Bulma React Component Library
           </p>
+          {/*
+            aria-label rather than the command text as the accessible name: the
+            name should say what activating this does, and without it a screen
+            reader announces the whole install command as the button's label. The
+            command itself stays readable as content.
+          */}
           <div
             className={styles.npmInstallBox}
             onClick={handleCopy}
             onKeyDown={handleCopyKeyDown}
             role="button"
             tabIndex={0}
+            aria-label={`Copy install command for ${manager}`}
             title={copied ? 'Copied!' : 'Click to copy'}
           >
             <code>{command}</code>
             {copied ? <CheckIcon /> : <CopyIcon />}
+          </div>
+          {/*
+            The icon swap and the title attribute are both silent to assistive
+            tech, so without this a screen reader user gets no confirmation the
+            copy happened. Rendered empty until then so the region is already in
+            the accessibility tree when the text arrives — announcing depends on
+            the *content* changing, not the node appearing.
+          */}
+          <div className={styles.srOnly} role="status" aria-live="polite">
+            {copied ? 'Copied to clipboard' : ''}
           </div>
           {/*
             Outside the copy box on purpose: nesting these inside it would bubble
