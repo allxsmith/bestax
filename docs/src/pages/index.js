@@ -15,6 +15,8 @@ import Heading from '@theme/Heading';
 import { useStorageSlot } from '@docusaurus/theme-common';
 import {
   PACKAGE_MANAGERS,
+  DEFAULT_PACKAGE_MANAGER,
+  TAB_STORAGE_KEY,
   renderCommand,
 } from '@site/src/components/PackageManagerTabs/translate.mjs';
 import {
@@ -179,23 +181,40 @@ function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   const [copied, setCopied] = React.useState(false);
 
-  // The same storage slot Docusaurus uses for <Tabs groupId="package-manager">,
-  // so a choice made here is already selected on every docs page and vice versa.
+  // The same storage slot Docusaurus uses for the docs tab group, so a choice
+  // made here is already selected on every docs page and vice versa. The key is
+  // imported rather than written out: it and the `groupId` it derives from have
+  // to agree exactly, and a mismatch degrades silently to "hero and docs no
+  // longer share a choice" with nothing failing.
   // useStorageSlot rather than localStorage directly: its server snapshot is null,
-  // so SSR renders pnpm and hydration matches, and its setter dispatches a
+  // so SSR renders the default and hydration matches, and its setter dispatches a
   // synthetic storage event that live-updates any mounted tab group.
-  const [storedManager, managerSlot] = useStorageSlot(
-    'docusaurus.tab.package-manager'
-  );
+  const [storedManager, managerSlot] = useStorageSlot(TAB_STORAGE_KEY);
   const manager = PACKAGE_MANAGERS.includes(storedManager)
     ? storedManager
-    : PACKAGE_MANAGERS[0];
+    : DEFAULT_PACKAGE_MANAGER;
   const command = renderCommand(HERO_COMMAND, manager);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(command);
+  // Held in a ref so a second copy restarts the window instead of inheriting the
+  // first one's deadline — without this, two clicks 1.9s apart clear "Copied!"
+  // 100ms after the second. Cleared on unmount so the timer can't setState on a
+  // gone component.
+  const copyTimer = React.useRef(null);
+  React.useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+    } catch {
+      // Denied permission, or a non-secure context. Leaving the icon unchanged
+      // is the honest signal — claiming "Copied!" when the clipboard is
+      // untouched is worse than doing nothing, and an unhandled rejection here
+      // would surface as a console error on a page that looks fine.
+      return;
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCopyKeyDown = event => {
@@ -271,6 +290,15 @@ function HomepageHeader() {
             Outside the copy box on purpose: nesting these inside it would bubble
             every switch into handleCopy, so picking "npm" would flash "Copied!"
             and put the previous manager's command on the clipboard.
+
+            Toggle buttons in a labelled group rather than radiogroup/radio. Radio
+            semantics do convey "exactly one of these" more precisely, but they
+            also carry an interaction contract: a single tab stop with arrow keys
+            moving *and* selecting, via roving tabindex. Half of that — radio roles
+            without the key handling — reads as a radiogroup to a screen reader
+            while behaving like buttons, which is worse than not claiming it. This
+            pattern is complete as written: every option is tabbable, Enter and
+            Space activate, and aria-pressed exposes the state.
           */}
           <div
             className={styles.pmSwitcher}
