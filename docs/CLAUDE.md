@@ -71,4 +71,17 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
+- **Install and run commands go through `<PackageManagerTabs command="…" />`**, not a bare
+  ` ```bash ` fence, so npm/yarn/bun readers don't translate by hand. It is registered globally
+  in `src/theme/MDXComponents.js` — no import. Author `command` in **pnpm's** verb vocabulary
+  (`add foo`, `add -D foo`, `install`, `remove`, `create x`, `dlx x`, `run dev`); the other
+  three managers are derived. Separate multiple lines with `;`
+  (`create bestax@latest my-app; cd my-app; install; run dev`); a segment that isn't a known
+  verb (`cd my-app`, a `#` comment) passes through unchanged. Put the tag on its own line at
+  column 0 with a double-quoted `command` — that is the shape the flattener matches, and
+  anything else fails the build rather than shipping raw JSX. An empty or missing `command`
+  throws during the prerender.
+- **`.md` files here render JSX**, because `markdown.format` defaults to `mdx` and
+  `docusaurus.config.js` does not override it. That is load-bearing but easy to miss: setting
+  `format: 'detect'` would make every `.md` page render its tags as literal text.
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).

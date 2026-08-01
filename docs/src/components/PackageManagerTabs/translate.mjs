@@ -27,8 +27,33 @@
  * on internal alignment surviving.
  */
 
-/** Tab order. pnpm is first, and therefore the default. */
+/** Tab order. */
 export const PACKAGE_MANAGERS = ['pnpm', 'npm', 'yarn', 'bun'];
+
+/**
+ * The tab selected when the reader has no stored preference.
+ *
+ * Named rather than taken as `PACKAGE_MANAGERS[0]` so tab *order* and the
+ * *default* can move independently — and because this value is not merely
+ * cosmetic: `flatten-llms-tabs.mjs` collapses every `<PackageManagerTabs>` to
+ * the pnpm rendering, so the default tab is what makes the page a reader sees
+ * agree with the artifact an agent reads. Changing it desyncs the two.
+ */
+export const DEFAULT_PACKAGE_MANAGER = 'pnpm';
+
+/**
+ * The `groupId` of the Docusaurus `<Tabs>` group, and the localStorage key it
+ * derives — `tabsUtils.js` builds the key as `docusaurus.tab.${groupId}`.
+ *
+ * Both live here because two separate surfaces have to agree on them: the tab
+ * group in this directory's index.js, and the homepage hero switcher in
+ * src/pages/index.js, which reads the slot directly via `useStorageSlot` to
+ * stay in sync with the docs. Hardcoding the strings in both places means a
+ * rename silently degrades to "hero and docs no longer share a choice", with
+ * nothing failing.
+ */
+export const TAB_GROUP_ID = 'package-manager';
+export const TAB_STORAGE_KEY = `docusaurus.tab.${TAB_GROUP_ID}`;
 
 /** Verbs we know how to translate. Anything else is a passthrough line. */
 const VERBS = new Set(['add', 'install', 'remove', 'create', 'dlx', 'run']);
