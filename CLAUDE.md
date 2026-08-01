@@ -77,7 +77,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
 ## Workflow
 
-PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
+PRs target `main`; direct pushes to `main` are not allowed — a repository ruleset enforces
+this, and its only automation bypass is the GitHub App that pushes semantic-release's
+`chore(release)` commit. Full contributor guide:
 `CONTRIBUTING.md`; for a new component, `CONTRIBUTING-COMPONENTS.md` is the end-to-end
 checklist. New components should stay within the Bulma spec — propose anything beyond it in
 an issue first.

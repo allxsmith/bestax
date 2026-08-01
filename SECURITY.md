@@ -60,6 +60,11 @@ Measures active in this repository and its release pipeline:
 - **Protected `main`** — unsigned commits, force pushes, and branch deletion
   are rejected. Merges require green CI (`Build and Test`, the React 18/19
   compatibility matrix, and `Dependency Review`) plus an approving review.
+  These rules live in a repository ruleset. It has exactly one automation
+  bypass: a GitHub App used solely to push semantic-release's signed
+  `chore(release)` commit and tag. Its token is scoped to this repository,
+  expires after an hour, and is minted only after the install and build steps
+  have run, so repo-owned build code can never reach it.
 - **Layered automated review** — every PR is reviewed by CodeRabbit and by an
   independent adversarial Claude review that deliberately runs a different
   model from the one used to write AI-authored changes. AI agents working in

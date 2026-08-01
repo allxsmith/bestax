@@ -49,6 +49,10 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
    and GitHub release.
 3. A push may release one package, both, or neither — they never bump each other.
 
+`main` is ruleset-protected, so the release commit and tag are pushed by a dedicated
+GitHub App that is the ruleset's only automation bypass — not by `github-actions[bot]`.
+The commit is still GPG-signed with the maintainer's key, so it shows as **Verified**.
+
 Preview locally without publishing: see "semantic-release dry-run" in
 [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
