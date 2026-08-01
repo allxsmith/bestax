@@ -27,7 +27,7 @@
     "clsx": "^2.0.0",
     "ionicons": "^8.0.13",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.45.2",
+    "material-symbols": "^0.45.9",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.2",
     "@docusaurus/types": "^3.10.2",
-    "docusaurus-plugin-llms": "^0.4.0",
+    "docusaurus-plugin-llms": "^0.5.1",
     "raw-loader": "^4.0.2"
   },
   "browserslist": {
