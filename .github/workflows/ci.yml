@@ -220,21 +220,23 @@ jobs:
       # repo-owned code (postinstall hooks, build config), and a bypass-capable
       # token must not be in the environment while they run. Same reasoning as
       # the Cloudflare credential split in test-deploy.yml (#441).
+      #
+      # How the push authenticates, since it is not obvious: semantic-release
+      # takes its repositoryUrl from each package.json's `repository.url`, not
+      # from the `origin` remote (lib/get-config.js). It first tries pushing to
+      # that URL as-is; that is why the pre-fix failure logged a credential-free
+      # `git push https://github.com/allxsmith/bestax.git` — the checkout's
+      # .git/config extraheader was satisfying auth. With persist-credentials
+      # false that attempt fails, and lib/get-git-auth-url.js falls back to the
+      # one credential in the environment, rewriting the URL as
+      # `x-access-token:$GITHUB_TOKEN@…` (the App-token form). So GITHUB_TOKEN
+      # below is the load-bearing credential for both the push and the API.
       - name: Mint release token
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-
-      # Checkout persisted no credential, so point the remote at the App token
-      # explicitly rather than relying on semantic-release's auth-URL fallback.
-      # create-github-app-token registers the token as a log mask.
-      - name: Authenticate git as the release app
-        env:
-          TOKEN: ${{ steps.app-token.outputs.token }}
-          REPO: ${{ github.repository }}
-        run: git remote set-url origin "https://x-access-token:${TOKEN}@github.com/${REPO}.git"
 
       - name: Import GPG key
         env:
