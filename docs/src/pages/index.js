@@ -224,6 +224,39 @@ function HomepageHeader() {
     }
   };
 
+  // Focus has to move with the selection, or a second arrow press would start
+  // from whatever the browser still considers focused. Queried out of the group
+  // rather than held in a ref array so adding a manager needs no bookkeeping.
+  const switcherRef = React.useRef(null);
+  const selectManager = index => {
+    const wrapped = (index + PACKAGE_MANAGERS.length) % PACKAGE_MANAGERS.length;
+    const next = PACKAGE_MANAGERS[wrapped];
+    managerSlot.set(next);
+    switcherRef.current
+      ?.querySelector(`[data-manager="${next}"]`)
+      ?.focus({ preventScroll: true });
+  };
+
+  // The radiogroup key contract. Arrows move *and* select — that is the pattern,
+  // not an extra — and they wrap, so the group has no dead ends.
+  const handleSwitcherKeyDown = event => {
+    const current = PACKAGE_MANAGERS.indexOf(manager);
+    const move = {
+      ArrowRight: current + 1,
+      ArrowDown: current + 1,
+      ArrowLeft: current - 1,
+      ArrowUp: current - 1,
+      Home: 0,
+      End: PACKAGE_MANAGERS.length - 1,
+    }[event.key];
+
+    if (move === undefined) return;
+    // Claim only the keys actually handled, so Tab still leaves the group and
+    // PageUp/PageDown still scroll the page.
+    event.preventDefault();
+    selectManager(move);
+  };
+
   // GitHub Icon SVG
   const GitHubIcon = () => (
     <svg className={styles.githubIcon} viewBox="0 0 16 16" aria-hidden="true">
@@ -291,29 +324,39 @@ function HomepageHeader() {
             every switch into handleCopy, so picking "npm" would flash "Copied!"
             and put the previous manager's command on the clipboard.
 
-            Toggle buttons in a labelled group rather than radiogroup/radio. Radio
-            semantics do convey "exactly one of these" more precisely, but they
-            also carry an interaction contract: a single tab stop with arrow keys
-            moving *and* selecting, via roving tabindex. Half of that — radio roles
-            without the key handling — reads as a radiogroup to a screen reader
-            while behaving like buttons, which is worse than not claiming it. This
-            pattern is complete as written: every option is tabbable, Enter and
-            Space activate, and aria-pressed exposes the state.
+            A real radiogroup, not toggle buttons: "exactly one of these four" is
+            what this control means, and aria-pressed only says "each of these is
+            on or off". Claiming the role means honouring its whole interaction
+            contract, which is why the key handling below exists rather than the
+            roles alone:
+
+              - one tab stop for the group, via roving tabindex — only the checked
+                option is reachable with Tab, so the group is a single stop rather
+                than four
+              - arrows move *and* select, wrapping at both ends, with Home/End for
+                the extremes
+              - focus follows selection, or the next arrow press would start from
+                wherever focus was left behind
           */}
           <div
             className={styles.pmSwitcher}
-            role="group"
+            role="radiogroup"
             aria-label="Package manager"
+            ref={switcherRef}
+            onKeyDown={handleSwitcherKeyDown}
           >
             {PACKAGE_MANAGERS.map(name => (
               <button
                 key={name}
                 type="button"
+                role="radio"
+                aria-checked={name === manager}
+                tabIndex={name === manager ? 0 : -1}
+                data-manager={name}
                 className={clsx(
                   styles.pmSwitcherItem,
                   name === manager && styles.pmSwitcherItemActive
                 )}
-                aria-pressed={name === manager}
                 onClick={() => managerSlot.set(name)}
               >
                 {name}
