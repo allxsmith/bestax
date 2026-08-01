@@ -7,18 +7,41 @@ import {
   TAB_GROUP_ID,
   renderCommand,
   lintCommand,
-  splitSegments,
 } from './translate.mjs';
 import styles from './styles.module.css';
 
 /**
  * One install command, shown for pnpm, npm, yarn and bun.
  *
- * `command` is authored in pnpm's verb vocabulary — `add foo`, `add -D foo`,
- * `install`, `create x`, `dlx x`, `run dev` — and translate.mjs derives the other
- * three. Several lines go in one `command`, separated by `;`; segments that
- * aren't a known verb (`cd my-app`, a `#` comment) pass through unchanged. See
- * translate.mjs for why pnpm is the authoring vocabulary and the first tab.
+ * Authored as a plain pnpm code fence wrapped in the component:
+ *
+ *     <PackageManagerTabs>
+ *
+ *     ```bash
+ *     pnpm add @allxsmith/bestax-bulma
+ *     ```
+ *
+ *     </PackageManagerTabs>
+ *
+ * The fence is the single source of truth. npm, yarn and bun are derived from it
+ * by translate.mjs; several lines are just several lines in the fence, and a line
+ * that isn't a pnpm verb (`cd my-app`, a `#` comment) passes through unchanged.
+ *
+ * **Why children and not a `command` prop.** `docusaurus-plugin-llms` reads source
+ * markdown to build llms.txt and the per-page .md twins, and since 0.5.0 it strips
+ * PascalCase JSX tags while "keeping their inner text content". Content in a *prop*
+ * is not inner text — it goes with the tag. A self-closing
+ * `<PackageManagerTabs command="…" />` therefore left an empty section in every
+ * artifact, silently: the site rendered fine and only the machine-readable copy
+ * lost the command. Putting the fence in the children means the plugin's strip
+ * removes the wrapper and leaves exactly the pnpm block behind, so the artifact is
+ * correct by construction with no build step to keep in sync. See
+ * rachfop/docusaurus-plugin-llms#64.
+ *
+ * That is also why the pnpm tab is written out rather than derived: what an agent
+ * reads in llms.txt is literally the text authored here, so the default tab a
+ * reader sees and the artifact an agent copies cannot drift. The assertion below
+ * enforces the other half — that the derived pnpm rendering matches the fence.
  *
  * The shared `TAB_GROUP_ID` is the point of using @theme/Tabs rather than
  * hand-rolling: Docusaurus persists the choice in localStorage, so picking npm on
@@ -29,23 +52,59 @@ import styles from './styles.module.css';
  * Registered globally in src/theme/MDXComponents.js, so docs pages use it without
  * an import.
  */
-export default function PackageManagerTabs({ command }) {
+
+/**
+ * Flatten MDX children to their text.
+ *
+ * A fenced block reaches us as an element tree (`pre` → `code` → string, through
+ * whatever the theme maps those to — this site swizzles CodeBlock). Walking
+ * `props.children` recursively avoids depending on that shape, so a theme upgrade
+ * that adds a wrapper doesn't silently return the wrong text.
+ */
+function textOf(node) {
+  if (node === null || node === undefined || typeof node === 'boolean')
+    return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (node.props) return textOf(node.props.children);
+  return '';
+}
+
+export default function PackageManagerTabs({ children }) {
+  // The fence as authored, minus the trailing newline MDX leaves on a code block.
+  const authored = textOf(children).replace(/\s+$/, '');
+
   // Throws rather than rendering something wrong, and deliberately not gated on
   // NODE_ENV: `docusaurus build` prerenders every page with NODE_ENV=production,
   // so an unconditional throw is what turns an authoring slip into a failed build
-  // that names the page. A dev-only check would miss it in CI entirely.
-  //
-  // The flatten gate in flatten-llms-tabs.mjs already catches a *missing*
-  // attribute — its regex requires a literal command="…", so <PackageManagerTabs />
-  // survives as raw JSX and fails verifyArtifact. It cannot see command="" or
-  // command=" ; ", which flatten to a silent empty ```bash fence. This closes that.
-  //
-  // Because the prerender covers every page, this can never fire in a browser on
+  // that names the page. A dev-only check would miss it in CI entirely — and
+  // because the prerender covers every page, this can never fire in a browser on
   // a site that built successfully.
-  if (typeof command !== 'string' || splitSegments(command).length === 0) {
+  if (!authored) {
     throw new Error(
-      `PackageManagerTabs: \`command\` must be a non-empty string, got ${JSON.stringify(command)}. ` +
-        'Author it in pnpm verb vocabulary, e.g. command="add @allxsmith/bestax-bulma".'
+      'PackageManagerTabs: expected a pnpm code fence as its children, e.g.\n' +
+        '<PackageManagerTabs>\n\n```bash\npnpm add @allxsmith/bestax-bulma\n```\n\n</PackageManagerTabs>'
+    );
+  }
+
+  // Recover the authoring vocabulary translate.mjs expects (`add foo`) from the
+  // rendered pnpm form (`pnpm add foo`). Lines without the prefix are passthrough
+  // (`cd my-app`) and survive as themselves.
+  const command = authored
+    .split('\n')
+    .map(line => line.replace(/^pnpm /, ''))
+    .join('; ');
+
+  // The round trip has to be exact, or the other three tabs are derived from
+  // something the reader never saw. This fires on a fence that isn't canonical
+  // pnpm — `npm install foo`, odd spacing, a stray blank line — naming the page.
+  const roundTrip = renderCommand(command, DEFAULT_PACKAGE_MANAGER);
+  if (roundTrip !== authored) {
+    throw new Error(
+      `PackageManagerTabs: the fence is not a canonical pnpm command.\n` +
+        `  authored:   ${JSON.stringify(authored)}\n` +
+        `  round trip: ${JSON.stringify(roundTrip)}\n` +
+        'Write the pnpm form exactly, one command per line.'
     );
   }
 

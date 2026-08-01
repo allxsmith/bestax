@@ -24,13 +24,23 @@ The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`), 
 - `/llms.txt` (curated index) and `/llms-full.txt` (full concatenation)
 - a per-page `.md` twin for every doc page (so `llms.txt` links resolve)
 
-The plugin reads **source** markdown and has no transform hook, so MDX tab JSX would land
-verbatim in those artifacts. `scripts/flatten-llms-tabs.mjs` runs after `docusaurus build`
-(chained in the `build` script — it can't be a plugin, since core runs every `postBuild` under
-`Promise.all`) and flattens it: `<PackageManagerTabs command="…" />` collapses to the pnpm
-command, `<Tabs>` linearizes to `####` headings keeping every `TabItem` body. It never touches
-code — fenced _or_ inline — because `docs/api/components/tabs.md` documents bestax-bulma's own
-`<Tabs.List>`/`<Tabs.Item>`. Covered by `scripts/flatten-llms-tabs.test.mjs` (`pnpm test`).
+The plugin reads **source** markdown, and since 0.5.0 it strips PascalCase JSX tags while
+keeping their **inner text**. That single rule decides how components must be authored if their
+content is to reach an agent:
+
+- **Content in children survives.** A fenced code block wrapped in a component comes out the
+  other side as exactly that fence, wrapper gone. This is why `<PackageManagerTabs>` takes a
+  pnpm fence as its children rather than a `command` prop — the artifact is then correct by
+  construction, with no build step to keep in sync.
+- **Content in props does not.** It goes with the tag, silently. A self-closing
+  `<PackageManagerTabs command="…" />` left an empty section in every artifact while the
+  rendered site looked fine. Before giving a docs component a prop that carries prose or a
+  command, check what the generated `.md` looks like.
+
+The known casualty is `<TabItem label="…">`: the label is Docusaurus's own prop and can't move
+to children, so `<Tabs>` collapses to its bodies with nothing marking which option is which.
+`skills/theming.mdx` and `skills/custom-component.mdx` are affected. Tracked upstream at
+rachfop/docusaurus-plugin-llms#64, which asks for a preserve-list or a pre-clean hook.
 
 `build` then chains `scripts/strip-generated-markers.mjs`, which removes the
 `<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
@@ -71,16 +81,29 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   space children with `m*`/`p*`.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
-- **Install and run commands go through `<PackageManagerTabs command="…" />`**, not a bare
-  ` ```bash ` fence, so npm/yarn/bun readers don't translate by hand. It is registered globally
-  in `src/theme/MDXComponents.js` — no import. Author `command` in **pnpm's** verb vocabulary
-  (`add foo`, `add -D foo`, `install`, `remove`, `create x`, `dlx x`, `run dev`); the other
-  three managers are derived. Separate multiple lines with `;`
-  (`create bestax@latest my-app; cd my-app; install; run dev`); a segment that isn't a known
-  verb (`cd my-app`, a `#` comment) passes through unchanged. Put the tag on its own line at
-  column 0 with a double-quoted `command` — that is the shape the flattener matches, and
-  anything else fails the build rather than shipping raw JSX. An empty or missing `command`
-  throws during the prerender.
+- **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
+  have written anyway, so npm/yarn/bun readers don't translate by hand:
+
+  ````md
+  <PackageManagerTabs>
+
+  ```bash
+  pnpm create bestax@latest my-app
+  cd my-app
+  pnpm install
+  ```
+
+  </PackageManagerTabs>
+  ````
+
+  Registered globally in `src/theme/MDXComponents.js` — no import. Write the **pnpm** form
+  exactly, one command per line; npm, yarn and bun are derived from it, and a line that isn't a
+  pnpm verb (`cd my-app`, a `#` comment) passes through unchanged. Blank lines around the fence
+  are required — without them MDX treats it as literal text, not a code block. The component
+  derives the command back out of the fence and throws during the prerender if the round trip
+  isn't exact, so a non-canonical fence (`npm install foo`, odd spacing) fails the build rather
+  than rendering three tabs derived from something the page never showed.
+
 - **`.md` files here render JSX**, because `markdown.format` defaults to `mdx` and
   `docusaurus.config.js` does not override it. That is load-bearing but easy to miss: setting
   `format: 'detect'` would make every `.md` page render its tags as literal text.

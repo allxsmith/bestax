@@ -7,11 +7,13 @@
  * lets the pnpm rendering be a pure prefix: `renderCommand(cmd, 'pnpm')` is
  * always `pnpm ${cmd}`.
  *
- * That identity is load-bearing. `docs/scripts/flatten-llms-tabs.mjs` collapses
- * `<PackageManagerTabs>` to a single pnpm block in the published LLM artifacts,
- * and it imports this module rather than reimplementing the rule — so what an
- * agent copies out of llms.txt is byte-identical to what a reader sees on the
- * default tab.
+ * That identity is load-bearing, and it runs in both directions. Pages author the
+ * pnpm form as a real code fence inside `<PackageManagerTabs>`; the component
+ * strips the `pnpm ` prefix line-wise to recover the authored command, then
+ * derives the other three from it. Because the fence is ordinary markdown, it is
+ * also exactly what survives into llms.txt — so what an agent copies out of the
+ * artifact is byte-identical to what a reader sees on the default tab, without
+ * anything having to keep the two in sync.
  *
  * `.mjs`, not `.js`: `docs/package.json` has no `"type": "module"`, so node
  * would load a `.js` file as CommonJS and `node --test` could not import it.
@@ -35,9 +37,9 @@ export const PACKAGE_MANAGERS = ['pnpm', 'npm', 'yarn', 'bun'];
  *
  * Named rather than taken as `PACKAGE_MANAGERS[0]` so tab *order* and the
  * *default* can move independently — and because this value is not merely
- * cosmetic: `flatten-llms-tabs.mjs` collapses every `<PackageManagerTabs>` to
- * the pnpm rendering, so the default tab is what makes the page a reader sees
- * agree with the artifact an agent reads. Changing it desyncs the two.
+ * cosmetic: pages author the pnpm form, and that fence is what survives into
+ * llms.txt, so the default tab is what makes the page a reader sees agree with
+ * the artifact an agent reads. Changing it desyncs the two.
  */
 export const DEFAULT_PACKAGE_MANAGER = 'pnpm';
 

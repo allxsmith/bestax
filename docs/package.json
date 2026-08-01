@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "docs": "docusaurus start",
     "start": "docusaurus start",
-    "build": "docusaurus build && node scripts/flatten-llms-tabs.mjs && node scripts/strip-generated-markers.mjs",
+    "build": "docusaurus build && node scripts/strip-generated-markers.mjs",
     "test": "node --test \"scripts/*.test.mjs\"",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
