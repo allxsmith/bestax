@@ -12,6 +12,13 @@ import EnhancedAddons from '@site/src/components/EnhancedAddons';
 import PickerShowcase from '@site/src/components/PickerShowcase';
 import AiReady from '@site/src/components/AiReady';
 import Heading from '@theme/Heading';
+import { useStorageSlot } from '@docusaurus/theme-common';
+import {
+  PACKAGE_MANAGERS,
+  DEFAULT_PACKAGE_MANAGER,
+  TAB_STORAGE_KEY,
+  renderCommand,
+} from '@site/src/components/PackageManagerTabs/translate.mjs';
 import {
   Skeleton,
   Grid,
@@ -167,14 +174,87 @@ const formSlides = [
   },
 ];
 
+/** The command the hero advertises, in pnpm's authoring vocabulary. */
+const HERO_COMMAND = 'add @allxsmith/bestax-bulma';
+
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   const [copied, setCopied] = React.useState(false);
 
-  const handleCopyNpm = () => {
-    navigator.clipboard.writeText('pnpm add @allxsmith/bestax-bulma');
+  // The same storage slot Docusaurus uses for the docs tab group, so a choice
+  // made here is already selected on every docs page and vice versa. The key is
+  // imported rather than written out: it and the `groupId` it derives from have
+  // to agree exactly, and a mismatch degrades silently to "hero and docs no
+  // longer share a choice" with nothing failing.
+  // useStorageSlot rather than localStorage directly: its server snapshot is null,
+  // so SSR renders the default and hydration matches, and its setter dispatches a
+  // synthetic storage event that live-updates any mounted tab group.
+  const [storedManager, managerSlot] = useStorageSlot(TAB_STORAGE_KEY);
+  const manager = PACKAGE_MANAGERS.includes(storedManager)
+    ? storedManager
+    : DEFAULT_PACKAGE_MANAGER;
+  const command = renderCommand(HERO_COMMAND, manager);
+
+  // Held in a ref so a second copy restarts the window instead of inheriting the
+  // first one's deadline — without this, two clicks 1.9s apart clear "Copied!"
+  // 100ms after the second. Cleared on unmount so the timer can't setState on a
+  // gone component.
+  const copyTimer = React.useRef(null);
+  React.useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+    } catch {
+      // Denied permission, or a non-secure context. Leaving the icon unchanged
+      // is the honest signal — claiming "Copied!" when the clipboard is
+      // untouched is worse than doing nothing, and an unhandled rejection here
+      // would surface as a console error on a page that looks fine.
+      return;
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyKeyDown = event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCopy();
+    }
+  };
+
+  // Focus has to move with the selection, or a second arrow press would start
+  // from whatever the browser still considers focused. Queried out of the group
+  // rather than held in a ref array so adding a manager needs no bookkeeping.
+  const switcherRef = React.useRef(null);
+  const selectManager = index => {
+    const wrapped = (index + PACKAGE_MANAGERS.length) % PACKAGE_MANAGERS.length;
+    const next = PACKAGE_MANAGERS[wrapped];
+    managerSlot.set(next);
+    switcherRef.current
+      ?.querySelector(`[data-manager="${next}"]`)
+      ?.focus({ preventScroll: true });
+  };
+
+  // The radiogroup key contract. Arrows move *and* select — that is the pattern,
+  // not an extra — and they wrap, so the group has no dead ends.
+  const handleSwitcherKeyDown = event => {
+    const current = PACKAGE_MANAGERS.indexOf(manager);
+    const move = {
+      ArrowRight: current + 1,
+      ArrowDown: current + 1,
+      ArrowLeft: current - 1,
+      ArrowUp: current - 1,
+      Home: 0,
+      End: PACKAGE_MANAGERS.length - 1,
+    }[event.key];
+
+    if (move === undefined) return;
+    // Claim only the keys actually handled, so Tab still leaves the group and
+    // PageUp/PageDown still scroll the page.
+    event.preventDefault();
+    selectManager(move);
   };
 
   // GitHub Icon SVG
@@ -230,11 +310,58 @@ function HomepageHeader() {
           </p>
           <div
             className={styles.npmInstallBox}
-            onClick={handleCopyNpm}
+            onClick={handleCopy}
+            onKeyDown={handleCopyKeyDown}
+            role="button"
+            tabIndex={0}
             title={copied ? 'Copied!' : 'Click to copy'}
           >
-            <code>pnpm add @allxsmith/bestax-bulma</code>
+            <code>{command}</code>
             {copied ? <CheckIcon /> : <CopyIcon />}
+          </div>
+          {/*
+            Outside the copy box on purpose: nesting these inside it would bubble
+            every switch into handleCopy, so picking "npm" would flash "Copied!"
+            and put the previous manager's command on the clipboard.
+
+            A real radiogroup, not toggle buttons: "exactly one of these four" is
+            what this control means, and aria-pressed only says "each of these is
+            on or off". Claiming the role means honouring its whole interaction
+            contract, which is why the key handling below exists rather than the
+            roles alone:
+
+              - one tab stop for the group, via roving tabindex — only the checked
+                option is reachable with Tab, so the group is a single stop rather
+                than four
+              - arrows move *and* select, wrapping at both ends, with Home/End for
+                the extremes
+              - focus follows selection, or the next arrow press would start from
+                wherever focus was left behind
+          */}
+          <div
+            className={styles.pmSwitcher}
+            role="radiogroup"
+            aria-label="Package manager"
+            ref={switcherRef}
+            onKeyDown={handleSwitcherKeyDown}
+          >
+            {PACKAGE_MANAGERS.map(name => (
+              <button
+                key={name}
+                type="button"
+                role="radio"
+                aria-checked={name === manager}
+                tabIndex={name === manager ? 0 : -1}
+                data-manager={name}
+                className={clsx(
+                  styles.pmSwitcherItem,
+                  name === manager && styles.pmSwitcherItemActive
+                )}
+                onClick={() => managerSlot.set(name)}
+              >
+                {name}
+              </button>
+            ))}
           </div>
           <div className={styles.buttons}>
             <Link
