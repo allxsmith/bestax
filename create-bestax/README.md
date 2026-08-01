@@ -12,6 +12,12 @@ The scaffolder for [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@al
 
 Part of the [bestax monorepo](https://github.com/allxsmith/bestax) — see also [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) for the components themselves.
 
+## Requirements
+
+- **Node.js 22 or newer.** Node 18 and 20 are both past end-of-life. On an older runtime the
+  CLI exits immediately with an explicit upgrade message.
+- npm 10 or newer (ships with Node 22), or yarn/pnpm.
+
 ## Usage
 
 ### Quick Start
