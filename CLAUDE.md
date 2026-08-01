@@ -50,8 +50,9 @@ Enforced in review (a green CI does **not** check these):
 Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
 semantic-release. Two repo-specific rules:
 
-- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`, or
-  `create-bestax` — unscoped release types are rejected (`commitlint.config.js`).
+- Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`,
+  `create-bestax`, or `bestax-migrate` — unscoped release types are rejected
+  (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth).
 - **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
   `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
   `releaseRules` in each package's `release.config.js` are the source of truth.
@@ -77,7 +78,9 @@ Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
 
 ## Workflow
 
-PRs target `main`; direct pushes to `main` are not allowed. Full contributor guide:
+PRs target `main`; direct pushes to `main` are not allowed — a repository ruleset enforces
+this, and its only automation bypass is the GitHub App that pushes semantic-release's
+`chore(release)` commit. Full contributor guide:
 `CONTRIBUTING.md`; for a new component, `CONTRIBUTING-COMPONENTS.md` is the end-to-end
 checklist. New components should stay within the Bulma spec — propose anything beyond it in
 an issue first.

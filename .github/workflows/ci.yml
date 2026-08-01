@@ -170,19 +170,23 @@ jobs:
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     # OIDC trusted publishing needs id-token: write to mint the short-lived
-    # token npm exchanges with the registry. The remaining scopes are what
-    # @semantic-release/git and @semantic-release/github require to push the
-    # release commit/tag and create the GitHub release.
+    # token npm exchanges with the registry. Everything that writes to the
+    # repository — the release commit, the tag, the GitHub release — runs on a
+    # short-lived GitHub App token minted after the build (see "Mint release
+    # token"), so this job's own GITHUB_TOKEN stays read-only.
     permissions:
-      contents: write
-      issues: write
-      pull-requests: write
+      contents: read
       id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          # The steps below run repo-owned code (install, build) before any
+          # release happens; don't leave a pushable credential in .git/config
+          # for them to reach. The release remote is configured after the
+          # build instead.
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -205,6 +209,34 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      # `main` is governed by a repository ruleset that requires a pull request
+      # and green checks, so semantic-release's release commit cannot be pushed
+      # by github-actions[bot]. This App is an explicit bypass actor on that
+      # ruleset; its token is scoped to this repo, lives one hour, and drives
+      # both the push and @semantic-release/github's API calls.
+      #
+      # Minted *after* install and build on purpose: those steps execute
+      # repo-owned code (postinstall hooks, build config), and a bypass-capable
+      # token must not be in the environment while they run. Same reasoning as
+      # the Cloudflare credential split in test-deploy.yml (#441).
+      #
+      # How the push authenticates, since it is not obvious: semantic-release
+      # takes its repositoryUrl from each package.json's `repository.url`, not
+      # from the `origin` remote (lib/get-config.js). It first tries pushing to
+      # that URL as-is; that is why the pre-fix failure logged a credential-free
+      # `git push https://github.com/allxsmith/bestax.git` — the checkout's
+      # .git/config extraheader was satisfying auth. With persist-credentials
+      # false that attempt fails, and lib/get-git-auth-url.js falls back to the
+      # one credential in the environment, rewriting the URL as
+      # `x-access-token:$GITHUB_TOKEN@…` (the App-token form). So GITHUB_TOKEN
+      # below is the load-bearing credential for both the push and the API.
+      - name: Mint release token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
 
       - name: Import GPG key
         env:
@@ -229,7 +261,7 @@ jobs:
         env:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git log -1 --show-signature
           pnpm exec semantic-release
@@ -239,7 +271,7 @@ jobs:
         env:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git log -1 --show-signature
           pnpm exec semantic-release
@@ -249,7 +281,7 @@ jobs:
         env:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_COMMITTER_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git log -1 --show-signature
           pnpm exec semantic-release
