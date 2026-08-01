@@ -12,9 +12,9 @@ import {
   splitSegments,
   translateSegment,
   renderCommand,
+  unrenderPnpm,
   lintCommand,
 } from '../src/components/PackageManagerTabs/translate.mjs';
-import { transform } from './flatten-llms-tabs.mjs';
 
 test('pnpm is first, so it is the default tab', () => {
   assert.deepEqual(PACKAGE_MANAGERS, ['pnpm', 'npm', 'yarn', 'bun']);
@@ -38,10 +38,13 @@ const TABLE = [
   ],
   ['install', 'pnpm install', 'npm install', 'yarn', 'bun install'],
   [
+    // npm has no --frozen-lockfile; `npm ci` is the frozen install, and
+    // guides/security.md tells readers exactly that. Berry spells it
+    // --immutable. bun takes the flag as written.
     'install --frozen-lockfile',
     'pnpm install --frozen-lockfile',
-    'npm install --frozen-lockfile',
-    'yarn install --frozen-lockfile',
+    'npm ci',
+    'yarn install --immutable',
     'bun install --frozen-lockfile',
   ],
   [
@@ -144,22 +147,40 @@ test('the pnpm rendering is always a pure prefix', () => {
   }
 });
 
-test('the flattener emits exactly the pnpm tab', () => {
-  // The single assertion that mechanically keeps llms.txt and the default tab in
-  // sync. If these ever diverge, agents copy a command no reader is shown.
+test('the pnpm rendering round-trips back to the authored command', () => {
+  // The identity the whole design rests on now. The component is handed a pnpm
+  // fence, derives the authored command from it, and renders the other three
+  // managers off that — so if this inverse were lossy, npm/yarn/bun users would
+  // get a command derived from something the page never showed. The component
+  // asserts the same equality at prerender, which turns a bad fence into a build
+  // failure rather than three wrong tabs.
   for (const [authored] of TABLE) {
-    const out = transform(`<PackageManagerTabs command="${authored}" />`);
-    const body = out.trim().split('\n').slice(1, -1).join('\n');
-    assert.equal(body, renderCommand(authored, 'pnpm'));
+    const pnpmForm = renderCommand(authored, 'pnpm');
+    assert.equal(renderCommand(unrenderPnpm(pnpmForm), 'pnpm'), pnpmForm);
   }
 });
 
-test('the flattener emits the pnpm tab for multi-segment commands too', () => {
+test('the round trip holds for multi-segment commands too', () => {
   const authored =
     'create vite@latest my-app -- --template react; cd my-app; install';
-  const out = transform(`<PackageManagerTabs command="${authored}" />`);
-  const body = out.trim().split('\n').slice(1, -1).join('\n');
-  assert.equal(body, renderCommand(authored, 'pnpm'));
+  const pnpmForm = renderCommand(authored, 'pnpm');
+  assert.equal(unrenderPnpm(pnpmForm), authored);
+  assert.equal(renderCommand(unrenderPnpm(pnpmForm), 'pnpm'), pnpmForm);
+});
+
+test('a fence delimiter that leaks into the text is invisible to the round trip', () => {
+  // Why the component checks for ``` separately instead of relying on the round
+  // trip. If MDX doesn't parse the block (missing blank lines around it), the
+  // delimiters arrive as text; they aren't known verbs, so they pass through on
+  // every tab and the equality still holds — while the rendered tabs would show
+  // fence markers inside the code block.
+  const leaked = '```bash\npnpm add foo\n```';
+  assert.equal(
+    renderCommand(unrenderPnpm(leaked), 'pnpm'),
+    leaked,
+    'round trip passes, so it cannot be the guard for this case'
+  );
+  assert.match(renderCommand(unrenderPnpm(leaked), 'npm'), /^```bash$/m);
 });
 
 test('lintCommand flags a command that already names a package manager', () => {

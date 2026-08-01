@@ -1,0 +1,29 @@
+/*
+ * Most of these commands sit inside a numbered step in the getting-started
+ * guides, where Docusaurus's default tab spacing leaves the block floating well
+ * clear of the step text. Tighten it so the tabs read as part of the step.
+ */
+.tabs {
+  margin-bottom: var(--ifm-leading);
+}
+
+/* Monospace the tab labels — they are command names, not prose. */
+.tabs :global(.tabs__item) {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+  padding: 0.4rem 0.9rem;
+}
+
+/*
+ * The wrapper owns the bottom margin, so the panel's code block shouldn't.
+ *
+ * `.tabs__item` above is a stable Infima class, but the tab *panel* has no such
+ * class — Docusaurus only gives it a hashed CSS-module name, so this matches the
+ * `tabItem_` prefix. That couples it to a theme internal: if a Docusaurus upgrade
+ * renames the module, this rule silently stops applying and the block regains a
+ * bottom margin. Purely cosmetic, and visible the moment anyone looks at a page,
+ * which is why it is matched loosely rather than pinned or reimplemented.
+ */
+.tabs :global([class*='tabItem_']) > *:last-child {
+  margin-bottom: 0;
+}

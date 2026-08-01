@@ -7,11 +7,13 @@
  * lets the pnpm rendering be a pure prefix: `renderCommand(cmd, 'pnpm')` is
  * always `pnpm ${cmd}`.
  *
- * That identity is load-bearing. `docs/scripts/flatten-llms-tabs.mjs` collapses
- * `<PackageManagerTabs>` to a single pnpm block in the published LLM artifacts,
- * and it imports this module rather than reimplementing the rule — so what an
- * agent copies out of llms.txt is byte-identical to what a reader sees on the
- * default tab.
+ * That identity is load-bearing, and it runs in both directions. Pages author the
+ * pnpm form as a real code fence inside `<PackageManagerTabs>`; the component
+ * strips the `pnpm ` prefix line-wise to recover the authored command, then
+ * derives the other three from it. Because the fence is ordinary markdown, it is
+ * also exactly what survives into llms.txt — so what an agent copies out of the
+ * artifact is byte-identical to what a reader sees on the default tab, without
+ * anything having to keep the two in sync.
  *
  * `.mjs`, not `.js`: `docs/package.json` has no `"type": "module"`, so node
  * would load a `.js` file as CommonJS and `node --test` could not import it.
@@ -27,8 +29,33 @@
  * on internal alignment surviving.
  */
 
-/** Tab order. pnpm is first, and therefore the default. */
+/** Tab order. */
 export const PACKAGE_MANAGERS = ['pnpm', 'npm', 'yarn', 'bun'];
+
+/**
+ * The tab selected when the reader has no stored preference.
+ *
+ * Named rather than taken as `PACKAGE_MANAGERS[0]` so tab *order* and the
+ * *default* can move independently — and because this value is not merely
+ * cosmetic: pages author the pnpm form, and that fence is what survives into
+ * llms.txt, so the default tab is what makes the page a reader sees agree with
+ * the artifact an agent reads. Changing it desyncs the two.
+ */
+export const DEFAULT_PACKAGE_MANAGER = 'pnpm';
+
+/**
+ * The `groupId` of the Docusaurus `<Tabs>` group, and the localStorage key it
+ * derives — `tabsUtils.js` builds the key as `docusaurus.tab.${groupId}`.
+ *
+ * Both live here because two separate surfaces have to agree on them: the tab
+ * group in this directory's index.js, and the homepage hero switcher in
+ * src/pages/index.js, which reads the slot directly via `useStorageSlot` to
+ * stay in sync with the docs. Hardcoding the strings in both places means a
+ * rename silently degrades to "hero and docs no longer share a choice", with
+ * nothing failing.
+ */
+export const TAB_GROUP_ID = 'package-manager';
+export const TAB_STORAGE_KEY = `docusaurus.tab.${TAB_GROUP_ID}`;
 
 /** Verbs we know how to translate. Anything else is a passthrough line. */
 const VERBS = new Set(['add', 'install', 'remove', 'create', 'dlx', 'run']);
@@ -47,12 +74,20 @@ export function splitSegments(command) {
 /**
  * Translate one segment for one package manager.
  *
- * Three rules go beyond swapping the prefix:
+ * Four rules go beyond swapping the prefix:
  * - `dlx` is a whole-prefix replacement (`npx`, `bunx`), not a verb swap.
  * - bun spells the dev-dependency flag `-d`, not `-D`.
  * - npm needs `--` to pass flags through a `create` scaffolder; yarn and bun
  *   forward arguments directly and would hand the `--` to the scaffolder.
+ * - `--frozen-lockfile` is pnpm's spelling of "install exactly the lockfile".
+ *   npm has no such flag — it is a whole different verb, `npm ci` — and Berry
+ *   spells it `--immutable`. bun takes the flag as-is. Getting this wrong is
+ *   silent: `npm install --frozen-lockfile` does a normal, lockfile-mutating
+ *   install, which is the opposite of what the reader asked for, and
+ *   `guides/security.md` already tells readers the npm equivalent is `npm ci`.
  */
+const FROZEN = '--frozen-lockfile';
+
 export function translateSegment(segment, manager) {
   const tokens = segment.split(' ');
   const [verb, ...rest] = tokens;
@@ -63,6 +98,8 @@ export function translateSegment(segment, manager) {
   const join = parts => parts.filter(Boolean).join(' ');
   const withoutDoubleDash = () => rest.filter(token => token !== '--');
   const bunFlags = () => rest.map(token => (token === '-D' ? '-d' : token));
+  const frozen = rest.includes(FROZEN);
+  const withoutFrozen = () => rest.filter(token => token !== FROZEN);
 
   switch (manager) {
     case 'npm':
@@ -73,15 +110,26 @@ export function translateSegment(segment, manager) {
           return join(['npm', 'uninstall', ...rest]);
         case 'dlx':
           return join(['npx', ...rest]);
+        case 'install':
+          // `npm ci` *is* the frozen install; the flag has no npm spelling.
+          return frozen
+            ? join(['npm', 'ci', ...withoutFrozen()])
+            : join(['npm', 'install', ...rest]);
         default:
-          // install / create / run keep npm's own verb, and `create` keeps `--`.
+          // create / run keep npm's own verb, and `create` keeps `--`.
           return join(['npm', verb, ...rest]);
       }
     case 'yarn':
       switch (verb) {
-        case 'install':
+        case 'install': {
+          // Berry spells the frozen install `--immutable`. Chosen to match the
+          // `dlx` line below, which already targets Berry over Classic.
+          const flags = frozen
+            ? [...withoutFrozen(), '--immutable']
+            : [...rest];
           // Bare `yarn` is the idiomatic install; with flags it needs the verb.
-          return rest.length ? join(['yarn', 'install', ...rest]) : 'yarn';
+          return flags.length ? join(['yarn', 'install', ...flags]) : 'yarn';
+        }
         case 'create':
           return join(['yarn', 'create', ...withoutDoubleDash()]);
         case 'run':
@@ -114,6 +162,25 @@ export function renderCommand(command, manager) {
   return splitSegments(command)
     .map(segment => translateSegment(segment, manager))
     .join('\n');
+}
+
+/**
+ * The inverse of `renderCommand(…, 'pnpm')`: recover the authored command from a
+ * rendered pnpm block.
+ *
+ * Pages author the pnpm form as a real code fence (see the component), so this is
+ * how the component gets back to the vocabulary the translators expect. Lines
+ * without the prefix are passthrough (`cd my-app`) and survive as themselves.
+ *
+ * Exported so it is unit-testable and so the component and its tests share one
+ * definition — the round trip is the design's central invariant, and an inverse
+ * that only existed inside a JSX file could not be exercised by `node --test`.
+ */
+export function unrenderPnpm(pnpmForm) {
+  return pnpmForm
+    .split('\n')
+    .map(line => line.replace(/^pnpm /, ''))
+    .join('; ');
 }
 
 /**
