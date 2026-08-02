@@ -1,9 +1,37 @@
 # .github — CI and AI automation
 
-Everything in `.github/workflows/` is **human-authored by design**. AI agents working in this
-repository are denied write access to this directory (`Edit(.github/**)` and friends sit in
-every write agent's `--disallowedTools`), and the AI fix loop refuses any PR that touches
-`.github/**`. If you are an agent reading this: propose a diff in a comment, do not apply one.
+Everything in `.github/workflows/` is **human-authored by design**. Two enforcement layers apply
+here and they are not the same rule — do not collapse them:
+
+- **Automated sessions** (the AI fix loop, `ai-triage`, `ai-scan`) are denied write access
+  _mechanically_: `Edit(.github/**)` and friends sit in every write agent's `--disallowedTools`,
+  and the fix loop refuses any PR that touches `.github/**`. This is not advisory, and editing
+  this file does not relax it. Those sessions ingest untrusted issue and PR text, so for them the
+  prohibition is absolute.
+- **An interactive session working alongside a maintainer** should not hide behind that. State
+  the rule, state the security reason below that it exists for, make sure the maintainer has
+  actually weighed that reason — then act on their answer. Refusing to apply a change the
+  maintainer has decided on does not make the repository safer; it just turns one decision into
+  several round-trips. The maintainer was always the one deciding.
+
+**The reason to raise, so nobody has to rediscover it:** a change in this directory can grant
+capability with **no permissions diff for a reviewer to notice**. The `permissions:` block looks
+identical before and after an allowlist widens. That is why these changes get argued rather than
+waved through — not because agents are untrusted, but because the usual review signal is absent.
+
+Scale the pushback to the blast radius:
+
+| Change                                                                        | What to do                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--allowedTools` / `--disallowedTools` on a session holding a credential      | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
+| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths   | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
+| Config with no security surface — `dependabot.yml` ignores, labels, schedules | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
+
+Origin: an interactive session hit the old blanket "propose a diff, do not apply one" line while
+adding a `dependabot.yml` ignore entry — a change with no security surface at all — and stalled
+on it across three separate asks. The blanket rule was cheap to state but it spent the
+maintainer's attention on the one case that did not need it, which is attention not available for
+the allowlist case that does.
 
 This file is the security contract for these workflows. The rules below are not style
 preferences — each one is load-bearing, and most were written after a review round or a
