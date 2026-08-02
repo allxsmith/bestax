@@ -103,10 +103,11 @@ Claude Code attribution footer) also get an auto-applied `claude-assisted` prove
 label. Kill switches: remove `ai-loop` (per PR) or set repo
 variable `AI_LOOP_ENABLED=false` (whole system). Every repository variable that
 steers this automation is tabulated in the ai-development docs guide, including which
-ones are **on when unset**. The two directions differ: `AI_LOOP_ENABLED` and
-`AI_LOOP_COPILOT` are `== 'true'` checks (unset ⇒ off), while `AI_SCAN_MODE` and
-`AI_TRIAGE_MODE` are `!= 'off'` checks (unset ⇒ on, so deleting them enables the
-feature). Check the table before assuming either direction. The `<!-- ai-loop-state … -->` PR comment
+ones require an exact value. Everything that spends model usage is explicit
+opt-in — `AI_LOOP_ENABLED == 'true'`, `AI_SCAN_MODE == 'on'`,
+`AI_LOOP_COPILOT == 'true'` — so unset, empty or a typo means off, and deleting a
+variable never enables anything. `AI_TRIAGE_MODE` is the exception: its label path
+is `!= 'off'`, so unset still allows label-triggered triage. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
 Separately, `ai-triage` runs a one-shot sonnet triage session that comments with related

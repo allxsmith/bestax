@@ -52,7 +52,12 @@ name: AI Security Scan
 # SAME-REPO ONLY: plain `pull_request` (never `pull_request_target`) + an explicit
 # head-repo guard, so fork PRs never run with secrets (they would also lack them).
 #
-# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or AI_SCAN_MODE=off (this
+# OPT-IN: this scanner runs only when AI_SCAN_MODE is explicitly `on`. Unset,
+# empty or any other value means it does not run — a variable that spends model
+# usage on every incoming issue has to be asked for, and deleting it must not
+# silently enable it.
+#
+# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or unset/AI_SCAN_MODE=off (this
 # scanner only). BUDGET: AI_SCAN_DAILY_LIMIT (unset ⇒ 20) auto scans per UTC day,
 # tracked by one github-actions[bot] marker comment on issue #290. Unlike the
 # triage counter this fails OPEN (an unparsable marker or a concurrent-write race
@@ -81,7 +86,7 @@ jobs:
     # Repo-wide switch + scanner switch + same-repo-only (fork heads never run).
     if: |
       vars.AI_LOOP_ENABLED == 'true' &&
-      vars.AI_SCAN_MODE != 'off' &&
+      vars.AI_SCAN_MODE == 'on' &&
       (github.event.pull_request == null ||
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
