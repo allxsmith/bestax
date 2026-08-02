@@ -21,6 +21,12 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # bestax-migrate parses legacy syntax on purpose (see bestax-migrate/src/runner.ts).
+      # Babel 8 removes `deprecatedImportAssert` and the `minimal` pipeline proposal, and
+      # rejects `declare module M {}` — all of which this codemod must keep accepting.
+      - dependency-name: "@babel/parser"
+        update-types: ["version-update:semver-major"]
     labels:
       - dependencies
       - javascript
