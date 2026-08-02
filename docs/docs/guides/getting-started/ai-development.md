@@ -56,7 +56,7 @@ PRs authored by the loop move through a small label lifecycle:
 | `deep-review`           | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
 | `ai-triage`             | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                               |
 | `claude-repro`          | issues       | Triage+ user applies it: Claude drafts a candidate reproduction test and github-actions[bot] posts it for a human to run (author-only — CI does not run it). Auto-removes                                                                                      |
-| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; blocks every AI entry point — `claude-repro`, `claude-fix`, `@claude` and `@bestaxbot` — until a maintainer reviews and removes it                                                                 |
+| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; blocks every entry point this repo controls — `claude-repro`, `claude-fix`, `@claude`, `@bestaxbot` — until a maintainer removes it (third-party reviewers are not gated)                          |
 | `claude-assisted`       | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                   |
 | `stale`                 | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                              |
 | `neverstale`            | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                        |
@@ -108,12 +108,20 @@ A **clean verdict is advisory** — it only covers the static text scanned at op
 it as "nothing obvious at the moment it opened", not as a guarantee about later edits or
 comments.
 
-A **flag, though, is a gate**: while `needs-security-review` is on an item, every AI entry point
-refuses it — `claude-repro` and `claude-fix`, and also `@claude` and `@bestaxbot`, which check
-the label in their job `if:`. So a flagged item cannot be investigated by mentioning the bot;
-inspect it by hand, and remove the label once you are satisfied. That is also the answer when
-`@claude` appears to ignore a mention: check for the label before assuming the workflow is
-broken.
+A **flag gates every entry point this repository controls**: while `needs-security-review` is on
+an item, `claude-repro`, `claude-fix`, `@claude` and `@bestaxbot` all refuse it in their job
+`if:`. So a flagged item cannot be investigated by mentioning the bot — inspect it by hand and
+remove the label once you are satisfied. That is also the answer when `@claude` appears to
+ignore a mention: check for the label before assuming the workflow is broken.
+
+Two limits are worth knowing before you lean on it:
+
+- **Third-party reviewers are not gated.** CodeRabbit and Copilot run on their own triggers and
+  never see this label, so they still review a flagged PR.
+- **There is an open-time window.** The scanner and its consumers both fire on the `opened`
+  event, so a path evaluating its `if:` on that same event does so before the label exists.
+  Every such path independently requires a trusted author, which bounds it — but the flag is a
+  gate from the moment it lands, not from the moment the item is created.
 
 The loop itself: Claude implements the issue and opens the PR → CodeRabbit reviews it and a
 second, independent Claude review (a stronger model than the implementer) does a deep pass →
@@ -165,17 +173,25 @@ separate store and none are documented here.
 
 | Variable                | Unset means           | Values                 | Controls                                                                                                                                   |
 | ----------------------- | --------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AI_LOOP_ENABLED`       | **enabled**           | `false` disables       | The master switch. `false` stops the loop, triage, repro and the security scan                                                             |
+| `AI_LOOP_ENABLED`       | **disabled**          | must be exactly `true` | The master switch. Everything below is additionally gated on this                                                                          |
 | `AI_TRIAGE_MODE`        | `label` (opt-in only) | `auto`, `label`, `off` | Whether new issues/PRs are triaged automatically, by label only, or not at all                                                             |
 | `AI_TRIAGE_DAILY_LIMIT` | `10`                  | integer                | Auto-triage sessions per UTC day. Label runs and triage+ authors are exempt                                                                |
 | `AI_TRIAGE_AUTOCLOSE`   | `off`                 | `on`, `dry-run`, `off` | Whether a flagged duplicate is auto-closed after the objection window                                                                      |
 | `AI_SCAN_MODE`          | **enabled**           | `off` disables         | The security scan on new issues/PRs                                                                                                        |
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
-| `AI_LOOP_COPILOT`       | **off**               | `true` enables         | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
+| `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
-Two of these are **on when unset** — `AI_LOOP_ENABLED` and `AI_SCAN_MODE` — so both spend
-Claude usage from the moment their workflows land. Set them to `false` / `off` before merging
-if you want to stage the rollout rather than disable it afterwards.
+The "unset means" column splits two ways, and which one a variable uses decides whether
+_deleting_ it is a kill switch or an accidental enable:
+
+- `AI_LOOP_ENABLED` and `AI_LOOP_COPILOT` are `== 'true'` checks — **unset means off**, so
+  removing the variable disables the feature.
+- `AI_SCAN_MODE` and `AI_TRIAGE_MODE` are `!= 'off'` checks — **unset means on**, so removing
+  the variable _enables_ it. Turning the scanner off means setting it to `off`, not deleting it.
+
+`AI_SCAN_MODE` unset is therefore enabled, but only while `AI_LOOP_ENABLED` is `true`, since the
+scanner's `if:` requires both. With the master switch on, merging the scanner workflow starts it
+on the next issue or PR.
 
 `COPILOT_AGENT_FIREWALL_ENABLED` and `COPILOT_AGENT_FIREWALL_ALLOW_LIST_ADDITIONS` may also
 appear in the variable list. They belong to GitHub's Copilot coding agent, are read by GitHub

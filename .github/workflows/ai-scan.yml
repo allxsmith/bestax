@@ -7,12 +7,23 @@ name: AI Security Scan
 # applies the `needs-security-review` label on anything not positively clean
 # (FAIL-CLOSED).
 #
-# The scanner is ADVISORY, not a gate: a `clean` verdict covers only the STATIC
-# text scanned at open time — not content a later action reaches at runtime (linked
-# issues, edited comments). The real gate stays the triage+ live-role check on the
-# claude-repro / claude-fix labels. `needs-security-review` pauses only those two
-# consumers; it does NOT block @claude / @bestaxbot — do not @-mention a bot to
-# "investigate" a flagged item, inspect it by hand.
+# A `clean` VERDICT is advisory: it covers only the STATIC text scanned at open
+# time — not content a later action reaches at runtime (linked issues, edited
+# comments). The real gate stays the triage+ live-role check on the
+# claude-repro / claude-fix labels.
+#
+# The FLAG, once applied, is checked by every entry point this repo controls —
+# claude-repro, claude-fix, @claude (claude.yml) and @bestaxbot
+# (bestaxbot-reply.yml) all refuse a flagged item in their job `if:`. So do not
+# @-mention a bot to "investigate" a flagged item; inspect it by hand.
+#
+# Two limits on calling that a gate, both deliberate:
+#   - There is an OPEN-TIME WINDOW. This workflow and its consumers both fire on
+#     `opened`, so a same-event path evaluates its `if:` before the label exists.
+#     Bounded by the fact that every such path independently requires a trusted
+#     author, but it is a window, not a barrier.
+#   - It only binds repository-controlled workflows. Third-party reviewers
+#     (CodeRabbit, Copilot) run on their own triggers and never see this label.
 #
 # SECURITY: the scan session holds NO PAT and NO write tools — only read-only
 # `gh view`/`gh diff` + a read GITHUB_TOKEN — so an injected session has no channel

@@ -103,8 +103,10 @@ Claude Code attribution footer) also get an auto-applied `claude-assisted` prove
 label. Kill switches: remove `ai-loop` (per PR) or set repo
 variable `AI_LOOP_ENABLED=false` (whole system). Every repository variable that
 steers this automation is tabulated in the ai-development docs guide, including which
-ones are **on when unset** (`AI_LOOP_ENABLED`, `AI_SCAN_MODE`) — check there before
-assuming an unset variable means disabled. The `<!-- ai-loop-state … -->` PR comment
+ones are **on when unset**. The two directions differ: `AI_LOOP_ENABLED` and
+`AI_LOOP_COPILOT` are `== 'true'` checks (unset ⇒ off), while `AI_SCAN_MODE` and
+`AI_TRIAGE_MODE` are `!= 'off'` checks (unset ⇒ on, so deleting them enables the
+feature). Check the table before assuming either direction. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
 Separately, `ai-triage` runs a one-shot sonnet triage session that comments with related
@@ -120,7 +122,7 @@ pipeline holds no PAT and no job co-locates the model token with code execution.
 `ai-scan.yml` read-only-scans new issues/PRs for malicious code, prompt injection, and social
 engineering, applying `needs-security-review` (fail-closed; controls `AI_SCAN_MODE`,
 `AI_SCAN_DAILY_LIMIT`). A clean verdict is advisory (it only covers the text as it was at open
-time), but the flag itself **gates every AI entry point** — `claude-repro`, `claude-fix`,
+time), but the flag itself **gates every entry point this repo controls** — `claude-repro`, `claude-fix`,
 `@claude` and `@bestaxbot` all refuse a flagged item until a maintainer removes the label.
 If `@claude` seems to ignore a mention, check for that label first.
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted

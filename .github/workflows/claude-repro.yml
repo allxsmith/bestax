@@ -20,10 +20,17 @@ name: Claude Repro
 #       What removing Bash does NOT do is put the environment out of reach: `Read`
 #       is not confined to the workspace, so /proc/self/environ and
 #       ~/.claude/.credentials.json stay readable, and `Write` plus the public
-#       `publish` job would complete the channel. The `Collect draft` step closes
-#       it explicitly — it refuses to emit a draft containing a live credential
-#       value or a credential-shaped string. Treat that check as part of I1, not
-#       as belt-and-braces: without it the invariant does not hold.
+#       `publish` job would complete the channel. `Collect draft` refuses to emit
+#       a draft carrying a live credential — literal, base64 or hex — or a
+#       credential-shaped string.
+#
+#       Be precise about what that buys: it raises the cost of the naive path and
+#       converts it into a failed build, but an encoding check cannot be complete
+#       (chunk it, reverse it, rot13 it). I1's real strength is the combination —
+#       no execution primitive, harden-runner egress block, and the token never
+#       sharing a job with the publish step — with the credential check as the
+#       last line rather than the first. Do not weaken any of the others on the
+#       grounds that the check exists.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via
@@ -258,11 +265,23 @@ jobs:
             # publishing a scrubbed version would destroy the only signal that it
             # happened. The job fails, `cleanup` removes the label and posts a
             # neutral notice, and the reason stays in the private run log.
+            # Literal, plus the two encodings a drafter would reach for first.
+            # This raises the cost of exfil; it is NOT a proof. An encoding check
+            # can never be complete — chunked, reversed, rot13 or arithmetic
+            # encodings all defeat it. The real controls are the tool restriction
+            # (no Bash/gh/Task) and harden-runner's egress block; this catches the
+            # naive path and turns it into a failed build instead of a public
+            # comment.
             for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
-              if [ -n "$secret" ] && grep -qF -- "$secret" .repro/draft.test.tsx; then
-                echo "::error::drafted test contains a live credential value — refusing to publish."
-                exit 1
-              fi
+              [ -n "$secret" ] || continue
+              B64=$(printf '%s' "$secret" | base64 | tr -d '\n=')
+              HEX=$(printf '%s' "$secret" | od -An -tx1 | tr -d ' \n')
+              for form in "$secret" "$B64" "$HEX"; do
+                if [ -n "$form" ] && grep -qiF -- "$form" .repro/draft.test.tsx; then
+                  echo "::error::drafted test contains a live credential value (literal or encoded) — refusing to publish."
+                  exit 1
+                fi
+              done
             done
             # Shape-based backstop for what the exact-value check cannot see: a
             # re-encoded or partially quoted token, or a credential this job does
