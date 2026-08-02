@@ -21,8 +21,13 @@ EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
    claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`
-     if it is your most recent comment on the PR; otherwise post fresh).
+     that comment with
+     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
+     your most recent comment on the PR is itself the
+     `<!-- ai-triage:find-issues -->` comment. `--edit-last` selects by
+     author, not by marker, and the other triage commands post as the same
+     account — so a newer `find-duplicate-prs` marker is what it would
+     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
 3. Note every issue already referenced in the PR body (`#N`, `Fixes #N`,
    `Closes #N`, full URLs) — those are EXCLUDED from the results.
 

@@ -21,8 +21,13 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
    claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`
-     if it is your most recent comment on the PR; otherwise post fresh).
+     that comment with
+     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
+     your most recent comment on the PR is itself the
+     `<!-- ai-triage:find-duplicate-prs -->` comment. `--edit-last` selects
+     by author, not by marker, and the other triage commands post as the
+     same account — so a newer `find-issues` marker is what it would
+     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
 
 ## Search — 3 parallel agents
 

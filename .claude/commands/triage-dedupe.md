@@ -23,10 +23,14 @@ run locally), and `AUTOCLOSE` (`active` or `off`; assume `off` locally). If
    claude[bot].)
    - `TRIGGER=opened` and marker present → stop (already triaged).
    - `TRIGGER=labeled` and marker present → continue; at the end REFRESH
-     that comment instead of posting a new one: if it is your most recent
-     comment on the issue, use
-     `gh issue comment NUMBER --repo REPO --edit-last --body ...`;
-     otherwise post a fresh comment (the old one stays as history).
+     that comment instead of posting a new one. Use
+     `gh issue comment NUMBER --repo REPO --edit-last --body ...` ONLY when
+     your most recent comment on the issue is itself the
+     `<!-- ai-triage:dedupe -->` comment: `--edit-last` selects by author,
+     not by marker, and every automation here posts as bestaxbot now, so a
+     newer repro draft or other machine comment would be the one it
+     overwrites. If anything else is newer, post a fresh comment (the old
+     one stays as history). See `.github/CLAUDE.md` rule 6.
 3. If the issue is too vague to search meaningfully (no error text, no
    component or file name, no concrete behavior), stop.
 
