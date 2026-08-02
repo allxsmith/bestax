@@ -95,7 +95,9 @@ function TimeDemo() {
 Note the `onChange`: it hands you a `Date` (or `null`), not an event, so a state setter drops straight in. When you need both halves at once, `DateTimeInput` combines the calendar and the wheels in a single popover with an iOS-style footer; click the time and the spinner floats over the calendar, which is a pretty cool trick:
 
 ```tsx live
-<DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
+<Block>
+  <DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
+</Block>
 ```
 
 ## Field/Control Auto-Wrap
