@@ -21,16 +21,29 @@ waved through — not because agents are untrusted, but because the usual review
 
 Scale the pushback to the blast radius:
 
-| Change                                                                                       | What to do                                                                                                                                                                                 |
-| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--allowedTools` / `--disallowedTools` on a session holding a credential                     | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
-| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths                  | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
-| Config with no security surface — labels, schedules, `semver-major` `dependabot.yml` ignores | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
+| Change                                                                                                                      | What to do                                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--allowedTools` / `--disallowedTools` on a session holding a credential                                                    | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
+| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths, anything a workflow reads as a gate or trigger | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
+| Genuinely inert config — a cosmetic label, a docs-build cadence, a `semver-major` `dependabot.yml` ignore                   | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
 
-The `dependabot.yml` qualifier in that last row is load-bearing: a `semver-major` ignore only
-declines a breaking upgrade, but an ignore covering **patch or minor suppresses CVE fixes** for
-that dependency and belongs in the middle row, argued on its merits. Scope every ignore you add,
-and never widen an existing one's `update-types` as a drive-by.
+The qualifiers in that last row are load-bearing. The dividing line is **cosmetic vs.
+load-bearing**, not the file the change lives in:
+
+- **Labels are not uniformly inert.** `needs-security-review` is a refusal gate — `claude-repro`,
+  `claude-fix`, `@claude` and `@bestaxbot` all decline a flagged item until a maintainer clears
+  it. `ai-loop`, `ai-loop-paused` and `deep-review` steer automation the same way. Deleting or
+  renaming one of those disables a control **with no workflow diff at all**, which is the exact
+  hazard this section exists to name. A new `documentation` label is inert; a label a workflow
+  reads is middle row.
+- **Schedules are not uniformly inert.** A `schedule:` on `ai-scan` or the stale sweep decides
+  when a security control runs. A docs-build cadence does not.
+- **`dependabot.yml` ignores are not uniformly inert.** A `semver-major` ignore only declines a
+  breaking upgrade, but one covering **patch or minor suppresses CVE fixes** for that dependency.
+  Scope every ignore you add, and never widen an existing one's `update-types` as a drive-by.
+
+When unsure which row a change belongs in, grep the workflows for the thing you are changing. If
+anything reads it, it is middle row.
 
 Origin: an interactive session hit the old blanket "propose a diff, do not apply one" line while
 adding a `dependabot.yml` ignore entry — a change with no security surface at all — and stalled
