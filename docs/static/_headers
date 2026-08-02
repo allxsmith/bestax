@@ -1,0 +1,32 @@
+# Cloudflare Pages response headers.
+#
+# Pages serves this file from the build output root; Docusaurus copies
+# everything in static/ there verbatim. Rules are matched most-specific-first.
+#
+# Docusaurus fingerprints every emitted asset (assets/js/main.<hash>.js,
+# assets/fonts/fa-solid-900-<hash>.woff2, …), so those are safe to cache
+# forever — a content change produces a new URL. Everything unhashed, above
+# all the HTML and the generated LLM artifacts, must revalidate or readers get
+# a stale site after a deploy.
+
+# Fingerprinted build output — immutable.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Ionicons is copied in at a stable path (plugins/local-ionicons.js), so it is
+# versioned by deploy rather than by filename: cache it, but revalidate daily.
+/ionicons/*
+  Cache-Control: public, max-age=86400
+
+# The LLM index and the per-page markdown twins are regenerated every build and
+# are read by agents that should not see a stale API surface.
+/llms.txt
+  Cache-Control: public, max-age=0, must-revalidate
+/llms-full.txt
+  Cache-Control: public, max-age=0, must-revalidate
+
+# HTML and everything else unhashed: always revalidate.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

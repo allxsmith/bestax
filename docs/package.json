@@ -24,6 +24,7 @@
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@mdi/font": "^7.4.47",
     "@mdx-js/react": "^3.0.0",
+    "bulma": "^1.0.4",
     "clsx": "^2.0.0",
     "ionicons": "^8.0.13",
     "material-icons": "^1.13.14",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.2",
     "@docusaurus/types": "^3.10.2",
+    "copy-webpack-plugin": "^11.0.0",
     "docusaurus-plugin-llms": "^0.5.1",
     "raw-loader": "^4.0.2"
   },

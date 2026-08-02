@@ -83,17 +83,14 @@ const config = {
       }),
     ],
   ],
-  // stylesheets: [
-  //   {
-  //     href: '/css/ionicons.min.css',
-  //     type: 'text/css',
-  //   },
-  // ],
   plugins: [
     // Keeps cssnano's discardUnused from stripping Font Awesome's @font-face
     // rules (FA v7 resolves its family through var(), which the minifier can't
     // follow). Without this every FA icon renders as a blank box in production.
     './plugins/preserve-font-face.js',
+    // Copies the ionicons v8 Stencil bundle to /ionicons/ so the live examples
+    // load their web components from this origin instead of unpkg.com.
+    './plugins/local-ionicons.js',
     [
       'docusaurus-plugin-llms',
       {

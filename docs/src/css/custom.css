@@ -39,6 +39,14 @@ pre.prism-code {
   margin-bottom: var(--ifm-leading);
 }
 
+/* Live previews mount only once they scroll near the viewport (see
+   src/theme/CodeBlock/index.js). Reserve a little height while a slot is still
+   empty so a page of deferred examples keeps a sensible scroll length; the
+   rule stops applying the moment the preview mounts. */
+.live-preview-slot:empty {
+  min-height: 6rem;
+}
+
 .live-editor {
   font-family: var(--ifm-font-family-monospace);
 }
