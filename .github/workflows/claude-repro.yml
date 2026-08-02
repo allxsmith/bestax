@@ -14,9 +14,16 @@ name: Claude Repro
 #   I1  The model-auth token never shares a job with code execution. The `author`
 #       job holds CLAUDE_CODE_OAUTH_TOKEN but grants Claude NO Bash / gh / network
 #       / Task tool — only Read/Glob/Grep/Write/Edit — so an injected session
-#       cannot read process.env, fetch, or run anything. No job here runs the
-#       drafted test, so no job co-locates the token with attacker-influenced
-#       execution.
+#       cannot fetch or run anything. No job here runs the drafted test, so no job
+#       co-locates the token with attacker-influenced execution.
+#
+#       What removing Bash does NOT do is put the environment out of reach: `Read`
+#       is not confined to the workspace, so /proc/self/environ and
+#       ~/.claude/.credentials.json stay readable, and `Write` plus the public
+#       `publish` job would complete the channel. The `Collect draft` step closes
+#       it explicitly — it refuses to emit a draft containing a live credential
+#       value or a credential-shaped string. Treat that check as part of I1, not
+#       as belt-and-braces: without it the invariant does not hold.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via
@@ -233,9 +240,37 @@ jobs:
       - name: Collect draft
         id: draft
         if: steps.claude.outcome == 'success'
+        env:
+          OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          JOB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           if [ -s .repro/draft.test.tsx ]; then
+            # I1 backstop, and the reason I1 is stated the way it is above.
+            # Removing Bash stops the session shelling out, but `Read` is NOT
+            # confined to the workspace — /proc/self/environ and
+            # ~/.claude/.credentials.json are both reachable — and `publish` posts
+            # this file to a public comment. So "no Bash" does not by itself close
+            # the exfil path; this check does.
+            #
+            # Refuse rather than redact. A draft containing a credential means the
+            # session went somewhere it had no business going, and quietly
+            # publishing a scrubbed version would destroy the only signal that it
+            # happened. The job fails, `cleanup` removes the label and posts a
+            # neutral notice, and the reason stays in the private run log.
+            for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
+              if [ -n "$secret" ] && grep -qF -- "$secret" .repro/draft.test.tsx; then
+                echo "::error::drafted test contains a live credential value — refusing to publish."
+                exit 1
+              fi
+            done
+            # Shape-based backstop for what the exact-value check cannot see: a
+            # re-encoded or partially quoted token, or a credential this job does
+            # not hold and so cannot compare against.
+            if grep -qE '(sk-ant-|ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|-----BEGIN [A-Z ]*PRIVATE KEY-----)' .repro/draft.test.tsx; then
+              echo "::error::drafted test contains a credential-shaped string — refusing to publish."
+              exit 1
+            fi
             echo "result=drafted" >> "$GITHUB_OUTPUT"
             DELIM="EOF_$(openssl rand -hex 12)"
             {
@@ -285,11 +320,18 @@ jobs:
             # automation parses — auto-close-duplicates.mjs (`<!-- ... -->` +
             # `Duplicate of #N`) and the *-RESULT/SECURITY-SCAN watchdogs — since
             # github-actions[bot] is an automation author those consumers trust.
+            # (3) neuter fence delimiters. The draft is wrapped in a ```tsx block
+            # below, so a line of backticks inside it closes that block early and
+            # everything after is rendered as markdown rather than shown as code.
+            # Cosmetic rather than a privilege issue — this posts as
+            # github-actions[bot] and the markers above are already defanged — but
+            # a broken-out draft is exactly the thing a reviewer skims past.
             SAN=$(printf '%s' "$TEST" \
               | sed -E 's/@(claude|coderabbitai|bestaxbot)/\&#64;\1/gI' \
               | sed -E 's/<!--/\&lt;!--/g; s/-->/--\&gt;/g' \
               | sed -E 's/(Duplicate of) #/\1 \&#35;/gI' \
               | sed -E 's/^(TRIAGE-RESULT|SECURITY-SCAN|REPRO-RESULT|REPRO-DRAFT):/\1 :/g' \
+              | sed -E 's/^([ \t]*)(`{3,}|~{3,})/\1\&#96;\&#96;\&#96;/g' \
               | head -c 12000)
             {
               printf '%s\n\n' '<!-- ai-repro:draft -->'

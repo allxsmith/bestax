@@ -116,8 +116,10 @@ A triage+ user can apply `claude-repro` to an issue: Claude drafts a reproductio
 pipeline holds no PAT and no job co-locates the model token with code execution. Separately,
 `ai-scan.yml` read-only-scans new issues/PRs for malicious code, prompt injection, and social
 engineering, applying `needs-security-review` (fail-closed; controls `AI_SCAN_MODE`,
-`AI_SCAN_DAILY_LIMIT`). That flag is advisory — it pauses `claude-repro`/`claude-fix` but does
-**not** block `@claude`/`@bestaxbot`, so never `@claude` a flagged item to investigate it.
+`AI_SCAN_DAILY_LIMIT`). A clean verdict is advisory (it only covers the text as it was at open
+time), but the flag itself **gates every AI entry point** — `claude-repro`, `claude-fix`,
+`@claude` and `@bestaxbot` all refuse a flagged item until a maintainer removes the label.
+If `@claude` seems to ignore a mention, check for that label first.
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
 PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close
 after 90 days of inactivity; `neverstale` exempts a PR from both layers.

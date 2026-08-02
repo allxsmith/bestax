@@ -56,7 +56,7 @@ PRs authored by the loop move through a small label lifecycle:
 | `deep-review`           | PRs          | Opt-in: a triage+ user applies it to run the Claude deep review on any PR (re-apply to re-run). Optionally steer it by pre-posting a PR comment starting with `deep-review:` (focus areas, suspected weak spots) — only comments from triage+ authors are used |
 | `ai-triage`             | PRs & issues | Runs one-shot AI triage (related issues + duplicates): automatic on new issues/PRs in auto mode (daily budget), or applied by a triage+ user (budget-exempt; label auto-removes)                                                                               |
 | `claude-repro`          | issues       | Triage+ user applies it: Claude drafts a candidate reproduction test and github-actions[bot] posts it for a human to run (author-only — CI does not run it). Auto-removes                                                                                      |
-| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; pauses `claude-repro` and `claude-fix` until a maintainer reviews and removes it                                                                                                                   |
+| `needs-security-review` | PRs & issues | Auto-applied by the security scanner when it flags an item; blocks every AI entry point — `claude-repro`, `claude-fix`, `@claude` and `@bestaxbot` — until a maintainer reviews and removes it                                                                 |
 | `claude-assisted`       | PRs          | Auto-applied provenance for AI-assisted PRs (bestaxbot or the Claude footer)                                                                                                                                                                                   |
 | `stale`                 | PRs          | Auto-applied after 30 days of inactivity; closes 14 days later unless activity resumes. Claude-assisted PRs skip this sweep — a separate closer sweeps them after 90 days instead                                                                              |
 | `neverstale`            | PRs          | Exempts a PR from all stale automation (both the 30/14-day sweep and the 90-day Claude-assisted closer)                                                                                                                                                        |
@@ -104,10 +104,16 @@ to post or leak anything; it fails **closed** (a crashed or inconclusive scan fl
 passes). Controls: `AI_SCAN_MODE` (`off` disables it) and `AI_SCAN_DAILY_LIMIT` (auto scans per
 UTC day, default 20); `AI_LOOP_ENABLED=false` stops it with everything else.
 
-The flag is **advisory, not a gate**: a clean verdict only covers the static text scanned at open
-time. It pauses `claude-repro` and `claude-fix`, but it does **not** block `@claude` / `@bestaxbot`
-— so **do not `@claude` a flagged item to "investigate" it; inspect it by hand.** Clear a false
-positive by removing the label.
+A **clean verdict is advisory** — it only covers the static text scanned at open time, so treat
+it as "nothing obvious at the moment it opened", not as a guarantee about later edits or
+comments.
+
+A **flag, though, is a gate**: while `needs-security-review` is on an item, every AI entry point
+refuses it — `claude-repro` and `claude-fix`, and also `@claude` and `@bestaxbot`, which check
+the label in their job `if:`. So a flagged item cannot be investigated by mentioning the bot;
+inspect it by hand, and remove the label once you are satisfied. That is also the answer when
+`@claude` appears to ignore a mention: check for the label before assuming the workflow is
+broken.
 
 The loop itself: Claude implements the issue and opens the PR → CodeRabbit reviews it and a
 second, independent Claude review (a stronger model than the implementer) does a deep pass →
