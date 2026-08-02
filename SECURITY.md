@@ -74,6 +74,17 @@ Measures active in this repository and its release pipeline:
   model from the one used to write AI-authored changes. AI agents working in
   this repository are barred from modifying the workflows, release
   configuration, or supply-chain settings that gate them.
+- **Inbound security triage** — new issues and pull requests are assessed by a
+  read-only AI session for three things: code crafted to harm whoever runs it,
+  prompt injection aimed at this repository's own automation, and social
+  engineering. Anything not positively clean is labeled `needs-security-review`,
+  which every AI entry point we control refuses until a maintainer clears it.
+  Three properties make it worth trusting: it **fails closed** (a crashed or
+  unparsable scan flags rather than passes), the session holds **no write tools
+  and no PAT** so an injected scan cannot post or act, and its reasoning is never
+  published — only a coarse category — so a flag cannot be used as an oracle for
+  tuning an evasion. A clean verdict covers the text as it stood when the item
+  opened, not edits made afterwards.
 
 Consumers can verify provenance themselves: the npm package pages show the
 attestation ("Provenance" section), and — in projects installed with the npm
