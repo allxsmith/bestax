@@ -289,6 +289,12 @@ jobs:
           # and only to the job summary, never a public comment.
           echo "scan not-clean for #$NUMBER (category=$CATEGORY) — applying needs-security-review"
           echo "Security scan: FLAGGED (category: $CATEGORY) on #$NUMBER — a maintainer should review before running automation on it. Detailed reasoning is in the (private) session output, not a public comment." >> "$GITHUB_STEP_SUMMARY"
-          # REST addLabels auto-creates the label if missing (unlike gh --add-label).
+          # REST addLabels rather than `gh issue edit --add-label`, which errors on
+          # a label the repo has not defined. needs-security-review is created
+          # ahead of merge, so this does NOT depend on how the endpoint treats an
+          # undefined label — GitHub does not document that either way, so do not
+          # rely on it as recovery if the label is ever deleted. A failure here
+          # leaves the item unlabeled: the gate fails open (see the header), and
+          # the step's non-zero exit is what surfaces it.
           gh api -X POST "repos/$REPO/issues/$NUMBER/labels" \
             -f "labels[]=needs-security-review" >/dev/null
