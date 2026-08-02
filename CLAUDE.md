@@ -7,6 +7,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
 - `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `.github/` — CI and AI-automation workflows, **human-authored only** (has its own CLAUDE.md,
+  which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 
 ## Toolchain
@@ -109,7 +111,10 @@ opt-in — `AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`),
 a variable never enables anything. `AI_TRIAGE_MODE` is the exception: its label path
 is `!= 'off'`, so unset still allows label-triggered triage. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
-`.github/**` or the jest/commitlint/release/pnpm-workspace configs.
+`.github/**` or the jest/commitlint/release/pnpm-workspace configs — workflow changes are
+human-authored, and `.github/CLAUDE.md` states the rules they must hold to (allowlists are a
+confinement boundary and never widen casually; action SHAs stay on the repo-wide pin; anything
+that spends model usage gates on `== 'on'`).
 Separately, `ai-triage` runs a one-shot sonnet triage session that comments with related
 issues/duplicates: automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
 capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by

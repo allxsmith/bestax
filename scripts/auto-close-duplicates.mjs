@@ -11,7 +11,9 @@
  * by the ai-triage workflow, PR A of #289).
  * The candidate is closed only if ALL of these hold:
  *   - the marker comment is at least --wait-days old (default 14), AND
- *   - no non-bot user commented after the marker comment (objection), AND
+ *   - no human (non-automation) user commented after the marker comment
+ *     (objection) — bestaxbot is a machine User account, so isAutomationAuthor()
+ *     decides this, not the account type alone, AND
  *   - the marker comment has no 👎 reaction (objection), AND
  *   - the issue was never reopened (a reopened issue is never auto-closed
  *     again — the timeline keeps its `reopened` event forever), AND
