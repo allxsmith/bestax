@@ -21,11 +21,16 @@ waved through — not because agents are untrusted, but because the usual review
 
 Scale the pushback to the blast radius:
 
-| Change                                                                        | What to do                                                                                                                                                                                 |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--allowedTools` / `--disallowedTools` on a session holding a credential      | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
-| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths   | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
-| Config with no security surface — `dependabot.yml` ignores, labels, schedules | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
+| Change                                                                                       | What to do                                                                                                                                                                                 |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--allowedTools` / `--disallowedTools` on a session holding a credential                     | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
+| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths                  | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
+| Config with no security surface — labels, schedules, `semver-major` `dependabot.yml` ignores | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
+
+The `dependabot.yml` qualifier in that last row is load-bearing: a `semver-major` ignore only
+declines a breaking upgrade, but an ignore covering **patch or minor suppresses CVE fixes** for
+that dependency and belongs in the middle row, argued on its merits. Scope every ignore you add,
+and never widen an existing one's `update-types` as a drive-by.
 
 Origin: an interactive session hit the old blanket "propose a diff, do not apply one" line while
 adding a `dependabot.yml` ignore entry — a change with no security surface at all — and stalled
