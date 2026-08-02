@@ -87,6 +87,51 @@ describe('react-bulma-components transform fixtures', () => {
     expect(output).toContain("assert { type: 'json' }");
   });
 
+  it('parses legacy class, decorator and proposal syntax', () => {
+    const source = [
+      "import { Button } from 'react-bulma-components';",
+      '@observer',
+      'export class App extends React.Component {',
+      '  state = { count: 1_000 };',
+      '  #private = null;',
+      '  static defaultProps = {};',
+      '  render() {',
+      '    return <Button color="primary">{this.props.a?.b ?? 0}</Button>;',
+      '  }',
+      '}',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'legacy.tsx', source);
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    // Every proposal-plugin shape in the fixture must survive the round trip,
+    // not merely parse — a plugin dropped from PARSER_OPTIONS would still
+    // parse the file if the syntax has since become standard, but recast
+    // would lose the node.
+    expect(output).toContain('@observer');
+    expect(output).toContain('state = { count: 1_000 }');
+    expect(output).toContain('#private = null');
+    expect(output).toContain('static defaultProps = {}');
+    expect(output).toContain('this.props.a?.b ?? 0');
+  });
+
+  it('parses the legacy React.createClass form', () => {
+    const source = [
+      "import { Button } from 'react-bulma-components';",
+      'module.exports = React.createClass({',
+      '  render: function () {',
+      '    return <Button color="primary" loading>Go</Button>;',
+      '  },',
+      '});',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'create-class.tsx', source);
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    expect(output).toContain('isLoading');
+    // The rename must replace the legacy prop, not sit alongside it.
+    expect(output).not.toMatch(/\sloading[\s=/>]/);
+    expect(output).toContain('React.createClass');
+  });
+
   it('collects TODO entries with rules and line numbers', () => {
     const source = [
       "import { Tile } from 'react-bulma-components';",

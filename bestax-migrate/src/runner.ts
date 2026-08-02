@@ -14,6 +14,23 @@ import type { TodoCollector, Transform } from './types.js';
  * jscodeshift's stock `tsx` parser options plus `deprecatedImportAssert`,
  * so files using the legacy `import x from 'y' assert { type: 'json' }`
  * syntax (still emitted by many tools) parse instead of crashing the run.
+ *
+ * This config pins @babel/parser to 7.x — do not take the 8.x major. Three of
+ * the options below are invalid under Babel 8, and the first breaks every run
+ * rather than only legacy input:
+ *
+ *   - `pipelineOperator: { proposal: 'minimal' }` — Babel 8 accepts only
+ *     `fsharp` and `hack`, and rejects the options object before reading any
+ *     source, so *every* js/jsx/ts/tsx file fails to parse.
+ *   - `deprecatedImportAssert` — removed with no replacement, taking the
+ *     legacy `assert { type: 'json' }` form with it (see the regression test
+ *     "parses the legacy import-assert syntax").
+ *   - `declare module M {}` — rejected in 8.0.4 (babel/babel#18120), which
+ *     older TypeScript still uses.
+ *
+ * A codemod that migrates older codebases must not crash on the syntax those
+ * codebases still contain. jscodeshift 17 bundles its own Babel 7 regardless,
+ * so staying on 7 also keeps a single parser in the tree rather than two.
  */
 const PARSER_OPTIONS: ParserOptions = {
   sourceType: 'module',

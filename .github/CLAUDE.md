@@ -1,9 +1,55 @@
 # .github — CI and AI automation
 
-Everything in `.github/workflows/` is **human-authored by design**. AI agents working in this
-repository are denied write access to this directory (`Edit(.github/**)` and friends sit in
-every write agent's `--disallowedTools`), and the AI fix loop refuses any PR that touches
-`.github/**`. If you are an agent reading this: propose a diff in a comment, do not apply one.
+Everything in `.github/workflows/` is **human-authored by design**. Two enforcement layers apply
+here and they are not the same rule — do not collapse them:
+
+- **Automated sessions** (the AI fix loop, `ai-triage`, `ai-scan`) are denied write access
+  _mechanically_: `Edit(.github/**)` and friends sit in every write agent's `--disallowedTools`,
+  and the fix loop refuses any PR that touches `.github/**`. This is not advisory, and editing
+  this file does not relax it. Those sessions ingest untrusted issue and PR text, so for them the
+  prohibition is absolute.
+- **An interactive session working alongside a maintainer** should not hide behind that. State
+  the rule, state the security reason below that it exists for, make sure the maintainer has
+  actually weighed that reason — then act on their answer. Refusing to apply a change the
+  maintainer has decided on does not make the repository safer; it just turns one decision into
+  several round-trips. The maintainer was always the one deciding.
+
+**The reason to raise, so nobody has to rediscover it:** a change in this directory can grant
+capability with **no permissions diff for a reviewer to notice**. The `permissions:` block looks
+identical before and after an allowlist widens. That is why these changes get argued rather than
+waved through — not because agents are untrusted, but because the usual review signal is absent.
+
+Scale the pushback to the blast radius:
+
+| Change                                                                                                                      | What to do                                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--allowedTools` / `--disallowedTools` on a session holding a credential                                                    | **Argue it properly, every time.** Name the credential in that job, explain why each entry cannot write, and get an explicit decision. Never as a side effect of another task. See rule 2. |
+| Workflow logic, triggers, `permissions:`, action SHAs, verdict/budget paths, anything a workflow reads as a gate or trigger | Name the invariant at stake (I1, I2, or the rule below), confirm it holds, then act.                                                                                                       |
+| Genuinely inert config — a cosmetic label, a docs-build cadence, a `semver-major` `dependabot.yml` ignore                   | Just make the change and say what it does. Do not gate it behind a debate.                                                                                                                 |
+
+The qualifiers in that last row are load-bearing. The dividing line is **cosmetic vs.
+load-bearing**, not the file the change lives in:
+
+- **Labels are not uniformly inert.** `needs-security-review` is a refusal gate — `claude-repro`,
+  `claude-fix`, `@claude` and `@bestaxbot` all decline a flagged item until a maintainer clears
+  it. `ai-loop`, `ai-loop-paused` and `deep-review` steer automation the same way. Deleting or
+  renaming one of those disables a control **with no workflow diff at all**, which is the exact
+  hazard this section exists to name. A new `documentation` label is inert; a label a workflow
+  reads is middle row.
+- **Schedules are not uniformly inert.** A `schedule:` on `ai-scan` or the stale sweep decides
+  when a security control runs. A docs-build cadence does not.
+- **`dependabot.yml` ignores are not uniformly inert.** A `semver-major` ignore only declines a
+  breaking upgrade, but one covering **patch or minor suppresses CVE fixes** for that dependency.
+  Scope every ignore you add, and never widen an existing one's `update-types` as a drive-by.
+
+When unsure which row a change belongs in, grep the workflows for the thing you are changing. If
+anything reads it, it is middle row.
+
+Origin: an interactive session hit the old blanket "propose a diff, do not apply one" line while
+adding a `dependabot.yml` ignore entry — a change with no security surface at all — and stalled
+on it across three separate asks. The blanket rule was cheap to state but it spent the
+maintainer's attention on the one case that did not need it, which is attention not available for
+the allowlist case that does.
 
 This file is the security contract for these workflows. The rules below are not style
 preferences — each one is load-bearing, and most were written after a review round or a
