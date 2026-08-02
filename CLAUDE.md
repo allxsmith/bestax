@@ -7,6 +7,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
 - `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `.github/` — CI and AI-automation workflows, **human-authored only** (has its own CLAUDE.md,
+  which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 
 ## Toolchain
@@ -101,9 +103,18 @@ review on it (re-applying the label re-runs it; a `deep-review:`-prefixed PR com
 a triage+ user pre-steers its focus). AI-assisted PRs (bestaxbot author or the
 Claude Code attribution footer) also get an auto-applied `claude-assisted` provenance
 label. Kill switches: remove `ai-loop` (per PR) or set repo
-variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment
+variable `AI_LOOP_ENABLED=false` (whole system). Every repository variable that
+steers this automation is tabulated in the ai-development docs guide, including which
+ones require an exact value. Everything that spends model usage is explicit
+opt-in — `AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`),
+`AI_LOOP_COPILOT=true` — so unset, empty, `off` or a typo all mean off, and deleting
+a variable never enables anything. `AI_TRIAGE_MODE` is the exception: its label path
+is `!= 'off'`, so unset still allows label-triggered triage. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
-`.github/**` or the jest/commitlint/release/pnpm-workspace configs.
+`.github/**` or the jest/commitlint/release/pnpm-workspace configs — workflow changes are
+human-authored, and `.github/CLAUDE.md` states the rules they must hold to (allowlists are a
+confinement boundary and never widen casually; action SHAs stay on the repo-wide pin; anything
+that spends model usage gates on `== 'on'`).
 Separately, `ai-triage` runs a one-shot sonnet triage session that comments with related
 issues/duplicates: automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
 capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by
@@ -111,6 +122,15 @@ triage+ collaborators are uncapped), or on demand via the label
 (triage+ only, budget-exempt; auto-removed after the run). Fork PRs are never triaged
 (same-repo `pull_request` only — never `pull_request_target`; see #312). Flagged duplicates may be
 auto-closed after 14 days per `AI_TRIAGE_AUTOCLOSE` (see the ai-development docs guide).
+A triage+ user can apply `claude-repro` to an issue: Claude drafts a reproduction test
+(author-only — never executed by CI) that github-actions[bot] posts for a human to run; the
+pipeline holds no PAT and no job co-locates the model token with code execution. Separately,
+`ai-scan.yml` read-only-scans new issues/PRs for malicious code, prompt injection, and social
+engineering, applying `needs-security-review` (fail-closed; controls `AI_SCAN_MODE`,
+`AI_SCAN_DAILY_LIMIT`). A clean verdict is advisory (it only covers the text as it was at open
+time), but the flag itself **gates every entry point this repo controls** — `claude-repro`, `claude-fix`,
+`@claude` and `@bestaxbot` all refuse a flagged item until a maintainer removes the label.
+If `@claude` seems to ignore a mention, check for that label first.
 Stale automation: PRs go `stale` at 30 days and close 14 days later — except Claude-assisted
 PRs (`claude-assisted` label or bestaxbot author), which skip that sweep and instead close
 after 90 days of inactivity; `neverstale` exempts a PR from both layers.

@@ -14,13 +14,20 @@ assume `labeled` locally). If `NUMBER` is missing, ask.
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,files,comments` —
    if the PR is not open, stop.
-2. Marker check — a bot-authored comment containing
-   `<!-- ai-triage:find-duplicate-prs -->` (match marker + bot author, not
-   a specific login — the workflow posts as github-actions[bot]):
+2. Marker check — a comment authored by bestaxbot or a bot account
+   containing `<!-- ai-triage:find-duplicate-prs -->` (match marker + that
+   author class, never one specific login — the workflow posts as
+   bestaxbot today; older comments are from github-actions[bot] or
+   claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`
-     if it is your most recent comment on the PR; otherwise post fresh).
+     that comment with
+     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
+     your most recent comment on the PR is itself the
+     `<!-- ai-triage:find-duplicate-prs -->` comment. `--edit-last` selects
+     by author, not by marker, and the other triage commands post as the
+     same account — so a newer `find-issues` marker is what it would
+     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
 
 ## Search — 3 parallel agents
 

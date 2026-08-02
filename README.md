@@ -191,6 +191,7 @@ Supply-chain security here is a standing constraint on how the project is built,
 - **Frozen lockfile + audit gate** — CI installs exactly what the reviewed lockfile resolves and fails on high-severity advisories.
 - **CodeQL, Dependency Review, and Dependabot** — static analysis over both the source and the workflow files, PR-level advisory blocking, and weekly grouped dependency updates.
 - **Layered AI review before merge** — every PR gets a [CodeRabbit](https://coderabbit.ai) review plus an independent adversarial Claude review that deliberately runs a different model from the one writing AI-authored changes. On top of that, `main` requires green CI, one approving review, and a human merge. AI agents are structurally barred from editing the workflows, release config, or supply-chain settings that gate them.
+- **Inbound issues and PRs are security-triaged** — a read-only AI pass flags code crafted to harm whoever runs it, prompt injection aimed at our own automation, and social engineering. Flagged items are labeled and refused by every AI entry point until a human clears them. It fails closed, so an inconclusive scan flags rather than passes, and the model session itself has no write tools — a separate deterministic step applies the label, so the AI never posts or acts on anything.
 
 Full detail: [`SECURITY.md`](SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 

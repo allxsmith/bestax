@@ -14,13 +14,20 @@ EXACTLY ONE comment (or nothing). Context from the caller: `REPO`, `NUMBER`
 
 1. `gh pr view NUMBER --repo REPO --json state,title,body,comments` — if the
    PR is not open, stop.
-2. Marker check — a bot-authored comment containing
-   `<!-- ai-triage:find-issues -->` (match marker + bot author, not a
-   specific login — the workflow posts as github-actions[bot]):
+2. Marker check — a comment authored by bestaxbot or a bot account
+   containing `<!-- ai-triage:find-issues -->` (match marker + that
+   author class, never one specific login — the workflow posts as
+   bestaxbot today; older comments are from github-actions[bot] or
+   claude[bot]):
    - `TRIGGER=opened` and marker present → stop.
    - `TRIGGER=labeled` and marker present → continue; at the end refresh
-     that comment (`gh pr comment NUMBER --repo REPO --edit-last --body ...`
-     if it is your most recent comment on the PR; otherwise post fresh).
+     that comment with
+     `gh pr comment NUMBER --repo REPO --edit-last --body ...` ONLY when
+     your most recent comment on the PR is itself the
+     `<!-- ai-triage:find-issues -->` comment. `--edit-last` selects by
+     author, not by marker, and the other triage commands post as the same
+     account — so a newer `find-duplicate-prs` marker is what it would
+     overwrite. Otherwise post fresh. See `.github/CLAUDE.md` rule 6.
 3. Note every issue already referenced in the PR body (`#N`, `Fixes #N`,
    `Closes #N`, full URLs) — those are EXCLUDED from the results.
 

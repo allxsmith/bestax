@@ -33,10 +33,14 @@ jobs:
     # label on behalf of an outside issue author). Labeling an issue means
     # "execute this issue body" — read it fully (including raw markdown)
     # before applying the label.
+    # Refuse a security-flagged issue: never let the implementer act on content the
+    # scanner marked as malicious/injection. A maintainer clears needs-security-review
+    # after review, then re-applies claude-fix.
     if: |
       github.event.label.name == 'claude-fix' &&
       github.event.sender.type == 'User' &&
-      vars.AI_LOOP_ENABLED == 'true'
+      vars.AI_LOOP_ENABLED == 'true' &&
+      !contains(github.event.issue.labels.*.name, 'needs-security-review')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
