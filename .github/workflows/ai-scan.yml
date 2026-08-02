@@ -52,12 +52,15 @@ name: AI Security Scan
 # SAME-REPO ONLY: plain `pull_request` (never `pull_request_target`) + an explicit
 # head-repo guard, so fork PRs never run with secrets (they would also lack them).
 #
-# OPT-IN: this scanner runs only when AI_SCAN_MODE is explicitly `on`. Unset,
-# empty or any other value means it does not run — a variable that spends model
-# usage on every incoming issue has to be asked for, and deleting it must not
-# silently enable it.
+# OPT-IN: this scanner runs only when AI_SCAN_MODE is `on` or `y`. EVERY other
+# value disables it — `off`, unset, empty, or a typo. A control that spends model
+# usage on every incoming issue has to be asked for, and no spelling of "stop"
+# should be able to start it by accident.
 #
-# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or unset/AI_SCAN_MODE=off (this
+# (GitHub Actions `==` on strings is case-insensitive, so `ON`/`Y` work too.)
+#
+# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or AI_SCAN_MODE=off — or unset,
+# or anything that is not on/y (this
 # scanner only). BUDGET: AI_SCAN_DAILY_LIMIT (unset ⇒ 20) auto scans per UTC day,
 # tracked by one github-actions[bot] marker comment on issue #290. Unlike the
 # triage counter this fails OPEN (an unparsable marker or a concurrent-write race
@@ -86,7 +89,7 @@ jobs:
     # Repo-wide switch + scanner switch + same-repo-only (fork heads never run).
     if: |
       vars.AI_LOOP_ENABLED == 'true' &&
-      vars.AI_SCAN_MODE == 'on' &&
+      (vars.AI_SCAN_MODE == 'on' || vars.AI_SCAN_MODE == 'y') &&
       (github.event.pull_request == null ||
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest

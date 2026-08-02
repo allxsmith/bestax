@@ -104,9 +104,9 @@ label. Kill switches: remove `ai-loop` (per PR) or set repo
 variable `AI_LOOP_ENABLED=false` (whole system). Every repository variable that
 steers this automation is tabulated in the ai-development docs guide, including which
 ones require an exact value. Everything that spends model usage is explicit
-opt-in — `AI_LOOP_ENABLED == 'true'`, `AI_SCAN_MODE == 'on'`,
-`AI_LOOP_COPILOT == 'true'` — so unset, empty or a typo means off, and deleting a
-variable never enables anything. `AI_TRIAGE_MODE` is the exception: its label path
+opt-in — `AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`),
+`AI_LOOP_COPILOT=true` — so unset, empty, `off` or a typo all mean off, and deleting
+a variable never enables anything. `AI_TRIAGE_MODE` is the exception: its label path
 is `!= 'off'`, so unset still allows label-triggered triage. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.

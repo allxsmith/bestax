@@ -101,8 +101,8 @@ prompt injection aimed at this repo's automation, and social engineering. When i
 a deterministic step applies **`needs-security-review`** (the reason stays in the private run
 output, never a public comment). The scan holds no write tools and no PAT, so it has no channel
 to post or leak anything; it fails **closed** (a crashed or inconclusive scan flags rather than
-passes). It is **opt-in**: it runs only when `AI_SCAN_MODE` is exactly `on`, so an unset or
-deleted variable means no scanning. `AI_SCAN_DAILY_LIMIT` caps it (auto scans per
+passes). It is **opt-in**: it runs only when `AI_SCAN_MODE` is `on` (or `y`). Every other
+value disables it — including `off`, unset, empty, and typos. `AI_SCAN_DAILY_LIMIT` caps it (auto scans per
 UTC day, default 20); `AI_LOOP_ENABLED=false` stops it with everything else.
 
 A **clean verdict is advisory** — it only covers the static text scanned at open time, so treat
@@ -178,15 +178,17 @@ separate store and none are documented here.
 | `AI_TRIAGE_MODE`        | `label` (opt-in only) | `auto`, `label`, `off` | Whether new issues/PRs are triaged automatically, by label only, or not at all                                                             |
 | `AI_TRIAGE_DAILY_LIMIT` | `10`                  | integer                | Auto-triage sessions per UTC day. Label runs and triage+ authors are exempt                                                                |
 | `AI_TRIAGE_AUTOCLOSE`   | `off`                 | `on`, `dry-run`, `off` | Whether a flagged duplicate is auto-closed after the objection window                                                                      |
-| `AI_SCAN_MODE`          | **disabled**          | must be exactly `on`   | The security scan on new issues/PRs                                                                                                        |
+| `AI_SCAN_MODE`          | **disabled**          | `on` or `y` to enable  | The security scan on new issues/PRs. Any other value, including `off`, disables                                                            |
 | `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
 | `AI_LOOP_COPILOT`       | `false`               | must be exactly `true` | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
 
 Anything that spends model usage is **explicit opt-in** — it must be present and set, and
 deleting it turns the feature off rather than on:
 
-- `AI_LOOP_ENABLED` (`== 'true'`), `AI_SCAN_MODE` (`== 'on'`) and `AI_LOOP_COPILOT`
-  (`== 'true'`) all require the exact value. Unset, empty, or a typo means off.
+- `AI_LOOP_ENABLED` (`true`), `AI_SCAN_MODE` (`on` or `y`) and `AI_LOOP_COPILOT` (`true`) all
+  require one of those exact values. Unset, empty, `off`, or a typo means off — there is no
+  spelling of "stop" that starts them. (Actions compares strings case-insensitively, so `ON`
+  and `Y` work.)
 
 `AI_TRIAGE_MODE` is the one exception: its label-triggered path is an `!= 'off'` check, so an
 unset variable still allows a triage+ user to run triage by applying the label. Automatic

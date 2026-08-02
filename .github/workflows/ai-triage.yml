@@ -85,7 +85,7 @@ name: AI Triage
 #     the implement/PR loop, the reproduction workflow, and the security scanner).
 #   - AI_TRIAGE_MODE=off → stops THIS triage workflow only (label included).
 #   - The security scanner is a SEPARATE workflow (ai-scan.yml) with its own
-#     switches: it runs only when AI_SCAN_MODE=on, AI_SCAN_DAILY_LIMIT caps its daily
+#     switches: it runs only when AI_SCAN_MODE=on (or y), AI_SCAN_DAILY_LIMIT caps its daily
 #     auto scans. It shares only the budget-counter host issue (#290), via a
 #     distinct `<!-- ai-scan-budget … -->` marker.
 #   - The reproduction workflow (claude-repro.yml) is label-triggered
