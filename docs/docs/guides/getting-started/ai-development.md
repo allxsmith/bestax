@@ -153,6 +153,35 @@ machine.
 - **Kill switches**: removing the `ai-loop` label stops one PR; a repository variable turns
   the whole system off.
 
+### Repository variables
+
+Every switch above is a **repository variable** (Settings → Secrets and variables → Actions →
+Variables), not a secret. They are listed here because the workflows that read them are public
+in `.github/workflows/`, so the names and their effects are already readable — a control nobody
+can find is the only thing that would be worse. Values are never sensitive; secrets are a
+separate store and none are documented here.
+
+**Defaults matter more than the values**, because an unset variable is not "off":
+
+| Variable                | Unset means           | Values                 | Controls                                                                                                                                   |
+| ----------------------- | --------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AI_LOOP_ENABLED`       | **enabled**           | `false` disables       | The master switch. `false` stops the loop, triage, repro and the security scan                                                             |
+| `AI_TRIAGE_MODE`        | `label` (opt-in only) | `auto`, `label`, `off` | Whether new issues/PRs are triaged automatically, by label only, or not at all                                                             |
+| `AI_TRIAGE_DAILY_LIMIT` | `10`                  | integer                | Auto-triage sessions per UTC day. Label runs and triage+ authors are exempt                                                                |
+| `AI_TRIAGE_AUTOCLOSE`   | `off`                 | `on`, `dry-run`, `off` | Whether a flagged duplicate is auto-closed after the objection window                                                                      |
+| `AI_SCAN_MODE`          | **enabled**           | `off` disables         | The security scan on new issues/PRs                                                                                                        |
+| `AI_SCAN_DAILY_LIMIT`   | `20`                  | integer                | Auto scans per UTC day                                                                                                                     |
+| `AI_LOOP_COPILOT`       | **off**               | `true` enables         | Requests a Copilot review on loop PRs (Copilot's own automatic review skips bot-authored PRs on personal repos, so it has to be asked for) |
+
+Two of these are **on when unset** — `AI_LOOP_ENABLED` and `AI_SCAN_MODE` — so both spend
+Claude usage from the moment their workflows land. Set them to `false` / `off` before merging
+if you want to stage the rollout rather than disable it afterwards.
+
+`COPILOT_AGENT_FIREWALL_ENABLED` and `COPILOT_AGENT_FIREWALL_ALLOW_LIST_ADDITIONS` may also
+appear in the variable list. They belong to GitHub's Copilot coding agent, are read by GitHub
+rather than by anything in `.github/workflows/`, and are unrelated to the automation described
+here.
+
 ## AI-ready scaffolds
 
 New apps can start AI-ready too: accepting the AI-skills prompt in `npm create bestax@latest`

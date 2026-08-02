@@ -101,7 +101,10 @@ review on it (re-applying the label re-runs it; a `deep-review:`-prefixed PR com
 a triage+ user pre-steers its focus). AI-assisted PRs (bestaxbot author or the
 Claude Code attribution footer) also get an auto-applied `claude-assisted` provenance
 label. Kill switches: remove `ai-loop` (per PR) or set repo
-variable `AI_LOOP_ENABLED=false` (whole system). The `<!-- ai-loop-state … -->` PR comment
+variable `AI_LOOP_ENABLED=false` (whole system). Every repository variable that
+steers this automation is tabulated in the ai-development docs guide, including which
+ones are **on when unset** (`AI_LOOP_ENABLED`, `AI_SCAN_MODE`) — check there before
+assuming an unset variable means disabled. The `<!-- ai-loop-state … -->` PR comment
 is machine-managed — never reformat its first line. The loop refuses PRs that touch
 `.github/**` or the jest/commitlint/release/pnpm-workspace configs.
 Separately, `ai-triage` runs a one-shot sonnet triage session that comments with related
