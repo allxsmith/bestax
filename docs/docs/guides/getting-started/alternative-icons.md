@@ -20,9 +20,13 @@ Font Awesome is the default icon library — no `library` prop required.
 
 **Install:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add @fortawesome/fontawesome-free
 ```
+
+</PackageManagerTabs>
 
 **Import:**
 
@@ -66,9 +70,13 @@ Material Design Icons (MDI) is a comprehensive icon library that follows Google'
 
 **Install:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add @mdi/font
 ```
+
+</PackageManagerTabs>
 
 **Import:**
 
@@ -101,9 +109,13 @@ Ionicons is a modern icon library with 1,300+ icons designed specifically for we
 
 **Install:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add ionicons@^8.0.13
 ```
+
+</PackageManagerTabs>
 
 **Import:**
 
@@ -216,9 +228,13 @@ Google's official Material Icons library provides the core set of Material Desig
 
 **Install:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add material-icons
 ```
+
+</PackageManagerTabs>
 
 **Import:**
 
@@ -326,9 +342,13 @@ The newest icon library from Google, offering more comprehensive icon coverage a
 
 **Install:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add material-symbols
 ```
+
+</PackageManagerTabs>
 
 **Import:**
 

@@ -205,9 +205,13 @@ For teams that want a custom class prefix matching their brand or organization. 
 
 1. **Install dependencies:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm add bulma sass
    ```
+
+   </PackageManagerTabs>
 
 2. **Create a custom SCSS file:**
 

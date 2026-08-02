@@ -97,9 +97,13 @@ Hand-rolling modular SCSS is worthwhile only when you have a demonstrated CSS-si
 
 Install Sass as a dev dependency (Bulma is already installed as a transitive dependency):
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add -D sass
 ```
+
+</PackageManagerTabs>
 
 #### Required base styles
 

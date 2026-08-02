@@ -10,12 +10,16 @@ sidebar_position: 1
 
 The fastest way to get started. The scaffolder sets up a Vite + React project with bestax-bulma and CSS pre-configured:
 
+<PackageManagerTabs>
+
 ```bash
 pnpm create bestax@latest my-bestax-app
 cd my-bestax-app
 pnpm install
-pnpm dev
+pnpm run dev
 ```
+
+</PackageManagerTabs>
 
 :::info CSS is included automatically
 The scaffolder configures `bestax.css` for you — a single stylesheet that includes both Bulma and all bestax extras. No manual CSS setup needed.
@@ -94,9 +98,13 @@ export default App;
 
 ## Run Your App
 
+<PackageManagerTabs>
+
 ```bash
-pnpm dev
+pnpm run dev
 ```
+
+</PackageManagerTabs>
 
 Visit http://localhost:5173 to see your app running.
 

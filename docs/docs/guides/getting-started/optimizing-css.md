@@ -46,9 +46,13 @@ The `npm create bestax` scaffold's `--bulma` flag selects a flavor at project cr
 Most of the remaining weight is selectors your app never renders. An opt-in
 [PurgeCSS](https://purgecss.com/) step removes them at build time. In a Vite app:
 
+<PackageManagerTabs>
+
 ```bash
-npm install -D @fullhuman/postcss-purgecss
+pnpm add -D @fullhuman/postcss-purgecss
 ```
+
+</PackageManagerTabs>
 
 ```js title="postcss.config.js"
 import purgecss from '@fullhuman/postcss-purgecss';

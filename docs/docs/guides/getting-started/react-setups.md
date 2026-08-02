@@ -26,11 +26,15 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 1. **Create a new Vite React project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm create vite@latest my-bulma-vite-app -- --template react
    cd my-bulma-vite-app
    pnpm install
    ```
+
+   </PackageManagerTabs>
 
    :::info Template Argument Explained
    - `--template react`: Uses the official React template with JavaScript
@@ -44,9 +48,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 2. **Install bestax-bulma and dependencies:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
 3. **Update your main.jsx file:**
 
@@ -132,9 +140,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   pnpm dev
+   pnpm run dev
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Vite + React + bestax-bulma application will be available at `http://localhost:5173`
@@ -144,11 +156,15 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 1. **Create a new Vite React TypeScript project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm create vite@latest my-bulma-vite-ts-app -- --template react-ts
    cd my-bulma-vite-ts-app
    pnpm install
    ```
+
+   </PackageManagerTabs>
 
    :::info Template Argument Explained
    - `--template react-ts`: Uses the official React template with TypeScript
@@ -162,9 +178,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 2. **Install bestax-bulma and dependencies:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
    :::note
    The `react-ts` template already includes `@types/react` and `@types/react-dom` — no extra type packages needed.
@@ -254,9 +274,13 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   pnpm dev
+   pnpm run dev
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Vite + React + TypeScript + bestax-bulma application will be available at `http://localhost:5173`
@@ -272,10 +296,14 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 1. **Create a new Next.js project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm dlx create-next-app@latest my-bulma-next-app --js --eslint --no-tailwind --src-dir --app --import-alias "@/*" --turbopack
    cd my-bulma-next-app
    ```
+
+   </PackageManagerTabs>
 
    :::info Command Arguments Explained
    - `--js`: Use JavaScript (not TypeScript)
@@ -293,9 +321,13 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 2. **Install bestax-bulma and dependencies:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
 3. **Update your root layout:**
 
@@ -385,9 +417,13 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   pnpm dev
+   pnpm run dev
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Next.js + React + bestax-bulma application will be available at `http://localhost:3000`
@@ -397,10 +433,14 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 1. **Create a new Next.js TypeScript project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm dlx create-next-app@latest my-bulma-next-ts-app --ts --eslint --no-tailwind --src-dir --app --import-alias "@/*" --turbopack
    cd my-bulma-next-ts-app
    ```
+
+   </PackageManagerTabs>
 
    :::info Command Arguments Explained
    - `--ts`: Use TypeScript (not JavaScript)
@@ -418,9 +458,13 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 2. **Install bestax-bulma and dependencies:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
 3. **Update your root layout:**
 
@@ -515,9 +559,13 @@ Next.js is a popular React framework that provides server-side rendering, static
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   pnpm dev
+   pnpm run dev
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Next.js + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
@@ -537,16 +585,24 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 
 1. **Create a new CRA project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm dlx create-react-app my-bulma-cra-app
    cd my-bulma-cra-app
    ```
 
+   </PackageManagerTabs>
+
 2. **Install bestax-bulma and dependencies:**
+
+   <PackageManagerTabs>
 
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
 3. **Update your index.js:**
 
@@ -639,9 +695,13 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   npm start
+   pnpm run start
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Create React App + bestax-bulma application will be available at `http://localhost:3000`
@@ -651,16 +711,24 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 
 1. **Create a new CRA TypeScript project:**
 
+   <PackageManagerTabs>
+
    ```bash
    pnpm dlx create-react-app my-bulma-cra-ts-app --template typescript
    cd my-bulma-cra-ts-app
    ```
 
+   </PackageManagerTabs>
+
 2. **Install bestax-bulma and dependencies:**
+
+   <PackageManagerTabs>
 
    ```bash
    pnpm add @allxsmith/bestax-bulma @fortawesome/fontawesome-free
    ```
+
+   </PackageManagerTabs>
 
 3. **Update your index.tsx:**
 
@@ -755,9 +823,13 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
 
 5. **Run your application:**
 
+   <PackageManagerTabs>
+
    ```bash
-   npm start
+   pnpm run start
    ```
+
+   </PackageManagerTabs>
 
    :::tip Application Available
    Your Create React App + TypeScript + bestax-bulma application will be available at `http://localhost:3000`
@@ -819,9 +891,13 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 
 **Solution**: Ensure you have the latest TypeScript version and proper type declarations:
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add -D typescript @types/react @types/react-dom
 ```
+
+</PackageManagerTabs>
 
 ### Tree Shaking Issues
 
