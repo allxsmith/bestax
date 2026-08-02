@@ -127,12 +127,24 @@ The easy path is swapping your `bulma.css` import for `bestax.css`, a drop-in su
 import '@allxsmith/bestax-bulma/dist/bestax.css';
 ```
 
+Here's what the checkboxes look like once the CSS is loaded:
+
 ```tsx live
 <Checkboxes>
   <Checkbox defaultChecked>I agree to the terms</Checkbox>
   <Checkbox color="primary">Subscribe to newsletter</Checkbox>
   <Checkbox disabled>Disabled option</Checkbox>
 </Checkboxes>
+```
+
+And the radios:
+
+```tsx live
+<Radios name="answer">
+  <Radio defaultChecked>Yes</Radio>
+  <Radio>No</Radio>
+  <Radio disabled>Maybe</Radio>
+</Radios>
 ```
 
 `Checkboxes` and `Radios` also grew optional group state: pass `value` and `onChange` to the container and skip wiring each control. Existing JSX keeps working, since the new props are all optional.
