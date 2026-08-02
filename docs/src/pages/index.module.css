@@ -475,3 +475,23 @@
     font-size: 1.25rem;
   }
 }
+
+/*
+ * Visually hidden, still in the accessibility tree — for the copy confirmation,
+ * which has no visual equivalent a screen reader can reach (the icon swap and
+ * the title attribute are both silent).
+ *
+ * Not `display: none` or `visibility: hidden`: both remove the node from the
+ * accessibility tree, so a live region using them would never announce.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
