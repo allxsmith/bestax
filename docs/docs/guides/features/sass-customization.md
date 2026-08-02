@@ -31,10 +31,14 @@ Sass variables feed the generated Bulma CSS — including the values of Bulma's 
 
 To customize Bulma with Sass variables, you need:
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add sass
 pnpm add bulma
 ```
+
+</PackageManagerTabs>
 
 ## Build Configuration
 
@@ -42,9 +46,13 @@ pnpm add bulma
 
 Vite is the default toolchain for projects scaffolded by `pnpm create bestax@latest`, and handles Sass out of the box once `sass` is installed:
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add sass
 ```
+
+</PackageManagerTabs>
 
 **`src/styles/bulma-custom.scss`:**
 
@@ -79,9 +87,13 @@ Next.js has built-in Sass support:
 
 **Install Sass:**
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add sass
 ```
+
+</PackageManagerTabs>
 
 **Custom Sass file (styles/bulma-custom.scss):**
 

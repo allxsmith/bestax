@@ -138,9 +138,13 @@ For teams building custom Bulma CSS with their own prefixes:
 
 ### 1. Install Dependencies
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add bulma sass
 ```
+
+</PackageManagerTabs>
 
 ### 2. Create Custom Sass File
 

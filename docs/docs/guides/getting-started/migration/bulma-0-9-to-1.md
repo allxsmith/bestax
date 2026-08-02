@@ -47,7 +47,7 @@ Bulma v1 uses **Dart Sass** instead of the deprecated Node Sass:
 
 ```bash
 # Remove old dependency
-npm uninstall node-sass
+pnpm remove node-sass
 
 # Install modern Sass compiler
 pnpm add sass

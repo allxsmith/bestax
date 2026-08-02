@@ -10,10 +10,14 @@ For detailed installation options, framework-specific guides, or troubleshooting
 
 ## 1. Run the Installer
 
+<PackageManagerTabs>
+
 ```bash
 pnpm create bestax@latest my-bestax-app
 cd my-bestax-app
 ```
+
+</PackageManagerTabs>
 
 The installer walks you through a few prompts and sets up everything for you:
 
@@ -60,9 +64,13 @@ export default App;
 
 ## 3. Run Your App
 
+<PackageManagerTabs>
+
 ```bash
-pnpm dev
+pnpm run dev
 ```
+
+</PackageManagerTabs>
 
 **That's it!** Visit http://localhost:5173 to see your app running.
 

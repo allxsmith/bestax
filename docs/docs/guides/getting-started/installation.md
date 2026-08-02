@@ -56,23 +56,13 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 `pnpm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
 :::
 
-### Using npm (recommended)
+<PackageManagerTabs>
 
 ```bash
 pnpm add @allxsmith/bestax-bulma
 ```
 
-### Using yarn
-
-```bash
-yarn add @allxsmith/bestax-bulma
-```
-
-### Using pnpm
-
-```bash
-pnpm add @allxsmith/bestax-bulma
-```
+</PackageManagerTabs>
 
 ### Version Management
 
@@ -142,9 +132,13 @@ Or if you only need Bulma itself:
 
 1. Install Sass as a dev dependency (Bulma is already installed):
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add -D sass
 ```
+
+</PackageManagerTabs>
 
 2. Create a custom SCSS file:
 
@@ -177,9 +171,13 @@ bestax-bulma components support multiple icon libraries. Icons are optional but 
 
 ### Font Awesome (Most Popular)
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add @fortawesome/fontawesome-free
 ```
+
+</PackageManagerTabs>
 
 Import in your main file:
 
@@ -191,9 +189,13 @@ Usage: `<Icon name="user" />` or `<Icon name="github" variant="brands" />`
 
 ### Material Design Icons
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add @mdi/font
 ```
+
+</PackageManagerTabs>
 
 ```js
 import '@mdi/font/css/materialdesignicons.min.css';
@@ -203,9 +205,13 @@ Usage: `<Icon name="account" library="mdi" />`
 
 ### Material Icons (Google)
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add material-icons
 ```
+
+</PackageManagerTabs>
 
 ```js
 import 'material-icons/iconfont/material-icons.css';
@@ -215,9 +221,13 @@ Usage: `<Icon name="person" library="material-icons" />`
 
 ### Ionicons
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add ionicons
 ```
+
+</PackageManagerTabs>
 
 ```js
 import 'ionicons/dist/css/ionicons.min.css';
@@ -273,9 +283,13 @@ bestax-bulma includes TypeScript definitions. For the best experience:
 
 ### Install Type Definitions
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add -D typescript @types/react @types/react-dom
 ```
+
+</PackageManagerTabs>
 
 ### TypeScript Configuration
 
@@ -325,15 +339,23 @@ To analyze your bundle:
 
 1. Install bundle analyzer:
 
+<PackageManagerTabs>
+
 ```bash
 pnpm add -D webpack-bundle-analyzer
 ```
 
+</PackageManagerTabs>
+
 2. Check what's included:
+
+<PackageManagerTabs>
 
 ```bash
 pnpm dlx webpack-bundle-analyzer stats.json
 ```
+
+</PackageManagerTabs>
 
 ### Expected Sizes
 
