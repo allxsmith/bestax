@@ -362,9 +362,24 @@ jobs:
               printf '_Drafted by github-actions[bot]; CI did not run this test._\n'
             } > "$BODY"
           fi
-          # Idempotent on re-runs: edit the bot's last comment if possible, else post.
-          gh issue comment "$NUMBER" --repo "$REPO" --body-file "$BODY" --edit-last 2>/dev/null \
-            || gh issue comment "$NUMBER" --repo "$REPO" --body-file "$BODY"
+          # Idempotent on re-runs, scoped to OUR OWN comment by marker.
+          #
+          # Not `--edit-last`: that edits whatever the token's identity posted
+          # most recently, which is not necessarily a repro draft. github-actions[bot]
+          # also authored the dedupe comments that predate the move to bestaxbot,
+          # and auto-close-duplicates.mjs still reads those — it matches any
+          # automation author, not one login. Overwriting one would silently
+          # destroy an auto-close candidate and its `Duplicate of #N`.
+          EXISTING=$(gh api --paginate "repos/$REPO/issues/$NUMBER/comments?per_page=100" \
+            --jq '[.[] | select(.user.login == "github-actions[bot]"
+                                and (.body | startswith("<!-- ai-repro:draft -->")))]
+                  | last | .id // empty')
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$EXISTING" \
+              -F body=@"$BODY" >/dev/null
+          else
+            gh issue comment "$NUMBER" --repo "$REPO" --body-file "$BODY"
+          fi
 
   # Always remove the label so the button never wedges (even on gate-decline or a
   # failed author/publish), and surface a neutral failure notice. GITHUB_TOKEN only

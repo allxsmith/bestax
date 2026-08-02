@@ -26,10 +26,24 @@ name: AI Security Scan
 #     (CodeRabbit, Copilot) run on their own triggers and never see this label.
 #
 # SECURITY: the scan session holds NO PAT and NO write tools — only read-only
-# `gh view`/`gh diff` + a read GITHUB_TOKEN — so an injected session has no channel
-# to post or exfiltrate, and harden-runner blocks egress. Its reasoning IS the
+# `gh view`/`gh diff` — and harden-runner blocks egress. Its reasoning IS the
 # detection logic, so `show_full_output` is deliberately OFF and only a coarse
 # category (never free-text) is surfaced, to avoid an evasion oracle.
+#
+# Be precise about where "read-only" comes from: the job's GITHUB_TOKEN is
+# WRITE-scoped (issues/pull-requests), because the gate charges the budget marker
+# and the labeler applies needs-security-review. The session cannot use it only
+# because the Bash allowlist admits nothing that writes. That is one control, not
+# two — widening `allowedTools` hands the session write access silently, with no
+# permission change to notice in review. Splitting the labeler into its own job so
+# this one can drop to `contents: read` is tracked separately; until then, treat
+# the allowlist as security-critical rather than cosmetic.
+#
+# The verdict fails CLOSED (a crashed or unparsable session flags), but the GATE
+# fails OPEN: if the budget read/charge on the tracking issue errors, or the daily
+# limit is spent, the item is simply not scanned — no scan and no flag. Deliberate,
+# so a counter problem cannot wedge every incoming issue, but it means an unscanned
+# item is indistinguishable from a clean one downstream.
 #
 # SEPARATE from ai-triage.yml ON PURPOSE: a per-item concurrency group here means a
 # burst of opened items cannot evict a pending scan (workflow-level concurrency in a
