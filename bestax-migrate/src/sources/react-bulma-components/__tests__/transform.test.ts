@@ -87,6 +87,41 @@ describe('react-bulma-components transform fixtures', () => {
     expect(output).toContain("assert { type: 'json' }");
   });
 
+  it('parses legacy class, decorator and proposal syntax', () => {
+    const source = [
+      "import { Button } from 'react-bulma-components';",
+      '@observer',
+      'export class App extends React.Component {',
+      '  state = { count: 1_000 };',
+      '  #private = null;',
+      '  static defaultProps = {};',
+      '  render() {',
+      '    return <Button color="primary">{this.props.a?.b ?? 0}</Button>;',
+      '  }',
+      '}',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'legacy.tsx', source);
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    expect(output).toContain('@observer');
+    expect(output).toContain('state = { count: 1_000 }');
+  });
+
+  it('parses the legacy React.createClass form', () => {
+    const source = [
+      "import { Button } from 'react-bulma-components';",
+      'module.exports = React.createClass({',
+      '  render: function () {',
+      '    return <Button color="primary" loading>Go</Button>;',
+      '  },',
+      '});',
+      '',
+    ].join('\n');
+    const { output } = runTransform(transform, 'create-class.tsx', source);
+    expect(output).toContain('from "@allxsmith/bestax-bulma"');
+    expect(output).toContain('isLoading');
+  });
+
   it('collects TODO entries with rules and line numbers', () => {
     const source = [
       "import { Tile } from 'react-bulma-components';",
