@@ -1,6 +1,6 @@
 ---
 slug: forms-without-a-form-library
-title: Building Forms Without a Form Library
+title: Form Library Agnostic
 description: 'Forms in bestax-bulma are plain React. Field and Control composition, auto-wrapping inputs, escape hatches, and validation your way, with useState or the validation library of your choice.'
 authors: [asmith]
 tags: [forms, react, bulma]
@@ -10,7 +10,7 @@ image: /img/forms-without-a-form-library.png
 cover_image: /img/forms-without-a-form-library.png
 ---
 
-![Building Forms Without a Form Library, drawn as a pixel art RPG character creation screen: a name field with a blinking cursor, a class picker with the cursor on Mage, stat sliders for STR, DEX, and INT, and a green status row reading form libs loaded: 0, ready.](/img/forms-without-a-form-library.svg)
+![Form Library Agnostic, drawn as a pixel art RPG character creation screen: a name field with a blinking cursor, a class picker with the cursor on Mage, stat sliders for STR, DEX, and INT, and a green status row reading form libs loaded: 0, ready.](/img/forms-without-a-form-library.svg)
 
 A form in bestax-bulma is plain React: state goes in, props come out, and nothing new sits in between. There's no bundled form library and none is coming; the library's job ends at rendering Bulma correctly, so your form state stays yours. By the end of this post you'll have a validated signup form built with nothing but `useState`, you'll see where the validation library of your choice plugs in, and you'll know where every escape hatch is.
 
