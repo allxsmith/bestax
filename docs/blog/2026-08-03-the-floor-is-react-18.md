@@ -41,14 +41,14 @@ No components changed, no props were renamed, no CSS moved. The rest of the rele
 
 ## The React 18 + 19 Matrix
 
-Narrowing the range was half the move. The other half was making what's left verifiable: since that same day, every CI run builds, type-checks, and tests the library twice, once against React 18 and once against React 19, with real peer installs (no `--legacy-peer-deps` anywhere) and fail-fast off so a break on either major reports on its own. The peer range and the test matrix now say the same thing. `^18.0.0 || ^19.0.0` isn't a hope, it's what CI verified on the latest commit.
+Narrowing the range was half the move. The other half was making what's left verifiable: since that same day, every CI run includes a compatibility matrix that builds, type-checks, and tests the library once against React 18 and once against React 19, with real peer installs (no `--legacy-peer-deps` anywhere) and fail-fast off so a break on either major reports on its own. The peer range and the test matrix now say the same thing. `^18.0.0 || ^19.0.0` isn't a hope, it's what CI verified on the latest commit.
 
 ## Upgrading
 
-- **On React 18 or 19**: bump to 4.x (or straight to the current 5.x) and you're done. Same components, same props, same CSS.
+- **On React 18 or 19**: skip 4.x and go straight to the current 5.x; that's the path forward. The React floor is identical, and the only breaking change past 4.x is the removal of one prefixed stylesheet variant you probably never imported (the [4.x to 5.x guide](/docs/guides/getting-started/migration/bulma-ui-4-to-5) has the two-step swap if you did).
 - **On React 16 or 17**: stay on `@allxsmith/bestax-bulma@^3` until your app can move to React 18, and mind that the v3 date and time pickers already assume a modern React.
 
-The [migration guide](/docs/guides/getting-started/migration/bulma-ui-3-to-4) covers both paths.
+The [3.x to 4.x migration guide](/docs/guides/getting-started/migration/bulma-ui-3-to-4) covers both paths.
 
 ## Sometimes You Gotta Move On
 
