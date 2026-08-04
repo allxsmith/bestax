@@ -1,7 +1,7 @@
 ---
 slug: forms-without-a-form-library
 title: Building Forms Without a Form Library
-description: 'Forms in bestax-bulma are plain React. Field and Control composition, auto-wrapping inputs, escape hatches, and validation you own, with no form library required and none locked in.'
+description: 'Forms in bestax-bulma are plain React. Field and Control composition, auto-wrapping inputs, escape hatches, and validation your way, with useState or the validation library of your choice.'
 authors: [asmith]
 tags: [forms, react, bulma]
 canonical_url: https://bestax.io/blog/forms-without-a-form-library
@@ -12,7 +12,7 @@ cover_image: /img/forms-without-a-form-library.png
 
 ![Building Forms Without a Form Library, drawn as a pixel art RPG character creation screen: a name field with a blinking cursor, a class picker with the cursor on Mage, stat sliders for STR, DEX, and INT, and a green status row reading form libs loaded: 0, ready.](/img/forms-without-a-form-library.svg)
 
-A form in bestax-bulma is plain React: state goes in, props come out, and nothing new sits in between. There's no bundled form library and none is coming; the library's job ends at rendering Bulma correctly, so your form state stays yours. By the end of this post you'll have a validated signup form built with nothing but `useState`, and you'll know where every escape hatch is.
+A form in bestax-bulma is plain React: state goes in, props come out, and nothing new sits in between. There's no bundled form library and none is coming; the library's job ends at rendering Bulma correctly, so your form state stays yours. By the end of this post you'll have a validated signup form built with nothing but `useState`, you'll see where the validation library of your choice plugs in, and you'll know where every escape hatch is.
 
 <!-- truncate -->
 
@@ -149,7 +149,7 @@ function SignupDemo() {
       </Button>
       {sent && (
         <Notification color="success" isLight mt="4">
-          Signed up. Your state, your rules, no library.
+          Signed up. Your state, your rules, no library required.
         </Notification>
       )}
     </form>
@@ -159,9 +159,39 @@ function SignupDemo() {
 
 Type something that isn't an email and tab away: the border goes `danger` and the message appears, because the component reflects exactly the state you computed. One gotcha worth knowing: validation state belongs on the input, not the `Field`. `Field` has no `message` prop, and although its types accept a `color`, it renders no class for it, so setting it looks right and does nothing.
 
-And if you'd rather keep using react-hook-form, or validate with zod or yup? Bring them. Every input here is a controlled component with a `value`, an `onChange`, and a string-friendly `message`, which is exactly the surface those libraries produce. Wire your library's field state and error output into the same three props and everything above still applies. bestax-bulma doesn't prescribe a state layer; it just doesn't make you carry one.
-
 The demo's validation is one regex and one ternary. A form used to be an input and an if statement, and it turns out it still can be.
+
+And if you'd rather keep using react-hook-form, or validate with zod or yup? Bring them. The pattern above isn't a lock-in, it's a socket: every input is a controlled component with a `value`, an `onChange`, and a string-friendly `message`, which is exactly the surface a validation library produces. Here's the same field with its error coming from a zod schema instead of a regex:
+
+```jsx
+const schema = z.object({
+  email: z.string().email('Please enter a valid email address.'),
+});
+
+function ZodSignup() {
+  const [email, setEmail] = useState('');
+  const [touched, setTouched] = useState(false);
+
+  const result = schema.safeParse({ email });
+  const error =
+    touched && !result.success ? result.error.issues[0].message : undefined;
+
+  return (
+    <Input
+      label="Email"
+      type="email"
+      value={email}
+      onChange={e => setEmail(e.target.value)}
+      onBlur={() => setTouched(true)}
+      color={error ? 'danger' : undefined}
+      message={error}
+      messageColor={error ? 'danger' : undefined}
+    />
+  );
+}
+```
+
+react-hook-form works the same way: hand its field state to `value` and `onChange`, or spread `register` onto the input, and pass `formState.errors.email?.message` to `message`. Same three props, whatever validation library you choose. bestax-bulma doesn't prescribe one, and it doesn't make you carry one either.
 
 ## The Full Input Set
 
