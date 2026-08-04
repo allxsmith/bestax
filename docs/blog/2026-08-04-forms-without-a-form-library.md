@@ -95,9 +95,9 @@ Sometimes you want zero magic. Six components ship as raw versions with a `Base`
 <Input label="Email" message="We only email for receipts." />
 
 // Composed: you own every element
-<Field label="Email">
+<Field label="Email" labelProps={{ htmlFor: 'composed-email' }}>
   <Control>
-    <InputBase type="email" />
+    <InputBase id="composed-email" type="email" />
   </Control>
   <p className="help">We only email for receipts.</p>
 </Field>
@@ -161,7 +161,7 @@ Type something that isn't an email and tab away: the border goes `danger` and th
 
 The demo's validation is one regex and one ternary. A form used to be an input and an if statement, and it turns out it still can be.
 
-And if you'd rather keep using react-hook-form, or validate with zod or yup? Bring them. The pattern above isn't a lock-in, it's a socket: every input is a controlled component with a `value`, an `onChange`, and a string-friendly `message`, which is exactly the surface a validation library produces. Here's the same field with its error coming from a zod schema instead of a regex:
+And if you'd rather keep using react-hook-form, or validate with zod or yup? Bring them. The pattern above isn't a lock-in, it's a socket: the text-style inputs are controlled components with a `value`, an `onChange`, and a string-friendly `message`, which is exactly the surface a validation library produces. Prop shapes vary at the edges (the boolean controls take `checked`, and `Autocomplete` speaks `value`, `onInput`, and `onSelect`), so wire into each component's documented props and everything here still applies. Here's the same field with its error coming from a zod schema instead of a regex:
 
 ```jsx
 const schema = z.object({
