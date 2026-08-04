@@ -1,3 +1,29 @@
+## [4.0.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.0.0...create-bestax@4.0.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **create-bestax:** validate at submit in the bestax-form signup example ([0b9518f](https://github.com/allxsmith/bestax/commit/0b9518f595932182cabce5160892730079aed51c))
+* **create-bestax:** wire labeled controls in the skill showcase story ([af49a16](https://github.com/allxsmith/bestax/commit/af49a160961f09047fad1b152115ee5623d3a0ae))
+* **docs:** announce the hero copy, and stop remounting the icons ([98e2cb0](https://github.com/allxsmith/bestax/commit/98e2cb0236b68d0af54db7e8429f309d3b4cb325)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** correct the frozen-install translation and reject leaked fences ([1883de3](https://github.com/allxsmith/bestax/commit/1883de3ddea548e13e022a8f40787cf9624de243))
+* **docs:** drop dead nomodule ionicons fallback ([82be3e4](https://github.com/allxsmith/bestax/commit/82be3e4a1cefb5c72c79d5a30a06d013bb18cdd1))
+* **docs:** harden PackageManagerTabs and document how to author it ([5b0d3e6](https://github.com/allxsmith/bestax/commit/5b0d3e68389998b35a436ab6e90cc46e68949a37)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** harden the hero copy button and share the tab storage key ([9e16cd7](https://github.com/allxsmith/bestax/commit/9e16cd7e9bdd97f7ac6707a74debe2fbc6295d4c))
+* **docs:** make the hero package-manager switcher a real radiogroup ([aa14ff2](https://github.com/allxsmith/bestax/commit/aa14ff25efba2312776a430ee88b5e34ecaf52db)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+
+
+### Features
+
+* **docs:** add package-manager switches to the homepage hero ([374caf8](https://github.com/allxsmith/bestax/commit/374caf8a147c1a132655522661f1899a83ce3856))
+* **docs:** add PackageManagerTabs and register it globally ([23c9989](https://github.com/allxsmith/bestax/commit/23c998921c6ca4887c5b387951009b74a26f62eb))
+
+
+### Performance Improvements
+
+* **docs:** defer live previews until they scroll into view ([d6bf87b](https://github.com/allxsmith/bestax/commit/d6bf87b0311d51e1e125ef1a04f92acd4abc989d))
+* **docs:** share one parsed stylesheet set across every live preview ([feb993a](https://github.com/allxsmith/bestax/commit/feb993acb2f90ad523cf49d2562bd8a06fe540dc))
+
 # [4.0.0](https://github.com/allxsmith/bestax/compare/create-bestax@3.8.0...create-bestax@4.0.0) (2026-08-01)
 
 
