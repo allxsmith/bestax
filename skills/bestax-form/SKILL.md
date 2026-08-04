@@ -144,17 +144,16 @@ function SignupForm() {
   const [email, setEmail] = useState('');
   const [touched, setTouched] = useState(false);
 
+  const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
   const error =
-    touched && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)
-      ? 'Please enter a valid email address.'
-      : undefined;
+    touched && !valid ? 'Please enter a valid email address.' : undefined;
 
   return (
     <form
       onSubmit={e => {
         e.preventDefault();
         setTouched(true);
-        if (!error && email) {
+        if (valid) {
           // submit…
         }
       }}
@@ -169,6 +168,8 @@ function SignupForm() {
         message={error}
         messageColor={error ? 'danger' : undefined}
         iconLeftName="envelope"
+        id="signup-email"
+        labelProps={{ htmlFor: 'signup-email' }}
       />
       <Button color="primary" type="submit" mt="3">
         Sign up
