@@ -40,6 +40,7 @@
     "@docusaurus/types": "^3.10.2",
     "copy-webpack-plugin": "^11.0.0",
     "docusaurus-plugin-llms": "^0.5.1",
+    "gray-matter": "^4.0.3",
     "raw-loader": "^4.0.2"
   },
   "browserslist": {

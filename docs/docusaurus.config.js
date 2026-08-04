@@ -91,6 +91,10 @@ const config = {
     // Copies the ionicons v8 Stencil bundle to /ionicons/ so the live examples
     // load their web components from this origin instead of unpkg.com.
     './plugins/local-ionicons.js',
+    // Emits build/.devto-publish/ copies of posts flagged publish_to_devto,
+    // with images and internal links rewritten to production URLs. Publishing
+    // to dev.to itself stays a manual act.
+    './plugins/devto-preprocessor.js',
     [
       'docusaurus-plugin-llms',
       {

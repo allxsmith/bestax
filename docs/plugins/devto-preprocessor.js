@@ -139,34 +139,19 @@ async function processBlogPost(
     blogUrlPath = `blog/${year}/${month}/${day}/${slug}`;
   }
 
-  // Process the markdown body
-  let processedBody = body;
-
-  // Convert relative image paths to production URLs
-  processedBody = processedBody.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)/g,
-    (match, alt, src) => {
-      // Handle different types of image references
-      if (src.startsWith('http')) {
-        // Already absolute URL
-        return match;
-      } else if (src.startsWith('./')) {
-        // Relative to blog post
-        const imageName = path.basename(src);
-        const hashedUrl = findHashedUrl(
-          imageName,
-          imageMap,
-          blogUrlPath,
-          siteUrl
-        );
-        return `![${alt}](${hashedUrl})`;
-      } else if (src.startsWith('/')) {
-        // Relative to site root
-        if (src.startsWith('/img/')) {
-          // Static images (not hashed)
-          return `![${alt}](${siteUrl}${src})`;
-        } else {
-          // Try to find hashed version
+  // Process the markdown body. Both rewrites below run per segment, skipping
+  // backtick-fenced code blocks so a ](/docs/...) inside a fence stays content.
+  const rewriteSegment = segment => {
+    // Convert relative image paths to production URLs
+    segment = segment.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      (match, alt, src) => {
+        // Handle different types of image references
+        if (src.startsWith('http')) {
+          // Already absolute URL
+          return match;
+        } else if (src.startsWith('./')) {
+          // Relative to blog post
           const imageName = path.basename(src);
           const hashedUrl = findHashedUrl(
             imageName,
@@ -175,11 +160,51 @@ async function processBlogPost(
             siteUrl
           );
           return `![${alt}](${hashedUrl})`;
+        } else if (src.startsWith('/')) {
+          // Relative to site root
+          if (src.startsWith('/img/')) {
+            // Static images (not hashed)
+            return `![${alt}](${siteUrl}${src})`;
+          } else {
+            // Try to find hashed version
+            const imageName = path.basename(src);
+            const hashedUrl = findHashedUrl(
+              imageName,
+              imageMap,
+              blogUrlPath,
+              siteUrl
+            );
+            return `![${alt}](${hashedUrl})`;
+          }
         }
+        return match;
       }
-      return match;
-    }
-  );
+    );
+
+    // Convert root-relative internal links to production URLs (dev.to would
+    // otherwise resolve them against dev.to itself; images are handled above).
+    // Matches /docs and /blog with or without a trailing path, and preserves
+    // an optional markdown link title.
+    segment = segment.replace(
+      /\]\((\/(?:docs|blog)(?:\/[^)\s]*)?)(\s+[^)]*)?\)/g,
+      (match, href, title = '') => `](${siteUrl}${href}${title})`
+    );
+
+    // Same conversion for reference-style link definitions ("[ref]: /docs/x")
+    segment = segment.replace(
+      /^(\[[^\]]+\]:\s*)(\/(?:docs|blog)(?:\/\S*)?)/gm,
+      (match, prefix, href) => `${prefix}${siteUrl}${href}`
+    );
+
+    return segment;
+  };
+
+  const processedBody = body
+    .split(/(```[\s\S]*?```)/)
+    .map(segment =>
+      segment.startsWith('```') ? segment : rewriteSegment(segment)
+    )
+    .join('');
 
   // Process cover_image in frontmatter
   if (devtoFrontmatter.cover_image) {
