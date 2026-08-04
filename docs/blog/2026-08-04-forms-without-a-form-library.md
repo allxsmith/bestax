@@ -164,6 +164,8 @@ The demo's validation is one regex and one ternary. A form used to be an input a
 And if you'd rather keep using react-hook-form, or validate with zod or yup? Bring them. The pattern above isn't a lock-in, it's a socket: the text-style inputs are controlled components with a `value`, an `onChange`, and a string-friendly `message`, which is exactly the surface a validation library produces. Prop shapes vary at the edges (the boolean controls take `checked`, and `Autocomplete` speaks `value`, `onInput`, and `onSelect`), so wire into each component's documented props and everything here still applies. Here's the same field with its error coming from a zod schema instead of a regex:
 
 ```jsx
+import { z } from 'zod';
+
 const schema = z.object({
   email: z.string().email('Please enter a valid email address.'),
 });
