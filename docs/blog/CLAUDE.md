@@ -49,18 +49,7 @@ version bump) and the intro of the first State of React edition: candid, plain, 
 - **Frontmatter:** `slug`, `title` (quote it when it contains a colon), `authors: [asmith]`
   (the only entry in `authors.yml`), and inline `tags: [...]`. `onInlineTags: 'ignore'` means a
   new tag needs no `tags.yml` entry; add one only for a custom label/permalink/description.
-  dev.to syndication is opt-in: `publish_to_devto: true` plus a `cover_image`
-  (`plugins/devto-preprocessor.js` skips posts without the flag). The preprocessor writes
-  `build/.devto-publish/` copies with markdown images **and** root-relative `/docs/`+`/blog/`
-  links rewritten to `https://bestax.io` URLs — so keep internal links root-relative even in
-  syndicated posts. It rewrites `![]()` syntax only: a syndicated post's visible cover must be
-  a markdown image, not a JSX `<img>` (which would reach dev.to unrewritten and broken).
-- **Cover images** (any post, not just State of React): assets at
-  `docs/static/img/<slug>.{svg,png}` — a hand-authored 1200×630 SVG rasterized to PNG (the
-  State of React runbook's "Cover image" section has the Playwright recipe). Frontmatter
-  `image:` and `cover_image:` point at the **PNG** (rooted `/img/...` path); the visible
-  banner at the top of the body renders the **SVG**. The Floor Is React 18 (2026-08-03) is
-  the reference example.
+  dev.to syndication and cover images are opt-in per post — see the two sections below.
 - **The fold:** `<!-- truncate -->` goes after a 1–3 sentence hook (the config warns when it's
   missing). A leading `:::info` admonition sits above the fold when the post needs one.
 - **Live examples:** ` ```tsx live ` fences. Every library export plus `React`, `useState`, and
@@ -71,6 +60,33 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   build-validates every one.
 - **Verify:** `pnpm format`, then `pnpm exec turbo run build --filter=@allxsmith/bestax-docs`,
   then `pnpm format:check`. Commits and PR titles use the non-releasing `docs` type.
+
+## Syndication (dev.to)
+
+Opt-in per post: `publish_to_devto: true` plus a `cover_image` in the frontmatter
+(`plugins/devto-preprocessor.js` skips posts without the flag). Publishing to dev.to itself
+stays a manual act — the build only generates the files.
+
+- Each flagged post gets a copy in `build/.devto-publish/` with production URLs: markdown
+  images and root-relative `/docs/` + `/blog/` links (reference-style definitions included)
+  are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.
+- Keep internal links root-relative in the source — the rewrite handles dev.to, and
+  `onBrokenLinks: 'throw'` keeps build-validating them.
+- The rewrites cover markdown syntax only, so a syndicated post's visible cover must be a
+  markdown image (`![…](/img/…)`), not a JSX `<img>` (which would reach dev.to unrewritten
+  and broken).
+
+## Cover images (any post)
+
+Any post can ship a cover, not just State of React editions; _The Floor Is React 18_
+(2026-08-03) is the reference example.
+
+- **Assets:** `docs/static/img/<slug>.svg` (hand-authored, 1200×630) plus a PNG raster at
+  the same stem — the State of React runbook's "Cover image" section below has the
+  Playwright recipe.
+- **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
+  path); `og:image` and dev.to need a raster.
+- **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
 
 The rest of this file is the **runbook for the recurring component-comparison series** so each
 edition is turnkey.
