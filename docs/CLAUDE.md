@@ -110,8 +110,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 - Markdown is prettier-formatted (`pnpm format:check` covers `md`/`mdx`).
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
-  execute in the browser, so declare `/* global document, getComputedStyle */` the way
-  `rasterize-cover.mjs` and bulma-ui's `capture-stories.mjs` do — and when a script already
+  execute in the browser, so declare the browser globals each callback actually uses
+  (`/* global document */` in bulma-ui's `capture-stories.mjs`;
+  `/* global document, getComputedStyle */` in `rasterize-cover.mjs`) — and when a script already
   has the page open, validate through the parsed DOM and computed styles, not regexes over
   the source (quoting, `data-*` attributes, and transparent paint all fool regexes; two
   review rounds proved it).
