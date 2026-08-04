@@ -90,8 +90,8 @@ Any post can ship a cover, not just State of React editions; _The Floor Is React
 (2026-08-03) is the reference example.
 
 - **Assets:** `docs/static/img/<slug>.svg` (hand-authored, 1200×630, with a full-bleed
-  background rect and explicit `width`/`height` attributes, or the capture letterboxes) plus
-  a PNG raster at the same stem. Generate the PNG with
+  background rect and explicit `width`/`height` attributes; the script refuses to rasterize
+  without them) plus a PNG raster at the same stem. Generate the PNG with
   `pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/<slug>.svg`
   (`scripts/rasterize-cover.mjs` screenshots the SVG in headless Chromium at exactly
   1200×630 and writes the sibling `.png`). Missing Chromium? Once:
