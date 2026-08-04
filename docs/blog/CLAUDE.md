@@ -20,6 +20,13 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   accidental major bump. Never open with "We're excited to announce" (the pre-guide posts do;
   don't copy them). No superlatives, no hype adjectives. If a thing shipped late, say it
   shipped late.
+- **Sell what the reader keeps, never the absence.** When the angle is something the library
+  deliberately omits (no form library, no date library), state the stance once, factually,
+  with the reasons, then let demos carry the argument: lead with what the reader keeps, name
+  competing libraries neutrally, and include an explicit bring-your-own path. Titles too:
+  "Form Library Agnostic" shipped over "Building Forms Without a Form Library" because
+  absence-titles read as missing features (#471). The v3 post's "no date library in your
+  bundle" paragraph is the model.
 - **Work all three appeals.** A post should persuade on ethos, pathos, and logos together.
   _Ethos_: write from first-hand maintainer experience, link your sources, and own the
   mistakes (the candor above is the credibility play). _Pathos_: name the pain a change
