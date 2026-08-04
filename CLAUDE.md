@@ -104,7 +104,14 @@ green and every AI review thread is resolved.
   an auto-applied `claude-assisted` provenance label.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   PR to run the Claude deep review on it (re-applying the label re-runs it; a
-  `deep-review:`-prefixed PR comment from a triage+ user pre-steers its focus).
+  `deep-review:`-prefixed PR comment from a triage+ user pre-steers its focus). Its output
+  lands as a PR review from `claude` marked `<!-- claude-deep-review -->`, tied to the head
+  sha it started from — after later pushes, look for that review, not the current head's
+  checks.
+- **Reviewer mechanics:** CodeRabbit reviews incrementally and rate-limits on OSS — after a
+  "review limit reached" skip nothing retries on its own; push a commit or have a triage+
+  user comment `@coderabbitai review` once the window resets. Copilot also auto-reviews PRs
+  and re-reviews on push.
 - **State comment:** the `<!-- ai-loop-state … -->` PR comment is machine-managed — never
   reformat its first line.
 - **Refusals:** the loop refuses PRs that touch `.github/**` or the
