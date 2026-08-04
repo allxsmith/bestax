@@ -88,6 +88,8 @@ export const Signup: Story = {
             message={show('name')}
             messageColor="danger"
             iconLeftName="user"
+            id="signup-name"
+            labelProps={{ htmlFor: 'signup-name' }}
           />
           <Input
             label="Email"
@@ -98,6 +100,8 @@ export const Signup: Story = {
             message={show('email')}
             messageColor="danger"
             iconLeftName="envelope"
+            id="signup-email"
+            labelProps={{ htmlFor: 'signup-email' }}
           />
           <Select
             label="Country"
@@ -106,6 +110,8 @@ export const Signup: Story = {
             color={show('country') ? 'danger' : undefined}
             message={show('country')}
             messageColor="danger"
+            id="signup-country"
+            labelProps={{ htmlFor: 'signup-country' }}
           >
             <option value="">Select…</option>
             <option value="us">United States</option>
