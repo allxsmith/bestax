@@ -20,6 +20,7 @@
  * default cache; if Chromium is missing, install it once:
  *   pnpm --filter @allxsmith/bestax-docs exec playwright install chromium
  */
+/* global document, getComputedStyle -- page.evaluate() callbacks execute in the browser */
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
