@@ -61,12 +61,16 @@ version bump) and the intro of the first State of React edition: candid, plain, 
 - **Verify:** `pnpm format`, then `pnpm exec turbo run build --filter=@allxsmith/bestax-docs`,
   then `pnpm format:check`. Commits and PR titles use the non-releasing `docs` type.
 
-## Syndication (dev.to)
+## Syndication (dev.to and Medium)
 
 Opt-in per post: `publish_to_devto: true` plus a `cover_image` in the frontmatter
 (`plugins/devto-preprocessor.js` skips posts without the flag). Publishing to dev.to itself
 stays a manual act — the build only generates the files.
 
+- **A syndicated post must ship a hero/cover image.** Any post with `publish_to_devto: true`
+  (or headed to Medium) follows the "Cover images" section below in full: SVG + PNG assets,
+  `image:`/`cover_image:` frontmatter, and the visible markdown banner at the top of the
+  body. A coverless post renders bare on both platforms.
 - Each flagged post gets a copy in `build/.devto-publish/` with production URLs: markdown
   images and root-relative `/docs/` + `/blog/` links (reference-style definitions included)
   are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.
@@ -76,14 +80,22 @@ stays a manual act — the build only generates the files.
   markdown image (`![…](/img/…)`), not a JSX `<img>` (which would reach dev.to unrewritten
   and broken).
 
+Medium is manual end to end: there is no Medium plugin. Publish on bestax.io first, then use
+Medium's import-a-story flow on the live `https://bestax.io/blog/<slug>` URL so Medium records
+the canonical source; the cover PNG doubles as the story's feature image.
+
 ## Cover images (any post)
 
 Any post can ship a cover, not just State of React editions; _The Floor Is React 18_
 (2026-08-03) is the reference example.
 
-- **Assets:** `docs/static/img/<slug>.svg` (hand-authored, 1200×630) plus a PNG raster at
-  the same stem — the State of React runbook's "Cover image" section below has the
-  Playwright recipe.
+- **Assets:** `docs/static/img/<slug>.svg` (hand-authored, 1200×630, with a full-bleed
+  background rect and explicit `width`/`height` attributes, or the capture letterboxes) plus
+  a PNG raster at the same stem. Generate the PNG with
+  `pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/<slug>.svg`
+  (`scripts/rasterize-cover.mjs` screenshots the SVG in headless Chromium at exactly
+  1200×630 and writes the sibling `.png`). Missing Chromium? Once:
+  `pnpm --filter @allxsmith/bestax-docs exec playwright install chromium`.
 - **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
   path); `og:image` and dev.to need a raster.
 - **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
@@ -148,9 +160,8 @@ Each edition ships a synthwave/EDM cover (an homage to the "A State of Trance" r
 - **Source SVG:** `docs/static/img/state-of-react/{YYYY-MM}.svg` — for a new edition, copy the
   previous month's and update the month text and the `EP.` number.
 - **Rasterize** it to `docs/static/img/state-of-react/{YYYY-MM}.png` at **1200×630** — SVG does
-  not work as an `og:image` / dev.to `cover_image`, so a raster is required. Load the SVG in a
-  headless browser at 1200×630 and screenshot it (this repo used Playwright + the pre-installed
-  Chromium at `/opt/pw-browsers`).
+  not work as an `og:image` / dev.to `cover_image`, so a raster is required. Run
+  `pnpm --filter @allxsmith/bestax-docs rasterize:cover static/img/state-of-react/{YYYY-MM}.svg`.
 - **Frontmatter:** point both `image:` and `cover_image:` at the `.png` (rooted `/img/...` path).
 - **Visible banner:** at the very top of the post body, render the SVG full-width:
   `<img className="sor-cover" src="/img/state-of-react/{YYYY-MM}.svg" alt="…" />`.
