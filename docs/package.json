@@ -8,6 +8,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build && node scripts/strip-generated-markers.mjs",
     "test": "node --test \"scripts/*.test.mjs\"",
+    "rasterize:cover": "node scripts/rasterize-cover.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -41,6 +42,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "docusaurus-plugin-llms": "^0.5.1",
     "gray-matter": "^4.0.3",
+    "playwright": "^1.62.0",
     "raw-loader": "^4.0.2"
   },
   "browserslist": {
