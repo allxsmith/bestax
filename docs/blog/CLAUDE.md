@@ -50,7 +50,17 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   (the only entry in `authors.yml`), and inline `tags: [...]`. `onInlineTags: 'ignore'` means a
   new tag needs no `tags.yml` entry; add one only for a custom label/permalink/description.
   dev.to syndication is opt-in: `publish_to_devto: true` plus a `cover_image`
-  (`plugins/devto-preprocessor.js` skips posts without the flag).
+  (`plugins/devto-preprocessor.js` skips posts without the flag). The preprocessor writes
+  `build/.devto-publish/` copies with markdown images **and** root-relative `/docs/`+`/blog/`
+  links rewritten to `https://bestax.io` URLs — so keep internal links root-relative even in
+  syndicated posts. It rewrites `![]()` syntax only: a syndicated post's visible cover must be
+  a markdown image, not a JSX `<img>` (which would reach dev.to unrewritten and broken).
+- **Cover images** (any post, not just State of React): assets at
+  `docs/static/img/<slug>.{svg,png}` — a hand-authored 1200×630 SVG rasterized to PNG (the
+  State of React runbook's "Cover image" section has the Playwright recipe). Frontmatter
+  `image:` and `cover_image:` point at the **PNG** (rooted `/img/...` path); the visible
+  banner at the top of the body renders the **SVG**. The Floor Is React 18 (2026-08-03) is
+  the reference example.
 - **The fold:** `<!-- truncate -->` goes after a 1–3 sentence hook (the config warns when it's
   missing). A leading `:::info` admonition sits above the fold when the post needs one.
 - **Live examples:** ` ```tsx live ` fences. Every library export plus `React`, `useState`, and

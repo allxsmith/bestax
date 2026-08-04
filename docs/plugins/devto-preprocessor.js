@@ -181,6 +181,13 @@ async function processBlogPost(
     }
   );
 
+  // Convert root-relative internal links to production URLs (dev.to would
+  // otherwise resolve them against dev.to itself; images are handled above)
+  processedBody = processedBody.replace(
+    /\]\((\/(?:docs|blog)\/[^)\s]*)\)/g,
+    (match, href) => `](${siteUrl}${href})`
+  );
+
   // Process cover_image in frontmatter
   if (devtoFrontmatter.cover_image) {
     if (!devtoFrontmatter.cover_image.startsWith('http')) {

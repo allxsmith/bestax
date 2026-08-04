@@ -390,6 +390,9 @@ importers:
       docusaurus-plugin-llms:
         specifier: ^0.5.1
         version: 0.5.1(@docusaurus/core@3.10.2(@mdx-js/react@3.1.1(@types/react@19.2.17)(react@19.2.8))(postcss@8.5.21)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
       raw-loader:
         specifier: ^4.0.2
         version: 4.0.2(webpack@5.108.1(postcss@8.5.21))
