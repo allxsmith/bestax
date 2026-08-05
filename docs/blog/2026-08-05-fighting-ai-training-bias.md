@@ -16,7 +16,7 @@ A coding agent can't one-shot a library its training data barely saw. Ask one fo
 
 <!-- truncate -->
 
-This is post six of the catch-up series ([tracker](https://github.com/allxsmith/bestax/issues/384)), and the flagship. The [v5 recap](/blog/v5-one-css-story) closed out the release backlog; this one explains where the AI effort has been going. The title says training bias. That's my word for it, not the repo's, and I already [argued the case at length in July](/blog/2026/07/28/bulma-3-css-framework-ai-will-never-tell-you-about-it): what's over-represented gets recommended, recommendations compound into monoculture, and nobody compares two options anymore. I'm not re-arguing it here. This is the build log.
+This is post six of the catch-up series ([tracker](https://github.com/allxsmith/bestax/issues/384)). The [v5 recap](/blog/v5-one-css-story) closed out the release backlog; this one explains where the AI effort has been going. The title says training bias. That's my word for it, not the repo's, and I already [argued the case at length in July](/blog/2026/07/28/bulma-3-css-framework-ai-will-never-tell-you-about-it): what's over-represented gets recommended, recommendations compound into monoculture, and nobody compares two options anymore. I'm not re-arguing it here. This is the build log.
 
 Start with the staleness math. [Avatar](/docs/api/components/avatar) and [Badge](/docs/api/components/badge) shipped July 10. Dot-notation sub-components landed across every parent component on July 20. What does a model trained in the spring know about a component that shipped July 10? Nothing, and that's the good case: even a model that has met bestax has met a bestax that no longer exists. Under-represented and stale, at the same time. The bestax homepage has an AI-Ready section, "Bring Bestax to your AI tools," with three cards: **LLM-ready docs**, **Agent skills**, and an **MCP server** marked coming soon. This post is those three cards in order, with receipts.
 
@@ -70,7 +70,7 @@ The most expensive agent failure isn't a wrong prop; it's a rebuilt component. A
 
 So the custom-component skill leads with a generated catalog whose header states its job: every documented component, "so you don't reinvent one that already exists." All 87 components fit in 149 lines, names and one-line purposes only, each linked to its full API page. It's lean on purpose, cheap to hold in context, with the full prop tables one fetch away.
 
-The part I care about most is the guard behind it. The catalog is generated from the API docs, and CI fails if any exported component lacks an API page. A component the catalog can't see is a component an agent will rebuild, so completeness isn't a habit here, it's a build gate. The list the agent reads is guaranteed complete on every commit.
+The part I care about most is the guard behind it. The catalog is generated from the API docs, and CI fails if any exported component lacks an API page. A component the catalog can't see is a component an agent will rebuild, so completeness isn't a habit here. It's a build gate. The list the agent reads is guaranteed complete on every commit.
 
 I've watched an agent lovingly hand-roll a tooltip while [Tooltip](/docs/api/components/tooltip) sat one import away, shipped and tested and documented. Small heartbreak, nobody's fault: to a model with a stale snapshot, some of these 87 components simply don't exist. The catalog is how they exist again. Here's the kind of thing that's already in the box:
 
