@@ -1,6 +1,6 @@
 ---
 slug: fighting-ai-training-bias
-title: Fighting AI Training Bias with Agent Skills
+title: Fighting AI Training Bias
 description: "An agent can't one-shot a library its training data barely saw. So bestax ships docs, skills, and a catalog a machine can actually read."
 authors: [asmith]
 tags: [ai, skills, llms, react]
@@ -10,7 +10,7 @@ image: /img/fighting-ai-training-bias.png
 cover_image: /img/fighting-ai-training-bias.png
 ---
 
-![Fighting AI Training Bias with Agent Skills, drawn as pixel art: a robot coding agent turns away from a toppling stack of identical gray cartridges under a most popular marquee toward a glowing bestax cartridge seated in a retro console whose screen reads llms.txt](/img/fighting-ai-training-bias.svg)
+![Fighting AI Training Bias, drawn as pixel art: a robot coding agent turns away from a toppling stack of identical gray cartridges under a most popular marquee toward a glowing bestax cartridge seated in a retro console whose screen reads llms.txt](/img/fighting-ai-training-bias.svg)
 
 A coding agent can't one-shot a library its training data barely saw. Ask one for a dashboard in an under-represented library and you get one of two failures: it quietly reaches for the incumbent it has seen a million times, or it stays loyal and invents props that don't exist. bestax's answer is to make the real, current API machine-legible so one shot is enough, and this post is everything that ships today.
 
@@ -96,7 +96,7 @@ Some agents never fetch a URL; they read what's on disk. Since [5.8.0](https://g
 
 The third AI-Ready card says coming soon, and it means it. A first-party MCP server is planned: a Model Context Protocol endpoint an agent can query for component props, variants, and live examples while it builds. It isn't shipped, the homepage card deliberately has no link, and this post won't describe software that doesn't exist. When it ships, it gets its own post.
 
-The nearer sequel is already specced: how the AI loop that maintains this repo keeps those seven skills honest, filed as [#380](https://github.com/allxsmith/bestax/issues/380). The [tracker](https://github.com/allxsmith/bestax/issues/384) has the rest of the plan.
+The nearer sequel is live: [how the AI loop that maintains this repo keeps those seven skills honest](/blog/ai-loop-keeps-skills-honest). The [tracker](https://github.com/allxsmith/bestax/issues/384) has the rest of the plan.
 
 ## Point Your Agent at It
 
