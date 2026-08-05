@@ -23,8 +23,9 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
   script empties the destination first, and its success line reports the array length either
   way); no CI check compares the list against `skills/*`. Bundling is a per-skill policy
   decision (see #385) — when adding a skill, decide it explicitly and keep the allowlist,
-  `skills/README.md`, and `docs/docs/skills/intro.md` in agreement. **Never edit the bundled
-  copy** — change `skills/` at the repo root; the build re-syncs.
+  `skills/README.md`, `docs/docs/skills/intro.md`, and the `CLAUDE_MD` roster in
+  `src/constants.ts` in agreement. **Never edit the bundled copy** — change `skills/` at the
+  repo root; the build re-syncs.
 - The `CLAUDE_MD` template in `constants.ts` is what every generated app tells its AI agents.
   When library conventions, skills, or the canonical docs entrypoint change (#203), check
   whether this template must change too.

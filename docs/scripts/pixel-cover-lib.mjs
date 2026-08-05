@@ -186,6 +186,20 @@ export const FONT = {
 /** Rendered width of a string at pixel scale s (glyphs advance 6*s, minus the trailing gap). */
 export const textW = (str, s) => str.length * 6 * s - s;
 
+/** Escape a string for use inside a double-quoted XML attribute. */
+const escapeXmlAttr = value =>
+  String(value).replace(
+    /[&<>"']/g,
+    ch =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&apos;',
+      })[ch]
+  );
+
 /**
  * Accumulates <rect> elements and emits the final cover SVG. All drawing is
  * axis-aligned rects so crispEdges stays honest; keep coordinates on a 3px or
@@ -251,11 +265,12 @@ export class Canvas {
   /**
    * Emit the complete SVG. Satisfies the rasterize-cover.mjs contract: literal
    * width/height, matching viewBox, opaque full-bleed background rect first.
-   * Pass the post's alt text as ariaLabel so the two never drift.
+   * Pass the post's alt text as ariaLabel so the two never drift; it is
+   * escaped for the attribute, so `&` or quotes in the alt are safe.
    */
   svg(ariaLabel) {
     return [
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" viewBox="0 0 ${COVER_WIDTH} ${COVER_HEIGHT}" role="img" aria-label="${ariaLabel}" shape-rendering="crispEdges">`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" viewBox="0 0 ${COVER_WIDTH} ${COVER_HEIGHT}" role="img" aria-label="${escapeXmlAttr(ariaLabel)}" shape-rendering="crispEdges">`,
       `<defs><filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="softglow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="26"/></filter></defs>`,
       `<rect x="0" y="0" width="${COVER_WIDTH}" height="${COVER_HEIGHT}" fill="${PALETTE.bg}"/>`,
       ...this.parts,
