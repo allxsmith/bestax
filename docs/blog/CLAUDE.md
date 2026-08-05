@@ -50,13 +50,20 @@ version bump) and the intro of the first State of React edition: candid, plain, 
 
 ## Post conventions (all posts)
 
-- **File naming:** `docs/blog/YYYY-MM-DD-slug.md`, or the folder form `YYYY-MM-DD-slug/index.md`
-  when the post ships images. The date prefix is the publish date; there is no `date:`
-  frontmatter field. If a PR merges after the date in its filename, rename before merging.
+- **File naming:** `docs/blog/YYYY-MM-DD-slug.md`. The date prefix is the publish date; there
+  is no `date:` frontmatter field. If a PR merges after the date in its filename, rename
+  before merging. A post that will syndicate stays a **flat `.md` even when it ships images**
+  (assets go to `docs/static/img/<slug>*.{svg,png}`): `devto-preprocessor.js` writes
+  `build/.devto-publish/<basename>`, so a folder post emits a colliding `index.md`, and only
+  `/img/`-rooted markdown images rewrite cleanly. The folder form `YYYY-MM-DD-slug/index.md`
+  is for posts that will never syndicate (State of React uses it, with
+  `publish_to_devto: false`).
 - **Frontmatter:** `slug`, `title` (quote it when it contains a colon), `authors: [asmith]`
   (the only entry in `authors.yml`), and inline `tags: [...]`. `onInlineTags: 'ignore'` means a
   new tag needs no `tags.yml` entry; add one only for a custom label/permalink/description.
   dev.to syndication and cover images are opt-in per post — see the two sections below.
+  A post with `slug:` sets `canonical_url: https://bestax.io/blog/<slug>`; older date-path
+  canonicals predate this — don't copy them.
 - **The fold:** `<!-- truncate -->` goes after a 1–3 sentence hook (the config warns when it's
   missing). A leading `:::info` admonition sits above the fold when the post needs one.
 - **Live examples:** ` ```tsx live ` fences. Every library export plus `React`, `useState`, and
@@ -64,7 +71,10 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   package into react-live; import lines are stripped anyway). No inline `style={{}}`; use
   `Block`/helper props, and space children with `m*`/`p*` (there is no `gap` helper).
 - **Links:** internal links are absolute (`/docs/...`, `/blog/...`); `onBrokenLinks: 'throw'`
-  build-validates every one.
+  build-validates every one. The LLM artifacts (`/llms.txt`, `/llms-full.txt`, and every
+  page's `.md` twin) are generated files, not routes — link them fully qualified
+  (`https://bestax.io/llms.txt`); a root-relative form fails the build's link check, and the
+  dev.to rewrite only covers `/docs` and `/blog`.
 - **Verify:** `pnpm format`, then `pnpm exec turbo run build --filter=@allxsmith/bestax-docs`,
   then `pnpm format:check`. Commits and PR titles use the non-releasing `docs` type.
 
@@ -83,9 +93,12 @@ stays a manual act — the build only generates the files.
   are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.
 - Keep internal links root-relative in the source — the rewrite handles dev.to, and
   `onBrokenLinks: 'throw'` keeps build-validating them.
-- The rewrites cover markdown syntax only, so a syndicated post's visible cover must be a
-  markdown image (`![…](/img/…)`), not a JSX `<img>` (which would reach dev.to unrewritten
-  and broken).
+- The rewrites cover markdown syntax only, so a syndicated post is **plain markdown
+  throughout**: no JSX components (they reach dev.to as raw text) and no `:::` admonitions.
+  That includes the docs-tree `<PackageManagerTabs>` convention — install commands in a
+  syndicated post use a plain fence (most aren't pnpm-derivable anyway) — and the visible
+  cover, which must be a markdown image (`![…](/img/…)`), not a JSX `<img>`. (State of React
+  editions may use JSX because they set `publish_to_devto: false`.)
 
 Medium is manual end to end: there is no Medium plugin. Publish on bestax.io first, then use
 Medium's import-a-story flow on the live `https://bestax.io/blog/<slug>` URL so Medium records
@@ -106,6 +119,15 @@ Any post can ship a cover, not just State of React editions; _The Floor Is React
 - **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
   path); `og:image` and dev.to need a raster.
 - **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
+- **Section images** (optional, for flagship posts): each in-body image follows the same
+  1200×630 contract and rasterizer, stems `docs/static/img/<slug>-<topic>.{svg,png}`. Only
+  the top banner embeds the SVG; every other in-body image embeds the **PNG** (dev.to and
+  Medium handle rasters reliably).
+- **Alt text** is a long, literal description of the pixel-art scene (see the v5 banner),
+  not a caption; mirror it into the SVG's `aria-label`.
+- Covers can be hand-authored or scripted against `docs/scripts/pixel-cover-lib.mjs` (the
+  5×7 pixel font, house palette, and bevel/starfield helpers behind the existing covers);
+  either way `rasterize:cover` is the gate.
 
 The rest of this file is the **runbook for the recurring component-comparison series** so each
 edition is turnkey.

@@ -75,7 +75,8 @@ the component library), and `scripts/pack-manifest.mjs` resolves any remaining
 left in `devDependencies` only with the pack hooks present. It does **not**
 check which section `@allxsmith/bestax-bulma` sits in — re-adding it as a
 plain-semver runtime dependency passes CI, so that one is on review. The skill lives at repo-root
-`skills/bestax-migrate/` and is deliberately **not** bundled into create-bestax (existing
-sites only) — keep `create-bestax/scripts/sync-skills.mjs` untouched. When the mapping
+`skills/bestax-migrate/`. Whether it bundles into create-bestax is contested: the original
+policy was existing-sites-only, but `sync-skills.mjs` has shipped it since #345 — see #385
+and don't change either side ahead of that call. When the mapping
 gains or loses coverage, update `skills/bestax-migrate/references/` and the docs migration
 guide in the same PR.
