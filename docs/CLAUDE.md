@@ -102,7 +102,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   are required — without them MDX treats it as literal text, not a code block. The component
   derives the command back out of the fence and throws during the prerender if the round trip
   isn't exact, so a non-canonical fence (`npm install foo`, odd spacing) fails the build rather
-  than rendering three tabs derived from something the page never showed.
+  than rendering three tabs derived from something the page never showed. Docs-tree pages
+  only — a syndicated blog post must not use it (JSX reaches dev.to as raw text); see the
+  Syndication section of `blog/CLAUDE.md`.
 
 - **`.md` files here render JSX**, because `markdown.format` defaults to `mdx` and
   `docusaurus.config.js` does not override it. That is load-bearing but easy to miss: setting
