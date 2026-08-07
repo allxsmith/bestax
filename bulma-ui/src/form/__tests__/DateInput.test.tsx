@@ -1030,3 +1030,40 @@ describe('DateInputBase remaining branches', () => {
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
 });
+
+describe('DateInput label association (#368)', () => {
+  it('associates the label with the input via htmlFor/id', () => {
+    const { getByRole, container } = render(<DateInput label="Date" />);
+    const input = getByRole('combobox');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('respects a user id and still derives the popover id from it', () => {
+    const { getByRole, container } = render(
+      <DateInput label="Date" id="when" />
+    );
+    const input = getByRole('combobox');
+    expect(input).toHaveAttribute('id', 'when');
+    expect(input).toHaveAttribute('aria-controls', 'when-popover');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'when'
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { getByRole } = render(<DateInput />);
+    expect(getByRole('combobox')).not.toHaveAttribute('id');
+  });
+
+  it('renders the label unwired in inline mode', () => {
+    const { container } = render(<DateInput label="Date" inline />);
+    const label = container.querySelector('label.label');
+    expect(label).toHaveTextContent('Date');
+    expect(label).not.toHaveAttribute('for');
+  });
+});

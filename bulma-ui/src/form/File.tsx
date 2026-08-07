@@ -9,6 +9,7 @@ import { useConfig } from '../helpers/Config';
 import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the File component.
@@ -21,6 +22,12 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself). */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
   /** Bulma color modifier for the file input. */
   color?:
     | 'primary'
@@ -96,6 +103,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
     ref
   ) => {
     const insideField = useInsideField();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: props.id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const { classPrefix } = useConfig();
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
@@ -142,6 +155,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
               inputClassName
             )}
             type="file"
+            id={controlId}
             {...rest}
           />
           <span className={usePrefixedClassNames('file-cta')}>
@@ -173,7 +187,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

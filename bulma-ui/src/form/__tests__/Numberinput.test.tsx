@@ -942,3 +942,55 @@ describe('Numberinput', () => {
     });
   });
 });
+
+describe('Numberinput label association (#368)', () => {
+  it('associates the label with the number input (plusminus)', () => {
+    const { container } = render(<Numberinput label="Quantity" />);
+    const input = screen.getByLabelText('Quantity');
+    expect(input).toHaveAttribute('type', 'number');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('associates the label in the stepper variant', () => {
+    const { container } = render(
+      <Numberinput label="Quantity" variant="stepper" />
+    );
+    const input = screen.getByLabelText('Quantity');
+    expect(input).toHaveAttribute('type', 'number');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('renders no label and injects no id in bare mode', () => {
+    const { container } = render(<Numberinput bare label="Quantity" />);
+    expect(container.querySelector('label')).not.toBeInTheDocument();
+    expect(container.querySelector('input[type="number"]')).not.toHaveAttribute(
+      'id'
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(<Numberinput />);
+    expect(container.querySelector('input[type="number"]')).not.toHaveAttribute(
+      'id'
+    );
+  });
+
+  it('injects no id inside an outer Field, which drops the label', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Numberinput label="Dropped" />
+      </Field>
+    );
+    expect(container.querySelectorAll('label').length).toBe(1);
+    expect(container.querySelector('input[type="number"]')).not.toHaveAttribute(
+      'id'
+    );
+  });
+});

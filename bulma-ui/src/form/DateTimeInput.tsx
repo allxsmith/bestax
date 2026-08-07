@@ -4,6 +4,7 @@ import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { DateTimeInputBase, DateTimeInputBaseProps } from './DateTimeInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the DateTimeInput convenience wrapper. Extends
@@ -13,11 +14,11 @@ import { useInsideField, useInsideControl } from './FormContext';
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
  */
 export interface DateTimeInputProps extends DateTimeInputBaseProps {
-  /** Field label. */
+  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: FieldProps['labelProps'];
   /** Render the field with horizontal layout. */
   horizontal?: boolean;
@@ -96,6 +97,13 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: baseProps.id,
+      labelProps,
+      // Inline mode renders a bare picker with no input to label.
+      rendersLabel: !insideField && !baseProps.inline,
+    });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
     });
@@ -105,6 +113,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     let content: React.ReactNode = (
       <DateTimeInputBase
         ref={ref}
+        id={controlId}
         {...baseProps}
         triggerIcon={baseProps.triggerIcon ?? !isLoading}
       />
@@ -140,7 +149,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >
