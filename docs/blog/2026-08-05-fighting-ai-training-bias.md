@@ -96,7 +96,7 @@ Some agents never fetch a URL; they read what's on disk. Since [5.8.0](https://g
 
 The third AI-Ready card says coming soon, and it means it. A first-party MCP server is planned: a Model Context Protocol endpoint an agent can query for component props, variants, and live examples while it builds. It isn't shipped, the homepage card deliberately has no link, and this post won't describe software that doesn't exist. When it ships, it gets its own post.
 
-The nearer sequel is live: [how the AI loop that maintains this repo keeps those seven skills honest](/blog/ai-loop-keeps-skills-honest). The [tracker](https://github.com/allxsmith/bestax/issues/384) has the rest of the plan.
+The nearer sequel is live: [the accelerated evolution loop that keeps those seven skills honest](/blog/ai-loop-keeps-skills-honest). The [tracker](https://github.com/allxsmith/bestax/issues/384) has the rest of the plan.
 
 ## Point Your Agent at It
 
