@@ -2,6 +2,7 @@ import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Input } from '../Input';
+import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Input', () => {
@@ -182,5 +183,74 @@ describe('Input', () => {
       expect(container.querySelector('.bulma-help')).toBeInTheDocument();
       expect(container.querySelector('.bulma-label')).toBeInTheDocument();
     });
+  });
+});
+
+describe('Input label association (#368)', () => {
+  it('associates the label with the input via htmlFor/id', () => {
+    const { container } = render(<Input label="Username" />);
+    const input = screen.getByLabelText('Username');
+    expect(input.tagName).toBe('INPUT');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('uses a user-supplied id as the association target', () => {
+    const { container } = render(<Input label="Username" id="my-input" />);
+    const input = screen.getByLabelText('Username');
+    expect(input).toHaveAttribute('id', 'my-input');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'my-input'
+    );
+  });
+
+  it('lets an explicit labelProps.htmlFor override the association', () => {
+    const { container } = render(
+      <Input label="Username" id="my-input" labelProps={{ htmlFor: 'other' }} />
+    );
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'other'
+    );
+    expect(container.querySelector('input')).toHaveAttribute('id', 'my-input');
+  });
+
+  it('injects no id when labelProps.htmlFor is set without an id', () => {
+    const { container } = render(
+      <Input label="Username" labelProps={{ htmlFor: 'elsewhere' }} />
+    );
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'elsewhere'
+    );
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(<Input />);
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('injects no id inside an outer Field, which drops the label', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Input label="Dropped" />
+      </Field>
+    );
+    expect(container.querySelectorAll('label').length).toBe(1);
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('associates in horizontal layout', () => {
+    const { container } = render(<Input label="Username" horizontal />);
+    const input = screen.getByLabelText('Username');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
   });
 });

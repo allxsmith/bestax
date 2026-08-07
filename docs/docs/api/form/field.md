@@ -489,7 +489,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 ## Accessibility
 
-- Uses `<label>` for accessible field labeling.
+- Renders a `<label>` for the field, but `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control. The single-control convenience inputs (`Input`, `Select`, `TextArea`, and similar) do this automatically via their own `label` prop.
 - Grouped/horizontal layouts use Bulma’s grid for layout.
 - Always use the `label` prop or a custom label for clarity.
 
@@ -514,21 +514,21 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 <!-- bestax:generated props -->
 
-| Prop         | Type                                                                            | Default | Description                                                                        |
-| ------------ | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------- |
-| `horizontal` | `boolean`                                                                       | `false` | Renders the field as horizontal (label and control side by side).                  |
-| `grouped`    | `boolean` \| `'centered'` \| `'right'` \| `'multiline'`                         | —       | Group controls in a row (optionally centered, right, or multiline).                |
-| `hasAddons`  | `boolean` \| `'centered'` \| `'right'`                                          | —       | Group controls as addons (optionally centered or right-aligned).                   |
-| `narrow`     | `boolean`                                                                       | `false` | Constrains the field to its content's width (used inside horizontal field bodies). |
-| `label`      | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                                            |
-| `labelSize`  | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label.                                                                |
-| `labelProps` | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                                       |
-| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the field.                                                          |
-| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the field.                                                         |
-| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the field.                                                    |
-| `className`  | `string`                                                                        | —       | Additional CSS classes.                                                            |
-| `children`   | `React.ReactNode`                                                               | —       | Field content.                                                                     |
-| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                  |
+| Prop         | Type                                                                            | Default | Description                                                                                                                                                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal` | `boolean`                                                                       | `false` | Renders the field as horizontal (label and control side by side).                                                                                                                                                                                             |
+| `grouped`    | `boolean` \| `'centered'` \| `'right'` \| `'multiline'`                         | —       | Group controls in a row (optionally centered, right, or multiline).                                                                                                                                                                                           |
+| `hasAddons`  | `boolean` \| `'centered'` \| `'right'`                                          | —       | Group controls as addons (optionally centered or right-aligned).                                                                                                                                                                                              |
+| `narrow`     | `boolean`                                                                       | `false` | Constrains the field to its content's width (used inside horizontal field bodies).                                                                                                                                                                            |
+| `label`      | `React.ReactNode`                                                               | —       | Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically via their own `label` prop). |
+| `labelSize`  | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label.                                                                                                                                                                                                                                           |
+| `labelProps` | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element — where `htmlFor` goes when composing.                                                                                                                                                                                            |
+| `textColor`  | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the field.                                                                                                                                                                                                                                     |
+| `color`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the field.                                                                                                                                                                                                                                    |
+| `bgColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the field.                                                                                                                                                                                                                               |
+| `className`  | `string`                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                       |
+| `children`   | `React.ReactNode`                                                               | —       | Field content.                                                                                                                                                                                                                                                |
+| `...`        | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                             |
 
 **Subcomponents:**
 

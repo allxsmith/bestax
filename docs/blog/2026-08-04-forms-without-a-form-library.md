@@ -46,7 +46,7 @@ function AutoWrapDemo() {
 
 To be precise about the mechanics: the wrapping isn't triggered by those props. A convenience input always wraps itself unless it detects it's already inside a `Field` or `Control`, and `label` and friends just forward into the generated wrapper. The field-level props are shared across inputs (`label`, `labelSize`, `labelProps`, `horizontal`, `message`, `messageColor`, and `fieldClassName`), with `messageColor` tinting the help text.
 
-One accessibility note: `label` renders the `<label>` element but won't invent an `id` to point it at, so pass `id` on the input plus `labelProps={{ htmlFor: sameId }}`, the way the demos on this page do.
+One accessibility note: `label` now wires the `<label>` to the input on its own (a generated `id` plus `htmlFor`, or your own `id` if you pass one). The demos on this page wire it explicitly, which still works and is the way to go when you want a stable `id`; on library versions before this shipped, it was required.
 
 ## Skip-If-Wrapped
 

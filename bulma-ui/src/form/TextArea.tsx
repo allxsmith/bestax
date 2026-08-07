@@ -4,6 +4,7 @@ import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { TextAreaBase, TextAreaBaseProps } from './TextAreaBase';
 import { useInsideField, useInsideControl } from './FormContext';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the TextArea component.
@@ -13,11 +14,11 @@ import { useInsideField, useInsideControl } from './FormContext';
  * Control-level (loading) props.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
-  /** Field label. */
+  /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
@@ -76,11 +77,17 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: textAreaProps.id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <TextAreaBase ref={ref} {...textAreaProps} />;
+    let content = <TextAreaBase ref={ref} id={controlId} {...textAreaProps} />;
 
     if (!insideControl) {
       content = (
@@ -101,7 +108,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

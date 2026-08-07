@@ -200,3 +200,29 @@ describe('Select', () => {
     });
   });
 });
+
+describe('Select label association (#368)', () => {
+  it('associates the label with the select via htmlFor/id', () => {
+    const { container } = render(
+      <Select label="Country">
+        <option value="us">United States</option>
+      </Select>
+    );
+    const select = screen.getByLabelText('Country');
+    expect(select.tagName).toBe('SELECT');
+    expect(select.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      select.id
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(
+      <Select>
+        <option value="us">United States</option>
+      </Select>
+    );
+    expect(container.querySelector('select')).not.toHaveAttribute('id');
+  });
+});

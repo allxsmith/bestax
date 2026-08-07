@@ -4,6 +4,7 @@ import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { InputBase, InputBaseProps } from './InputBase';
 import { useInsideField, useInsideControl } from './FormContext';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the Input component.
@@ -13,11 +14,11 @@ import { useInsideField, useInsideControl } from './FormContext';
  * Control-level (icons, loading) props.
  */
 export interface InputProps extends InputBaseProps {
-  /** Field label. */
+  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
@@ -105,11 +106,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: inputProps.id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <InputBase ref={ref} {...inputProps} />;
+    let content = <InputBase ref={ref} id={controlId} {...inputProps} />;
 
     if (!insideControl) {
       content = (
@@ -139,7 +146,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

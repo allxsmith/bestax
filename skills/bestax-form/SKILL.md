@@ -100,18 +100,18 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 
-| Prop                             | Type                                                                  | Purpose                                                          |
-| -------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid. |
-| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                      |
-| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                |
-| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                      |
-| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                           |
-| `label`                          | `ReactNode`                                                           | Field label (convenience components).                            |
-| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.           |
-| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                    |
-| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                  |
-| `isLoading`                      | `boolean`                                                             | Loading indicator on the Control.                                |
+| Prop                             | Type                                                                  | Purpose                                                              |
+| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.     |
+| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                          |
+| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                    |
+| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                          |
+| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                               |
+| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`). |
+| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.               |
+| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                        |
+| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                      |
+| `isLoading`                      | `boolean`                                                             | Loading indicator on the Control.                                    |
 
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
@@ -119,9 +119,12 @@ via `useBulmaClasses`.
 ⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
 `isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
 
-⚠️ The `label` prop renders the `<label>` but does **not** wire `htmlFor`/`id` — assistive tech
-gets no association. Pass `id` on the input plus `labelProps={{ htmlFor: sameId }}` (every
-convenience input and `Field` accept `labelProps`).
+The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
+`File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`) wires
+`htmlFor`/`id` automatically — your `id` is used when provided, a generated one otherwise,
+and an explicit `labelProps={{ htmlFor }}` wins. ⚠️ Manual wiring is still required when
+composing `Field` + bases yourself (`Field`'s own `label` associates nothing) and on the
+group/composite inputs (`Checkboxes`, `Radios`, `Autocomplete`, `Rate`, `Taginput`).
 
 ## Convenience vs composed
 
@@ -168,8 +171,6 @@ function SignupForm() {
         message={error}
         messageColor={error ? 'danger' : undefined}
         iconLeftName="envelope"
-        id="signup-email"
-        labelProps={{ htmlFor: 'signup-email' }}
       />
       <Button color="primary" type="submit" mt="3">
         Sign up
@@ -213,8 +214,9 @@ for the expected classes/states, and say plainly that the visual pass is still o
 ## Checklist
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
-- [ ] Every label is programmatically associated: `label` prop + `id` on the input +
-      `labelProps={{ htmlFor }}`, or a `<label htmlFor>` when composing.
+- [ ] Every label is programmatically associated — the convenience `label` prop does this
+      automatically; when composing `Field` + bases (or labeling a group input), pass
+      `labelProps={{ htmlFor }}` / a `<label htmlFor>` plus a matching `id` yourself.
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.

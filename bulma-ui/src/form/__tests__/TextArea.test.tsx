@@ -200,3 +200,21 @@ describe('TextArea', () => {
     });
   });
 });
+
+describe('TextArea label association (#368)', () => {
+  it('associates the label with the textarea via htmlFor/id', () => {
+    const { container } = render(<TextArea label="Bio" />);
+    const textarea = screen.getByLabelText('Bio');
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(textarea.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      textarea.id
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(<TextArea />);
+    expect(container.querySelector('textarea')).not.toHaveAttribute('id');
+  });
+});

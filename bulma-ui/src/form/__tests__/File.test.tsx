@@ -174,3 +174,28 @@ describe('File', () => {
     });
   });
 });
+
+describe('File label association (#368)', () => {
+  it('associates the Field label with the file input', () => {
+    const { container } = render(<File label="Avatar" />);
+    const input = screen.getByLabelText('Avatar');
+    expect(input).toHaveAttribute('type', 'file');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('resolves the Field label and the CTA label to the same input', () => {
+    render(<File label="Avatar" />);
+    expect(screen.getByLabelText('Avatar')).toBe(
+      screen.getByLabelText(/choose a file/i)
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(<File />);
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+});

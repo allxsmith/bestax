@@ -4,6 +4,7 @@ import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { SelectBase, SelectBaseProps } from './SelectBase';
 import { useInsideField, useInsideControl } from './FormContext';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the Select component.
@@ -13,11 +14,11 @@ import { useInsideField, useInsideControl } from './FormContext';
  * Control-level (icons, loading) props.
  */
 export interface SelectProps extends SelectBaseProps {
-  /** Field label. */
+  /** Field label. Automatically associated with the select via `htmlFor` — uses your `id` when provided, otherwise a generated one. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
@@ -89,11 +90,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: selectProps.id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <SelectBase ref={ref} {...selectProps} />;
+    let content = <SelectBase ref={ref} id={controlId} {...selectProps} />;
 
     if (!insideControl) {
       content = (
@@ -118,7 +125,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

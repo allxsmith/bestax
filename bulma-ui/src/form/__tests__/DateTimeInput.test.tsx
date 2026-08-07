@@ -1142,3 +1142,29 @@ describe('DateTimeInput small viewport', () => {
     expect(option.style.height).toBe('40px');
   });
 });
+
+describe('DateTimeInput label association (#368)', () => {
+  it('associates the label with the input via htmlFor/id', () => {
+    const { getByRole, container } = render(
+      <DateTimeInput label="Appointment" />
+    );
+    const input = getByRole('combobox');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { getByRole } = render(<DateTimeInput />);
+    expect(getByRole('combobox')).not.toHaveAttribute('id');
+  });
+
+  it('renders the label unwired in inline mode', () => {
+    const { container } = render(<DateTimeInput label="Appointment" inline />);
+    const label = container.querySelector('label.label');
+    expect(label).toHaveTextContent('Appointment');
+    expect(label).not.toHaveAttribute('for');
+  });
+});

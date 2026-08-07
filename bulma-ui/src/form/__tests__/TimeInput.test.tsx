@@ -1450,3 +1450,27 @@ describe('TimeInputBase remaining branches', () => {
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
   });
 });
+
+describe('TimeInput label association (#368)', () => {
+  it('associates the label with the input via htmlFor/id', () => {
+    const { getByRole, container } = render(<TimeInput label="Departure" />);
+    const input = getByRole('combobox');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { getByRole } = render(<TimeInput />);
+    expect(getByRole('combobox')).not.toHaveAttribute('id');
+  });
+
+  it('renders the label unwired in inline mode', () => {
+    const { container } = render(<TimeInput label="Departure" inline />);
+    const label = container.querySelector('label.label');
+    expect(label).toHaveTextContent('Departure');
+    expect(label).not.toHaveAttribute('for');
+  });
+});

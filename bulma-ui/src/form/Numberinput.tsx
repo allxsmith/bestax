@@ -5,6 +5,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /** Valid sizes for the Numberinput component. */
 export type NumberinputSize = 'small' | 'medium' | 'large';
@@ -43,6 +44,12 @@ export interface NumberinputProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
+  /** Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when no Field wrapper is rendered (inside a `Field`, or plusminus `bare`). */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
   /** Controlled value. */
   value?: number;
   /** Default value for uncontrolled usage. */
@@ -174,6 +181,14 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const isStepper = variant === 'stepper';
     const isAddons = compact || isStepper;
     const effectiveControlsPosition = isStepper ? 'right' : controlsPosition;
+
+    // The plusminus bare branch renders no Field and no label at all.
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: props.id,
+      labelProps,
+      rendersLabel: !insideField && (isStepper || !effectiveBare),
+    });
 
     // Clamp value to min/max
     const clampValue = useCallback(
@@ -324,6 +339,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           aria-valuenow={currentValue ?? undefined}
           aria-valuemin={min}
           aria-valuemax={max}
+          id={controlId}
           {...rest}
         />
       </div>
@@ -366,7 +382,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           <Field
             label={label}
             labelSize={labelSize}
-            labelProps={labelProps}
+            labelProps={fieldLabelProps}
             horizontal={horizontal}
             className={fieldClassName}
           >
@@ -494,7 +510,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

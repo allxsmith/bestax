@@ -1263,3 +1263,33 @@ describe('Slider', () => {
     });
   });
 });
+
+describe('Slider label association (#368)', () => {
+  it('associates the label with the slider input', () => {
+    const { container } = render(<Slider label="Volume" />);
+    const input = screen.getByLabelText('Volume');
+    expect(input).toHaveAttribute('type', 'range');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('targets the low thumb in range mode', () => {
+    const { container } = render(<Slider range label="Price" />);
+    const low = container.querySelector('.slider-input-low') as HTMLElement;
+    const high = container.querySelector('.slider-input-high') as HTMLElement;
+    expect(low.id).toBeTruthy();
+    expect(high).not.toHaveAttribute('id');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      low.id
+    );
+  });
+
+  it('injects no id without a label', () => {
+    const { container } = render(<Slider />);
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+});

@@ -17,6 +17,7 @@ import { useInsideField, useInsideControl } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /** Valid sizes for the Slider component. */
 export type SliderSize = 'small' | 'medium' | 'large';
@@ -52,6 +53,12 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
+  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
   /** Minimum value. */
   min?: number;
   /** Maximum value. */
@@ -293,6 +300,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const { bulmaHelperClasses, rest } = useBulmaClasses(restProps);
+    // In range mode the low thumb carries `rest` (and any user id), so the
+    // label targets it; each thumb keeps its own aria-label for AT.
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id: restProps.id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
     const tooltipMode: SliderTooltip =
@@ -661,6 +676,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           aria-label={ariaLabel as string | undefined}
           {...getAriaProps(currentSingle)}
+          id={controlId}
           {...rest}
         />
         {tooltipMode !== 'hidden' && (
@@ -742,6 +758,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             (ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'
           }
           {...getAriaProps(currentRange[0])}
+          id={controlId}
           {...rest}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
@@ -863,7 +880,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >
