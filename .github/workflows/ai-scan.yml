@@ -26,9 +26,16 @@ name: AI Security Scan
 #     (CodeRabbit, Copilot) run on their own triggers and never see this label.
 #
 # SECURITY: the scan session holds NO PAT and NO write tools — only read-only
-# `gh view`/`gh diff` — and harden-runner blocks egress. Its reasoning IS the
-# detection logic, so `show_full_output` is deliberately OFF and only a coarse
-# category (never free-text) is surfaced, to avoid an evasion oracle.
+# `gh view`/`gh diff`. Its reasoning IS the detection logic, so
+# `show_full_output` is deliberately OFF and only a coarse category (never
+# free-text) is surfaced, to avoid an evasion oracle.
+#
+# EGRESS IS NOT ENFORCED HERE, despite the `egress-policy: block` below.
+# harden-runner silently degrades it to `audit` on every run in this repo
+# (#487): arming block needs an Actions cache entry, GitHub made that cache
+# read-only for untrusted triggers, and the resulting miss fails OPEN. So the
+# tool allowlist is the only thing confining this session. Do not count
+# egress-block as a second control until #487 closes.
 #
 # Be precise about where "read-only" comes from: the job's GITHUB_TOKEN is
 # WRITE-scoped (issues/pull-requests), because the gate charges the budget marker
@@ -99,9 +106,12 @@ jobs:
       pull-requests: write # apply needs-security-review on PRs
     steps:
       # Defense-in-depth: the session's only tools are read-only gh (which reaches
-      # only GitHub) — it cannot open arbitrary sockets — but egress-block bounds
-      # the OAuth-token surface regardless. Allowlist is additive to harden-runner's
-      # GitHub Actions baseline; tighten from the first run's report if unused.
+      # only GitHub), so it cannot open arbitrary sockets. Block mode would bound
+      # the OAuth-token surface regardless, but it is not in effect (#487, see the
+      # header). Left declared so the intent stays recorded and closing #487 needs
+      # no change here. The allowlist is additive to harden-runner's GitHub Actions
+      # baseline and is NOT currently complete: a real session reaches three hosts
+      # it does not list (#487 has the measured set).
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:

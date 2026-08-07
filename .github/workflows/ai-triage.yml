@@ -164,12 +164,20 @@ jobs:
       # defense-in-depth on the PAT / OAuth-token surface.
       #
       # AUDIT (not block) deliberately: this is a live, working workflow, and the
-      # Claude action's full runtime egress is not cleanly documented. Audit mode
+      # Claude action's full runtime egress was not cleanly documented. Audit mode
       # reports every endpoint the run touches without blocking any, so it cannot
-      # break triage. FOLLOW-UP: after one real run, read harden-runner's endpoint
-      # report and, once the list below is confirmed complete, flip
-      # `egress-policy` to `block`. The new jobs (claude-repro.yml, ai-scan.yml)
-      # already run in block mode — they are new and canary-tested before relied on.
+      # break triage.
+      #
+      # That caution was justified. A real run measured nine hosts (#487 has the
+      # table), and the list below is missing three of them — claude.ai,
+      # downloads.claude.ai and the Claude CLI's telemetry endpoint — so flipping
+      # to block would have broken triage at the CLI download.
+      #
+      # Do NOT flip this to `block` expecting an effect. claude-repro.yml and
+      # ai-scan.yml both declare block and neither enforces it: harden-runner
+      # degrades block to audit on every run in this repo (#487). Until that is
+      # fixed, `audit` here is an honest label for what all three jobs do, and the
+      # flip is a no-op that would only make this comment wrong again.
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
