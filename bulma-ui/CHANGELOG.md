@@ -1,3 +1,10 @@
+## [5.8.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.1...@allxsmith/bestax-bulma@5.8.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* **bulma-ui:** associate the form label prop with its control via a generated id ([e6686af](https://github.com/allxsmith/bestax/commit/e6686afa28d006120d5e0dd8181e61036d7fb075))
+
 ## [5.8.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.0...@allxsmith/bestax-bulma@5.8.1) (2026-08-07)
 
 
