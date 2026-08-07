@@ -53,9 +53,9 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. */
+  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. Dropped inside an outer `Field` (label that `Field` yourself). */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };

@@ -122,9 +122,12 @@ via `useBulmaClasses`.
 The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
 `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`) wires
 `htmlFor`/`id` automatically — your `id` is used when provided, a generated one otherwise,
-and an explicit `labelProps={{ htmlFor }}` wins. ⚠️ Manual wiring is still required when
-composing `Field` + bases yourself (`Field`'s own `label` associates nothing) and on the
-group/composite inputs (`Checkboxes`, `Radios`, `Autocomplete`, `Rate`, `Taginput`).
+and an explicit `labelProps={{ htmlFor }}` wins. The wiring only happens when the component
+renders its own `Field` (nested inside one, the `label` prop is dropped), and the date/time
+pickers skip it in `inline` mode (no visible input to label). ⚠️ Manual wiring is still
+required when composing `Field` + bases yourself (`Field`'s own `label` associates nothing)
+and on the group/composite inputs (`Checkboxes`, `Radios`, `Autocomplete`, `Rate`,
+`Taginput`).
 
 ## Convenience vs composed
 

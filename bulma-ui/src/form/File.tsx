@@ -22,9 +22,9 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. */
+  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself). */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };

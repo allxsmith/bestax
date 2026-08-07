@@ -16,11 +16,11 @@ import { useAutoLabelId } from './useAutoLabelId';
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
  */
 export interface DateInputProps extends DateInputBaseProps {
-  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (which renders no input). */
+  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: FieldProps['labelProps'];
   /** Render the field with horizontal layout. */
   horizontal?: boolean;

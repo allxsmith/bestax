@@ -14,11 +14,11 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Control-level (loading) props.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
-  /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. */
+  /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;

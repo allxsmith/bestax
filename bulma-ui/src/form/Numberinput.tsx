@@ -46,7 +46,7 @@ export interface NumberinputProps
     FormFieldProps {
   /** Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when no Field wrapper is rendered (inside a `Field`, or plusminus `bare`). */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association. */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };

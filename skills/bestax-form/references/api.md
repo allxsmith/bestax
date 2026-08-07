@@ -8,16 +8,16 @@ via `useBulmaClasses`.
 
 Container and layout. Compound parts: `Field.Label`, `Field.Body`.
 
-| Prop                    | Type                                              | Notes                                                                                                       |
-| ----------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `horizontal`            | `boolean`                                         | Label + control side by side. Auto-wraps children in `Field.Body`.                                          |
-| `grouped`               | `boolean \| 'centered' \| 'right' \| 'multiline'` | Controls in a row.                                                                                          |
-| `hasAddons`             | `boolean \| 'centered' \| 'right'`                | Attached controls.                                                                                          |
-| `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).                                                      |
-| `label`                 | `ReactNode`                                       | Convenience label.                                                                                          |
-| `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                                                                 |
-| `labelProps`            | label attributes                                  | Props for the `<label>` — where `htmlFor` goes when composing; the convenience inputs set it automatically. |
-| `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                |
+| Prop                    | Type                                              | Notes                                                                                                                                                                         |
+| ----------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal`            | `boolean`                                         | Label + control side by side. Auto-wraps children in `Field.Body`.                                                                                                            |
+| `grouped`               | `boolean \| 'centered' \| 'right' \| 'multiline'` | Controls in a row.                                                                                                                                                            |
+| `hasAddons`             | `boolean \| 'centered' \| 'right'`                | Attached controls.                                                                                                                                                            |
+| `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).                                                                                                                        |
+| `label`                 | `ReactNode`                                       | Convenience label.                                                                                                                                                            |
+| `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                                                                                                                                   |
+| `labelProps`            | label attributes                                  | Props for the `<label>` — where `htmlFor` goes when composing; the convenience inputs set it automatically when they render their own `Field` (except `inline` picker modes). |
+| `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                                                                                  |
 
 ## Control — `form/Control.tsx`
 

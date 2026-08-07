@@ -24,7 +24,7 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically via their own `label` prop). */
+  /** Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically when they render their own `Field`). */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
