@@ -109,7 +109,7 @@ describe('colorDeprecations', () => {
       }
     });
 
-    it('treats a missing process global as development', () => {
+    it('stays silent when the process global is missing (fail closed)', () => {
       const descriptor = Object.getOwnPropertyDescriptor(
         globalThis,
         'process'
@@ -120,9 +120,20 @@ describe('colorDeprecations', () => {
       });
       try {
         warnUnstyledColor('Progress', 'grey');
-        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).not.toHaveBeenCalled();
       } finally {
         Object.defineProperty(globalThis, 'process', descriptor);
+      }
+    });
+
+    it('warns in an explicit development environment', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      try {
+        warnUnstyledColor('Progress', 'grey');
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        process.env.NODE_ENV = previous;
       }
     });
   });

@@ -26,12 +26,19 @@ export const resetColorDeprecationWarnings = (): void => {
   warnedKeys.clear();
 };
 
-// `process` may not exist for CDN/no-bundler consumers; treat that as dev.
-// Read via globalThis because the library tsconfig has no Node types.
+// Local declaration because the library tsconfig has no Node types. The
+// reference must stay a bare `process.env.NODE_ENV` so bundlers can replace
+// it statically.
+declare const process: { env: { NODE_ENV?: string } };
+
+// Fail closed: with no bundler and no Node (raw CDN ESM), reading `process`
+// throws and warnings stay off, so production can never warn by accident.
 const isDev = (): boolean => {
-  const env = (globalThis as { process?: { env?: { NODE_ENV?: string } } })
-    .process?.env;
-  return env?.NODE_ENV !== 'production';
+  try {
+    return process.env.NODE_ENV !== 'production';
+  } catch {
+    return false;
+  }
 };
 
 const warnOnce = (key: string, message: string): void => {
