@@ -101,6 +101,30 @@ overrides:
   # its line resolves to >=3.15.1 / >=4.3.1 without the force.
   'js-yaml@3': '>=3.15.1 <4'
   'js-yaml@4': '>=4.3.1 <5'
+  # Force patched nanoid under the vite>postcss chain (storybook build
+  # tooling) — high advisory GHSA-2v37-7h3g-55p8: custom generators can loop
+  # indefinitely when size is zero. The patched 3.3.17 (2026-08-03) clears the
+  # cooldown and postcss's ^3.3.16 admits it — the lockfile just predates it.
+  # Scoped to the 3.x major (the only copy in the tree; the 4.x/5.x line has
+  # its own patch at 5.1.6 if a consumer ever appears). Prune once the chain
+  # resolves to >=3.3.17 without the force.
+  'nanoid@3': '>=3.3.17 <4'
+
+# --- Audit exceptions (no patched release exists) ---
+
+# image-size <=2.0.2 carries two high DoS advisories (infinite loops in the
+# ICNS, JXL, and HEIF parsers): GHSA-w3rx-r6r6-pgpr and GHSA-5p2g-fcmc-qvqq.
+# GitHub lists no patched release for either (`first_patched_version: null`;
+# the ">=2.0.3" in audit output is unpublished) and npm's latest is still
+# 2.0.2, so there is no version an override could force. Exposure is confined
+# to the docs build: Docusaurus's mdx-loader sizes images from this repo's own
+# tree, never untrusted input. Remove both entries and re-run
+# `pnpm audit --audit-level=high` once a patched image-size publishes and the
+# Docusaurus chain resolves to it.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-w3rx-r6r6-pgpr
+    - GHSA-5p2g-fcmc-qvqq
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
