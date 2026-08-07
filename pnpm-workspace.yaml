@@ -32,11 +32,6 @@ minimumReleaseAge: 4320
 # (which would cause recurring reformat churn). Not shipped to users.
 minimumReleaseAgeExclude:
   - prettier
-  # undici 7.29.0 (published 2026-08-03) is the only release patching
-  # GHSA-4cwx-7wf7-3272 and is younger than the cooldown. Exact-version
-  # selector so no other undici release skips the cooldown; drop this entry
-  # once 7.29.0 is older than the cooldown (after 2026-08-06).
-  - 'undici@7.29.0'
 
 # Pin a single prettier version workspace-wide so eslint-plugin-prettier and
 # `prettier --check` never disagree (patch versions format union types
@@ -96,6 +91,16 @@ overrides:
   # Prune both once the plugin widens its ranges again.
   'minimatch@9': '>=9.0.7 <10'
   'yaml@2': '>=2.8.3'
+  # Force patched js-yaml per major — high advisory GHSA-5p4m-2wfm-xmqj
+  # (CVE-2026-59870): quadratic CPU consumption resolving !!omap. The 3.x copy
+  # rides the jest coverage chain (babel-plugin-istanbul >
+  # @istanbuljs/load-nyc-config); the 4.x copies ride cosmiconfig (commitlint,
+  # semantic-release) and the Docusaurus frontmatter pipeline. Both patched
+  # releases (2026-07-31) are already older than the cooldown, and every parent
+  # range admits them — the lockfile just predates them. Prune each entry once
+  # its line resolves to >=3.15.1 / >=4.3.1 without the force.
+  'js-yaml@3': '>=3.15.1 <4'
+  'js-yaml@4': '>=4.3.1 <5'
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
