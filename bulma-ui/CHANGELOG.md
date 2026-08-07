@@ -1,3 +1,95 @@
+## [5.8.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.0...@allxsmith/bestax-bulma@5.8.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give the kitchen-sink e2e a per-process scratch dir ([2211ea5](https://github.com/allxsmith/bestax/commit/2211ea514475f6cc2de7c60c1433b1797cb02199))
+* **bestax-migrate:** reject pnpm's workspace alias form instead of unwrapping it ([de6a900](https://github.com/allxsmith/bestax/commit/de6a90081c749ca8e3a761ce9cb9c1bee9e2386a))
+* **bestax-migrate:** require the pack script to exist, not just be named ([5315efe](https://github.com/allxsmith/bestax/commit/5315efe86c89205dc4ac97ec94f89b853832b696))
+* **bestax-migrate:** resolve bare workspace: and guard the catalog: protocol ([7fda9db](https://github.com/allxsmith/bestax/commit/7fda9dbd1537439edc9ec694a9a9d140c2bfc467)), closes [#417](https://github.com/allxsmith/bestax/issues/417) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** resolve workspace: specifiers before publishing ([782829a](https://github.com/allxsmith/bestax/commit/782829a7672e3a44827b53651b738ff37b3581b7)), closes [bestax-migrate#test](https://github.com/bestax-migrate/issues/test) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** stop the pack hooks excusing a catalog: devDependency ([4127ead](https://github.com/allxsmith/bestax/commit/4127ead622f052808ae17644f06af2b77ae89c56)), closes [#412-shaped](https://github.com/allxsmith/bestax/issues/412-shaped)
+* **bulma-ui:** deprecate CSS-less color values, warn in dev, fix has-text fall-through ([fb111eb](https://github.com/allxsmith/bestax/commit/fb111eb9f08a412821efe07a77e2ba29ee9993b8))
+* **bulma-ui:** fail closed on missing process and scope color guidance to real props ([117c0c0](https://github.com/allxsmith/bestax/commit/117c0c08b5f16ad36d7e402aa714f886a7a9ef3e))
+* **create-bestax:** concrete inline-style → helper-prop mapping for the never-inline rule ([#357](https://github.com/allxsmith/bestax/issues/357)) ([5f72a90](https://github.com/allxsmith/bestax/commit/5f72a90eea06162f4fd5260587098df919ddc4fc)), closes [#350](https://github.com/allxsmith/bestax/issues/350) [#350](https://github.com/allxsmith/bestax/issues/350)
+* **create-bestax:** validate at submit in the bestax-form signup example ([0b9518f](https://github.com/allxsmith/bestax/commit/0b9518f595932182cabce5160892730079aed51c))
+* **create-bestax:** wire labeled controls in the skill showcase story ([af49a16](https://github.com/allxsmith/bestax/commit/af49a160961f09047fad1b152115ee5623d3a0ae))
+* **docs:** announce the hero copy, and stop remounting the icons ([98e2cb0](https://github.com/allxsmith/bestax/commit/98e2cb0236b68d0af54db7e8429f309d3b4cb325)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** correct the frozen-install translation and reject leaked fences ([1883de3](https://github.com/allxsmith/bestax/commit/1883de3ddea548e13e022a8f40787cf9624de243))
+* **docs:** drop dead nomodule ionicons fallback ([82be3e4](https://github.com/allxsmith/bestax/commit/82be3e4a1cefb5c72c79d5a30a06d013bb18cdd1))
+* **docs:** harden PackageManagerTabs and document how to author it ([5b0d3e6](https://github.com/allxsmith/bestax/commit/5b0d3e68389998b35a436ab6e90cc46e68949a37)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** harden the hero copy button and share the tab storage key ([9e16cd7](https://github.com/allxsmith/bestax/commit/9e16cd7e9bdd97f7ac6707a74debe2fbc6295d4c))
+* **docs:** make the hero package-manager switcher a real radiogroup ([aa14ff2](https://github.com/allxsmith/bestax/commit/aa14ff25efba2312776a430ee88b5e34ecaf52db)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** stop cssnano stripping Font Awesome [@font-face](https://github.com/font-face), add [#3](https://github.com/allxsmith/bestax/issues/3) CSS framework blog post ([#401](https://github.com/allxsmith/bestax/issues/401)) ([5d114e1](https://github.com/allxsmith/bestax/commit/5d114e143e84a4898432e25f8a879f6b4851394c)), closes [#400](https://github.com/allxsmith/bestax/issues/400)
+
+
+### chore
+
+* **deps:** consolidate the dependabot backlog, require Node 22 in both CLIs ([#447](https://github.com/allxsmith/bestax/issues/447)) ([e68148c](https://github.com/allxsmith/bestax/commit/e68148cd3817482d7db21286ba39773ce4c2bf50)), closes [#427](https://github.com/allxsmith/bestax/issues/427) [#428](https://github.com/allxsmith/bestax/issues/428) [#431](https://github.com/allxsmith/bestax/issues/431) [#432](https://github.com/allxsmith/bestax/issues/432) [#440](https://github.com/allxsmith/bestax/issues/440) [#393](https://github.com/allxsmith/bestax/issues/393)
+
+
+### Features
+
+* **bestax-migrate:** require Node 22 and take chalk 6 ([#449](https://github.com/allxsmith/bestax/issues/449)) ([4c0e1e2](https://github.com/allxsmith/bestax/commit/4c0e1e2ad4d620b196ff8a0f8b635f5e2672a935)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+* **create-bestax:** add controlled-Burger Navbar to the landing archetype ([#355](https://github.com/allxsmith/bestax/issues/355)) ([36d4d09](https://github.com/allxsmith/bestax/commit/36d4d094ab1103618a8f4a92ed8e4bb656c83452)), closes [#348](https://github.com/allxsmith/bestax/issues/348)
+* **create-bestax:** agent-validated guidance for skills, scaffold CLAUDE.md, and catalog ([#365](https://github.com/allxsmith/bestax/issues/365)) ([6fd06ae](https://github.com/allxsmith/bestax/commit/6fd06ae969da99d11d677be462fd4ceee29fd5ac)), closes [#2](https://github.com/allxsmith/bestax/issues/2)
+* **create-bestax:** require Node 22 and take chalk 6 ([#448](https://github.com/allxsmith/bestax/issues/448)) ([90fced2](https://github.com/allxsmith/bestax/commit/90fced292ffa3433159270a2267dcf18265d791e)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+* **create-bestax:** set scaffolded index.html title to the project name ([#356](https://github.com/allxsmith/bestax/issues/356)) ([3bfbea3](https://github.com/allxsmith/bestax/commit/3bfbea371f33cc969892bea4796fd58da2890201)), closes [#349](https://github.com/allxsmith/bestax/issues/349) [#349](https://github.com/allxsmith/bestax/issues/349)
+* **docs:** add package-manager switches to the homepage hero ([374caf8](https://github.com/allxsmith/bestax/commit/374caf8a147c1a132655522661f1899a83ce3856))
+* **docs:** add PackageManagerTabs and register it globally ([23c9989](https://github.com/allxsmith/bestax/commit/23c998921c6ca4887c5b387951009b74a26f62eb))
+* **docs:** show all posts in the blog sidebar ([d29e9c6](https://github.com/allxsmith/bestax/commit/d29e9c659088dc9f2dcb147c9f138d6cbdfcc67a))
+
+
+### Performance Improvements
+
+* **docs:** defer live previews until they scroll into view ([d6bf87b](https://github.com/allxsmith/bestax/commit/d6bf87b0311d51e1e125ef1a04f92acd4abc989d))
+* **docs:** share one parsed stylesheet set across every live preview ([feb993a](https://github.com/allxsmith/bestax/commit/feb993acb2f90ad523cf49d2562bd8a06fe540dc))
+
+
+### BREAKING CHANGES
+
+* **bestax-migrate:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1. This applies to the runtime the codemod executes
+on, not to the app being migrated.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **create-bestax:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **deps:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+
+* feat(bestax-migrate): require Node 22 and take chalk 6
+
+chalk 6 drops support for Node below 22. The API surface this package uses is
+unchanged, so no calling code changes.
+
+The version guard in src/index.ts moves ahead of every import and no longer
+depends on anything: import declarations are hoisted and evaluated before any
+statement in the module, and chalk 6 itself requires Node >= 22, so a static
+import would fail to load on exactly the runtimes the guard exists to catch.
+./cli.js is now imported dynamically for the same reason.
+
+@babel/parser deliberately stays on 7.x. Babel 8 removes the
+`deprecatedImportAssert` plugin with no replacement, and this package parses
+the legacy `import x from 'y' assert { type: 'json' }` form on purpose — a
+codemod that migrates older codebases must not crash on the syntax those
+codebases still contain. There is a regression test for it ("parses the legacy
+import-assert syntax"), which Babel 8 fails outright. jscodeshift 17 bundles
+its own Babel 7 regardless, so staying on 7 also keeps a single parser in the
+tree rather than two.
+* **deps:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+
 # [5.8.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.7.0...@allxsmith/bestax-bulma@5.8.0) (2026-07-22)
 
 
