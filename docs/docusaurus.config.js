@@ -55,6 +55,8 @@ const config = {
         },
         blog: {
           showReadingTime: true,
+          blogSidebarCount: 'ALL',
+          blogSidebarTitle: 'All posts',
           // Docusaurus globs every markdown file in blog/ as a post. Keep the
           // default exclusions and also skip CLAUDE.md (an agent runbook that
           // lives in blog/, not a post).

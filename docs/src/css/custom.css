@@ -71,7 +71,7 @@ pre.prism-code {
 }
 
 /* "The State of React" comparison posts: give the wide table room by
-   collapsing the blog "Recent posts" sidebar. The right-hand table of contents
+   collapsing the blog "All posts" sidebar. The right-hand table of contents
    is removed per-post via `hide_table_of_contents: true` in the frontmatter.
    Scoped with :has() to posts that actually render <ComponentComparison /> (the
    `.sor-comparison` root), so it is flash-free (present at SSR) and never
