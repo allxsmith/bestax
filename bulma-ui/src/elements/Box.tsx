@@ -18,7 +18,12 @@ export interface BoxProps
   className?: string;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the box. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled box variant (no `.box.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -39,6 +44,7 @@ export interface BoxProps
 export const Box: React.FC<BoxProps> = ({
   className,
   textColor,
+  color,
   bgColor,
   hasShadow = true,
   children,
@@ -48,7 +54,7 @@ export const Box: React.FC<BoxProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

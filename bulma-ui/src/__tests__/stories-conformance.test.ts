@@ -20,8 +20,6 @@ const LEGACY_EXEMPT = new Set<string>([
   'elements/Icon.stories.tsx',
   'elements/IconText.stories.tsx',
   'elements/Image.stories.tsx',
-  'elements/Notification.stories.tsx',
-  'elements/Progress.stories.tsx',
   'elements/SubTitle.stories.tsx',
   'elements/Table.stories.tsx',
   'elements/Tag.stories.tsx',

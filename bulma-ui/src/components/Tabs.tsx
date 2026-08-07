@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import { Icon } from '../elements/Icon';
 
 // ---------------------------------------------------------------------------
@@ -42,7 +43,14 @@ export interface TabsProps
   toggle?: boolean;
   /** Tabs use the rounded toggle style (only with `toggle`). */
   rounded?: boolean;
-  /** Bulma color for tab underlines and active state. */
+  /**
+   * Bulma color for tab underlines and active state (renders `is-<color>`).
+   *
+   * Bulma ships no tabs color CSS, so this prop has never had a visual effect
+   * for any value. Passing it logs a console warning in development.
+   * @deprecated No `.tabs.is-<color>` CSS exists; the prop renders unstyled
+   * and will be removed in the next major version.
+   */
   color?:
     | 'primary'
     | 'link'
@@ -111,6 +119,12 @@ const TabsComponent: React.FC<TabsProps> = ({
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Tabs',
+    color,
+    'Remove the prop; no replacement exists.'
+  );
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
 
   // Controlled vs uncontrolled state

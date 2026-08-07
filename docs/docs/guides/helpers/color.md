@@ -72,7 +72,14 @@ Use the `color` prop to apply text colors to any component. The color prop accep
 ### Example Usage
 
 ```tsx live
-import { Title, SubTitle, Button, Buttons, Box } from '@allxsmith/bestax-bulma';
+import {
+  Title,
+  SubTitle,
+  Button,
+  Buttons,
+  Box,
+  Span,
+} from '@allxsmith/bestax-bulma';
 
 function ColorExamples() {
   return (
@@ -87,9 +94,9 @@ function ColorExamples() {
       </Buttons>
 
       <p>
-        <span color="grey">Grey text </span>
-        <span color="black">Black text </span>
-        <span color="white">White text</span>
+        <Span textColor="grey">Grey text </Span>
+        <Span textColor="black">Black text </Span>
+        <Span textColor="white">White text</Span>
       </p>
     </Box>
   );
@@ -147,15 +154,15 @@ import { Box, Notification, Card } from '@allxsmith/bestax-bulma';
 function BackgroundColorExamples() {
   return (
     <div>
-      <Box backgroundColor="primary" color="white" p="4" mb="3">
+      <Box backgroundColor="primary" textColor="white" p="4" mb="3">
         Primary background with white text
       </Box>
 
-      <Box backgroundColor="info" color="white" p="4" mb="3">
+      <Box backgroundColor="info" textColor="white" p="4" mb="3">
         Info background with white text
       </Box>
 
-      <Notification backgroundColor="success" color="white">
+      <Notification backgroundColor="success" textColor="white">
         Success notification with custom colors
       </Notification>
 

@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import Hero, { HeroHead, HeroBody, HeroFoot } from '../Hero';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 describe('Hero', () => {
   it('renders children', () => {
@@ -233,5 +234,51 @@ describe('Compound components', () => {
     expect(container.querySelector('.hero-foot')).toHaveTextContent(
       'Foot content'
     );
+  });
+});
+
+describe('Hero deprecated color values', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('still emits is-grey-darker on the root but warns once', () => {
+    const { container, rerender } = render(
+      <Hero color="grey-darker">Content</Hero>
+    );
+    expect(container.querySelector('.hero')).toHaveClass('is-grey-darker');
+    rerender(<Hero color="grey-darker">Content</Hero>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('<Hero color="grey-darker">')
+    );
+  });
+
+  it('warns for inherit on the root', () => {
+    render(<Hero color="inherit">Content</Hero>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('is-inherit'));
+  });
+
+  it('does not warn for a CSS-backed color on the root', () => {
+    render(<Hero color="primary">Content</Hero>);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not warn for grey on Hero.Body, which is a text helper', () => {
+    const { container } = render(
+      <Hero>
+        <HeroBody color="grey">Body</HeroBody>
+      </Hero>
+    );
+    expect(container.querySelector('.hero-body')).toHaveClass('has-text-grey');
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

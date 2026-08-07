@@ -16,29 +16,35 @@ const meta: Meta<typeof Progress> = {
         'warning',
         'danger',
         'black',
-        'black-bis',
-        'black-ter',
-        'grey-darker',
-        'grey-dark',
-        'grey',
-        'grey-light',
-        'grey-lighter',
         'white',
         'light',
         'dark',
       ],
+      description:
+        'Bulma color modifier (`is-<color>`); only CSS-backed values are listed.',
     },
     size: {
       control: 'select',
       options: ['small', 'medium', 'large'],
+      description: 'Size modifier for the progress bar.',
     },
-    value: { control: { type: 'range', min: 0, max: 100, step: 1 } },
-    max: { control: { type: 'number', min: 1 } },
+    value: {
+      control: { type: 'range', min: 0, max: 100, step: 1 },
+      description: 'Current value of the progress bar.',
+    },
+    max: {
+      control: { type: 'number', min: 1 },
+      description: 'Maximum value of the progress bar.',
+    },
     m: {
       control: 'select',
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
+      description: 'Bulma margin helper.',
     },
-    className: { control: 'text' },
+    className: {
+      control: 'text',
+      description: 'Additional CSS classes.',
+    },
   },
 };
 

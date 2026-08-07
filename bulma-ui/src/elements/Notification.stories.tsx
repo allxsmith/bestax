@@ -32,25 +32,30 @@ const meta: Meta<typeof Notification> = {
         'warning',
         'danger',
         'black',
-        'black-bis',
-        'black-ter',
-        'grey-darker',
-        'grey-dark',
-        'grey',
-        'grey-light',
-        'grey-lighter',
         'white',
         'light',
         'dark',
       ],
+      description:
+        'Bulma color modifier (`is-<color>`); only CSS-backed values are listed.',
     },
-    isLight: { control: 'boolean' },
-    hasDelete: { control: 'boolean' },
+    isLight: {
+      control: 'boolean',
+      description: 'Use the light color variant.',
+    },
+    hasDelete: {
+      control: 'boolean',
+      description: 'Shows a close (delete) button in the notification.',
+    },
     m: {
       control: 'select',
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],
+      description: 'Bulma margin helper.',
     },
-    className: { control: 'text' },
+    className: {
+      control: 'text',
+      description: 'Additional CSS classes.',
+    },
   },
 };
 

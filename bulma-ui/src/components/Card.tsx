@@ -24,7 +24,12 @@ export interface CardProps
   className?: string;
   /** Text color for the card. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the card. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled card variant (no `.card.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color for the card. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -101,6 +106,7 @@ const CardComponent: React.FC<CardProps> = ({
   className,
   children,
   textColor,
+  color,
   bgColor,
   hasShadow = true,
   header,
@@ -113,7 +119,7 @@ const CardComponent: React.FC<CardProps> = ({
 }) => {
   const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

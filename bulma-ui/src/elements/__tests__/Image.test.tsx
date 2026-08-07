@@ -192,3 +192,17 @@ describe('Image Component', () => {
     });
   });
 });
+
+describe('Image color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Image color="primary" />);
+    expect(container.querySelector('.image')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(<Image textColor="danger" color="primary" />);
+    const figure = container.querySelector('.image');
+    expect(figure).toHaveClass('has-text-danger');
+    expect(figure).not.toHaveClass('has-text-primary');
+  });
+});

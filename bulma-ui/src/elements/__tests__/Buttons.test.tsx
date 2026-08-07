@@ -181,3 +181,25 @@ describe('Compound components', () => {
     expect(screen.getByRole('button', { name: 'Docs' })).toHaveClass('button');
   });
 });
+
+describe('Buttons color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(
+      <Buttons color="primary">
+        <Button>One</Button>
+      </Buttons>
+    );
+    expect(container.querySelector('.buttons')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <Buttons textColor="danger" color="primary">
+        <Button>One</Button>
+      </Buttons>
+    );
+    const buttons = container.querySelector('.buttons');
+    expect(buttons).toHaveClass('has-text-danger');
+    expect(buttons).not.toHaveClass('has-text-primary');
+  });
+});

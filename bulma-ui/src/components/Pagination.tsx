@@ -6,6 +6,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 
 /**
  * Props for the Pagination component.
@@ -14,7 +15,15 @@ export interface PaginationProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Color modifier for the pagination. */
+  /**
+   * Color modifier for the pagination (renders `is-<color>`).
+   *
+   * Bulma ships no pagination color CSS, so this prop has never had a visual
+   * effect for any value. Passing it logs a console warning in development.
+   * Use `textColor` / `bgColor` instead.
+   * @deprecated No `.pagination.is-<color>` CSS exists; the prop renders
+   * unstyled and will be removed in the next major version.
+   */
   color?:
     | 'primary'
     | 'link'
@@ -149,6 +158,12 @@ const PaginationComponent: React.FC<PaginationProps> = ({
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Pagination',
+    color,
+    'Use the textColor / bgColor helper props instead.'
+  );
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

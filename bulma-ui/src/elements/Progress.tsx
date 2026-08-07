@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { warnUnstyledColor } from '../helpers/colorDeprecations';
 
 /**
  * Props for the Progress component.
@@ -15,7 +16,16 @@ export interface ProgressProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Bulma color modifier for the progress bar. */
+  /**
+   * Bulma color modifier for the progress bar (renders `is-<color>`).
+   *
+   * Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`,
+   * `white`, `light`, and `dark` have shipped CSS for `.progress`. The other
+   * accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`,
+   * `grey`, `grey-light`, `grey-lighter`) emit a class no CSS rule matches, so
+   * the bar renders unstyled; they log a console warning in development and
+   * will be removed from this union in the next major version.
+   */
   color?: (typeof validColors)[number];
   /** Size modifier for the progress bar. */
   size?: 'small' | 'medium' | 'large';
@@ -44,6 +54,8 @@ export const Progress: React.FC<ProgressProps> = ({
   children,
   ...props
 }) => {
+  warnUnstyledColor('Progress', color);
+
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */

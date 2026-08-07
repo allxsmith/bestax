@@ -298,16 +298,16 @@ For star ratings or icon lists, use `items` with `iconProps` and optional `text`
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                               |
-| ----------- | ------------------------------------------------------------------------------- | ------- | --------------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                          |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                        |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the icon text group.             |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                  |
-| `iconProps` | `IconProps`                                                                     | —       | Props for a single Icon component (for single icon mode). |
-| `children`  | `React.ReactNode`                                                               | —       | Text for a single icon (for single icon mode).            |
-| `items`     | `{ iconProps: IconProps; text?: string }[]`                                     | —       | Array of icon/text pairs (for multiple icons mode).       |
-| `...`       | All standard `<span>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)         |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                         |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                       |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.icon-text.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface. |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                                                                                                                                                                                 |
+| `iconProps` | `IconProps`                                                                     | —       | Props for a single Icon component (for single icon mode).                                                                                                                                                                                |
+| `children`  | `React.ReactNode`                                                               | —       | Text for a single icon (for single icon mode).                                                                                                                                                                                           |
+| `items`     | `{ iconProps: IconProps; text?: string }[]`                                     | —       | Array of icon/text pairs (for multiple icons mode).                                                                                                                                                                                      |
+| `...`       | All standard `<span>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                        |
 
 **Subcomponents:**
 

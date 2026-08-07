@@ -18,7 +18,12 @@ interface ButtonsProps
   className?: string;
   /** Text color helper for the button group. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the button group. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.buttons.is-<color>` CSS exists; color the
+   * individual `Button`s instead). Prefer `textColor`, which takes precedence
+   * when both are set; use `bgColor` for a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper for the button group. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -43,6 +48,7 @@ interface ButtonsProps
 const ButtonsComponent: React.FC<ButtonsProps> = ({
   className,
   textColor,
+  color,
   bgColor,
   isCentered,
   isRight,
@@ -60,7 +66,7 @@ const ButtonsComponent: React.FC<ButtonsProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

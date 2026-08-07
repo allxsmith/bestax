@@ -60,7 +60,7 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 
 | Prop                   | Type                                                                         |
 | ---------------------- | ---------------------------------------------------------------------------- |
-| `color`                | Bulma color                                                                  |
+| `color`                | Bulma color (greys/`inherit`/`current` are deprecated: no CSS, dev-warn)     |
 | `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'` |
 | `fullheightWithNavbar` | `boolean`                                                                    |
 

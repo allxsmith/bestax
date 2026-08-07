@@ -1166,3 +1166,21 @@ describe('Card - Advanced Integration Tests', () => {
     expect(card).toHaveClass('has-text-centered');
   });
 });
+
+describe('Card color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Card color="primary">Content</Card>);
+    expect(container.querySelector('.card')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <Card textColor="danger" color="primary">
+        Content
+      </Card>
+    );
+    const card = container.querySelector('.card');
+    expect(card).toHaveClass('has-text-danger');
+    expect(card).not.toHaveClass('has-text-primary');
+  });
+});

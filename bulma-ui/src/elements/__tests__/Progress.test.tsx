@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Progress, ProgressProps } from '../Progress';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 describe('Progress Component', () => {
   const defaultProps: ProgressProps = {
@@ -123,5 +124,44 @@ describe('Progress Component', () => {
       expect(progress).toHaveClass('is-medium');
       expect(progress).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Progress deprecated color values', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  test('still emits is-grey but warns once in development', () => {
+    const { rerender } = render(<Progress value={50} max={100} color="grey" />);
+    expect(screen.getByRole('progressbar')).toHaveClass('is-grey');
+    rerender(<Progress value={50} max={100} color="grey" />);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('<Progress color="grey">')
+    );
+  });
+
+  test('does not warn for a CSS-backed color', () => {
+    render(<Progress value={50} max={100} color="primary" />);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  test('does not warn in production', () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      render(<Progress value={50} max={100} color="grey" />);
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
   });
 });
