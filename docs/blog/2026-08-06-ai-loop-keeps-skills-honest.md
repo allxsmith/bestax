@@ -24,7 +24,7 @@ The fight itself is quick to retell. bestax is our React component library for B
 
 A skill is a folder of instructions and reference files a coding agent loads before it works. Documentation tells an agent what exists; a skill tells it how we actually build things. bestax ships [seven](/docs/skills/intro): page layouts, forms, theming, icons, custom components, CSS optimization, and migrating off an older Bulma library.
 
-They aren't an internal experiment, either. Every app scaffolded with `npm create bestax@latest` gets the bundle preinstalled, and one `npx skills add` command drops them into any existing project. That makes them a product, and products meet reality: people install them, hit the gaps, and [file them as bugs](https://github.com/allxsmith/bestax/issues/196). Good. A skill that teaches a wrong pattern is worse than no skill at all, because it teaches that mistake to every agent that loads it. It's why skill bugs get a particular kind of fix around here: repair the guidance that produced the bad output, not just the example that exposed it.
+They aren't an internal experiment, either. Every app scaffolded with `npm create bestax@latest` gets the bundle preinstalled, and `npx skills add` installs any of them into an existing project. That makes them a product, and products meet reality: people install them, hit the gaps, and [file them as bugs](https://github.com/allxsmith/bestax/issues/196). Good. A skill that teaches a wrong pattern is worse than no skill at all, because it teaches that mistake to every agent that loads it. It's why skill bugs get a particular kind of fix around here: repair the guidance that produced the bad output, not just the example that exposed it.
 
 But bug reports only tell you where a skill failed someone. They can't tell you whether the skills work at all. For that, we built an exam.
 
@@ -62,7 +62,7 @@ Two disciplines kept the selection honest. The yardstick never moved: improvemen
 
 One lesson from those generations transfers to anyone writing guidance for agents: **placement beats content**. Facts that lived on surfaces the agent always loads held in every generation that followed. Facts one reference-hop away failed randomly, even when the agent read the pointer to them. If an agent must know something every time, put it where the agent already is.
 
-And that's what "accelerated" means here. The slow version of this loop exists everywhere: ship guidance, wait months for bug reports, fix, wait again. Model training is slower still; a fix in our skills reaches agents today, while a fix in training data reaches them a model from now. The loop compresses a feedback cycle we don't control into one we run on a schedule, ten generations for the price of a script.
+And that's what "accelerated" means here. The slow version of this loop exists everywhere: ship guidance, wait months for bug reports, fix, wait again. Model training is slower still; a fix in our skills reaches agents today, while a fix in training data doesn't reach them until the next model ships. The loop compresses a feedback cycle we don't control into one we run on a schedule, ten generations for the price of a script.
 
 ## Runs You Can Watch
 
@@ -94,4 +94,4 @@ A working loop's best output isn't the score; it's the to-do list. The ten gener
 
 The honest limits, straight from the harness's own docs: one brief, one model, ten runs, and single-run scores swung by six points on identical tooling, so one run is one sample and trends need several. That's fine. The yardstick is built, the baseline is recorded, and the next loop starts where this one stopped: swap the brief or the model, freeze everything else, and evolve again.
 
-That's the whole story. Training bias made our library invisible to agents, so we [made it legible](/blog/fighting-ai-training-bias) and taught the technique with skills. The exam made the skills provable. Evolution, run fast, keeps making them better. If you want the skills in your own agent, the last post has every entrypoint, and the [tracker](https://github.com/allxsmith/bestax/issues/384) is where the next generation lands.
+That's the whole story. Training bias made our library invisible to agents, so we [made it legible](/blog/fighting-ai-training-bias) and taught the technique with skills. The exam made the skills provable. Accelerated evolution keeps making them better. If you want the skills in your own agent, the last post has every entrypoint, and the [tracker](https://github.com/allxsmith/bestax/issues/384) is where the next generation lands.
