@@ -26,11 +26,16 @@ name: Claude Repro
 #
 #       Be precise about what that buys: it raises the cost of the naive path and
 #       converts it into a failed build, but an encoding check cannot be complete
-#       (chunk it, reverse it, rot13 it). I1's real strength is the combination —
-#       no execution primitive, harden-runner egress block, and the token never
-#       sharing a job with the publish step — with the credential check as the
-#       last line rather than the first. Do not weaken any of the others on the
-#       grounds that the check exists.
+#       (chunk it, reverse it, rot13 it). I1's real strength is the combination of
+#       no execution primitive and the token never sharing a job with the publish
+#       step, with the credential check as the last line rather than the first. Do
+#       not weaken either of those on the grounds that the check exists.
+#
+#       That list used to name harden-runner's egress block as a third leg. It is
+#       not one, and never has been: the policy declared below silently degrades
+#       to audit on every run in this repo (#487). I1 rests on two controls today,
+#       not three. Both are real and both still hold, which is why #487 is a
+#       defense-in-depth regression rather than an open exfil path.
 #   I2  No attacker- or Claude-authored free text reaches a comment un-neutralized
 #       AND with a re-trigger-capable identity. The `publish` job deterministically
 #       defangs machine markers / @mentions in the drafted test, then posts it via
@@ -122,10 +127,13 @@ jobs:
       result: ${{ steps.draft.outputs.result }}
       test: ${{ steps.draft.outputs.test }}
     steps:
-      # Egress-block is defense-in-depth here (Claude has no tool that opens a
-      # socket). The allowlist covers the Claude action's runtime + gh; it is
-      # additive to harden-runner's built-in GitHub Actions baseline. Tighten from
-      # the first run's network report if any host proves unused.
+      # Egress-block would be defense-in-depth here (Claude has no tool that opens
+      # a socket), but it is not in effect: harden-runner degrades `block` to
+      # `audit` on every run in this repo (#487). Left declared so the intent stays
+      # recorded and closing #487 needs no change here. The allowlist is additive
+      # to harden-runner's GitHub Actions baseline and is NOT currently complete:
+      # a real session reaches three hosts it does not list (#487 has the set), so
+      # it must be widened before enforcement is switched on.
       - name: Harden runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
@@ -268,10 +276,11 @@ jobs:
             # Literal, plus the two encodings a drafter would reach for first.
             # This raises the cost of exfil; it is NOT a proof. An encoding check
             # can never be complete — chunked, reversed, rot13 or arithmetic
-            # encodings all defeat it. The real controls are the tool restriction
-            # (no Bash/gh/Task) and harden-runner's egress block; this catches the
-            # naive path and turns it into a failed build instead of a public
-            # comment.
+            # encodings all defeat it. The real control is the tool restriction
+            # (no Bash/gh/Task); this catches the naive path and turns it into a
+            # failed build instead of a public comment. Egress-block was named
+            # here as the second real control and it is not in effect (#487),
+            # which leaves the tool restriction carrying that weight alone.
             for secret in "$OAUTH_TOKEN" "$JOB_TOKEN"; do
               [ -n "$secret" ] || continue
               B64=$(printf '%s' "$secret" | base64 | tr -d '\n=')

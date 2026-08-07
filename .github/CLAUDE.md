@@ -67,6 +67,12 @@ regardless of how convenient it is.
   execute. Note the direction of the guarantee — it raises the cost of exfiltration, it is not a
   proof. The credential-shape check in `Collect draft` (literal, base64, and hex forms) is a
   backstop for the same reason, and is documented as one.
+
+  I1 used to be described as resting on three legs, the third being harden-runner's egress
+  block. It rests on two. **No job in this repository enforces egress** — `block` silently
+  degrades to `audit` (#487) — so anywhere you are tempted to trade away a tool restriction
+  because "egress is blocked anyway", the trade is against nothing.
+
 - **I2 — no untrusted or model-authored free text reaches a re-trigger-capable identity.**
   Comments posted with `GITHUB_TOKEN` do not emit workflow events. Comments posted with a PAT
   **do**. So a drafted reproduction is sanitized deterministically and posted via
@@ -188,12 +194,29 @@ non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pn
 Two parsers are still inline and tracked in #454: the publish sanitizer and the scan-verdict
 parser.
 
-### 10. `harden-runner` on new jobs starts at `block`
+### 10. `harden-runner` on new jobs starts at `block`, and `block` does not currently mean block
 
 New jobs ship with `egress-policy: block`. An **existing** live job may be introduced at `audit`
 first, because flipping straight to block risks breaking it if the action's runtime egress needs
 an un-allow-listed host — but that is a temporary state that owes a follow-up issue, not a
-resting place. `ai-triage.yml` is currently the one job at `audit`.
+resting place.
+
+**Nothing in this repository is enforcing egress today.** harden-runner arms block mode by
+reading an Actions cache entry; GitHub made that cache read-only for untrusted triggers
+(`issues`, `issue_comment`, `pull_request` — i.e. every workflow here), and harden-runner fails
+**open** to `audit` on the resulting miss, announcing it with a single `core.info` line. Tracked
+in #487 with the fix and the measured endpoint list.
+
+Two things follow, and both matter more than the policy value in the YAML:
+
+- Never cite egress-block as a control in a comment, a PR description, or a review argument
+  until #487 closes. It is the exact failure the checklist below ends on.
+- The allowlists are stale as well as unenforced: a real session reaches three hosts none of
+  them list. Widening an allowlist is still a security change (rule 2), and #487 is where the
+  measured set lives.
+
+Verify rather than assume, on any run: harden-runner logs `Switching egress-policy to audit
+mode` in its pre-step, and its post-step prints the effective `EgressPolicy:`.
 
 ## Review checklist for a workflow change
 
