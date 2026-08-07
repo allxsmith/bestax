@@ -17,7 +17,12 @@ export interface ImageProps
   className?: string;
   /** Text color helper for the container. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the image container. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.image.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -72,6 +77,7 @@ export const Image: React.FC<ImageProps> = ({
   as,
   className,
   textColor,
+  color,
   bgColor,
   size,
   isRounded,
@@ -85,7 +91,7 @@ export const Image: React.FC<ImageProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

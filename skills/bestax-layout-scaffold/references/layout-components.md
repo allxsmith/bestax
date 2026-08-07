@@ -58,11 +58,11 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 
 `<Hero>` is a full-width banner. Subcomponents: `Hero.Head`, `Hero.Body`, `Hero.Foot`.
 
-| Prop                   | Type                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `color`                | Bulma color                                                                  |
-| `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'` |
-| `fullheightWithNavbar` | `boolean`                                                                    |
+| Prop                   | Type                                                                                                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color`                | `primary \| link \| info \| success \| warning \| danger \| black \| white \| light \| dark` (CSS-backed). Also accepted but deprecated, no CSS, dev-warn: `black-bis`, `black-ter`, the greys, `inherit`, `current` |
+| `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'`                                                                                                                                         |
+| `fullheightWithNavbar` | `boolean`                                                                                                                                                                                                            |
 
 ```tsx
 <Hero color="primary" size="medium">

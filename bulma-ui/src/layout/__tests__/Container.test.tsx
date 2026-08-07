@@ -158,3 +158,20 @@ describe('Container', () => {
     expect(container.firstChild).toHaveClass('has-background-info');
   });
 });
+
+describe('Container color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Container color="primary">C</Container>);
+    expect(container.firstChild).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <Container textColor="danger" color="primary">
+        C
+      </Container>
+    );
+    expect(container.firstChild).toHaveClass('has-text-danger');
+    expect(container.firstChild).not.toHaveClass('has-text-primary');
+  });
+});

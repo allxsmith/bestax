@@ -6,6 +6,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { warnUnstyledColor } from '../helpers/colorDeprecations';
 
 /**
  * Possible values for Bulma hero size.
@@ -22,7 +23,17 @@ export interface HeroProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
   className?: string;
-  /** Bulma color modifier for the hero section. */
+  /**
+   * Bulma color modifier for the hero section (renders `is-<color>`).
+   *
+   * Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`,
+   * `white`, `light`, and `dark` have shipped CSS for `.hero`. The other
+   * accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`,
+   * `grey`, `grey-light`, `grey-lighter`, `inherit`, `current`) emit a class
+   * no CSS rule matches, so the hero renders unstyled; they log a console
+   * warning in development and will be removed from this union in the next
+   * major version.
+   */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Hero size. */
   size?: HeroSize;
@@ -51,6 +62,8 @@ const HeroComponent: React.FC<HeroProps> = ({
   children,
   ...props
 }) => {
+  warnUnstyledColor('Hero', color, ['inherit', 'current']);
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     backgroundColor: bgColor,
     ...props,

@@ -31,21 +31,6 @@ const meta: Meta<typeof Tabs> = {
       control: 'select',
       options: ['small', 'medium', 'large'],
     },
-    color: {
-      control: 'select',
-      options: [
-        'primary',
-        'link',
-        'info',
-        'success',
-        'warning',
-        'danger',
-        'black',
-        'dark',
-        'light',
-        'white',
-      ],
-    },
   },
 };
 

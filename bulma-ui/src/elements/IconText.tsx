@@ -27,7 +27,12 @@ interface IconTextProps
   className?: string;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the icon text group. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.icon-text.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -50,6 +55,7 @@ interface IconTextProps
 const IconTextComponent: React.FC<IconTextProps> = ({
   className,
   textColor,
+  color,
   bgColor,
   iconProps,
   children,
@@ -60,7 +66,7 @@ const IconTextComponent: React.FC<IconTextProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

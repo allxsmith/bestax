@@ -7,6 +7,18 @@ import Pagination, {
   PaginationNext,
 } from '../Pagination';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
+
+let warnSpy: jest.SpyInstance;
+
+beforeEach(() => {
+  resetColorDeprecationWarnings();
+  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
+});
 
 describe('Pagination', () => {
   it('renders nav with pagination class', () => {
@@ -333,5 +345,21 @@ describe('Compound components', () => {
     expect(container.querySelector('.pagination-list')).toBeInTheDocument();
     expect(container.querySelectorAll('.pagination-link')).toHaveLength(2);
     expect(container.querySelector('.pagination-ellipsis')).toBeInTheDocument();
+  });
+});
+
+describe('Pagination deprecated color prop', () => {
+  it('warns once in development when color is passed', () => {
+    const { rerender } = render(<Pagination color="primary" />);
+    rerender(<Pagination color="danger" />);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Pagination "color" prop is deprecated')
+    );
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Pagination />);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

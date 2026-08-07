@@ -6,6 +6,7 @@ import {
   notification,
 } from '../Notification';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 describe('Notification Component', () => {
   const defaultProps: NotificationProps = {
@@ -482,5 +483,49 @@ describe('Notification Programmatic API', () => {
       });
       expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('Notification deprecated color values', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    notification.closeAll();
+    warnSpy.mockRestore();
+  });
+
+  test('still emits is-grey but warns once in development', () => {
+    const { rerender } = render(<Notification color="grey">Grey</Notification>);
+    expect(screen.getByText('Grey').closest('div')).toHaveClass('is-grey');
+    rerender(<Notification color="grey">Grey</Notification>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('<Notification color="grey">')
+    );
+  });
+
+  test('does not warn for a CSS-backed color', () => {
+    render(<Notification color="primary">Primary</Notification>);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  test('warns for a dead color through the programmatic API', () => {
+    render(<NotificationContainer />);
+    act(() => {
+      notification.show({
+        message: 'Programmatic',
+        color: 'grey-light',
+        duration: 0,
+      });
+    });
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('<Notification color="grey-light">')
+    );
   });
 });

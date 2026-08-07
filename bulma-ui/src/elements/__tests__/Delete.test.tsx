@@ -137,3 +137,17 @@ describe('Delete Component', () => {
     });
   });
 });
+
+describe('Delete color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Delete color="primary" />);
+    expect(container.querySelector('.delete')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(<Delete textColor="danger" color="primary" />);
+    const del = container.querySelector('.delete');
+    expect(del).toHaveClass('has-text-danger');
+    expect(del).not.toHaveClass('has-text-primary');
+  });
+});

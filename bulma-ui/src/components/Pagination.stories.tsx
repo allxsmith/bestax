@@ -55,27 +55,6 @@ export const Sizes: Story = {
   ),
 };
 
-export const Colors: Story = {
-  render: () => (
-    <>
-      <Pagination color="primary" style={{ marginBottom: 8 }}>
-        <Pagination.List>
-          <Pagination.Link>1</Pagination.Link>
-          <Pagination.Link active>2</Pagination.Link>
-          <Pagination.Link>3</Pagination.Link>
-        </Pagination.List>
-      </Pagination>
-      <Pagination color="danger">
-        <Pagination.List>
-          <Pagination.Link>1</Pagination.Link>
-          <Pagination.Link active>2</Pagination.Link>
-          <Pagination.Link>3</Pagination.Link>
-        </Pagination.List>
-      </Pagination>
-    </>
-  ),
-};
-
 export const Alignment: Story = {
   render: () => (
     <>

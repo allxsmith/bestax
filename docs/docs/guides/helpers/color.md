@@ -28,68 +28,75 @@ All components in bestax-bulma have access to these standard color properties th
 
 ## Text Color
 
-Use the `color` prop to apply text colors to any component. The color prop accepts Bulma's standard color palette.
+Use the `textColor` prop to apply text colors. Most components re-expose Bulma's `has-text-*` helper under this name, because on components with a filled variant (`Button`, `Notification`, `Hero`, `Progress`, and others) `color` renders the `is-<color>` variant instead of a text color. Some components (`Box`, `Card`, `Block`, and friends) also accept `color` as a text-color alias, but `textColor` is the consistent name and takes precedence when both are set. `Tag`, `Input`, and table cells have no text-color prop; wrap their content in `<Span textColor="...">` instead. The prop accepts Bulma's standard color palette.
 
 ### Standard Colors
 
-| Property          | Bulma Class        | Color Value         |
-| ----------------- | ------------------ | ------------------- |
-| `color="primary"` | `has-text-primary` | Primary theme color |
-| `color="link"`    | `has-text-link`    | Link color          |
-| `color="info"`    | `has-text-info`    | Info blue           |
-| `color="success"` | `has-text-success` | Success green       |
-| `color="warning"` | `has-text-warning` | Warning yellow      |
-| `color="danger"`  | `has-text-danger`  | Danger red          |
+| Property              | Bulma Class        | Color Value         |
+| --------------------- | ------------------ | ------------------- |
+| `textColor="primary"` | `has-text-primary` | Primary theme color |
+| `textColor="link"`    | `has-text-link`    | Link color          |
+| `textColor="info"`    | `has-text-info`    | Info blue           |
+| `textColor="success"` | `has-text-success` | Success green       |
+| `textColor="warning"` | `has-text-warning` | Warning yellow      |
+| `textColor="danger"`  | `has-text-danger`  | Danger red          |
 
 ### Monochrome Colors
 
-| Property               | Bulma Class             | Color Value   |
-| ---------------------- | ----------------------- | ------------- |
-| `color="black"`        | `has-text-black`        | Pure black    |
-| `color="black-bis"`    | `has-text-black-bis`    | Almost black  |
-| `color="black-ter"`    | `has-text-black-ter`    | Dark grey     |
-| `color="grey-darker"`  | `has-text-grey-darker`  | Darker grey   |
-| `color="grey-dark"`    | `has-text-grey-dark`    | Dark grey     |
-| `color="grey"`         | `has-text-grey`         | Standard grey |
-| `color="grey-light"`   | `has-text-grey-light`   | Light grey    |
-| `color="grey-lighter"` | `has-text-grey-lighter` | Lighter grey  |
-| `color="white"`        | `has-text-white`        | Pure white    |
+| Property                   | Bulma Class             | Color Value   |
+| -------------------------- | ----------------------- | ------------- |
+| `textColor="black"`        | `has-text-black`        | Pure black    |
+| `textColor="black-bis"`    | `has-text-black-bis`    | Almost black  |
+| `textColor="black-ter"`    | `has-text-black-ter`    | Dark grey     |
+| `textColor="grey-darker"`  | `has-text-grey-darker`  | Darker grey   |
+| `textColor="grey-dark"`    | `has-text-grey-dark`    | Dark grey     |
+| `textColor="grey"`         | `has-text-grey`         | Standard grey |
+| `textColor="grey-light"`   | `has-text-grey-light`   | Light grey    |
+| `textColor="grey-lighter"` | `has-text-grey-lighter` | Lighter grey  |
+| `textColor="white"`        | `has-text-white`        | Pure white    |
 
 ### Theme Colors
 
-| Property        | Bulma Class      | Color Value       |
-| --------------- | ---------------- | ----------------- |
-| `color="light"` | `has-text-light` | Light theme color |
-| `color="dark"`  | `has-text-dark`  | Dark theme color  |
+| Property            | Bulma Class      | Color Value       |
+| ------------------- | ---------------- | ----------------- |
+| `textColor="light"` | `has-text-light` | Light theme color |
+| `textColor="dark"`  | `has-text-dark`  | Dark theme color  |
 
 ### Special Colors
 
-| Property          | Bulma Class        | Color Value         |
-| ----------------- | ------------------ | ------------------- |
-| `color="inherit"` | `has-text-inherit` | Inherit from parent |
-| `color="current"` | `has-text-current` | Current color value |
+| Property              | Bulma Class        | Color Value         |
+| --------------------- | ------------------ | ------------------- |
+| `textColor="inherit"` | `has-text-inherit` | Inherit from parent |
+| `textColor="current"` | `has-text-current` | Current color value |
 
 ### Example Usage
 
 ```tsx live
-import { Title, SubTitle, Button, Buttons, Box } from '@allxsmith/bestax-bulma';
+import {
+  Title,
+  SubTitle,
+  Button,
+  Buttons,
+  Box,
+  Span,
+} from '@allxsmith/bestax-bulma';
 
 function ColorExamples() {
   return (
     <Box p="4">
-      <Title color="primary">Primary colored title</Title>
-      <SubTitle color="info">Info colored subtitle</SubTitle>
+      <Title textColor="primary">Primary colored title</Title>
+      <SubTitle textColor="info">Info colored subtitle</SubTitle>
 
       <Buttons>
-        <Button color="success">Success button</Button>
-        <Button color="warning">Warning button</Button>
-        <Button color="danger">Danger button</Button>
+        <Button textColor="success">Success text button</Button>
+        <Button textColor="warning">Warning text button</Button>
+        <Button textColor="danger">Danger text button</Button>
       </Buttons>
 
       <p>
-        <span color="grey">Grey text </span>
-        <span color="black">Black text </span>
-        <span color="white">White text</span>
+        <Span textColor="grey">Grey text </Span>
+        <Span textColor="black">Black text </Span>
+        <Span textColor="white">White text</Span>
       </p>
     </Box>
   );
@@ -98,46 +105,46 @@ function ColorExamples() {
 
 ## Background Color
 
-Use the `backgroundColor` prop to apply background colors to any component. The backgroundColor prop accepts the same color values as the text color prop.
+Use the `bgColor` prop to apply background colors. It accepts the same color values as `textColor` and renders Bulma's `has-background-*` helpers. A few components accept the raw `backgroundColor` helper name instead, and `Notification` has no background prop at all: its `color` variant fills the background, so pair it with `textColor`. Each component's Props table lists the names it takes.
 
 ### Standard Background Colors
 
-| Property                    | Bulma Class              | Background Value          |
-| --------------------------- | ------------------------ | ------------------------- |
-| `backgroundColor="primary"` | `has-background-primary` | Primary theme background  |
-| `backgroundColor="link"`    | `has-background-link`    | Link background           |
-| `backgroundColor="info"`    | `has-background-info`    | Info blue background      |
-| `backgroundColor="success"` | `has-background-success` | Success green background  |
-| `backgroundColor="warning"` | `has-background-warning` | Warning yellow background |
-| `backgroundColor="danger"`  | `has-background-danger`  | Danger red background     |
+| Property            | Bulma Class              | Background Value          |
+| ------------------- | ------------------------ | ------------------------- |
+| `bgColor="primary"` | `has-background-primary` | Primary theme background  |
+| `bgColor="link"`    | `has-background-link`    | Link background           |
+| `bgColor="info"`    | `has-background-info`    | Info blue background      |
+| `bgColor="success"` | `has-background-success` | Success green background  |
+| `bgColor="warning"` | `has-background-warning` | Warning yellow background |
+| `bgColor="danger"`  | `has-background-danger`  | Danger red background     |
 
 ### Monochrome Backgrounds
 
-| Property                         | Bulma Class                   | Background Value         |
-| -------------------------------- | ----------------------------- | ------------------------ |
-| `backgroundColor="black"`        | `has-background-black`        | Black background         |
-| `backgroundColor="black-bis"`    | `has-background-black-bis`    | Almost black background  |
-| `backgroundColor="black-ter"`    | `has-background-black-ter`    | Dark grey background     |
-| `backgroundColor="grey-darker"`  | `has-background-grey-darker`  | Darker grey background   |
-| `backgroundColor="grey-dark"`    | `has-background-grey-dark`    | Dark grey background     |
-| `backgroundColor="grey"`         | `has-background-grey`         | Standard grey background |
-| `backgroundColor="grey-light"`   | `has-background-grey-light`   | Light grey background    |
-| `backgroundColor="grey-lighter"` | `has-background-grey-lighter` | Lighter grey background  |
-| `backgroundColor="white"`        | `has-background-white`        | White background         |
+| Property                 | Bulma Class                   | Background Value         |
+| ------------------------ | ----------------------------- | ------------------------ |
+| `bgColor="black"`        | `has-background-black`        | Black background         |
+| `bgColor="black-bis"`    | `has-background-black-bis`    | Almost black background  |
+| `bgColor="black-ter"`    | `has-background-black-ter`    | Dark grey background     |
+| `bgColor="grey-darker"`  | `has-background-grey-darker`  | Darker grey background   |
+| `bgColor="grey-dark"`    | `has-background-grey-dark`    | Dark grey background     |
+| `bgColor="grey"`         | `has-background-grey`         | Standard grey background |
+| `bgColor="grey-light"`   | `has-background-grey-light`   | Light grey background    |
+| `bgColor="grey-lighter"` | `has-background-grey-lighter` | Lighter grey background  |
+| `bgColor="white"`        | `has-background-white`        | White background         |
 
 ### Theme Backgrounds
 
-| Property                  | Bulma Class            | Background Value       |
-| ------------------------- | ---------------------- | ---------------------- |
-| `backgroundColor="light"` | `has-background-light` | Light theme background |
-| `backgroundColor="dark"`  | `has-background-dark`  | Dark theme background  |
+| Property          | Bulma Class            | Background Value       |
+| ----------------- | ---------------------- | ---------------------- |
+| `bgColor="light"` | `has-background-light` | Light theme background |
+| `bgColor="dark"`  | `has-background-dark`  | Dark theme background  |
 
 ### Special Backgrounds
 
-| Property                    | Bulma Class              | Background Value    |
-| --------------------------- | ------------------------ | ------------------- |
-| `backgroundColor="inherit"` | `has-background-inherit` | Inherit from parent |
-| `backgroundColor="current"` | `has-background-current` | Current color value |
+| Property            | Bulma Class              | Background Value    |
+| ------------------- | ------------------------ | ------------------- |
+| `bgColor="inherit"` | `has-background-inherit` | Inherit from parent |
+| `bgColor="current"` | `has-background-current` | Current color value |
 
 ### Example Usage
 
@@ -147,19 +154,19 @@ import { Box, Notification, Card } from '@allxsmith/bestax-bulma';
 function BackgroundColorExamples() {
   return (
     <div>
-      <Box backgroundColor="primary" color="white" p="4" mb="3">
+      <Box bgColor="primary" textColor="white" p="4" mb="3">
         Primary background with white text
       </Box>
 
-      <Box backgroundColor="info" color="white" p="4" mb="3">
+      <Box bgColor="info" textColor="white" p="4" mb="3">
         Info background with white text
       </Box>
 
-      <Notification backgroundColor="success" color="white">
-        Success notification with custom colors
+      <Notification color="success" textColor="white">
+        Success notification via its color variant
       </Notification>
 
-      <Card backgroundColor="light" p="4">
+      <Card bgColor="light" p="4">
         <Card.Content>Light background card</Card.Content>
       </Card>
     </div>

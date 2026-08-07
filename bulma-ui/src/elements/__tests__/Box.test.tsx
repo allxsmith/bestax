@@ -200,3 +200,21 @@ describe('Box Component', () => {
     });
   });
 });
+
+describe('Box color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Box color="primary">Content</Box>);
+    expect(container.querySelector('.box')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <Box textColor="danger" color="primary">
+        Content
+      </Box>
+    );
+    const box = container.querySelector('.box');
+    expect(box).toHaveClass('has-text-danger');
+    expect(box).not.toHaveClass('has-text-primary');
+  });
+});

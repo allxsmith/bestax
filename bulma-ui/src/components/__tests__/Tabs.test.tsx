@@ -8,6 +8,18 @@ import Tabs, {
   TabContentItem,
 } from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
+
+let warnSpy: jest.SpyInstance;
+
+beforeEach(() => {
+  resetColorDeprecationWarnings();
+  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
+});
 
 describe('Tabs', () => {
   describe('rendering', () => {
@@ -844,5 +856,39 @@ describe('Compound components', () => {
     expect(
       container.querySelector('.tabs-content-item.is-active')
     ).toHaveTextContent('Overview panel');
+  });
+});
+
+describe('Tabs deprecated color prop', () => {
+  it('warns once in development when color is passed', () => {
+    const { rerender } = render(
+      <Tabs color="primary">
+        <TabList>
+          <TabItem>One</TabItem>
+        </TabList>
+      </Tabs>
+    );
+    rerender(
+      <Tabs color="danger">
+        <TabList>
+          <TabItem>One</TabItem>
+        </TabList>
+      </Tabs>
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Tabs "color" prop is deprecated')
+    );
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(
+      <Tabs>
+        <TabList>
+          <TabItem>One</TabItem>
+        </TabList>
+      </Tabs>
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

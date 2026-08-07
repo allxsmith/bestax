@@ -208,15 +208,15 @@ Use `Content` for any rich HTML or markdown output to ensure consistent Bulma st
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                                         |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                    |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper (e.g., `'danger'` for `has-text-danger`).         |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the content.                               |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper (e.g., `'info'` for `has-background-info`). |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size modifier for the content.                                      |
-| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the block.                            |
-| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                   |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                       |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper (e.g., `'danger'` for `has-text-danger`).                                                                                                                                                                            |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.content.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface. |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper (e.g., `'info'` for `has-background-info`).                                                                                                                                                                    |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size modifier for the content.                                                                                                                                                                                                         |
+| `children`  | `React.ReactNode`                                                               | —       | Content to be rendered inside the block.                                                                                                                                                                                               |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                      |
 
 <!-- /bestax:generated props -->
 

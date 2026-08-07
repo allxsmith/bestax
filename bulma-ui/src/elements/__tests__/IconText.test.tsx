@@ -195,3 +195,23 @@ describe('Compound components', () => {
     expect(container.querySelector('.icon')).toBeInTheDocument();
   });
 });
+
+describe('IconText color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<IconText color="primary">Txt</IconText>);
+    expect(container.querySelector('.icon-text')).toHaveClass(
+      'has-text-primary'
+    );
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <IconText textColor="danger" color="primary">
+        Txt
+      </IconText>
+    );
+    const iconText = container.querySelector('.icon-text');
+    expect(iconText).toHaveClass('has-text-danger');
+    expect(iconText).not.toHaveClass('has-text-primary');
+  });
+});

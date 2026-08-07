@@ -22,7 +22,12 @@ export interface ContainerProps
   className?: string;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for text. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.container.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -51,6 +56,7 @@ export interface ContainerProps
 export const Container: React.FC<ContainerProps> = ({
   className,
   textColor,
+  color,
   bgColor,
   fluid,
   widescreen,
@@ -61,7 +67,7 @@ export const Container: React.FC<ContainerProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });

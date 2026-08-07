@@ -236,3 +236,21 @@ describe('Content Component', () => {
     });
   });
 });
+
+describe('Content color text alias', () => {
+  it('renders has-text-primary when only color is set', () => {
+    const { container } = render(<Content color="primary">Content</Content>);
+    expect(container.querySelector('.content')).toHaveClass('has-text-primary');
+  });
+
+  it('gives textColor precedence when both are set', () => {
+    const { container } = render(
+      <Content textColor="danger" color="primary">
+        Content
+      </Content>
+    );
+    const content = container.querySelector('.content');
+    expect(content).toHaveClass('has-text-danger');
+    expect(content).not.toHaveClass('has-text-primary');
+  });
+});

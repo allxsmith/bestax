@@ -162,17 +162,17 @@ For custom close actions, use the `onClick` prop.
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default   | Description                                       |
-| ----------- | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------- |
-| `className` | `string`                                                                        | —         | Additional CSS classes to apply.                  |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Text color helper.                                |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color modifier for the button.              |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Background color helper.                          |
-| `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                          | —         | Click handler for the button.                     |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.              |
-| `ariaLabel` | `string`                                                                        | `'Close'` | ARIA label for accessibility (default: 'Close').  |
-| `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).  |
-| `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                            | Default   | Description                                                                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                        | —         | Additional CSS classes to apply.                                                                                                                                                                                                      |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Text color helper.                                                                                                                                                                                                                    |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.delete.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface. |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —         | Background color helper.                                                                                                                                                                                                              |
+| `onClick`   | `(event: React.MouseEvent<HTMLButtonElement>) => void`                          | —         | Click handler for the button.                                                                                                                                                                                                         |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.                                                                                                                                                                                                  |
+| `ariaLabel` | `string`                                                                        | `'Close'` | ARIA label for accessibility (default: 'Close').                                                                                                                                                                                      |
+| `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).                                                                                                                                                                                      |
+| `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                     |
 
 <!-- /bestax:generated props -->
 

@@ -17,7 +17,12 @@ interface ContentProps
   className?: string;
   /** Text color helper (e.g., `'danger'` for `has-text-danger`). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the content. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.content.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper (e.g., `'info'` for `has-background-info`). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -41,6 +46,7 @@ const validSizes = ['small', 'medium', 'large'] as const;
 export const Content: React.FC<ContentProps> = ({
   className,
   textColor,
+  color,
   bgColor,
   size,
   children,
@@ -50,7 +56,7 @@ export const Content: React.FC<ContentProps> = ({
    * Generates Bulma helper classes and separates out remaining props.
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
   });
