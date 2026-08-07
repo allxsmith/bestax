@@ -27,6 +27,14 @@ version bump) and the intro of the first State of React edition: candid, plain, 
   "Form Library Agnostic" shipped over "Building Forms Without a Form Library" because
   absence-titles read as missing features (#471). The v3 post's "no date library in your
   bundle" paragraph is the model.
+- **Every post stands alone for a stranger.** These posts syndicate; assume a reader who has
+  never seen bestax or its repo. Introduce the project in a clause, tell one story with an arc,
+  and retell any prior post's needed context in a sentence or two instead of pointing at it.
+  Repo artifacts — issue/PR numbers, internal file and check names, series numbering — are link
+  receipts behind descriptive words, never narrative glue: "a form label [never wired to its
+  input](…#368)", not "#368: form label wires no htmlFor". A mechanism catalog stitched with
+  insider anchors reads disjointed to everyone but the maintainer (#478's draft was rewritten
+  for exactly this).
 - **Work all three appeals.** A post should persuade on ethos, pathos, and logos together.
   _Ethos_: write from first-hand maintainer experience, link your sources, and own the
   mistakes (the candor above is the credibility play). _Pathos_: name the pain a change
