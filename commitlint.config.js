@@ -4,7 +4,13 @@
 // would fall back to the angular defaults and bump BOTH packages — so a
 // recognized scope is mandatory here.
 const RELEASE_TYPES = ['feat', 'fix', 'perf', 'refactor', 'style'];
-const RELEASE_SCOPES = ['bulma-ui', 'docs', 'create-bestax', 'bestax-migrate'];
+const RELEASE_SCOPES = [
+  'bulma-ui',
+  'docs',
+  'create-bestax',
+  'bestax-migrate',
+  'bestax-mcp',
+];
 
 export default {
   extends: ['@commitlint/config-conventional'],
