@@ -120,14 +120,14 @@ via `useBulmaClasses`.
 `isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
 
 The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
-`File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`) wires
-`htmlFor`/`id` automatically — your `id` is used when provided, a generated one otherwise,
-and an explicit `labelProps={{ htmlFor }}` wins. The wiring only happens when the component
-renders its own `Field` (nested inside one, the `label` prop is dropped), and the date/time
-pickers skip it in `inline` mode (no visible input to label). ⚠️ Manual wiring is still
-required when composing `Field` + bases yourself (`Field`'s own `label` associates nothing)
-and on the group/composite inputs (`Checkboxes`, `Radios`, `Autocomplete`, `Rate`,
-`Taginput`).
+`File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`,
+`Taginput`) wires `htmlFor`/`id` automatically — your `id` is used when provided, a
+generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
+happens when the component renders its own `Field` (nested inside one, the `label` prop is
+dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
+`maxTags` (no visible input to label). ⚠️ Manual wiring is still required when composing
+`Field` + bases yourself (`Field`'s own `label` associates nothing) and on the group
+inputs (`Checkboxes`, `Radios`, `Rate`).
 
 ## Convenience vs composed
 

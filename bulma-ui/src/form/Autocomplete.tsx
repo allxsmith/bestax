@@ -15,6 +15,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -39,6 +40,14 @@ export interface AutocompleteProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
+  /** Applied to the inner text input (the labellable control), not the wrapper div. */
+  id?: string;
   /** The options data to display (required). */
   data: AutocompleteItem[] | string[];
   /** The current input value (controlled). */
@@ -153,6 +162,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       name,
       form,
       required,
+      id,
       // Field props
       label,
       labelSize,
@@ -167,6 +177,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     ref
   ) => {
     const insideField = useInsideField();
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -427,6 +443,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             ref={combinedRef}
             type="text"
             className={inputClasses}
+            id={controlId}
             value={inputValue}
             placeholder={placeholder}
             disabled={disabled}
@@ -530,7 +547,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

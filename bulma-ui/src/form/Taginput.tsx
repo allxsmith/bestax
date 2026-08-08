@@ -15,6 +15,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelId } from './useAutoLabelId';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -43,6 +44,14 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered) and dropped inside an outer `Field`. */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
+  /** Applied to the inner text input (the labellable control), not the wrapper div. */
+  id?: string;
   /** The current tags (controlled). */
   value?: TaginputTag[];
   /** Default tags (uncontrolled). */
@@ -207,6 +216,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       tagTemplate,
       name,
       form,
+      id,
       className,
       ...props
     },
@@ -240,6 +250,16 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     // Use controlled or internal tags
     const tags = controlledValue !== undefined ? controlledValue : internalTags;
+
+    const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
+    // At the tag limit the text input is not rendered, so there is nothing to
+    // wire the label to.
+    const { controlId, fieldLabelProps } = useAutoLabelId({
+      label,
+      id,
+      labelProps,
+      rendersLabel: !insideField && !isMaxReached,
+    });
 
     // Get display value from tag
     const getDisplayValue = (tag: TaginputTag): string => {
@@ -549,8 +569,6 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       className
     );
 
-    const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
-
     // Counter text
     const showCounter =
       hasCounter && (maxTags !== undefined || maxlength !== undefined);
@@ -621,6 +639,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 ref={combinedRef}
                 type="text"
                 className={inputClasses}
+                id={controlId}
                 value={inputValue}
                 placeholder={tags.length === 0 ? placeholder : undefined}
                 disabled={disabled}
@@ -630,7 +649,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                aria-label="Add tag"
+                // Fallback name only: when the visible label is wired to this
+                // input, it must name it (aria-label would win otherwise).
+                aria-label={label && !insideField ? undefined : 'Add tag'}
               />
             )}
           </div>
@@ -686,7 +707,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

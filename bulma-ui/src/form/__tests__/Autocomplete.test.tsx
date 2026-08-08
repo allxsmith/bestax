@@ -1027,3 +1027,61 @@ describe('Autocomplete', () => {
     });
   });
 });
+
+describe('Autocomplete label association (#493)', () => {
+  it('associates the label with the inner input via htmlFor/id', () => {
+    const { container } = render(
+      <Autocomplete label="Fruit" data={['Apple', 'Banana']} />
+    );
+    const input = screen.getByLabelText('Fruit');
+    expect(input).toHaveAttribute('role', 'combobox');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('applies a user-supplied id to the inner input, not the wrapper', () => {
+    const { container } = render(
+      <Autocomplete label="Fruit" id="fruit-input" data={['Apple']} />
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAttribute('id', 'fruit-input');
+    expect(container.querySelector('.autocomplete')).not.toHaveAttribute('id');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'fruit-input'
+    );
+  });
+
+  it('lets an explicit labelProps.htmlFor override the association', () => {
+    const { container } = render(
+      <Autocomplete
+        label="Fruit"
+        labelProps={{ htmlFor: 'other' }}
+        data={['Apple']}
+      />
+    );
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'other'
+    );
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
+  });
+
+  it('injects no id without a label', () => {
+    render(<Autocomplete data={['Apple']} />);
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
+  });
+
+  it('injects no id inside an outer Field, which drops the label', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Autocomplete label="Dropped" data={['Apple']} />
+      </Field>
+    );
+    expect(container.querySelectorAll('label').length).toBe(1);
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
+  });
+});
