@@ -19,12 +19,7 @@
     }
   ],
   "accessibility": "- The section renders as a semantic `<section>` for improved structure and accessibility.\n- Use headings (`<Title>`, `<SubTitle>`) and semantic content for screen reader support.\n\n:::note\nSections help organize your document outline for screen readers and SEO.\n:::",
-  "related": [
-    "Container",
-    "SubTitle",
-    "Title",
-    "useBulmaClasses"
-  ],
+  "related": ["Container", "SubTitle", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-section--default",
   "summary": "The `Section` component provides vertical spacing and visual separation for your Bulma React UI.",
   "import": "import { Section } from '@allxsmith/bestax-bulma';",

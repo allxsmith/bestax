@@ -5,10 +5,7 @@
   "slug": "elements/strong",
   "docsUrl": "https://bestax.io/docs/api/elements/strong",
   "examples": [
-    {
-      "title": "Default Strong",
-      "code": "<Strong>Important text</Strong>"
-    },
+    { "title": "Default Strong", "code": "<Strong>Important text</Strong>" },
     {
       "title": "Colored Strong",
       "code": "<Strong textColor=\"primary\">Primary strong text</Strong>"
@@ -35,12 +32,7 @@
     }
   ],
   "accessibility": "- **Semantic Importance:** Screen readers typically announce `<strong>` content with additional emphasis.\n- **Appropriate Use:** Use `<strong>` for content that is truly important, not just for visual styling.\n- **Color Contrast:** When adding color, ensure sufficient contrast for readability.\n\n:::info\nThe `<strong>` element indicates strong importance. For visual-only bold styling, use CSS or the `Span` component with `textWeight=\"bold\"`.\n:::",
-  "related": [
-    "Emphasis",
-    "Paragraph",
-    "Span",
-    "useBulmaClasses"
-  ],
+  "related": ["Emphasis", "Paragraph", "Span", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-strong--default",
   "summary": "The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.",
   "import": "import { Strong } from '@allxsmith/bestax-bulma';",

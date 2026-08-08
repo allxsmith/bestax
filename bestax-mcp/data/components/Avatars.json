@@ -39,12 +39,7 @@
     }
   ],
   "accessibility": "- `Avatars` is a plain container — each child `Avatar` carries its own accessible name (see\n  [Avatar's accessibility notes](./avatar.md#accessibility)).\n- The `+N` surplus avatar gets an accessible name of `\"{N} more\"` (via its `alt`), so assistive\n  tech announces how many members are hidden. Localize it with `surplusLabel`, e.g.\n  ``surplusLabel={count => `${count} weitere`}``.\n- A focused clickable avatar is lifted above its overlapping neighbours so its focus outline\n  is never partially covered.\n- When the group represents a labelled set (e.g. \"Project members\"), give the container a\n  `role=\"group\"` and an `aria-label` describing it.",
-  "related": [
-    "Avatar",
-    "Badge",
-    "Tags",
-    "useBulmaClasses"
-  ],
+  "related": ["Avatar", "Badge", "Tags", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-avatars--default",
   "summary": "The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the \"members\" list pattern.",
   "import": "import { Avatars, Avatar } from '@allxsmith/bestax-bulma';",

@@ -59,11 +59,7 @@
     }
   ],
   "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
-  "related": [
-    "Autocomplete",
-    "Input",
-    "Tag"
-  ],
+  "related": ["Autocomplete", "Input", "Tag"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-taginput",
   "summary": "The `Taginput` component provides a tag/chip input field for managing multiple tags.",
   "import": "import { Taginput } from '@allxsmith/bestax-bulma';",

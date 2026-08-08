@@ -35,9 +35,7 @@
     }
   ],
   "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss.",
-  "related": [
-    "Dialog"
-  ],
+  "related": ["Dialog"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-toast",
   "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
   "import": "import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';",

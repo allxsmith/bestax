@@ -376,8 +376,23 @@ function parseExportedComponents(src) {
   return out;
 }
 
-/** 2-space JSON with a trailing newline — the only format written here. */
-const json = value => `${JSON.stringify(value, null, 2)}\n`;
+/**
+ * Serialise through prettier, exactly as gen-api-docs.mjs does for markdown.
+ *
+ * `JSON.stringify(x, null, 2)` is NOT prettier-stable — prettier collapses a
+ * short array onto one line and stringify never does. Committing raw stringify
+ * output means the first person to run a formatter over the repo (or an editor
+ * with format-on-save) rewrites 68 files and breaks `gen:mcp:check` until
+ * someone works out why. Formatting here makes the committed output a fixpoint.
+ */
+async function json(value) {
+  const prettier = require('prettier');
+  const config = await prettier.resolveConfig(OUT_DIR);
+  return prettier.format(JSON.stringify(value), {
+    ...config,
+    parser: 'json',
+  });
+}
 
 export async function build() {
   const present = new Set(await subdirs(API_DIR));
@@ -557,12 +572,12 @@ export async function main() {
   await rm(componentDir, { recursive: true, force: true });
   await mkdir(componentDir, { recursive: true });
 
-  await writeFile(join(OUT_DIR, 'catalog.json'), json(catalog));
-  await writeFile(join(OUT_DIR, 'skills.json'), json(skills));
+  await writeFile(join(OUT_DIR, 'catalog.json'), await json(catalog));
+  await writeFile(join(OUT_DIR, 'skills.json'), await json(skills));
   for (const [name, record] of [...components].sort((a, b) =>
     byCodePoint(a[0], b[0])
   )) {
-    await writeFile(join(componentDir, `${name}.json`), json(record));
+    await writeFile(join(componentDir, `${name}.json`), await json(record));
   }
 
   // Completeness guard. Runs after writing so the failure names what to fix

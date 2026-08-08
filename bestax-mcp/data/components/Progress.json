@@ -35,9 +35,7 @@
     }
   ],
   "accessibility": "- **Role:** The `<progress>` element is natively accessible.\n- **Labeling:** Always provide context for screen readers (e.g., with `aria-label` or visible text).\n- **Indeterminate:** Omit the `value` prop for indeterminate progress bars.\n\n:::warning\nEnsure your progress bars have sufficient color contrast for users with visual impairments.\n:::",
-  "related": [
-    "useBulmaClasses"
-  ],
+  "related": ["useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-progress--default",
   "summary": "The `Progress` component displays a Bulma-styled progress bar.",
   "import": "import { Progress } from '@allxsmith/bestax-bulma';",

@@ -39,10 +39,7 @@
     }
   ],
   "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
-  "related": [
-    "Button",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-pagination--basic",
   "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
   "import": "import { Pagination } from '@allxsmith/bestax-bulma';",

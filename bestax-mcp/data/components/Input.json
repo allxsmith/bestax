@@ -119,10 +119,7 @@
     }
   ],
   "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, pass `labelProps={{ htmlFor }}` on the `Field` and a matching `id` on the input yourself.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).",
-  "related": [
-    "Control",
-    "Field"
-  ],
+  "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
   "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
   "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",

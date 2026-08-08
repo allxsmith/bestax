@@ -59,11 +59,7 @@
     }
   ],
   "accessibility": "- The card image uses an `alt` attribute for screen readers.\n- Use semantic content for the header, body, and footer as needed.",
-  "related": [
-    "Icon",
-    "Image",
-    "useBulmaClasses"
-  ],
+  "related": ["Icon", "Image", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-card--default",
   "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
   "import": "import { Card } from '@allxsmith/bestax-bulma';",

@@ -27,11 +27,7 @@
     }
   ],
   "accessibility": "- **Visual Separation:** The `<hr>` element provides visual separation and has implicit semantic meaning as a thematic break.\n- **Screen Readers:** Screen readers typically announce `<hr>` elements, so use them meaningfully to separate distinct content sections.\n- **Decorative Use:** If the divider is purely decorative, consider using CSS borders instead.\n\n:::info\nUse dividers for thematic breaks between content sections, not just for visual spacing (use margin helpers for spacing alone).\n:::",
-  "related": [
-    "Block",
-    "Box",
-    "useBulmaClasses"
-  ],
+  "related": ["Block", "Box", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-divider--default",
   "summary": "The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.",
   "import": "import { Divider } from '@allxsmith/bestax-bulma';",

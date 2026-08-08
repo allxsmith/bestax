@@ -55,10 +55,7 @@
     }
   ],
   "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, pass `labelProps={{ htmlFor }}` on the `Field` and a matching `id` on the textarea yourself.\n- Use the `rows` prop to set an appropriate height for your content.",
-  "related": [
-    "Control",
-    "Field"
-  ],
+  "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-textarea--default",
   "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.",
   "import": "import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';",

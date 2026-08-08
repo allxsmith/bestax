@@ -71,11 +71,7 @@
     }
   ],
   "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
-  "related": [
-    "Field",
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Field", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-file--default",
   "summary": "The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, \"has name\", and filename display.",
   "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",

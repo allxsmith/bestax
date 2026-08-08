@@ -51,10 +51,7 @@
     }
   ],
   "accessibility": "- The root is a `<nav class=\"breadcrumb\">` with `aria-label=\"breadcrumbs\"`.\n- Each breadcrumb item should be an `<li>` with an `<a>` or `<span>`, and the final active item should have the `is-active` class.",
-  "related": [
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-breadcrumb--default",
   "summary": "The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.",
   "import": "import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';",

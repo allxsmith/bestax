@@ -71,11 +71,7 @@
     }
   ],
   "accessibility": "- The root `Navbar` renders as `<nav role=\"navigation\" aria-label=\"main navigation\">`.\n- Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.\n- Dropdowns and menus follow Bulma's structure for keyboard and screen reader accessibility.\n\n:::note\nFor full accessibility in dropdowns, ensure that focus, keyboard navigation, and ARIA attributes are managed where needed.\n:::",
-  "related": [
-    "Button",
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-navbar--default",
   "summary": "The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.",
   "import": "import { Navbar } from '@allxsmith/bestax-bulma';",

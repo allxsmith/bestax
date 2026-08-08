@@ -35,11 +35,7 @@
     }
   ],
   "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Multiline:** `isMultiline` ensures tags wrap for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
-  "related": [
-    "Delete",
-    "Tag",
-    "useBulmaClasses"
-  ],
+  "related": ["Delete", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
   "import": "import { Tags } from '@allxsmith/bestax-bulma';",

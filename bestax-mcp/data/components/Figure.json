@@ -35,12 +35,7 @@
     }
   ],
   "accessibility": "- **Image Alt Text:** Always provide meaningful alt text for images within figures.\n- **Figure Semantics:** The `<figure>` element groups content that is referenced from the main flow but could be moved without affecting the document's meaning.\n- **Caption Association:** Screen readers associate `<figcaption>` content with the figure automatically.\n\n:::info\nThe `<figure>` element is ideal for images, illustrations, diagrams, code listings, or anything that is referenced as a unit from the main content.\n:::",
-  "related": [
-    "Code",
-    "Image",
-    "Pre",
-    "useBulmaClasses"
-  ],
+  "related": ["Code", "Image", "Pre", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-figure--default",
   "summary": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
   "import": "import { Figure } from '@allxsmith/bestax-bulma';",

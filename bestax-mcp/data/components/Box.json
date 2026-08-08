@@ -5,10 +5,7 @@
   "slug": "elements/box",
   "docsUrl": "https://bestax.io/docs/api/elements/box",
   "examples": [
-    {
-      "title": "Default Box",
-      "code": "<Box>Default Box</Box>"
-    },
+    { "title": "Default Box", "code": "<Box>Default Box</Box>" },
     {
       "title": "Primary Text Color",
       "code": "<Box textColor=\"primary\">Box with Primary Text</Box>"
@@ -39,11 +36,7 @@
     }
   ],
   "accessibility": "- **Content:** Use semantic HTML inside `Box` for best accessibility.\n- **Shadow:** The shadow is purely visual and does not affect accessibility.\n- **Contrast:** Ensure color combinations provide sufficient contrast.\n\n:::tip\n`Box` is perfect for card-like containers, callouts, or visually separating content.\n:::",
-  "related": [
-    "Block",
-    "Content",
-    "useBulmaClasses"
-  ],
+  "related": ["Block", "Content", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-box--default",
   "summary": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
   "import": "import { Box } from '@allxsmith/bestax-bulma';",

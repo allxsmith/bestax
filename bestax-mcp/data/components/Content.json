@@ -47,11 +47,7 @@
     }
   ],
   "accessibility": "- **Semantic HTML:** Use semantic elements (`<h1>`, `<ul>`, `<table>`, etc.) as children of `Content`.\n- **Contrast:** Use appropriate text and background color combinations for readability.\n- **Headings:** Keep heading structure meaningful for screen readers.\n\n:::tip\nThe `Content` component does not add ARIA roles. You are responsible for semantic HTML structure within it.\n:::",
-  "related": [
-    "Block",
-    "Box",
-    "useBulmaClasses"
-  ],
+  "related": ["Block", "Box", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-content--default",
   "summary": "The `Content` component applies Bulma’s typographic styles to its children, enhancing the appearance of HTML elements like paragraphs, headings, lists, and tables.",
   "import": "import { Content } from '@allxsmith/bestax-bulma';",

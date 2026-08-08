@@ -39,12 +39,7 @@
     }
   ],
   "accessibility": "- **Stress Emphasis:** Screen readers may announce `<em>` content with a change in tone or stress.\n- **Appropriate Use:** Use `<em>` for content that requires stress emphasis, not just for visual styling.\n- **Nested Emphasis:** Multiple levels of `<em>` indicate greater degrees of emphasis.\n\n:::info\nThe `<em>` element indicates stress emphasis that subtly changes the meaning of a sentence. Compare \"I _love_ coding\" vs \"I love _coding_\".\n:::",
-  "related": [
-    "Paragraph",
-    "Span",
-    "Strong",
-    "useBulmaClasses"
-  ],
+  "related": ["Paragraph", "Span", "Strong", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-emphasis--default",
   "summary": "The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.",
   "import": "import { Emphasis } from '@allxsmith/bestax-bulma';",

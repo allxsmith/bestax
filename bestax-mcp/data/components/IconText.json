@@ -51,11 +51,7 @@
     }
   ],
   "accessibility": "- **ARIA labels:** Always set an `ariaLabel` for icons for screen readers.\n- **Order:** The icon is visually before the text by default.\n- **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.\n\n:::info\nFor star ratings or icon lists, use `items` with `iconProps` and optional `text`.\n:::",
-  "related": [
-    "Button",
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-icontext--default",
   "summary": "The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.",
   "import": "import { IconText } from '@allxsmith/bestax-bulma';",

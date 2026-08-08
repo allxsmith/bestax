@@ -47,10 +47,7 @@
     }
   ],
   "accessibility": "- Uses `role=\"region\"` with `aria-roledescription=\"carousel\"`\n- Navigation arrows have `aria-label` for screen readers\n- Indicators use `role=\"tablist\"` and `role=\"tab\"` semantics\n- Keyboard navigation with arrow keys when focused\n- Previous/Next buttons are properly disabled at boundaries when not repeating",
-  "related": [
-    "Modal",
-    "Tabs"
-  ],
+  "related": ["Modal", "Tabs"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-carousel",
   "summary": "The `Carousel` component provides an image/content slider with navigation arrows and indicators.",
   "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",

@@ -27,10 +27,7 @@
     }
   ],
   "accessibility": "- The group is rendered as a `<div class=\"radios\">` containing labeled radio buttons.\n- Each child should be a `Radio` for proper labeling and accessibility.\n- Use the same `name` for all radios in a group to ensure mutual exclusivity.",
-  "related": [
-    "Field",
-    "Radio"
-  ],
+  "related": ["Field", "Radio"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--listofradios",
   "summary": "The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.",
   "import": "import { Radios, Radio } from '@allxsmith/bestax-bulma';",

@@ -5,10 +5,7 @@
   "slug": "elements/tag",
   "docsUrl": "https://bestax.io/docs/api/elements/tag",
   "examples": [
-    {
-      "title": "Default Tag",
-      "code": "<Tag>Default Tag</Tag>"
-    },
+    { "title": "Default Tag", "code": "<Tag>Default Tag</Tag>" },
     {
       "title": "Colored Tag",
       "code": "<Tag color=\"primary\">Primary Tag</Tag>"
@@ -17,18 +14,12 @@
       "title": "Medium and Large Tag",
       "code": "<Tags>\n  <Tag size=\"medium\">Medium Tag</Tag>\n  <Tag size=\"large\">Large Tag</Tag>\n</Tags>"
     },
-    {
-      "title": "Rounded Tag",
-      "code": "<Tag isRounded>Rounded Tag</Tag>"
-    },
+    { "title": "Rounded Tag", "code": "<Tag isRounded>Rounded Tag</Tag>" },
     {
       "title": "Delete Tag (Button)",
       "code": "<Tag isDelete onDelete={() => alert('Deleted!')} />"
     },
-    {
-      "title": "With Margin",
-      "code": "<Tag m=\"4\">Tag with Margin</Tag>"
-    },
+    { "title": "With Margin", "code": "<Tag m=\"4\">Tag with Margin</Tag>" },
     {
       "title": "Combined Styles",
       "code": "<Tag color=\"success\" size=\"medium\" isRounded m=\"2\">\n  Combined Tag\n</Tag>"
@@ -51,11 +42,7 @@
     }
   ],
   "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
-  "related": [
-    "Delete",
-    "Tags",
-    "useBulmaClasses"
-  ],
+  "related": ["Delete", "Tags", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tag` component renders a Bulma-styled label or badge.",
   "import": "import { Tag } from '@allxsmith/bestax-bulma';",

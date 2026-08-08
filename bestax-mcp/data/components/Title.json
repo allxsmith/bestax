@@ -5,10 +5,7 @@
   "slug": "elements/title",
   "docsUrl": "https://bestax.io/docs/api/elements/title",
   "examples": [
-    {
-      "title": "Default Title",
-      "code": "<Title>Default Title</Title>"
-    },
+    { "title": "Default Title", "code": "<Title>Default Title</Title>" },
     {
       "title": "Has Skeleton",
       "code": "<Title hasSkeleton>Title with Skeleton Effect</Title>"
@@ -21,10 +18,7 @@
       "title": "Different Sizes",
       "code": "<>\n  <Title size=\"1\">Title Size 1</Title>\n  <Title size=\"3\">Title Size 3</Title>\n</>"
     },
-    {
-      "title": "Spaced Title",
-      "code": "<Title isSpaced>Spaced Title</Title>"
-    },
+    { "title": "Spaced Title", "code": "<Title isSpaced>Spaced Title</Title>" },
     {
       "title": "With Margin",
       "code": "<Title m=\"4\">Title with Margin</Title>"
@@ -43,11 +37,7 @@
     }
   ],
   "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Spacing:** Use `isSpaced` for extra margin when needed.\n- **Screen readers:** Headings are key landmarks, so set the correct `as` and `size` prop for hierarchy.\n\n:::tip\nWhen using `as=\"p\"`, the element is visually styled as a heading but semantically a paragraph.\n:::",
-  "related": [
-    "Block",
-    "SubTitle",
-    "useBulmaClasses"
-  ],
+  "related": ["Block", "SubTitle", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-title--default",
   "summary": "The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`).",
   "import": "import { Title } from '@allxsmith/bestax-bulma';",

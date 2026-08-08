@@ -5,10 +5,7 @@
   "slug": "elements/block",
   "docsUrl": "https://bestax.io/docs/api/elements/block",
   "examples": [
-    {
-      "title": "Default Block",
-      "code": "<Block>Default Block</Block>"
-    },
+    { "title": "Default Block", "code": "<Block>Default Block</Block>" },
     {
       "title": "Primary Text Color",
       "code": "<Block textColor=\"primary\">Block with Primary Text</Block>"
@@ -39,11 +36,7 @@
     }
   ],
   "accessibility": "- **Content:** Use semantic HTML inside `Block` for best accessibility.\n- **Spacing:** The `.block` class is for layout only and does not affect accessibility.\n- **Contrast:** Choose text and background colors for good readability.\n\n:::info\nUse `Block` for logical, visually separated sections of content.\n:::",
-  "related": [
-    "Box",
-    "Content",
-    "useBulmaClasses"
-  ],
+  "related": ["Box", "Content", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-block--default",
   "summary": "The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.",
   "import": "import { Block } from '@allxsmith/bestax-bulma';",

@@ -5,10 +5,7 @@
   "slug": "elements/button",
   "docsUrl": "https://bestax.io/docs/api/elements/button",
   "examples": [
-    {
-      "title": "Default Button",
-      "code": "<Button>Default Button</Button>"
-    },
+    { "title": "Default Button", "code": "<Button>Default Button</Button>" },
     {
       "title": "All Colors",
       "code": "import { Buttons } from './Buttons';\n\n<Buttons>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (\n    <Button key={color} color={color}>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Button>\n  ))}\n</Buttons>;"
@@ -29,10 +26,7 @@
       "title": "Loading",
       "code": "<Button color=\"success\" isLoading>\n  Loading Button\n</Button>"
     },
-    {
-      "title": "Static",
-      "code": "<Button isStatic>Static Button</Button>"
-    },
+    { "title": "Static", "code": "<Button isStatic>Static Button</Button>" },
     {
       "title": "Full Width",
       "code": "<Button color=\"warning\" isFullWidth>\n  Full Width Button\n</Button>"
@@ -61,10 +55,7 @@
       "title": "Ghost",
       "code": "<Button color=\"ghost\">Ghost Button</Button>"
     },
-    {
-      "title": "Text",
-      "code": "<Button color=\"text\">Text Button</Button>"
-    },
+    { "title": "Text", "code": "<Button color=\"text\">Text Button</Button>" },
     {
       "title": "Disabled",
       "code": "<Button color=\"warning\" isDisabled disabled>\n  Disabled Button\n</Button>"
@@ -103,11 +94,7 @@
     }
   ],
   "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",
-  "related": [
-    "Buttons",
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Buttons", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
   "summary": "The `Button` component provides a flexible and highly customizable button for your Bulma React UI.",
   "import": "import { Button } from '@allxsmith/bestax-bulma';",

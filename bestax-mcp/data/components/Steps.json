@@ -43,9 +43,7 @@
     }
   ],
   "accessibility": "- Steps use `aria-current=\"step\"` on the active step\n- Clickable steps are keyboard navigable with proper focus indicators\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks",
-  "related": [
-    "Progress"
-  ],
+  "related": ["Progress"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
   "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
   "import": "import { Steps } from '@allxsmith/bestax-bulma';",

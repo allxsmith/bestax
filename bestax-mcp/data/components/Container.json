@@ -35,10 +35,7 @@
     }
   ],
   "accessibility": "- The container renders as a semantic `<div>` by default.\n- Use semantic HTML and accessible children within the container for best practices.",
-  "related": [
-    "Notification",
-    "useBulmaClasses"
-  ],
+  "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-container--default",
   "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
   "import": "import { Container } from '@allxsmith/bestax-bulma';",

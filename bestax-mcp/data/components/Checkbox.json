@@ -23,11 +23,7 @@
     }
   ],
   "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.",
-  "related": [
-    "Checkboxes",
-    "Field",
-    "useBulmaClasses"
-  ],
+  "related": ["Checkboxes", "Field", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--default",
   "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
   "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",

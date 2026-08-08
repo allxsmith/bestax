@@ -5,10 +5,7 @@
   "slug": "elements/link",
   "docsUrl": "https://bestax.io/docs/api/elements/link",
   "examples": [
-    {
-      "title": "Default Link",
-      "code": "<Link href=\"#\">Default Link</Link>"
-    },
+    { "title": "Default Link", "code": "<Link href=\"#\">Default Link</Link>" },
     {
       "title": "Primary Color Link",
       "code": "<Link href=\"#\" textColor=\"primary\">\n  Primary Link\n</Link>"
@@ -51,11 +48,7 @@
     }
   ],
   "accessibility": "- **Descriptive Text:** Use meaningful link text that describes the destination, not generic text like \"click here\".\n- **External Links:** When opening links in new tabs, consider informing users (e.g., with an icon or text like \"opens in new tab\").\n- **Focus States:** Links inherit browser focus styles. Customize with CSS if needed.\n- **Keyboard Navigation:** Links are naturally keyboard accessible via Tab and Enter keys.\n\n:::info\nFor navigation menus, consider using the `isActive` prop to indicate the current page.\n:::\n\n:::warning Links Are for Navigation, Buttons Are for Actions\nPer [Section 508](https://www.section508.gov/) and [eslint-plugin-jsx-a11y](https://github.com/jsx-eslint/eslint-plugin-jsx-a11y) best practices, links (`<a>`) should navigate to a URL — not trigger an action via `onClick` alone. If your element performs an action (opening a modal, submitting data, toggling state, etc.) without navigating, use a [`Button`](./button.md) or [`LinkButton`](./linkbutton.md) instead. A `<Link href=\"#\" onClick={handleClick}>` is an anti-pattern that confuses screen readers and fails accessibility audits.\n:::",
-  "related": [
-    "Button",
-    "Paragraph",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Paragraph", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-link--default",
   "summary": "The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.",
   "import": "import { Link } from '@allxsmith/bestax-bulma';",

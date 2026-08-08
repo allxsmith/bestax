@@ -35,10 +35,7 @@
     }
   ],
   "accessibility": "- The dropdown root is a `<div class=\"dropdown\">` with ARIA roles/attributes for menu and trigger.\n- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.\n- Menu items are focusable and use `role=\"menuitem\"`.\n- Clicking outside closes the dropdown in most cases.\n\n:::note\nFor custom keyboard navigation or focus management, add handlers as needed.\n:::",
-  "related": [
-    "Button",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dropdown--default",
   "summary": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
   "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",

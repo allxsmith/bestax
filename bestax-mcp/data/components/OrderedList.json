@@ -43,12 +43,7 @@
     }
   ],
   "accessibility": "- **List Structure:** Screen readers announce ordered lists with their numbering, helping users understand sequential content.\n- **Semantic Markup:** Using proper `<ol>` and `<li>` elements ensures accessibility for all users.\n- **Numbering Type:** The `type` attribute is announced by most screen readers, providing context about the list format.\n\n:::info\nUse `OrderedList` when the order of items is significant, such as steps in a process or ranked items.\n:::",
-  "related": [
-    "Content",
-    "ListItem",
-    "UnorderedList",
-    "useBulmaClasses"
-  ],
+  "related": ["Content", "ListItem", "UnorderedList", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-orderedlist--default",
   "summary": "The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.",
   "import": "import { OrderedList, ListItem } from '@allxsmith/bestax-bulma';",

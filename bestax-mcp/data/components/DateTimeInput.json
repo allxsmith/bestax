@@ -163,11 +163,7 @@
     }
   ],
   "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order naturally walks from calendar → time wheels → footer (Reset / ✓).",
-  "related": [
-    "DateInput",
-    "Input",
-    "TimeInput"
-  ],
+  "related": ["DateInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-datetimeinput",
   "summary": "The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.",
   "import": "import { DateTimeInput } from '@allxsmith/bestax-bulma';",

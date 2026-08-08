@@ -35,12 +35,7 @@
     }
   ],
   "accessibility": "- Image avatars use `alt` (falling back to `name`) for their accessible name.\n- Initials/icon avatars expose `role=\"img\"` and `aria-label` (from `alt`/`name`) — unless\n  rendered as a link or button, where the native link/button role and `aria-label` are used\n  instead.\n- **Decorative avatars:** pass an explicit `alt=\"\"` when the avatar repeats information\n  already visible next to it (e.g. beside the author's name in a comment row). The image\n  stays decorative and an initials/icon avatar is skipped entirely (`aria-hidden`), avoiding\n  double-speak. The opt-out never applies to a link/button avatar — an interactive element\n  always keeps an accessible name (from `name`, or a generic `\"Avatar\"` fallback).\n- A link/button avatar with no `alt`/`name` (e.g. an API that returns only a photo URL) still\n  gets an `aria-label` fallback rather than rendering a nameless control.\n- `as=\"button\"` defaults to `type=\"button\"`, so a clickable avatar inside a form doesn't\n  submit it.\n- The default fallback icon is `aria-hidden`.",
-  "related": [
-    "Avatars",
-    "Badge",
-    "Image",
-    "useBulmaClasses"
-  ],
+  "related": ["Avatars", "Badge", "Image", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-avatar--photo",
   "summary": "The `Avatar` component represents a person or entity as a compact image.",
   "import": "import { Avatar } from '@allxsmith/bestax-bulma';",

@@ -35,10 +35,7 @@
     }
   ],
   "accessibility": "- **Delete button:** Includes `aria-label=\"Close notification\"` for screen readers.\n- **Keyboard:** The delete button is focusable and can be activated by keyboard.\n- **Content:** Use semantic HTML within the notification for best accessibility.\n\n:::tip\nAlways provide clear, actionable text inside notifications.\n:::",
-  "related": [
-    "Delete",
-    "useBulmaClasses"
-  ],
+  "related": ["Delete", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-notification--default",
   "summary": "The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.",
   "import": "import { Notification } from '@allxsmith/bestax-bulma';",

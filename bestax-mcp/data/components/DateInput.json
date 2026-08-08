@@ -155,11 +155,7 @@
     }
   ],
   "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Calendar uses `role=\"grid\"` with cells as `role=\"gridcell\"`.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today.\n- Roving `tabindex` keeps a single grid cell focusable at a time.\n- Honors `prefers-reduced-motion` (skip popover fade-in).",
-  "related": [
-    "DateTimeInput",
-    "Input",
-    "TimeInput"
-  ],
+  "related": ["DateTimeInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-dateinput",
   "summary": "The `DateInput` component is a form input that opens a popover calendar for date selection.",
   "import": "import { DateInput } from '@allxsmith/bestax-bulma';",

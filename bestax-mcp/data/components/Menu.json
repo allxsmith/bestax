@@ -27,11 +27,7 @@
     }
   ],
   "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
-  "related": [
-    "Panel",
-    "Sidebar",
-    "useBulmaClasses"
-  ],
+  "related": ["Panel", "Sidebar", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-menu--basic",
   "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
   "import": "import { Menu } from '@allxsmith/bestax-bulma';",

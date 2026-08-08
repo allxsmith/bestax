@@ -27,13 +27,7 @@
     }
   ],
   "accessibility": "- The root `Level` renders as a semantic `<nav>` for grouping and navigation.\n- Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as=\"a\"` for links, and provide clear text or accessible labels.\n- Use Bulma helper props for spacing and color to improve contrast and readability.\n\n:::note\nFor best accessibility, use semantic elements for headings/content within items, and ensure interactive elements (like `Button` or links) are focusable and labeled.\n:::",
-  "related": [
-    "Button",
-    "Field",
-    "Input",
-    "Title",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Field", "Input", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-level--default",
   "summary": "The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right, distributing items evenly, or centering statistics and controls.",
   "import": "import { Level } from '@allxsmith/bestax-bulma';",

@@ -1,9 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedFrom": {
-    "package": "@allxsmith/bestax-bulma",
-    "version": "5.8.3"
-  },
+  "generatedFrom": { "package": "@allxsmith/bestax-bulma", "version": "5.8.3" },
   "docsBase": "https://bestax.io/docs",
   "categories": [
     {
@@ -98,30 +95,13 @@
     {
       "id": "columns",
       "label": "Columns",
-      "components": [
-        "Column",
-        "Columns"
-      ]
+      "components": ["Column", "Columns"]
     },
-    {
-      "id": "grid",
-      "label": "Grid",
-      "components": [
-        "Cell",
-        "Grid"
-      ]
-    },
+    { "id": "grid", "label": "Grid", "components": ["Cell", "Grid"] },
     {
       "id": "layout",
       "label": "Layout",
-      "components": [
-        "Container",
-        "Footer",
-        "Hero",
-        "Level",
-        "Media",
-        "Section"
-      ]
+      "components": ["Container", "Footer", "Hero", "Level", "Media", "Section"]
     },
     {
       "id": "helpers",

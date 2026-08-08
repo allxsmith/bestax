@@ -39,11 +39,7 @@
     }
   ],
   "accessibility": "- **Semantic HTML:** Renders a native `<button>` element, providing correct keyboard navigation, focus management, and screen reader announcements.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** Fully keyboard accessible with Enter and Space activation.\n- **Replaces anti-patterns:** Use this instead of `<div onClick>` or `<span onClick>` for interactive elements that should not navigate.\n\n:::note\nIf your LinkButton has only an icon, use `aria-label` to provide accessible text.\n:::",
-  "related": [
-    "Button",
-    "Buttons",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Buttons", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-linkbutton--default",
   "summary": "The `LinkButton` component renders a `<button>` that visually looks like text or a link.",
   "import": "import { LinkButton } from '@allxsmith/bestax-bulma';",

@@ -71,10 +71,7 @@
     }
   ],
   "accessibility": "- Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, pass `labelProps={{ htmlFor }}` on the `Field` and a matching `id` on the select yourself.\n- Use the `multiple` and `multipleSize` props for multi-select dropdowns.",
-  "related": [
-    "Control",
-    "Field"
-  ],
+  "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-select--default",
   "summary": "The `Select` component provides a Bulma-styled dropdown for selecting one or more options.",
   "import": "import { Select, Field, Control } from '@allxsmith/bestax-bulma';",

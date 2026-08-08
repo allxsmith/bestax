@@ -29,10 +29,7 @@
       "title": "Custom Max Value",
       "code": "function example() {\n  const [rating, setRating] = useState(7);\n  return (\n    <Block>\n      <Rate value={rating} onChange={setRating} max={10} showScore />\n      <Paragraph mt=\"2\">Rating: {rating} out of 10</Paragraph>\n    </Block>\n  );\n}"
     },
-    {
-      "title": "Spaced Icons",
-      "code": "<Rate defaultValue={3} spaced />"
-    },
+    { "title": "Spaced Icons", "code": "<Rate defaultValue={3} spaced />" },
     {
       "title": "Disabled Rating",
       "code": "<Rate value={4} disabled showScore />"
@@ -55,10 +52,7 @@
     }
   ],
   "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
-  "related": [
-    "Input",
-    "Slider"
-  ],
+  "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
   "summary": "The `Rate` component provides a star/icon-based rating system.",
   "import": "import { Rate } from '@allxsmith/bestax-bulma';",

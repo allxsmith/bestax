@@ -39,10 +39,7 @@
     }
   ],
   "accessibility": "- The message is rendered as `<article class=\"message\">`.\n- If `onClose` is provided, a close button with `aria-label=\"delete\"` is rendered.\n- For optimal accessibility, use clear and descriptive titles/content.\n\n:::note\nAlways provide a visible or accessible way to dismiss important, interruptive messages.\n:::",
-  "related": [
-    "Notification",
-    "useBulmaClasses"
-  ],
+  "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-message--primary",
   "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
   "import": "import { Message } from '@allxsmith/bestax-bulma';",

@@ -5,34 +5,19 @@
   "slug": "elements/delete",
   "docsUrl": "https://bestax.io/docs/api/elements/delete",
   "examples": [
-    {
-      "title": "Default Delete",
-      "code": "<Delete />"
-    },
+    { "title": "Default Delete", "code": "<Delete />" },
     {
       "title": "Small, Medium, Large",
       "code": "<>\n  <Delete size=\"small\" />\n  <Delete size=\"medium\" />\n  <Delete size=\"large\" />\n</>"
     },
-    {
-      "title": "Disabled",
-      "code": "<Delete disabled />"
-    },
+    { "title": "Disabled", "code": "<Delete disabled />" },
     {
       "title": "With Custom Class",
       "code": "<Delete className=\"custom-delete\" />"
     },
-    {
-      "title": "With Text Color",
-      "code": "<Delete textColor=\"primary\" />"
-    },
-    {
-      "title": "With Background Color",
-      "code": "<Delete bgColor=\"info\" />"
-    },
-    {
-      "title": "With Margin",
-      "code": "<Delete m=\"2\" />"
-    },
+    { "title": "With Text Color", "code": "<Delete textColor=\"primary\" />" },
+    { "title": "With Background Color", "code": "<Delete bgColor=\"info\" />" },
+    { "title": "With Margin", "code": "<Delete m=\"2\" />" },
     {
       "title": "In a Tag",
       "code": "<Tag color=\"info\" size=\"medium\">\n  Example Tag\n  <Delete size=\"small\" textColor=\"danger\" ariaLabel=\"Remove tag\" />\n</Tag>"
@@ -47,12 +32,7 @@
     }
   ],
   "accessibility": "- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default is `'Close'`).\n- **Keyboard:** The button is focusable and supports keyboard activation.\n- **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.\n\n:::tip\nFor custom close actions, use the `onClick` prop.\n:::",
-  "related": [
-    "Message",
-    "Notification",
-    "Tag",
-    "useBulmaClasses"
-  ],
+  "related": ["Message", "Notification", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-delete--default",
   "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.",
   "import": "import { Delete } from '@allxsmith/bestax-bulma';",

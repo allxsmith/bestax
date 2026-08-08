@@ -5,10 +5,7 @@
   "slug": "elements/span",
   "docsUrl": "https://bestax.io/docs/api/elements/span",
   "examples": [
-    {
-      "title": "Default Span",
-      "code": "<Span>Default Span</Span>"
-    },
+    { "title": "Default Span", "code": "<Span>Default Span</Span>" },
     {
       "title": "Primary Color Span",
       "code": "<Span textColor=\"primary\">Primary Text</Span>"
@@ -43,12 +40,7 @@
     }
   ],
   "accessibility": "- **Semantic Meaning:** The `<span>` element has no semantic meaning. Use it only for styling purposes.\n- **Color Contrast:** Ensure sufficient contrast between text and background colors for readability.\n- **Screen Readers:** Content inside spans is read normally by screen readers.\n\n:::info\nFor text that has semantic importance, consider using `<strong>` (Strong) or `<em>` (Emphasis) components instead.\n:::",
-  "related": [
-    "Emphasis",
-    "Paragraph",
-    "Strong",
-    "useBulmaClasses"
-  ],
+  "related": ["Emphasis", "Paragraph", "Strong", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-span--default",
   "summary": "The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.",
   "import": "import { Span } from '@allxsmith/bestax-bulma';",

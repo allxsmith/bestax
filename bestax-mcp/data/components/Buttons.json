@@ -35,10 +35,7 @@
     }
   ],
   "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- If grouping radio or toggle buttons, consider `aria-pressed` or `aria-checked` for stateful controls.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
-  "related": [
-    "Button",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
   "summary": "The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.",
   "import": "import { Buttons } from '@allxsmith/bestax-bulma';",

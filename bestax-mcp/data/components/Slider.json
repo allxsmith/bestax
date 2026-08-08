@@ -51,10 +51,7 @@
     }
   ],
   "accessibility": "- Uses native `<input type=\"range\">` element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible",
-  "related": [
-    "Numberinput",
-    "Progress"
-  ],
+  "related": ["Numberinput", "Progress"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-slider",
   "summary": "The `Slider` component provides a range slider input for selecting values within a range.",
   "import": "import { Slider } from '@allxsmith/bestax-bulma';",

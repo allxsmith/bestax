@@ -19,10 +19,7 @@
     }
   ],
   "accessibility": "- The root panel renders as a semantic `<nav>` for navigation/landmark.\n- Use headings, links, and buttons with appropriate labels for best accessibility.\n- The `Panel.Block` by default renders as an anchor `<a>`, but can be customized for interactive blocks.\n\n:::note\nFor keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.\n:::",
-  "related": [
-    "Icon",
-    "useBulmaClasses"
-  ],
+  "related": ["Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-panel--revolutionary-war",
   "summary": "The `Panel` component implements Bulma's versatile panel block for React.",
   "import": "import { Panel } from '@allxsmith/bestax-bulma';",

@@ -11,11 +11,7 @@
     }
   ],
   "accessibility": "- Renders as a semantic `<footer>` tag by default.\n- Accepts any valid children; ensure your links and text are accessible.\n- You can use the `as=\"div\"` prop if you need a non-semantic container.\n\n:::note\nWhen using only icons or non-text content, add `aria-label` or screen-reader-only content for accessibility.\n:::",
-  "related": [
-    "Container",
-    "Content",
-    "useBulmaClasses"
-  ],
+  "related": ["Container", "Content", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-footer--default",
   "summary": "The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.",
   "import": "import { Footer } from '@allxsmith/bestax-bulma';",

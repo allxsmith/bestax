@@ -171,11 +171,7 @@
     }
   ],
   "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
-  "related": [
-    "DateInput",
-    "DateTimeInput",
-    "Input"
-  ],
+  "related": ["DateInput", "DateTimeInput", "Input"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-timeinput",
   "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
   "import": "import { TimeInput } from '@allxsmith/bestax-bulma';",

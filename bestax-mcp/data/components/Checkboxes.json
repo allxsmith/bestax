@@ -27,10 +27,7 @@
     }
   ],
   "accessibility": "- The group is rendered as a `<div class=\"checkboxes\">` containing labeled checkboxes.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
-  "related": [
-    "Checkbox",
-    "Field"
-  ],
+  "related": ["Checkbox", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes",
   "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
   "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",

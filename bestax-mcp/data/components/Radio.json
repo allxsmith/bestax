@@ -23,11 +23,7 @@
     }
   ],
   "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.",
-  "related": [
-    "Field",
-    "Radios",
-    "useBulmaClasses"
-  ],
+  "related": ["Field", "Radios", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--mutuallyexclusive",
   "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",
   "import": "import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';",

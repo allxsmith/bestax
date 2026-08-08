@@ -55,10 +55,7 @@
     }
   ],
   "accessibility": "- Uses native number input element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- Buttons are disabled at min/max boundaries",
-  "related": [
-    "Input",
-    "Slider"
-  ],
+  "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-numberinput",
   "summary": "The `Numberinput` component provides a number input with increment/decrement buttons.",
   "import": "import { Numberinput } from '@allxsmith/bestax-bulma';",

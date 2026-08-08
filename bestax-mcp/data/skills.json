@@ -6,11 +6,7 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        {
-          "id": "api",
-          "file": "references/api.md",
-          "bytes": 5379
-        },
+        { "id": "api", "file": "references/api.md", "bytes": 5379 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
@@ -21,18 +17,10 @@
           "file": "references/library-contributor.md",
           "bytes": 15257
         },
-        {
-          "id": "patterns",
-          "file": "references/patterns.md",
-          "bytes": 4601
-        }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
       "examples": [
-        {
-          "id": "stat-card",
-          "file": "examples/stat-card.tsx",
-          "bytes": 3828
-        }
+        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3828 }
       ]
     },
     {
@@ -41,16 +29,8 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        {
-          "id": "api",
-          "file": "references/api.md",
-          "bytes": 8770
-        },
-        {
-          "id": "patterns",
-          "file": "references/patterns.md",
-          "bytes": 5566
-        }
+        { "id": "api", "file": "references/api.md", "bytes": 8770 },
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 5566 }
       ],
       "examples": []
     },
@@ -67,11 +47,7 @@
         }
       ],
       "examples": [
-        {
-          "id": "icon-usage",
-          "file": "examples/icon-usage.tsx",
-          "bytes": 2720
-        }
+        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2720 }
       ]
     },
     {
@@ -92,31 +68,15 @@
         }
       ],
       "examples": [
-        {
-          "id": "app-shell",
-          "file": "examples/app-shell.tsx",
-          "bytes": 2765
-        },
-        {
-          "id": "card-grid",
-          "file": "examples/card-grid.tsx",
-          "bytes": 2700
-        },
-        {
-          "id": "centered",
-          "file": "examples/centered.tsx",
-          "bytes": 1443
-        },
+        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2765 },
+        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2700 },
+        { "id": "centered", "file": "examples/centered.tsx", "bytes": 1443 },
         {
           "id": "content-page",
           "file": "examples/content-page.tsx",
           "bytes": 2608
         },
-        {
-          "id": "landing",
-          "file": "examples/landing.tsx",
-          "bytes": 3910
-        }
+        { "id": "landing", "file": "examples/landing.tsx", "bytes": 3910 }
       ]
     },
     {
@@ -135,11 +95,7 @@
           "file": "references/css-migration.md",
           "bytes": 5679
         },
-        {
-          "id": "prop-map",
-          "file": "references/prop-map.md",
-          "bytes": 6363
-        },
+        { "id": "prop-map", "file": "references/prop-map.md", "bytes": 6363 },
         {
           "id": "unmappables",
           "file": "references/unmappables.md",
@@ -180,11 +136,7 @@
         }
       ],
       "examples": [
-        {
-          "id": "dark-mode",
-          "file": "examples/dark-mode.tsx",
-          "bytes": 1148
-        },
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1148 },
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",

@@ -45,10 +45,7 @@
       "title": "Hidden at Zero (unless `showZero`)",
       "code": "<Block display=\"flex\">\n  <Badge content={0} mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={0} showZero>\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n</Block>"
     },
-    {
-      "title": "Standalone",
-      "code": "<Badge content={5} color=\"info\" />"
-    },
+    { "title": "Standalone", "code": "<Badge content={5} color=\"info\" />" },
     {
       "title": "Standalone, Interactive",
       "code": "function example() {\n  const [clicks, setClicks] = useState(0);\n\n  return (\n    <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />\n  );\n}"
@@ -67,12 +64,7 @@
     }
   ],
   "accessibility": "- A count/text badge exposes `role=\"status\"` and an `aria-label` announcing its content.\n- At `content={0}` without `showZero`, the pill is visually hidden but stays mounted as an\n  empty `role=\"status\"` node, so a later `0 -> 1` change mutates an existing live region and\n  is reliably announced (a live region inserted already populated often isn't).\n- A bare number in a `role=\"status\"` span is not enough context on its own — put the full\n  meaning on the anchor itself, e.g. `<Icon ariaLabel=\"Inbox, 4 unread messages\" />` rather than\n  relying on the badge to read out just \"4\".\n- A decorative `dot` badge is `aria-hidden`.\n- `pulse` respects `prefers-reduced-motion: reduce` and renders without animation.\n- Note the two hide mechanisms differ: the Bulma `visibility=\"invisible\"` helper hides the whole\n  wrapper (anchor included), while the `invisible` **prop** hides only the badge pill.",
-  "related": [
-    "Avatar",
-    "Icon",
-    "Tag",
-    "useBulmaClasses"
-  ],
+  "related": ["Avatar", "Icon", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-badge--unread-count",
   "summary": "The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.",
   "import": "import { Badge } from '@allxsmith/bestax-bulma';",

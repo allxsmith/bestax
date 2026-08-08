@@ -55,11 +55,7 @@
     }
   ],
   "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- Full keyboard navigation support",
-  "related": [
-    "Input",
-    "Select",
-    "Taginput"
-  ],
+  "related": ["Input", "Select", "Taginput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-autocomplete",
   "summary": "The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.",
   "import": "import { Autocomplete } from '@allxsmith/bestax-bulma';",

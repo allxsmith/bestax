@@ -47,13 +47,7 @@
     }
   ],
   "accessibility": "- **Semantic Structure:** Use paragraphs to wrap distinct blocks of text for proper document structure.\n- **Color Contrast:** Ensure sufficient contrast between text and background colors for readability.\n- **Heading Order:** Paragraphs should follow proper heading hierarchy in your document.\n\n:::info\nFor semantic emphasis within paragraphs, use `<strong>` (Strong) or `<em>` (Emphasis) components.\n:::",
-  "related": [
-    "Content",
-    "Emphasis",
-    "Span",
-    "Strong",
-    "useBulmaClasses"
-  ],
+  "related": ["Content", "Emphasis", "Span", "Strong", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-paragraph--default",
   "summary": "The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.",
   "import": "import { Paragraph } from '@allxsmith/bestax-bulma';",

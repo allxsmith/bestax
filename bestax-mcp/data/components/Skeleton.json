@@ -5,10 +5,7 @@
   "slug": "elements/skeleton",
   "docsUrl": "https://bestax.io/docs/api/elements/skeleton",
   "examples": [
-    {
-      "title": "Default Skeleton",
-      "code": "<Skeleton />"
-    },
+    { "title": "Default Skeleton", "code": "<Skeleton />" },
     {
       "title": "Skeleton Text",
       "code": "<Skeleton>\n  \"Quando in rerum natura homines aequales creantur, ab ipso Creatore quibusdam\n  iuribus inalienabilibus donantur, inter quae sunt Vita, Libertas et quaerenda\n  felicitas. Quoties aliquod regimen haec iura destruere conatur, populus habet\n  potestatem tale regimen abrogare et novum constituere, quod iuribus suis\n  tutandis aptissimum videatur. Prudentia quidem dictat vetera regimina levibus\n  de causis non mutanda esse; sed cum diuturnus abusus ad despotismum vergit,\n  ius est, immo officium, talia regimina exuere et novas custodes securitatis\n  futurae constituere.\"\n</Skeleton>"

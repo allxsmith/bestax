@@ -31,12 +31,7 @@
     }
   ],
   "accessibility": "- **Semantic Markup:** Using proper `<li>` elements inside `<ul>` or `<ol>` ensures correct accessibility semantics.\n- **Color Contrast:** When using colored text or backgrounds, ensure sufficient contrast for readability.\n- **Screen Readers:** List items are announced as part of the list structure by screen readers.\n\n:::info\nAlways use `ListItem` inside `UnorderedList` or `OrderedList` for proper semantic structure.\n:::",
-  "related": [
-    "Content",
-    "OrderedList",
-    "UnorderedList",
-    "useBulmaClasses"
-  ],
+  "related": ["Content", "OrderedList", "UnorderedList", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-listitem--default",
   "summary": "The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.",
   "import": "import { ListItem, UnorderedList, OrderedList } from '@allxsmith/bestax-bulma';",

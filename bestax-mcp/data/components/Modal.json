@@ -39,12 +39,7 @@
     }
   ],
   "accessibility": "- The modal root uses Bulma’s structure and ARIA roles for accessibility.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n- Keyboard/screen reader accessibility is supported, but for focus trap or escape key handling, implement those patterns in your app as needed.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
-  "related": [
-    "Button",
-    "Field",
-    "Input",
-    "useBulmaClasses"
-  ],
+  "related": ["Button", "Field", "Input", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-modal--modal-card",
   "summary": "The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.",
   "import": "import { Modal } from '@allxsmith/bestax-bulma';",

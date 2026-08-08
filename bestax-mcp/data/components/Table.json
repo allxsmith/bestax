@@ -35,10 +35,7 @@
     }
   ],
   "accessibility": "- **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.\n- **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.\n- **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.\n\n:::tip\nFor responsive tables, ensure your column headers are clear and concise for small screens.\n:::",
-  "related": [
-    "Block",
-    "useBulmaClasses"
-  ],
+  "related": ["Block", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-table--default",
   "summary": "The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.",
   "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",

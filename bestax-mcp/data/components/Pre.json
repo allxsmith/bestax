@@ -35,11 +35,7 @@
     }
   ],
   "accessibility": "- **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.\n- **Scrolling:** Consider horizontal scrolling for long lines to prevent layout issues.\n- **Screen Readers:** Preformatted text is typically announced as such by screen readers.\n\n:::info\nFor code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.\n:::",
-  "related": [
-    "Code",
-    "Figure",
-    "useBulmaClasses"
-  ],
+  "related": ["Code", "Figure", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-pre--default",
   "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.",
   "import": "import { Pre, Code } from '@allxsmith/bestax-bulma';",
