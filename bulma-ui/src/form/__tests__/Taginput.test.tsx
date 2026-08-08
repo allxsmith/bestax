@@ -1135,3 +1135,67 @@ describe('Taginput', () => {
     });
   });
 });
+
+describe('Taginput label association (#493)', () => {
+  it('associates the label with the inner input via htmlFor/id', () => {
+    const { container } = render(<Taginput label="Tags" />);
+    const input = screen.getByLabelText('Tags');
+    expect(input.tagName).toBe('INPUT');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
+  });
+
+  it('applies a user-supplied id to the inner input, not the wrapper', () => {
+    const { container } = render(<Taginput label="Tags" id="tags-input" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('id', 'tags-input');
+    expect(container.querySelector('.taginput')).not.toHaveAttribute('id');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      'tags-input'
+    );
+  });
+
+  it('drops the "Add tag" fallback name when the label is wired', () => {
+    render(<Taginput label="Tags" />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-label');
+  });
+
+  it('keeps the "Add tag" fallback name when unlabeled', () => {
+    render(<Taginput />);
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'aria-label',
+      'Add tag'
+    );
+  });
+
+  it('keeps the "Add tag" fallback name inside an outer Field', () => {
+    render(
+      <Field label="Outer">
+        <Taginput label="Dropped" />
+      </Field>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'aria-label',
+      'Add tag'
+    );
+  });
+
+  it('injects no id without a label', () => {
+    render(<Taginput />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('id');
+  });
+
+  it('renders the label unwired when the tag limit is reached', () => {
+    const { container } = render(
+      <Taginput label="Tags" maxTags={1} value={['one']} />
+    );
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    const fieldLabel = container.querySelector('label.label');
+    expect(fieldLabel).toHaveTextContent('Tags');
+    expect(fieldLabel).not.toHaveAttribute('for');
+  });
+});
