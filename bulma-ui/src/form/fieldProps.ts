@@ -5,11 +5,11 @@ import React from 'react';
  * When these props are provided and the component is not already inside a Field,
  * it will automatically render a Field around itself.
  */
-// NOTE: the label/labelProps TSDoc here must stay neutral about htmlFor
-// association — this interface is also inherited by group inputs
-// (Checkboxes, Radios, Rate) that do NOT auto-wire it.
-// Single-control components that do (via useAutoLabelId, #368/#493)
-// shadow-redeclare these members with the stronger claim.
+// NOTE: the label/labelProps TSDoc here stays neutral about association
+// mechanics — every inheritor auto-associates, but by different means:
+// single-control inputs wire htmlFor/id (useAutoLabelId, #368/#493), group
+// inputs wire aria-labelledby (useAutoLabelledBy, #494). Each component
+// shadow-redeclares these members with its specific claim.
 export interface FormFieldProps {
   /** Field label, rendered above the widget. */
   label?: React.ReactNode;

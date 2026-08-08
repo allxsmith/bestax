@@ -952,3 +952,49 @@ describe('Rate', () => {
     });
   });
 });
+
+describe('Rate group label association (#494)', () => {
+  it('names the radiogroup from the label and drops the fallback aria-label', () => {
+    const { container } = render(<Rate label="Quality" />);
+    const group = screen.getByRole('radiogroup', { name: 'Quality' });
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel.id).toBeTruthy();
+    expect(group).toHaveAttribute('aria-labelledby', fieldLabel.id);
+    expect(group).not.toHaveAttribute('aria-label');
+    expect(fieldLabel).not.toHaveAttribute('for');
+  });
+
+  it('uses a user-supplied labelProps.id as the target', () => {
+    render(<Rate label="Quality" labelProps={{ id: 'quality-label' }} />);
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-labelledby',
+      'quality-label'
+    );
+  });
+
+  it('strips a caller labelProps.htmlFor from the group label', () => {
+    const { container } = render(
+      <Rate label="Quality" labelProps={{ htmlFor: 'some-control' }} />
+    );
+    expect(container.querySelector('label.label')).not.toHaveAttribute('for');
+  });
+
+  it('keeps the "Rating" fallback aria-label when unlabeled', () => {
+    render(<Rate />);
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-label',
+      'Rating'
+    );
+  });
+
+  it('keeps the fallback inside an outer Field, which drops the label', () => {
+    render(
+      <Field label="Outer">
+        <Rate label="Dropped" />
+      </Field>
+    );
+    const group = screen.getByRole('radiogroup');
+    expect(group).toHaveAttribute('aria-label', 'Rating');
+    expect(group).not.toHaveAttribute('aria-labelledby');
+  });
+});
