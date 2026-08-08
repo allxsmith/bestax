@@ -14,7 +14,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Control-level (icons, loading) props.
  */
 export interface InputProps extends InputBaseProps {
-  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label then associates automatically. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];

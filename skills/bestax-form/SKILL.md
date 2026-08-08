@@ -127,8 +127,11 @@ happens when the component renders its own `Field` (nested inside one, the `labe
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
 `maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`)
 associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
-and `aria-labelledby` pointing at the label. ⚠️ Manual wiring is still required when
-composing `Field` + bases yourself (`Field`'s own `label` associates nothing).
+and `aria-labelledby` pointing at the label. Composing `Field` + bases yourself also
+associates: `Field`'s own `label` wires to a single composed `InputBase`/`SelectBase`/
+`TextAreaBase` (skipped for `grouped`/`hasAddons`). Pass `labelProps={{ htmlFor }}` plus a
+matching `id` only when you want a stable id, or `labelProps={{ htmlFor: undefined }}` to
+opt out — e.g. when the labeled `Field` wraps something that is not one of those bases.
 
 ## Convenience vs composed
 
@@ -218,10 +221,10 @@ for the expected classes/states, and say plainly that the visual pass is still o
 ## Checklist
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
-- [ ] Every label is programmatically associated — the convenience `label` prop does this
-      automatically, on the group inputs too (via `aria-labelledby`); when composing
-      `Field` + bases, pass `labelProps={{ htmlFor }}` / a `<label htmlFor>` plus a
-      matching `id` yourself.
+- [ ] Every label is programmatically associated — the convenience `label` prop, the group
+      inputs, and `Field` + single-base composition all do this automatically; pass
+      `labelProps={{ htmlFor }}` plus a matching `id` only for a stable id, and label a
+      multi-control `Field`'s controls individually (`aria-label` or per-control ids).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.

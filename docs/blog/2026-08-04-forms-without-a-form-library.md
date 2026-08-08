@@ -46,11 +46,11 @@ function AutoWrapDemo() {
 
 To be precise about the mechanics: the wrapping isn't triggered by those props. A convenience input always wraps itself unless it detects it's already inside a `Field` or `Control`, and `label` and friends just forward into the generated wrapper. The field-level props are shared across inputs (`label`, `labelSize`, `labelProps`, `horizontal`, `message`, `messageColor`, and `fieldClassName`), with `messageColor` tinting the help text.
 
-One accessibility note: `label` now wires the `<label>` to the input on its own (a generated `id` plus `htmlFor`, or your own `id` if you pass one). The demos on this page wire it explicitly, which still works and is the way to go when you want a stable `id`; on library versions before this shipped, it was required.
+One accessibility note: `label` now wires the `<label>` to the input on its own (a generated `id` plus `htmlFor`, or your own `id` if you pass one), and composing a `Field` around a single base input gets the same treatment. The demos on this page wire it explicitly, which still works and is the way to go when you want a stable `id`; on library versions before this shipped, it was required.
 
 ## Skip-If-Wrapped
 
-Write the wrappers yourself and the inputs get out of the way. Here's the entire detection mechanism, from `FormContext.tsx`:
+Write the wrappers yourself and the inputs get out of the way. Here's the detection mechanism, from `FormContext.tsx`:
 
 ```tsx
 const FieldContext = createContext(false);

@@ -226,3 +226,21 @@ describe('Select label association (#368)', () => {
     expect(container.querySelector('select')).not.toHaveAttribute('id');
   });
 });
+
+describe('outer Field label adoption (#495)', () => {
+  it('associates the outer Field label with the select', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Select>
+          <option value="a">Option A</option>
+        </Select>
+      </Field>
+    );
+    const select = screen.getByLabelText('Outer');
+    expect(select.tagName).toBe('SELECT');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      select.id
+    );
+  });
+});

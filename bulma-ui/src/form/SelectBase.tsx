@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldLabelId } from './FormContext';
 
 /**
  * Props for the Select component.
@@ -79,6 +80,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       color,
       ...props,
     });
+    const fieldLabelId = useFieldLabelId();
 
     const mainClass = usePrefixedClassNames('select', {
       [`is-${color}`]: !!color,
@@ -114,6 +116,9 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
           ref={ref}
           className={innerSelectClass || undefined}
           {...selectProps}
+          // After the spread: a labeled Field's generated id is adopted only
+          // when no user id arrived; the id belongs on the inner <select>.
+          id={selectProps.id ?? fieldLabelId}
         >
           {children}
         </select>

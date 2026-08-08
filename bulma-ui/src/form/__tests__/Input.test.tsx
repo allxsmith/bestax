@@ -235,14 +235,19 @@ describe('Input label association (#368)', () => {
     expect(container.querySelector('input')).not.toHaveAttribute('id');
   });
 
-  it('injects no id inside an outer Field, which drops the label', () => {
+  it('adopts the outer Field label inside a Field, dropping its own', () => {
     const { container } = render(
       <Field label="Outer">
         <Input label="Dropped" />
       </Field>
     );
     expect(container.querySelectorAll('label').length).toBe(1);
-    expect(container.querySelector('input')).not.toHaveAttribute('id');
+    const input = screen.getByLabelText('Outer');
+    expect(input.id).toBeTruthy();
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
   });
 
   it('associates in horizontal layout', () => {
