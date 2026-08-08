@@ -237,6 +237,17 @@ describe('Radios group label association (#494)', () => {
     );
   });
 
+  it('names the radiogroup in horizontal layout', () => {
+    const { container } = render(
+      <Radios label="Color" name="color" horizontal>
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Color' });
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(group).toHaveAttribute('aria-labelledby', fieldLabel.id);
+  });
+
   it('renders role=radiogroup without aria-labelledby when unlabeled', () => {
     render(
       <Radios name="color">
