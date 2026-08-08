@@ -272,7 +272,8 @@ function RadiosWrappedFormDemo() {
 
 ## Accessibility
 
-- The group is rendered as a `<div class="radios">` containing labeled radio buttons.
+- The group is rendered as a `<div class="radios" role="radiogroup">` containing labeled radio buttons.
+- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.
 - Each child should be a `Radio` for proper labeling and accessibility.
 - Use the same `name` for all radios in a group to ensure mutual exclusivity.
 
@@ -296,22 +297,22 @@ function RadiosWrappedFormDemo() {
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                            | Default | Description                                                       |
-| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
-| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                  |
-| `name`           | `string`                                                                        | —       | Form field name shared by every Radio in the group (via context). |
-| `value`          | `string`                                                                        | —       | Currently-selected value (controlled mode).                       |
-| `defaultValue`   | `string`                                                                        | —       | Initial selected value (uncontrolled mode).                       |
-| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes.                                 |
-| `children`       | `React.ReactNode`                                                               | —       | Radio elements to render in the group.                            |
-| `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                           |
-| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                  |
-| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                      |
-| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                          |
-| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                          |
-| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                      |
-| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                     |
-| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                 |
+| Prop             | Type                                                                            | Default | Description                                                                                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | `React.ReactNode`                                                               | —       | Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one.                                                                                                                                     |
+| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                           |
+| `name`           | `string`                                                                        | —       | Form field name shared by every Radio in the group (via context).                                                                                                                                                                                          |
+| `value`          | `string`                                                                        | —       | Currently-selected value (controlled mode).                                                                                                                                                                                                                |
+| `defaultValue`   | `string`                                                                        | —       | Initial selected value (uncontrolled mode).                                                                                                                                                                                                                |
+| `onChange`       | `(value: string) => void`                                                       | —       | Fires when the selection changes.                                                                                                                                                                                                                          |
+| `children`       | `React.ReactNode`                                                               | —       | Radio elements to render in the group.                                                                                                                                                                                                                     |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                                                                                                                                                                           |
+| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                                                                                                                                                                                                                   |
+| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                                                                                                                                                                                                                   |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                                                                                                                                                                                                               |
+| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                              |
+| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                          |
 
 **Subcomponents:**
 

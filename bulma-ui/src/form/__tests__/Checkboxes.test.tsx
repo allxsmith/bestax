@@ -208,3 +208,69 @@ describe('Compound components', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(2);
   });
 });
+
+describe('Checkboxes group label association (#494)', () => {
+  it('names the group from the label via aria-labelledby', () => {
+    const { container } = render(
+      <Checkboxes label="Chores">
+        <Checkbox value="bed">Make the bed</Checkbox>
+      </Checkboxes>
+    );
+    const group = screen.getByRole('group', { name: 'Chores' });
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel.id).toBeTruthy();
+    expect(group).toHaveAttribute('aria-labelledby', fieldLabel.id);
+    expect(fieldLabel).not.toHaveAttribute('for');
+  });
+
+  it('uses a user-supplied labelProps.id as the target', () => {
+    const { container } = render(
+      <Checkboxes label="Chores" labelProps={{ id: 'chores-label' }}>
+        <Checkbox value="bed">Make the bed</Checkbox>
+      </Checkboxes>
+    );
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'id',
+      'chores-label'
+    );
+    expect(screen.getByRole('group')).toHaveAttribute(
+      'aria-labelledby',
+      'chores-label'
+    );
+  });
+
+  it('renders role=group without aria-labelledby when unlabeled', () => {
+    render(
+      <Checkboxes>
+        <Checkbox value="bed">Make the bed</Checkbox>
+      </Checkboxes>
+    );
+    expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
+  });
+
+  it('injects nothing inside an outer Field, which drops the label', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Checkboxes label="Dropped">
+          <Checkbox value="bed">Make the bed</Checkbox>
+        </Checkboxes>
+      </Field>
+    );
+    expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel).toHaveTextContent('Outer');
+    expect(fieldLabel).not.toHaveAttribute('id');
+  });
+
+  it('lets a user aria-labelledby in rest win', () => {
+    render(
+      <Checkboxes label="Chores" aria-labelledby="mine">
+        <Checkbox value="bed">Make the bed</Checkbox>
+      </Checkboxes>
+    );
+    expect(screen.getByRole('group')).toHaveAttribute(
+      'aria-labelledby',
+      'mine'
+    );
+  });
+});

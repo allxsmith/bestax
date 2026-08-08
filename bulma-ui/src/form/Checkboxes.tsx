@@ -11,6 +11,7 @@ import {
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelledBy } from './useAutoLabelId';
 import { Checkbox } from './Checkbox';
 
 /**
@@ -18,6 +19,12 @@ import { Checkbox } from './Checkbox';
  */
 export interface CheckboxesProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
+  /** Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="group"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one. */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
   /** Additional CSS classes to apply. */
   className?: string;
   /** Form field name shared by every Checkbox in the group (via context). */
@@ -75,6 +82,11 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
 }) => {
   const insideField = useInsideField();
   const insideControl = useInsideControl();
+  const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
+    label,
+    labelProps,
+    rendersLabel: !insideField,
+  });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
   });
@@ -113,7 +125,12 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   );
 
   const checkboxesElement = (
-    <div className={wrapperClass} {...rest}>
+    <div
+      className={wrapperClass}
+      role="group"
+      aria-labelledby={ariaLabelledBy}
+      {...rest}
+    >
       <CheckboxesProvider value={ctx}>{children}</CheckboxesProvider>
     </div>
   );
@@ -129,7 +146,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
       <Field
         label={label}
         labelSize={labelSize}
-        labelProps={labelProps}
+        labelProps={fieldLabelProps}
         horizontal={horizontal}
         className={fieldClassName}
       >

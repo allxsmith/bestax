@@ -237,7 +237,8 @@ function CheckboxesFormDemo() {
 
 ## Accessibility
 
-- The group is rendered as a `<div class="checkboxes">` containing labeled checkboxes.
+- The group is rendered as a `<div class="checkboxes" role="group">` containing labeled checkboxes.
+- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.
 - Each child should be a `Checkbox` for proper labeling and accessibility.
 
 ---
@@ -260,22 +261,22 @@ function CheckboxesFormDemo() {
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                            | Default | Description                                                          |
-| ---------------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
-| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                     |
-| `name`           | `string`                                                                        | —       | Form field name shared by every Checkbox in the group (via context). |
-| `value`          | `string[]`                                                                      | —       | Currently-selected values (controlled mode).                         |
-| `defaultValue`   | `string[]`                                                                      | —       | Initial selected values (uncontrolled mode).                         |
-| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array.            |
-| `children`       | `React.ReactNode`                                                               | —       | Checkbox elements to render in the group.                            |
-| `label`          | `React.ReactNode`                                                               | —       | Field label, rendered above the widget.                              |
-| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                     |
-| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element.                                         |
-| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                             |
-| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                             |
-| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                         |
-| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                        |
-| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                    |
+| Prop             | Type                                                                            | Default | Description                                                                                                                                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | `React.ReactNode`                                                               | —       | Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="group"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —       | Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one.                                                                                                                                |
+| `className`      | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                      |
+| `name`           | `string`                                                                        | —       | Form field name shared by every Checkbox in the group (via context).                                                                                                                                                                                  |
+| `value`          | `string[]`                                                                      | —       | Currently-selected values (controlled mode).                                                                                                                                                                                                          |
+| `defaultValue`   | `string[]`                                                                      | —       | Initial selected values (uncontrolled mode).                                                                                                                                                                                                          |
+| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array.                                                                                                                                                                                             |
+| `children`       | `React.ReactNode`                                                               | —       | Checkbox elements to render in the group.                                                                                                                                                                                                             |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                                                                                                                                                                      |
+| `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                                                                                                                                                                                                              |
+| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                                                                                                                                                                                                              |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                                                                                                                                                                                                          |
+| `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                         |
+| `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                     |
 
 **Subcomponents:**
 

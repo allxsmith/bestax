@@ -125,9 +125,10 @@ The `label` prop on the single-control convenience inputs (`Input`, `Select`, `T
 generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). ⚠️ Manual wiring is still required when composing
-`Field` + bases yourself (`Field`'s own `label` associates nothing) and on the group
-inputs (`Checkboxes`, `Radios`, `Rate`).
+`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`)
+associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
+and `aria-labelledby` pointing at the label. ⚠️ Manual wiring is still required when
+composing `Field` + bases yourself (`Field`'s own `label` associates nothing).
 
 ## Convenience vs composed
 
