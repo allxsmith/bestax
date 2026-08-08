@@ -58,8 +58,9 @@ interface UseAutoLabelledByOptions {
  * controls cannot take a single `htmlFor`, so instead the rendered `<label>`
  * gets a generated id and the group container points at it with
  * `aria-labelledby`. A user-supplied `labelProps.id` is used as the target
- * instead of generating one. The merged labelProps carry an explicit
- * `htmlFor: undefined` so group labels are never wired control-style.
+ * instead of generating one. Any caller `htmlFor` is stripped — a group label
+ * names the group, never a single control — so the merged labelProps always
+ * carry an explicit `htmlFor: undefined`.
  * Internal; not part of the public API.
  */
 export function useAutoLabelledBy({
@@ -75,7 +76,7 @@ export function useAutoLabelledBy({
   const active = !!label && rendersLabel;
   const labelId = labelProps?.id ?? (active ? generatedId : undefined);
   const fieldLabelProps = active
-    ? { id: labelId, htmlFor: undefined, ...labelProps }
+    ? { ...labelProps, id: labelId, htmlFor: undefined }
     : labelProps;
   return { ariaLabelledBy: active ? labelId : undefined, fieldLabelProps };
 }

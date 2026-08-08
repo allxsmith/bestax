@@ -21,7 +21,7 @@ export interface CheckboxesProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
   /** Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="group"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one. */
+  /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
