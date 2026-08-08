@@ -1,3 +1,11 @@
+## [5.8.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.2...@allxsmith/bestax-bulma@5.8.3) (2026-08-08)
+
+
+### Bug Fixes
+
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([7ae37d4](https://github.com/allxsmith/bestax/commit/7ae37d48f7a5af85bf29d21c7517abbea7c9448b))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([73cec33](https://github.com/allxsmith/bestax/commit/73cec33709b72f968645a951cda0fa6a664847c5))
+
 ## [5.8.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.1...@allxsmith/bestax-bulma@5.8.2) (2026-08-07)
 
 
