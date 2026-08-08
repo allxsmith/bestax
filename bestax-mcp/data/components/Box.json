@@ -1,0 +1,164 @@
+{
+  "name": "Box",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/box",
+  "docsUrl": "https://bestax.io/docs/api/elements/box",
+  "examples": [
+    {
+      "title": "Default Box",
+      "code": "<Box>Default Box</Box>"
+    },
+    {
+      "title": "Primary Text Color",
+      "code": "<Box textColor=\"primary\">Box with Primary Text</Box>"
+    },
+    {
+      "title": "Light Background",
+      "code": "<Box bgColor=\"grey-light\">Box with Light Background</Box>"
+    },
+    {
+      "title": "No Shadow",
+      "code": "<Box hasShadow={false}>Box without Shadow</Box>"
+    },
+    {
+      "title": "Spacing and Alignment",
+      "code": "<Box m=\"4\" p=\"4\" textAlign=\"centered\">\n  Box with Margin, Padding, and Centered Text\n</Box>"
+    },
+    {
+      "title": "Custom Class",
+      "code": "<Box className=\"custom-box-class\">Box with Custom Class</Box>"
+    },
+    {
+      "title": "Viewport-Specific Text Color",
+      "code": "<Box textColor=\"primary\" viewport=\"tablet\">\n  Box with Tablet-specific Primary Text\n</Box>"
+    },
+    {
+      "title": "Interactive Box",
+      "code": "<Box textColor=\"success\" bgColor=\"black\" m=\"3\" p=\"3\" textAlign=\"right\">\n  Interactive Box\n</Box>"
+    }
+  ],
+  "accessibility": "- **Content:** Use semantic HTML inside `Box` for best accessibility.\n- **Shadow:** The shadow is purely visual and does not affect accessibility.\n- **Contrast:** Ensure color combinations provide sufficient contrast.\n\n:::tip\n`Box` is perfect for card-like containers, callouts, or visually separating content.\n:::",
+  "related": [
+    "Block",
+    "Content",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-box--default",
+  "summary": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
+  "import": "import { Box } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Box.tsx",
+  "rootClass": "box",
+  "parts": [
+    {
+      "path": "Box",
+      "summary": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled box variant (no `.box.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "hasShadow",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the box has a shadow (default: true).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the box.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-box-background-color",
+      "sass": "$box-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-color",
+      "sass": "$box-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-radius",
+      "sass": "$box-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-shadow",
+      "sass": "$box-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-padding",
+      "sass": "$box-padding",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-link-hover-shadow",
+      "sass": "$box-link-hover-shadow",
+      "default": "0 0.5em 1em -0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1), 0 0 0 1px var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-box-link-active-shadow",
+      "sass": "$box-link-active-shadow",
+      "default": "inset 0 1px 2px hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2), 0 0 0 1px var(--bulma-link)",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,472 @@
+{
+  "name": "Rate",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/rate",
+  "docsUrl": "https://bestax.io/docs/api/form/rate",
+  "examples": [
+    {
+      "title": "Basic Rating",
+      "code": "function example() {\n  const [rating, setRating] = useState(3);\n  return (\n    <Block>\n      <Rate value={rating} onChange={setRating} />\n      <Paragraph mt=\"2\">Rating: {rating} stars</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "With Score Display",
+      "code": "function example() {\n  const [rating, setRating] = useState(4);\n  return <Rate value={rating} onChange={setRating} showScore />;\n}"
+    },
+    {
+      "title": "With Text Labels",
+      "code": "function example() {\n  const [rating, setRating] = useState(3);\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      showText\n      texts={['Poor', 'Fair', 'Average', 'Good', 'Excellent']}\n    />\n  );\n}"
+    },
+    {
+      "title": "With Score and Text",
+      "code": "function example() {\n  const [rating, setRating] = useState(4);\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      showScore\n      showText\n      texts={['Terrible', 'Bad', 'OK', 'Good', 'Great']}\n    />\n  );\n}"
+    },
+    {
+      "title": "Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Rate defaultValue={3} size=\"small\" />\n  <Rate defaultValue={3} />\n  <Rate defaultValue={3} size=\"medium\" />\n  <Rate defaultValue={3} size=\"large\" />\n</Block>"
+    },
+    {
+      "title": "Custom Max Value",
+      "code": "function example() {\n  const [rating, setRating] = useState(7);\n  return (\n    <Block>\n      <Rate value={rating} onChange={setRating} max={10} showScore />\n      <Paragraph mt=\"2\">Rating: {rating} out of 10</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Spaced Icons",
+      "code": "<Rate defaultValue={3} spaced />"
+    },
+    {
+      "title": "Disabled Rating",
+      "code": "<Rate value={4} disabled showScore />"
+    },
+    {
+      "title": "Custom Icons",
+      "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Rate label=\"Rating\" defaultValue={3} />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Rate defaultValue={3} />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"star\">\n            <Rate defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
+  "related": [
+    "Input",
+    "Slider"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
+  "summary": "The `Rate` component provides a star/icon-based rating system.",
+  "import": "import { Rate } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Rate.tsx",
+  "rootClass": "rate",
+  "parts": [
+    {
+      "path": "Rate",
+      "summary": "The `Rate` component provides a star/icon-based rating system.",
+      "component": null,
+      "props": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. When set, a hidden input is rendered.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Optional id of the form this hidden input belongs to (use when the input lives outside the form element).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Controlled value (0 to max).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": "0",
+          "description": "Default value for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "5",
+          "description": "Maximum rating value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the rating is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showScore",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show the numeric score next to stars.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showText",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show custom text based on value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "texts",
+          "type": "string[]",
+          "default": null,
+          "description": "Array of text labels for each rating value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Callback when rating changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "customIcon",
+          "type": "(props: RateIconProps) => React.ReactNode",
+          "default": null,
+          "description": "Custom icon renderer.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "spaced",
+          "type": "boolean",
+          "default": "false",
+          "description": "Add spacing between icons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rtl",
+          "type": "boolean",
+          "default": "false",
+          "description": "Right-to-left direction.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconName",
+          "type": "string",
+          "default": null,
+          "description": "Custom icon name for the rating stars.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLibrary",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": null,
+          "description": "Icon library to use (defaults to ConfigProvider value or 'fa').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconVariant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g., 'solid', 'outlined').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional icon modifiers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color of the active rating icons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "precision",
+          "type": "number",
+          "default": "1",
+          "description": "Rating precision (e.g., `0.5` for half stars).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "customText",
+          "type": "string",
+          "default": null,
+          "description": "Custom text displayed next to the rating.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label, rendered above the widget.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the container element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-rate-color-inactive",
+      "sass": "$rate-color-inactive",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-color-active",
+      "sass": "$rate-color-active",
+      "default": "hsl(48, 100%, 50%)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-color-hover",
+      "sass": "$rate-color-hover",
+      "default": "hsl(48, 100%, 67%)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-icon-size",
+      "sass": "$rate-icon-size",
+      "default": "1.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-icon-size-small",
+      "sass": "$rate-icon-size-small",
+      "default": "1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-icon-size-medium",
+      "sass": "$rate-icon-size-medium",
+      "default": "2em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-icon-size-large",
+      "sass": "$rate-icon-size-large",
+      "default": "2.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-font-icon-size",
+      "sass": "$rate-font-icon-size",
+      "default": "1.35em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-font-icon-size-small",
+      "sass": "$rate-font-icon-size-small",
+      "default": "0.9em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-font-icon-size-medium",
+      "sass": "$rate-font-icon-size-medium",
+      "default": "1.8em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-font-icon-size-large",
+      "sass": "$rate-font-icon-size-large",
+      "default": "2.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-gap",
+      "sass": "$rate-gap",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-spaced-gap",
+      "sass": "$rate-spaced-gap",
+      "default": "0.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-score-weight",
+      "sass": "$rate-score-weight",
+      "default": "600",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-score-color",
+      "sass": "$rate-score-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-text-color",
+      "sass": "$rate-text-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-text-size",
+      "sass": "$rate-text-size",
+      "default": "0.875em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-transition-duration",
+      "sass": "$rate-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-disabled-opacity",
+      "sass": "$rate-disabled-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-rate-pop-scale",
+      "sass": "$rate-pop-scale",
+      "default": "1.2",
+      "scope": "component"
+    }
+  ]
+}

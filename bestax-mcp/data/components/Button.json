@@ -1,0 +1,612 @@
+{
+  "name": "Button",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/button",
+  "docsUrl": "https://bestax.io/docs/api/elements/button",
+  "examples": [
+    {
+      "title": "Default Button",
+      "code": "<Button>Default Button</Button>"
+    },
+    {
+      "title": "All Colors",
+      "code": "import { Buttons } from './Buttons';\n\n<Buttons>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (\n    <Button key={color} color={color}>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Button>\n  ))}\n</Buttons>;"
+    },
+    {
+      "title": "All Sizes",
+      "code": "<Buttons>\n  {['small', 'normal', 'medium', 'large'].map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
+    },
+    {
+      "title": "Light Variant",
+      "code": "<Button color=\"primary\" isLight>\n  Light Primary Button\n</Button>"
+    },
+    {
+      "title": "Rounded",
+      "code": "<Button color=\"info\" isRounded>\n  Rounded Button\n</Button>"
+    },
+    {
+      "title": "Loading",
+      "code": "<Button color=\"success\" isLoading>\n  Loading Button\n</Button>"
+    },
+    {
+      "title": "Static",
+      "code": "<Button isStatic>Static Button</Button>"
+    },
+    {
+      "title": "Full Width",
+      "code": "<Button color=\"warning\" isFullWidth>\n  Full Width Button\n</Button>"
+    },
+    {
+      "title": "Outlined",
+      "code": "<Button color=\"danger\" isOutlined>\n  Outlined Button\n</Button>"
+    },
+    {
+      "title": "Inverted",
+      "code": "<Button color=\"link\" isInverted>\n  Inverted Button\n</Button>"
+    },
+    {
+      "title": "Focused",
+      "code": "<Button color=\"primary\" isFocused>\n  Focused Button\n</Button>"
+    },
+    {
+      "title": "Active",
+      "code": "<Button color=\"info\" isActive>\n  Active Button\n</Button>"
+    },
+    {
+      "title": "Hovered",
+      "code": "<Button color=\"success\" isHovered>\n  Hovered Button\n</Button>"
+    },
+    {
+      "title": "Ghost",
+      "code": "<Button color=\"ghost\">Ghost Button</Button>"
+    },
+    {
+      "title": "Text",
+      "code": "<Button color=\"text\">Text Button</Button>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Button color=\"warning\" isDisabled disabled>\n  Disabled Button\n</Button>"
+    },
+    {
+      "title": "Custom Text and Background Color",
+      "code": "<Button textColor=\"danger\" bgColor=\"info\">\n  Custom Text &amp; Background\n</Button>"
+    },
+    {
+      "title": "Spacing Helpers",
+      "code": "<Button m=\"2\" p=\"3\" mx=\"4\" my=\"5\" mt=\"1\" mr=\"2\" mb=\"3\" ml=\"4\">\n  Button with Spacing\n</Button>"
+    },
+    {
+      "title": "Text Alignment",
+      "code": "<Button textAlign=\"centered\">Centered Text Button</Button>"
+    },
+    {
+      "title": "Responsive Viewport",
+      "code": "<Button viewport=\"mobile\">Mobile Responsive Button</Button>"
+    },
+    {
+      "title": "Flexbox Layout",
+      "code": "<Button display=\"flex\" justifyContent=\"center\" alignItems=\"center\">\n  Flex Button\n</Button>"
+    },
+    {
+      "title": "Button Group",
+      "code": "<Buttons hasAddons>\n  <Button color=\"primary\">Left</Button>\n  <Button color=\"primary\">Center</Button>\n  <Button color=\"primary\">Right</Button>\n</Buttons>"
+    },
+    {
+      "title": "With HTML Attributes",
+      "code": "<Button type=\"submit\" className=\"custom-class\">\n  Submit Button\n</Button>"
+    },
+    {
+      "title": "Polymorphic `as` (Router Links)",
+      "code": "import { Link as RouterLink } from 'react-router-dom';\nimport { Button } from '@allxsmith/bestax-bulma';\n\n<Button as={RouterLink} to=\"/visit\" color=\"primary\">\n  Book a visit\n</Button>;"
+    }
+  ],
+  "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",
+  "related": [
+    "Buttons",
+    "Icon",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
+  "summary": "The `Button` component provides a flexible and highly customizable button for your Bulma React UI.",
+  "import": "import { Button } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Button.tsx",
+  "rootClass": "button",
+  "parts": [
+    {
+      "path": "Button",
+      "summary": "The `Button` component provides a flexible and highly customizable button for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies a lighter color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'button'",
+          "description": "Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "Href value (if rendering as `<a>`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement> | React.MouseEventHandler<HTMLAnchorElement>",
+          "default": null,
+          "description": "Click event handler.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "default": null,
+          "description": "Anchor tag target.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rel",
+          "type": "string",
+          "default": null,
+          "description": "Anchor tag rel.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-button-family",
+      "sass": "$button-family",
+      "default": "false",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-weight",
+      "sass": "$button-weight",
+      "default": "var(--bulma-weight-medium)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-border-color",
+      "sass": "$button-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-border-style",
+      "sass": "$button-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-border-width",
+      "sass": "$button-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-padding-vertical",
+      "sass": "$button-padding-vertical",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-padding-horizontal",
+      "sass": "$button-padding-horizontal",
+      "default": "1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-focus-border-color",
+      "sass": "$button-focus-border-color",
+      "default": "var(--bulma-link-focus-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-focus-box-shadow-size",
+      "sass": "$button-focus-box-shadow-size",
+      "default": "0 0 0 0.125em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-focus-box-shadow-color",
+      "sass": "$button-focus-box-shadow-color",
+      "default": "hsla(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-on-scheme-l), 0.25)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-active-color",
+      "sass": "$button-active-color",
+      "default": "var(--bulma-link-active)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-active-border-color",
+      "sass": "$button-active-border-color",
+      "default": "var(--bulma-link-active-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-text-color",
+      "sass": "$button-text-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-text-decoration",
+      "sass": "$button-text-decoration",
+      "default": "underline",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-text-hover-background-color",
+      "sass": "$button-text-hover-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-text-hover-color",
+      "sass": "$button-text-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-background",
+      "sass": "$button-ghost-background",
+      "default": "none",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-border-color",
+      "sass": "$button-ghost-border-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-color",
+      "sass": "$button-ghost-color",
+      "default": "var(--bulma-link-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-decoration",
+      "sass": "$button-ghost-decoration",
+      "default": "none",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-hover-color",
+      "sass": "$button-ghost-hover-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-ghost-hover-decoration",
+      "sass": "$button-ghost-hover-decoration",
+      "default": "underline",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-disabled-background-color",
+      "sass": "$button-disabled-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-disabled-border-color",
+      "sass": "$button-disabled-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-disabled-shadow",
+      "sass": "$button-disabled-shadow",
+      "default": "none",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-disabled-opacity",
+      "sass": "$button-disabled-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-static-color",
+      "sass": "$button-static-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-static-background-color",
+      "sass": "$button-static-background-color",
+      "default": "var(--bulma-scheme-main-ter)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-static-border-color",
+      "sass": "$button-static-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-h",
+      "sass": "$button-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-s",
+      "sass": "$button-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-l",
+      "sass": "$button-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-background-l",
+      "sass": "$button-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-background-l-delta",
+      "sass": "$button-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-hover-background-l-delta",
+      "sass": "$button-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-active-background-l-delta",
+      "sass": "$button-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-color-l",
+      "sass": "$button-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-border-l",
+      "sass": "$button-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-border-l-delta",
+      "sass": "$button-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-hover-border-l-delta",
+      "sass": "$button-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-active-border-l-delta",
+      "sass": "$button-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-focus-border-l-delta",
+      "sass": "$button-focus-border-l-delta",
+      "default": "var(--bulma-focus-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-outer-shadow-h",
+      "sass": "$button-outer-shadow-h",
+      "default": "0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-outer-shadow-s",
+      "sass": "$button-outer-shadow-s",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-outer-shadow-l",
+      "sass": "$button-outer-shadow-l",
+      "default": "20%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-button-outer-shadow-a",
+      "sass": "$button-outer-shadow-a",
+      "default": "0.05",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-color",
+      "sass": null,
+      "default": "hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))",
+      "scope": "component"
+    }
+  ]
+}

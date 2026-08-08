@@ -1,0 +1,237 @@
+{
+  "name": "SubTitle",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/subtitle",
+  "docsUrl": "https://bestax.io/docs/api/elements/subtitle",
+  "examples": [
+    {
+      "title": "Default SubTitle",
+      "code": "<SubTitle>Default SubTitle</SubTitle>"
+    },
+    {
+      "title": "Has Skeleton",
+      "code": "<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>"
+    },
+    {
+      "title": "Is Skeleton",
+      "code": "<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>"
+    },
+    {
+      "title": "Different Sizes",
+      "code": "<>\n  <SubTitle size=\"2\">SubTitle Size 2</SubTitle>\n  <SubTitle size=\"4\">SubTitle Size 4</SubTitle>\n</>"
+    },
+    {
+      "title": "With Margin",
+      "code": "<SubTitle m=\"4\">SubTitle with Margin</SubTitle>"
+    },
+    {
+      "title": "As Paragraph",
+      "code": "<SubTitle as=\"p\" size=\"3\">\n  SubTitle as Paragraph\n</SubTitle>"
+    },
+    {
+      "title": "All Sizes",
+      "code": "<>\n  {['1', '2', '3', '4', '5', '6'].map(size => (\n    <SubTitle key={size} size={size}>\n      SubTitle Size {size}\n    </SubTitle>\n  ))}\n</>"
+    },
+    {
+      "title": "Title and Subtitle Pairings",
+      "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
+    }
+  ],
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n\n:::tip\n`SubTitle` is visually styled as a heading, but its semantic level depends on the `as` prop.\n:::",
+  "related": [
+    "Block",
+    "Title",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-subtitle--default",
+  "summary": "The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).",
+  "import": "import { SubTitle } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/SubTitle.tsx",
+  "rootClass": "subtitle",
+  "parts": [
+    {
+      "path": "SubTitle",
+      "summary": "The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'1' | '2' | '3' | '4' | '5' | '6'",
+          "default": null,
+          "description": "Size of the subtitle (Bulma sizes).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
+          "default": "'h1'",
+          "description": "HTML element to render as (h1-h6 or p).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasSkeleton",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies the `has-skeleton` class to part of the content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Subtitle content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "skeleton",
+          "type": "boolean",
+          "default": null,
+          "description": "Applies the `is-skeleton` class to the entire component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <h1>–<h6> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-title-color",
+      "sass": "$title-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-family",
+      "sass": "$title-family",
+      "default": "false",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-size",
+      "sass": "$title-size",
+      "default": "var(--bulma-size-3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-weight",
+      "sass": "$title-weight",
+      "default": "var(--bulma-weight-extrabold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-line-height",
+      "sass": "$title-line-height",
+      "default": "1.125",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-strong-color",
+      "sass": "$title-strong-color",
+      "default": "inherit",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-strong-weight",
+      "sass": "$title-strong-weight",
+      "default": "inherit",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-sub-size",
+      "sass": "$title-sub-size",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-title-sup-size",
+      "sass": "$title-sup-size",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-color",
+      "sass": "$subtitle-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-family",
+      "sass": "$subtitle-family",
+      "default": "false",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-size",
+      "sass": "$subtitle-size",
+      "default": "var(--bulma-size-5)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-weight",
+      "sass": "$subtitle-weight",
+      "default": "var(--bulma-weight-normal)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-line-height",
+      "sass": "$subtitle-line-height",
+      "default": "1.25",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-strong-color",
+      "sass": "$subtitle-strong-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-subtitle-strong-weight",
+      "sass": "$subtitle-strong-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    }
+  ]
+}

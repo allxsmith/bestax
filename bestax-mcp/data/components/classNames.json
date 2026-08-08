@@ -1,0 +1,65 @@
+{
+  "name": "classNames",
+  "kind": "helper",
+  "category": "helpers",
+  "slug": "helpers/classnames",
+  "docsUrl": "https://bestax.io/docs/api/helpers/classnames",
+  "examples": [
+    {
+      "title": "Basic Usage with Strings",
+      "code": "function example() {\n  return classNames('column', 'is-half', 'has-text-primary');\n  // => 'column is-half has-text-primary'\n}"
+    },
+    {
+      "title": "Combining Strings, Numbers, Falsy Values",
+      "code": "function example() {\n  return classNames('notification', 0, null, undefined, '', 'is-primary');\n  // => 'notification 0 is-primary'\n}"
+    },
+    {
+      "title": "Using Arrays",
+      "code": "function example() {\n  return classNames('button', ['is-primary', 'is-large']);\n  // => 'button is-primary is-large'\n}"
+    },
+    {
+      "title": "Using Objects",
+      "code": "function example() {\n  const hasError = true;\n  return classNames('input', { 'is-danger': hasError, 'is-rounded': true });\n  // If hasError = false: 'input is-rounded'\n  // If hasError = true:  'input is-danger is-rounded'\n}"
+    },
+    {
+      "title": "Nested Arrays and Objects",
+      "code": "function example() {\n  return classNames(\n    'column',\n    ['is-narrow', ['has-background-primary', { 'is-hidden': false }]],\n    { 'is-size-4': true }\n  );\n  // => 'column is-narrow has-background-primary is-size-4'\n}"
+    },
+    {
+      "title": "Removing Duplicate Class Names",
+      "code": "function example() {\n  return classNames('button', 'is-primary', 'button', [\n    'is-primary',\n    'is-large',\n  ]);\n  // => 'button is-primary is-large'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const isGapless = true;\n  const isMultiline = true;\n\n  return classNames(\n    'columns',\n    { 'is-gapless': isGapless, 'is-multiline': isMultiline },\n    ['has-background-light', 'is-vcentered']\n  );\n  // Example output: 'columns is-gapless is-multiline has-background-light is-vcentered'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const span = 2;\n\n  return classNames('cell', { 'is-col-span-2': span === 2 }, [\n    'has-text-primary',\n    'is-row-span-3',\n  ]);\n  // Example output: 'cell is-col-span-2 has-text-primary is-row-span-3'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const active = true;\n  const up = false;\n  const right = true;\n  const hoverable = false;\n  const disabled = false;\n  const className = 'my-custom-dropdown';\n\n  return classNames(\n    'dropdown',\n    {\n      'is-active': active,\n      'is-up': up,\n      'is-right': right,\n      'is-hoverable': hoverable,\n      'is-disabled': disabled,\n    },\n    className\n  );\n  // Possible output: 'dropdown is-active is-right my-custom-dropdown'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const className = 'custom-class';\n  const hasShadow = false;\n  const bulmaHelperClasses = 'has-text-success';\n\n  return classNames('card', className, bulmaHelperClasses, {\n    'is-shadowless': !hasShadow,\n  });\n  // Example output: 'card custom-class has-text-success is-shadowless'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const className = 'sidebar-menu';\n  const bulmaHelperClasses = 'has-background-light';\n\n  return classNames('menu', className, bulmaHelperClasses);\n  // Example output: 'menu sidebar-menu has-background-light'\n}"
+    },
+    {
+      "title": "Real Examples from Components",
+      "code": "function example() {\n  const className = 'custom-breadcrumb';\n  const bulmaHelperClasses = undefined;\n  const alignment = 'centered';\n  const separator = 'dot';\n  const size = 'large';\n\n  return classNames('breadcrumb', className, bulmaHelperClasses, {\n    'is-centered': alignment === 'centered',\n    'has-dot-separator': separator === 'dot',\n    'is-large': size === 'large',\n  });\n  // Example output: 'breadcrumb custom-breadcrumb is-centered has-dot-separator is-large'\n}"
+    }
+  ],
+  "accessibility": null,
+  "related": [],
+  "storybook": null,
+  "summary": "`classNames` is a utility function for conditionally joining class names together.",
+  "import": "import { classNames } from '@allxsmith/bestax-bulma';",
+  "doc": "# classNames\n\n## Overview\n\n`classNames` is a utility function for conditionally joining class names together. It takes any number of arguments, which can be strings, numbers, arrays, or objects, and returns a space-separated string of unique class names. This is useful for dynamically constructing className values in React and other frameworks.\n\n---\n\n## Import\n\n```tsx\nimport { classNames } from '@allxsmith/bestax-bulma';\n```\n\n---\n\n## Usage\n\n### Basic Usage with Strings\n\n```tsx live\nfunction example() {\n  return classNames('column', 'is-half', 'has-text-primary');\n  // => 'column is-half has-text-primary'\n}\n```\n\n---\n\n### Combining Strings, Numbers, Falsy Values\n\n```tsx live\nfunction example() {\n  return classNames('notification', 0, null, undefined, '', 'is-primary');\n  // => 'notification 0 is-primary'\n}\n```\n\n---\n\n### Using Arrays\n\n```tsx live\nfunction example() {\n  return classNames('button', ['is-primary', 'is-large']);\n  // => 'button is-primary is-large'\n}\n```\n\n---\n\n### Using Objects\n\n```tsx live\nfunction example() {\n  const hasError = true;\n  return classNames('input', { 'is-danger': hasError, 'is-rounded': true });\n  // If hasError = false: 'input is-rounded'\n  // If hasError = true:  'input is-danger is-rounded'\n}\n```\n\n---\n\n### Nested Arrays and Objects\n\n```tsx live\nfunction example() {\n  return classNames(\n    'column',\n    ['is-narrow', ['has-background-primary', { 'is-hidden': false }]],\n    { 'is-size-4': true }\n  );\n  // => 'column is-narrow has-background-primary is-size-4'\n}\n```\n\n---\n\n### Removing Duplicate Class Names\n\n```tsx live\nfunction example() {\n  return classNames('button', 'is-primary', 'button', [\n    'is-primary',\n    'is-large',\n  ]);\n  // => 'button is-primary is-large'\n}\n```\n\n---\n\n### Real Examples from Components\n\n#### Columns and Column\n\n```tsx live\nfunction example() {\n  const isGapless = true;\n  const isMultiline = true;\n\n  return classNames(\n    'columns',\n    { 'is-gapless': isGapless, 'is-multiline': isMultiline },\n    ['has-background-light', 'is-vcentered']\n  );\n  // Example output: 'columns is-gapless is-multiline has-background-light is-vcentered'\n}\n```\n\n#### Grid and Cell\n\n```tsx live\nfunction example() {\n  const span = 2;\n\n  return classNames('cell', { 'is-col-span-2': span === 2 }, [\n    'has-text-primary',\n    'is-row-span-3',\n  ]);\n  // Example output: 'cell is-col-span-2 has-text-primary is-row-span-3'\n}\n```\n\n#### Dropdown\n\n```tsx live\nfunction example() {\n  const active = true;\n  const up = false;\n  const right = true;\n  const hoverable = false;\n  const disabled = false;\n  const className = 'my-custom-dropdown';\n\n  return classNames(\n    'dropdown',\n    {\n      'is-active': active,\n      'is-up': up,\n      'is-right': right,\n      'is-hoverable': hoverable,\n      'is-disabled': disabled,\n    },\n    className\n  );\n  // Possible output: 'dropdown is-active is-right my-custom-dropdown'\n}\n```\n\n#### Card\n\n```tsx live\nfunction example() {\n  const className = 'custom-class';\n  const hasShadow = false;\n  const bulmaHelperClasses = 'has-text-success';\n\n  return classNames('card', className, bulmaHelperClasses, {\n    'is-shadowless': !hasShadow,\n  });\n  // Example output: 'card custom-class has-text-success is-shadowless'\n}\n```\n\n#### Menu\n\n```tsx live\nfunction example() {\n  const className = 'sidebar-menu';\n  const bulmaHelperClasses = 'has-background-light';\n\n  return classNames('menu', className, bulmaHelperClasses);\n  // Example output: 'menu sidebar-menu has-background-light'\n}\n```\n\n#### Breadcrumb\n\n```tsx live\nfunction example() {\n  const className = 'custom-breadcrumb';\n  const bulmaHelperClasses = undefined;\n  const alignment = 'centered';\n  const separator = 'dot';\n  const size = 'large';\n\n  return classNames('breadcrumb', className, bulmaHelperClasses, {\n    'is-centered': alignment === 'centered',\n    'has-dot-separator': separator === 'dot',\n    'is-large': size === 'large',\n  });\n  // Example output: 'breadcrumb custom-breadcrumb is-centered has-dot-separator is-large'\n}\n```\n\n---\n\n## API\n\n```ts\nfunction classNames(\n  ...args: (\n    | string\n    | number\n    | undefined\n    | null\n    | false\n    | Record<string, unknown>\n    | unknown[]\n  )[]\n): string;\n```\n\n- Accepts any mix of:\n  - `string` or `number`\n  - Array of valid values (including nested arrays)\n  - Object (`{ className: boolean }`), where keys are included if their value is truthy\n  - Falsy values (`null`, `undefined`, `false`, `''`) are ignored\n\n---\n\n## Tips\n\n- All falsy values are ignored.\n- Array and object arguments can be nested arbitrarily deep.\n- Duplicate class names are automatically removed.\n- Useful for React's `className` prop, but can be used anywhere strings are needed.\n\n---\n\n## See Also\n\n- [`useBulmaClasses`](./usebulmaclasses.md): Advanced Bulma helper class generator.\n- [Bulma Documentation](https://bulma.io/documentation/)",
+  "parts": [],
+  "cssVars": []
+}

@@ -1,0 +1,173 @@
+{
+  "name": "Delete",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/delete",
+  "docsUrl": "https://bestax.io/docs/api/elements/delete",
+  "examples": [
+    {
+      "title": "Default Delete",
+      "code": "<Delete />"
+    },
+    {
+      "title": "Small, Medium, Large",
+      "code": "<>\n  <Delete size=\"small\" />\n  <Delete size=\"medium\" />\n  <Delete size=\"large\" />\n</>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Delete disabled />"
+    },
+    {
+      "title": "With Custom Class",
+      "code": "<Delete className=\"custom-delete\" />"
+    },
+    {
+      "title": "With Text Color",
+      "code": "<Delete textColor=\"primary\" />"
+    },
+    {
+      "title": "With Background Color",
+      "code": "<Delete bgColor=\"info\" />"
+    },
+    {
+      "title": "With Margin",
+      "code": "<Delete m=\"2\" />"
+    },
+    {
+      "title": "In a Tag",
+      "code": "<Tag color=\"info\" size=\"medium\">\n  Example Tag\n  <Delete size=\"small\" textColor=\"danger\" ariaLabel=\"Remove tag\" />\n</Tag>"
+    },
+    {
+      "title": "In a Notification",
+      "code": "<Notification color=\"primary\">\n  <Delete bgColor=\"warning\" ariaLabel=\"Close notification\" />\n  <Paragraph>This is a primary notification with a delete button.</Paragraph>\n</Notification>"
+    },
+    {
+      "title": "In a Message Header",
+      "code": "<Message color=\"success\" title=\"Success Message\">\n  This is a success message with a delete button in the header.\n</Message>"
+    }
+  ],
+  "accessibility": "- **ARIA label:** Always set a meaningful `ariaLabel` for screen readers (default is `'Close'`).\n- **Keyboard:** The button is focusable and supports keyboard activation.\n- **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.\n\n:::tip\nFor custom close actions, use the `onClick` prop.\n:::",
+  "related": [
+    "Message",
+    "Notification",
+    "Tag",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-delete--default",
+  "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.",
+  "import": "import { Delete } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Delete.tsx",
+  "rootClass": "delete",
+  "parts": [
+    {
+      "path": "Delete",
+      "summary": "The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.delete.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "onClick",
+          "type": "(event: React.MouseEvent<HTMLButtonElement>) => void",
+          "default": null,
+          "description": "Click handler for the button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the delete button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'Close'",
+          "description": "ARIA label for accessibility (default: 'Close').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the button is disabled (default: false).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-delete-dimensions",
+      "sass": null,
+      "default": "1.25rem",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-delete-background-l",
+      "sass": null,
+      "default": "0%",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-delete-background-alpha",
+      "sass": null,
+      "default": "0.5",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-delete-color",
+      "sass": null,
+      "default": "var(--bulma-white)",
+      "scope": "global"
+    }
+  ]
+}

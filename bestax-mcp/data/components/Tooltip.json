@@ -1,0 +1,212 @@
+{
+  "name": "Tooltip",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/tooltip",
+  "docsUrl": "https://bestax.io/docs/api/components/tooltip",
+  "examples": [
+    {
+      "title": "Basic Tooltip",
+      "code": "function example() {\n  return (\n    <Tooltip label=\"This is helpful information\">\n      <Button>Hover me</Button>\n    </Tooltip>\n  );\n}"
+    },
+    {
+      "title": "Positions",
+      "code": "function example() {\n  return (\n    <Buttons>\n      <Tooltip label=\"Top tooltip\" position=\"top\">\n        <Button>Top</Button>\n      </Tooltip>\n      <Tooltip label=\"Bottom tooltip\" position=\"bottom\">\n        <Button>Bottom</Button>\n      </Tooltip>\n      <Tooltip label=\"Left tooltip\" position=\"left\">\n        <Button>Left</Button>\n      </Tooltip>\n      <Tooltip label=\"Right tooltip\" position=\"right\">\n        <Button>Right</Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
+    },
+    {
+      "title": "Colors",
+      "code": "function example() {\n  return (\n    <Buttons>\n      <Tooltip label=\"Primary\" color=\"primary\">\n        <Button color=\"primary\">Primary</Button>\n      </Tooltip>\n      <Tooltip label=\"Link\" color=\"link\">\n        <Button color=\"link\">Link</Button>\n      </Tooltip>\n      <Tooltip label=\"Info\" color=\"info\">\n        <Button color=\"info\">Info</Button>\n      </Tooltip>\n      <Tooltip label=\"Success\" color=\"success\">\n        <Button color=\"success\">Success</Button>\n      </Tooltip>\n      <Tooltip label=\"Warning\" color=\"warning\">\n        <Button color=\"warning\">Warning</Button>\n      </Tooltip>\n      <Tooltip label=\"Danger\" color=\"danger\">\n        <Button color=\"danger\">Danger</Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
+    },
+    {
+      "title": "Multiline",
+      "code": "function example() {\n  return (\n    <Block p=\"5\">\n      <Tooltip\n        label=\"This is a longer tooltip that wraps to multiple lines. It's useful for displaying more detailed information.\"\n        multiline\n      >\n        <Button>Hover for more info</Button>\n      </Tooltip>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Always Visible",
+      "code": "function example() {\n  return (\n    <Block p=\"5\">\n      <Tooltip label=\"I'm always visible!\" active color=\"info\">\n        <Button>Always visible tooltip</Button>\n      </Tooltip>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Dashed Underline",
+      "code": "function example() {\n  return (\n    <Paragraph>\n      The term{' '}\n      <Tooltip label=\"Application Programming Interface\" dashed>\n        <Span>API</Span>\n      </Tooltip>{' '}\n      is commonly used in software development.\n    </Paragraph>\n  );\n}"
+    },
+    {
+      "title": "With Delay",
+      "code": "function example() {\n  return (\n    <Buttons>\n      <Tooltip label=\"No delay\" delay={0}>\n        <Button>No delay</Button>\n      </Tooltip>\n      <Tooltip label=\"500ms delay\" delay={500}>\n        <Button>500ms delay</Button>\n      </Tooltip>\n      <Tooltip label=\"1 second delay\" delay={1000}>\n        <Button>1s delay</Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
+    },
+    {
+      "title": "On Icons",
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" gap=\"5\" p=\"6\">\n      <Tooltip label=\"Delete item\" color=\"danger\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-trash\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Edit item\" color=\"info\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-edit\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Download\" color=\"success\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-download\" />\n        </Span>\n      </Tooltip>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Form Field Help",
+      "code": "function example() {\n  return (\n    <Field>\n      <label className=\"label\">\n        Password{' '}\n        <Tooltip\n          label=\"Must be at least 8 characters with one number and one special character\"\n          multiline\n          color=\"info\"\n        >\n          <Span cursor=\"help\">\n            <Icon name=\"fas fa-question-circle\" size=\"small\" />\n          </Span>\n        </Tooltip>\n      </label>\n      <Control>\n        <Input type=\"password\" placeholder=\"Enter password\" />\n      </Control>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Abbreviations",
+      "code": "function example() {\n  return (\n    <Paragraph style={{ lineHeight: 1.8 }}>\n      Hover over{' '}\n      <Tooltip label=\"Cascading Style Sheets\" color=\"info\" dashed>\n        <Span>CSS</Span>\n      </Tooltip>{' '}\n      or{' '}\n      <Tooltip label=\"HyperText Markup Language\" color=\"info\" dashed>\n        <Span>HTML</Span>\n      </Tooltip>{' '}\n      to see their full names.\n    </Paragraph>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Tooltip content has `role=\"tooltip\"` for screen reader announcement\n- Has `aria-hidden` that toggles based on visibility\n- Tooltip shows on both hover and focus for keyboard users\n- The `dashed` style provides a visual cue that more information is available",
+  "related": [],
+  "storybook": null,
+  "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+  "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Tooltip.tsx",
+  "rootClass": "tooltip",
+  "parts": [
+    {
+      "path": "Tooltip",
+      "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": null,
+          "description": "The tooltip text content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "content",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Rich tooltip content (alternative to `label`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top' | 'bottom' | 'left' | 'right' | 'auto'",
+          "default": "'top'",
+          "description": "Position of the tooltip. Default: 'top'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'dark' | 'light'",
+          "default": null,
+          "description": "Color variant for the tooltip.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the tooltip.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force tooltip to be always visible.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "multiline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Allow tooltip to wrap to multiple lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "animated",
+          "type": "boolean",
+          "default": "true",
+          "description": "Enable fade animation. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "square",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use square corners instead of rounded.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dashed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show dashed underline on trigger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "delay",
+          "type": "number",
+          "default": "0",
+          "description": "Delay before showing tooltip (ms).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeDelay",
+          "type": "number",
+          "default": "0",
+          "description": "Delay in ms before hiding the tooltip.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "tooltipClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the tooltip element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The element that triggers the tooltip.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-tooltip-dashed-color",
+      "sass": "$tooltip-dashed-color",
+      "default": "hsl(0, 0%, 60%)",
+      "scope": "component"
+    }
+  ]
+}

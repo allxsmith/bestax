@@ -1,0 +1,356 @@
+{
+  "name": "Dropdown",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/dropdown",
+  "docsUrl": "https://bestax.io/docs/api/components/dropdown",
+  "examples": [
+    {
+      "title": "Default Dropdown",
+      "code": "import { Dropdown } from '@allxsmith/bestax-bulma';\n\nfunction Example() {\n  return (\n    <Dropdown label=\"Dropdown Menu\">\n      <Dropdown.Item>First Item</Dropdown.Item>\n      <Dropdown.Item>Second Item</Dropdown.Item>\n      <Dropdown.Divider />\n      <Dropdown.Item>Third Item</Dropdown.Item>\n      <Dropdown.Item>Fourth Item</Dropdown.Item>\n      <Dropdown.Item>Fifth Item</Dropdown.Item>\n    </Dropdown>\n  );\n}"
+    },
+    {
+      "title": "Custom Tags (button, div, anchor)",
+      "code": "<Dropdown label=\"Custom Dropdown Content\">\n  <Dropdown.Item as=\"a\" href=\"https://example.com\" target=\"_blank\">\n    Anchor Item\n  </Dropdown.Item>\n  <Dropdown.Item as=\"div\">Div Item</Dropdown.Item>\n  <Dropdown.Item as=\"button\" onClick={() => alert('Clicked!')}>\n    Button Item\n  </Dropdown.Item>\n</Dropdown>"
+    },
+    {
+      "title": "Hoverable and Always Active",
+      "code": "<Dropdown label=\"Hoverable + Active\" hoverable active>\n  <Dropdown.Item>Hover or Always Open</Dropdown.Item>\n  <Dropdown.Item>Second</Dropdown.Item>\n  <Dropdown.Divider />\n  <Dropdown.Item>Another</Dropdown.Item>\n</Dropdown>"
+    },
+    {
+      "title": "Right-Aligned Dropdown",
+      "code": "<Dropdown label=\"Dropdown Right\" right>\n  <Dropdown.Item>Right 1</Dropdown.Item>\n  <Dropdown.Item>Right 2</Dropdown.Item>\n</Dropdown>"
+    },
+    {
+      "title": "Upward Dropdown",
+      "code": "<Dropdown label=\"Dropdown Up\" up>\n  <Dropdown.Item>Up 1</Dropdown.Item>\n  <Dropdown.Item>Up 2</Dropdown.Item>\n</Dropdown>"
+    },
+    {
+      "title": "Controlled Dropdown Example",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <Dropdown\n      label=\"Controlled Dropdown\"\n      active={open}\n      onActiveChange={setOpen}\n    >\n      <Dropdown.Item>Item A</Dropdown.Item>\n      <Dropdown.Item>Item B</Dropdown.Item>\n    </Dropdown>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Dropdown label=\"Dropdown Menu\" active>\n  <Dropdown.Item>First Item</Dropdown.Item>\n  <Dropdown.Item>Second Item</Dropdown.Item>\n  <Dropdown.Divider />\n  <Dropdown.Item>Third Item</Dropdown.Item>\n</Dropdown>"
+    }
+  ],
+  "accessibility": "- The dropdown root is a `<div class=\"dropdown\">` with ARIA roles/attributes for menu and trigger.\n- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.\n- Menu items are focusable and use `role=\"menuitem\"`.\n- Clicking outside closes the dropdown in most cases.\n\n:::note\nFor custom keyboard navigation or focus management, add handlers as needed.\n:::",
+  "related": [
+    "Button",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-dropdown--default",
+  "summary": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
+  "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Dropdown.tsx",
+  "rootClass": "dropdown",
+  "parts": [
+    {
+      "path": "Dropdown",
+      "summary": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The dropdown button/trigger content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Dropdown menu items and dividers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for root.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "menuClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the dropdown menu.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the dropdown is open (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "up",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown menu opens upward.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "right",
+          "type": "boolean",
+          "default": "false",
+          "description": "Menu is right-aligned.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hoverable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Open on hover instead of click.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the dropdown trigger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onActiveChange",
+          "type": "(active: boolean) => void",
+          "default": null,
+          "description": "Callback when dropdown active state changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClick",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close dropdown when a menu item is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Root element ID (for aria-controls, etc).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Dropdown.Item",
+      "summary": "Bulma Dropdown item.",
+      "component": null,
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the item is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "'a' | 'div' | 'button'",
+          "default": "'a'",
+          "description": "The element type to render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Item content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Dropdown.Divider",
+      "summary": "Bulma Dropdown divider.",
+      "component": null,
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-dropdown-menu-min-width",
+      "sass": "$dropdown-menu-min-width",
+      "default": "12rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-background-color",
+      "sass": "$dropdown-content-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-offset",
+      "sass": "$dropdown-content-offset",
+      "default": "0.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-padding-bottom",
+      "sass": "$dropdown-content-padding-bottom",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-padding-top",
+      "sass": "$dropdown-content-padding-top",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-radius",
+      "sass": "$dropdown-content-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-shadow",
+      "sass": "$dropdown-content-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-content-z",
+      "sass": "$dropdown-content-z",
+      "default": "20",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-h",
+      "sass": "$dropdown-item-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-s",
+      "sass": "$dropdown-item-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-l",
+      "sass": "$dropdown-item-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-background-l",
+      "sass": "$dropdown-item-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-background-l-delta",
+      "sass": "$dropdown-item-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-hover-background-l-delta",
+      "sass": "$dropdown-item-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-active-background-l-delta",
+      "sass": "$dropdown-item-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-color-l",
+      "sass": "$dropdown-item-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-selected-h",
+      "sass": "$dropdown-item-selected-h",
+      "default": "var(--bulma-link-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-selected-s",
+      "sass": "$dropdown-item-selected-s",
+      "default": "var(--bulma-link-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-selected-l",
+      "sass": "$dropdown-item-selected-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-selected-background-l",
+      "sass": "$dropdown-item-selected-background-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-item-selected-color-l",
+      "sass": "$dropdown-item-selected-color-l",
+      "default": "var(--bulma-link-invert-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dropdown-divider-background-color",
+      "sass": "$dropdown-divider-background-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "component"
+    }
+  ]
+}

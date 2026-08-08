@@ -1,0 +1,510 @@
+{
+  "name": "Card",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/card",
+  "docsUrl": "https://bestax.io/docs/api/components/card",
+  "examples": [
+    {
+      "title": "Default Card (Header, Image, Content, Footer)",
+      "code": "<Card\n  header=\"Card Header\"\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n  footer={[\n    <Card.FooterItem key=\"save\">Save</Card.FooterItem>,\n    <Card.FooterItem key=\"cancel\">Cancel</Card.FooterItem>,\n  ]}\n>\n  Card content goes here.\n</Card>"
+    },
+    {
+      "title": "With Header Only",
+      "code": "<Card header=\"Card Header\">\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "With Footer Only",
+      "code": "<Card\n  footer={[\n    <Card.FooterItem key=\"save\">Save</Card.FooterItem>,\n    <Card.FooterItem key=\"cancel\">Cancel</Card.FooterItem>,\n  ]}\n>\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "With Image Only",
+      "code": "<Card\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n/>"
+    },
+    {
+      "title": "With Image and Content",
+      "code": "<Card\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n>\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "No Shadow",
+      "code": "<Card hasShadow={false}>\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "Spaced (Margin and Padding)",
+      "code": "<Card m=\"4\" p=\"4\">\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "Viewport Specific (Text Color on Tablet)",
+      "code": "<Card textColor=\"primary\" viewport=\"tablet\">\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+    },
+    {
+      "title": "Interactive (Colors, Spacing, Alignment, Footer)",
+      "code": "<Card\n  header=\"Upgrade to Pro\"\n  headerIcon={\n    <button className=\"card-header-icon\">\n      <Icon library=\"fa\" name=\"bolt\" textColor=\"warning\" ariaLabel=\"Pro\" />\n    </button>\n  }\n  image=\"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Dashboard analytics\"\n  m=\"3\"\n  textAlign=\"centered\"\n  hasShadow\n  footer={[\n    <Button key=\"upgrade\" color=\"success\">\n      Upgrade Now\n    </Button>,\n    <Button key=\"learn\" color=\"info\" isOutlined>\n      Learn More\n    </Button>,\n  ]}\n>\n  Unlock advanced analytics, priority support, and unlimited exports for your\n  team.\n</Card>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "import { Icon, Image } from '@allxsmith/bestax-bulma';\n\n<Card>\n  <Card.Header>\n    <Card.Header.Title>Compound Component Card</Card.Header.Title>\n    <Card.Header.Icon aria-label=\"more options\">\n      <Icon name=\"angle-down\" variant=\"solid\" ariaLabel=\"expand\" />\n    </Card.Header.Icon>\n  </Card.Header>\n  <Card.Image>\n    <Image\n      src=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n      alt=\"Beautiful forest\"\n      size=\"4by3\"\n    />\n  </Card.Image>\n  <Card.Content>\n    <Content>\n      This card is built using compound components for maximum flexibility.\n    </Content>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>\n      <Button color=\"primary\">Save</Button>\n    </Card.FooterItem>\n    <Card.FooterItem>\n      <Button>Cancel</Button>\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>;"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title>Simple Header</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>\n    <Paragraph>Just some minimal content using compound components.</Paragraph>\n  </Card.Content>\n</Card>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function ExpandableCard() {\n  const [isOpen, setIsOpen] = React.useState(true);\n\n  return (\n    <Card>\n      <Card.Header>\n        <Card.Header.Title>Expandable Card</Card.Header.Title>\n        <Card.Header.Icon\n          aria-label={isOpen ? 'collapse' : 'expand'}\n          onClick={() => setIsOpen(!isOpen)}\n        >\n          <Icon\n            library=\"fa\"\n            name={isOpen ? 'angle-up' : 'angle-down'}\n            ariaLabel={isOpen ? 'collapse' : 'expand'}\n          />\n        </Card.Header.Icon>\n      </Card.Header>\n      {isOpen && (\n        <Card.Content>\n          This card uses React state to toggle content visibility. Click the\n          icon in the header to expand or collapse this section.\n        </Card.Content>\n      )}\n    </Card>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Card header=\"Prop-based header\" textColor=\"primary\" m=\"3\">\n  <Card.Content bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>Mixed approach example</Card.FooterItem>\n  </Card.Footer>\n</Card>"
+    }
+  ],
+  "accessibility": "- The card image uses an `alt` attribute for screen readers.\n- Use semantic content for the header, body, and footer as needed.",
+  "related": [
+    "Icon",
+    "Image",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-card--default",
+  "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
+  "import": "import { Card } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Card.tsx",
+  "rootClass": "card",
+  "parts": [
+    {
+      "path": "Card",
+      "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the card.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled card variant (no `.card.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the card.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "hasShadow",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the card has a shadow (default: `true`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "header",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Card header content, rendered inside `.card-header-title`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "headerCentered",
+          "type": "boolean",
+          "default": "false",
+          "description": "If true, centers the header title.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "headerIcon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Card header icon, rendered as a sibling to the header title.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode | React.ReactNode[]",
+          "default": null,
+          "description": "Card footer content; each item is wrapped in `.card-footer-item`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "image",
+          "type": "React.ReactNode | string",
+          "default": null,
+          "description": "Card image node or image src string.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "imageAlt",
+          "type": "string",
+          "default": null,
+          "description": "Alternate text for the card image.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Card content (body).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "textAlign",
+          "type": "'centered' | 'justified' | 'left' | 'right'",
+          "default": null,
+          "description": "Text alignment.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Card.Header",
+      "summary": "Card header compound component. Wraps children in a `.card-header` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Header content. Wrap in Card.Header.Title for Bulma styling.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "centered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether to center the header title text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes",
+      "types": []
+    },
+    {
+      "path": "Card.Header.Title",
+      "summary": "Card header title compound component. Renders a `.card-header-title` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Title text content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "centered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether to center the title text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Card.Header.Icon",
+      "summary": "Card header icon compound component. Renders a `.card-header-icon` button.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Icon content (e.g. an icon element).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes",
+      "types": []
+    },
+    {
+      "path": "Card.Image",
+      "summary": "Card image compound component. Wraps children in a `.card-image` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Image content (e.g. a `<figure>` with an `<img>`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Card.Content",
+      "summary": "Card content compound component. Wraps children in a `.card-content` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Card body content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Card.Footer",
+      "summary": "Card footer compound component. Wraps children in a `.card-footer` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Footer content, typically Card.FooterItem elements.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes",
+      "types": []
+    },
+    {
+      "path": "Card.FooterItem",
+      "summary": "Card footer item compound component. Wraps children in a `.card-footer-item` span.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Footer item content (link, button, text, etc.).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-card-color",
+      "sass": "$card-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-background-color",
+      "sass": "$card-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-shadow",
+      "sass": "$card-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-radius",
+      "sass": "$card-radius",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-header-background-color",
+      "sass": "$card-header-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-header-color",
+      "sass": "$card-header-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-header-padding",
+      "sass": "$card-header-padding",
+      "default": "0.75rem 1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-header-shadow",
+      "sass": "$card-header-shadow",
+      "default": "0 0.125em 0.25em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-header-weight",
+      "sass": "$card-header-weight",
+      "default": "var(--bulma-weight-bold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-content-background-color",
+      "sass": "$card-content-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-content-padding",
+      "sass": "$card-content-padding",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-footer-background-color",
+      "sass": "$card-footer-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-footer-border-top",
+      "sass": "$card-footer-border-top",
+      "default": "1px solid var(--bulma-border-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-footer-padding",
+      "sass": "$card-footer-padding",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-card-media-margin",
+      "sass": "$card-media-margin",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "component"
+    }
+  ]
+}

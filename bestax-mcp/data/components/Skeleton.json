@@ -1,0 +1,165 @@
+{
+  "name": "Skeleton",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/skeleton",
+  "docsUrl": "https://bestax.io/docs/api/elements/skeleton",
+  "examples": [
+    {
+      "title": "Default Skeleton",
+      "code": "<Skeleton />"
+    },
+    {
+      "title": "Skeleton Text",
+      "code": "<Skeleton>\n  \"Quando in rerum natura homines aequales creantur, ab ipso Creatore quibusdam\n  iuribus inalienabilibus donantur, inter quae sunt Vita, Libertas et quaerenda\n  felicitas. Quoties aliquod regimen haec iura destruere conatur, populus habet\n  potestatem tale regimen abrogare et novum constituere, quod iuribus suis\n  tutandis aptissimum videatur. Prudentia quidem dictat vetera regimina levibus\n  de causis non mutanda esse; sed cum diuturnus abusus ad despotismum vergit,\n  ius est, immo officium, talia regimina exuere et novas custodes securitatis\n  futurae constituere.\"\n</Skeleton>"
+    },
+    {
+      "title": "Lines Skeleton",
+      "code": "<Skeleton variant=\"lines\" lines={5} />"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Button skeleton color=\"dark\">\n  Skeleton Button\n</Button>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Buttons>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n</Buttons>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Icon name=\"star\" skeleton ariaLabel=\"Star icon skeleton\" size=\"medium\" />"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Image skeleton src=\"/img/react-logo.png\" alt=\"Skeleton image\" size=\"128x128\" />"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Media skeleton>\n  <Media.Left>\n    <Image\n      skeleton\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>Skeleton Name</Strong> <small>@skelly</small> <small>1m</small>\n        <br />\n        This is a skeleton media example.\n      </Paragraph>\n    </Content>\n  </Media.Content>\n</Media>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Notification skeleton>Skeleton notification message.</Notification>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Tag skeleton size=\"medium\">\n  Skeleton Tag\n</Tag>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Title skeleton size=\"2\">\n  Skeleton Title\n</Title>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<SubTitle skeleton size=\"4\">\n  Skeleton SubTitle\n</SubTitle>"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<Input skeleton placeholder=\"Skeleton Input\" />"
+    },
+    {
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "code": "<TextArea skeleton placeholder=\"Skeleton TextArea\" rows={3} />"
+    }
+  ],
+  "accessibility": "- **Role:** Consider using `aria-busy=\"true\"` on container elements to indicate loading state.\n- **Label:** Optionally use `aria-label=\"Loading...\"` or similar for better screen reader support.\n- **Focus:** Skeletons should not be focusable and should be replaced with real content as soon as data is available.\n\n:::tip\nSkeleton loaders provide a visual cue for loading but should not block navigation or accessibility.\n:::",
+  "related": [
+    "Button",
+    "Buttons",
+    "Icon",
+    "Image",
+    "Input",
+    "Media",
+    "Notification",
+    "SubTitle",
+    "Tag",
+    "TextArea",
+    "Title",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-skeleton--default",
+  "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.",
+  "import": "import { Skeleton } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Skeleton.tsx",
+  "rootClass": "skeleton-lines",
+  "parts": [
+    {
+      "path": "Skeleton",
+      "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "'block' | 'lines'",
+          "default": "'block'",
+          "description": "Skeleton variant: block (single block) or lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "lines",
+          "type": "number",
+          "default": "3",
+          "description": "Number of lines (only for `lines` variant).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the block (only for block variant).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-skeleton-background",
+      "sass": "$skeleton-background",
+      "default": "var(--bulma-border)",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-skeleton-radius",
+      "sass": "$skeleton-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-skeleton-block-min-height",
+      "sass": "$skeleton-block-min-height",
+      "default": "4.5em",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-skeleton-lines-gap",
+      "sass": "$skeleton-lines-gap",
+      "default": "0.75em",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-skeleton-line-height",
+      "sass": "$skeleton-line-height",
+      "default": "0.75em",
+      "scope": "global"
+    }
+  ]
+}

@@ -1,0 +1,591 @@
+{
+  "name": "Taginput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/taginput",
+  "docsUrl": "https://bestax.io/docs/api/form/taginput",
+  "examples": [
+    {
+      "title": "Basic Taginput",
+      "code": "function example() {\n  const [tags, setTags] = useState(['React', 'TypeScript']);\n\n  return (\n    <Block>\n      <Taginput value={tags} onChange={setTags} placeholder=\"Add a tag...\" />\n      <Paragraph mt=\"2\" textColor=\"grey\">\n        Tags: {tags.join(', ')}\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "With Autocomplete",
+      "code": "function example() {\n  const [tags, setTags] = useState(['React']);\n  const suggestions = [\n    'React',\n    'Vue',\n    'Angular',\n    'Svelte',\n    'TypeScript',\n    'JavaScript',\n    'Python',\n    'Go',\n  ];\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      data={suggestions}\n      placeholder=\"Add frameworks...\"\n      openOnFocus\n    />\n  );\n}"
+    },
+    {
+      "title": "Restrict to Suggestions",
+      "code": "function example() {\n  const [tags, setTags] = useState([]);\n  const categories = [\n    'Bug',\n    'Feature',\n    'Documentation',\n    'Enhancement',\n    'Question',\n  ];\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        data={categories}\n        allowNew={false}\n        placeholder=\"Select categories...\"\n        openOnFocus\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Only predefined categories can be selected\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Tag Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Taginput\n    defaultValue={['Primary']}\n    tagColor=\"primary\"\n    placeholder=\"Primary tags...\"\n  />\n  <Taginput\n    defaultValue={['Success']}\n    tagColor=\"success\"\n    placeholder=\"Success tags...\"\n  />\n  <Taginput\n    defaultValue={['Info']}\n    tagColor=\"info\"\n    placeholder=\"Info tags...\"\n  />\n  <Taginput\n    defaultValue={['Warning']}\n    tagColor=\"warning\"\n    placeholder=\"Warning tags...\"\n  />\n  <Taginput\n    defaultValue={['Danger']}\n    tagColor=\"danger\"\n    placeholder=\"Danger tags...\"\n  />\n  <Taginput\n    defaultValue={['Dark']}\n    tagColor=\"dark\"\n    placeholder=\"Dark tags...\"\n  />\n</Block>"
+    },
+    {
+      "title": "Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Taginput\n    defaultValue={['Small']}\n    size=\"small\"\n    tagColor=\"primary\"\n    placeholder=\"Small...\"\n  />\n  <Taginput\n    defaultValue={['Normal']}\n    tagColor=\"primary\"\n    placeholder=\"Normal...\"\n  />\n  <Taginput\n    defaultValue={['Medium']}\n    size=\"medium\"\n    tagColor=\"primary\"\n    placeholder=\"Medium...\"\n  />\n  <Taginput\n    defaultValue={['Large']}\n    size=\"large\"\n    tagColor=\"primary\"\n    placeholder=\"Large...\"\n  />\n</Block>"
+    },
+    {
+      "title": "Maximum Tags",
+      "code": "function example() {\n  const [tags, setTags] = useState(['One', 'Two']);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        maxTags={3}\n        tagColor=\"info\"\n        placeholder=\"Max 3 tags...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        {3 - tags.length} tags remaining\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Allow Duplicates",
+      "code": "function example() {\n  const [tags, setTags] = useState(['Tag']);\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      allowDuplicates\n      tagColor=\"warning\"\n      placeholder=\"Duplicates allowed...\"\n    />\n  );\n}"
+    },
+    {
+      "title": "Custom Confirm Keys",
+      "code": "function example() {\n  const [tags, setTags] = useState([]);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        confirmKeys={['Enter', 'Tab', ' ']}\n        tagColor=\"success\"\n        placeholder=\"Press Enter, Tab, or Space...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Space also creates a new tag\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Read-only and Disabled",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Block>\n    <Paragraph mb=\"1\">Read-only:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Disabled:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor=\"info\" />\n  </Block>\n</Block>"
+    },
+    {
+      "title": "Non-closable Tags",
+      "code": "<Taginput\n  defaultValue={['Fixed', 'Tags']}\n  closable={false}\n  tagColor=\"primary\"\n  placeholder=\"Cannot remove tags...\"\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Taginput\n  label=\"Tags\"\n  defaultValue={['React', 'TypeScript']}\n  placeholder=\"Add a tag...\"\n  tagColor=\"primary\"\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Taginput\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
+  "related": [
+    "Autocomplete",
+    "Input",
+    "Tag"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-taginput",
+  "summary": "The `Taginput` component provides a tag/chip input field for managing multiple tags.",
+  "import": "import { Taginput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Taginput.tsx",
+  "rootClass": "taginput",
+  "parts": [
+    {
+      "path": "Taginput",
+      "summary": "The `Taginput` component provides a tag/chip input field for managing multiple tags.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered) and dropped inside an outer `Field`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Applied to the inner text input (the labellable control), not the wrapper div.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "TaginputTag[]",
+          "default": null,
+          "description": "The current tags (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "TaginputTag[]",
+          "default": "[]",
+          "description": "Default tags (uncontrolled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "string[]",
+          "default": "[]",
+          "description": "Autocomplete suggestions.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text when no tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "field",
+          "type": "string",
+          "default": "'label'",
+          "description": "Object property to use as display field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "allowNew",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow creating new tags not in suggestions.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "allowDuplicates",
+          "type": "boolean",
+          "default": "false",
+          "description": "Allow duplicate tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "false",
+          "description": "Open autocomplete dropdown on focus.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "removeOnKeys",
+          "type": "boolean",
+          "default": "true",
+          "description": "Remove tag on backspace. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "confirmKeys",
+          "type": "string[]",
+          "default": "['Enter', ',']",
+          "description": "Keys to confirm tag creation. Default: ['Enter', ','].",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show close button on tags. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "attached",
+          "type": "boolean",
+          "default": "false",
+          "description": "Attach tags visually.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxTags",
+          "type": "number",
+          "default": null,
+          "description": "Maximum number of tags allowed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxlength",
+          "type": "number",
+          "default": null,
+          "description": "Maximum length of input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the input is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the input is read-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies rounded corners to the tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ellipsis",
+          "type": "boolean",
+          "default": "false",
+          "description": "Truncates long tag text with ellipsis.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasCounter",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows a counter of the number of tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPasteSeparators",
+          "type": "string[]",
+          "default": "[',']",
+          "description": "Characters that split pasted text into tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "beforeAdding",
+          "type": "(tag: string) => boolean",
+          "default": null,
+          "description": "Validation function called before adding a tag.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "createTag",
+          "type": "(input: string) => TaginputTag",
+          "default": null,
+          "description": "Custom function for creating tag objects from input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "keepFirst",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keeps the first autocomplete suggestion highlighted.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "keepOpen",
+          "type": "boolean",
+          "default": "true",
+          "description": "Keeps the autocomplete dropdown open after selection.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a loading indicator.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaCloseLabel",
+          "type": "string",
+          "default": null,
+          "description": "ARIA label for tag close buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": null,
+          "description": "Icon name for the input field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLibrary",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": null,
+          "description": "Icon library to use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconVariant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g., 'solid', 'outlined').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional icon modifiers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Input color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "tagColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'dark' | 'light'",
+          "default": null,
+          "description": "Tag color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. When set, one hidden input per tag is rendered.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Optional id of the form the hidden inputs belong to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(tags: TaginputTag[]) => void",
+          "default": null,
+          "description": "Callback when tags change.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onAdd",
+          "type": "(tag: TaginputTag) => void",
+          "default": null,
+          "description": "Callback when tag is added.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onRemove",
+          "type": "(tag: TaginputTag, index: number) => void",
+          "default": null,
+          "description": "Callback when tag is removed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onTyping",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Callback when typing in input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "tagTemplate",
+          "type": "(tag: TaginputTag) => React.ReactNode",
+          "default": null,
+          "description": "Custom render for tags.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the input element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-taginput-height",
+      "sass": "$taginput-height",
+      "default": "auto",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-min-height",
+      "sass": "$taginput-min-height",
+      "default": "2.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-padding",
+      "sass": "$taginput-padding",
+      "default": "0.375rem 0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-border-color",
+      "sass": "$taginput-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-border-radius",
+      "sass": "$taginput-border-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-background",
+      "sass": "$taginput-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-tag-gap",
+      "sass": "$taginput-tag-gap",
+      "default": "0.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-dropdown-max-height",
+      "sass": "$taginput-dropdown-max-height",
+      "default": "200px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-taginput-transition-duration",
+      "sass": "$taginput-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    }
+  ]
+}

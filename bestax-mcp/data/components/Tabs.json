@@ -1,0 +1,595 @@
+{
+  "name": "Tabs",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/tabs",
+  "docsUrl": "https://bestax.io/docs/api/components/tabs",
+  "examples": [
+    {
+      "title": "Centered Alignment",
+      "code": "<Tabs align=\"centered\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>Home</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Profile</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Settings</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Right Alignment",
+      "code": "<Tabs align=\"right\">\n  <Tabs.List>\n    <Tabs.Item>\n      <a>Home</a>\n    </Tabs.Item>\n    <Tabs.Item active>\n      <a>Profile</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Settings</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "With Icons",
+      "code": "<Tabs>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-image\" size=\"small\" />\n        <span>Pictures</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-music\" size=\"small\" />\n        <span>Music</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-film\" size=\"small\" />\n        <span>Videos</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-file-alt\" size=\"small\" />\n        <span>Documents</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Small, Medium, and Large Tabs",
+      "code": "<>\n  <Tabs size=\"small\">\n    <Tabs.List>\n      <Tabs.Item active>\n        <a>Tab 1</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 2</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 3</a>\n      </Tabs.Item>\n    </Tabs.List>\n  </Tabs>\n\n  <Tabs size=\"medium\">\n    <Tabs.List>\n      <Tabs.Item active>\n        <a>Tab 1</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 2</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 3</a>\n      </Tabs.Item>\n    </Tabs.List>\n  </Tabs>\n\n  <Tabs size=\"large\">\n    <Tabs.List>\n      <Tabs.Item active>\n        <a>Tab 1</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 2</a>\n      </Tabs.Item>\n      <Tabs.Item>\n        <a>Tab 3</a>\n      </Tabs.Item>\n    </Tabs.List>\n  </Tabs>\n</>"
+    },
+    {
+      "title": "Boxed Tabs",
+      "code": "<Tabs boxed>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>Overview</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Elements</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Components</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Toggle Tabs",
+      "code": "<Tabs toggle>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>All</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Active</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Completed</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Toggle Rounded Tabs",
+      "code": "<Tabs toggle rounded>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>All</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Active</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Completed</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Fullwidth Tabs",
+      "code": "<Tabs fullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>One</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Two</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Three</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Four</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Centered Boxed Tabs with Icons",
+      "code": "<Tabs align=\"centered\" boxed>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-home\" size=\"small\" />\n        <span>Home</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-user\" size=\"small\" />\n        <span>Profile</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cog\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Toggle Fullwidth Tabs with Icons",
+      "code": "<Tabs toggle fullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-list\" size=\"small\" />\n        <span>List</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-check\" size=\"small\" />\n        <span>Done</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-times\" size=\"small\" />\n        <span>Removed</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Centered Boxed Medium Tabs with Icons",
+      "code": "<Tabs align=\"centered\" boxed size=\"medium\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-star\" size=\"small\" />\n        <span>Favorites</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-clock\" size=\"small\" />\n        <span>Recent</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-archive\" size=\"small\" />\n        <span>Archive</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Toggle Fullwidth Large Tabs with Icons",
+      "code": "<Tabs toggle fullwidth size=\"large\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-rocket\" size=\"small\" />\n        <span>Launch</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-bell\" size=\"small\" />\n        <span>Alerts</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cogs\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Tabs>\n  <Tabs.List>\n    <Tabs.Tab index={0}>Overview</Tabs.Tab>\n    <Tabs.Tab index={1}>Settings</Tabs.Tab>\n  </Tabs.List>\n  <Tabs.Content>\n    <Tabs.Content.Item index={0}>Overview panel</Tabs.Content.Item>\n    <Tabs.Content.Item index={1}>Settings panel</Tabs.Content.Item>\n  </Tabs.Content>\n</Tabs>"
+    }
+  ],
+  "accessibility": "- The tab list renders as a semantic `<ul>` and each item as `<li>`.\n- Use clear text or icons with labels for each tab.\n- Provide `aria-label` or screen-reader text for icon-only tabs.\n\n:::note\nTabs do not manage tab panels or keyboard focus automatically—implement those patterns as needed for your app.\n:::",
+  "related": [
+    "Icon",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-tabs--alignment-centered",
+  "summary": "The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.",
+  "import": "import { Tabs } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Tabs.tsx",
+  "rootClass": "tabs",
+  "parts": [
+    {
+      "path": "Tabs",
+      "summary": "The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "align",
+          "type": "'centered' | 'right' | 'left'",
+          "default": null,
+          "description": "Tab alignment.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Tab size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs expand to fill the horizontal space.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "boxed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs use the boxed style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "toggle",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs use the toggle style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs use the rounded toggle style (only with `toggle`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color for tab underlines and active state (renders `is-<color>`). Bulma ships no tabs color CSS, so this prop has never had a visual effect for any value. Passing it logs a console warning in development.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "No `.tabs.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version."
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Controlled active tab index.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "default": null,
+          "description": "Callback when active tab changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": "0",
+          "description": "Initial active tab index (uncontrolled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "vertical",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders tabs vertically.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "side",
+          "type": "'left' | 'right'",
+          "default": null,
+          "description": "Side placement when `vertical` is true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes tabs take up the full width equally.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tab list and tab items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tabs.List",
+      "summary": "The `<ul>` container for tab items.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tab elements.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <ul> attributes",
+      "types": []
+    },
+    {
+      "path": "Tabs.Tab",
+      "summary": "Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children.",
+      "component": null,
+      "props": [
+        {
+          "name": "index",
+          "type": "number",
+          "default": null,
+          "description": "**Required.** Tab index for matching with content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the tab.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": null,
+          "description": "Icon name for the tab.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLibrary",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": null,
+          "description": "Icon library to use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconVariant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g., 'solid', 'outlined', 'rounded').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": "'small'",
+          "description": "Size of the tab icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional icon modifiers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tab label content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <li> attributes",
+      "types": []
+    },
+    {
+      "path": "Tabs.Item",
+      "summary": "Each tab; accepts `active`, `onClick`, etc.",
+      "component": null,
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the tab is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tab content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLLIElement>",
+          "default": null,
+          "description": "Click handler.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <li> attributes",
+      "types": []
+    },
+    {
+      "path": "Tabs.Content",
+      "summary": "Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "TabContentItem elements.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Tabs.Content.Item",
+      "summary": "Individual content panel. Shows/hides based on active tab from context.",
+      "component": null,
+      "props": [
+        {
+          "name": "index",
+          "type": "number",
+          "default": null,
+          "description": "**Required.** Tab index for matching with content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Panel content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-tabs-border-bottom-color",
+      "sass": "$tabs-border-bottom-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-border-bottom-style",
+      "sass": "$tabs-border-bottom-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-border-bottom-width",
+      "sass": "$tabs-border-bottom-width",
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-color",
+      "sass": "$tabs-link-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-hover-border-bottom-color",
+      "sass": "$tabs-link-hover-border-bottom-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-hover-color",
+      "sass": "$tabs-link-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-active-border-bottom-color",
+      "sass": "$tabs-link-active-border-bottom-color",
+      "default": "var(--bulma-link-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-active-color",
+      "sass": "$tabs-link-active-color",
+      "default": "var(--bulma-link-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-link-padding",
+      "sass": "$tabs-link-padding",
+      "default": "0.5em 1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-radius",
+      "sass": "$tabs-boxed-link-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-hover-background-color",
+      "sass": "$tabs-boxed-link-hover-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-hover-border-bottom-color",
+      "sass": "$tabs-boxed-link-hover-border-bottom-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-active-background-color",
+      "sass": "$tabs-boxed-link-active-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-active-border-color",
+      "sass": "$tabs-boxed-link-active-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-boxed-link-active-border-bottom-color",
+      "sass": "$tabs-boxed-link-active-border-bottom-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-border-color",
+      "sass": "$tabs-toggle-link-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-border-style",
+      "sass": "$tabs-toggle-link-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-border-width",
+      "sass": "$tabs-toggle-link-border-width",
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-hover-background-color",
+      "sass": "$tabs-toggle-link-hover-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-hover-border-color",
+      "sass": "$tabs-toggle-link-hover-border-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-radius",
+      "sass": "$tabs-toggle-link-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-active-background-color",
+      "sass": "$tabs-toggle-link-active-background-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-active-border-color",
+      "sass": "$tabs-toggle-link-active-border-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-tabs-toggle-link-active-color",
+      "sass": "$tabs-toggle-link-active-color",
+      "default": "var(--bulma-link-invert)",
+      "scope": "component"
+    }
+  ]
+}

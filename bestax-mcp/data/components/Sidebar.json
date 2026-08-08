@@ -1,0 +1,491 @@
+{
+  "name": "Sidebar",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/sidebar",
+  "docsUrl": "https://bestax.io/docs/api/components/sidebar",
+  "examples": [
+    {
+      "title": "Basic Sidebar",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsOpen(true)}>\n        Open Sidebar\n      </Button>\n      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <Sidebar.Header>\n          <Sidebar.Title>Navigation</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.Label>General</Menu.Label>\n            <Menu.List>\n              <Menu.Item href=\"#\">Dashboard</Menu.Item>\n              <Menu.Item active href=\"#\">\n                Settings\n              </Menu.Item>\n              <Menu.Item href=\"#\">Profile</Menu.Item>\n            </Menu.List>\n            <Menu.Label>Administration</Menu.Label>\n            <Menu.List>\n              <Menu.Item href=\"#\">Users</Menu.Item>\n              <Menu.Item href=\"#\">Permissions</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Right-side Sidebar",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setIsOpen(true)}>\n        Open Right Sidebar\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        position=\"right\"\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Settings</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Paragraph>Configure your preferences here.</Paragraph>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Custom Width",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setIsOpen(true)}>\n        Open Wide Sidebar\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        width=\"400px\"\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Wide Panel</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Paragraph>This sidebar has a custom width of 400px.</Paragraph>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Full Width (Mobile Style)",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"warning\" onClick={() => setIsOpen(true)}>\n        Open Full Width\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        fullWidth\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Full Width Panel</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.List>\n              <Menu.Item href=\"#\">Home</Menu.Item>\n              <Menu.Item href=\"#\">Products</Menu.Item>\n              <Menu.Item href=\"#\">About</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Without Overlay",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"link\" onClick={() => setIsOpen(true)}>\n        Open Without Overlay\n      </Button>\n      <Paragraph mt=\"4\">\n        You can still interact with the page content when the sidebar is open.\n      </Paragraph>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        overlay={false}\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>No Overlay</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.List>\n              <Menu.Item href=\"#\">Home</Menu.Item>\n              <Menu.Item href=\"#\">About</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n          <Button color=\"primary\" mt=\"4\" onClick={() => setIsOpen(false)}>\n            Close Sidebar\n          </Button>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Non-cancelable Sidebar",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"danger\" onClick={() => setIsOpen(true)}>\n        Open Important Panel\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        overlayClose={false}\n        escapeClose={false}\n        canCancel={false}\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Important Action</Sidebar.Title>\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Paragraph>You must complete this action before closing.</Paragraph>\n          <Button color=\"primary\" onClick={() => setIsOpen(false)} mt=\"4\">\n            Complete & Close\n          </Button>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Sidebar with Footer",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsOpen(true)}>\n        Open With Footer\n      </Button>\n      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <Sidebar.Header>\n          <Sidebar.Title>Navigation</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.Label>Pages</Menu.Label>\n            <Menu.List>\n              <Menu.Item active href=\"#\">\n                Home\n              </Menu.Item>\n              <Menu.Item href=\"#\">Products</Menu.Item>\n              <Menu.Item href=\"#\">Services</Menu.Item>\n              <Menu.Item href=\"#\">Blog</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n        <Sidebar.Footer>\n          <Paragraph textSize=\"7\" textColor=\"grey\">\n            © 2026 Company Name\n          </Paragraph>\n        </Sidebar.Footer>\n      </Sidebar>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsOpen(true)}>\n        Open Sidebar\n      </Button>\n      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <Sidebar.Header>\n          <Sidebar.Title>Dot Notation</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Paragraph>\n            Header, Title, Close, Body, and Footer are all available from the\n            single Sidebar import.\n          </Paragraph>\n        </Sidebar.Body>\n        <Sidebar.Footer>\n          <Button color=\"primary\" onClick={() => setIsOpen(false)}>\n            Done\n          </Button>\n        </Sidebar.Footer>\n      </Sidebar>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses `role=\"dialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` when overlay is shown\n- Focus is trapped within the sidebar when open\n- Escape key closes the sidebar by default\n- Body scroll is prevented when sidebar is open",
+  "related": [
+    "Menu",
+    "Modal"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-sidebar",
+  "summary": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
+  "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Sidebar.tsx",
+  "rootClass": "sidebar",
+  "parts": [
+    {
+      "path": "Sidebar",
+      "summary": "The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.",
+      "component": null,
+      "props": [
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the sidebar is open (required).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when sidebar should close.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'left' | 'right'",
+          "default": "'left'",
+          "description": "Which side the sidebar appears from. Default: 'left'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "string",
+          "default": "'260px'",
+          "description": "Custom width of the sidebar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Sidebar takes full width (mobile-style).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show overlay behind sidebar. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlayClose",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close sidebar when overlay is clicked. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "escapeClose",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close sidebar on Escape key. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "canCancel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow closing the sidebar. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to display in the sidebar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders inline instead of using a portal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the sidebar element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Sidebar.Header",
+      "summary": "Container for the sidebar header.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Header content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Sidebar.Title",
+      "summary": "Title text inside the header.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Title content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes",
+      "types": []
+    },
+    {
+      "path": "Sidebar.Close",
+      "summary": "Close button for the sidebar.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content rendered inside the component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes",
+      "types": []
+    },
+    {
+      "path": "Sidebar.Body",
+      "summary": "Main content area of the sidebar.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Body content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Sidebar.Footer",
+      "summary": "Footer area of the sidebar.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Footer content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-sidebar-width",
+      "sass": "$sidebar-width",
+      "default": "260px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-background",
+      "sass": "$sidebar-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-shadow",
+      "sass": "$sidebar-shadow",
+      "default": "0 2px 8px hsla(0, 0%, 0%, 0.15)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-transition-duration",
+      "sass": "$sidebar-transition-duration",
+      "default": "0.3s",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-content-padding",
+      "sass": "$sidebar-content-padding",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-scrollbar-width",
+      "sass": "$sidebar-scrollbar-width",
+      "default": "6px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-scrollbar-color",
+      "sass": "$sidebar-scrollbar-color",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-scrollbar-color-hover",
+      "sass": "$sidebar-scrollbar-color-hover",
+      "default": "var(--bulma-grey)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-header-padding",
+      "sass": "$sidebar-header-padding",
+      "default": "0.75rem 1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-header-border-color",
+      "sass": "$sidebar-header-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-header-margin-bottom",
+      "sass": "$sidebar-header-margin-bottom",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-title-size",
+      "sass": "$sidebar-title-size",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-title-weight",
+      "sass": "$sidebar-title-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-title-color",
+      "sass": "$sidebar-title-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-close-size",
+      "sass": "$sidebar-close-size",
+      "default": "1.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-close-color",
+      "sass": "$sidebar-close-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-close-line-width",
+      "sass": "$sidebar-close-line-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-close-hover-background",
+      "sass": "$sidebar-close-hover-background",
+      "default": "var(--bulma-scheme-main-ter)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-close-radius",
+      "sass": "$sidebar-close-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-footer-padding",
+      "sass": "$sidebar-footer-padding",
+      "default": "0.75rem 1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-footer-border-color",
+      "sass": "$sidebar-footer-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-footer-margin-top",
+      "sass": "$sidebar-footer-margin-top",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-menu-item-padding",
+      "sass": "$sidebar-menu-item-padding",
+      "default": "0.5rem 0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-menu-item-radius",
+      "sass": "$sidebar-menu-item-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-menu-item-hover-background",
+      "sass": "$sidebar-menu-item-hover-background",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-menu-item-active-background",
+      "sass": "$sidebar-menu-item-active-background",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-menu-item-active-color",
+      "sass": "$sidebar-menu-item-active-color",
+      "default": "var(--bulma-link-invert)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-sidebar-static-border-color",
+      "sass": "$sidebar-static-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    }
+  ]
+}

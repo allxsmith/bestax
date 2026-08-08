@@ -1,0 +1,288 @@
+{
+  "name": "Dialog",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/dialog",
+  "docsUrl": "https://bestax.io/docs/api/components/dialog",
+  "examples": [
+    {
+      "title": "Alert Dialog",
+      "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button color=\"info\" onClick={() => setShowDialog(true)}>\n        Show Alert\n      </Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Information\"\n        message=\"Your changes have been saved successfully.\"\n        type=\"success\"\n        showCancel={false}\n        onConfirm={() => setShowDialog(false)}\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Confirm Dialog",
+      "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  const [result, setResult] = useState('');\n\n  return (\n    <Block>\n      <Button color=\"danger\" onClick={() => setShowDialog(true)}>\n        Delete Item\n      </Button>\n      <Paragraph mt=\"2\">Result: {result}</Paragraph>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Delete Item?\"\n        message=\"This action cannot be undone. Are you sure you want to delete this item?\"\n        type=\"danger\"\n        confirmText=\"Delete\"\n        onConfirm={() => {\n          setResult('Deleted');\n          setShowDialog(false);\n        }}\n        onCancel={() => {\n          setResult('Cancelled');\n          setShowDialog(false);\n        }}\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Dialog Types",
+      "code": "function example() {\n  const [dialogType, setDialogType] = useState(null);\n  return (\n    <Block>\n      <Buttons>\n        <Button color=\"success\" onClick={() => setDialogType('success')}>\n          Success\n        </Button>\n        <Button color=\"danger\" onClick={() => setDialogType('danger')}>\n          Danger\n        </Button>\n        <Button color=\"warning\" onClick={() => setDialogType('warning')}>\n          Warning\n        </Button>\n        <Button color=\"info\" onClick={() => setDialogType('info')}>\n          Info\n        </Button>\n      </Buttons>\n      {dialogType && (\n        <Dialog\n          isOpen\n          title={`${dialogType.charAt(0).toUpperCase() + dialogType.slice(1)} Dialog`}\n          message={`This is a ${dialogType} dialog with an automatic icon.`}\n          type={dialogType}\n          onConfirm={() => setDialogType(null)}\n          onCancel={() => setDialogType(null)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "With Rich Content",
+      "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowDialog(true)}>Show Terms</Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Terms of Service\"\n        message={\n          <Block>\n            <Paragraph mb=\"2\">By clicking \"Accept\", you agree to:</Paragraph>\n            <ul>\n              <li>Our terms of service</li>\n              <li>Our privacy policy</li>\n              <li>Receive email notifications</li>\n            </ul>\n          </Block>\n        }\n        confirmText=\"Accept\"\n        cancelText=\"Decline\"\n        onConfirm={() => setShowDialog(false)}\n        onCancel={() => setShowDialog(false)}\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Non-cancelable Dialog",
+      "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button color=\"warning\" onClick={() => setShowDialog(true)}>\n        Show Required Action\n      </Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Required Action\"\n        message=\"You must complete this action to continue.\"\n        type=\"warning\"\n        canCancel={false}\n        showCancel={false}\n        confirmText=\"I Understand\"\n        onConfirm={() => setShowDialog(false)}\n      />\n    </Block>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior\n- Focus is trapped within the dialog when open\n- Escape key closes the dialog (when `canCancel` is true)\n- Body scroll is prevented when dialog is open\n- Confirm/cancel buttons are keyboard accessible",
+  "related": [
+    "Modal",
+    "Toast"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-dialog",
+  "summary": "The `Dialog` component provides confirmation and alert dialogs with customizable actions.",
+  "import": "import { Dialog, DialogContainer, dialog } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Dialog.tsx",
+  "rootClass": "dialog",
+  "parts": [
+    {
+      "path": "Dialog",
+      "summary": "The `Dialog` component provides confirmation and alert dialogs with customizable actions.",
+      "component": null,
+      "props": [
+        {
+          "name": "isOpen",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the dialog is open (required).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "default": null,
+          "description": "Dialog title.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "string | React.ReactNode",
+          "default": null,
+          "description": "Dialog message/content (required).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'default' | 'success' | 'danger' | 'warning' | 'info'",
+          "default": "'default'",
+          "description": "The type/color of the dialog. Default: 'default'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "confirmText",
+          "type": "string",
+          "default": "'OK'",
+          "description": "Text for confirm button. Default: 'OK'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "default": "'Cancel'",
+          "description": "Text for cancel button. Default: 'Cancel'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onConfirm",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when confirm button is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when cancel button is clicked or dismissed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showCancel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether to show cancel button. Default: true for confirm dialogs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "canCancel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the dialog can be dismissed. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "focusCancel",
+          "type": "boolean",
+          "default": "false",
+          "description": "Focus cancel button instead of confirm. Default: false.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom icon to display.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the dialog element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-dialog-width",
+      "sass": "$dialog-width",
+      "default": "420px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-max-width",
+      "sass": "$dialog-max-width",
+      "default": "90%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-radius",
+      "sass": "$dialog-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-background",
+      "sass": "$dialog-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-shadow",
+      "sass": "$dialog-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.2)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-header-padding",
+      "sass": "$dialog-header-padding",
+      "default": "1rem 1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-body-padding",
+      "sass": "$dialog-body-padding",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-body-color",
+      "sass": "$dialog-body-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-body-line-height",
+      "sass": "$dialog-body-line-height",
+      "default": "1.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-footer-padding",
+      "sass": "$dialog-footer-padding",
+      "default": "1rem 1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-footer-gap",
+      "sass": "$dialog-footer-gap",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-border-color",
+      "sass": "$dialog-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-title-size",
+      "sass": "$dialog-title-size",
+      "default": "var(--bulma-size-5)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-title-weight",
+      "sass": "$dialog-title-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-title-color",
+      "sass": "$dialog-title-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-icon-size",
+      "sass": "$dialog-icon-size",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-icon-margin",
+      "sass": "$dialog-icon-margin",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-dialog-animation-duration",
+      "sass": "$dialog-animation-duration",
+      "default": "0.2s",
+      "scope": "component"
+    }
+  ]
+}

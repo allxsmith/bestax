@@ -1,0 +1,185 @@
+{
+  "name": "Tags",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/tags",
+  "docsUrl": "https://bestax.io/docs/api/elements/tags",
+  "examples": [
+    {
+      "title": "Default Tags",
+      "code": "<Tags>\n  <Tag color=\"primary\">Primary</Tag>\n  <Tag color=\"info\">Info</Tag>\n  <Tag color=\"success\">Success</Tag>\n</Tags>"
+    },
+    {
+      "title": "Add-ons (Grouped)",
+      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+    },
+    {
+      "title": "Multiline",
+      "code": "<Tags isMultiline>\n  <Tag color=\"primary\">Bulma</Tag>\n  <Tag color=\"success\">React</Tag>\n  <Tag color=\"warning\">Typescript</Tag>\n  <Tag color=\"danger\">Library</Tag>\n  <Tag color=\"link\">UI</Tag>\n</Tags>"
+    },
+    {
+      "title": "With Margin",
+      "code": "<Tags m=\"4\">\n  <Tag color=\"primary\">With Margin</Tag>\n</Tags>"
+    },
+    {
+      "title": "Mixed Tags",
+      "code": "function example() {\n  const [show, setShow] = useState();\n\n  return (\n    <Tags isMultiline>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
+    },
+    {
+      "title": "Add-ons with Delete Tag",
+      "code": "<Tags hasAddons>\n  <Tag color=\"danger\">Allxsmith</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Tags>\n  <Tags.Tag color=\"primary\">React</Tags.Tag>\n  <Tags.Tag color=\"info\">TypeScript</Tags.Tag>\n</Tags>"
+    }
+  ],
+  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Multiline:** `isMultiline` ensures tags wrap for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
+  "related": [
+    "Delete",
+    "Tag",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
+  "summary": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
+  "import": "import { Tags } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Tags.tsx",
+  "rootClass": "tags",
+  "parts": [
+    {
+      "path": "Tags",
+      "summary": "The `Tags` component groups multiple `Tag` components together in a horizontal (or multiline) Bulma-styled container.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasAddons",
+          "type": "boolean",
+          "default": "false",
+          "description": "Group tags together as add-ons (no spacing).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isMultiline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Allow tags to wrap onto multiple lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tag elements to render inside the container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tags.Tag",
+      "summary": "The `Tag` component renders a Bulma-styled label or badge.",
+      "component": "Tag",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "TagColor",
+          "default": null,
+          "description": "Bulma color modifier for the tag.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Tag size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders a rounded tag.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isDelete",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders a delete-style tag (delete button).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHoverable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds hover effect to the tag.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onDelete",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback for delete tag/button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tag content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "TagColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Tag component (Bulma tag colors)."
+        }
+      ]
+    }
+  ],
+  "cssVars": []
+}

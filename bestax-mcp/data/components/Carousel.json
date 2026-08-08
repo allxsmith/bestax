@@ -1,0 +1,515 @@
+{
+  "name": "Carousel",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/carousel",
+  "docsUrl": "https://bestax.io/docs/api/components/carousel",
+  "examples": [
+    {
+      "title": "Basic Carousel",
+      "code": "<Carousel indicatorStyle=\"dots\">\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Auto-playing Carousel",
+      "code": "<Carousel autoplay interval={3000}>\n  <CarouselItem>\n    <Hero color=\"info\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Info</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"warning\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Warning</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Success</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Indicator Styles",
+      "code": "function IndicatorExample() {\n  const [style, setStyle] = useState('dots');\n  return (\n    <Block>\n      <Buttons mb=\"4\">\n        <Button\n          onClick={() => setStyle('dots')}\n          color={style === 'dots' ? 'primary' : undefined}\n        >\n          Dots\n        </Button>\n        <Button\n          onClick={() => setStyle('circles')}\n          color={style === 'circles' ? 'primary' : undefined}\n        >\n          Circles\n        </Button>\n        <Button\n          onClick={() => setStyle('lines')}\n          color={style === 'lines' ? 'primary' : undefined}\n        >\n          Lines\n        </Button>\n        <Button\n          onClick={() => setStyle('bars')}\n          color={style === 'bars' ? 'primary' : undefined}\n        >\n          Bars\n        </Button>\n      </Buttons>\n      <Carousel indicatorStyle={style}>\n        <CarouselItem>\n          <Hero color=\"primary\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 1</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"success\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 2</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"danger\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 3</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n      </Carousel>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Without Arrows",
+      "code": "<Carousel arrow={false}>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Swipe or Click Dots</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"link\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Navigation Only</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Arrows on Hover",
+      "code": "<Carousel arrowHover>\n  <CarouselItem>\n    <Hero color=\"dark\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">Hover to see arrows</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">Slide 2</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">Slide 3</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Transparent Arrow Buttons",
+      "code": "<Carousel arrowBackground={false}>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Custom Arrow Icons",
+      "code": "<Carousel\n  iconPrev=\"chevron-left\"\n  iconNext=\"chevron-right\"\n  iconLibrary=\"fa\"\n  iconVariant=\"solid\"\n>\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 3</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "With Material Design Icons",
+      "code": "<Carousel iconPrev=\"arrow-left\" iconNext=\"arrow-right\" iconLibrary=\"mdi\">\n  <CarouselItem>\n    <Hero color=\"primary\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 1</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Title as=\"p\">Slide 2</Title>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    },
+    {
+      "title": "Controlled Carousel",
+      "code": "function ControlledExample() {\n  const [currentSlide, setCurrentSlide] = useState(0);\n  return (\n    <Block>\n      <Buttons mb=\"4\">\n        <Button\n          onClick={() => setCurrentSlide(0)}\n          color={currentSlide === 0 ? 'primary' : undefined}\n        >\n          1\n        </Button>\n        <Button\n          onClick={() => setCurrentSlide(1)}\n          color={currentSlide === 1 ? 'primary' : undefined}\n        >\n          2\n        </Button>\n        <Button\n          onClick={() => setCurrentSlide(2)}\n          color={currentSlide === 2 ? 'primary' : undefined}\n        >\n          3\n        </Button>\n      </Buttons>\n      <Carousel\n        value={currentSlide}\n        onChange={setCurrentSlide}\n        indicator={false}\n      >\n        <CarouselItem>\n          <Hero color=\"primary\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 1</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"success\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 2</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n        <CarouselItem>\n          <Hero color=\"danger\" size=\"medium\">\n            <Hero.Body textAlign=\"centered\">\n              <Paragraph textColor=\"white\">Slide 3</Paragraph>\n            </Hero.Body>\n          </Hero>\n        </CarouselItem>\n      </Carousel>\n      <Paragraph mt=\"2\">Current slide: {currentSlide + 1}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Non-repeating Carousel",
+      "code": "<Carousel repeat={false}>\n  <CarouselItem>\n    <Hero color=\"danger\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">First (no previous)</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"warning\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph>Middle slide</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n  <CarouselItem>\n    <Hero color=\"success\" size=\"medium\">\n      <Hero.Body textAlign=\"centered\">\n        <Paragraph textColor=\"white\">Last (no next)</Paragraph>\n      </Hero.Body>\n    </Hero>\n  </CarouselItem>\n</Carousel>"
+    }
+  ],
+  "accessibility": "- Uses `role=\"region\"` with `aria-roledescription=\"carousel\"`\n- Navigation arrows have `aria-label` for screen readers\n- Indicators use `role=\"tablist\"` and `role=\"tab\"` semantics\n- Keyboard navigation with arrow keys when focused\n- Previous/Next buttons are properly disabled at boundaries when not repeating",
+  "related": [
+    "Modal",
+    "Tabs"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-carousel",
+  "summary": "The `Carousel` component provides an image/content slider with navigation arrows and indicators.",
+  "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Carousel.tsx",
+  "rootClass": "carousel",
+  "parts": [
+    {
+      "path": "Carousel",
+      "summary": "The `Carousel` component provides an image/content slider with navigation arrows and indicators.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "default": "0",
+          "description": "Current active slide index (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "autoplay",
+          "type": "boolean",
+          "default": "false",
+          "description": "Enable auto-play.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "interval",
+          "type": "number",
+          "default": "5000",
+          "description": "Auto-play interval in milliseconds. Default: 5000.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "pauseOnHover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Pause auto-play on hover. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "repeat",
+          "type": "boolean",
+          "default": "true",
+          "description": "Loop back to first slide after last. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasDrag",
+          "type": "boolean",
+          "default": "true",
+          "description": "Enable drag/swipe navigation. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "arrow",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show navigation arrows. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "arrowHover",
+          "type": "boolean",
+          "default": "false",
+          "description": "Only show arrows on hover.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indicator",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show slide indicators. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indicatorInside",
+          "type": "boolean",
+          "default": "false",
+          "description": "Position indicators inside carousel.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indicatorPosition",
+          "type": "'bottom' | 'top'",
+          "default": "'bottom'",
+          "description": "Indicator position. Default: 'bottom'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indicatorStyle",
+          "type": "'circles' | 'dots' | 'lines' | 'bars'",
+          "default": "'dots'",
+          "description": "Indicator style. Default: 'dots'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconPrev",
+          "type": "string",
+          "default": null,
+          "description": "Icon name for the previous arrow button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconNext",
+          "type": "string",
+          "default": null,
+          "description": "Icon name for the next arrow button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLibrary",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": null,
+          "description": "Icon library to use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconVariant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g., 'solid', 'outlined').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Icon size modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional icon modifiers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "arrowBackground",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "arrowColor",
+          "type": "'light' | 'dark'",
+          "default": null,
+          "description": "Color theme for navigation arrows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'Image carousel'",
+          "description": "Accessible label for the carousel region. Default: 'Image carousel'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Callback when slide changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "CarouselItem children.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the carousel element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-carousel-arrow-size",
+      "sass": "$carousel-arrow-size",
+      "default": "48px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-size-mobile",
+      "sass": "$carousel-arrow-size-mobile",
+      "default": "36px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-background",
+      "sass": "$carousel-arrow-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-background-hover",
+      "sass": "$carousel-arrow-background-hover",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.95)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-color",
+      "sass": "$carousel-arrow-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-disabled-opacity",
+      "sass": "$carousel-arrow-disabled-opacity",
+      "default": "0.3",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-offset",
+      "sass": "$carousel-arrow-offset",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-offset-mobile",
+      "sass": "$carousel-arrow-offset-mobile",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-icon-size",
+      "sass": "$carousel-arrow-icon-size",
+      "default": "24px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-icon-size-mobile",
+      "sass": "$carousel-arrow-icon-size-mobile",
+      "default": "18px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-arrow-radius",
+      "sass": "$carousel-arrow-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-size",
+      "sass": "$carousel-indicator-size",
+      "default": "10px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-size-mobile",
+      "sass": "$carousel-indicator-size-mobile",
+      "default": "8px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-gap",
+      "sass": "$carousel-indicator-gap",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-gap-mobile",
+      "sass": "$carousel-indicator-gap-mobile",
+      "default": "0.375rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-background",
+      "sass": "$carousel-indicator-background",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-background-hover",
+      "sass": "$carousel-indicator-background-hover",
+      "default": "var(--bulma-border-hover)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-background-active",
+      "sass": "$carousel-indicator-background-active",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-circle-size",
+      "sass": "$carousel-indicator-circle-size",
+      "default": "12px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-line-width",
+      "sass": "$carousel-indicator-line-width",
+      "default": "30px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-line-width-mobile",
+      "sass": "$carousel-indicator-line-width-mobile",
+      "default": "20px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-line-height",
+      "sass": "$carousel-indicator-line-height",
+      "default": "4px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-line-height-mobile",
+      "sass": "$carousel-indicator-line-height-mobile",
+      "default": "3px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-line-radius",
+      "sass": "$carousel-indicator-line-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-bar-width",
+      "sass": "$carousel-indicator-bar-width",
+      "default": "24px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-bar-width-mobile",
+      "sass": "$carousel-indicator-bar-width-mobile",
+      "default": "16px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-bar-height",
+      "sass": "$carousel-indicator-bar-height",
+      "default": "6px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-indicator-bar-height-mobile",
+      "sass": "$carousel-indicator-bar-height-mobile",
+      "default": "4px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-arrow-background",
+      "sass": "$carousel-overlay-arrow-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-arrow-background-hover",
+      "sass": "$carousel-overlay-arrow-background-hover",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-arrow-color",
+      "sass": "$carousel-overlay-arrow-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-indicator-background",
+      "sass": "$carousel-overlay-indicator-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-indicator-background-hover",
+      "sass": "$carousel-overlay-indicator-background-hover",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-overlay-indicator-background-active",
+      "sass": "$carousel-overlay-indicator-background-active",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-transition-duration",
+      "sass": "$carousel-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-carousel-fade-duration",
+      "sass": "$carousel-fade-duration",
+      "default": "0.5s",
+      "scope": "component"
+    }
+  ]
+}

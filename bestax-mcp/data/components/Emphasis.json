@@ -1,0 +1,104 @@
+{
+  "name": "Emphasis",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/emphasis",
+  "docsUrl": "https://bestax.io/docs/api/elements/emphasis",
+  "examples": [
+    {
+      "title": "Default Emphasis",
+      "code": "<Emphasis>Emphasized text</Emphasis>"
+    },
+    {
+      "title": "Colored Emphasis",
+      "code": "<Emphasis textColor=\"primary\">Primary emphasized text</Emphasis>"
+    },
+    {
+      "title": "Info Emphasis",
+      "code": "<Emphasis textColor=\"info\">Note this important detail</Emphasis>"
+    },
+    {
+      "title": "Emphasis with Background",
+      "code": "<Emphasis bgColor=\"light\" textColor=\"dark\" p=\"1\">\n  Highlighted emphasis\n</Emphasis>"
+    },
+    {
+      "title": "Inline with Text",
+      "code": "<Paragraph>\n  This is a paragraph with <Emphasis>emphasized text</Emphasis> in the middle.\n  You should <Emphasis textColor=\"info\">really</Emphasis> pay attention to this.\n</Paragraph>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Emphasis textColor=\"primary\">Primary emphasis</Emphasis>\n  <Emphasis textColor=\"link\">Link emphasis</Emphasis>\n  <Emphasis textColor=\"info\">Info emphasis</Emphasis>\n  <Emphasis textColor=\"success\">Success emphasis</Emphasis>\n  <Emphasis textColor=\"warning\">Warning emphasis</Emphasis>\n  <Emphasis textColor=\"danger\">Danger emphasis</Emphasis>\n</Block>"
+    },
+    {
+      "title": "Quotation Style",
+      "code": "<Paragraph>\n  As the saying goes, <Emphasis>actions speak louder than words</Emphasis>.\n</Paragraph>"
+    },
+    {
+      "title": "Technical Terms",
+      "code": "<Paragraph>\n  The <Emphasis>idempotent</Emphasis> operation can be applied multiple times\n  without changing the result beyond the initial application.\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **Stress Emphasis:** Screen readers may announce `<em>` content with a change in tone or stress.\n- **Appropriate Use:** Use `<em>` for content that requires stress emphasis, not just for visual styling.\n- **Nested Emphasis:** Multiple levels of `<em>` indicate greater degrees of emphasis.\n\n:::info\nThe `<em>` element indicates stress emphasis that subtly changes the meaning of a sentence. Compare \"I _love_ coding\" vs \"I love _coding_\".\n:::",
+  "related": [
+    "Paragraph",
+    "Span",
+    "Strong",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-emphasis--default",
+  "summary": "The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.",
+  "import": "import { Emphasis } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Emphasis.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Emphasis",
+      "summary": "The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the em element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

@@ -1,0 +1,876 @@
+{
+  "name": "DateInput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/datetime/dateinput",
+  "docsUrl": "https://bestax.io/docs/api/form/datetime/dateinput",
+  "examples": [
+    {
+      "title": "Basic DateInput",
+      "code": "function example() {\n  return <DateInput label=\"Pick a date\" placeholder=\"YYYY-MM-DD\" />;\n}"
+    },
+    {
+      "title": "Basic DateInput",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"Type a date\"\n      placeholder=\"YYYY-MM-DD\"\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput label=\"Date\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput\n        label=\"Date\"\n        value={value}\n        onChange={setValue}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Inline",
+      "code": "<DateInput label=\"Inline calendar\" inline defaultValue={new Date()} />"
+    },
+    {
+      "title": "Min and Max",
+      "code": "function example() {\n  const today = new Date();\n  const min = new Date(today.getFullYear(), today.getMonth(), 1);\n  const max = new Date(today.getFullYear(), today.getMonth() + 1, 0);\n  return (\n    <DateInput\n      label=\"This month only\"\n      min={min}\n      max={max}\n      defaultValue={today}\n    />\n  );\n}"
+    },
+    {
+      "title": "Min and Max",
+      "code": "function example() {\n  const now = new Date();\n  const min = new Date(now.getFullYear(), now.getMonth(), 1);\n  const max = new Date(now.getFullYear(), now.getMonth() + 1, 0);\n  return (\n    <DateInput\n      label=\"Typing is clamped to this month\"\n      min={min}\n      max={max}\n      defaultValue={new Date(now.getFullYear(), now.getMonth(), 15)}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Disabled Dates",
+      "code": "<DateInput\n  label=\"No weekends\"\n  shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}\n  mobileNative={false}\n/>"
+    },
+    {
+      "title": "Disabled Dates",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"Weekends rejected while typing\"\n      shouldDisableDate={d => d.getDay() === 0 || d.getDay() === 6}\n      defaultValue={new Date(2024, 5, 7)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Custom Format",
+      "code": "<DateInput\n  label=\"Date of birth\"\n  format=\"DD/MM/YYYY\"\n  placeholder=\"DD/MM/YYYY\"\n  mobileNative={false}\n/>"
+    },
+    {
+      "title": "Custom Format",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"DD/MM/YYYY\"\n      format=\"DD/MM/YYYY\"\n      defaultValue={new Date(2024, 5, 7)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Formats",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput\n    label=\"YYYY-MM-DD (default)\"\n    defaultValue={new Date(2026, 4, 30)}\n    openOnFocus={false}\n    mobileNative={false}\n  />\n  <DateInput\n    label=\"DD/MM/YYYY\"\n    format=\"DD/MM/YYYY\"\n    defaultValue={new Date(2026, 4, 30)}\n    openOnFocus={false}\n    mobileNative={false}\n  />\n  <DateInput\n    label=\"MM-DD-YYYY\"\n    format=\"MM-DD-YYYY\"\n    defaultValue={new Date(2026, 4, 30)}\n    openOnFocus={false}\n    mobileNative={false}\n  />\n  <DateInput\n    label=\"DD.MM.YY\"\n    format=\"DD.MM.YY\"\n    defaultValue={new Date(2026, 4, 30)}\n    openOnFocus={false}\n    mobileNative={false}\n  />\n</Block>"
+    },
+    {
+      "title": "Formats",
+      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Formats",
+      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse — typing-first\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Launcher Icon",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Default (left icon + right launcher)\" />\n  <DateInput label=\"Custom launcher glyph\" triggerIconName=\"calendar-day\" />\n  <DateInput label=\"No launcher\" triggerIcon={false} />\n  <DateInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
+    },
+    {
+      "title": "Launcher Icon",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <DateInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-day\"\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"No launcher — popover via ↓ only\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"Click in, then arrow or type\"\n      defaultValue={new Date(2024, 5, 7)}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"Type digits — auto-advance across segments\"\n      defaultValue={new Date(2024, 5, 7)}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const [v, setV] = useState(() => new Date(2024, 5, 7));\n  return (\n    <Block>\n      <DateInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toDateString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  return (\n    <DateInput\n      label=\"Free-form (Intl format)\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      defaultValue={new Date(2024, 5, 7)}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Picker vs Input Modes",
+      "code": "<DateInput label=\"Picker only\" editable={false} defaultValue={new Date()} />"
+    },
+    {
+      "title": "Picker vs Input Modes",
+      "code": "<DateInput label=\"Input only\" popover={false} defaultValue={new Date()} />"
+    },
+    {
+      "title": "Locale",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n  <DateInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n  <DateInput\n    label=\"de-DE\"\n    locale=\"de-DE\"\n    defaultValue={new Date()}\n    mobileNative={false}\n  />\n</Block>"
+    },
+    {
+      "title": "Locale",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput\n    label=\"ja-JP\"\n    locale=\"ja-JP\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"fr-FR\"\n    locale=\"fr-FR\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"de-DE\"\n    locale=\"de-DE\"\n    defaultValue={new Date()}\n    mobileNative={false}\n    openOnFocus={false}\n  />\n</Block>"
+    },
+    {
+      "title": "First Day of Week",
+      "code": "<DateInput label=\"Week starts Monday\" firstDayOfWeek={1} mobileNative={false} />"
+    },
+    {
+      "title": "First Day of Week",
+      "code": "<DateInput\n  label=\"Week starts Monday — typing-first\"\n  firstDayOfWeek={1}\n  mobileNative={false}\n  openOnFocus={false}\n/>"
+    },
+    {
+      "title": "Mobile Native",
+      "code": "<DateInput label=\"Native picker\" mobileNative={true} />"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <DateInput label=\"Default\" />\n  <DateInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <DateInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <DateInput label=\"Default\" openOnFocus={false} />\n  <DateInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Primary\" color=\"primary\" />\n  <DateInput label=\"Info\" color=\"info\" />\n  <DateInput label=\"Success\" color=\"success\" />\n  <DateInput label=\"Warning\" color=\"warning\" />\n  <DateInput label=\"Danger\" color=\"danger\" />\n</Block>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <DateInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <DateInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <DateInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <DateInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
+    },
+    {
+      "title": "States",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <DateInput label=\"Disabled\" disabled />\n  <DateInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateInput label=\"Loading\" isLoading />\n</Block>"
+    },
+    {
+      "title": "Horizontal Field",
+      "code": "<DateInput label=\"Date of birth\" horizontal placeholder=\"YYYY-MM-DD\" />"
+    },
+    {
+      "title": "Horizontal Field",
+      "code": "<DateInput\n  label=\"Date of birth\"\n  horizontal\n  placeholder=\"YYYY-MM-DD\"\n  openOnFocus={false}\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<DateInput label=\"Date\" placeholder=\"YYYY-MM-DD\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\">\n      <Field.Body>\n        <Field>\n          <DateInput placeholder=\"YYYY-MM-DD\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateInput placeholder=\"YYYY-MM-DD\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Calendar uses `role=\"grid\"` with cells as `role=\"gridcell\"`.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today.\n- Roving `tabindex` keeps a single grid cell focusable at a time.\n- Honors `prefers-reduced-motion` (skip popover fade-in).",
+  "related": [
+    "DateTimeInput",
+    "Input",
+    "TimeInput"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-dateinput",
+  "summary": "The `DateInput` component is a form input that opens a popover calendar for date selection.",
+  "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/DateInput.tsx",
+  "rootClass": "input",
+  "parts": [
+    {
+      "path": "DateInput",
+      "summary": "The `DateInput` component is a form input that opens a popover calendar for date selection.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with horizontal layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for the left icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for the right icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for the right icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the left icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the right icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a loading indicator on the control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control to fill its container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the wrapping Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation text below the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color modifier for the help message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "default": null,
+          "description": "Controlled selected date.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "default": null,
+          "description": "Initial date for uncontrolled usage.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(d: Date | null) => void",
+          "default": null,
+          "description": "Fired when the value changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable date.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable date.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make the input read-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD'",
+          "description": "Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD'`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the calendar inline (no popover).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when the input is focused.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the popover after a date is selected.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Popover anchor position relative to the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover into `document.body` via portal.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the input with rounded corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": "'calendar'",
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Default `true`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides (ARIA labels, button text).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. Forwarded to a hidden ISO-formatted input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Form id the input belongs to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the input as required.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-input-h",
+      "sass": "$input-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": "$input-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": "$input-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": "$input-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": "$input-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    }
+  ]
+}

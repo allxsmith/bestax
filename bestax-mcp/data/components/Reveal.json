@@ -1,0 +1,177 @@
+{
+  "name": "Reveal",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/reveal",
+  "docsUrl": "https://bestax.io/docs/api/components/reveal",
+  "examples": [
+    {
+      "title": "Basic Reveal",
+      "code": "function example() {\n  return (\n    <Reveal animation=\"fade-up\">\n      <Box>\n        <Title size=\"4\">Why bestax</Title>\n        <Content>This box fades up into view once it's on screen.</Content>\n      </Box>\n    </Reveal>\n  );\n}"
+    },
+    {
+      "title": "Rendering as a different element",
+      "code": "function example() {\n  return (\n    <Reveal animation=\"fade-up\" as={Section}>\n      <Title size=\"3\">Why Grass Doctor</Title>\n      <Content>Rendered as a `Section` instead of the default `div`.</Content>\n    </Reveal>\n  );\n}"
+    },
+    {
+      "title": "Animation styles",
+      "code": "function example() {\n  return (\n    <Columns isMultiline>\n      <Column size=\"one-third\">\n        <Reveal animation=\"zoom\">\n          <Box>\n            <Title size=\"5\">zoom</Title>\n          </Box>\n        </Reveal>\n      </Column>\n      <Column size=\"one-third\">\n        <Reveal animation=\"flip\">\n          <Box>\n            <Title size=\"5\">flip</Title>\n          </Box>\n        </Reveal>\n      </Column>\n      <Column size=\"one-third\">\n        <Reveal animation=\"slide-left\">\n          <Box>\n            <Title size=\"5\">slide-left</Title>\n          </Box>\n        </Reveal>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "Staggered (cascade) children",
+      "code": "function example() {\n  return (\n    <Reveal\n      animation=\"fade-up\"\n      cascade\n      cascadeInterval={100}\n      display=\"flex\"\n      flexWrap=\"wrap\"\n    >\n      {['Fast', 'Accessible', 'Themeable'].map(feature => (\n        <Card key={feature} flexGrow=\"1\" flexShrink=\"1\" m=\"2\">\n          <Card.Content>\n            <Title size=\"5\">{feature}</Title>\n          </Card.Content>\n        </Card>\n      ))}\n    </Reveal>\n  );\n}"
+    },
+    {
+      "title": "Re-animating on every entry",
+      "code": "function example() {\n  return (\n    <Reveal animation=\"fade\" once={false}>\n      <Notification color=\"info\">\n        Scroll me out of view and back in to see this animate again.\n      </Notification>\n    </Reveal>\n  );\n}"
+    }
+  ],
+  "accessibility": "- `Reveal` never removes content from the accessibility tree — it only animates `opacity` and\n  `transform`, so screen reader users always have access to the content regardless of scroll\n  position.\n- When the user's OS is set to reduce motion (`prefers-reduced-motion: reduce`), `Reveal` skips\n  the animation entirely and renders the final, visible state immediately.\n- During server-side rendering and the first client render (before hydration effects run),\n  `Reveal` renders the final, visible state — content is never hidden if JavaScript fails to\n  load, ensuring crawlers and no-JS visitors always see the full page.",
+  "related": [],
+  "storybook": null,
+  "summary": "The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.",
+  "import": "import { Reveal } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Reveal.tsx",
+  "rootClass": "reveal",
+  "parts": [
+    {
+      "path": "Reveal",
+      "summary": "The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.",
+      "component": null,
+      "props": [
+        {
+          "name": "animation",
+          "type": "'fade' | 'fade-up' | 'fade-down' | 'slide-left' | 'slide-right' | 'zoom' | 'flip'",
+          "default": "'fade-up'",
+          "description": "Animation style applied when the element enters the viewport.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "delay",
+          "type": "number",
+          "default": "0",
+          "description": "Delay in milliseconds before the animation starts. Default: 0.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": "600",
+          "description": "Animation duration in milliseconds. Default: 600.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "threshold",
+          "type": "number",
+          "default": "0.15",
+          "description": "Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "once",
+          "type": "boolean",
+          "default": "true",
+          "description": "Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'div'",
+          "description": "Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cascade",
+          "type": "boolean",
+          "default": "false",
+          "description": "Stagger direct children with an incrementing delay instead of animating this element as a single block.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cascadeInterval",
+          "type": "number",
+          "default": "80",
+          "description": "Milliseconds added to each successive child's delay when `cascade` is set. Default: 80.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to reveal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-reveal-offset",
+      "sass": "$reveal-offset",
+      "default": "24px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-reveal-offset-large",
+      "sass": "$reveal-offset-large",
+      "default": "64px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-reveal-scale",
+      "sass": "$reveal-scale",
+      "default": "0.92",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-reveal-flip-angle",
+      "sass": "$reveal-flip-angle",
+      "default": "-15deg",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-reveal-duration",
+      "sass": "$reveal-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-reveal-easing",
+      "sass": "$reveal-easing",
+      "default": "var(--bulma-easing)",
+      "scope": "component"
+    }
+  ]
+}

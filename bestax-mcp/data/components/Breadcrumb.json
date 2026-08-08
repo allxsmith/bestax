@@ -1,0 +1,158 @@
+{
+  "name": "Breadcrumb",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/breadcrumb",
+  "docsUrl": "https://bestax.io/docs/api/components/breadcrumb",
+  "examples": [
+    {
+      "title": "Default Breadcrumb",
+      "code": "<Breadcrumb>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Centered Alignment",
+      "code": "<Breadcrumb alignment=\"centered\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Right Alignment",
+      "code": "<Breadcrumb alignment=\"right\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Arrow Separator",
+      "code": "<Breadcrumb separator=\"arrow\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Bullet Separator",
+      "code": "<Breadcrumb separator=\"bullet\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Dot Separator",
+      "code": "<Breadcrumb separator=\"dot\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Succeeds Separator",
+      "code": "<Breadcrumb separator=\"succeeds\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Small Size",
+      "code": "<Breadcrumb size=\"small\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Medium Size",
+      "code": "<Breadcrumb size=\"medium\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "Large Size",
+      "code": "<Breadcrumb size=\"large\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+    },
+    {
+      "title": "With Icons, Alignment, Separator, Size, and Text Weight",
+      "code": "<Breadcrumb\n  alignment=\"centered\"\n  separator=\"dot\"\n  size=\"medium\"\n  textWeight=\"semibold\"\n>\n  <li>\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"home\"\n        textColor=\"primary\"\n        size=\"small\"\n        ariaLabel=\"home icon\"\n      />{' '}\n      Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"folder\"\n        textColor=\"info\"\n        size=\"small\"\n        ariaLabel=\"category icon\"\n      />{' '}\n      Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"file\"\n        textColor=\"success\"\n        size=\"small\"\n        ariaLabel=\"item icon\"\n      />{' '}\n      Item\n    </a>\n  </li>\n</Breadcrumb>"
+    }
+  ],
+  "accessibility": "- The root is a `<nav class=\"breadcrumb\">` with `aria-label=\"breadcrumbs\"`.\n- Each breadcrumb item should be an `<li>` with an `<a>` or `<span>`, and the final active item should have the `is-active` class.",
+  "related": [
+    "Icon",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-breadcrumb--default",
+  "summary": "The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.",
+  "import": "import { Breadcrumb, Icon } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Breadcrumb.tsx",
+  "rootClass": "breadcrumb",
+  "parts": [
+    {
+      "path": "Breadcrumb",
+      "summary": "The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alignment",
+          "type": "'centered' | 'right'",
+          "default": null,
+          "description": "Alignment of the breadcrumb (`is-centered`, `is-right`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "separator",
+          "type": "'arrow' | 'bullet' | 'dot' | 'succeeds'",
+          "default": null,
+          "description": "Type of separator between breadcrumb items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Breadcrumb size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Breadcrumb items (`<li>`s with `<a>` or `<span>`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-breadcrumb-item-color",
+      "sass": "$breadcrumb-item-color",
+      "default": "var(--bulma-link-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-breadcrumb-item-hover-color",
+      "sass": "$breadcrumb-item-hover-color",
+      "default": "var(--bulma-link-text-hover)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-breadcrumb-item-active-color",
+      "sass": "$breadcrumb-item-active-color",
+      "default": "var(--bulma-link-text-active)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-breadcrumb-item-padding-vertical",
+      "sass": "$breadcrumb-item-padding-vertical",
+      "default": "0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-breadcrumb-item-padding-horizontal",
+      "sass": "$breadcrumb-item-padding-horizontal",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-breadcrumb-item-separator-color",
+      "sass": "$breadcrumb-item-separator-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,323 @@
+{
+  "name": "Loading",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/loading",
+  "docsUrl": "https://bestax.io/docs/api/components/loading",
+  "examples": [
+    {
+      "title": "Basic Loading",
+      "code": "function example() {\n  return (\n    <Box relative style={{ minHeight: '300px' }}>\n      <Loading active>Loading...</Loading>\n      <Paragraph>This content is behind the loading overlay.</Paragraph>\n    </Box>\n  );\n}"
+    },
+    {
+      "title": "Without Message",
+      "code": "function example() {\n  return (\n    <Box relative style={{ height: '200px' }}>\n      <Loading active />\n    </Box>\n  );\n}"
+    },
+    {
+      "title": "Spinner Sizes",
+      "code": "function example() {\n  return (\n    <Columns>\n      <Column>\n        <Box relative style={{ height: '200px' }}>\n          <Loading active size=\"small\">\n            Small\n          </Loading>\n        </Box>\n      </Column>\n      <Column>\n        <Box relative style={{ height: '200px' }}>\n          <Loading active>Default</Loading>\n        </Box>\n      </Column>\n      <Column>\n        <Box relative style={{ height: '200px' }}>\n          <Loading active size=\"medium\">\n            Medium\n          </Loading>\n        </Box>\n      </Column>\n      <Column>\n        <Box relative style={{ height: '200px' }}>\n          <Loading active size=\"large\">\n            Large\n          </Loading>\n        </Box>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "Spinner Colors",
+      "code": "function example() {\n  return (\n    <Columns isMultiline>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active>Default</Loading>\n        </Box>\n      </Column>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active color=\"primary\">\n            Primary\n          </Loading>\n        </Box>\n      </Column>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active color=\"info\">\n            Info\n          </Loading>\n        </Box>\n      </Column>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active color=\"success\">\n            Success\n          </Loading>\n        </Box>\n      </Column>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active color=\"warning\">\n            Warning\n          </Loading>\n        </Box>\n      </Column>\n      <Column size=\"4\">\n        <Box relative style={{ height: '150px' }}>\n          <Loading active color=\"danger\">\n            Danger\n          </Loading>\n        </Box>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "With Cancel Button",
+      "code": "function example() {\n  const [isLoading, setIsLoading] = useState(true);\n\n  return (\n    <>\n      <Box relative style={{ height: '200px' }}>\n        <Loading\n          active={isLoading}\n          canCancel\n          onCancel={() => setIsLoading(false)}\n        >\n          Click cancel or press Escape\n        </Loading>\n        <Paragraph p=\"4\">Content behind the overlay.</Paragraph>\n      </Box>\n      {!isLoading && (\n        <Button color=\"primary\" mt=\"4\" onClick={() => setIsLoading(true)}>\n          Show Loading\n        </Button>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Full Page Loading",
+      "code": "function example() {\n  const [isLoading, setIsLoading] = useState(false);\n\n  return (\n    <>\n      <Button color=\"primary\" onClick={() => setIsLoading(true)}>\n        Show Full Page Loading\n      </Button>\n      <Loading\n        active={isLoading}\n        isFullPage\n        canCancel\n        onCancel={() => setIsLoading(false)}\n      >\n        Full page loading... Click cancel or press Escape\n      </Loading>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Triggered by Button",
+      "code": "function example() {\n  const [isLoading, setIsLoading] = useState(false);\n\n  const handleClick = () => {\n    setIsLoading(true);\n    // Simulate async operation\n    setTimeout(() => setIsLoading(false), 2000);\n  };\n\n  return (\n    <Box relative p=\"5\" style={{ height: '150px' }}>\n      <Loading active={isLoading}>Loading data...</Loading>\n      <Paragraph>Click the button to see the loading overlay.</Paragraph>\n      <Button color=\"primary\" onClick={handleClick} disabled={isLoading} mt=\"3\">\n        Load Data\n      </Button>\n    </Box>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses `role=\"alert\"` to announce loading state to screen readers\n- Has `aria-busy=\"true\"` to indicate loading status\n- Has `aria-label=\"Loading\"` for the loading container\n- Cancel button has proper `aria-label` for accessibility\n- Escape key support for cancelling (when `canCancel` is true)",
+  "related": [],
+  "storybook": null,
+  "summary": "The `Loading` component provides a loading overlay with a spinner animation.",
+  "import": "import { Loading } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Loading.tsx",
+  "rootClass": "loading",
+  "parts": [
+    {
+      "path": "Loading",
+      "summary": "The `Loading` component provides a loading overlay with a spinner animation.",
+      "component": null,
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the loading overlay is visible.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullPage",
+          "type": "boolean",
+          "default": "false",
+          "description": "Cover the entire viewport.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the loading spinner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color variant for the spinner. Default is light grey.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "canCancel",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a cancel button and allow closing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when cancel is triggered.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlayClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the overlay.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the spinner icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indicator",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom loading indicator element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "'light' | 'dark' | 'opaque'",
+          "default": null,
+          "description": "Style of the loading overlay.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to display below the spinner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-loading-overlay-background",
+      "sass": "$loading-overlay-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-overlay-opacity",
+      "sass": "$loading-overlay-opacity",
+      "default": "0.7",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-overlay-fullpage-opacity",
+      "sass": "$loading-overlay-fullpage-opacity",
+      "default": "0.8",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-overlay-opacity-light",
+      "sass": "$loading-overlay-opacity-light",
+      "default": "0.4",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-overlay-opacity-dark",
+      "sass": "$loading-overlay-opacity-dark",
+      "default": "0.85",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-overlay-opacity-opaque",
+      "sass": "$loading-overlay-opacity-opaque",
+      "default": "1",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-size",
+      "sass": "$loading-icon-size",
+      "default": "4.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-size-small",
+      "sass": "$loading-icon-size-small",
+      "default": "3em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-size-medium",
+      "sass": "$loading-icon-size-medium",
+      "default": "6em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-size-large",
+      "sass": "$loading-icon-size-large",
+      "default": "7.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-border-width",
+      "sass": "$loading-icon-border-width",
+      "default": "0.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-border-width-small",
+      "sass": "$loading-icon-border-width-small",
+      "default": "0.2em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-border-width-medium",
+      "sass": "$loading-icon-border-width-medium",
+      "default": "0.3em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-border-width-large",
+      "sass": "$loading-icon-border-width-large",
+      "default": "0.375em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-icon-spin-color",
+      "sass": "$loading-icon-spin-color",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-text-color",
+      "sass": "$loading-text-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-text-size",
+      "sass": "$loading-text-size",
+      "default": "var(--bulma-size-normal)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-content-gap",
+      "sass": "$loading-content-gap",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-color",
+      "sass": "$loading-cancel-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-border-color",
+      "sass": "$loading-cancel-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-background",
+      "sass": "$loading-cancel-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-hover-color",
+      "sass": "$loading-cancel-hover-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-hover-border-color",
+      "sass": "$loading-cancel-hover-border-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-radius",
+      "sass": "$loading-cancel-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-cancel-size",
+      "sass": "$loading-cancel-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-loading-animation-duration",
+      "sass": "$loading-animation-duration",
+      "default": "0.75s",
+      "scope": "component"
+    }
+  ]
+}

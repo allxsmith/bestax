@@ -1,0 +1,139 @@
+{
+  "name": "Progress",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/progress",
+  "docsUrl": "https://bestax.io/docs/api/elements/progress",
+  "examples": [
+    {
+      "title": "Default Progress",
+      "code": "<Progress value={50} max={100} />"
+    },
+    {
+      "title": "Colored Progress",
+      "code": "<>\n  <Progress color=\"primary\" value={75} max={100} />\n  <Progress color=\"success\" value={90} max={100} />\n  <Progress color=\"warning\" value={30} max={100} />\n  <Progress color=\"danger\" value={10} max={100} />\n  <Progress color=\"info\" value={60} max={100} />\n  <Progress color=\"link\" value={80} max={100} />\n</>"
+    },
+    {
+      "title": "Sizing",
+      "code": "<>\n  <Progress size=\"small\" value={50} max={100} />\n  <Progress size=\"medium\" value={50} max={100} />\n  <Progress size=\"large\" value={50} max={100} />\n</>"
+    },
+    {
+      "title": "With Margin",
+      "code": "<Progress value={50} max={100} m=\"4\" />"
+    },
+    {
+      "title": "Indeterminate Progress",
+      "code": "<Progress color=\"primary\" max={100} />"
+    },
+    {
+      "title": "Custom Content",
+      "code": "<Progress value={50} max={100}>\n  50% Complete\n</Progress>"
+    },
+    {
+      "title": "Multiple Indeterminate",
+      "code": "<>\n  <Progress size=\"small\" color=\"primary\" max={100} />\n  <Progress color=\"danger\" max={100} />\n  <Progress size=\"medium\" color=\"dark\" max={100} />\n  <Progress size=\"large\" color=\"info\" max={100} />\n</>"
+    }
+  ],
+  "accessibility": "- **Role:** The `<progress>` element is natively accessible.\n- **Labeling:** Always provide context for screen readers (e.g., with `aria-label` or visible text).\n- **Indeterminate:** Omit the `value` prop for indeterminate progress bars.\n\n:::warning\nEnsure your progress bars have sufficient color contrast for users with visual impairments.\n:::",
+  "related": [
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-progress--default",
+  "summary": "The `Progress` component displays a Bulma-styled progress bar.",
+  "import": "import { Progress } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Progress.tsx",
+  "rootClass": "progress",
+  "parts": [
+    {
+      "path": "Progress",
+      "summary": "The `Progress` component displays a Bulma-styled progress bar.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color",
+          "default": null,
+          "description": "Bulma color modifier for the progress bar (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.progress`. The other accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`) emit a class no CSS rule matches, so the bar renders unstyled; they log a console warning in development and will be removed from this union in the next major version.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the progress bar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Current value of the progress bar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": null,
+          "description": "Maximum value of the progress bar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Optional custom content inside the progress bar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <progress> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-progress-border-radius",
+      "sass": "$progress-border-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-progress-bar-background-color",
+      "sass": "$progress-bar-background-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-progress-value-background-color",
+      "sass": "$progress-value-background-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-progress-indeterminate-duration",
+      "sass": "$progress-indeterminate-duration",
+      "default": "1.5s",
+      "scope": "component"
+    }
+  ]
+}

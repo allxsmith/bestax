@@ -1,0 +1,196 @@
+{
+  "skills": [
+    {
+      "name": "bestax-custom-component",
+      "description": "Build a custom React component in the bestax/Bulma style. In an app using @allxsmith/bestax-bulma — compose existing components, helper props, public hooks (useBulmaClasses, usePrefixedClassNames), and --bulma-* CSS variables. In the bestax monorepo — the full component pipeline (SCSS partial, stories, tests, docs, wiring). Use when creating a component beyond stock Bulma or extending one.",
+      "promptName": "custom-component",
+      "dir": "bestax-custom-component",
+      "references": [
+        {
+          "id": "api",
+          "file": "references/api.md",
+          "bytes": 5379
+        },
+        {
+          "id": "component-catalog",
+          "file": "references/component-catalog.md",
+          "bytes": 17351
+        },
+        {
+          "id": "library-contributor",
+          "file": "references/library-contributor.md",
+          "bytes": 15257
+        },
+        {
+          "id": "patterns",
+          "file": "references/patterns.md",
+          "bytes": 4601
+        }
+      ],
+      "examples": [
+        {
+          "id": "stat-card",
+          "file": "examples/stat-card.tsx",
+          "bytes": 3828
+        }
+      ]
+    },
+    {
+      "name": "bestax-form",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "promptName": "form",
+      "dir": "bestax-form",
+      "references": [
+        {
+          "id": "api",
+          "file": "references/api.md",
+          "bytes": 8770
+        },
+        {
+          "id": "patterns",
+          "file": "references/patterns.md",
+          "bytes": 5566
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "bestax-icons",
+      "description": "Use icons in an app built with @allxsmith/bestax-bulma — the Icon/IconText components and the five supported libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, Material Symbols). Use when adding an icon, choosing or configuring the app-wide icon library, fixing an icon that renders blank, pairing icons with text, or making icons accessible (decorative vs labeled).",
+      "promptName": "icons",
+      "dir": "bestax-icons",
+      "references": [
+        {
+          "id": "icon-libraries",
+          "file": "references/icon-libraries.md",
+          "bytes": 6179
+        }
+      ],
+      "examples": [
+        {
+          "id": "icon-usage",
+          "file": "examples/icon-usage.tsx",
+          "bytes": 2720
+        }
+      ]
+    },
+    {
+      "name": "bestax-layout-scaffold",
+      "description": "Scaffold a complete, responsive page layout with @allxsmith/bestax-bulma — app shells/dashboards, marketing/landing pages, centered auth/settings pages, and card-grid catalogs. Use when building a full page or overall app layout (not a single component).",
+      "promptName": "layout-scaffold",
+      "dir": "bestax-layout-scaffold",
+      "references": [
+        {
+          "id": "archetypes",
+          "file": "references/archetypes.md",
+          "bytes": 8038
+        },
+        {
+          "id": "layout-components",
+          "file": "references/layout-components.md",
+          "bytes": 14389
+        }
+      ],
+      "examples": [
+        {
+          "id": "app-shell",
+          "file": "examples/app-shell.tsx",
+          "bytes": 2765
+        },
+        {
+          "id": "card-grid",
+          "file": "examples/card-grid.tsx",
+          "bytes": 2700
+        },
+        {
+          "id": "centered",
+          "file": "examples/centered.tsx",
+          "bytes": 1443
+        },
+        {
+          "id": "content-page",
+          "file": "examples/content-page.tsx",
+          "bytes": 2608
+        },
+        {
+          "id": "landing",
+          "file": "examples/landing.tsx",
+          "bytes": 3910
+        }
+      ]
+    },
+    {
+      "name": "bestax-migrate",
+      "description": "Migrate an existing app from react-bulma-components (v4) to @allxsmith/bestax-bulma on Bulma v1 — run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the mapping references. Use when a repo imports react-bulma-components and wants to move to bestax-bulma, when TODO(bestax-migrate) comments are present in a codebase, or when asked to migrate off an unmaintained React Bulma library.",
+      "promptName": "migrate",
+      "dir": "bestax-migrate",
+      "references": [
+        {
+          "id": "component-map",
+          "file": "references/component-map.md",
+          "bytes": 11894
+        },
+        {
+          "id": "css-migration",
+          "file": "references/css-migration.md",
+          "bytes": 5679
+        },
+        {
+          "id": "prop-map",
+          "file": "references/prop-map.md",
+          "bytes": 6363
+        },
+        {
+          "id": "unmappables",
+          "file": "references/unmappables.md",
+          "bytes": 4866
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "bestax-optimize",
+      "description": "Reduce the built CSS size of an app using @allxsmith/bestax-bulma — measure raw and gzip size, then apply the cheapest lever that fits (lighter prebuilt CSS flavor, hand-rolled modular Sass build, import and icon-asset hygiene). Use when the CSS bundle looks too big, a size budget or Lighthouse audit flags stylesheet weight, switching bestax.css to a versions/*.css flavor, or setting up a modular @use Bulma/Sass build.",
+      "promptName": "optimize",
+      "dir": "bestax-optimize",
+      "references": [
+        {
+          "id": "modular-build",
+          "file": "references/modular-build.md",
+          "bytes": 7761
+        }
+      ],
+      "examples": []
+    },
+    {
+      "name": "bestax-theming",
+      "description": "Customize colors, branding, dark mode, and visual tokens of an app built with @allxsmith/bestax-bulma. Use when changing the primary/brand color, recoloring components, overriding Bulma --bulma-* CSS variables, setting fonts/radius/spacing tokens, adding light/dark mode, or configuring the app-wide icon library / class prefix via ConfigProvider.",
+      "promptName": "theming",
+      "dir": "bestax-theming",
+      "references": [
+        {
+          "id": "css-variables",
+          "file": "references/css-variables.md",
+          "bytes": 23556
+        },
+        {
+          "id": "themeable-components",
+          "file": "references/themeable-components.md",
+          "bytes": 20268
+        }
+      ],
+      "examples": [
+        {
+          "id": "dark-mode",
+          "file": "examples/dark-mode.tsx",
+          "bytes": 1148
+        },
+        {
+          "id": "theme-config",
+          "file": "examples/theme-config.tsx",
+          "bytes": 2089
+        }
+      ]
+    }
+  ]
+}

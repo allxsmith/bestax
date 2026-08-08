@@ -1,0 +1,539 @@
+{
+  "name": "Field",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/field",
+  "docsUrl": "https://bestax.io/docs/api/form/field",
+  "examples": [
+    {
+      "title": "With Checkbox",
+      "code": "<Field label=\"Stay Signed In\">\n  <Checkbox>Stay Signed In</Checkbox>\n</Field>"
+    },
+    {
+      "title": "With Checkbox and Custom Label (with link)",
+      "code": "<Field label=\"Agreement\">\n  <Checkbox>\n    I have read and agree to the{' '}\n    <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">\n      terms and conditions\n    </a>\n    .\n  </Checkbox>\n</Field>"
+    },
+    {
+      "title": "With Grouped Checkboxes",
+      "code": "<Field label=\"Chores\">\n  <Checkboxes>\n    <Checkbox>Make the bed</Checkbox>\n    <Checkbox>Brush teeth</Checkbox>\n    <Checkbox>Do homework</Checkbox>\n  </Checkboxes>\n</Field>"
+    },
+    {
+      "title": "With File",
+      "code": "<Field label=\"Upload Resume\">\n  <File label=\"Choose a file...\" />\n</Field>"
+    },
+    {
+      "title": "With Input (Default)",
+      "code": "<Field label=\"Default\">\n  <Control>\n    <Input placeholder=\"Default input\" />\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With Input (Sizes)",
+      "code": "<>\n  <Field label=\"Small\">\n    <Control>\n      <Input size=\"small\" placeholder=\"Small input\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Normal\">\n    <Control>\n      <Input placeholder=\"Normal input\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Medium\">\n    <Control>\n      <Input size=\"medium\" placeholder=\"Medium input\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Large\">\n    <Control>\n      <Input size=\"large\" placeholder=\"Large input\" />\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "With Input (Rounded)",
+      "code": "<Field label=\"Rounded\">\n  <Control>\n    <Input isRounded placeholder=\"Rounded input\" />\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With Input (States)",
+      "code": "<>\n  <Field label=\"Normal\">\n    <Control>\n      <Input placeholder=\"Normal state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <Input isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Focus\">\n    <Control>\n      <Input isFocused placeholder=\"Focused state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Input placeholder=\"Loading state\" />\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "With Input (Disabled & Read Only)",
+      "code": "<>\n  <Field label=\"Disabled\">\n    <Control>\n      <Input disabled placeholder=\"Disabled input\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Read Only\">\n    <Control>\n      <Input readOnly value=\"Read only value\" />\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "With Input (Static, Horizontal)",
+      "code": "<>\n  <Field horizontal label=\"Username\">\n    <Control>\n      <Input isStatic value=\"Static value\" />\n    </Control>\n  </Field>\n  <Field horizontal label=\"Password\">\n    <Control>\n      <Input placeholder=\"Editable value\" />\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "With Input (Icons)",
+      "code": "<Field>\n  <Control\n    hasIconsLeft\n    hasIconsRight\n    iconLeft={{ name: 'user' }}\n    iconRight={{ name: 'check' }}\n  >\n    <Input placeholder=\"With icons\" />\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With Radio",
+      "code": "<Field label=\"Pet\">\n  <Control>\n    <Radio name=\"pet\">Cat</Radio>\n    <Radio name=\"pet\" defaultChecked>\n      Dog\n    </Radio>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With Grouped Radios",
+      "code": "<Field label=\"Event Response\">\n  <Radios>\n    <Radio name=\"event\" disabled>\n      Attend\n    </Radio>\n    <Radio name=\"event\" disabled>\n      Decline\n    </Radio>\n    <Radio name=\"event\" disabled>\n      Tentative\n    </Radio>\n  </Radios>\n</Field>"
+    },
+    {
+      "title": "With Select",
+      "code": "<Field label=\"Default\">\n  <Control>\n    <Select>\n      <option value=\"\">Please select</option>\n      <option value=\"option1\">Option 1</option>\n      <option value=\"option2\">Option 2</option>\n    </Select>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With Select (Multi Select)",
+      "code": "<>\n  <Field label=\"Multi Select\">\n    <Control>\n      <Select multiple multipleSize={10}>\n        <option value=\"huck\">Huckleberry Finn</option>\n        <option value=\"tom\">Tom Sawyer</option>\n        <option value=\"becky\">Becky Thatcher</option>\n        <option value=\"jim\">Jim</option>\n        <option value=\"pap\">Pap Finn</option>\n        <option value=\"duke\">The Duke</option>\n        <option value=\"king\">The King</option>\n        <option value=\"widow\">Widow Douglas</option>\n        <option value=\"judge\">Judge Thatcher</option>\n        <option value=\"sid\">Sid Sawyer</option>\n      </Select>\n    </Control>\n  </Field>\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n  <br />\n</>"
+    },
+    {
+      "title": "With Select (Colors, Sizes, Rounded, Loading, Icons)",
+      "code": "<>\n  <Field label=\"Primary\">\n    <Control>\n      <Select color=\"primary\">\n        <option value=\"1\">Option 1</option>\n        <option value=\"2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Rounded\">\n    <Control>\n      <Select isRounded>\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"With Icons\">\n    <Control hasIconsLeft iconLeft={{ name: 'person' }}>\n      <Select>\n        <option value=\"huck\">Huckleberry Finn</option>\n        <option value=\"tom\">Tom Sawyer</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Select isLoading>\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "With TextArea",
+      "code": "<Field label=\"Default\">\n  <Control>\n    <TextArea placeholder=\"Carpe Diem\" />\n  </Control>\n</Field>"
+    },
+    {
+      "title": "With TextArea (Rows, Colors, Sizes, States, Loading, Fixed Size)",
+      "code": "<>\n  <Field label=\"Rows\">\n    <Control>\n      <TextArea rows={8} placeholder=\"8 rows\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Primary\">\n    <Control>\n      <TextArea color=\"primary\" placeholder=\"Primary (color='primary')\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Small\">\n    <Control>\n      <TextArea size=\"small\" placeholder=\"Small\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <TextArea isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <TextArea placeholder=\"Loading state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Fixed Size\">\n    <Control>\n      <TextArea hasFixedSize placeholder=\"Fixed size textarea\" rows={3} />\n    </Control>\n  </Field>\n</>"
+    },
+    {
+      "title": "Grouped Controls",
+      "code": "<Field grouped>\n  <Control>\n    <Input placeholder=\"First\" />\n  </Control>\n  <Control>\n    <Input placeholder=\"Second\" />\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Field horizontal>\n  <Field.Label>Name</Field.Label>\n  <Field.Body>\n    <Field.Control>\n      <Input placeholder=\"Jane Doe\" />\n    </Field.Control>\n  </Field.Body>\n</Field>"
+    }
+  ],
+  "accessibility": "- Renders a `<label>` for the field, but `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control. The single-control convenience inputs (`Input`, `Select`, `TextArea`, and similar) do this automatically via their own `label` prop, but only when used outside an existing `Field`; nested inside one, they drop their `label` prop entirely.\n- Grouped/horizontal layouts use Bulma’s grid for layout.\n- Always use the `label` prop or a custom label for clarity.",
+  "related": [
+    "Checkbox",
+    "Checkboxes",
+    "Control",
+    "File",
+    "Input",
+    "Radio",
+    "Radios",
+    "Select",
+    "TextArea"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
+  "summary": "The `Field` component is a Bulma-styled form field container.",
+  "import": "import { Field } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Field.tsx",
+  "rootClass": "field",
+  "parts": [
+    {
+      "path": "Field",
+      "summary": "The `Field` component is a Bulma-styled form field container.",
+      "component": null,
+      "props": [
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the field as horizontal (label and control side by side).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "grouped",
+          "type": "boolean | 'centered' | 'right' | 'multiline'",
+          "default": null,
+          "description": "Group controls in a row (optionally centered, right, or multiline).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasAddons",
+          "type": "boolean | 'centered' | 'right'",
+          "default": null,
+          "description": "Group controls as addons (optionally centered or right-aligned).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "narrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Constrains the field to its content's width (used inside horizontal field bodies).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically when they render their own `Field`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element — where `htmlFor` goes when composing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Field.Label",
+      "summary": "FieldLabel component for rendering a Bulma field label.",
+      "component": null,
+      "props": [
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the field label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Field.Body",
+      "summary": "FieldBody component for rendering Bulma field body.",
+      "component": null,
+      "props": [
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the field body.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the field body.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the field body.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field body content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Field.Control",
+      "summary": "The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.",
+      "component": "Control",
+      "props": [
+        {
+          "name": "as",
+          "type": "'div' | 'p'",
+          "default": "'div'",
+          "description": "Element type for the control (`div` by default).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement> | React.Ref<HTMLParagraphElement>",
+          "default": null,
+          "description": "Ref for the control element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds left icon container.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds right icon container.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows loading indicator.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the control expand to fill available space.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Sets the control size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Sets text color.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the control.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for left icon.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for right icon.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for left icon name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for right icon name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the control.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> / <p> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-field-block-spacing",
+      "sass": "$field-block-spacing",
+      "default": "0.75rem",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-block-spacing",
+      "sass": null,
+      "default": "var(--bulma-field-block-spacing)",
+      "scope": "component"
+    }
+  ]
+}

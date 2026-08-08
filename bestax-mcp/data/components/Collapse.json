@@ -1,0 +1,218 @@
+{
+  "name": "Collapse",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/collapse",
+  "docsUrl": "https://bestax.io/docs/api/components/collapse",
+  "examples": [
+    {
+      "title": "Basic Collapse",
+      "code": "function example() {\n  return (\n    <Collapse\n      trigger={\n        <Block\n          p=\"3\"\n          bgColor=\"white-ter\"\n          cursor=\"pointer\"\n          style={{ borderRadius: '4px' }}\n        >\n          <Strong>Click to expand</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>\n          This is the collapsible content. It can contain any React elements.\n        </Paragraph>\n        <Paragraph>Click the header again to collapse.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+    },
+    {
+      "title": "Default Open",
+      "code": "function example() {\n  return (\n    <Collapse\n      defaultOpen\n      trigger={\n        <Block\n          p=\"3\"\n          bgColor=\"white-ter\"\n          cursor=\"pointer\"\n          style={{ borderRadius: '4px' }}\n        >\n          <Strong>This starts open</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This content is visible by default.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+    },
+    {
+      "title": "Without Animation",
+      "code": "function example() {\n  return (\n    <Collapse\n      animation={false}\n      trigger={\n        <Block\n          p=\"3\"\n          bgColor=\"white-ter\"\n          cursor=\"pointer\"\n          style={{ borderRadius: '4px' }}\n        >\n          <Strong>No animation</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This collapse has animation disabled.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+    },
+    {
+      "title": "Controlled Mode",
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n\n  return (\n    <Block>\n      <Block mb=\"4\">\n        <Button color=\"primary\" onClick={() => setIsOpen(!isOpen)}>\n          {isOpen ? 'Close' : 'Open'} Collapse\n        </Button>\n        <Span ml=\"4\">State: {isOpen ? 'Open' : 'Closed'}</Span>\n      </Block>\n      <Collapse\n        open={isOpen}\n        trigger={\n          <Block p=\"3\" bgColor=\"white-ter\" style={{ borderRadius: '4px' }}>\n            Controlled collapse (use button above)\n          </Block>\n        }\n      >\n        <Block p=\"3\">\n          <Paragraph>This collapse is controlled by external state.</Paragraph>\n        </Block>\n      </Collapse>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Accordion",
+      "code": "function example() {\n  const [openIndex, setOpenIndex] = useState(0);\n\n  const items = [\n    { title: 'Section 1', content: 'Content for section 1.' },\n    { title: 'Section 2', content: 'Content for section 2.' },\n    { title: 'Section 3', content: 'Content for section 3.' },\n  ];\n\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n      {items.map((item, index) => (\n        <Collapse\n          key={index}\n          className=\"collapse is-bordered\"\n          open={openIndex === index}\n          trigger={\n            <Block\n              p=\"4\"\n              onClick={() => setOpenIndex(openIndex === index ? -1 : index)}\n              display=\"flex\"\n              justifyContent=\"space-between\"\n              alignItems=\"center\"\n            >\n              <Strong>{item.title}</Strong>\n              <Span>{openIndex === index ? '−' : '+'}</Span>\n            </Block>\n          }\n        >\n          <Paragraph p=\"4\">{item.content}</Paragraph>\n        </Collapse>\n      ))}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Card Style",
+      "code": "function example() {\n  return (\n    <Collapse\n      className=\"collapse is-card\"\n      defaultOpen\n      trigger={\n        <Block className=\"collapse-trigger-header\">\n          <Span>Card Collapse</Span>\n          <Icon name=\"fas fa-chevron-down\" />\n        </Block>\n      }\n    >\n      <Paragraph>\n        This collapse is styled like a card with shadow and padding.\n      </Paragraph>\n      <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>\n    </Collapse>\n  );\n}"
+    },
+    {
+      "title": "FAQ Example",
+      "code": "function example() {\n  const faqs = [\n    {\n      q: 'What is Bestax?',\n      a: 'Bestax is a React component library built on Bulma.',\n    },\n    { q: 'How do I install it?', a: 'pnpm add @allxsmith/bestax-bulma' },\n    { q: 'Is it free?', a: 'Yes, Bestax is open source and free to use.' },\n  ];\n\n  const [openStates, setOpenStates] = useState(faqs.map(() => false));\n\n  const toggle = index => {\n    setOpenStates(prev =>\n      prev.map((state, i) => (i === index ? !state : state))\n    );\n  };\n\n  return (\n    <Block>\n      <Title size=\"5\" mb=\"4\">\n        FAQ\n      </Title>\n      <Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n        {faqs.map((faq, index) => (\n          <Collapse\n            key={index}\n            className=\"collapse is-bordered\"\n            trigger={\n              <Block\n                p=\"4\"\n                onClick={() => toggle(index)}\n                display=\"flex\"\n                justifyContent=\"space-between\"\n              >\n                <Strong>{faq.q}</Strong>\n                <Span>{openStates[index] ? '▲' : '▼'}</Span>\n              </Block>\n            }\n            open={openStates[index]}\n          >\n            <Paragraph p=\"4\" textColor=\"grey-dark\">\n              {faq.a}\n            </Paragraph>\n          </Collapse>\n        ))}\n      </Block>\n    </Block>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Trigger has `role=\"button\"` and `tabIndex=\"0\"` for keyboard access\n- Trigger has `aria-expanded` to indicate open/closed state\n- Trigger has `aria-controls` pointing to the content element\n- Content has `aria-hidden` matching the collapsed state\n- Supports keyboard navigation (Enter and Space to toggle)",
+  "related": [],
+  "storybook": null,
+  "summary": "The `Collapse` component provides an expandable/collapsible content panel.",
+  "import": "import { Collapse } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Collapse.tsx",
+  "rootClass": "collapse",
+  "parts": [
+    {
+      "path": "Collapse",
+      "summary": "The `Collapse` component provides an expandable/collapsible content panel.",
+      "component": null,
+      "props": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. If provided, component is controlled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when collapse opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when collapse closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "trigger",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The clickable trigger element (header/button).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "animation",
+          "type": "'fade' | 'slide' | false",
+          "default": "'fade'",
+          "description": "Animation style, or `false` to disable.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top' | 'bottom'",
+          "default": "'top'",
+          "description": "Position of the trigger relative to content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaId",
+          "type": "string",
+          "default": "auto",
+          "description": "Custom aria id for accessibility.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bordered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a border around the collapse.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the trigger wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the content wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The collapsible content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-collapse-margin-bottom",
+      "sass": "$collapse-margin-bottom",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-border-color",
+      "sass": "$collapse-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-radius",
+      "sass": "$collapse-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-trigger-icon-size",
+      "sass": "$collapse-trigger-icon-size",
+      "default": "1.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-trigger-icon-margin",
+      "sass": "$collapse-trigger-icon-margin",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-header-weight",
+      "sass": "$collapse-header-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-collapse-group-gap",
+      "sass": "$collapse-group-gap",
+      "default": "0.5rem",
+      "scope": "component"
+    }
+  ]
+}

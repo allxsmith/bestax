@@ -1,0 +1,72 @@
+{
+  "name": "Divider",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/divider",
+  "docsUrl": "https://bestax.io/docs/api/elements/divider",
+  "examples": [
+    {
+      "title": "Default Divider",
+      "code": "<>\n  <Block>Content above the divider</Block>\n  <Divider />\n  <Block>Content below the divider</Block>\n</>"
+    },
+    {
+      "title": "With Vertical Margin",
+      "code": "<>\n  <Block>Content above</Block>\n  <Divider my=\"6\" />\n  <Block>Content below</Block>\n</>"
+    },
+    {
+      "title": "Colored Divider",
+      "code": "<>\n  <Block>Content above</Block>\n  <Divider bgColor=\"primary\" />\n  <Block>Content below</Block>\n</>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<>\n  <Block>Default</Block>\n  <Divider />\n  <Block>Primary</Block>\n  <Divider bgColor=\"primary\" />\n  <Block>Info</Block>\n  <Divider bgColor=\"info\" />\n  <Block>Success</Block>\n  <Divider bgColor=\"success\" />\n  <Block>Warning</Block>\n  <Divider bgColor=\"warning\" />\n  <Block>Danger</Block>\n  <Divider bgColor=\"danger\" />\n  <Block>End</Block>\n</>"
+    },
+    {
+      "title": "Separating Content Sections",
+      "code": "<>\n  <Title size=\"4\">Section One</Title>\n  <Paragraph>This is the first section of content.</Paragraph>\n  <Divider my=\"5\" />\n  <Title size=\"4\">Section Two</Title>\n  <Paragraph>This is the second section of content.</Paragraph>\n  <Divider my=\"5\" />\n  <Title size=\"4\">Section Three</Title>\n  <Paragraph>This is the third section of content.</Paragraph>\n</>"
+    }
+  ],
+  "accessibility": "- **Visual Separation:** The `<hr>` element provides visual separation and has implicit semantic meaning as a thematic break.\n- **Screen Readers:** Screen readers typically announce `<hr>` elements, so use them meaningfully to separate distinct content sections.\n- **Decorative Use:** If the divider is purely decorative, consider using CSS borders instead.\n\n:::info\nUse dividers for thematic breaks between content sections, not just for visual spacing (use margin helpers for spacing alone).\n:::",
+  "related": [
+    "Block",
+    "Box",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-divider--default",
+  "summary": "The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.",
+  "import": "import { Divider } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Divider.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Divider",
+      "summary": "The `Divider` component renders a styled horizontal rule (`<hr>`) element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <hr> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

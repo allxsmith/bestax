@@ -1,0 +1,154 @@
+{
+  "name": "Cell",
+  "kind": "component",
+  "category": "grid",
+  "slug": "grid/cell",
+  "docsUrl": "https://bestax.io/docs/api/grid/cell",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Grid>\n  <Cell>\n    <Notification color=\"primary\">Basic Cell</Notification>\n  </Cell>\n  <Cell>\n    <Notification color=\"info\">Another Cell</Notification>\n  </Cell>\n</Grid>"
+    },
+    {
+      "title": "Column Start",
+      "code": "<Grid isFixed fixedCols={4}>\n  <Cell>\n    <Notification>Cell 1</Notification>\n  </Cell>\n  <Cell colStart={3}>\n    <Notification color=\"primary\">Cell 2</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 3</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 4</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 5</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 6</Notification>\n  </Cell>\n</Grid>"
+    },
+    {
+      "title": "Column From End",
+      "code": "<Grid isFixed fixedCols={4}>\n  <Cell>\n    <Notification>Cell 1</Notification>\n  </Cell>\n  <Cell colFromEnd={2}>\n    <Notification color=\"primary\">Cell 2</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 3</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 4</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 5</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 6</Notification>\n  </Cell>\n</Grid>"
+    },
+    {
+      "title": "Column Span",
+      "code": "<Grid isFixed fixedCols={4}>\n  <Cell>\n    <Notification>Cell 1</Notification>\n  </Cell>\n  <Cell colSpan={2}>\n    <Notification color=\"primary\">Cell 2</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 3</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 4</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 5</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 6</Notification>\n  </Cell>\n</Grid>"
+    },
+    {
+      "title": "Row Start",
+      "code": "<Grid isFixed fixedCols={4}>\n  <Cell>\n    <Notification>Cell 1</Notification>\n  </Cell>\n  <Cell rowStart={3}>\n    <Notification color=\"primary\">Cell 2</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 3</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 4</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 5</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 6</Notification>\n  </Cell>\n</Grid>"
+    },
+    {
+      "title": "Row Span",
+      "code": "<Grid isFixed fixedCols={4}>\n  <Cell>\n    <Notification>Cell 1</Notification>\n  </Cell>\n  <Cell rowSpan={2}>\n    <Notification color=\"primary\" fullHeight>\n      Cell 2\n    </Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 3</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 4</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 5</Notification>\n  </Cell>\n  <Cell>\n    <Notification>Cell 6</Notification>\n  </Cell>\n</Grid>"
+    }
+  ],
+  "accessibility": null,
+  "related": [],
+  "storybook": null,
+  "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+  "import": "import { Cell } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/grid/Cell.tsx",
+  "rootClass": "cell",
+  "parts": [
+    {
+      "path": "Cell",
+      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+      "component": null,
+      "props": [
+        {
+          "name": "colStart",
+          "type": "number",
+          "default": null,
+          "description": "Which column the cell starts at (Bulma: `is-col-start-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "colFromEnd",
+          "type": "number",
+          "default": null,
+          "description": "Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "colSpan",
+          "type": "number",
+          "default": null,
+          "description": "How many columns the cell will span (Bulma: `is-col-span-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowStart",
+          "type": "number",
+          "default": null,
+          "description": "Which row the cell starts at (Bulma: `is-row-start-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowFromEnd",
+          "type": "number",
+          "default": null,
+          "description": "Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowSpan",
+          "type": "number",
+          "default": null,
+          "description": "How many rows the cell will span (Bulma: `is-row-span-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS class names.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

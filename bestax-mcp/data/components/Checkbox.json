@@ -1,0 +1,180 @@
+{
+  "name": "Checkbox",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/checkbox",
+  "docsUrl": "https://bestax.io/docs/api/form/checkbox",
+  "examples": [
+    {
+      "title": "Basic Checkbox",
+      "code": "<Checkbox> Stay Signed In </Checkbox>"
+    },
+    {
+      "title": "Checkbox With Link",
+      "code": "<Checkbox>\n  I have read and agree to the\n  <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">\n    terms and conditions\n  </a>\n  .\n</Checkbox>"
+    },
+    {
+      "title": "Disabled Checkbox",
+      "code": "<Checkbox disabled> Stay Signed In </Checkbox>"
+    },
+    {
+      "title": "Group/List of Checkboxes",
+      "code": "<Checkboxes>\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n  <Checkbox> Feed the pet </Checkbox>\n  <Checkbox> Take out the trash </Checkbox>\n  <Checkbox> Clean your room </Checkbox>\n  <Checkbox> Set the table </Checkbox>\n  <Checkbox> Help with dishes </Checkbox>\n  <Checkbox> Water the plants </Checkbox>\n  <Checkbox> Put away toys </Checkbox>\n</Checkboxes>"
+    }
+  ],
+  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.",
+  "related": [
+    "Checkboxes",
+    "Field",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--default",
+  "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
+  "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Checkbox.tsx",
+  "rootClass": "styled-checkbox",
+  "parts": [
+    {
+      "path": "Checkbox",
+      "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color of the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the checkbox is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label/content for the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-checkbox-size",
+      "sass": "$checkbox-size",
+      "default": "1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-border-width",
+      "sass": "$checkbox-border-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-radius",
+      "sass": "$checkbox-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-border-color",
+      "sass": "$checkbox-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-background",
+      "sass": "$checkbox-background",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-check-color",
+      "sass": "$checkbox-check-color",
+      "default": "var(--bulma-scheme-invert)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-active-color",
+      "sass": "$checkbox-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-label-gap",
+      "sass": "$checkbox-label-gap",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-focus-shadow-size",
+      "sass": "$checkbox-focus-shadow-size",
+      "default": "0 0 0 0.125em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-transition-duration",
+      "sass": "$checkbox-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-checkbox-indeterminate-color",
+      "sass": "$checkbox-indeterminate-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    }
+  ]
+}

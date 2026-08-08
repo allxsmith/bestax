@@ -1,0 +1,118 @@
+{
+  "name": "Pre",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/pre",
+  "docsUrl": "https://bestax.io/docs/api/elements/pre",
+  "examples": [
+    {
+      "title": "Default Pre",
+      "code": "<Pre>{`function hello() {\n  console.log(\"Hello, World!\");\n}`}</Pre>"
+    },
+    {
+      "title": "With Code Element",
+      "code": "<Pre>\n  <Code>{`const greeting = \"Hello\";\nconst name = \"World\";\nconsole.log(\\`\\${greeting}, \\${name}!\\`);`}</Code>\n</Pre>"
+    },
+    {
+      "title": "Dark Background",
+      "code": "<Pre bgColor=\"dark\" textColor=\"white\" p=\"4\">{`pnpm add @allxsmith/bestax-bulma\npnpm build`}</Pre>"
+    },
+    {
+      "title": "Light Background",
+      "code": "<Pre bgColor=\"light\" p=\"4\">{`{\n  \"name\": \"my-app\",\n  \"version\": \"1.0.0\"\n}`}</Pre>"
+    },
+    {
+      "title": "Terminal Output",
+      "code": "<Pre bgColor=\"dark\" textColor=\"success\" p=\"4\">{`$ pnpm build\n> @allxsmith/bestax-bulma@2.0.0 build\n> tsc && vite build\n\nvite v6.0.0 building for production...\n✓ 123 modules transformed.\ndist/index.js  45.23 kB\n✓ built in 2.34s`}</Pre>"
+    },
+    {
+      "title": "Multiple Code Blocks",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// JavaScript\nconst add = (a, b) => a + b;`}</Code>\n  </Pre>\n  <Pre bgColor=\"light\" p=\"3\">\n    <Code>{`// TypeScript\nconst add = (a: number, b: number): number => a + b;`}</Code>\n  </Pre>\n</Block>"
+    },
+    {
+      "title": "Primary Accent",
+      "code": "<Pre textColor=\"primary\" p=\"3\">{`// Important configuration\nconst config = {\n  debug: true,\n  verbose: true\n};`}</Pre>"
+    }
+  ],
+  "accessibility": "- **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.\n- **Scrolling:** Consider horizontal scrolling for long lines to prevent layout issues.\n- **Screen Readers:** Preformatted text is typically announced as such by screen readers.\n\n:::info\nFor code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.\n:::",
+  "related": [
+    "Code",
+    "Figure",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-pre--default",
+  "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.",
+  "import": "import { Pre, Code } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Pre.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Pre",
+      "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Preformatted content to render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <pre> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-pre-font-size",
+      "sass": "$pre-font-size",
+      "default": "0.875em",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-pre-padding",
+      "sass": "$pre-padding",
+      "default": "1.25rem 1.5rem",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-pre-code-font-size",
+      "sass": "$pre-code-font-size",
+      "default": "1em",
+      "scope": "global"
+    }
+  ]
+}

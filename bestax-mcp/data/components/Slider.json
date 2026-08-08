@@ -1,0 +1,537 @@
+{
+  "name": "Slider",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/slider",
+  "docsUrl": "https://bestax.io/docs/api/form/slider",
+  "examples": [
+    {
+      "title": "Basic Slider",
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "With Output Display",
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider value={value} onChange={setValue} showOutput color=\"primary\" />\n      <Paragraph mt=\"4\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Color Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Slider defaultValue={50} color=\"primary\" showOutput />\n  <Slider defaultValue={50} color=\"success\" showOutput />\n  <Slider defaultValue={50} color=\"info\" showOutput />\n  <Slider defaultValue={50} color=\"warning\" showOutput />\n  <Slider defaultValue={50} color=\"danger\" showOutput />\n</Block>"
+    },
+    {
+      "title": "Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Block>\n    <Paragraph mb=\"1\">Small</Paragraph>\n    <Slider defaultValue={50} size=\"small\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Normal</Paragraph>\n    <Slider defaultValue={50} color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Medium</Paragraph>\n    <Slider defaultValue={50} size=\"medium\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Large</Paragraph>\n    <Slider defaultValue={50} size=\"large\" color=\"primary\" />\n  </Block>\n</Block>"
+    },
+    {
+      "title": "Rounded and Circle",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Block>\n    <Paragraph mb=\"1\">Rounded</Paragraph>\n    <Slider defaultValue={50} isRounded color=\"info\" showOutput />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Circle Thumb</Paragraph>\n    <Slider defaultValue={50} isCircle color=\"success\" showOutput />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Both</Paragraph>\n    <Slider defaultValue={50} isRounded isCircle color=\"warning\" showOutput />\n  </Block>\n</Block>"
+    },
+    {
+      "title": "Custom Range",
+      "code": "function example() {\n  const [value, setValue] = useState(500);\n  return (\n    <Block>\n      <Slider\n        value={value}\n        onChange={setValue}\n        min={0}\n        max={1000}\n        step={50}\n        showOutput\n        color=\"primary\"\n      />\n      <Paragraph mt=\"4\">Value: ${value}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Custom Output Format",
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider\n        value={value}\n        onChange={setValue}\n        showOutput\n        color=\"success\"\n        formatOutput={v => `${v}%`}\n      />\n      <Paragraph mt=\"4\">Progress: {value}%</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Disabled Slider",
+      "code": "<Slider defaultValue={30} disabled color=\"primary\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Slider label=\"Volume\" defaultValue={50} color=\"primary\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\">\n      <Field.Body>\n        <Field>\n          <Slider defaultValue={50} color=\"primary\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"volume-up\">\n            <Slider defaultValue={50} color=\"primary\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses native `<input type=\"range\">` element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible",
+  "related": [
+    "Numberinput",
+    "Progress"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-slider",
+  "summary": "The `Slider` component provides a range slider input for selecting values within a range.",
+  "import": "import { Slider } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Slider.tsx",
+  "rootClass": "slider",
+  "parts": [
+    {
+      "path": "Slider",
+      "summary": "The `Slider` component provides a range slider input for selecting values within a range.",
+      "component": null,
+      "props": [
+        {
+          "name": "range",
+          "type": "boolean",
+          "default": "false",
+          "description": "Enables range mode with two thumbs.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number | [number, number]",
+          "default": null,
+          "description": "Controlled value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number | [number, number]",
+          "default": "0",
+          "description": "Default value for uncontrolled usage.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void | (value: [number, number]) => void",
+          "default": null,
+          "description": "Callback when value changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "minDistance",
+          "type": "number",
+          "default": "0",
+          "description": "Minimum distance between thumbs in range mode.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string | [string, string]",
+          "default": null,
+          "description": "ARIA label(s) for the slider thumb(s).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "nameLow",
+          "type": "string",
+          "default": null,
+          "description": "Form field name for the low thumb. Use this in range mode so each thumb submits with its own name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "nameHigh",
+          "type": "string",
+          "default": null,
+          "description": "Form field name for the high thumb.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "default": "0",
+          "description": "Minimum value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "100",
+          "description": "Maximum value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "default": "1",
+          "description": "Step increment (default: 1).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use rounded track ends.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isCircle",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use circular thumb.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "showOutput",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show current value tooltip.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "tooltip",
+          "type": "'auto' | 'always' | 'hidden'",
+          "default": null,
+          "description": "Controls tooltip visibility on the thumb.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ticks",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows tick marks along the track.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "marks",
+          "type": "{ value: number; label?: React.ReactNode }[]",
+          "default": null,
+          "description": "Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "'horizontal' | 'vertical'",
+          "default": "'horizontal'",
+          "description": "Orientation of the slider.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "scale",
+          "type": "(value: number) => number",
+          "default": null,
+          "description": "Function to scale the displayed value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "getAriaValueText",
+          "type": "(value: number) => string",
+          "default": null,
+          "description": "Function to generate the `aria-valuetext` attribute.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "formatOutput",
+          "type": "(value: number) => string",
+          "default": null,
+          "description": "Format function for output display.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the slider is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the input element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-slider-track-height",
+      "sass": "$slider-track-height",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-track-height-small",
+      "sass": "$slider-track-height-small",
+      "default": "0.375rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-track-height-medium",
+      "sass": "$slider-track-height-medium",
+      "default": "0.625rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-track-height-large",
+      "sass": "$slider-track-height-large",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-size",
+      "sass": "$slider-thumb-size",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-size-small",
+      "sass": "$slider-thumb-size-small",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-size-medium",
+      "sass": "$slider-thumb-size-medium",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-size-large",
+      "sass": "$slider-thumb-size-large",
+      "default": "1.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-track-color",
+      "sass": "$slider-track-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-fill-color",
+      "sass": "$slider-fill-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-color",
+      "sass": "$slider-thumb-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-border",
+      "sass": "$slider-thumb-border",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-thumb-shadow",
+      "sass": "$slider-thumb-shadow",
+      "default": "0 2px 4px rgba(0, 0, 0, 0.1)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-radius",
+      "sass": "$slider-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-disabled-opacity",
+      "sass": "$slider-disabled-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-transition-duration",
+      "sass": "$slider-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-output-background",
+      "sass": "$slider-output-background",
+      "default": "var(--bulma-slider-fill-color)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-output-color",
+      "sass": "$slider-output-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-output-font-size",
+      "sass": "$slider-output-font-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-output-font-weight",
+      "sass": "$slider-output-font-weight",
+      "default": "var(--bulma-weight-medium)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-width",
+      "sass": "$slider-tick-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-height",
+      "sass": "$slider-tick-height",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-color",
+      "sass": "$slider-tick-color",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-opacity",
+      "sass": "$slider-tick-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-label-font-size",
+      "sass": "$slider-tick-label-font-size",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-tick-label-color",
+      "sass": "$slider-tick-label-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-slider-vertical-height",
+      "sass": "$slider-vertical-height",
+      "default": "200px",
+      "scope": "component"
+    }
+  ]
+}

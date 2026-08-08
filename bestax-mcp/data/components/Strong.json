@@ -1,0 +1,113 @@
+{
+  "name": "Strong",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/strong",
+  "docsUrl": "https://bestax.io/docs/api/elements/strong",
+  "examples": [
+    {
+      "title": "Default Strong",
+      "code": "<Strong>Important text</Strong>"
+    },
+    {
+      "title": "Colored Strong",
+      "code": "<Strong textColor=\"primary\">Primary strong text</Strong>"
+    },
+    {
+      "title": "Danger Strong",
+      "code": "<Strong textColor=\"danger\">Important warning!</Strong>"
+    },
+    {
+      "title": "Strong with Background",
+      "code": "<Strong bgColor=\"warning\" p=\"1\">\n  Highlighted strong text\n</Strong>"
+    },
+    {
+      "title": "Inline with Text",
+      "code": "<Paragraph>\n  This is a paragraph with <Strong>strong text</Strong> in the middle. The\n  strong text indicates <Strong textColor=\"primary\">important</Strong> content.\n</Paragraph>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Strong textColor=\"primary\">Primary strong</Strong>\n  <Strong textColor=\"link\">Link strong</Strong>\n  <Strong textColor=\"info\">Info strong</Strong>\n  <Strong textColor=\"success\">Success strong</Strong>\n  <Strong textColor=\"warning\">Warning strong</Strong>\n  <Strong textColor=\"danger\">Danger strong</Strong>\n</Block>"
+    },
+    {
+      "title": "Callout Pattern",
+      "code": "<Paragraph>\n  <Strong>Note:</Strong> This is a pattern commonly used for callouts where the\n  lead word is strong to draw attention.\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **Semantic Importance:** Screen readers typically announce `<strong>` content with additional emphasis.\n- **Appropriate Use:** Use `<strong>` for content that is truly important, not just for visual styling.\n- **Color Contrast:** When adding color, ensure sufficient contrast for readability.\n\n:::info\nThe `<strong>` element indicates strong importance. For visual-only bold styling, use CSS or the `Span` component with `textWeight=\"bold\"`.\n:::",
+  "related": [
+    "Emphasis",
+    "Paragraph",
+    "Span",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-strong--default",
+  "summary": "The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.",
+  "import": "import { Strong } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Strong.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Strong",
+      "summary": "The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the strong element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-strong-color",
+      "sass": "$strong-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-strong-weight",
+      "sass": "$strong-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "global"
+    }
+  ]
+}
