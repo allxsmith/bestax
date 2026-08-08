@@ -26,8 +26,9 @@ const CARDS = [
     key: 'mcp',
     icon: McpIcon,
     title: 'MCP server',
-    desc: 'A Model Context Protocol endpoint so agents can query component props, variants, and live examples while they build.',
-    soon: true,
+    desc: 'A Model Context Protocol server so agents can query component props, variants, and live examples while they build — offline, and pinned to your version.',
+    href: '/docs/guides/llms#mcp-server',
+    cta: 'Set it up',
   },
 ];
 

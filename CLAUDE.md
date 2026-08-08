@@ -6,10 +6,13 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `docs/` — Docusaurus site → https://bestax.io (has its own CLAUDE.md)
 - `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
 - `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
+- `bestax-mcp/` — the `bestax-mcp` MCP server; its `data/` index is **generated**
+  (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
 - `.github/` — CI and AI-automation workflows, **human-authored only** (has its own CLAUDE.md,
   which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
+- `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 
 ## Toolchain
 
@@ -20,12 +23,14 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 
 ```bash
 pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, lint, format:check, storybook build
-pnpm test           # jest (bulma-ui + create-bestax)
+pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp)
 pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit
 pnpm format         # prettier --write (format:check to verify; covers md/mdx too)
 pnpm gen:catalog    # regenerate the skills component catalog (CI fails if stale)
+pnpm gen:mcp        # regenerate the MCP server's data index (CI fails if stale)
+pnpm gen            # all three generators (api docs, catalog, MCP index)
 pnpm docs           # Docusaurus dev server :3000
 pnpm storybook      # Storybook dev server :6006
 pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to one package
@@ -36,8 +41,9 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 Enforced by CI (`.github/workflows/ci.yml`):
 
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics),
-  create-bestax 95% (78% branches).
-- Stale skill catalog fails (`gen:catalog:check`); build, typecheck, lint, format, audit.
+  create-bestax and bestax-mcp 95% (78% branches).
+- Stale skill catalog fails (`gen:catalog:check`) and a stale MCP index fails
+  (`gen:mcp:check`); build, typecheck, lint, format, audit.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
   a **React 18/19 matrix** builds and tests bulma-ui on both majors.
 
@@ -53,7 +59,7 @@ Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consu
 semantic-release. Two repo-specific rules:
 
 - Commits of type `feat|fix|perf|refactor|style` **must** use a scope of `bulma-ui`, `docs`,
-  `create-bestax`, or `bestax-migrate` — unscoped release types are rejected
+  `create-bestax`, `bestax-migrate`, or `bestax-mcp` — unscoped release types are rejected
   (`RELEASE_SCOPES` in `commitlint.config.js` is the source of truth).
 - **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
   `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
@@ -88,7 +94,8 @@ checklist. New components should stay within the Bulma spec — propose anything
 an issue first.
 
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
-shipped product (see `skills/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
+shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
+`bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
 
 ## AI development loop

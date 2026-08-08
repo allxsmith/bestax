@@ -59,11 +59,71 @@ even if it never opens the README or reaches the network first:
 They are pointers, not documentation — the site artifacts above stay the single
 source of truth, so nothing in the tarball goes stale between releases.
 
-## MCP server (coming soon)
+## MCP server
 
-A first-party bestax **MCP server** — for querying components, props, and examples
-directly from an MCP-compatible client — is planned. This page will document it once it
-ships. (bestax will provide its own server; it does not rely on a third-party one.)
+`bestax-mcp` is the first-party [Model Context Protocol](https://modelcontextprotocol.io)
+server. Where `llms.txt` gives an agent the docs to read, the MCP server lets it **ask
+questions** — every component's props (including compound parts like `Navbar.Brand`), ~900
+working examples, the `--bulma-*` variables behind each component, the helper props that
+replace inline styles, and the Agent Skills as invocable prompts.
+
+### Setup
+
+**Claude Code:**
+
+```bash
+claude mcp add bestax -- npx -y bestax-mcp
+```
+
+**Cursor, Claude Desktop, Windsurf, Cline** — add to your MCP config
+(`.cursor/mcp.json`, `claude_desktop_config.json`, …):
+
+```json
+{
+  "mcpServers": {
+    "bestax": {
+      "command": "npx",
+      "args": ["-y", "bestax-mcp"]
+    }
+  }
+}
+```
+
+Run it from your project directory, so it can find your installed
+`@allxsmith/bestax-bulma`.
+
+### Tools
+
+Start with `search_bestax` — every result names the tool to call next.
+
+| Tool                | What it gives the agent                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------------- |
+| `search_bestax`     | Components, props, examples, CSS variables and skills in one ranked list                           |
+| `list_components`   | Every component with a one-line purpose, by category                                               |
+| `get_component`     | Import, summary and props; optionally examples, CSS variables, accessibility, related              |
+| `get_props`         | One prop table, including compound sub-paths (`Navbar.Brand`)                                      |
+| `get_examples`      | Working `tsx` examples from the component's documentation page                                     |
+| `get_css_variables` | The `--bulma-*` custom properties a component reads, with Sass names and defaults                  |
+| `get_helper_props`  | Spacing, colour, typography, flexbox and visibility props — the alternative to hand-written styles |
+| `list_skills`       | The seven [Agent Skills](/docs/skills/intro)                                                       |
+| `get_skill`         | A skill's instructions, or one of its reference documents                                          |
+
+It also exposes each skill as an MCP **prompt** (`theming`, `form`, `layout-scaffold`, …) and
+serves `bestax://catalog`, `bestax://components/{name}` and `bestax://skills/{name}` as
+**resources**.
+
+### Offline, and pinned to a version
+
+The index ships inside the package — there are no network calls, so nothing rate-limits and
+nothing breaks when you are offline.
+
+It also means the server documents one specific `bestax-bulma` release. On startup it resolves
+the version actually installed in your project, and if that differs by a minor or major version
+it appends a warning to its answers rather than confidently describing props you do not have.
+Set `BESTAX_MCP_NO_VERSION_CHECK=1` to turn that off.
+
+Because the index is generated from the same source as this site — TSDoc for props, the SCSS for
+variables, these pages for examples — it cannot drift from the documentation you are reading.
 
 ## Contributing
 

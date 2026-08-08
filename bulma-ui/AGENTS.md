@@ -11,6 +11,11 @@ Machine-readable docs (always current):
   https://bestax.io/docs/api/elements/button.md
 - LLM guide: https://bestax.io/docs/guides/llms
 
+Prefer to query rather than read? `npx bestax-mcp` is the first-party MCP
+server — props (including compound parts), examples, `--bulma-*` variables and
+the skills as prompts, offline. Setup:
+https://bestax.io/docs/guides/llms#mcp-server
+
 Agent skills (bestax-custom-component, bestax-form, bestax-icons,
 bestax-layout-scaffold, bestax-migrate, bestax-optimize, bestax-theming):
 https://bestax.io/docs/skills/intro

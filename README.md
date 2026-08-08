@@ -100,6 +100,7 @@ function Root() {
 | [`bulma-ui/`](bulma-ui/)             | [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma) | The component library                                                                                     |
 | [`create-bestax/`](create-bestax/)   | [`create-bestax`](https://www.npmjs.com/package/create-bestax)                     | Project scaffolder — `npm create bestax@latest`                                                           |
 | [`bestax-migrate/`](bestax-migrate/) | [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate)                   | Codemods for migrating existing apps from other React Bulma libraries                                     |
+| [`bestax-mcp/`](bestax-mcp/)         | [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp)                           | MCP server — component props, examples and skills for AI coding agents                                    |
 | [`docs/`](docs/)                     | —                                                                                  | Docusaurus source of [bestax.io](https://bestax.io)                                                       |
 | [`skills/`](skills/)                 | —                                                                                  | [Agent Skills](https://bestax.io/docs/skills/intro) for coding agents (also bundled into `create-bestax`) |
 
@@ -149,6 +150,12 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 
 - 📘 **[LLMs guide](https://bestax.io/docs/guides/llms)** — how to use the library with AI tools
 - 📄 **[llms.txt](https://bestax.io/llms.txt)** — curated index · **[llms-full.txt](https://bestax.io/llms-full.txt)** — the full docs in one file · every docs page is also served as raw markdown
+- 🔌 **[MCP server](https://bestax.io/docs/guides/llms#mcp-server)** — let the agent _query_ the library instead of reading it: props (including compound parts), ~900 examples, `--bulma-*` variables, and the skills as prompts. Offline, and pinned to the version you have installed.
+
+  ```bash
+  claude mcp add bestax -- npx -y bestax-mcp
+  ```
+
 - 🧩 **[Agent Skills](https://bestax.io/docs/skills/intro)** — teach your agent the bestax way:
 
   | Skill                     | Use it when…                                                                     |

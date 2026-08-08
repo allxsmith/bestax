@@ -7,6 +7,10 @@ other skills.sh-compatible tools) how to work with
 Each skill is a folder with a `SKILL.md` (the always-loaded instructions) plus a `references/`
 directory the agent reads on demand.
 
+These same skills are also served as MCP **prompts** by
+[`bestax-mcp`](../bestax-mcp/README.md) (`npx bestax-mcp`), alongside component props and
+examples — useful if your client speaks MCP but not skills.
+
 ## Skills
 
 | Skill                                                           | Use it when…                                                                                                                                                                               |
