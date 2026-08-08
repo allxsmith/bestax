@@ -2,6 +2,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Field, { FieldLabel, FieldBody } from '../Field';
 import { Control } from '../Control';
+import InputBase from '../InputBase';
+import SelectBase from '../SelectBase';
+import TextAreaBase from '../TextAreaBase';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Field', () => {
@@ -348,5 +351,151 @@ describe('Compound components', () => {
     expect(container.querySelector('.field-label')).toBeInTheDocument();
     expect(container.querySelector('.field-body')).toBeInTheDocument();
     expect(container.querySelector('.control')).toBeInTheDocument();
+  });
+});
+
+describe('label auto-association (#495)', () => {
+  const labelEl = (container: HTMLElement) =>
+    container.querySelector('label.label') as HTMLElement;
+
+  it('associates the label with a composed InputBase', () => {
+    const { container } = render(
+      <Field label="Email">
+        <Control>
+          <InputBase type="email" />
+        </Control>
+      </Field>
+    );
+    const input = screen.getByLabelText('Email');
+    expect(input.tagName).toBe('INPUT');
+    expect(input.id).toBeTruthy();
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+  });
+
+  it('associates in horizontal layout', () => {
+    const { container } = render(
+      <Field horizontal label="Email">
+        <Control>
+          <InputBase type="email" />
+        </Control>
+      </Field>
+    );
+    const input = screen.getByLabelText('Email');
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+  });
+
+  it('associates a composed SelectBase via the inner select', () => {
+    const { container } = render(
+      <Field label="Country">
+        <Control>
+          <SelectBase>
+            <option value="us">United States</option>
+          </SelectBase>
+        </Control>
+      </Field>
+    );
+    const select = screen.getByLabelText('Country');
+    expect(select.tagName).toBe('SELECT');
+    expect(container.querySelector('div.select')).not.toHaveAttribute('id');
+    expect(labelEl(container)).toHaveAttribute('for', select.id);
+  });
+
+  it('associates a composed TextAreaBase', () => {
+    const { container } = render(
+      <Field label="Bio">
+        <Control>
+          <TextAreaBase />
+        </Control>
+      </Field>
+    );
+    const textarea = screen.getByLabelText('Bio');
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(labelEl(container)).toHaveAttribute('for', textarea.id);
+  });
+
+  it('keeps a user id on the base; the label still points at its own target', () => {
+    const { container } = render(
+      <Field label="Email">
+        <Control>
+          <InputBase id="mine" />
+        </Control>
+      </Field>
+    );
+    const input = container.querySelector('input') as HTMLElement;
+    expect(input).toHaveAttribute('id', 'mine');
+    const forValue = labelEl(container).getAttribute('for');
+    expect(forValue).toBeTruthy();
+    expect(forValue).not.toBe('mine');
+  });
+
+  it('an explicit labelProps.htmlFor takes over the association', () => {
+    const { container } = render(
+      <Field label="Email" labelProps={{ htmlFor: 'custom' }}>
+        <Control>
+          <InputBase id="custom" />
+        </Control>
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('for', 'custom');
+    expect(screen.getByLabelText('Email')).toHaveAttribute('id', 'custom');
+  });
+
+  it('labelProps={{ htmlFor: undefined }} opts out entirely', () => {
+    const { container } = render(
+      <Field label="Email" labelProps={{ htmlFor: undefined }}>
+        <Control>
+          <InputBase />
+        </Control>
+      </Field>
+    );
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('skips association for grouped fields', () => {
+    const { container } = render(
+      <Field label="Range" grouped>
+        <Control>
+          <InputBase />
+        </Control>
+        <Control>
+          <InputBase />
+        </Control>
+      </Field>
+    );
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    container.querySelectorAll('input').forEach(input => {
+      expect(input).not.toHaveAttribute('id');
+    });
+  });
+
+  it('skips association for hasAddons fields', () => {
+    const { container } = render(
+      <Field label="Search" hasAddons>
+        <Control>
+          <InputBase />
+        </Control>
+      </Field>
+    );
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('a nested unlabeled Field shadows the outer id', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Field>
+          <Control>
+            <InputBase />
+          </Control>
+        </Field>
+      </Field>
+    );
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
+  it('a labeled Field with no adopting control renders the for anyway', () => {
+    const { container } = render(<Field label="Only text">plain</Field>);
+    expect(labelEl(container).getAttribute('for')).toBeTruthy();
   });
 });

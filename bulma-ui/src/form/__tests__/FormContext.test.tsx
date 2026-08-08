@@ -3,6 +3,8 @@ import { renderHook } from '@testing-library/react';
 import {
   useInsideField,
   useInsideControl,
+  useFieldLabelId,
+  FieldLabelIdProvider,
   useRadiosGroup,
   useCheckboxesGroup,
   useRadiosName,
@@ -68,5 +70,23 @@ describe('FormContext hooks (defaults outside any provider)', () => {
     // export path covered.
     expect(RadiosNameProvider).toBe(RadiosProvider);
     expect(CheckboxesNameProvider).toBe(CheckboxesProvider);
+  });
+});
+
+describe('useFieldLabelId (#495)', () => {
+  it('is undefined outside a provider', () => {
+    const { result } = renderHook(() => useFieldLabelId());
+    expect(result.current).toBeUndefined();
+  });
+
+  it('returns the provided target id', () => {
+    const { result } = renderHook(() => useFieldLabelId(), {
+      wrapper: ({ children }) => (
+        <FieldLabelIdProvider value="target-id">
+          {children}
+        </FieldLabelIdProvider>
+      ),
+    });
+    expect(result.current).toBe('target-id');
   });
 });

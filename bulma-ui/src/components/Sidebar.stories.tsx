@@ -575,16 +575,23 @@ export const FilterSidebar: Story = {
                     </Control>
                   ))}
                 </Field>
-                <Field label="Price Range">
+                <Field
+                  label="Price Range"
+                  labelProps={{ htmlFor: 'filter-price-min' }}
+                >
                   <Control>
                     <Input
                       type="text"
+                      id="filter-price-min"
+                      aria-label="Minimum price"
                       placeholder="Min"
                       style={{ width: '45%' }}
                     />
                     <Span style={{ margin: '0 5%' }}>-</Span>
                     <Input
                       type="text"
+                      id="filter-price-max"
+                      aria-label="Maximum price"
                       placeholder="Max"
                       style={{ width: '45%' }}
                     />
