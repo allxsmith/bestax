@@ -239,6 +239,20 @@ describe('Checkboxes group label association (#494)', () => {
     );
   });
 
+  it('strips a caller labelProps.htmlFor from the group label', () => {
+    const { container } = render(
+      <Checkboxes label="Chores" labelProps={{ htmlFor: 'some-control' }}>
+        <Checkbox value="bed">Make the bed</Checkbox>
+      </Checkboxes>
+    );
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel).not.toHaveAttribute('for');
+    expect(screen.getByRole('group')).toHaveAttribute(
+      'aria-labelledby',
+      fieldLabel.id
+    );
+  });
+
   it('renders role=group without aria-labelledby when unlabeled', () => {
     render(
       <Checkboxes>

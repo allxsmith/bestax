@@ -237,6 +237,19 @@ describe('Radios group label association (#494)', () => {
     );
   });
 
+  it('strips a caller labelProps.htmlFor from the group label', () => {
+    const { container } = render(
+      <Radios
+        label="Color"
+        labelProps={{ htmlFor: 'some-control' }}
+        name="color"
+      >
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    expect(container.querySelector('label.label')).not.toHaveAttribute('for');
+  });
+
   it('names the radiogroup in horizontal layout', () => {
     const { container } = render(
       <Radios label="Color" name="color" horizontal>

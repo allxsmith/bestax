@@ -972,6 +972,13 @@ describe('Rate group label association (#494)', () => {
     );
   });
 
+  it('strips a caller labelProps.htmlFor from the group label', () => {
+    const { container } = render(
+      <Rate label="Quality" labelProps={{ htmlFor: 'some-control' }} />
+    );
+    expect(container.querySelector('label.label')).not.toHaveAttribute('for');
+  });
+
   it('keeps the "Rating" fallback aria-label when unlabeled', () => {
     render(<Rate />);
     expect(screen.getByRole('radiogroup')).toHaveAttribute(
