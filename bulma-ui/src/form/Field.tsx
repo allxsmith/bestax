@@ -162,15 +162,19 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
  *
  * @example
- * // Labelled field
+ * // Labelled field — the label auto-associates with the composed base
  * <Field label="Email">
- *   <input className="input" type="email" />
+ *   <Control>
+ *     <InputBase type="email" />
+ *   </Control>
  * </Field>
  *
  * @example
  * // Horizontal field
  * <Field horizontal label="Name">
- *   <input className="input" />
+ *   <Control>
+ *     <InputBase />
+ *   </Control>
  * </Field>
  */
 const FieldComponent: React.FC<FieldProps> = ({
