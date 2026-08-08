@@ -37,7 +37,7 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 /**
  * Props for the Taginput component.
  * @extraProp {string} [className] - Additional CSS classes.
- * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
+ * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
 export interface TaginputProps
   extends
@@ -649,9 +649,15 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                // Fallback name only: when the visible label is wired to this
-                // input, it must name it (aria-label would win otherwise).
-                aria-label={label && !insideField ? undefined : 'Add tag'}
+                // Fallback name, dropped only when the rendered label actually
+                // targets this input (aria-label would win otherwise). A
+                // labelProps.htmlFor pointing elsewhere keeps the fallback so
+                // the input is never nameless.
+                aria-label={
+                  controlId && fieldLabelProps?.htmlFor === controlId
+                    ? undefined
+                    : 'Add tag'
+                }
               />
             )}
           </div>
