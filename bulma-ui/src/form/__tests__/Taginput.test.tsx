@@ -1164,6 +1164,14 @@ describe('Taginput label association (#493)', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-label');
   });
 
+  it('keeps the "Add tag" fallback when labelProps.htmlFor points elsewhere', () => {
+    render(<Taginput label="Tags" labelProps={{ htmlFor: 'elsewhere' }} />);
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'aria-label',
+      'Add tag'
+    );
+  });
+
   it('keeps the "Add tag" fallback name when unlabeled', () => {
     render(<Taginput />);
     expect(screen.getByRole('textbox')).toHaveAttribute(

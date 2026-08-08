@@ -33,7 +33,7 @@ export interface AutocompleteItem {
 /**
  * Props for the Autocomplete component.
  * @extraProp {string} [className] - Additional CSS classes.
- * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
+ * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
 export interface AutocompleteProps
   extends
