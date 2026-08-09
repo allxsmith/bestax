@@ -10,6 +10,7 @@
 #   bin/run-iteration.sh <run-id> <brief.md> <work-dir> [--model opus] [--budget 15]
 #                        [--timeout 2700] [--runs-dir <dir>]
 #                        [--scaffold-skills yes|no] [--post-scaffold <cmd>]
+#                        [--rubric <rubric.md>]
 #
 #   run-id    label for this run (e.g. i11, briefA-3) — becomes runs/<run-id>/
 #   brief.md  the FROZEN builder prompt for this eval (see briefs/)
@@ -23,6 +24,10 @@
 #   --scaffold-skills no    scaffold with --no-skills: no .claude/skills/, no CLAUDE.md
 #   --post-scaffold <cmd>   run `<cmd> "$APP"` after scaffold+install, before the builder
 #                           starts — the hook for writing .mcp.json or other config
+#
+# --rubric names the rubric this run is to be GRADED against (default rubric.md). This
+# script never grades; it only records the choice and its declared version into
+# metrics.json, so a scorecard is always attributable to a yardstick.
 #
 # The builder's exit code is recorded, not enforced: a timeout/budget kill is a valid
 # datapoint — grade what exists, never fix the app. The one exception is a builder that
@@ -44,6 +49,7 @@ SCAFFOLD_SKILLS=yes POST_SCAFFOLD=
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # eval/agent-loop
 REPO="$(cd "$HARNESS_DIR/../.." && pwd)"                          # repo root
 RUNS_DIR="$HARNESS_DIR/runs"
+RUBRIC="$HARNESS_DIR/rubric.md"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -53,9 +59,28 @@ while [ $# -gt 0 ]; do
     --runs-dir) RUNS_DIR="$2"; shift 2 ;;
     --scaffold-skills) SCAFFOLD_SKILLS="$2"; shift 2 ;;
     --post-scaffold)   POST_SCAFFOLD="$2"; shift 2 ;;
+    --rubric)   RUBRIC="$2"; shift 2 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
 done
+
+# The rubric is phase D's authority, not phase C's — this script never grades. It records
+# WHICH rubric the run is to be graded against, because rubric.md itself says to "record
+# which rubric version a loop ran against" and nothing did: a scorecard six months on could
+# not tell you whether its 96 was out of v1's weights or v2's. Resolved and read here so a
+# bad path fails now rather than at grading time, after the money is spent.
+if [ ! -f "$RUBRIC" ] || [ ! -r "$RUBRIC" ]; then
+  echo "rubric must be a readable file: $RUBRIC" >&2
+  exit 1
+fi
+RUBRIC="$(cd "$(dirname "$RUBRIC")" && pwd)/$(basename "$RUBRIC")"
+RUBRIC_NAME="$(basename "$RUBRIC")"
+# `**Rubric version: N**` — the declaration every rubric file carries near its top.
+RUBRIC_VERSION="$(sed -n 's/^\*\*Rubric version: *\([0-9][0-9]*\)\*\*.*/\1/p' "$RUBRIC" | head -1)"
+if [ -z "$RUBRIC_VERSION" ]; then
+  echo "no '**Rubric version: N**' line in $RUBRIC — add one before running" >&2
+  exit 1
+fi
 
 # Validated here rather than passed through: a typo like --scaffold-skills non would
 # otherwise reach create-bestax as neither flag and silently scaffold WITH skills, which
@@ -208,7 +233,8 @@ TOOLING_REV="$(git -C "$REPO" rev-parse --short HEAD 2>/dev/null || echo unknown
 RUN_META="$(node -e 'process.stdout.write(JSON.stringify({
   brief: process.argv[1], model: process.argv[2], budget_usd: process.argv[3],
   timeout_s: process.argv[4], tooling_rev: process.argv[5],
-}))' "$BRIEF_NAME" "$MODEL" "$BUDGET" "$TIMEOUT" "$TOOLING_REV")"
+  rubric: process.argv[6], rubric_version: process.argv[7],
+}))' "$BRIEF_NAME" "$MODEL" "$BUDGET" "$TIMEOUT" "$TOOLING_REV" "$RUBRIC_NAME" "$RUBRIC_VERSION")"
 node "$HARNESS_DIR/bin/collect-metrics.mjs" "$APP" "$RUN/transcript.jsonl" "$RUN_META" > "$RUN/metrics.json.tmp"
 mv "$RUN/metrics.json.tmp" "$RUN/metrics.json"
 
@@ -219,4 +245,4 @@ console.log('[$RUN_ID] tsc_errors=%s build_pass=%s inline=%s rawcls=%s handrolle
   m.handrolled_total, m.bestax_named_imports, m.custom_css_added_lines,
   m.cost_usd?.toFixed?.(2), m.num_turns);"
 echo "[$RUN_ID] done: $RUN  (transcript stays on disk, gitignored)"
-echo "[$RUN_ID] grade next — bin/grader-prompt.md with RUN=$RUN RUBRIC=$HARNESS_DIR/rubric.md COMPLETENESS=$COMPLETENESS"
+echo "[$RUN_ID] grade next — bin/grader-prompt.md with RUN=$RUN RUBRIC=$RUBRIC COMPLETENESS=$COMPLETENESS"

@@ -1,8 +1,15 @@
 # Skill-Loop Grading Rubric — brief-agnostic core
 
+**Rubric version: 1**
+
 **Frozen for the duration of a loop, not forever.** Never edit it mid-loop — runs stop
 being comparable the moment the yardstick moves. Between loops, refine it freely if it is
 measuring the wrong thing, and record which rubric version a loop ran against.
+
+> This is the version i01–i10, m01, m02 and s01 were graded against, and it is now
+> **closed** — refinements go into a new file rather than here, so those thirteen scorecards
+> stay interpretable. The successor is [`rubric-v2.md`](rubric-v2.md), which rebalances the
+> categories this version saturated and adds a differentiators category.
 
 **Total 100 pts = this core (85) + category 7 (15).** Categories 1–6 and 8 live here and
 apply to any brief. Category 7 — site completeness — cannot be brief-agnostic, so its

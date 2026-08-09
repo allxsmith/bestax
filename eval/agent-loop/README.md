@@ -17,11 +17,12 @@ running narrative in [iteration-log.md](iteration-log.md).
 Each loop gets its own runs directory — never write a new run beside another loop's
 scorecards (see the `--runs-dir` rule below).
 
-| Directory                      | Loop                       | Channel measured                     | Result                                                         |
-| ------------------------------ | -------------------------- | ------------------------------------ | -------------------------------------------------------------- |
-| [`runs/`](runs/)               | i01–i10, the original loop | create-bestax skills + app CLAUDE.md | 85 → 95.2 mean; **archived, the runner refuses to write here** |
-| [`runs-mcp/`](runs-mcp/)       | m01–m02, the MCP eval      | `bestax-mcp`, alone and with skills  | 85 (MCP only) vs 98 (both) — see each run's `scorecard.md`     |
-| [`runs-skills/`](runs-skills/) | s01, a regression check    | skills, default scaffold             | 96 — confirms the skills path after the channel options landed |
+| Directory                      | Loop                       | Channel measured                         | Result                                                                          |
+| ------------------------------ | -------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------- |
+| [`runs/`](runs/)               | i01–i10, the original loop | create-bestax skills + app CLAUDE.md     | 85 → 95.2 mean; **archived, the runner refuses to write here**                  |
+| [`runs-mcp/`](runs-mcp/)       | m01–m02, the MCP eval      | `bestax-mcp`, alone and with skills      | 85 (MCP only) vs 98 (both) — see each run's `scorecard.md`                      |
+| [`runs-skills/`](runs-skills/) | s01, a regression check    | skills, default scaffold                 | 96 — confirms the skills path after the channel options landed                  |
+| [`runs-v2/`](runs-v2/)         | v01–, the rubric-v2 loop   | the `skynet-platform` brief, any channel | first runs graded against `rubric-v2.md` — **not** comparable to the rows above |
 
 ## What a "run" is
 
@@ -80,6 +81,32 @@ comparison measures **delivery mechanism**, not presence of guidance; say so in 
 evidence, so a new run dropped beside an old loop's scorecards hands the improver another
 brief's, another tooling revision's findings as if they were this loop's. The shipped
 `runs/` is the completed, committed i01–i10 loop; the runner **refuses** to write into it.
+
+### Which rubric a run was graded against
+
+Every rubric file declares `**Rubric version: N**` near its top, and `--rubric <path>`
+(default `rubric.md`) tells the runner which one this loop will be graded against. It does
+not grade — it records `rubric` and `rubric_version` into `metrics.json`, so a scorecard is
+always attributable to a yardstick. A rubric with no version line, or an unreadable path,
+fails the run before the builder starts rather than at grading time.
+
+| Rubric                         | Version | Scale                              | Used by                                                                    |
+| ------------------------------ | ------- | ---------------------------------- | -------------------------------------------------------------------------- |
+| [`rubric.md`](rubric.md)       | 1       | 100 = core 85 + category 7         | i01–i10, m01, m02, s01. **Closed** — refine into a new file, not this one. |
+| [`rubric-v2.md`](rubric-v2.md) | 2       | 100 = core 75 + categories 7 and 9 | `runs-v2/`                                                                 |
+
+**v1 and v2 totals are different scales, not different scores.** v2 exists because four
+categories in v1 scored their maximum in all thirteen runs — 55 points that never
+discriminated — and because nothing measured the ~22 components this library ships beyond
+stock Bulma. v2 moves weight off the saturated categories, tightens the anchors on component
+adoption and theming, and adds category 9 for the differentiators. Expect lower numbers for
+equivalent work; compare v2 runs only to v2 runs.
+
+A category-9 roster only exists for a brief whose addendum supplies one, which is what pairs
+[`briefs/skynet-platform.md`](briefs/skynet-platform.md) with `rubric-v2.md`. The older
+`skynet-saas` brief has no expected-extras list — it is a marketing site, and most of the
+extras are app-shaped — so grading it under v2 would punish a builder for correctly obeying
+its own brief. **The brief creates the demand; the rubric measures whether it was met.**
 
 ## The loop protocol (what the 10-run experiment executed)
 
