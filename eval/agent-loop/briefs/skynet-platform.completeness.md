@@ -54,31 +54,47 @@ requires each to be load-bearing in the surface that asked for it.
 | Playground  | `Autocomplete`, `Slider`, `Numberinput`, `Switch`, `Taginput`, `Tooltip`, `Loading`, `Toast` |
 | Pricing     | `Slider`, `Switch`, `Collapse`                                                               |
 | Docs        | `Steps`                                                                                      |
-| Console     | `Skeleton`, `Avatars`, `Avatar`, `Badge`, `Sidebar`                                          |
+| Console     | `Avatars`, `Avatar`, `Badge`, `Sidebar`                                                      |
 | Book a demo | `DateInput`, `TimeInput`, `DateTimeInput`, `Numberinput`, `Dialog`, `LinkButton`, `Toast`    |
 
 **Two slots accept alternatives — count the slot satisfied, not each name:**
 
 - **Date/time**: `DateTimeInput` alone satisfies it, **or** `DateInput` + `TimeInput`
   together. Do not count it twice or penalise whichever route was taken.
-- **`LinkButton`**: satisfied by any genuinely text-styled secondary action next to the
-  confirm button. A second `Button` with a colour variant does **not** satisfy it — the brief
-  explicitly asked for "not two identical buttons".
+- **`LinkButton`**: satisfied **only by the `LinkButton` component**. Achieving the same look
+  with `Button color="text"` does not satisfy the slot — it is core Bulma, and this category
+  scores whether the build found the differentiator, not whether it reached the visual
+  outcome. Note the substitution in the scorecard: it is the same finding as reaching for
+  `Modal` over `Dialog`.
+
+  _(Corrected after v01. The original wording said "satisfied by any genuinely text-styled
+  secondary action" and then excluded "a `Button` with a colour variant" — `color="text"` is
+  both, so the clause contradicted itself. The rule above is what the category always meant,
+  and is consistent with how the `Dialog` and `Toast` slots are scored.)_
 
 Two names are casing traps the library actually exports: **`Numberinput`** and
 **`Taginput`**, lowercase `i`. A build that wrote `NumberInput`/`TagInput` and repaired it
 scores the invention under §4 as normal; that is a legitimate finding, not a grading quirk.
 
-**Denominator for the proportional anchors is 20 slots** (22 names less the two collapsed by
-the date/time alternative). 10 = ≥17 slots load-bearing; 5 = 10–16, or present but inert;
-0 = ≤9.
+**Denominator for the proportional anchors is 20 slots** — 22 component names, less the two
+collapsed by the date/time alternative. 10 = ≥17 slots load-bearing; 5 = 10–16, or present
+but inert; 0 = ≤9.
+
+> **Calibration warning, from v01.** At 20 slots the 85% top anchor is cleared while missing
+> **three** purpose-built components — v01 scored the top anchor having substituted core
+> Bulma for `Dialog`, `Toast` and `LinkButton`, which is exactly the blindness this category
+> exists to catch. The anchors are frozen for this loop and v01 is graded against them as
+> written; the miss is recorded in the scorecard instead. Raise the top anchor to ≥95%
+> (≥19/20) in the next rubric revision, not mid-loop.
 
 ## Core Bulma this brief also reaches
 
 Not scored separately — they land in §2 component adoption — but worth checking, because no
 run in any previous loop has used them: `Pagination` (the paged call log), `Dropdown` (the
 account menu), `Radios` (support plan), `Checkboxes` (regions), `File` (the dataset
-attachment), `Code` (the docs sample), `Breadcrumb` (docs).
+attachment), `Code` (the docs sample), `Breadcrumb` (docs), `Skeleton` (the loading
+placeholders — Bulma 1 ships `is-skeleton`, so it is **core, not an extra**, and does not
+count toward §9).
 
 ## Expected skills (feeds rubric-v2 §8)
 
