@@ -11,6 +11,7 @@ import { useInsideField, useInsideControl } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
+import { useAutoLabelledBy } from './useAutoLabelId';
 
 /** Available size modifiers for the Rate component. */
 export type RateSize = 'small' | 'medium' | 'large';
@@ -44,6 +45,12 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
+  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field` (label that `Field` yourself). */
+  label?: React.ReactNode;
+  /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
+  labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
+    [key: string]: unknown;
+  };
   /** Form field name. When set, a hidden input is rendered. */
   name?: string;
   /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
@@ -178,6 +185,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
+      label,
+      labelProps,
+      rendersLabel: !insideField,
+    });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const [internalValue, setInternalValue] = useState(defaultValue);
     const [hoverValue, setHoverValue] = useState<number | null>(null);
@@ -505,7 +517,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         ref={ref}
         className={combinedClasses}
         role="radiogroup"
-        aria-label="Rating"
+        // Fallback name only: a wired label names the group via labelledby.
+        aria-label={ariaLabelledBy ? undefined : 'Rating'}
+        aria-labelledby={ariaLabelledBy}
         aria-valuenow={currentValue}
         aria-valuemin={0}
         aria-valuemax={max}
@@ -539,7 +553,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={labelProps}
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

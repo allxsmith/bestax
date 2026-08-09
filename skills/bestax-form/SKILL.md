@@ -125,9 +125,10 @@ The `label` prop on the single-control convenience inputs (`Input`, `Select`, `T
 generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). ⚠️ Manual wiring is still required when composing
-`Field` + bases yourself (`Field`'s own `label` associates nothing) and on the group
-inputs (`Checkboxes`, `Radios`, `Rate`).
+`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`)
+associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
+and `aria-labelledby` pointing at the label. ⚠️ Manual wiring is still required when
+composing `Field` + bases yourself (`Field`'s own `label` associates nothing).
 
 ## Convenience vs composed
 
@@ -218,8 +219,9 @@ for the expected classes/states, and say plainly that the visual pass is still o
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
 - [ ] Every label is programmatically associated — the convenience `label` prop does this
-      automatically; when composing `Field` + bases (or labeling a group input), pass
-      `labelProps={{ htmlFor }}` / a `<label htmlFor>` plus a matching `id` yourself.
+      automatically, on the group inputs too (via `aria-labelledby`); when composing
+      `Field` + bases, pass `labelProps={{ htmlFor }}` / a `<label htmlFor>` plus a
+      matching `id` yourself.
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.

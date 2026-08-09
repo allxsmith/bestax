@@ -206,3 +206,84 @@ describe('Compound components', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(2);
   });
 });
+
+describe('Radios group label association (#494)', () => {
+  it('names the radiogroup from the label via aria-labelledby', () => {
+    const { container } = render(
+      <Radios label="Color" name="color">
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Color' });
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel.id).toBeTruthy();
+    expect(group).toHaveAttribute('aria-labelledby', fieldLabel.id);
+    expect(fieldLabel).not.toHaveAttribute('for');
+  });
+
+  it('uses a user-supplied labelProps.id as the target', () => {
+    const { container } = render(
+      <Radios label="Color" labelProps={{ id: 'color-label' }} name="color">
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'id',
+      'color-label'
+    );
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-labelledby',
+      'color-label'
+    );
+  });
+
+  it('strips a caller labelProps.htmlFor from the group label', () => {
+    const { container } = render(
+      <Radios
+        label="Color"
+        labelProps={{ htmlFor: 'some-control' }}
+        name="color"
+      >
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    expect(container.querySelector('label.label')).not.toHaveAttribute('for');
+  });
+
+  it('names the radiogroup in horizontal layout', () => {
+    const { container } = render(
+      <Radios label="Color" name="color" horizontal>
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Color' });
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(group).toHaveAttribute('aria-labelledby', fieldLabel.id);
+  });
+
+  it('renders role=radiogroup without aria-labelledby when unlabeled', () => {
+    render(
+      <Radios name="color">
+        <Radio value="red">Red</Radio>
+      </Radios>
+    );
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+      'aria-labelledby'
+    );
+  });
+
+  it('injects nothing inside an outer Field, which drops the label', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <Radios label="Dropped" name="color">
+          <Radio value="red">Red</Radio>
+        </Radios>
+      </Field>
+    );
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+      'aria-labelledby'
+    );
+    const fieldLabel = container.querySelector('label.label') as HTMLElement;
+    expect(fieldLabel).not.toHaveAttribute('id');
+  });
+});
