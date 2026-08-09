@@ -73,10 +73,28 @@ run_one() {
   if [ "$rc" -eq 0 ]; then rm -rf "$work"; fi
 }
 
+# Resume support. A container restart kills every in-flight builder, and re-running the
+# whole spec would redo work already paid for. A run is DONE iff its metrics.json exists —
+# the same definition run-iteration.sh uses for its own "already has metrics.json" guard.
+# Anything else (a transcript with no metrics, an app with no exit code) is a partial killed
+# mid-build: not a datapoint, since the truncation point is arbitrary rather than a budget or
+# timeout the rubric knows how to read. Those are deleted and re-run from scratch.
+runs_dir_of() { # scrape --runs-dir out of a spec line's extra args
+  local prev=""
+  for a in $1; do [ "$prev" = "--runs-dir" ] && { echo "$a"; return; }; prev="$a"; done
+}
+
 idx=0
 pids=()
 while read -r id brief rest; do
   case "$id" in ''|'#'*) continue ;; esac
+  rd="$(runs_dir_of "$rest")"
+  if [ -n "$rd" ] && [ -s "$rd/$id/metrics.json" ]; then
+    echo "[batch] skip $id (already has metrics.json)" >&2
+    echo "$id rc=0 skipped=already-complete" >> "$LOG"
+    continue
+  fi
+  [ -n "$rd" ] && rm -rf "${rd:?}/$id"
   # shellcheck disable=SC2086
   run_one "$idx" "$id" "$brief" $rest &
   pids+=($!)

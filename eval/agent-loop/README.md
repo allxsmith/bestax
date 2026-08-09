@@ -106,6 +106,23 @@ A failed run does not stop the batch — a failure is a datapoint, and losing th
 it is not acceptable. Exit codes land in the log; the failed run's work dir is left on disk
 (successful ones are deleted) because it is the only place the cause is still visible.
 
+**Re-running the same spec resumes it.** A run counts as done iff its `metrics.json` exists —
+the same definition `run-iteration.sh` uses for its own overwrite guard. Completed runs are
+skipped; anything else (a transcript with no metrics, an app with no exit code) is a partial
+killed mid-build, so it is deleted and redone.
+
+That matters more than it sounds. **Background jobs do not keep a remote container alive.** A
+long batch left unattended will be reclaimed mid-flight, and every builder dies with it: an
+early attempt at this lost four runs about 40 minutes in, with full transcripts but no
+metrics. Do not treat such a partial as a datapoint — a budget or timeout kill stops the
+builder at a point the rubric knows how to read, whereas a container restart truncates
+arbitrarily and would bias the distribution for reasons unrelated to what is being measured.
+Discard it and re-run.
+
+So when driving a long batch from a session, keep the session active — a `Monitor` on the
+batch log wakes it on each completion, which gives you checkpoints and the liveness at the
+same time.
+
 ### Which rubric a run was graded against
 
 Every rubric file declares `**Rubric version: N**` near its top, and `--rubric <path>`
