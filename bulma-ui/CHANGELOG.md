@@ -1,3 +1,10 @@
+## [5.8.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.3...@allxsmith/bestax-bulma@5.8.4) (2026-08-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([#497](https://github.com/allxsmith/bestax/issues/497)) ([5c4222e](https://github.com/allxsmith/bestax/commit/5c4222e2eca35c151a2c355e329c6b5a47a8195f))
+
 ## [5.8.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.2...@allxsmith/bestax-bulma@5.8.3) (2026-08-08)
 
 
