@@ -82,6 +82,30 @@ evidence, so a new run dropped beside an old loop's scorecards hands the improve
 brief's, another tooling revision's findings as if they were this loop's. The shipped
 `runs/` is the completed, committed i01–i10 loop; the runner **refuses** to write into it.
 
+### Running many iterations at once
+
+`bin/run-batch.sh <spec> <concurrency> <base-port> <log>` runs a list of iterations with a
+bounded number in flight. The spec is one run per line — `<run-id> <brief> <extra args…>` —
+and **must not contain quoted arguments**: extra args are word-split, so a value with a space
+(`--post-scaffold "node foo.mjs"`) arrives as two tokens and the runner rejects the second.
+`bin/install-mcp.mjs` and `bin/set-dev-port.mjs` carry shebangs and the executable bit so
+they can be passed as one token.
+
+Two things make concurrency safe, and both were found the hard way:
+
+| Option           | Why                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--dev-port <n>` | Builders routinely run `npm run dev -- --strictPort` and the scaffold pins **5173**. Parallel runs fight over it and the loser cannot start a dev server at all — a confound, not an annoyance. Patches `vite.config.ts` and `.claude/launch.json` **before** the baseline commit, so it never reaches `builder.diff`. |
+| `--skip-rebuild` | `run-iteration.sh` normally rebuilds create-bestax, which **rewrites shared template files**. Concurrent runs race and die with `ENOENT: copyfile` mid-sync. `run-batch.sh` builds once up front and passes this to every run. **Never pass it to a lone run** — that measures stale tooling.                          |
+
+The batch keys each work dir by **run id**, not by slot. Slot-keyed dirs are shared state:
+two batch invocations both start at slot 0, and the second `rm -rf`s the first's app out from
+under a live builder. That destroyed two runs before it was fixed.
+
+A failed run does not stop the batch — a failure is a datapoint, and losing the other runs to
+it is not acceptable. Exit codes land in the log; the failed run's work dir is left on disk
+(successful ones are deleted) because it is the only place the cause is still visible.
+
 ### Which rubric a run was graded against
 
 Every rubric file declares `**Rubric version: N**` near its top, and `--rubric <path>`

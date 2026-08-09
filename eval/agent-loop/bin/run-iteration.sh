@@ -10,7 +10,7 @@
 #   bin/run-iteration.sh <run-id> <brief.md> <work-dir> [--model opus] [--budget 15]
 #                        [--timeout 2700] [--runs-dir <dir>]
 #                        [--scaffold-skills yes|no] [--post-scaffold <cmd>]
-#                        [--rubric <rubric.md>]
+#                        [--rubric <rubric.md>] [--dev-port <n>] [--skip-rebuild]
 #
 #   run-id    label for this run (e.g. i11, briefA-3) — becomes runs/<run-id>/
 #   brief.md  the FROZEN builder prompt for this eval (see briefs/)
@@ -45,7 +45,7 @@ WORK="${3:?missing work-dir}"
 shift 3
 
 MODEL=opus BUDGET=15 TIMEOUT=2700
-SCAFFOLD_SKILLS=yes POST_SCAFFOLD=
+SCAFFOLD_SKILLS=yes POST_SCAFFOLD= DEV_PORT= SKIP_REBUILD=
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # eval/agent-loop
 REPO="$(cd "$HARNESS_DIR/../.." && pwd)"                          # repo root
 RUNS_DIR="$HARNESS_DIR/runs"
@@ -60,6 +60,8 @@ while [ $# -gt 0 ]; do
     --scaffold-skills) SCAFFOLD_SKILLS="$2"; shift 2 ;;
     --post-scaffold)   POST_SCAFFOLD="$2"; shift 2 ;;
     --rubric)   RUBRIC="$2"; shift 2 ;;
+    --dev-port) DEV_PORT="$2"; shift 2 ;;
+    --skip-rebuild) SKIP_REBUILD=1; shift ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -157,8 +159,17 @@ mkdir -p "$RUN" "$WORK"
 # the brief (bash reports $0). Canonicalized after mkdir, matching BRIEF and WORK above.
 RUN="$(cd "$RUN" && pwd -P)"
 
-echo "[$RUN_ID] rebuild create-bestax (syncs skills/ -> templates; picks up CLAUDE_MD edits)"
-pnpm -C "$REPO" --filter create-bestax build >/dev/null
+# This build mutates SHARED repo state: sync-skills.mjs clears and re-copies
+# create-bestax/templates/skills/. Two runs doing it at once race, and the loser dies with
+# `ENOENT: copyfile` mid-sync. That is why --skip-rebuild exists: in a batch the tooling is
+# frozen for every run, so the caller builds once up front and each run skips it. Never skip
+# it for a lone run — a run built from stale templates measures the wrong tooling.
+if [ -n "$SKIP_REBUILD" ]; then
+  echo "[$RUN_ID] skipping create-bestax rebuild (--skip-rebuild; caller built it)"
+else
+  echo "[$RUN_ID] rebuild create-bestax (syncs skills/ -> templates; picks up CLAUDE_MD edits)"
+  pnpm -C "$REPO" --filter create-bestax build >/dev/null
+fi
 
 echo "[$RUN_ID] kill orphaned dev servers under $WORK (survivors steal :5173 strictPort)"
 # Match "$WORK/" not "$WORK": a bare prefix also matches SIBLINGS — with WORK=/tmp/work it
@@ -171,6 +182,13 @@ echo "[$RUN_ID] scaffold ($SKILLS_FLAG) + install + baseline tag"
 APP="$WORK/app"
 ( cd "$WORK" && node "$REPO/create-bestax/dist/index.js" app -t vite-ts -b complete -i none "$SKILLS_FLAG" -y >/dev/null )
 ( cd "$APP" && pnpm install >/dev/null )
+
+# Concurrency: builders routinely run `npm run dev -- --strictPort`, and the scaffold pins
+# 5173, so two runs in parallel fight over one port and the loser cannot start a dev server
+# at all. Given a port, each run gets its own. Before the baseline commit, like the hook.
+if [ -n "$DEV_PORT" ]; then
+  node "$HARNESS_DIR/bin/set-dev-port.mjs" "$APP" "$DEV_PORT"
+fi
 
 # Guidance-channel setup — runs BEFORE the baseline commit on purpose. Config the harness
 # installs is not builder output; committing it into `baseline` keeps it out of
