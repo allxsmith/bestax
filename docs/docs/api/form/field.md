@@ -489,7 +489,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 ## Accessibility
 
-- The `label` prop is automatically associated with a single composed `InputBase`, `SelectBase`, or `TextAreaBase` (or a convenience input nested inside): the label points at a generated id the control adopts, so clicking it focuses the control and assistive technology announces it.
+- The `label` prop is automatically associated with a single composed `InputBase`, `SelectBase`, or `TextAreaBase` (or an `Input`, `Select`, or `TextArea` nested inside — other convenience inputs don't adopt): the label points at a generated id the control adopts, so clicking it focuses the control and assistive technology announces it.
 - Pass `labelProps={{ htmlFor }}` and a matching `id` when you want a stable id of your own; pass `labelProps={{ htmlFor: undefined }}` to opt out of the association entirely.
 - Association is skipped for `grouped`/`hasAddons` fields (they hold several controls). A labeled Field whose content is not one of the adopting controls (e.g. a checkbox group) renders its `for` unmatched — functionally the same as an unassociated label; label such groups via their own `label` prop instead.
 - Grouped/horizontal layouts use Bulma’s grid for layout.

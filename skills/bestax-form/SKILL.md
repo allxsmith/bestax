@@ -224,7 +224,8 @@ for the expected classes/states, and say plainly that the visual pass is still o
 - [ ] Every label is programmatically associated — the convenience `label` prop, the group
       inputs, and `Field` + single-base composition all do this automatically; pass
       `labelProps={{ htmlFor }}` plus a matching `id` only for a stable id, and label a
-      multi-control `Field`'s controls individually (`aria-label` or per-control ids).
+      multi-control `Field`'s controls individually (`aria-label`, `aria-labelledby`, or
+      a `<label htmlFor>` matching each control's `id`).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.

@@ -219,6 +219,14 @@ describe('Input label association (#368)', () => {
     expect(container.querySelector('input')).toHaveAttribute('id', 'my-input');
   });
 
+  it('labelProps={{ htmlFor: undefined }} opts out without an orphan id', () => {
+    const { container } = render(
+      <Input label="Username" labelProps={{ htmlFor: undefined }} />
+    );
+    expect(container.querySelector('label.label')).not.toHaveAttribute('for');
+    expect(container.querySelector('input')).not.toHaveAttribute('id');
+  });
+
   it('injects no id when labelProps.htmlFor is set without an id', () => {
     const { container } = render(
       <Input label="Username" labelProps={{ htmlFor: 'elsewhere' }} />
