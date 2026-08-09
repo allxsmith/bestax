@@ -1,3 +1,20 @@
+# [5.9.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.4...@allxsmith/bestax-bulma@5.9.0) (2026-08-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([384bd38](https://github.com/allxsmith/bestax/commit/384bd387639764fa346912cbe6df2d5b02cdaab6))
+* **bulma-ui:** cover horizontal-layout group label association ([ef3ca9f](https://github.com/allxsmith/bestax/commit/ef3ca9f4b99a149b43f359cb8105255c9a3f2770))
+* **bulma-ui:** honor the htmlFor opt-out in the convenience hook and tighten the association docs ([92aa622](https://github.com/allxsmith/bestax/commit/92aa622c0ebd231b41562504da6d104128207000))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([ca5996a](https://github.com/allxsmith/bestax/commit/ca5996a73f5b0816ff82fa4984455bb82ef6060c))
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([dce0ee7](https://github.com/allxsmith/bestax/commit/dce0ee7e2b2d5c2678e5b996437ab713cc45365b))
+* **bulma-ui:** never let labelProps.htmlFor wire a group label to a control ([3b3aaaf](https://github.com/allxsmith/bestax/commit/3b3aaafa6573bfc0c84930ee1517f402105fbc1d))
+
+
+### Features
+
+* **bulma-ui:** associate Field's label with a composed base control ([219f631](https://github.com/allxsmith/bestax/commit/219f63180f8321ed924953f5acd12e4eadcba608))
+
 ## [5.8.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.8.3...@allxsmith/bestax-bulma@5.8.4) (2026-08-09)
 
 
