@@ -9,12 +9,20 @@
 # Usage:
 #   bin/run-iteration.sh <run-id> <brief.md> <work-dir> [--model opus] [--budget 15]
 #                        [--timeout 2700] [--runs-dir <dir>]
+#                        [--scaffold-skills yes|no] [--post-scaffold <cmd>]
 #
 #   run-id    label for this run (e.g. i11, briefA-3) — becomes runs/<run-id>/
 #   brief.md  the FROZEN builder prompt for this eval (see briefs/)
 #   work-dir  where the app is scaffolded — MUST be outside any pnpm workspace/repo
 #             tree (otherwise install workspace-links the local library instead of
 #             the registry package)
+#
+# The two guidance-channel options exist so a loop can measure a channel OTHER than the
+# bundled skills (the MCP server, say) without a second copy of this script. Both default
+# to the original behaviour, so an existing call site is unaffected:
+#   --scaffold-skills no    scaffold with --no-skills: no .claude/skills/, no CLAUDE.md
+#   --post-scaffold <cmd>   run `<cmd> "$APP"` after scaffold+install, before the builder
+#                           starts — the hook for writing .mcp.json or other config
 #
 # The builder's exit code is recorded, not enforced: a timeout/budget kill is a valid
 # datapoint — grade what exists, never fix the app. The one exception is a builder that
@@ -32,6 +40,7 @@ WORK="${3:?missing work-dir}"
 shift 3
 
 MODEL=opus BUDGET=15 TIMEOUT=2700
+SCAFFOLD_SKILLS=yes POST_SCAFFOLD=
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # eval/skill-loop
 REPO="$(cd "$HARNESS_DIR/../.." && pwd)"                          # repo root
 RUNS_DIR="$HARNESS_DIR/runs"
@@ -42,9 +51,20 @@ while [ $# -gt 0 ]; do
     --budget)   BUDGET="$2"; shift 2 ;;
     --timeout)  TIMEOUT="$2"; shift 2 ;;
     --runs-dir) RUNS_DIR="$2"; shift 2 ;;
+    --scaffold-skills) SCAFFOLD_SKILLS="$2"; shift 2 ;;
+    --post-scaffold)   POST_SCAFFOLD="$2"; shift 2 ;;
     *) echo "unknown option: $1" >&2; exit 1 ;;
   esac
 done
+
+# Validated here rather than passed through: a typo like --scaffold-skills non would
+# otherwise reach create-bestax as neither flag and silently scaffold WITH skills, which
+# is the exact condition the run is trying to exclude.
+case "$SCAFFOLD_SKILLS" in
+  yes) SKILLS_FLAG=--skills ;;
+  no)  SKILLS_FLAG=--no-skills ;;
+  *)   echo "--scaffold-skills must be yes or no (got: $SCAFFOLD_SKILLS)" >&2; exit 1 ;;
+esac
 
 # Canonicalization alone accepts a NONEXISTENT file under an existing directory, and the
 # builder is launched with `claude -p "$(cat "$0")"` — so a typo'd brief path yields an empty
@@ -106,6 +126,11 @@ fi
 RUN="$RUNS_DIR/$RUN_ID"
 if [ -e "$RUN/metrics.json" ]; then echo "runs/$RUN_ID already has metrics.json — pick a new run-id" >&2; exit 1; fi
 mkdir -p "$RUN" "$WORK"
+# Absolute from here on. The builder subshell runs `cd "$APP"`, so a relative --runs-dir
+# resolves against the APP and every redirection into "$RUN" fails — the builder never
+# starts, and the failure surfaces as three "No such file or directory" lines attributed to
+# the brief (bash reports $0). Canonicalized after mkdir, matching BRIEF and WORK above.
+RUN="$(cd "$RUN" && pwd -P)"
 
 echo "[$RUN_ID] rebuild create-bestax (syncs skills/ -> templates; picks up CLAUDE_MD edits)"
 pnpm -C "$REPO" --filter create-bestax build >/dev/null
@@ -117,10 +142,24 @@ echo "[$RUN_ID] kill orphaned dev servers under $WORK (survivors steal :5173 str
 # Trailing `|| true`: "no vite running" / "no match" are exit-1 from pgrep|grep, not failures.
 pgrep -fl vite | grep -F "$WORK/" | awk '{print $1}' | while read -r p; do kill "$p" 2>/dev/null || true; done || true
 
-echo "[$RUN_ID] scaffold + install + baseline tag"
+echo "[$RUN_ID] scaffold ($SKILLS_FLAG) + install + baseline tag"
 APP="$WORK/app"
-( cd "$WORK" && node "$REPO/create-bestax/dist/index.js" app -t vite-ts -b complete -i none --skills -y >/dev/null )
-( cd "$APP" && pnpm install >/dev/null && git init -q && git add -A && git commit -qm baseline && git tag baseline )
+( cd "$WORK" && node "$REPO/create-bestax/dist/index.js" app -t vite-ts -b complete -i none "$SKILLS_FLAG" -y >/dev/null )
+( cd "$APP" && pnpm install >/dev/null )
+
+# Guidance-channel setup — runs BEFORE the baseline commit on purpose. Config the harness
+# installs is not builder output; committing it into `baseline` keeps it out of
+# builder.diff and out of files_changed_vs_baseline, so the app_modified gate still means
+# "the builder changed something".
+if [ -n "$POST_SCAFFOLD" ]; then
+  echo "[$RUN_ID] post-scaffold hook: $POST_SCAFFOLD"
+  # Unquoted on purpose: the option carries a command line ("node bin/install-mcp.mjs"),
+  # not a single executable path.
+  # shellcheck disable=SC2086
+  $POST_SCAFFOLD "$APP"
+fi
+
+( cd "$APP" && git init -q && git add -A && git commit -qm baseline && git tag baseline )
 
 echo "[$RUN_ID] incognito build: model=$MODEL budget=\$$BUDGET timeout=${TIMEOUT}s"
 date -u +%Y-%m-%dT%H:%M:%SZ > "$RUN/started-at.txt"

@@ -177,6 +177,19 @@ let transcript = {
   skill_files_complete: null,
   skill_invocations: null,
   claude_md_read: null,
+  // Guidance can also arrive over MCP. Counted separately from the skill/docs channels
+  // because a run configured with an MCP server and no skills legitimately scores zero on
+  // every field above — which reads as "did not engage" when the truth is "engaged
+  // elsewhere". Null (not 0) when there is no transcript, same as its neighbours.
+  mcp_tool_calls: null,
+  mcp_tools_used: null,
+  // MCP *resources* are the second channel a server exposes, reached through the built-in
+  // ReadMcpResourceTool/ListMcpResourcesTool rather than an mcp__-prefixed name. Counted
+  // apart from tools so "used the server" and "used it two different ways" stay distinct.
+  // (Prompts are the third channel and deliberately have no counter: a non-interactive
+  // `claude -p` builder cannot invoke a slash command, so the number would be a constant
+  // zero that reads as a finding about the server.)
+  mcp_resource_reads: null,
   docs_fetches: null,
   docs_urls: null,
   web_calls_total: null,
@@ -192,7 +205,10 @@ if (transcriptPath && existsSync(transcriptPath)) {
     skillRefsUnresolved = 0,
     skillInvocations = 0,
     claudeMdRead = false,
+    mcpCalls = 0,
+    mcpResourceReads = 0,
     webTotal = 0;
+  const mcpTools = new Set();
   const docsUrls = new Set();
   let result = null;
   for (const line of read(transcriptPath).split('\n')) {
@@ -210,6 +226,14 @@ if (transcriptPath && existsSync(transcriptPath)) {
       if (block?.type !== 'tool_use') continue;
       const inputStr = JSON.stringify(block.input ?? {});
       if (block.name === 'Skill') skillInvocations++;
+      // `mcp__<server>__<tool>` is the harness's own naming for every MCP tool, so the
+      // prefix identifies the channel without hardcoding which server this run configured.
+      if (/^mcp__/.test(block.name ?? '')) {
+        mcpCalls++;
+        mcpTools.add(block.name);
+      }
+      if (['ReadMcpResourceTool', 'ListMcpResourcesTool'].includes(block.name))
+        mcpResourceReads++;
       if (inputStr.includes('.claude/skills/')) {
         skillReads++;
         // Harvest paths from the whole input, not just file_path: builders that reach
@@ -244,6 +268,9 @@ if (transcriptPath && existsSync(transcriptPath)) {
     skill_files_complete: skillRefsUnresolved === 0,
     skill_invocations: skillInvocations,
     claude_md_read: claudeMdRead,
+    mcp_tool_calls: mcpCalls,
+    mcp_tools_used: [...mcpTools].sort(),
+    mcp_resource_reads: mcpResourceReads,
     docs_fetches: docsUrls.size,
     docs_urls: [...docsUrls].sort(),
     web_calls_total: webTotal,
