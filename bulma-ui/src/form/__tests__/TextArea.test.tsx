@@ -218,3 +218,19 @@ describe('TextArea label association (#368)', () => {
     expect(container.querySelector('textarea')).not.toHaveAttribute('id');
   });
 });
+
+describe('outer Field label adoption (#495)', () => {
+  it('associates the outer Field label with the textarea', () => {
+    const { container } = render(
+      <Field label="Outer">
+        <TextArea />
+      </Field>
+    );
+    const textarea = screen.getByLabelText('Outer');
+    expect(textarea.tagName).toBe('TEXTAREA');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      textarea.id
+    );
+  });
+});

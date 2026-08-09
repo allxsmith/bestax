@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldLabelId } from './FormContext';
 
 /**
  * Props for the TextArea component.
@@ -79,6 +80,7 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
       color,
       ...props,
     });
+    const fieldLabelId = useFieldLabelId();
 
     // Note: `is-loading` is intentionally NOT applied to the <textarea> itself —
     // Bulma documents `<div class="control is-loading">` as the loading pattern
@@ -104,6 +106,9 @@ export const TextAreaBase = forwardRef<HTMLTextAreaElement, TextAreaBaseProps>(
         readOnly={readOnly}
         rows={rows}
         {...rest}
+        // After the spread: a labeled Field's generated id is adopted only
+        // when no user id arrived (rest.id may be an undefined own key).
+        id={rest.id ?? fieldLabelId}
       />
     );
   }

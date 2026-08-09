@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TextAreaBase from '../TextAreaBase';
+import Field from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('TextAreaBase', () => {
@@ -153,5 +154,30 @@ describe('TextAreaBase', () => {
       expect(textarea).toHaveClass('has-fixed-size');
       expect(textarea).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Field label adoption (#495)', () => {
+  it('adopts a labeled Field context id', () => {
+    render(
+      <Field label="Bio">
+        <TextAreaBase />
+      </Field>
+    );
+    expect(screen.getByLabelText('Bio').tagName).toBe('TEXTAREA');
+  });
+
+  it('keeps its own id over the context id', () => {
+    render(
+      <Field label="Bio">
+        <TextAreaBase id="mine" />
+      </Field>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute('id', 'mine');
+  });
+
+  it('renders no id standalone', () => {
+    render(<TextAreaBase />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('id');
   });
 });

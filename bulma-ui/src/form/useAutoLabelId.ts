@@ -20,8 +20,9 @@ interface UseAutoLabelIdOptions {
  * Associates the convenience `label` prop with its control (#368): generates
  * an id for the control and returns labelProps carrying a matching `htmlFor`.
  * A user-supplied `id` is used as the target instead of the generated one, and
- * an explicit `labelProps.htmlFor` disables generation entirely — the user has
- * taken over the association. Internal; not part of the public API.
+ * an explicit `htmlFor` key in labelProps — even set to `undefined` — disables
+ * generation entirely: the user has taken over the association (#495 presence
+ * semantics). Internal; not part of the public API.
  */
 export function useAutoLabelId({
   label,
@@ -36,11 +37,19 @@ export function useAutoLabelId({
   const generatedId = useId();
   // Truthiness mirrors Field's own `if (label)` render gate.
   const active = !!label && rendersLabel;
-  const controlId =
-    id ?? (active && !labelProps?.htmlFor ? generatedId : undefined);
+  // Presence, not truthiness: `htmlFor: undefined` is an explicit opt-out and
+  // must not leave an orphan generated id on the control.
+  const userWired = !!labelProps && 'htmlFor' in labelProps;
+  const controlId = id ?? (active && !userWired ? generatedId : undefined);
+  // Inactive with a label still means an own Field may render it (pickers'
+  // inline mode, Taginput at maxTags) — the explicit `htmlFor: undefined`
+  // tells Field the association is owned here, so it must not generate one
+  // that would dangle (#495 presence semantics).
   const fieldLabelProps = active
     ? { htmlFor: controlId, ...labelProps }
-    : labelProps;
+    : label
+      ? { htmlFor: undefined, ...labelProps }
+      : labelProps;
   return { controlId, fieldLabelProps };
 }
 
