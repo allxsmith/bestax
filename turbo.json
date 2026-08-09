@@ -16,6 +16,10 @@
     "test:coverage": {
       "outputs": ["coverage/**"]
     },
+    "bestax-mcp#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "data/skills/**"]
+    },
     "bestax-migrate#test": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"]
     },

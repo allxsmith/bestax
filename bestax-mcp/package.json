@@ -13,9 +13,9 @@
   "scripts": {
     "build": "node scripts/sync-skills.mjs && tsc",
     "dev": "tsc --watch",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
-    "test:watch": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
-    "test:coverage": "NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
+    "test": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest",
+    "test:watch": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest --watch",
+    "test:coverage": "node scripts/sync-skills.mjs && NODE_OPTIONS=\"--experimental-vm-modules\" jest --coverage",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
