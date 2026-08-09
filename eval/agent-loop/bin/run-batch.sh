@@ -6,9 +6,9 @@
 #
 # The spec file is one run per line, whitespace-separated:
 #   <run-id> <brief-path> <extra args…>
-# Blank lines and #-comments are skipped. Every run additionally gets --dev-port, assigned
-# from a free slot, because concurrent builders otherwise fight over the scaffold's pinned
-# 5173 and the loser cannot start a dev server at all.
+# Blank lines and #-comments are skipped. Every run additionally gets a unique --dev-port,
+# because concurrent builders otherwise fight over the scaffold's pinned 5173 and the loser
+# cannot start a dev server at all.
 #
 # NO QUOTED ARGUMENTS IN THE SPEC. Extra args are word-split, so a value containing spaces
 # (`--post-scaffold "node foo.mjs"`) arrives as two tokens and the runner rejects the second
@@ -49,19 +49,24 @@ fi
 # out from under a live builder. That happened; both runs were destroyed and had to be
 # discarded. Per-run dirs cost more disk (cleaned on success, below) and cannot collide.
 #
-# The PORT is still slot-derived, which is correct: a port is a resource held only while a
-# run is live, so reusing it after the slot frees is exactly right.
-slot_of() { echo $(( $1 % CONC )); }
-
+# The PORT is derived from the run INDEX, not the slot — one unique port per run, never
+# reused. Slot-derived ports look right and are not: a slot is only free when its previous
+# occupant EXITED, and runs finish out of launch order, so `idx % CONC` hands a live run's
+# port to a new one. It happened — sk01 (idx 0, port 5200) was still building when sk03
+# (idx 4, same port) launched, and sk01 spent its final minutes running
+# `ss -ltnp | grep 5200` to work out whether the listener was its own before relocating to
+# another port. It then hit the wall clock and the run was discarded.
+#
+# With ~20 runs and only a handful live at once there is no shortage of ports, so the
+# reuse that caused this buys nothing.
 run_one() {
   local idx="$1" id="$2" brief="$3"; shift 3
-  local slot port work started rc
-  slot="$(slot_of "$idx")"
-  port=$(( BASE_PORT + slot ))
+  local port work started rc
+  port=$(( BASE_PORT + idx ))
   work="/tmp/agent-loop-run-$id"
   rm -rf "$work"
   started="$(date -u +%H:%M:%S)"
-  echo "[batch] $started start $id (slot $slot, port $port)" >&2
+  echo "[batch] $started start $id (port $port)" >&2
   IS_SANDBOX=1 bash "$RUNNER" "$id" "$brief" "$work" --dev-port "$port" --skip-rebuild "$@" \
     > "$LOG.$id.out" 2>&1
   rc=$?
