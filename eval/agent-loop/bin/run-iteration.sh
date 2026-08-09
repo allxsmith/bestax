@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run-iteration.sh — one measured cold-start build for the skill-loop eval harness.
+# run-iteration.sh — one measured cold-start build for the agent-loop eval harness.
 #
 # Phases A–C of the loop protocol (see README.md): rebuild tooling → scaffold a fresh
 # app → incognito `claude -p` build under a wall-clock watchdog → snapshot + metrics.
@@ -41,7 +41,7 @@ shift 3
 
 MODEL=opus BUDGET=15 TIMEOUT=2700
 SCAFFOLD_SKILLS=yes POST_SCAFFOLD=
-HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # eval/skill-loop
+HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"   # eval/agent-loop
 REPO="$(cd "$HARNESS_DIR/../.." && pwd)"                          # repo root
 RUNS_DIR="$HARNESS_DIR/runs"
 

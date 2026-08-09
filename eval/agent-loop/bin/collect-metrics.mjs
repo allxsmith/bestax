@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // collect-metrics.mjs <appDir> <transcript.jsonl>
-// Mechanized metrics for the skill-loop experiment. Prints one JSON object to stdout.
+// Mechanized metrics for the agent-loop eval harness. Prints one JSON object to stdout.
 // Requires: appDir is a git repo with a tag/ref "baseline" (the pristine scaffold commit).
 
 import { spawnSync } from 'node:child_process';

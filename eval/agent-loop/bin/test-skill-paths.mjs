@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Guard for the skill-path harvest. Run before and after touching the regex:
 //
-//   node eval/skill-loop/bin/test-skill-paths.mjs
+//   node eval/agent-loop/bin/test-skill-paths.mjs
 //
 // Exits non-zero on any failure. Every case below is a shape that either shipped a bug or
 // was claimed correct without being executed — four separate revisions of this pattern each

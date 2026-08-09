@@ -7,7 +7,7 @@ run transcripts at `$RUNS_DIR/<id>/transcript.jsonl`, the current skills at `ski
 authoring contract `skills/CLAUDE.md`.
 
 **Never read runs outside `$RUNS_DIR`.** Every loop gets its own directory, and the shipped
-`eval/skill-loop/runs/` is the archived i01–i10 loop — a different brief, a different
+`eval/agent-loop/runs/` is the archived i01–i10 loop — a different brief, a different
 tooling revision, months old. Mixing it in would look like evidence and silently corrupt
 every comparison. Within `$RUNS_DIR`, "the previous run of the same variant" means matching
 `brief`, `model` and `tooling_rev` in `metrics.json`; check those fields rather than
@@ -46,8 +46,8 @@ unvalidated): design and apply the **minimal** set of edits to the skills / CLAU
 template that address the top findings.
 
 HARD GUARDRAILS:
-a. Never edit `eval/skill-loop/rubric.md`, `eval/skill-loop/briefs/**`, or anything under
-`eval/skill-loop/runs/`.
+a. Never edit `eval/agent-loop/rubric.md`, `eval/agent-loop/briefs/**`, or anything under
+`eval/agent-loop/runs/`.
 b. Guidance stays **GENERIC** to any app built with this library. Never mention skynet,
 Netadyne, Fable, LLM-vendor marketing, or this experiment. If the finding is "it
 hand-rolled the benchmarks table", the fix is generic `Table` guidance.

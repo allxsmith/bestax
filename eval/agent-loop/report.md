@@ -241,11 +241,11 @@ Total tooling diff vs baseline: 18 files, +230/−88. Hand-written skill bundle
 
 ## Artifact map
 
-- Per-run artifacts: `eval/skill-loop/runs/i01..i10/` — `metrics.json`, `scorecard.md`, and
+- Per-run artifacts: `eval/agent-loop/runs/i01..i10/` — `metrics.json`, `scorecard.md`, and
   `notes.md` (i01/i10) ship here; `builder.diff`, `app-src/`, `transcript.jsonl`, and
   `builder-stderr.log` are gitignored bulk and live on the archived branch
   `chore/skill-improvement-loop`.
-- Running log with per-iteration detail: `eval/skill-loop/iteration-log.md`.
+- Running log with per-iteration detail: `eval/agent-loop/iteration-log.md`.
 - Loop state machine: `state.json` on the archived branch (all 10 commit SHAs).
 - Frozen inputs: `briefs/skynet-saas.md`, `rubric.md`, `bin/collect-metrics.mjs`,
   `bin/grader-prompt.md`, `bin/improver-prompt.md`.

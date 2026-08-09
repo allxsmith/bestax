@@ -2,7 +2,7 @@
 // Guard for `app_modified` / `files_changed_vs_baseline` — the input the rubric gate zeroes
 // an entire run on, so a wrong value here is the most expensive kind of wrong number.
 //
-//   node eval/skill-loop/bin/test-app-modified.mjs
+//   node eval/agent-loop/bin/test-app-modified.mjs
 //
 // Two bugs have already lived in this one field: it did not exist (so category 1's
 // "unmodified → 0" anchor was unreachable and an untouched scaffold scored 15/15), and then
@@ -43,7 +43,7 @@ const git = (cwd, ...args) =>
 
 /** A scaffold at its baseline tag: stub toolchain, realistic .gitignore, one committed src file. */
 function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'skill-loop-appmod-'));
+  const root = mkdtempSync(join(tmpdir(), 'agent-loop-appmod-'));
   const app = join(root, 'app');
   mkdirSync(join(app, 'src'), { recursive: true });
   mkdirSync(join(app, 'node_modules', '.bin'), { recursive: true });

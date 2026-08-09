@@ -2,7 +2,7 @@
 // install-mcp.mjs — post-scaffold hook for run-iteration.sh: point the scaffolded app at
 // this repo's LOCAL bestax-mcp build.
 //
-//   bin/run-iteration.sh <id> <brief> <work> --post-scaffold "node eval/skill-loop/bin/install-mcp.mjs"
+//   bin/run-iteration.sh <id> <brief> <work> --post-scaffold "node eval/agent-loop/bin/install-mcp.mjs"
 //
 // The eval measures the server as it stands in the working tree, not whatever `npx
 // bestax-mcp` would fetch from the registry — so the command is `node <repo>/bestax-mcp/
@@ -15,7 +15,7 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const HARNESS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..'); // eval/skill-loop
+const HARNESS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..'); // eval/agent-loop
 const REPO = resolve(HARNESS_DIR, '..', '..');
 const SERVER = join(REPO, 'bestax-mcp', 'dist', 'index.js');
 const CATALOG = join(REPO, 'bestax-mcp', 'data', 'catalog.json');

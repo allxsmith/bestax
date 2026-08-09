@@ -1,12 +1,26 @@
-# eval/skill-loop — cold-start eval harness for the create-bestax AI tooling
+# eval/agent-loop — cold-start eval harness for the create-bestax AI tooling
 
 A reusable harness for measuring how well an **unassisted, memoryless coding agent** uses
-`@allxsmith/bestax-bulma` when guided only by what create-bestax ships (the 7 skills + the
-generated app CLAUDE.md) — and for running improvement loops against that measurement.
+`@allxsmith/bestax-bulma` when guided only by a **guidance channel** we ship — and for
+running improvement loops against that measurement. The channel is a parameter of the run:
+the skills bundled by create-bestax, the `bestax-mcp` server, or both together.
 
-It was built and validated by a 10-iteration experiment (baseline 85/100 → revised-runs
-mean 95.2, builder cost −43%): full writeup in [report.md](report.md), per-run evidence in
-[runs/](runs/), running narrative in [iteration-log.md](iteration-log.md).
+It was built and validated by a 10-iteration experiment on the skills channel (baseline
+85/100 → revised-runs mean 95.2, builder cost −43%): full writeup in [report.md](report.md),
+running narrative in [iteration-log.md](iteration-log.md).
+
+> Named `skill-loop` until the MCP eval landed. The rubric, briefs, runner and metrics were
+> always channel-agnostic; only the first loop was about skills.
+
+## The loops this directory holds
+
+Each loop gets its own runs directory — never write a new run beside another loop's
+scorecards (see the `--runs-dir` rule below).
+
+| Directory                | Loop                       | Channel measured                     | Result                                                         |
+| ------------------------ | -------------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| [`runs/`](runs/)         | i01–i10, the original loop | create-bestax skills + app CLAUDE.md | 85 → 95.2 mean; **archived, the runner refuses to write here** |
+| [`runs-mcp/`](runs-mcp/) | m01–m02, the MCP eval      | `bestax-mcp`, alone and with skills  | 85 (MCP only) vs 98 (both) — see each run's `scorecard.md`     |
 
 ## What a "run" is
 
@@ -15,8 +29,8 @@ One run = scaffold a fresh app with the **current** tooling → a cold-start
 library) builds a **frozen brief** in it → mechanized metrics + a rubric-graded scorecard.
 
 ```
-bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/skill-loop-work/i11 \
-  --runs-dir eval/skill-loop/runs-2026-08
+bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/agent-loop-work/i11 \
+  --runs-dir eval/agent-loop/runs-2026-08
 ```
 
 does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
@@ -45,8 +59,8 @@ one the builder chose not to call). Run `pnpm --filter bestax-mcp build` first:
 
 ```
 bin/run-iteration.sh m01 briefs/skynet-saas-mcp.md /tmp/mcp-eval-m01 \
-  --runs-dir eval/skill-loop/runs-mcp --scaffold-skills no \
-  --post-scaffold "node eval/skill-loop/bin/install-mcp.mjs"
+  --runs-dir eval/agent-loop/runs-mcp --scaffold-skills no \
+  --post-scaffold "node eval/agent-loop/bin/install-mcp.mjs"
 ```
 
 The collector counts that channel too: `mcp_tool_calls`, `mcp_tools_used` and

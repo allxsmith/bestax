@@ -9,6 +9,9 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `bestax-mcp/` — the `bestax-mcp` MCP server; its `data/` index is **generated**
   (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `eval/agent-loop/` — cold-start eval harness: does an unassisted agent build correctly when
+  given one of our guidance channels (the skills, the MCP server, both)? Frozen rubric, its
+  own README
 - `.github/` — CI and AI-automation workflows, **human-authored only** (has its own CLAUDE.md,
   which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)

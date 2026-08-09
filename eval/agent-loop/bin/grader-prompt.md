@@ -4,9 +4,9 @@ Parameterized by three paths the dispatcher substitutes:
 
 | Var             | Default                                          | What it is                  |
 | --------------- | ------------------------------------------------ | --------------------------- |
-| `$RUN`          | `eval/skill-loop/runs/<run-id>`                  | the run being graded        |
-| `$RUBRIC`       | `eval/skill-loop/rubric.md`                      | brief-agnostic core, 85 pts |
-| `$COMPLETENESS` | `eval/skill-loop/briefs/<brief>.completeness.md` | category-7 anchors, 15 pts  |
+| `$RUN`          | `eval/agent-loop/runs/<run-id>`                  | the run being graded        |
+| `$RUBRIC`       | `eval/agent-loop/rubric.md`                      | brief-agnostic core, 85 pts |
+| `$COMPLETENESS` | `eval/agent-loop/briefs/<brief>.completeness.md` | category-7 anchors, 15 pts  |
 
 `$COMPLETENESS` pairs with the brief the run was built from — for a run against
 `briefs/foo.md` it is `briefs/foo.completeness.md`. If either authority is missing or
