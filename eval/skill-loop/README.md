@@ -22,6 +22,45 @@ bin/run-iteration.sh i11 briefs/skynet-saas.md /tmp/skill-loop-work/i11 \
 does phases A–C (rebuild tooling → scaffold+install+baseline-tag → watchdogged incognito
 build → snapshot + `metrics.json`). Grading and improving are agent phases (below).
 
+### Measuring a guidance channel other than the shipped skills
+
+By default a run measures what create-bestax ships. Two options let a loop point the builder
+at something else instead of, or alongside, that — both default to the behaviour above, so a
+call site that omits them is unaffected:
+
+| Option                      | Default | What it does                                                                                                     |
+| --------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--scaffold-skills yes\|no` | `yes`   | Picks `--skills` / `--no-skills` on the scaffold. `no` means no `.claude/skills/` and no app `CLAUDE.md`.        |
+| `--post-scaffold <cmd>`     | none    | Runs `<cmd> "$APP"` after install and **before** the baseline commit — the hook for writing config into the app. |
+
+The hook runs pre-baseline on purpose: config the harness installs is not builder output, so
+committing it into `baseline` keeps it out of `builder.diff` and out of
+`files_changed_vs_baseline`, and the `app_modified` gate keeps meaning "the builder changed
+something".
+
+`bin/install-mcp.mjs` is the hook the MCP eval uses — it writes an `.mcp.json` pointing at
+this repo's **local** `bestax-mcp/dist/index.js`, and refuses if that build or its generated
+data is missing (a server that never connects is indistinguishable in the transcript from
+one the builder chose not to call). Run `pnpm --filter bestax-mcp build` first:
+
+```
+bin/run-iteration.sh m01 briefs/skynet-saas-mcp.md /tmp/mcp-eval-m01 \
+  --runs-dir eval/skill-loop/runs-mcp --scaffold-skills no \
+  --post-scaffold "node eval/skill-loop/bin/install-mcp.mjs"
+```
+
+The collector counts that channel too: `mcp_tool_calls`, `mcp_tools_used` and
+`mcp_resource_reads`. They exist because rubric category 8 reads `skill_file_reads` /
+`skill_files` / `claude_md_read`, all correctly zero in a run with no skills on disk — a
+builder that queried an MCP server 41 times before writing a line would otherwise score 0/10
+for engagement. Grading such a run means **re-anchoring category 8 in that run's `notes.md`,
+not editing `rubric.md`**; see [runs-mcp/m01/notes.md](runs-mcp/m01/notes.md) for the worked
+form. Categories 1–7 are unaffected and stay directly comparable.
+
+Note that a server which _serves_ the skills does not remove them from the run — the m01
+builder pulled four skills through `get_skill` with no `.claude/skills/` present. Such a
+comparison measures **delivery mechanism**, not presence of guidance; say so in the notes.
+
 **Every loop needs its own `--runs-dir`.** Phase E consumes a runs directory as one loop's
 evidence, so a new run dropped beside an old loop's scorecards hands the improver another
 brief's, another tooling revision's findings as if they were this loop's. The shipped
@@ -161,6 +200,9 @@ briefs/<name>.completeness.md
 rubric.md          brief-agnostic core rubric (85 pts); + category 7 (15) = 100
 bin/run-iteration.sh    phases A–C, turnkey
 bin/collect-metrics.mjs mechanized metrics (JSON to stdout)
+bin/install-mcp.mjs     --post-scaffold hook: writes .mcp.json pointing at the
+                        LOCAL bestax-mcp build (see "Measuring a guidance
+                        channel other than the shipped skills" above)
 bin/lib/skill-paths.mjs shared skill-path harvest (imported by the collector
                         AND its guard, so the guard cannot drift from the code)
 bin/test-skill-paths.mjs regression guard — `node bin/test-skill-paths.mjs`;
