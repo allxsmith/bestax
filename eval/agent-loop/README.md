@@ -17,10 +17,11 @@ running narrative in [iteration-log.md](iteration-log.md).
 Each loop gets its own runs directory — never write a new run beside another loop's
 scorecards (see the `--runs-dir` rule below).
 
-| Directory                | Loop                       | Channel measured                     | Result                                                         |
-| ------------------------ | -------------------------- | ------------------------------------ | -------------------------------------------------------------- |
-| [`runs/`](runs/)         | i01–i10, the original loop | create-bestax skills + app CLAUDE.md | 85 → 95.2 mean; **archived, the runner refuses to write here** |
-| [`runs-mcp/`](runs-mcp/) | m01–m02, the MCP eval      | `bestax-mcp`, alone and with skills  | 85 (MCP only) vs 98 (both) — see each run's `scorecard.md`     |
+| Directory                      | Loop                       | Channel measured                     | Result                                                         |
+| ------------------------------ | -------------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| [`runs/`](runs/)               | i01–i10, the original loop | create-bestax skills + app CLAUDE.md | 85 → 95.2 mean; **archived, the runner refuses to write here** |
+| [`runs-mcp/`](runs-mcp/)       | m01–m02, the MCP eval      | `bestax-mcp`, alone and with skills  | 85 (MCP only) vs 98 (both) — see each run's `scorecard.md`     |
+| [`runs-skills/`](runs-skills/) | s01, a regression check    | skills, default scaffold             | 96 — confirms the skills path after the channel options landed |
 
 ## What a "run" is
 
