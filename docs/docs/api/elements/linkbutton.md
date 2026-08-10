@@ -16,12 +16,13 @@ The `LinkButton` component renders a `<button>` that visually looks like text or
 
 It provides an accessible replacement for `<div onClick>` anti-patterns by wrapping the [`Button`](./button.md) component with `is-text` or `is-ghost` styling and CSS overrides.
 
-**Two variants:**
+**Three variants:**
 
-- **`text`** — like Bulma's `is-text` button but without the underline. Hover shows a background highlight.
+- **`text`** (default) — like Bulma's `is-text` button but without the underline. Hover shows a background highlight.
 - **`ghost`** — like Bulma's `is-ghost` button but without the link color. Hover shows an underline.
+- **`underline`** — no button chrome at all: transparent background and border, plain text color, and an underline on hover or focus.
 
-Both variants support an optional `color` prop to set the text color.
+All three support an optional `color` prop to set the text color.
 
 :::tip
 Use `LinkButton` instead of `<div onClick>` or unstyled click handlers to get proper keyboard navigation, focus handling, and screen reader support for free.
@@ -57,6 +58,14 @@ The ghost variant renders a link-like button with default text color (not link c
 
 ```tsx live
 <LinkButton variant="ghost">Ghost LinkButton</LinkButton>
+```
+
+### Underline Variant
+
+The underline variant drops the button chrome entirely — transparent background and border, plain text color — and underlines on hover or focus. Use it for an inline action inside a sentence or a summary step ("go back and edit"), where a second solid button would compete with the primary one.
+
+```tsx live
+<LinkButton variant="underline">Go back and edit</LinkButton>
 ```
 
 ### Text Variant with Color
@@ -126,11 +135,12 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ## Visual Behavior
 
-|                   | Default text color   | Hover                                 |
-| ----------------- | -------------------- | ------------------------------------- |
-| **text variant**  | `var(--bulma-text)`  | Background highlight, no underline    |
-| **ghost variant** | `var(--bulma-text)`  | Underline appears                     |
-| **+ color**       | Uses specified color | Same hover behavior, color maintained |
+|                       | Default text color   | Hover                                           |
+| --------------------- | -------------------- | ----------------------------------------------- |
+| **text variant**      | `var(--bulma-text)`  | Background highlight, no underline              |
+| **ghost variant**     | `var(--bulma-text)`  | Underline appears                               |
+| **underline variant** | `var(--bulma-text)`  | Underline appears, background stays transparent |
+| **+ color**           | Uses specified color | Same hover behavior, color maintained           |
 
 ---
 
@@ -167,29 +177,29 @@ If your LinkButton has only an icon, use `aria-label` to provide accessible text
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                                                               | Default    | Description                                                                                                                                                           |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `variant`     | `'text'` \| `'ghost'` \| `'underline'`                                                                                             | `'text'`   | Display mode. `text` has no underline; `ghost` uses default text color.                                                                                               |
-| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'white'` \| `'light'` \| `'dark'` \| `'black'` | —          | Text color override for the button.                                                                                                                                   |
-| `size`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —          | Size of the button.                                                                                                                                                   |
-| `isRounded`   | `boolean`                                                                                                                          | `false`    | Makes the button rounded.                                                                                                                                             |
-| `isLoading`   | `boolean`                                                                                                                          | `false`    | Displays a loading spinner.                                                                                                                                           |
-| `isStatic`    | `boolean`                                                                                                                          | `false`    | Makes the button non-interactive.                                                                                                                                     |
-| `isFullWidth` | `boolean`                                                                                                                          | `false`    | Makes the button full-width.                                                                                                                                          |
-| `isFocused`   | `boolean`                                                                                                                          | `false`    | Applies focused styling (visual only).                                                                                                                                |
-| `isActive`    | `boolean`                                                                                                                          | `false`    | Applies active styling (visual only).                                                                                                                                 |
-| `isHovered`   | `boolean`                                                                                                                          | `false`    | Applies hovered styling (visual only).                                                                                                                                |
-| `isDisabled`  | `boolean`                                                                                                                          | `false`    | Applies disabled styling.                                                                                                                                             |
-| `className`   | `string`                                                                                                                           | —          | Custom class name.                                                                                                                                                    |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —          | Text color helper.                                                                                                                                                    |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —          | Background color helper.                                                                                                                                              |
-| `as`          | `React.ElementType`                                                                                                                | `'button'` | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling. |
-| `href`        | `string`                                                                                                                           | —          | Href value (if rendering as `<a>`).                                                                                                                                   |
-| `onClick`     | `React.MouseEventHandler<HTMLButtonElement>` \| `React.MouseEventHandler<HTMLAnchorElement>`                                       | —          | Click event handler.                                                                                                                                                  |
-| `target`      | `string`                                                                                                                           | —          | Anchor tag target.                                                                                                                                                    |
-| `rel`         | `string`                                                                                                                           | —          | Anchor tag rel.                                                                                                                                                       |
-| `children`    | `React.ReactNode`                                                                                                                  | —          | Button content.                                                                                                                                                       |
-| `...`         | All standard `<button>` attributes and Bulma helper props                                                                          | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                     |
+| Prop          | Type                                                                                                                               | Default    | Description                                                                                                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`     | `'text'` \| `'ghost'` \| `'underline'`                                                                                             | `'text'`   | Display mode. `text` has no underline and highlights its background on hover; `ghost` uses the default text color and underlines on hover; `underline` drops the button chrome entirely (transparent background and border) and underlines on hover or focus. |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'white'` \| `'light'` \| `'dark'` \| `'black'` | —          | Text color override for the button.                                                                                                                                                                                                                           |
+| `size`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —          | Size of the button.                                                                                                                                                                                                                                           |
+| `isRounded`   | `boolean`                                                                                                                          | `false`    | Makes the button rounded.                                                                                                                                                                                                                                     |
+| `isLoading`   | `boolean`                                                                                                                          | `false`    | Displays a loading spinner.                                                                                                                                                                                                                                   |
+| `isStatic`    | `boolean`                                                                                                                          | `false`    | Makes the button non-interactive.                                                                                                                                                                                                                             |
+| `isFullWidth` | `boolean`                                                                                                                          | `false`    | Makes the button full-width.                                                                                                                                                                                                                                  |
+| `isFocused`   | `boolean`                                                                                                                          | `false`    | Applies focused styling (visual only).                                                                                                                                                                                                                        |
+| `isActive`    | `boolean`                                                                                                                          | `false`    | Applies active styling (visual only).                                                                                                                                                                                                                         |
+| `isHovered`   | `boolean`                                                                                                                          | `false`    | Applies hovered styling (visual only).                                                                                                                                                                                                                        |
+| `isDisabled`  | `boolean`                                                                                                                          | `false`    | Applies disabled styling.                                                                                                                                                                                                                                     |
+| `className`   | `string`                                                                                                                           | —          | Custom class name.                                                                                                                                                                                                                                            |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —          | Text color helper.                                                                                                                                                                                                                                            |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —          | Background color helper.                                                                                                                                                                                                                                      |
+| `as`          | `React.ElementType`                                                                                                                | `'button'` | Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else (including `'a'`) uses anchor-style prop handling.                                                                                         |
+| `href`        | `string`                                                                                                                           | —          | Href value (if rendering as `<a>`).                                                                                                                                                                                                                           |
+| `onClick`     | `React.MouseEventHandler<HTMLButtonElement>` \| `React.MouseEventHandler<HTMLAnchorElement>`                                       | —          | Click event handler.                                                                                                                                                                                                                                          |
+| `target`      | `string`                                                                                                                           | —          | Anchor tag target.                                                                                                                                                                                                                                            |
+| `rel`         | `string`                                                                                                                           | —          | Anchor tag rel.                                                                                                                                                                                                                                               |
+| `children`    | `React.ReactNode`                                                                                                                  | —          | Button content.                                                                                                                                                                                                                                               |
+| `...`         | All standard `<button>` attributes and Bulma helper props                                                                          | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                             |
 
 <!-- /bestax:generated props -->
 

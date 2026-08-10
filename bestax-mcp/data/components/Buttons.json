@@ -345,7 +345,7 @@
           "name": "variant",
           "type": "'text' | 'ghost' | 'underline'",
           "default": "'text'",
-          "description": "Display mode. `text` has no underline; `ghost` uses default text color.",
+          "description": "Display mode. `text` has no underline and highlights its background on hover; `ghost` uses the default text color and underlines on hover; `underline` drops the button chrome entirely (transparent background and border) and underlines on hover or focus.",
           "required": false,
           "inherited": false,
           "deprecated": false

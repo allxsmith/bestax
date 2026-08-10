@@ -577,7 +577,7 @@
       "import": "import { LinkButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 20,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "ListItem",
