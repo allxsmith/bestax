@@ -317,6 +317,37 @@ describe('get_helper_props', () => {
     const out = text(await call('get_helper_props', { group: 'zzzz' }));
     expect(out).toContain('get_helper_props');
   });
+
+  // The 20-run eval in eval/agent-loop/runs-v2/aggregate.md: every MCP-only run called this
+  // tool, eight of ten still wrote 46-162 inline styles, and the two that did not were the
+  // two that had pulled bestax-layout-scaffold — the only place the prohibition lives.
+  // Moving it here puts it in front of every caller. These tests exist so it stays there.
+  describe('leads with the inline-style prohibition', () => {
+    it('states the rule and the escape hatch before the reference', async () => {
+      const out = text(await call('get_helper_props'));
+      expect(out).toContain('Do not write inline');
+      // The escape hatch matters as much as the ban: a builder that hits maxWidth with
+      // nowhere sanctioned to go reaches for style={{}} regardless of the ban.
+      expect(out).toContain('className');
+      expect(out.indexOf('Do not write inline')).toBeLessThan(
+        out.indexOf('useBulmaClasses')
+      );
+    });
+
+    it('carries the mapping table, sourced from the skill so it cannot drift', async () => {
+      const out = text(await call('get_helper_props'));
+      expect(out).toContain('Inline style → helper prop mapping');
+      // Spot-check declarations the failing eval runs actually inlined.
+      for (const decl of ['marginTop', 'textAlign', 'display', 'gap']) {
+        expect(out).toContain(decl);
+      }
+    });
+
+    it('prepends the rule to a narrowed group too', async () => {
+      const out = text(await call('get_helper_props', { group: 'spacing' }));
+      expect(out).toContain('Do not write inline');
+    });
+  });
 });
 
 describe('skills', () => {

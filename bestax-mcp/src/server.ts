@@ -97,6 +97,40 @@ export async function createServer(
     }
   );
 
+  // The single highest-leverage thing this server says, prepended to every
+  // get_helper_props answer.
+  //
+  // Why here: a 20-run eval (eval/agent-loop/runs-v2/aggregate.md) found that all ten
+  // MCP-only runs called get_helper_props, and eight of them still wrote 46-162 inline
+  // styles — while all ten skills-channel runs wrote zero. The two MCP runs that wrote zero
+  // were exactly the two that pulled bestax-layout-scaffold, which is the only place the
+  // prohibition and its mapping table live. Skills auto-trigger on description match; an MCP
+  // tool has to be asked for, and nobody asks for layout guidance when the task does not
+  // sound like layout. So the rule is moved to the tool everyone already calls.
+  //
+  // Sourced from the skill rather than copied, so the two cannot drift. Failure is
+  // non-fatal: a missing or restructured skill costs the preamble, never the reference.
+  const inlineStyleRule = async (): Promise<string> => {
+    const heading = '## Inline style → helper prop mapping';
+    try {
+      const md = await loadSkillFile('bestax-layout-scaffold');
+      const start = md.indexOf(heading);
+      if (start < 0) return '';
+      const end = md.indexOf('\n## ', start + 1);
+      const section = md.slice(start, end < 0 ? undefined : end).trimEnd();
+      return (
+        `**Do not write inline \`style={{ … }}\`, and do not hand-write Bulma ` +
+        `\`className\`s.** Spacing, colour, typography, flex and visibility are ` +
+        `props on every component. Translate the declaration you were about to ` +
+        `inline using the table below; if nothing matches (\`maxWidth\`, a ` +
+        `one-off gradient), add a named class to the project stylesheet and pass ` +
+        `it via \`className\` — still never inline \`style\`.\n\n${section}\n\n---\n\n`
+      );
+    } catch {
+      return '';
+    }
+  };
+
   const notFound = async (name: string) => {
     const names = catalog.components.map(c => c.name);
     const near = suggest(name, names);
@@ -408,7 +442,8 @@ export async function createServer(
       // with signature blocks rather than a props table.
       const record = await loadComponent('useBulmaClasses');
       const doc = record.doc ?? '';
-      if (!group) return textResult(doc, note());
+      const rule = await inlineStyleRule();
+      if (!group) return textResult(rule + doc, note());
 
       // Return only the `##`/`###` sections that mention the group, so asking
       // about spacing does not cost the whole 50 KB page.
@@ -417,10 +452,11 @@ export async function createServer(
         .split(/\n(?=#{2,3} )/)
         .filter(c => c.toLowerCase().includes(q));
       return textResult(
-        chunks.length
-          ? chunks.join('\n\n')
-          : `Nothing in the helper-prop reference mentions "${group}". Call ` +
-              `get_helper_props with no argument for the full reference.`,
+        rule +
+          (chunks.length
+            ? chunks.join('\n\n')
+            : `Nothing in the helper-prop reference mentions "${group}". Call ` +
+              `get_helper_props with no argument for the full reference.`),
         note()
       );
     }
