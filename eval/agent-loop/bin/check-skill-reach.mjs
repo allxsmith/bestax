@@ -23,6 +23,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { scoreRun } from './lib/extras-usage.mjs';
+
 const MARKERS = [
   {
     id: 'near-miss-table',
@@ -83,10 +85,15 @@ for (const run of runs) {
     /* still building */
   }
   row.done = metrics !== null;
-  const imports = new Set(metrics?.bestax_import_list || []);
-  row.toast = row.done ? imports.has('Toast') : null;
-  row.dialog = row.done ? imports.has('Dialog') : null;
-  row.linkButton = row.done ? imports.has('LinkButton') : null;
+  // Call sites, not import names. `import { ToastContainer, toast }` puts no symbol called
+  // Toast in the list, which is how an arm that used Toast in all ten runs was published as
+  // 0/10. See bin/lib/extras-usage.mjs.
+  const { used } = row.done
+    ? scoreRun(path.join(runsDir, run), ['Toast', 'Dialog', 'LinkButton'])
+    : { used: null };
+  row.toast = used ? used.has('Toast') : null;
+  row.dialog = used ? used.has('Dialog') : null;
+  row.linkButton = used ? used.has('LinkButton') : null;
   row.inlineStyles = metrics?.inline_style_count ?? null;
   rows.push(row);
 }

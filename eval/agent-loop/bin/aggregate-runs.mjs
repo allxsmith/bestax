@@ -19,6 +19,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { scoreRun } from './lib/extras-usage.mjs';
+
 const [runsDir, ...rest] = process.argv.slice(2);
 if (!runsDir) {
   console.error(
@@ -126,13 +128,19 @@ for (const arm of arms) {
   if (extrasPath && existsSync(extrasPath)) {
     const slots = loadSlots(extrasPath);
     if (slots) {
+      // Scored from the builder's own sources, not from bestax_import_list. The import
+      // rule reported Toast at 0/10 for an arm in which every run called toast.success:
+      // the usual import is `{ ToastContainer, toast }`, so no symbol named Toast exists.
+      // See bin/lib/extras-usage.mjs.
+      const scored = rs.map(r => scoreRun(join(runsDir, r.id), slots));
+      const fellBack = scored.filter(s => s.basis === 'imports').length;
       console.log(
-        `\n    extras hit-rate (presence in bestax_import_list, n=${rs.length}):`
+        `\n    extras hit-rate (call sites in app-src, n=${rs.length}):`
       );
       const rows = slots
         .map(s => ({
           s,
-          hits: rs.filter(r => r.m.bestax_import_list?.includes(s)).length,
+          hits: scored.filter(x => x.used.has(s)).length,
         }))
         .sort((a, b) => a.hits - b.hits || a.s.localeCompare(b.s));
       for (const { s, hits } of rows) {
@@ -142,8 +150,17 @@ for (const arm of arms) {
         );
       }
       console.log(
-        '      (presence only — rubric-v2 §9 also requires each to be load-bearing)'
+        '      (used at least once — rubric-v2 §9 also requires it to be load-bearing\n' +
+          '       in the surface that asked for it, which only per-run grading establishes)'
       );
+      if (fellBack) {
+        console.log(
+          `      WARNING: ${fellBack}/${rs.length} run(s) had no app-src/ on disk and fell back\n` +
+            '      to import names. app-src/ is gitignored, so a fresh clone has metrics but no\n' +
+            '      sources. Those figures under-count aliased components (Toast, Dialog) and\n' +
+            '      over-count a mounted-but-unused container. Do not mix them with the rest.'
+        );
+      }
     }
   }
 }
