@@ -142,6 +142,38 @@ describe('list_components', () => {
     expect(failed(res)).toBe(true);
     expect(text(res)).toContain('elements');
   });
+
+  // In the 20-run eval this tool was called by 10/10 MCP builders while search_bestax --
+  // the entry point the server's own instructions name -- was called by 0/10. Whatever
+  // search results would have said about the next step has to be said here instead.
+  describe('points at the next step', () => {
+    it('names the detail tools, including get_css_variables', async () => {
+      const out = text(await call('list_components'));
+      for (const tool of [
+        'get_component',
+        'get_props',
+        'get_examples',
+        'get_css_variables',
+      ]) {
+        expect(out).toContain(tool);
+      }
+    });
+
+    // The load-bearing one: builders pulled bestax-theming 10/10 and
+    // bestax-layout-scaffold 2/10, and layout-scaffold is where the inline-style rule
+    // lives. Naming it at component-choosing time is the whole point of the footer.
+    it('names the two skills the eval showed builders never reach for', async () => {
+      const out = text(await call('list_components'));
+      expect(out).toContain('bestax-layout-scaffold');
+      expect(out).toContain('bestax-custom-component');
+      expect(out).toContain('list_skills');
+    });
+
+    it('appears on a category-filtered listing too', async () => {
+      const out = text(await call('list_components', { category: 'form' }));
+      expect(out).toContain('bestax-layout-scaffold');
+    });
+  });
 });
 
 describe('get_component', () => {
@@ -318,6 +350,7 @@ describe('get_helper_props', () => {
     expect(out).toContain('get_helper_props');
   });
 
+  // See the list_components suite for the sibling case: guidance goes where the traffic is.
   // The 20-run eval in eval/agent-loop/runs-v2/aggregate.md: every MCP-only run called this
   // tool, eight of ten still wrote 46-162 inline styles, and the two that did not were the
   // two that had pulled bestax-layout-scaffold — the only place the prohibition lives.

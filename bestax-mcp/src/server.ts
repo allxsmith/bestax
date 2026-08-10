@@ -97,6 +97,32 @@ export async function createServer(
     }
   );
 
+  // Appended to every list_components answer, for the same reason the inline-style rule
+  // moved into get_helper_props: put guidance where the traffic already is.
+  //
+  // The eval (eval/agent-loop/runs-v2/aggregate.md) measured which tools ten MCP-only
+  // builders actually reached for. list_components: 10/10. search_bestax, which the server's
+  // own instructions name as the entry point: 0/10 — every builder enumerated instead of
+  // searching, and its results are what would otherwise have named the next tool.
+  // get_css_variables: 1/10, in an arm where every single run themed the site.
+  //
+  // The skills line is the important one. Builders pulled bestax-theming 10/10 and
+  // bestax-layout-scaffold 2/10, and layout-scaffold is the only place the no-inline-style
+  // rule lives — the two runs that pulled it are the only two that wrote zero inline styles.
+  // Nothing was telling them it existed at the moment they were choosing components.
+  const NEXT_STEPS =
+    `\n\n---\n\n` +
+    `**Next:** \`get_component({ name })\` for props, examples and CSS variables · ` +
+    `\`get_props\` for one table, including compound parts like \`Navbar.Brand\` · ` +
+    `\`get_examples\` for working \`tsx\` · \`get_css_variables\` **before** theming a ` +
+    `component by hand.\n\n` +
+    `**Before writing layout or styling**, read the how-to guides — they carry rules the ` +
+    `prop tables do not. \`get_skill({ name: "bestax-layout-scaffold" })\` has the ` +
+    `inline-style → helper-prop mapping (this library expects props, not \`style={{}}\` ` +
+    `and not hand-written Bulma classes); ` +
+    `\`get_skill({ name: "bestax-custom-component" })\` has the spine every reusable ` +
+    `component needs. \`list_skills\` has all seven.`;
+
   // The single highest-leverage thing this server says, prepended to every
   // get_helper_props answer.
   //
@@ -226,7 +252,7 @@ export async function createServer(
             .join(', ')}.`
         );
       }
-      return textResult(renderCatalog(entries), note());
+      return textResult(renderCatalog(entries) + NEXT_STEPS, note());
     }
   );
 
