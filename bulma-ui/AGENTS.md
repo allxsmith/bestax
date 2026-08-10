@@ -26,6 +26,16 @@ https://bestax.io/docs/skills/intro
 - Existing project: `npx skills add https://github.com/allxsmith/bestax --skill bestax-form`
   (repeat per skill, or omit `--skill` to pick interactively)
 
+Three components Bulma will talk you out of — everything else here gets found
+because Bulma has no equivalent, but these have a near-miss that ends the search:
+
+- Brief confirmation after an action: `Toast` (`<ToastContainer />` at the root,
+  then `toast.success('Saved')`) — not `Notification`/`Message`.
+- A confirm or alert: `Dialog` (`<DialogContainer />`, then
+  `await dialog.confirm({ title, message })`) — not `Modal`.
+- A control that reads as text or a link: `LinkButton` — not `<a href="#">`,
+  `<div onClick>` or `Button color="text"`.
+
 Conventions (the offline essentials):
 
 - Compound components: `Card.Header`, `Navbar.Brand`, `Hero.Body`, …
