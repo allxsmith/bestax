@@ -113,9 +113,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 ## Three components core Bulma will talk you out of
 
 Most of this library's additions get found on their own, because nothing in Bulma does the
-job. These three do not: each has a Bulma near-miss close enough to stop the search. Across a
-20-run eval no build reached for `Dialog` or `Toast` even once, and half missed `LinkButton` —
-every one of them shipped the "not this" column instead.
+job. These three do not: each has a Bulma near-miss close enough to stop the search. Across
+44 cold-start builds, `Dialog` was used **zero** times and `LinkButton` in two thirds — and
+every miss shipped the "not this" column instead.
 
 | You need                                                    | Use                                                                                                                                                             | Not this                                                                                                             |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -123,10 +123,12 @@ every one of them shipped the "not this" column instead.
 | A confirm or alert the user must answer before anything     | `Dialog` — mount `<DialogContainer />` at the root, then `if (await dialog.confirm({ title, message })) …`                                                      | `Modal` — an empty shell; the title, message, button row and confirm/cancel wiring are all yours to rebuild          |
 | A control that reads as text or a link but _does_ something | `LinkButton` (`variant="text" \| "ghost" \| "underline"`, optional `color`)                                                                                     | `<a href="#">`/`<div onClick>` (no keyboard or screen-reader support) or `Button color="text"` (still button-shaped) |
 
-Both `Toast` and `Dialog` also work as ordinary controlled components when you would rather
-hold the state yourself — `<Toast message … duration onClose>`, `<Dialog isOpen title message
-type onConfirm onCancel>` — but in an app with more than one call site the root container plus
-the imperative helper is less wiring, not more.
+Mounting a container without ever calling `toast.*`/`dialog.*` is not usage — the container is
+the mount point, the imperative call is the thing that shows something. Both also work as
+ordinary controlled components when you would rather hold the state yourself —
+`<Toast message … duration onClose>`, `<Dialog isOpen title message type onConfirm onCancel>` —
+but in an app with more than one call site the root container plus the imperative helper is
+less wiring, not more.
 
 ## Inline style → helper prop mapping
 

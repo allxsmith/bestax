@@ -26,6 +26,9 @@
  *                        removing styles, shrink it with `--update-baseline`)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
+ *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
+ *                        in the generated CLAUDE.md and bestax-layout-scaffold,
+ *                        pairing each component with the substitution it loses to
  *   style-mapping-sync   the inline-style → helper-prop mapping (#350) says
  *                        the same thing in all three deliberate copies
  *                        (CLAUDE_MD template + both JSX-generating skills),
@@ -638,6 +641,65 @@ function mappingPropTokens(source) {
   return props;
 }
 
+// The three components that lose to a core-Bulma near-miss are stated in more than one
+// place because each channel reaches a different builder: the generated app CLAUDE.md is
+// injected into every session of a scaffolded project, and the two skills carry it for the
+// tasks they trigger on. (The MCP server is deliberately NOT in this list — it slices the
+// section out of bestax-layout-scaffold at runtime, so it cannot drift by construction.)
+//
+// Without this check they drift, and they already had: one copy cited a 20-run eval and
+// another 44 builds, and a third named LinkButton with no variant prop at all, so an agent
+// reading only that one learned the component's name and not how to call it.
+const NEAR_MISS_FILES = [
+  'create-bestax/src/constants.ts',
+  'skills/bestax-layout-scaffold/SKILL.md',
+];
+
+// Every copy must pair the component with the substitution it loses to. Naming the right
+// answer alone is what the guidance did before runs-v4, and that arm was a flat null.
+const NEAR_MISS_PAIRS = [
+  ['`Toast`', '`Notification`'],
+  ['`Dialog`', '`Modal`'],
+  ['`LinkButton`', '`Button color="text"`'],
+];
+
+// The setup a builder cannot guess, and the half-adoption that looks like use.
+const NEAR_MISS_FACTS = [
+  'ToastContainer',
+  "toast.success('Saved')",
+  '<DialogContainer />',
+  'dialog.confirm(',
+  'variant="text"',
+  'Mounting a container without ever calling',
+];
+
+async function checkNearMissSync() {
+  const violations = [];
+  for (const rel of NEAR_MISS_FILES) {
+    const src = (await readFile(join(REPO, rel), 'utf8')).replace(/\\/g, '');
+    for (const [right, wrong] of NEAR_MISS_PAIRS) {
+      if (!src.includes(right) || !src.includes(wrong)) {
+        violations.push(
+          `${rel} must pair ${right} with the substitution it loses to (${wrong}). ` +
+            `The near-miss guidance is deliberately duplicated across ` +
+            `${NEAR_MISS_FILES.join(', ')} so it is in context whichever channel a ` +
+            `builder has — apply the same edit to both.`
+        );
+      }
+    }
+    for (const fact of NEAR_MISS_FACTS) {
+      if (!src.includes(fact)) {
+        violations.push(
+          `${rel} is missing "${fact}" from the near-miss guidance. Every copy has to ` +
+            `carry the container-plus-imperative setup and the LinkButton variants, or a ` +
+            `builder reading that copy learns the component name and not its API.`
+        );
+      }
+    }
+  }
+  return violations;
+}
+
 async function checkStyleMappingSync() {
   const violations = [];
   const FILES = MAPPING_FILES;
@@ -1104,6 +1166,7 @@ const CHECKS = {
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
   'style-mapping-sync': checkStyleMappingSync,
+  'near-miss-sync': checkNearMissSync,
   'story-per-component': checkStoryPerComponent,
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
