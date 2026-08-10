@@ -235,15 +235,34 @@ describe('list_components', () => {
     // skill reaching 4 builders in 10 and the arm coming out a flat null, so the three
     // components with a core-Bulma near-miss are named here, on the tool 10/10 runs call.
     describe('names the three components with a core-Bulma near-miss', () => {
+      // Asserting the component NAMES here proved nothing: all five are components, so the
+      // catalog listing above the footer contains every one of them whether or not the
+      // block rendered. Verified by executing the assertions against the listing alone --
+      // all five passed. The heading is the only string unique to the block.
+      it('renders the section itself, not just names the listing already has', async () => {
+        const out = text(await call('list_components'));
+        const listingOnly = out.slice(0, out.indexOf('---'));
+        expect(listingOnly).toContain('Toast');
+        expect(out).toContain(
+          'Three components core Bulma will talk you out of'
+        );
+        expect(listingOnly).not.toContain(
+          'Three components core Bulma will talk you out of'
+        );
+      });
+
       it('pairs each with the substitution it loses to', async () => {
         const out = text(await call('list_components'));
+        const block = out.slice(
+          out.indexOf('Three components core Bulma will talk you out of')
+        );
         for (const [right, wrong] of [
           ['Toast', 'Notification'],
           ['Dialog', 'Modal'],
           ['LinkButton', 'Button color="text"'],
         ]) {
-          expect(out).toContain(right);
-          expect(out).toContain(wrong);
+          expect(block).toContain(right);
+          expect(block).toContain(wrong);
         }
       });
 
@@ -490,6 +509,79 @@ describe('get_helper_props', () => {
     it('prepends the rule to a narrowed group too', async () => {
       const out = text(await call('get_helper_props', { group: 'spacing' }));
       expect(out).toContain('Do not write inline');
+    });
+  });
+
+  // get_helper_props was 54,886 characters -- 49% of everything a measured cold-start
+  // session read -- on the tool the server's own instructions tell every client to call.
+  describe('answers without spending the session', () => {
+    it('keeps the default under 10k while naming every prop', async () => {
+      const out = text(await call('get_helper_props'));
+      expect(out.length).toBeLessThan(10_000);
+      // Spot-check across all seven groups; helper-props.test.ts checks all 46 exhaustively.
+      for (const prop of [
+        'mt',
+        'px',
+        'color',
+        'backgroundColor',
+        'textSize',
+        'flexGrow',
+        'display',
+        'cursor',
+        'skeleton',
+        'viewport',
+      ]) {
+        expect(out).toContain('`' + prop + '`');
+      }
+    });
+
+    it('narrows further when a group is named', async () => {
+      const full = text(await call('get_helper_props'));
+      for (const group of ['spacing', 'flex', 'layout']) {
+        const out = text(await call('get_helper_props', { group }));
+        expect(out.length).toBeLessThan(full.length);
+      }
+    });
+
+    // Under the old whole-body substring filter "text" returned 87% of the page; under a
+    // naive heading-only filter it would have returned nothing at all.
+    it.each([
+      ['text', 'textWeight'],
+      ['margin', 'mt'],
+      ['colour', 'backgroundColor'],
+      ['mobile', 'viewport'],
+    ])('resolves the word a builder actually uses: %p', async (group, prop) => {
+      const out = text(await call('get_helper_props', { group }));
+      expect(out).toContain('`' + prop + '`');
+      expect(out.length).toBeLessThan(10_000);
+    });
+
+    it('answers a nonsense group briefly, listing the real ones', async () => {
+      const out = text(await call('get_helper_props', { group: 'quantum' }));
+      // Was 3,956 characters, of which 3,832 was a prohibition prepended to a call that
+      // answered nothing.
+      expect(out.length).toBeLessThan(400);
+      expect(out).toContain('spacing');
+    });
+  });
+
+  describe('get_component on a helper', () => {
+    it('is a pointer by default, not the whole reference', async () => {
+      const out = text(
+        await call('get_component', { name: 'useBulmaClasses' })
+      );
+      expect(out.length).toBeLessThan(1_000);
+      expect(out).toContain('get_helper_props');
+    });
+
+    it('returns the full prose when it is asked for', async () => {
+      const out = text(
+        await call('get_component', {
+          name: 'useBulmaClasses',
+          include: ['reference'],
+        })
+      );
+      expect(out.length).toBeGreaterThan(40_000);
     });
   });
 });

@@ -44,6 +44,12 @@ import {
   table,
   textResult,
 } from './format.js';
+import {
+  GROUP_NAMES,
+  renderHelperDefault,
+  renderHelperGroup,
+  resolveGroup,
+} from './helper-props.js';
 import { searchAll, suggest, type HitKind } from './search.js';
 import { resolveVersions, versionNote, type VersionInfo } from './version.js';
 
@@ -91,7 +97,17 @@ const INCLUDES = [
   'cssVars',
   'accessibility',
   'related',
+  // Helpers only: the full reference prose. Opt-in because useBulmaClasses' is 51,054
+  // characters and it used to arrive on the default call whether asked for or not.
+  'reference',
 ] as const;
+
+/**
+ * What the `bestax://components/{name}` resource renders. Everything except `reference` —
+ * a resource takes no arguments, so a caller has no way to decline it, and for
+ * useBulmaClasses that one member is the difference between ~2.5 KB and 53 KB.
+ */
+const RESOURCE_INCLUDES = INCLUDES.filter(i => i !== 'reference');
 
 /** Load every component record. Only `search_bestax` needs this much. */
 async function allComponents(): Promise<ComponentRecord[]> {
@@ -562,22 +578,20 @@ export async function createServer(
       const record = await loadComponent('useBulmaClasses');
       const doc = record.doc ?? '';
       const rule = await inlineStyleRule();
-      if (!group) return textResult(rule + doc, note());
+      if (!group) return textResult(rule + renderHelperDefault(doc), note());
 
-      // Return only the `##`/`###` sections that mention the group, so asking
-      // about spacing does not cost the whole 50 KB page.
-      const q = group.toLowerCase();
-      const chunks = doc
-        .split(/\n(?=#{2,3} )/)
-        .filter(c => c.toLowerCase().includes(q));
-      return textResult(
-        rule +
-          (chunks.length
-            ? chunks.join('\n\n')
-            : `Nothing in the helper-prop reference mentions "${group}". Call ` +
-              `get_helper_props with no argument for the full reference.`),
-        note()
-      );
+      const resolved = resolveGroup(group);
+      if (!resolved) {
+        // No rule preamble here: this answered nothing, and 3,832 characters of
+        // prohibition on top of a 124-character "try again" was 97% overhead.
+        return textResult(
+          `No helper-prop group matches "${group}". Groups: ` +
+            `${GROUP_NAMES.join(', ')}. Call get_helper_props with no argument ` +
+            `for every prop at once.`,
+          note()
+        );
+      }
+      return textResult(rule + renderHelperGroup(doc, resolved), note());
     }
   );
 
@@ -695,7 +709,7 @@ export async function createServer(
           {
             uri: uri.href,
             mimeType: 'text/markdown',
-            text: renderComponent(record, [...INCLUDES]),
+            text: renderComponent(record, RESOURCE_INCLUDES),
           },
         ],
       };

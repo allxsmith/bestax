@@ -181,6 +181,14 @@ export function loadComponent(name: string): Promise<ComponentRecord> {
 
 let skillsPromise: Promise<Skill[]> | null = null;
 
+/**
+ * Skill bodies, memoised like every other loader in this file. `inlineStyleRule()` slices a
+ * section out of bestax-layout-scaffold on every `get_helper_props` call and `nearMissRule()`
+ * does the same on every unfiltered `list_components`; without this each of those re-read a
+ * 15 KB file from disk. The bodies are immutable for the life of a stdio session.
+ */
+const skillFileCache = new Map<string, Promise<string>>();
+
 export function loadSkills(): Promise<Skill[]> {
   skillsPromise ??= readJson<{ skills: Skill[] }>(
     join(DATA_DIR, 'skills.json')
@@ -205,6 +213,9 @@ export async function loadSkillFile(
   if (relative.includes('..') || relative.startsWith('/')) {
     throw new Error(`bestax-mcp: refusing to read "${relative}"`);
   }
+  const cacheKey = `${dir}/${relative}`;
+  const hit = skillFileCache.get(cacheKey);
+  if (hit) return hit;
   const path = join(DATA_DIR, 'skills', dir, relative);
   if (!existsSync(path)) {
     throw new Error(
@@ -213,7 +224,9 @@ export async function loadSkillFile(
         `always carries them.`
     );
   }
-  return readFile(path, 'utf8');
+  const read = readFile(path, 'utf8');
+  skillFileCache.set(cacheKey, read);
+  return read;
 }
 
 /** Test seam — the loaders memoise for the life of a stdio session. */
@@ -221,4 +234,5 @@ export function resetCaches(): void {
   catalogPromise = null;
   skillsPromise = null;
   componentCache.clear();
+  skillFileCache.clear();
 }

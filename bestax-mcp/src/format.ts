@@ -101,8 +101,21 @@ export function renderComponent(
   out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
 
   if (record.kind === 'helper') {
-    // Helper pages are reference prose with signature blocks, not tables.
-    if (record.doc) out.push(record.doc);
+    // Helper pages are reference prose with signature blocks, not tables — and for
+    // useBulmaClasses that prose is 51,054 characters. It used to be pushed unconditionally,
+    // outside any `include` check, so the DEFAULT call returned all of it and no argument
+    // could ask for less. Now it is opt-in, and the default is a pointer at the tool that
+    // exists to serve exactly this and can narrow it by group.
+    if (include.includes('reference') && record.doc) {
+      out.push(record.doc);
+    } else {
+      out.push(
+        `This is a helper, not a component — its reference is large and grouped. ` +
+          `Call \`get_helper_props()\` for every prop with its accepted values, or ` +
+          `\`get_helper_props({ group })\` for one area with examples. ` +
+          `Pass \`include: ["reference"]\` here for the full prose.`
+      );
+    }
   } else if (include.includes('props')) {
     const [root, ...subs] = record.parts;
     if (root) out.push(renderPart(root, { heading: false }));
