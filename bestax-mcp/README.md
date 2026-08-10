@@ -20,7 +20,7 @@ you when they disagree, rather than confidently describing props you do not have
 ### Claude Code
 
 ```bash
-claude mcp add bestax -- npx -y bestax-mcp
+claude mcp add bestax -- npx -y bestax-mcp@1
 ```
 
 ### Cursor, Claude Desktop, Windsurf, Cline
@@ -32,7 +32,7 @@ Add to your MCP config (`.cursor/mcp.json`, `claude_desktop_config.json`, …):
   "mcpServers": {
     "bestax": {
       "command": "npx",
-      "args": ["-y", "bestax-mcp"]
+      "args": ["-y", "bestax-mcp@1"]
     }
   }
 }
@@ -40,6 +40,11 @@ Add to your MCP config (`.cursor/mcp.json`, `claude_desktop_config.json`, …):
 
 Run it from your project directory so it can find your installed
 `@allxsmith/bestax-bulma` and check it against the indexed version.
+
+The `@1` pins the major version. Without it, `npx` resolves whatever is newest on every
+launch — so a breaking change, or a compromised release, reaches your agent the next time it
+starts, with no review step. Add it to your dev dependencies instead if you would rather your
+lockfile decide.
 
 ## Tools
 

@@ -160,23 +160,43 @@ export async function createServer(
     `inline-style → helper-prop mapping (this library expects props, not \`style={{}}\` ` +
     `and not hand-written Bulma classes); ` +
     `\`get_skill({ name: "bestax-custom-component" })\` has the spine every reusable ` +
-    `component needs. \`list_skills\` has all seven.\n\n` +
-    // Placed here rather than left to bestax-layout-scaffold, for the reason the footer
-    // itself exists: eval/agent-loop/runs-v4 measured that skill reaching 4 builders in 10,
-    // and the arm-level result was a flat null while the four it did reach used LinkButton
-    // 4/4 against 1/6. Guidance only counts where it is delivered, and list_components is
-    // called by 10/10.
-    `**Three components core Bulma will talk you out of.** Everything else here gets ` +
-    `found because Bulma has no equivalent; these have a near-miss close enough to end ` +
-    `the search. For a brief self-dismissing confirmation use **Toast** ` +
-    `(\`<ToastContainer />\` at the app root, then \`toast.success('Saved')\`) — not ` +
-    `\`Notification\`/\`Message\`, which you must place and dismiss yourself. For a confirm ` +
-    `or alert use **Dialog** (\`<DialogContainer />\` at the root, then ` +
-    `\`await dialog.confirm({ title, message })\`) — not \`Modal\`, which is an empty shell ` +
-    `you rebuild the title, message and buttons inside. For a control that reads as text ` +
-    `or a link but does something, use **LinkButton** — not \`<a href="#">\`, ` +
-    `\`<div onClick>\` or \`Button color="text"\`. Mounting a container without calling ` +
-    `\`toast.*\`/\`dialog.*\` is not usage.`;
+    `component needs. \`list_skills\` has all seven.`;
+
+  // The three components that lose to a core-Bulma near-miss, for the unfiltered
+  // list_components answer only.
+  //
+  // Why it exists: eval/agent-loop/runs-v4 measured bestax-layout-scaffold reaching 4
+  // builders in 10, and that arm came out a flat null against its control. The four it did
+  // reach used LinkButton 4/4 where the other six went 1/6, and every miss shipped one of
+  // the substitutions the table names. Guidance only counts where it is delivered, and
+  // list_components is called by 10/10.
+  //
+  // Why unfiltered only: the footer is a fixed cost on a variable-size answer.
+  // list_components({category:"grid"}) returns 241 characters of listing, and an
+  // unconditional near-miss block made that response 86% boilerplate. On the unfiltered call
+  // it is ~11%, and that is also the moment a builder is actually choosing components — a
+  // category filter means they have already chosen.
+  //
+  // Sourced from the skill rather than paraphrased, for the same reason as inlineStyleRule
+  // below: the hardcoded copy this replaces had already drifted from it, naming LinkButton
+  // with no variant prop and dropping the controlled-component alternative. The provenance
+  // paragraph is skipped — how our eval went is not something a builder needs in context.
+  const nearMissRule = async (): Promise<string> => {
+    const heading = '## Three components core Bulma will talk you out of';
+    try {
+      const md = await loadSkillFile('bestax-layout-scaffold');
+      const start = md.indexOf(heading);
+      if (start < 0) return '';
+      const end = md.indexOf('\n## ', start + 1);
+      const section = md.slice(start, end < 0 ? undefined : end).trimEnd();
+      // Keep the heading and everything from the table onward; drop the prose between them.
+      const table = section.indexOf('\n| ');
+      if (table < 0) return '';
+      return `\n\n${heading}\n${section.slice(table)}`;
+    } catch {
+      return '';
+    }
+  };
 
   // The single highest-leverage thing this server says, prepended to every
   // get_helper_props answer.
@@ -310,7 +330,8 @@ export async function createServer(
             .join(', ')}.`
         );
       }
-      return textResult(renderCatalog(entries) + NEXT_STEPS, note());
+      const nearMiss = category ? '' : await nearMissRule();
+      return textResult(renderCatalog(entries) + NEXT_STEPS + nearMiss, note());
     }
   );
 

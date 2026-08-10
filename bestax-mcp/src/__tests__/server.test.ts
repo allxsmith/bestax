@@ -249,7 +249,8 @@ describe('list_components', () => {
 
       it('gives the container-plus-imperative setup', async () => {
         const out = text(await call('list_components'));
-        expect(out).toContain('<ToastContainer />');
+        expect(out).toContain('ToastContainer');
+        expect(out).toContain("toast.success('Saved')");
         expect(out).toContain('<DialogContainer />');
         expect(out).toContain('dialog.confirm(');
       });
@@ -257,7 +258,30 @@ describe('list_components', () => {
       // sk01 mounted DialogContainer, never called it, and built its confirm out of Modal.
       it('rules out mounting a container and calling it done', async () => {
         const out = text(await call('list_components'));
-        expect(out).toMatch(/Mounting a container without calling/);
+        expect(out).toMatch(/Mounting a container without ever calling/);
+      });
+
+      // Sourced from the skill, not paraphrased — so the API a builder needs in order to
+      // act on the row travels with it. The hardcoded copy this replaced named LinkButton
+      // with no variant prop at all.
+      it('carries the LinkButton variants the hardcoded copy had lost', async () => {
+        const out = text(await call('list_components'));
+        expect(out).toContain('variant="text"');
+        expect(out).toContain('underline');
+      });
+
+      // The footer is a fixed cost on a variable-size answer: with this block appended
+      // unconditionally, list_components({category:"grid"}) was 86% boilerplate.
+      it('is omitted on a category-filtered call, which is not a choosing moment', async () => {
+        const filtered = text(
+          await call('list_components', { category: 'grid' })
+        );
+        expect(filtered).not.toContain('talk you out of');
+        // The cheap next-step routing still travels on every call.
+        expect(filtered).toContain('get_component');
+        expect(filtered.length).toBeLessThan(
+          text(await call('list_components')).length
+        );
       });
     });
   });

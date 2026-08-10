@@ -72,7 +72,7 @@ replace inline styles, and the Agent Skills as invocable prompts.
 **Claude Code:**
 
 ```bash
-claude mcp add bestax -- npx -y bestax-mcp
+claude mcp add bestax -- npx -y bestax-mcp@1
 ```
 
 **Cursor, Claude Desktop, Windsurf, Cline** — add to your MCP config
@@ -83,7 +83,7 @@ claude mcp add bestax -- npx -y bestax-mcp
   "mcpServers": {
     "bestax": {
       "command": "npx",
-      "args": ["-y", "bestax-mcp"]
+      "args": ["-y", "bestax-mcp@1"]
     }
   }
 }
@@ -91,6 +91,11 @@ claude mcp add bestax -- npx -y bestax-mcp
 
 Run it from your project directory, so it can find your installed
 `@allxsmith/bestax-bulma`.
+
+The `@1` pins the major version. Without it, `npx` resolves whatever is newest on every
+launch — so a breaking change, or a compromised release, reaches your agent the next time it
+starts, with no review step. Add it to your project's dev dependencies instead if you would
+rather your lockfile decide.
 
 ### Tools
 
