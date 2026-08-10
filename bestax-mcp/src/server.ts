@@ -129,7 +129,23 @@ export async function createServer(
     `inline-style → helper-prop mapping (this library expects props, not \`style={{}}\` ` +
     `and not hand-written Bulma classes); ` +
     `\`get_skill({ name: "bestax-custom-component" })\` has the spine every reusable ` +
-    `component needs. \`list_skills\` has all seven.`;
+    `component needs. \`list_skills\` has all seven.\n\n` +
+    // Placed here rather than left to bestax-layout-scaffold, for the reason the footer
+    // itself exists: eval/agent-loop/runs-v4 measured that skill reaching 4 builders in 10,
+    // and the arm-level result was a flat null while the four it did reach used LinkButton
+    // 4/4 against 1/6. Guidance only counts where it is delivered, and list_components is
+    // called by 10/10.
+    `**Three components core Bulma will talk you out of.** Everything else here gets ` +
+    `found because Bulma has no equivalent; these have a near-miss close enough to end ` +
+    `the search. For a brief self-dismissing confirmation use **Toast** ` +
+    `(\`<ToastContainer />\` at the app root, then \`toast.success('Saved')\`) — not ` +
+    `\`Notification\`/\`Message\`, which you must place and dismiss yourself. For a confirm ` +
+    `or alert use **Dialog** (\`<DialogContainer />\` at the root, then ` +
+    `\`await dialog.confirm({ title, message })\`) — not \`Modal\`, which is an empty shell ` +
+    `you rebuild the title, message and buttons inside. For a control that reads as text ` +
+    `or a link but does something, use **LinkButton** — not \`<a href="#">\`, ` +
+    `\`<div onClick>\` or \`Button color="text"\`. Mounting a container without calling ` +
+    `\`toast.*\`/\`dialog.*\` is not usage.`;
 
   // The single highest-leverage thing this server says, prepended to every
   // get_helper_props answer.

@@ -188,6 +188,36 @@ describe('list_components', () => {
       const out = text(await call('list_components', { category: 'form' }));
       expect(out).toContain('bestax-layout-scaffold');
     });
+
+    // Pointing at bestax-layout-scaffold is not enough on its own. runs-v4 measured that
+    // skill reaching 4 builders in 10 and the arm coming out a flat null, so the three
+    // components with a core-Bulma near-miss are named here, on the tool 10/10 runs call.
+    describe('names the three components with a core-Bulma near-miss', () => {
+      it('pairs each with the substitution it loses to', async () => {
+        const out = text(await call('list_components'));
+        for (const [right, wrong] of [
+          ['Toast', 'Notification'],
+          ['Dialog', 'Modal'],
+          ['LinkButton', 'Button color="text"'],
+        ]) {
+          expect(out).toContain(right);
+          expect(out).toContain(wrong);
+        }
+      });
+
+      it('gives the container-plus-imperative setup', async () => {
+        const out = text(await call('list_components'));
+        expect(out).toContain('<ToastContainer />');
+        expect(out).toContain('<DialogContainer />');
+        expect(out).toContain('dialog.confirm(');
+      });
+
+      // sk01 mounted DialogContainer, never called it, and built its confirm out of Modal.
+      it('rules out mounting a container and calling it done', async () => {
+        const out = text(await call('list_components'));
+        expect(out).toMatch(/Mounting a container without calling/);
+      });
+    });
   });
 });
 
