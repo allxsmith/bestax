@@ -109,10 +109,31 @@ this one. That is about as clean a demonstration as this eval can produce that
 
 ## What to do with this
 
-1. **Move the near-miss guidance to a surface that always loads.** The scaffolded
-   `CLAUDE.md` reaches every run — it is where the no-inline-style rule lives, which is why
-   that rule holds at 0/10 in every arm regardless of which skills trigger. This is #363's
-   "placement beats content" finding, re-learned at a cost of $184.
+1. **Move the near-miss guidance to a surface that always loads — for scaffolded apps, that
+   is the generated `CLAUDE.md`.** Not this repo's `CLAUDE.md`: the one
+   `create-bestax` writes into the user's new project (`CLAUDE_MD` in
+   `create-bestax/src/constants.ts`). Claude Code injects a project `CLAUDE.md` into the
+   system prompt on every session, where a skill body only arrives when the model chooses to
+   `Skill`-invoke or read it — which is the 4-in-10 above.
+
+   **This is by design, not measured here.** `transcript.jsonl` does not record the system
+   prompt, so the marker method cannot see `CLAUDE.md` delivery at all (it scores 0/20 in
+   `runs-v2` and 1/10 here, and that one is an explicit read). The supporting evidence is
+   indirect but strong: the no-inline-style rule lives in the generated `CLAUDE.md`, and
+   `inline_style_count` is 0 across all ten skills runs **including the six that never
+   loaded `layout-scaffold`** — while the pre-fix MCP arm, which is scaffolded with
+   `--no-skills` and therefore has no `CLAUDE.md` at all, wrote 46 to 162.
+
+   **Its reach is narrower than "every run".** `CLAUDE.md` is written inside `setupSkills()`
+   (`project-creator.ts:145`), so it exists only when skills are installed. An MCP-only user,
+   or anyone who added skills to an existing project with `npx skills add`, never gets one.
+   For the MCP channel the equivalent always-on surface is the server's `instructions` plus
+   the `list_components` footer — already proven in [`runs-v3`](../runs-v3/aggregate.md),
+   where moving one rule onto a tool every builder calls took inline styles from a mean of
+   76.7 to 1.1.
+
+   This is #363's "placement beats content" finding, re-learned at a cost of $184.
+
 2. **Leave the skills copy in place.** It is accurate, it costs nothing, and it works when
    delivered.
 3. **`Dialog` needs the library-level decision in #500.** No amount of guidance placement
