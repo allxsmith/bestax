@@ -26,7 +26,7 @@
       "code": "<Radios name=\"color\" label=\"Favorite color\">\n  <Radios.Radio value=\"red\">Red</Radios.Radio>\n  <Radios.Radio value=\"green\">Green</Radios.Radio>\n</Radios>"
     }
   ],
-  "accessibility": "- The group is rendered as a `<div class=\"radios\">` containing labeled radio buttons.\n- Each child should be a `Radio` for proper labeling and accessibility.\n- Use the same `name` for all radios in a group to ensure mutual exclusivity.",
+  "accessibility": "- The group is rendered as a `<div class=\"radios\" role=\"radiogroup\">` containing labeled radio buttons.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Each child should be a `Radio` for proper labeling and accessibility.\n- Use the same `name` for all radios in a group to ensure mutual exclusivity.",
   "related": ["Field", "Radio"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--listofradios",
   "summary": "The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.",
@@ -39,6 +39,24 @@
       "summary": "The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.",
       "component": null,
       "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -94,28 +112,10 @@
           "deprecated": false
         },
         {
-          "name": "label",
-          "type": "React.ReactNode",
-          "default": null,
-          "description": "Field label, rendered above the widget.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
           "name": "labelSize",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
           "description": "Size for the label (used in horizontal layouts).",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "labelProps",
-          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
-          "default": null,
-          "description": "Props for the label element.",
           "required": false,
           "inherited": true,
           "deprecated": false

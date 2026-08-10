@@ -86,7 +86,7 @@
       "code": "<Field horizontal>\n  <Field.Label>Name</Field.Label>\n  <Field.Body>\n    <Field.Control>\n      <Input placeholder=\"Jane Doe\" />\n    </Field.Control>\n  </Field.Body>\n</Field>"
     }
   ],
-  "accessibility": "- Renders a `<label>` for the field, but `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control. The single-control convenience inputs (`Input`, `Select`, `TextArea`, and similar) do this automatically via their own `label` prop, but only when used outside an existing `Field`; nested inside one, they drop their `label` prop entirely.\n- Grouped/horizontal layouts use Bulma’s grid for layout.\n- Always use the `label` prop or a custom label for clarity.",
+  "accessibility": "- The `label` prop is automatically associated with a single composed `InputBase`, `SelectBase`, or `TextAreaBase` (or an `Input`, `Select`, or `TextArea` nested inside — other convenience inputs don't adopt): the label points at a generated id the control adopts, so clicking it focuses the control and assistive technology announces it.\n- Pass `labelProps={{ htmlFor }}` and a matching `id` when you want a stable id of your own; pass `labelProps={{ htmlFor: undefined }}` to opt out of the association entirely.\n- Association is skipped for `grouped`/`hasAddons` fields (they hold several controls). A labeled Field whose content is not one of the adopting controls (e.g. a checkbox group) renders its `for` unmatched — functionally the same as an unassociated label; label such groups via their own `label` prop instead.\n- Grouped/horizontal layouts use Bulma’s grid for layout.\n- Always use the `label` prop or a custom label for clarity.",
   "related": [
     "Checkbox",
     "Checkboxes",
@@ -149,7 +149,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically when they render their own `Field`).",
+          "description": "Field label, rendered above the widget. Automatically associated with a single composed `InputBase`, `SelectBase`, or `TextAreaBase` via a generated id and `htmlFor`. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -167,7 +167,7 @@
           "name": "labelProps",
           "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
           "default": null,
-          "description": "Props for the label element — where `htmlFor` goes when composing.",
+          "description": "Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association.",
           "required": false,
           "inherited": false,
           "deprecated": false

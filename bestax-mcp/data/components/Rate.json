@@ -51,7 +51,7 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"star\">\n            <Rate defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
+  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
   "summary": "The `Rate` component provides a star/icon-based rating system.",
@@ -64,6 +64,24 @@
       "summary": "The `Rate` component provides a star/icon-based rating system.",
       "component": null,
       "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label=\"Rating\"`. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "name",
           "type": "string",
@@ -254,28 +272,10 @@
           "deprecated": false
         },
         {
-          "name": "label",
-          "type": "React.ReactNode",
-          "default": null,
-          "description": "Field label, rendered above the widget.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
           "name": "labelSize",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
           "description": "Size for the label (used in horizontal layouts).",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "labelProps",
-          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
-          "default": null,
-          "description": "Props for the label element.",
           "required": false,
           "inherited": true,
           "deprecated": false

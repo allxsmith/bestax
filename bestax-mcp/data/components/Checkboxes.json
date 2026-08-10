@@ -26,7 +26,7 @@
       "code": "<Checkboxes name=\"frameworks\" label=\"Frameworks\">\n  <Checkboxes.Checkbox value=\"react\">React</Checkboxes.Checkbox>\n  <Checkboxes.Checkbox value=\"vue\">Vue</Checkboxes.Checkbox>\n</Checkboxes>"
     }
   ],
-  "accessibility": "- The group is rendered as a `<div class=\"checkboxes\">` containing labeled checkboxes.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
+  "accessibility": "- The group is rendered as a `<div class=\"checkboxes\" role=\"group\">` containing labeled checkboxes.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
   "related": ["Checkbox", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes",
   "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
@@ -39,6 +39,24 @@
       "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
       "component": null,
       "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role=\"group\"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -94,28 +112,10 @@
           "deprecated": false
         },
         {
-          "name": "label",
-          "type": "React.ReactNode",
-          "default": null,
-          "description": "Field label, rendered above the widget.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
           "name": "labelSize",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
           "description": "Size for the label (used in horizontal layouts).",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "labelProps",
-          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
-          "default": null,
-          "description": "Props for the label element.",
           "required": false,
           "inherited": true,
           "deprecated": false
