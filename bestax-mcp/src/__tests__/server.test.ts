@@ -61,6 +61,48 @@ describe('advertised surface', () => {
     }
   });
 
+  // Without these a well-behaved client has to assume a documentation lookup might be
+  // destructive, and prompts the user for every call.
+  it('marks every tool read-only, non-destructive and closed-world', async () => {
+    for (const tool of (await client.listTools()).tools) {
+      expect(tool.annotations).toMatchObject({
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      });
+    }
+  });
+
+  // Unbounded, these arguments fed linear scans on a single-threaded process: a ~40 KB
+  // query threw "Regular expression too large" and echoed itself back as the error, and a
+  // 1 MB name blocked the event loop for 9.3 s in the not-found suggester.
+  describe('bounds every free-text argument', () => {
+    it.each([
+      ['search_bestax', { query: 'x'.repeat(5000) }],
+      ['get_component', { name: 'x'.repeat(5000) }],
+      ['get_props', { component: 'x'.repeat(5000) }],
+      ['get_examples', { component: 'x'.repeat(5000) }],
+      ['get_css_variables', { query: 'x'.repeat(5000) }],
+    ])('rejects an oversized argument to %s', async (tool, args) => {
+      const res = await call(tool, args);
+      expect(failed(res)).toBe(true);
+      // The schema rejects it, so the message states the limit — and, unlike the
+      // "Regular expression too large" failure this replaces, does not reflect the
+      // oversized input back into the model's context.
+      expect(text(res)).toContain('Too big');
+      expect(text(res).length).toBeLessThan(400);
+    });
+
+    it('still accepts ordinary values', async () => {
+      expect(failed(await call('search_bestax', { query: 'spacing' }))).toBe(
+        false
+      );
+      expect(failed(await call('get_component', { name: 'Button' }))).toBe(
+        false
+      );
+    });
+  });
+
   // The instructions are the one string every client reads before it calls anything, so
   // the first tool they name is the only entry point the server really gets to choose.
   // The eval said that has to be list_components: 10/10 builders started there and 0/10

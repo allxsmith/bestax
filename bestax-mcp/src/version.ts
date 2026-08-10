@@ -27,6 +27,28 @@ export interface VersionInfo {
   drift: 'none' | 'patch' | 'minor' | 'major' | 'unknown';
 }
 
+/**
+ * The one string in this server that does not come from its own committed data.
+ *
+ * `version` is read out of a `package.json` in the user's project and then quoted back into
+ * a note that rides along with every successful tool result — so it lands in a model's
+ * context wearing this server's authority. A tampered or typosquatted package at that path
+ * can put anything there, and it does not need to execute: the manifest is read, never
+ * required, so a payload works even under `--ignore-scripts`.
+ *
+ * Anything that is not a plain semver-shaped string is therefore treated as "no version
+ * found", which is already a normal, non-error state (see the header comment). The length
+ * cap is belt and braces — a conforming version cannot approach it.
+ */
+const SEMVER_ISH = /^\d+\.\d+\.\d+[\w.+-]*$/;
+const MAX_VERSION_LENGTH = 64;
+
+export function sanitizeVersion(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  if (value.length > MAX_VERSION_LENGTH) return null;
+  return SEMVER_ISH.test(value) ? value : null;
+}
+
 const majorMinor = (v: string) => v.replace(/^[^\d]*/, '').split('.');
 
 function compare(indexed: string, installed: string): VersionInfo['drift'] {
@@ -60,10 +82,11 @@ export async function findInstalledVersion(
         ...PACKAGE.split('/'),
         'package.json'
       );
-      const pkg = JSON.parse(await readFile(manifest, 'utf8')) as {
-        version?: string;
-      };
-      if (pkg.version) return pkg.version;
+      const pkg = JSON.parse(await readFile(manifest, 'utf8')) as unknown;
+      const version = sanitizeVersion(
+        (pkg as { version?: unknown } | null)?.version
+      );
+      if (version) return version;
     } catch {
       // Not here — keep walking.
     }
@@ -74,14 +97,58 @@ export async function findInstalledVersion(
   }
 }
 
+/**
+ * How long the probe above may take before we stop caring.
+ *
+ * `readFile` on a FIFO blocks forever and a stalled network mount blocks for as long as the
+ * mount does; the try/catch around it catches throws, not hangs. Since the probe runs before
+ * the stdio transport connects, a hang there presents as "the MCP server never came up" with
+ * no output at all — the exact failure this package's entry point is written to avoid. A
+ * missing version is a supported state, so giving up is always safe.
+ */
+const PROBE_TIMEOUT_MS = 500;
+
+function withTimeout<T>(work: Promise<T>, fallback: T): Promise<T> {
+  return new Promise<T>(resolve => {
+    const timer = setTimeout(() => resolve(fallback), PROBE_TIMEOUT_MS);
+    timer.unref?.();
+    work.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(fallback);
+      }
+    );
+  });
+}
+
+/**
+ * Opting out takes any non-empty value, so `=0` and `=false` also disable the check. That
+ * reads backwards, so those two are treated as "leave it on" — an explicit off switch should
+ * not be something you trip by writing the word for "no".
+ */
+function versionCheckDisabled(): boolean {
+  const flag = process.env.BESTAX_MCP_NO_VERSION_CHECK;
+  if (!flag) return false;
+  return !['0', 'false', 'no', 'off'].includes(flag.trim().toLowerCase());
+}
+
 export async function resolveVersions(
   indexed: string,
   cwd?: string
 ): Promise<VersionInfo> {
-  if (process.env.BESTAX_MCP_NO_VERSION_CHECK) {
+  if (versionCheckDisabled()) {
     return { indexed, installed: null, drift: 'none' };
   }
-  const installed = await findInstalledVersion(cwd);
+  // Never let a version probe decide whether the docs server starts. Everything below is
+  // best-effort by design, and the caller runs it before the transport connects.
+  const installed = await withTimeout(
+    findInstalledVersion(cwd).catch(() => null),
+    null
+  );
   return {
     indexed,
     installed,

@@ -39,12 +39,38 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  */
 const stem = (t: string) => t.slice(0, Math.max(4, t.length - 2));
 
+/**
+ * Compiled word-initial matchers, memoised per stem.
+ *
+ * `termHit` runs once per term per haystack, and a search covers ~1,500 props and ~900
+ * examples — so compiling here meant thousands of identical `new RegExp` calls per query,
+ * which is where the measured 5.8 s at 3,000 terms went. The terms in one query are a tiny
+ * set; compiling each once turns that into a lookup.
+ *
+ * The cap exists because the cache outlives a request: a stdio session is long-lived, and
+ * every distinct query would otherwise pin a regex forever. Clearing wholesale rather than
+ * evicting LRU keeps this honest — the cache is an optimisation, not state anything depends
+ * on.
+ */
+const STEM_RE_CACHE = new Map<string, RegExp>();
+const STEM_RE_CACHE_MAX = 500;
+
+function wordInitialRe(stemmed: string): RegExp {
+  let re = STEM_RE_CACHE.get(stemmed);
+  if (!re) {
+    if (STEM_RE_CACHE.size >= STEM_RE_CACHE_MAX) STEM_RE_CACHE.clear();
+    re = new RegExp(`\\b${escapeRe(stemmed)}`);
+    STEM_RE_CACHE.set(stemmed, re);
+  }
+  return re;
+}
+
 /** 2 for a substring hit, 1 for a word-initial stem hit, 0 for neither. */
 function termHit(hay: string, term: string): number {
   if (hay.includes(term)) return 2;
   const s = stem(term);
   // Word-initial, so "them" finds "theming" but not "anthem".
-  return s !== term && new RegExp(`\\b${escapeRe(s)}`).test(hay) ? 1 : 0;
+  return s !== term && wordInitialRe(s).test(hay) ? 1 : 0;
 }
 
 /**

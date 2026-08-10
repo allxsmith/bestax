@@ -54,6 +54,37 @@ const ALL_KINDS: HitKind[] = [
   'css-var',
   'skill',
 ];
+/**
+ * Bounds on the free-text arguments, because this is a single-threaded stdio process and
+ * every one of them feeds a linear scan.
+ *
+ * Unbounded, `query` reached `new RegExp` per term per haystack over ~1,500 props and ~900
+ * examples: 3,000 terms blocked the event loop for 5.8 s, and a single ~40 KB token threw
+ * "Regular expression too large" and reflected the whole query back as the error text. An
+ * unbounded `name` fed the not-found suggester's edit-distance scan — 1 MB blocked for 9.3 s.
+ * Rejecting at the schema costs the model one retry with a readable message; the alternative
+ * costs every other request on the connection.
+ *
+ * Both limits sit far above any real value: the longest component name is 20 characters and
+ * a useful search query is a handful of words.
+ */
+const MAX_NAME = 100;
+const MAX_QUERY = 200;
+
+/**
+ * Every tool here answers from a read-only index that ships inside this package: nothing
+ * writes, nothing calls out to the network, and the same arguments always reach the same
+ * committed files. Saying so is what lets a client stop asking the user to approve a
+ * documentation lookup — without these hints, a well-behaved client must treat every call as
+ * potentially destructive and prompt.
+ */
+const READ_ONLY = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const;
+
 const INCLUDES = [
   'props',
   'examples',
@@ -199,6 +230,7 @@ export async function createServer(
     'search_bestax',
     {
       title: 'Search bestax',
+      annotations: READ_ONLY,
       description:
         'Search components, props, usage examples, CSS variables and agent ' +
         'skills at once. The entry point — each hit names the tool to call for ' +
@@ -206,6 +238,7 @@ export async function createServer(
       inputSchema: {
         query: z
           .string()
+          .max(MAX_QUERY)
           .describe(
             'What you are looking for, e.g. "date picker" or "spacing"'
           ),
@@ -250,6 +283,7 @@ export async function createServer(
     'list_components',
     {
       title: 'List components',
+      annotations: READ_ONLY,
       description:
         'Every documented component with a one-line purpose, grouped by ' +
         'category. Cheap — use it to find the right name before calling ' +
@@ -286,12 +320,16 @@ export async function createServer(
     'get_component',
     {
       title: 'Get component documentation',
+      annotations: READ_ONLY,
       description:
         'Import statement, summary and prop table for one component. Add ' +
         '`include` for examples, CSS variables, accessibility notes or related ' +
         'components.',
       inputSchema: {
-        name: z.string().describe('Component name, e.g. "Button" or "Navbar"'),
+        name: z
+          .string()
+          .max(MAX_NAME)
+          .describe('Component name, e.g. "Button" or "Navbar"'),
         include: z
           .array(z.enum(INCLUDES))
           .optional()
@@ -310,14 +348,19 @@ export async function createServer(
     'get_props',
     {
       title: 'Get props',
+      annotations: READ_ONLY,
       description:
         'The prop table for a component, or for one part of a compound family ' +
         '(pass a dot-path like "Navbar.Brand"). Cheaper than get_component when ' +
         'the props are all you need.',
       inputSchema: {
-        component: z.string().describe('Component name, e.g. "Navbar"'),
+        component: z
+          .string()
+          .max(MAX_NAME)
+          .describe('Component name, e.g. "Navbar"'),
         path: z
           .string()
+          .max(MAX_NAME)
           .optional()
           .describe('Dot-path of a subcomponent, e.g. "Navbar.Brand"'),
       },
@@ -366,13 +409,15 @@ export async function createServer(
     'get_examples',
     {
       title: 'Get usage examples',
+      annotations: READ_ONLY,
       description:
         "Working examples from the component's documentation page. Every one " +
         'is executed on the docs site, so they compile against this version.',
       inputSchema: {
-        component: z.string(),
+        component: z.string().max(MAX_NAME),
         query: z
           .string()
+          .max(MAX_QUERY)
           .optional()
           .describe('Filter by example heading or code, e.g. "loading"'),
         limit: z.number().int().min(1).max(30).optional(),
@@ -417,14 +462,16 @@ export async function createServer(
     'get_css_variables',
     {
       title: 'Get CSS and Sass variables',
+      annotations: READ_ONLY,
       description:
         'The --bulma-* custom properties a component reads, with their Sass ' +
         'names and defaults. This is how you restyle bestax — reach for these ' +
         'before writing custom CSS. Omit `component` to search across all of them.',
       inputSchema: {
-        component: z.string().optional(),
+        component: z.string().max(MAX_NAME).optional(),
         query: z
           .string()
+          .max(MAX_QUERY)
           .optional()
           .describe('Substring of a variable name, e.g. "radius"'),
       },
@@ -475,6 +522,7 @@ export async function createServer(
     'get_helper_props',
     {
       title: 'Get helper props',
+      annotations: READ_ONLY,
       description:
         'The helper props every bestax component accepts — spacing, colour, ' +
         'typography, flexbox, visibility — and their valid values. Call this ' +
@@ -518,6 +566,7 @@ export async function createServer(
     'list_skills',
     {
       title: 'List agent skills',
+      annotations: READ_ONLY,
       description:
         'The bestax Agent Skills — task-level guides for forms, theming, ' +
         'layout scaffolding, icons, custom components, migration and CSS size. ' +
@@ -530,6 +579,7 @@ export async function createServer(
     'get_skill',
     {
       title: 'Get an agent skill',
+      annotations: READ_ONLY,
       description:
         "A skill's instructions, or one of its reference documents. Load the " +
         'skill first; pull a reference only when you need that depth.',
