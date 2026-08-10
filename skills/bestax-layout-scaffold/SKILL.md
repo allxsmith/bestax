@@ -104,6 +104,24 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
   colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
 
+## Three components core Bulma will talk you out of
+
+Most of this library's additions get found on their own, because nothing in Bulma does the
+job. These three do not: each has a Bulma near-miss close enough to stop the search. Across a
+20-run eval no build reached for `Dialog` or `Toast` even once, and half missed `LinkButton` —
+every one of them shipped the "not this" column instead.
+
+| You need                                                    | Use                                                                                                                                                             | Not this                                                                                                             |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| A brief confirmation after an action, self-dismissing       | `Toast` — mount `<ToastContainer position="top-right" />` once at the app root, then `toast.success('Saved')` (also `.danger`/`.warning`/`.info`) from anywhere | `Notification`/`Message` — static page elements you have to place, position and dismiss yourself                     |
+| A confirm or alert the user must answer before anything     | `Dialog` — mount `<DialogContainer />` at the root, then `if (await dialog.confirm({ title, message })) …`                                                      | `Modal` — an empty shell; the title, message, button row and confirm/cancel wiring are all yours to rebuild          |
+| A control that reads as text or a link but _does_ something | `LinkButton` (`variant="text" \| "ghost" \| "underline"`, optional `color`)                                                                                     | `<a href="#">`/`<div onClick>` (no keyboard or screen-reader support) or `Button color="text"` (still button-shaped) |
+
+Both `Toast` and `Dialog` also work as ordinary controlled components when you would rather
+hold the state yourself — `<Toast message … duration onClose>`, `<Dialog isOpen title message
+type onConfirm onCancel>` — but in an app with more than one call site the root container plus
+the imperative helper is less wiring, not more.
+
 ## Inline style → helper prop mapping
 
 Look up the declaration you were about to inline. The spacing, typography, and flex helpers
@@ -157,6 +175,8 @@ inline `style`.
 - [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
+- [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
+      action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
       with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
       `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).

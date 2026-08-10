@@ -203,6 +203,23 @@ inventory above). **Compose these; don't hand-roll raw `<input class="input">` m
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 
+## What happens after submit
+
+A form is not finished at the last field. The two components that carry the result are easy to
+miss because Bulma has something that looks close:
+
+- **Confirmation** — `Toast`, not `Notification`/`Message`. Mount
+  `<ToastContainer position="top-right" />` once at the app root, then call
+  `toast.success('Demo booked')` from the submit handler (`.danger` for a failed submit). It
+  self-dismisses; a `Notification` is a static element you place and tear down yourself.
+- **"Are you sure?"** — `Dialog`, not `Modal`. Mount `<DialogContainer />` at the root, then
+  `if (await dialog.confirm({ title: 'Delete this key?', message: '…', type: 'danger' })) …`.
+  It resolves to a boolean, so a destructive action stays one `if` rather than a state machine.
+  `Modal` is an empty shell — with it you rebuild the title, message and button row by hand.
+
+Both also work as plain controlled components (`<Toast message … onClose>`,
+`<Dialog isOpen … onConfirm onCancel>`) when the state should live in your component.
+
 ## Visually inspect it in a browser
 
 Forms have layout, spacing, and _stateful_ behavior that types and unit tests don't cover.
@@ -224,6 +241,8 @@ for the expected classes/states, and say plainly that the visual pass is still o
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
+- [ ] Submit feedback is a `Toast` and any "are you sure?" is a `Dialog` — not a hand-placed
+      `Notification` or a `Modal` you filled in yourself.
 - [ ] **Rendered and visually inspected in a browser** — layout and the error/validation states
       look right, not just green tests. No browser available? The `renderToString` fallback above
       counts only if you grepped the emitted classes/states **and** said the visual pass is owed.
