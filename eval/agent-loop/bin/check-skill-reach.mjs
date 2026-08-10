@@ -38,13 +38,60 @@ const MARKERS = [
     text: 'What happens after submit',
     what: 'the Toast/Dialog post-submit section (22dcff7)',
   },
+  // `featured-ring` was the first attempt here and was WRONG: the class name appears in
+  // bestax-layout-scaffold/SKILL.md *and* in bestax-theming/references/css-variables.md, so
+  // it conflated two delivery paths. runs-v4/sk08 scored a hit on it having read the theming
+  // reference and never loaded the layout skill at all. Each marker must identify exactly
+  // one file, which assertUnique() below now enforces instead of trusting the author.
   {
-    id: 'shadow-recipe',
+    id: 'shadow-in-layout',
     skill: 'bestax-layout-scaffold',
-    text: 'featured-ring',
-    what: 'the corrected --bulma-shadow CSS recipe (2935bb2)',
+    text: 'The ring works by overriding the **upstream token**',
+    what: 'the --bulma-shadow recipe as it appears in layout-scaffold (2935bb2)',
+  },
+  {
+    id: 'shadow-in-theming',
+    skill: 'bestax-theming',
+    text: 'the one token `bulmaVars` cannot set',
+    what: 'the --bulma-shadow section in the theming reference (2935bb2)',
   },
 ];
+
+/**
+ * A marker that occurs in more than one shipped file cannot tell you which one was
+ * delivered. Checked against the skills tree on every run, because the failure is silent:
+ * the ambiguous marker still produces a plausible-looking column.
+ */
+function assertUnique(markers, skillsRoot) {
+  if (!fs.existsSync(skillsRoot)) return; // running against a copy without the sources
+  const files = [];
+  const walk = d => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (/\.(md|tsx?)$/.test(e.name)) files.push(p);
+    }
+  };
+  walk(skillsRoot);
+  let bad = 0;
+  for (const m of markers) {
+    const hits = files.filter(f => fs.readFileSync(f, 'utf8').includes(m.text));
+    if (hits.length !== 1) {
+      console.error(
+        `marker "${m.id}" matches ${hits.length} file(s), needs exactly 1:\n` +
+          hits.map(h => `    ${h}`).join('\n')
+      );
+      bad++;
+    }
+  }
+  if (bad) {
+    console.error(
+      '\nAmbiguous markers cannot attribute delivery to a file. Fix them before reading ' +
+        'the table below.'
+    );
+    process.exit(3);
+  }
+}
 
 const runsDir = process.argv[2];
 if (!runsDir) {
@@ -52,6 +99,17 @@ if (!runsDir) {
   process.exit(2);
 }
 const asJson = process.argv.includes('--json');
+
+assertUnique(
+  MARKERS,
+  path.join(
+    path.dirname(new URL(import.meta.url).pathname),
+    '..',
+    '..',
+    '..',
+    'skills'
+  )
+);
 
 const runs = fs
   .readdirSync(runsDir, { withFileTypes: true })
@@ -117,14 +175,18 @@ if (building) {
   );
 }
 
-console.log('\n  run    table  form  shadow | Toast Dialog LinkBtn | inline');
-console.log('  ' + '-'.repeat(64));
+console.log(
+  '\n  run    table  form  shadow(L) shadow(T) | Toast Dialog LinkBtn | inline'
+);
+console.log('  ' + '-'.repeat(78));
 for (const r of rows) {
   const yn = b => (b === null ? '  ?  ' : b ? ' yes ' : '  .  ');
   console.log(
     `  ${r.run.padEnd(6)} ${yn(r.markers['near-miss-table'])} ${yn(
       r.markers['form-after-submit']
-    )}${yn(r.markers['shadow-recipe'])}|${yn(r.toast)}${yn(r.dialog)}${yn(
+    )}${yn(r.markers['shadow-in-layout']).padEnd(9)}${yn(
+      r.markers['shadow-in-theming']
+    ).padEnd(10)}|${yn(r.toast)}${yn(r.dialog)}${yn(
       r.linkButton
     )}  |  ${String(r.inlineStyles ?? '-').padStart(3)}`
   );
