@@ -171,6 +171,22 @@ describe('reflowTables', () => {
     expect(out[4]).toBe('| -------- | ------- |');
   });
 
+  // An escaped pipe is how a cell writes a literal `|` — the natural spelling for a value
+  // union. Splitting on it invents a column, which is information loss in a function whose
+  // whole claim is that it causes none. Not reachable from today's index (no escaped pipes
+  // in it), so this pins the property rather than a current behaviour.
+  it('does not split a cell on an escaped pipe', () => {
+    const escaped = [
+      '| Prop | Values |',
+      '| ---- | ------ |',
+      '| `textAlign` | `left` \\| `right` |',
+    ].join('\n');
+    const out = reflowTables(escaped).split('\n');
+    expect(out[2]).toBe('| `textAlign` | `left` \\| `right` |');
+    // Two columns, not three.
+    expect(out[2].split(/(?<!\\)\|/).length - 2).toBe(2);
+  });
+
   it('leaves non-table lines alone', () => {
     const prose = 'A sentence | with a pipe in it.';
     expect(reflowTables(prose)).toBe(prose);

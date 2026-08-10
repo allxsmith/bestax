@@ -41,7 +41,12 @@ export function reflowTables(md: string): string {
       }
       if (inFence) return line;
       if (!t.startsWith('|') || !t.endsWith('|')) return line;
-      const cells = t.slice(1, -1).split('|');
+      // Split on unescaped pipes only. A `\|` inside a cell is markdown's escape for a
+      // literal pipe — the natural way to write a value union like `` `a` \| `b` `` — and
+      // splitting on it would invent a column, which is exactly the information loss this
+      // function promises not to cause. The index has no escaped pipes today; the guarantee
+      // has to hold for the document, not for today's contents.
+      const cells = t.slice(1, -1).split(/(?<!\\)\|/);
       // A separator row (`| --- | --- |`) collapses to the shortest legal form.
       if (cells.every(c => /^\s*:?-+:?\s*$/.test(c))) {
         return `|${cells.map(c => (c.includes(':') ? c.trim() : '---')).join('|')}|`;
