@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -6,7 +6,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { FieldProvider } from './FormContext';
+import { FieldProvider, FieldLabelIdProvider } from './FormContext';
 import { Control } from './Control';
 
 /**
@@ -24,11 +24,11 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. `Field` itself does not associate it with any control — pass `labelProps={{ htmlFor }}` and a matching `id` on your control (the single-control convenience inputs do this automatically when they render their own `Field`). */
+  /** Field label, rendered above the widget. Automatically associated with a single composed `InputBase`, `SelectBase`, or `TextAreaBase` via a generated id and `htmlFor`. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls). */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
-  /** Props for the label element — where `htmlFor` goes when composing. */
+  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -162,15 +162,19 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
  * @see {@link https://bulma.io/documentation/form/general/#field | Bulma Field documentation}
  *
  * @example
- * // Labelled field
+ * // Labelled field — the label auto-associates with the composed base
  * <Field label="Email">
- *   <input className="input" type="email" />
+ *   <Control>
+ *     <InputBase type="email" />
+ *   </Control>
  * </Field>
  *
  * @example
  * // Horizontal field
  * <Field horizontal label="Name">
- *   <input className="input" />
+ *   <Control>
+ *     <InputBase />
+ *   </Control>
  * </Field>
  */
 const FieldComponent: React.FC<FieldProps> = ({
@@ -216,12 +220,26 @@ const FieldComponent: React.FC<FieldProps> = ({
 
   const labelClass = usePrefixedClassNames('label');
 
+  // Auto-associate the label with a single composed base control (#495): the
+  // label points at a generated id shared via context, which InputBase/
+  // SelectBase/TextAreaBase adopt when the user supplied no id of their own.
+  // Presence semantics on htmlFor — even an explicit `htmlFor: undefined`
+  // means the caller owns the association. Grouped/addons fields hold several
+  // controls, so no single association is generated for them.
+  const generatedId = useId();
+  const userWiredLabel = !!labelProps && 'htmlFor' in labelProps;
+  const targetId =
+    label && !userWiredLabel && !grouped && !hasAddons
+      ? generatedId
+      : undefined;
+
   let renderedLabel = null;
   if (label) {
     if (horizontal) {
       renderedLabel = (
         <FieldLabel size={effectiveLabelSize}>
           <label
+            htmlFor={targetId}
             {...labelProps}
             className={classNames(labelClass, labelProps?.className)}
             style={labelProps?.style}
@@ -233,6 +251,7 @@ const FieldComponent: React.FC<FieldProps> = ({
     } else {
       renderedLabel = (
         <label
+          htmlFor={targetId}
           {...labelProps}
           className={classNames(labelClass, labelProps?.className)}
           style={{ display: 'block', ...(labelProps?.style || {}) }}
@@ -269,10 +288,12 @@ const FieldComponent: React.FC<FieldProps> = ({
 
   return (
     <FieldProvider value={true}>
-      <div className={fieldClass} {...rest}>
-        {renderedLabel}
-        {content}
-      </div>
+      <FieldLabelIdProvider value={targetId}>
+        <div className={fieldClass} {...rest}>
+          {renderedLabel}
+          {content}
+        </div>
+      </FieldLabelIdProvider>
     </FieldProvider>
   );
 };

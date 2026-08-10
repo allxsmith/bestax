@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SelectBase from '../SelectBase';
+import Field from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('SelectBase', () => {
@@ -190,5 +191,40 @@ describe('SelectBase', () => {
       expect(selectWrapper).toHaveClass('is-loading');
       expect(selectWrapper).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Field label adoption (#495)', () => {
+  it('adopts a labeled Field context id on the inner select', () => {
+    const { container } = render(
+      <Field label="Country">
+        <SelectBase>
+          <option value="us">United States</option>
+        </SelectBase>
+      </Field>
+    );
+    const select = screen.getByLabelText('Country');
+    expect(select.tagName).toBe('SELECT');
+    expect(container.querySelector('div.select')).not.toHaveAttribute('id');
+  });
+
+  it('keeps its own id over the context id', () => {
+    render(
+      <Field label="Country">
+        <SelectBase id="mine">
+          <option value="us">United States</option>
+        </SelectBase>
+      </Field>
+    );
+    expect(screen.getByRole('combobox')).toHaveAttribute('id', 'mine');
+  });
+
+  it('renders no id standalone', () => {
+    render(
+      <SelectBase>
+        <option value="us">United States</option>
+      </SelectBase>
+    );
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
   });
 });

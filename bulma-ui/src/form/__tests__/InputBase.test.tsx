@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import InputBase from '../InputBase';
+import Field from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('InputBase', () => {
@@ -129,5 +130,31 @@ describe('InputBase', () => {
       expect(input).toHaveClass('is-loading');
       expect(input).toHaveClass('p-3');
     });
+  });
+});
+
+describe('Field label adoption (#495)', () => {
+  it('adopts a labeled Field context id', () => {
+    render(
+      <Field label="Email">
+        <InputBase />
+      </Field>
+    );
+    const input = screen.getByLabelText('Email');
+    expect(input.tagName).toBe('INPUT');
+  });
+
+  it('keeps its own id over the context id', () => {
+    render(
+      <Field label="Email">
+        <InputBase id="mine" />
+      </Field>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute('id', 'mine');
+  });
+
+  it('renders no id standalone', () => {
+    render(<InputBase />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('id');
   });
 });

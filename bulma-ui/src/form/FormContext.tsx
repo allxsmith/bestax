@@ -21,6 +21,20 @@ export const FieldProvider = FieldContext.Provider;
 /** Provider for Control context — used internally by Control component. */
 export const ControlProvider = ControlContext.Provider;
 
+const FieldLabelIdContext = createContext<string | undefined>(undefined);
+
+/**
+ * The id a labeled Field wants its single composed control to adopt (#495).
+ * `undefined` outside a Field, in unlabeled/grouped/addons Fields, or when the
+ * user took over the association with an explicit `labelProps.htmlFor`.
+ * Consumed only by the single-control bases (InputBase, SelectBase,
+ * TextAreaBase). Internal; not part of the public API.
+ */
+export const useFieldLabelId = () => useContext(FieldLabelIdContext);
+
+/** Provider for the Field label-target id — used internally by Field. */
+export const FieldLabelIdProvider = FieldLabelIdContext.Provider;
+
 /**
  * Shape of the Radios group context. The group provides:
  * - `name`: shared form field name (Stage 1)
