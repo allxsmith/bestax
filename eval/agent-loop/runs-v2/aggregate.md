@@ -133,23 +133,47 @@ edges, and they run in **both** directions:
 
 ## Follow-ups this campaign justifies
 
+Every item is dispositioned — done here, or filed. Nothing is left as an observation.
+
 **MCP**
 
-1. Put the inline-style prohibition and the mapping table into `get_helper_props` — called by
-   10/10 runs, where `layout-scaffold` is pulled by 2/10. Highest-leverage single change.
-2. Fix or remove `search_bestax`: 0/10 despite being the documented entry point.
-3. Remove the resources, or make them reachable: 0 reads in 20 runs.
-4. Surface CSS variables from `get_component`: `get_css_variables` is 1/10 in an arm where
-   every run themed.
+1. ✅ Put the inline-style prohibition and the mapping table into `get_helper_props` — called
+   by 10/10 runs, where `layout-scaffold` is pulled by 2/10. Highest-leverage single change.
+   Shipped in `ffc627a`; **measured** at n=10 in [`runs-v3`](../runs-v3/aggregate.md), mean
+   inline styles 76.7 → 1.1.
+2. ✅ Fix or remove `search_bestax`: 0/10 despite being the documented entry point. Neither —
+   it was the _claim_ that was wrong. `206380b` moved the entry point to `list_components`
+   (10/10) in the server's `instructions` and both docs surfaces, and left search for the
+   case it actually serves.
+3. 📋 Remove the resources, or make them reachable: 0 reads in 20 runs → **#501**.
+4. 📋 Surface CSS variables from `get_component`: `get_css_variables` is 1/10 in an arm where
+   every run themed → **#501**.
 
 **Skills**
 
-5. `Toast` at 0/10 and `LinkButton` at 5/10 — the MCP finds both more often. The skills need
-   the discoverability the catalogue provides.
+5. ✅ `Toast` at 0/10 and `LinkButton` at 5/10 — the MCP finds both more often. Fixed in
+   `22dcff7`. Not by adding a roster: four skills runs read the full 87-line component
+   catalog and still substituted. The three that fail are exactly the three with a plausible
+   core-Bulma near-miss, so the guidance names the wrong answer alongside the right one, in
+   `bestax-layout-scaffold` (any page build) and `bestax-form` (post-submit). **Unmeasured** —
+   no skills arm has run since.
 
 **Library**
 
-6. `Dialog` loses to `Modal` in 20 of 20 runs, on both channels.
+6. 📋 `Dialog` loses to `Modal` in 20 of 20 runs, on both channels → **#500**.
+
+**Found while acting on the above, not in the original list**
+
+7. ✅/📋 `bestax-layout-scaffold` was teaching `<Theme bulmaVars={{ '--bulma-shadow': … }}>`,
+   which does not compile — the same invention this eval recorded 3 for 3, written into the
+   always-loaded surface by the fix for it. Skill corrected to the CSS route in `2935bb2`;
+   the library question (should the union just include it?) is **#499**.
+8. 📋 `bestax-mcp` has a `release.config.js` and a commitlint release scope but no
+   `Semantic Release (bestax-mcp)` step in `ci.yml`, so it can never publish → **#502**.
+   Not fixed here: `.github/` is human-authored by design.
+9. 📋 `Column size` is `number` while `Title size` is `'1'`–`'6'`, and the exports are
+   `Numberinput`/`Taginput` with a lowercase `i` → added to **#370**, which already tracks
+   this class of API trap.
 
 ## Caveats
 
