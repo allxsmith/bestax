@@ -272,6 +272,39 @@ describe('constants', () => {
       expect(md).toContain('still never inline `style`');
     });
 
+    // This lives in CLAUDE.md rather than only in bestax-layout-scaffold because of what
+    // eval/agent-loop/runs-v4 measured: that skill reached 4 builders in 10, and the arm
+    // was a flat null against its control even though the four it reached used LinkButton
+    // 4/4 against the others' 1/6. A project CLAUDE.md is injected every session; a skill
+    // body arrives only when the model chooses to fetch it.
+    describe('the three components core Bulma talks builders out of', () => {
+      it('names each one against the substitution it loses to', () => {
+        expect(md).toContain('Three components Bulma will talk you out of');
+        // Right answer and wrong answer have to appear together — naming the component
+        // alone is what the skills already did, and it did not move the arm.
+        expect(md).toContain('`Toast`');
+        expect(md).toContain('`Notification`/`Message`');
+        expect(md).toContain('`Dialog`');
+        expect(md).toContain('`Modal`');
+        expect(md).toContain('`LinkButton`');
+        expect(md).toContain('`Button color="text"`');
+      });
+
+      it('gives the container-plus-imperative setup, which is the part builders must find', () => {
+        expect(md).toContain('<ToastContainer position="top-right" />');
+        expect(md).toContain("toast.success('Saved')");
+        expect(md).toContain('<DialogContainer />');
+        expect(md).toContain('await dialog.confirm(');
+      });
+
+      // runs-v4/sk01 mounted DialogContainer, never called dialog.confirm, and hand-built
+      // its confirm step out of Modal. Half-adoption is the failure mode this sentence is
+      // aimed at.
+      it('says that mounting a container without calling the API is not usage', () => {
+        expect(md).toMatch(/Mounting a container without ever calling/);
+      });
+    });
+
     it('flags Notification as the mixed case: textColor yes, bgColor no', () => {
       // Notification omits `backgroundColor` and re-adds only `textColor`, so a
       // `bgColor` on it is inert — its background is the semantic `color` prop.

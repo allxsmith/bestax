@@ -169,6 +169,24 @@ cases. Before writing \`style\`, translate each declaration with this table:
   and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+
+### Three components Bulma will talk you out of
+
+Most of this library's additions get found on their own, because nothing in Bulma does the
+job. These three have a Bulma near-miss close enough to stop the search — measured, not
+guessed: across 44 cold-start builds of this library, \`Dialog\` was used **zero** times and
+\`LinkButton\` in two thirds, and every miss shipped the right-hand column instead.
+
+| You need                                                    | Use                                                                                                              | Not this                                                                        |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| A brief confirmation after an action, self-dismissing       | \`Toast\` — \`<ToastContainer position="top-right" />\` once at the app root, then \`toast.success('Saved')\` anywhere | \`Notification\`/\`Message\` — static elements you place and dismiss yourself         |
+| A confirm or alert the user must answer                     | \`Dialog\` — \`<DialogContainer />\` at the root, then \`if (await dialog.confirm({ title, message })) …\`             | \`Modal\` — an empty shell; title, message, buttons and wiring are yours to rebuild   |
+| A control that reads as text or a link but *does* something | \`LinkButton\` (\`variant="text" \\| "ghost" \\| "underline"\`)                                                          | \`<a href="#">\`/\`<div onClick>\` (no keyboard or a11y) or \`Button color="text"\`    |
+
+Mounting a container without ever calling \`toast.*\`/\`dialog.*\` does nothing — the container
+is the mount point, the imperative call is the usage. Both also work as ordinary controlled
+components (\`<Toast message … onClose>\`, \`<Dialog isOpen … onConfirm>\`) when you want to
+hold the state yourself.
 - \`Navbar.Burger\`/\`Navbar.Menu\` are controlled — wire \`active\` via state on both, and pair
   \`Navbar fixed="top"\` with the \`has-navbar-fixed-top\` class on \`<html>\` (never an inline
   padding offset).
