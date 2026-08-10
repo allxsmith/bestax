@@ -50,8 +50,12 @@ and hiding it would be the sort of goalpost-shifting this eval exists to prevent
 - Import breadth closed most of its gap (61.1 → 67.7, against 70.2) but has not caught up.
 - The improved MCP is **cheaper** than the arm it replaced ($18.51 vs $20.68) — repairing
   fewer escapes costs fewer turns — though still above skills at $17.82.
-- Where the MCP was already ahead it stays ahead: `Toast` was found by 6/10 MCP runs and
-  0/10 skills runs in `runs-v2`.
+- ~~Where the MCP was already ahead it stays ahead: `Toast` was found by 6/10 MCP runs and
+  0/10 skills runs in `runs-v2`.~~ **Withdrawn (`d36caf7`)** — that gap was a counting
+  artifact. The extras check scored slots by presence in `bestax_import_list`, and Toast is
+  normally used as `import { ToastContainer, toast }` + `toast.success('…')`, which contains
+  no symbol named `Toast`. By call sites both arms used it in all ten runs. The MCP's real
+  remaining edge over the skills arm is `LinkButton`, 9/10 against 5/10.
 
 So the shipping recommendation is unchanged and now better evidenced: **use both.** The
 channels fail in different places, and the MCP no longer drags discipline down when it is

@@ -1,5 +1,27 @@
 # Campaign aggregate — skills vs `bestax-mcp`, 20 runs
 
+> **Correction (`d36caf7`) — the `Toast` figures below were wrong.**
+> The extras check scored a slot by presence in `bestax_import_list`, and the ordinary way
+> to use Toast is `import { ToastContainer, toast }` then `toast.success('…')` — no symbol
+> named `Toast` exists in such a build. Counting call sites instead:
+>
+> |                      | as published | **actual** |
+> | -------------------- | ------------ | ---------- |
+> | `Toast`, skills      | 0/10         | **10/10**  |
+> | `Toast`, MCP         | 6/10         | **10/10**  |
+> | `Dialog`, both       | 0/20         | 0/20 ✓     |
+> | `LinkButton`, skills | 5/10         | 5/10 ✓     |
+> | `LinkButton`, MCP    | 9/10         | 9/10 ✓     |
+>
+> All 21 runs called `toast.success`/`toast.danger`, one to eight times each. `Dialog` and
+> `LinkButton` were counted correctly — neither has an alias of that shape. **The claim that
+> "`Toast` is the one place the MCP clearly beats the skills" is withdrawn**, and the skills
+> change it motivated (`22dcff7`) closed a gap that did not exist. `Dialog` at 0/20 stands
+> and is now established by call sites rather than by a missing import.
+>
+> The offending sentences are struck through in place below rather than edited away.
+> `bin/test-extras-usage.mjs` now guards the rule.
+
 Ten runs per arm of the `skynet-platform` brief against `rubric-v2.md`, `--model opus
 --budget 30 --timeout 3600`. Both arms share the frozen
 [`skynet-platform.completeness.md`](../briefs/skynet-platform.completeness.md) by symlink, so
@@ -115,21 +137,26 @@ leads with it. Ten builders read that and every one went straight to `list_compo
 Both arms reach 18 of the 22 expected components in every run. The differences are at the
 edges, and they run in **both** directions:
 
-| slot            | skills   | MCP                                                        |
-| --------------- | -------- | ---------------------------------------------------------- |
-| `Dialog`        | **0/10** | **0/10**                                                   |
-| `DateTimeInput` | 0/10     | 0/10 (both satisfy the slot via `DateInput` + `TimeInput`) |
-| `Toast`         | **0/10** | **6/10**                                                   |
-| `LinkButton`    | 5/10     | 9/10                                                       |
-| `TimeInput`     | 9/10     | 8/10                                                       |
-| everything else | 10/10    | 10/10                                                      |
+| slot            | skills             | MCP                                                        |
+| --------------- | ------------------ | ---------------------------------------------------------- |
+| `Dialog`        | **0/10**           | **0/10**                                                   |
+| `DateTimeInput` | 0/10               | 0/10 (both satisfy the slot via `DateInput` + `TimeInput`) |
+| `Toast`         | ~~0/10~~ **10/10** | ~~6/10~~ **10/10**                                         |
+| `LinkButton`    | 5/10               | 9/10                                                       |
+| `TimeInput`     | 9/10               | 8/10                                                       |
+| everything else | 10/10              | 10/10                                                      |
 
 - **`Dialog` is never used by either arm, 0 of 20.** Every run reaches for Bulma's `Modal`
   instead. Neither channel is at fault — this is a library-level discoverability problem.
-- **`Toast` is the one place the MCP clearly beats the skills**, 6/10 against 0/10. A
+  Unchanged by the correction, and now established by counting `dialog.confirm`/`<Dialog>`
+  call sites rather than by the absence of an import.
+- ~~**`Toast` is the one place the MCP clearly beats the skills**, 6/10 against 0/10. A
   searchable catalogue answers "what do I use for a brief confirmation"; a skills builder has
-  to already suspect the component exists.
-- `LinkButton` favours the MCP too, 9/10 against 5/10.
+  to already suspect the component exists.~~ **Withdrawn — see the correction at the top.**
+  Both arms used `Toast` in all ten runs. There was never a difference here, and the
+  explanation offered for it was reasoning from a counting bug.
+- `LinkButton` favours the MCP too, 9/10 against 5/10. This one survives the correction:
+  `LinkButton` has no imperative alias, so the import-name rule counted it correctly.
 
 ## Follow-ups this campaign justifies
 
@@ -151,12 +178,14 @@ Every item is dispositioned — done here, or filed. Nothing is left as an obser
 
 **Skills**
 
-5. ✅ `Toast` at 0/10 and `LinkButton` at 5/10 — the MCP finds both more often. Fixed in
-   `22dcff7`. Not by adding a roster: four skills runs read the full 87-line component
-   catalog and still substituted. The three that fail are exactly the three with a plausible
-   core-Bulma near-miss, so the guidance names the wrong answer alongside the right one, in
-   `bestax-layout-scaffold` (any page build) and `bestax-form` (post-submit). **Unmeasured** —
-   no skills arm has run since.
+5. ⚠️ ~~`Toast` at 0/10 and `LinkButton` at 5/10 — the MCP finds both more often.~~ **Half of
+   this follow-up rested on the counting bug.** `Toast` was 10/10 in both arms, so there was
+   nothing to fix; `LinkButton` at 5/10 vs 9/10 is real and remains open. `22dcff7` shipped
+   guidance for all three anyway, in `bestax-layout-scaffold` (any page build) and
+   `bestax-form` (post-submit). The guidance is accurate and harmless — it recommends the
+   container-plus-imperative route builders already take — but its stated justification was
+   wrong for `Toast`, and it is measured in [`runs-v4`](../runs-v4/aggregate.md) against the
+   corrected counter.
 
 **Library**
 
