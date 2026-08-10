@@ -19,3 +19,10 @@ skills/bestax-custom-component/references/component-catalog.md
 **/__testfixtures__/
 bestax-migrate/fixtures/
 bestax-migrate/.e2e-tmp/
+
+# Eval run snapshots: the source a cold-start builder actually wrote, kept
+# verbatim as the evidence behind each scorecard. Formatting them would edit
+# the measurement — `custom_css_added_lines` and the inline-style counts are
+# read off these files. Same argument as the codemod fixtures above. The
+# harness's own scripts (eval/agent-loop/bin, lib) are ours and stay formatted.
+eval/agent-loop/runs-*/*/app-src/
