@@ -566,6 +566,28 @@ describe('get_helper_props', () => {
   });
 
   describe('get_component on a helper', () => {
+    // Three separate surfaces used to send a builder to get_component for a helper, and
+    // get_component on a helper is now itself a pointer — so each was a hop that answered
+    // nothing. All three now name get_helper_props directly.
+    it('is reachable in one hop from search and from get_props', async () => {
+      const search = text(
+        await call('search_bestax', { query: 'useBulmaClasses' })
+      );
+      const helperRow = search
+        .split('\n')
+        .find(
+          l => l.includes('| component |') && l.includes('useBulmaClasses')
+        );
+      expect(helperRow).toContain('get_helper_props');
+      expect(helperRow).not.toContain('get_component');
+
+      const props = text(
+        await call('get_props', { component: 'useBulmaClasses' })
+      );
+      expect(props).toContain('get_helper_props');
+      expect(props).not.toContain('get_component');
+    });
+
     it('is a pointer by default, not the whole reference', async () => {
       const out = text(
         await call('get_component', { name: 'useBulmaClasses' })

@@ -57,6 +57,23 @@ describe('the default answer', () => {
     expect(missing).toEqual([]);
   });
 
+  // The test above parses prop names with the same regex `propTable` uses, so a row that
+  // regex cannot see would be missing from both and still pass. Counting table rows is
+  // independent of that regex and catches it.
+  it('carries as many table rows as the index has, parsed or not', () => {
+    const chunk = doc
+      .split(/\n(?=#{2,3} )/)
+      .find(c => c.startsWith('## Supported Props'));
+    const sourceRows = (chunk ?? '')
+      .split('\n')
+      .filter(l => l.trim().startsWith('|')).length;
+    const renderedRows = renderHelperDefault(doc)
+      .split('\n')
+      .filter(l => l.trim().startsWith('|')).length;
+    expect(renderedRows).toBe(sourceRows);
+    expect(renderedRows).toBe(allProps.length + 2); // + header + separator
+  });
+
   it('points at the groups so the prose is one call away', () => {
     const out = renderHelperDefault(doc);
     for (const g of GROUP_NAMES) expect(out).toContain(g);
@@ -135,6 +152,23 @@ describe('reflowTables', () => {
 
   it('keeps alignment markers, which carry meaning', () => {
     expect(reflowTables('| :--- | ---: |')).toBe('|:---|---:|');
+  });
+
+  it('does not touch a table inside a fenced code block', () => {
+    const withFence = [
+      '| Real | Table |',
+      '| --- | --- |',
+      '```md',
+      '| Sample   | Table   |',
+      '| -------- | ------- |',
+      '```',
+    ].join('\n');
+    const out = reflowTables(withFence).split('\n');
+    expect(out[0]).toBe('| Real | Table |');
+    expect(out[1]).toBe('|---|---|');
+    // Inside the fence, byte for byte.
+    expect(out[3]).toBe('| Sample   | Table   |');
+    expect(out[4]).toBe('| -------- | ------- |');
   });
 
   it('leaves non-table lines alone', () => {

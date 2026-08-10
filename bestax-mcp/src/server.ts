@@ -409,8 +409,12 @@ export async function createServer(
 
       if (record.kind === 'helper') {
         return textResult(
+          // Points at get_helper_props, not get_component. get_component on a helper is
+          // itself now a pointer here, so sending a builder there made this a three-hop
+          // chain for one question.
           `\`${record.name}\` is a hook/utility, not a component — it has no ` +
-            `prop table. Call get_component({ name: "${record.name}" }) for its API.`,
+            `prop table. Call get_helper_props() for every helper prop with its ` +
+            `accepted values, or get_helper_props({ group }) for one area.`,
           note()
         );
       }

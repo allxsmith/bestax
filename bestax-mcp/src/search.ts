@@ -114,7 +114,13 @@ export function searchAll(
           kind: 'component',
           name: c.name,
           detail: c.purpose,
-          next: `get_component({ name: "${c.name}" })`,
+          // A helper has no prop table, and `get_component` on one is itself only a
+          // pointer at `get_helper_props` — so naming it here would make a search hit a
+          // three-hop trip to the answer.
+          next:
+            c.kind === 'helper'
+              ? 'get_helper_props()'
+              : `get_component({ name: "${c.name}" })`,
           score: s,
         });
       }

@@ -26,10 +26,20 @@
  * untouched.
  */
 export function reflowTables(md: string): string {
+  // Fenced code is left exactly as written. Today's document happens to contain no table
+  // inside a fence, so this changes nothing — but "pure whitespace, nothing lost" has to be
+  // a property of the function rather than of the content it currently gets handed, and a
+  // docs example that renders a markdown table is an ordinary thing to add.
+  let inFence = false;
   return md
     .split('\n')
     .map(line => {
       const t = line.trim();
+      if (t.startsWith('```') || t.startsWith('~~~')) {
+        inFence = !inFence;
+        return line;
+      }
+      if (inFence) return line;
       if (!t.startsWith('|') || !t.endsWith('|')) return line;
       const cells = t.slice(1, -1).split('|');
       // A separator row (`| --- | --- |`) collapses to the shortest legal form.
