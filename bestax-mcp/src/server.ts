@@ -87,10 +87,18 @@ export async function createServer(
   const server = new McpServer(
     { name: 'bestax', version: catalog.generatedFrom.version },
     {
+      // "Start with list_components" is measured, not assumed. Across twenty eval runs
+      // (eval/agent-loop/runs-v2/aggregate.md) list_components was called by 10/10 builders
+      // and search_bestax by 0/10 — despite this string previously naming search as the
+      // entry point. A cold-start builder's first question is "what does this library
+      // have?", which is enumeration; search answers "what is the thing called X?", which
+      // only arises once you know what you are missing. The docs were wrong about the first
+      // move, not the builders.
       instructions:
         `Documentation for @allxsmith/bestax-bulma ${catalog.generatedFrom.version} — ` +
-        `React components for Bulma v1. Start with search_bestax; every result ` +
-        `names the tool to call next. Before writing any styling by hand, call ` +
+        `React components for Bulma v1. Start with list_components to see what exists; ` +
+        `its output names the tool to call next. Use search_bestax when you need a ` +
+        `component whose name you do not know. Before writing any styling by hand, call ` +
         `get_helper_props: this library expects spacing, colour and typography ` +
         `to go through helper props rather than inline styles, and theming to go ` +
         `through --bulma-* variables rather than custom CSS.`,

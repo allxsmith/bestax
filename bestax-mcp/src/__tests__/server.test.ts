@@ -61,6 +61,20 @@ describe('advertised surface', () => {
     }
   });
 
+  // The instructions are the one string every client reads before it calls anything, so
+  // the first tool they name is the only entry point the server really gets to choose.
+  // The eval said that has to be list_components: 10/10 builders started there and 0/10
+  // touched search_bestax, whatever the instructions claimed.
+  it('names list_components as the entry point, ahead of search_bestax', async () => {
+    const instructions = client.getInstructions() ?? '';
+    expect(instructions).toContain('list_components');
+    expect(instructions.indexOf('list_components')).toBeLessThan(
+      instructions.indexOf('search_bestax')
+    );
+    // The rule the whole runs-v3 improvement rests on stays in there too.
+    expect(instructions).toContain('get_helper_props');
+  });
+
   it('derives one prompt per skill from the manifest', async () => {
     const names = (await client.listPrompts()).prompts.map(p => p.name);
     expect(names).toContain('theming');
@@ -143,9 +157,10 @@ describe('list_components', () => {
     expect(text(res)).toContain('elements');
   });
 
-  // In the 20-run eval this tool was called by 10/10 MCP builders while search_bestax --
-  // the entry point the server's own instructions name -- was called by 0/10. Whatever
-  // search results would have said about the next step has to be said here instead.
+  // In the 20-run eval this tool was called by 10/10 MCP builders while search_bestax was
+  // called by 0/10 -- even though the instructions named search as the entry point at the
+  // time. Whatever search results would have said about the next step has to be said here
+  // instead.
   describe('points at the next step', () => {
     it('names the detail tools, including get_css_variables', async () => {
       const out = text(await call('list_components'));

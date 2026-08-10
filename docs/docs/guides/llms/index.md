@@ -94,12 +94,13 @@ Run it from your project directory, so it can find your installed
 
 ### Tools
 
-Start with `search_bestax` — every result names the tool to call next.
+Start with `list_components` — its output names the tool to call next. Reach for
+`search_bestax` when you need a component whose name you do not know.
 
 | Tool                | What it gives the agent                                                                            |
 | ------------------- | -------------------------------------------------------------------------------------------------- |
-| `search_bestax`     | Components, props, examples, CSS variables and skills in one ranked list                           |
 | `list_components`   | Every component with a one-line purpose, by category                                               |
+| `search_bestax`     | Components, props, examples, CSS variables and skills in one ranked list                           |
 | `get_component`     | Import, summary and props; optionally examples, CSS variables, accessibility, related              |
 | `get_props`         | One prop table, including compound sub-paths (`Navbar.Brand`)                                      |
 | `get_examples`      | Working `tsx` examples from the component's documentation page                                     |
