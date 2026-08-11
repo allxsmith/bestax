@@ -1,0 +1,308 @@
+{
+  "name": "Toast",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/toast",
+  "docsUrl": "https://bestax.io/docs/api/components/toast",
+  "examples": [
+    {
+      "title": "Basic Toast",
+      "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button color=\"primary\" onClick={() => setShowToast(true)}>\n        Show Toast\n      </Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This is a notification message!\"\n          duration={0}\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Toast Types",
+      "code": "function example() {\n  const [toastType, setToastType] = useState(null);\n  return (\n    <Block>\n      <Buttons>\n        <Button color=\"success\" onClick={() => setToastType('success')}>\n          Success\n        </Button>\n        <Button color=\"danger\" onClick={() => setToastType('danger')}>\n          Danger\n        </Button>\n        <Button color=\"warning\" onClick={() => setToastType('warning')}>\n          Warning\n        </Button>\n        <Button color=\"info\" onClick={() => setToastType('info')}>\n          Info\n        </Button>\n      </Buttons>\n      {toastType && (\n        <Toast\n          inline\n          message={`This is a ${toastType} message!`}\n          type={toastType}\n          duration={0}\n          onClose={() => setToastType(null)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Toast Positions",
+      "code": "function example() {\n  const [position, setPosition] = useState(null);\n  const [box, setBox] = useState(null);\n  return (\n    <div\n      ref={setBox}\n      style={{\n        position: 'relative',\n        height: '300px',\n        transform: 'translateZ(0)',\n        border: '1px dashed var(--ifm-color-emphasis-300)',\n        padding: '1rem',\n      }}\n    >\n      <Buttons>\n        <Button onClick={() => setPosition('top-left')}>Top Left</Button>\n        <Button onClick={() => setPosition('top-center')}>Top Center</Button>\n        <Button onClick={() => setPosition('top-right')}>Top Right</Button>\n      </Buttons>\n      <Buttons>\n        <Button onClick={() => setPosition('bottom-left')}>Bottom Left</Button>\n        <Button onClick={() => setPosition('bottom-center')}>\n          Bottom Center\n        </Button>\n        <Button onClick={() => setPosition('bottom-right')}>\n          Bottom Right\n        </Button>\n      </Buttons>\n      {position && box && (\n        <Toast\n          container={box}\n          message={`Position: ${position}`}\n          position={position}\n          type=\"info\"\n          duration={0}\n          onClose={() => setPosition(null)}\n        />\n      )}\n    </div>\n  );\n}"
+    },
+    {
+      "title": "Action Button",
+      "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button color=\"primary\" onClick={() => setShowToast(true)}>\n        Show Toast with Action\n      </Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"Item deleted\"\n          actionText=\"Undo\"\n          actionType=\"info\"\n          onAction={() => alert('Undone!')}\n          duration={0}\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Cancel + Action Buttons",
+      "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button color=\"primary\" onClick={() => setShowToast(true)}>\n        Show Confirm Toast\n      </Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"Are you sure you want to proceed?\"\n          cancelText=\"Cancel\"\n          actionText=\"Confirm\"\n          actionType=\"danger\"\n          duration={0}\n          onAction={() => alert('Confirmed!')}\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Closable",
+      "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button color=\"primary\" onClick={() => setShowToast(true)}>\n        Show Closable Toast\n      </Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This toast has a close button\"\n          closable\n          duration={0}\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Indefinite",
+      "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowToast(true)}>Show Indefinite Toast</Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This won't auto-dismiss\"\n          indefinite\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss.",
+  "related": ["Dialog"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-toast",
+  "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
+  "import": "import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Toast.tsx",
+  "rootClass": "toast",
+  "parts": [
+    {
+      "path": "Toast",
+      "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
+      "component": null,
+      "props": [
+        {
+          "name": "message",
+          "type": "string",
+          "default": null,
+          "description": "The message to display (required).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'default' | 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": "'default'",
+          "description": "Color variant — colors the toast **background**.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "actionType",
+          "type": "'default' | 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color variant — colors the **action button** text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'",
+          "default": "'top-right'",
+          "description": "Position on the screen. Default: 'top-right'.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": "2000",
+          "description": "Duration in ms before auto-close. `0` disables auto-close.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "indefinite",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keeps the toast visible until dismissed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether clicking the toast (or outside it) dismisses it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show an explicit close (X) button. Default: false.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Pill-shaped (rounded corners).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "pauseOnHover",
+          "type": "boolean",
+          "default": "false",
+          "description": "Pause auto-close timer on hover. Default: false.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cancelable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the toast can be dismissed with Escape. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "default": null,
+          "description": "Text for an action button (e.g. \"Undo\").",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "default": null,
+          "description": "Text for a cancel button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when the action button is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when toast closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "container",
+          "type": "string | HTMLElement",
+          "default": null,
+          "description": "CSS selector or DOM node to mount the toast into.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders inline instead of using a portal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the toast element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-toast-background",
+      "sass": "$toast-background",
+      "default": "hsl(0, 0%, 21%)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-color",
+      "sass": "$toast-color",
+      "default": "hsl(0, 0%, 96%)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-radius",
+      "sass": "$toast-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-shadow",
+      "sass": "$toast-shadow",
+      "default": "0 4px 12px hsla(0, 0%, 0%, 0.2)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-padding",
+      "sass": "$toast-padding",
+      "default": "0.875rem 1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-min-width",
+      "sass": "$toast-min-width",
+      "default": "288px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-max-width",
+      "sass": "$toast-max-width",
+      "default": "568px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-gap",
+      "sass": "$toast-gap",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-message-size",
+      "sass": "$toast-message-size",
+      "default": "0.95rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-animation-duration",
+      "sass": "$toast-animation-duration",
+      "default": "0.3s",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-action-weight",
+      "sass": "$toast-action-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-action-radius",
+      "sass": "$toast-action-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-toast-action-hover-opacity",
+      "sass": "$toast-action-hover-opacity",
+      "default": "0.1",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "name": "Image",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/image",
+  "docsUrl": "https://bestax.io/docs/api/elements/image",
+  "examples": [
+    {
+      "title": "Default Image",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Sample image\"\n  size=\"128x128\"\n/>"
+    },
+    {
+      "title": "Rounded Image",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Rounded image\"\n  size=\"128x128\"\n  isRounded\n/>"
+    },
+    {
+      "title": "Retina Image",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Retina image\"\n  size=\"128x128\"\n  isRetina\n/>"
+    },
+    {
+      "title": "Aspect Ratio 16:9",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"16:9 aspect ratio image\"\n  size=\"16by9\"\n/>"
+    },
+    {
+      "title": "Aspect Ratio 4:3",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"4:3 aspect ratio image\"\n  size=\"4by3\"\n/>"
+    },
+    {
+      "title": "With Margin",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with margin\"\n  size=\"128x128\"\n  m=\"4\"\n/>"
+    },
+    {
+      "title": "With Iframe",
+      "code": "<Image size=\"16by9\">\n  <iframe\n    className=\"has-ratio\"\n    width=\"640\"\n    height=\"360\"\n    src=\"https://www.youtube.com/embed/YE7VzlLtp-4\"\n    frameBorder=\"0\"\n    allowFullScreen\n    title=\"Sample YouTube Video\"\n  />\n</Image>"
+    },
+    {
+      "title": "With Custom Child",
+      "code": "<Image size=\"4by3\">\n  <Block\n    display=\"flex\"\n    alignItems=\"center\"\n    justifyContent=\"center\"\n    bgColor=\"grey-light\"\n    textColor=\"dark\"\n    textAlign=\"centered\"\n    className=\"has-ratio\"\n    style={{ height: '100%' }}\n  >\n    <Paragraph>Custom Content</Paragraph>\n  </Block>\n</Image>"
+    },
+    {
+      "title": "With Text Color and Background",
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with text and background color\"\n  size=\"128x128\"\n  textColor=\"primary\"\n  bgColor=\"light\"\n/>"
+    }
+  ],
+  "accessibility": "- **Alt Text:** Always provide a descriptive `alt` attribute for images.\n- **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.\n- **Custom Content:** When embedding iframes or custom children, ensure accessibility via proper ARIA labeling or content.\n\n:::warning\nDo not use `Image` for decorative images without `alt=\"\"`, unless purely presentational.\n:::",
+  "related": ["Box", "Card", "Content", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-image--default",
+  "summary": "The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.",
+  "import": "import { Image } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Image.tsx",
+  "rootClass": "image",
+  "parts": [
+    {
+      "path": "Image",
+      "summary": "The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper for the container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.image.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper for the container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | 'square' | '1by1' | '5by4' | '4by3' | '3by2' | '5by3' | '16by9' | '2by1' | '3by1' | '4by5' | '3by4' | '2by3' | '3by5' | '9by16' | '1by2' | '1by3'",
+          "default": null,
+          "description": "Fixed size or aspect ratio modifier for the image container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the image with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRetina",
+          "type": "boolean",
+          "default": "false",
+          "description": "Uses retina (2x) image source.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": null,
+          "description": "Image source URL.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "default": null,
+          "description": "Alternate text for the image.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Arbitrary content (e.g., iframe, custom HTML) inside the image container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "'figure' | 'div' | 'p'",
+          "default": null,
+          "description": "Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

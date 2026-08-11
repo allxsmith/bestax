@@ -1,0 +1,123 @@
+{
+  "name": "Section",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/section",
+  "docsUrl": "https://bestax.io/docs/api/layout/section",
+  "examples": [
+    {
+      "title": "Default Section",
+      "code": "<Section>\n  <Title>Section</Title>\n  <SubTitle>\n    Divide your content into into <Strong>sections</Strong>. Tada!\n  </SubTitle>\n</Section>"
+    },
+    {
+      "title": "Medium Section",
+      "code": "<Section size=\"medium\">\n  <Title>Medium Section</Title>\n  <SubTitle>\n    Divide your content into into <Strong>sections</Strong>. Tada! Make sure\n    your window is wide or you won't see a medium section.\n  </SubTitle>\n</Section>"
+    },
+    {
+      "title": "Large Section",
+      "code": "<Section size=\"large\">\n  <Title>Large Section</Title>\n  <SubTitle>\n    Divide your content into into <Strong>sections</Strong>. Tada! Make sure\n    your window is wide or you won't see a large section.\n  </SubTitle>\n</Section>"
+    }
+  ],
+  "accessibility": "- The section renders as a semantic `<section>` for improved structure and accessibility.\n- Use headings (`<Title>`, `<SubTitle>`) and semantic content for screen reader support.\n\n:::note\nSections help organize your document outline for screen readers and SEO.\n:::",
+  "related": ["Container", "SubTitle", "Title", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-section--default",
+  "summary": "The `Section` component provides vertical spacing and visual separation for your Bulma React UI.",
+  "import": "import { Section } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Section.tsx",
+  "rootClass": "section",
+  "parts": [
+    {
+      "path": "Section",
+      "summary": "The `Section` component provides vertical spacing and visual separation for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier for text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'medium' | 'large'",
+          "default": null,
+          "description": "Section size for extra vertical spacing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Section content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-section-padding",
+      "sass": "$section-padding",
+      "default": "3rem 1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-section-padding-desktop",
+      "sass": "$section-padding-desktop",
+      "default": "3rem 3rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-section-padding-medium",
+      "sass": "$section-padding-medium",
+      "default": "9rem 4.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-section-padding-large",
+      "sass": "$section-padding-large",
+      "default": "18rem 6rem",
+      "scope": "component"
+    }
+  ]
+}

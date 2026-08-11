@@ -1,0 +1,143 @@
+{
+  "name": "Figure",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/figure",
+  "docsUrl": "https://bestax.io/docs/api/elements/figure",
+  "examples": [
+    {
+      "title": "Default Figure",
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n</Figure>"
+    },
+    {
+      "title": "Figure with Caption",
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>This is a caption for the image</Figure.Caption>\n</Figure>"
+    },
+    {
+      "title": "Styled Caption",
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textColor=\"grey\" textSize=\"7\" mt=\"2\">\n    Grey caption with smaller text\n  </Figure.Caption>\n</Figure>"
+    },
+    {
+      "title": "Figure with Background",
+      "code": "<Figure bgColor=\"light\" textColor=\"dark\" p=\"4\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption mt=\"2\">Figure with background and padding</Figure.Caption>\n</Figure>"
+    },
+    {
+      "title": "Centered Caption",
+      "code": "<Figure textAlign=\"centered\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textSize=\"7\" mt=\"2\">\n    Centered caption\n  </Figure.Caption>\n</Figure>"
+    },
+    {
+      "title": "Code Figure",
+      "code": "<Figure bgColor=\"dark\" p=\"4\">\n  <Pre textColor=\"white\" m=\"0\">\n    <Code>{`function hello() {\n  console.log(\"Hello, World!\");\n}`}</Code>\n  </Pre>\n  <Figure.Caption textColor=\"grey-light\" mt=\"2\">\n    Example code snippet\n  </Figure.Caption>\n</Figure>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>Caption via the Figure.Caption static</Figure.Caption>\n</Figure>"
+    }
+  ],
+  "accessibility": "- **Image Alt Text:** Always provide meaningful alt text for images within figures.\n- **Figure Semantics:** The `<figure>` element groups content that is referenced from the main flow but could be moved without affecting the document's meaning.\n- **Caption Association:** Screen readers associate `<figcaption>` content with the figure automatically.\n\n:::info\nThe `<figure>` element is ideal for images, illustrations, diagrams, code listings, or anything that is referenced as a unit from the main content.\n:::",
+  "related": ["Code", "Image", "Pre", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-figure--default",
+  "summary": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
+  "import": "import { Figure } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Figure.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Figure",
+      "summary": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the figure.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Figure.Caption",
+      "summary": "FigureCaption component for rendering a styled figcaption element. A FigureCaption wraps the HTML `<figcaption>` element with Bulma helper class integration. Use it inside Figure components to provide captions for images or other media.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color (Bulma color, 'inherit', or 'current').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color (Bulma color, 'inherit', or 'current').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to be rendered inside the figcaption.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

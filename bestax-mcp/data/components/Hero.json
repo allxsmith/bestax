@@ -1,0 +1,340 @@
+{
+  "name": "Hero",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/hero",
+  "docsUrl": "https://bestax.io/docs/api/layout/hero",
+  "examples": [
+    {
+      "title": "Default Hero",
+      "code": "<Hero>\n  <Hero.Body>\n    <Container>\n      <Title>Hero title</Title>\n      <SubTitle>Hero subtitle</SubTitle>\n    </Container>\n  </Hero.Body>\n</Hero>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<>\n  <Hero color=\"link\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (link)</Title>\n        <SubTitle>Hero subtitle (link)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"primary\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (primary)</Title>\n        <SubTitle>Hero subtitle (primary)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"info\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (info)</Title>\n        <SubTitle>Hero subtitle (info)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"success\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (success)</Title>\n        <SubTitle>Hero subtitle (success)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"warning\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (warning)</Title>\n        <SubTitle>Hero subtitle (warning)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"danger\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (danger)</Title>\n        <SubTitle>Hero subtitle (danger)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n</>"
+    },
+    {
+      "title": "All Sizes",
+      "code": "<>\n  <Hero color=\"info\" size=\"small\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (small)</Title>\n        <SubTitle>Hero subtitle (small)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"primary\" size=\"medium\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (medium)</Title>\n        <SubTitle>Hero subtitle (medium)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"success\" size=\"large\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (large)</Title>\n        <SubTitle>Hero subtitle (large)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n  <Hero color=\"danger\" size=\"fullheight\">\n    <Hero.Body>\n      <Container>\n        <Title>Hero title (fullheight)</Title>\n        <SubTitle>Hero subtitle (fullheight)</SubTitle>\n      </Container>\n    </Hero.Body>\n  </Hero>\n</>"
+    },
+    {
+      "title": "Fullheight with Navbar",
+      "code": "<>\n  <Navbar>\n    <Container>\n      <Navbar.Menu id=\"navMenu\">\n        <Navbar.Start>\n          <Navbar.Item as=\"a\">Getting Started</Navbar.Item>\n          <Navbar.Item as=\"a\">APIs</Navbar.Item>\n          <Navbar.Item as=\"a\">Blog</Navbar.Item>\n        </Navbar.Start>\n        <Navbar.End>\n          <Navbar.Item as=\"span\">\n            <Button color=\"primary\" isInverted as=\"a\" mx=\"2\">\n              Github\n            </Button>\n          </Navbar.Item>\n        </Navbar.End>\n      </Navbar.Menu>\n    </Container>\n  </Navbar>\n  <Hero color=\"link\" fullheightWithNavbar>\n    <Hero.Body>\n      <Container>\n        <Title>Fullheight with navbar</Title>\n      </Container>\n    </Hero.Body>\n  </Hero>\n</>"
+    },
+    {
+      "title": "Fullheight with Head, Body, and Foot",
+      "code": "<Hero color=\"primary\" size=\"medium\">\n  <Hero.Head>\n    <Navbar>\n      <Container>\n        <Navbar.Brand>\n          <Navbar.Item as=\"a\">\n            <Image src=\"/img/bestax-type-white.svg\" alt=\"Bestax\" mx=\"2\" />\n          </Navbar.Item>\n          <Navbar.Burger />\n        </Navbar.Brand>\n        <Navbar.Menu id=\"navbarMenuHeroA\">\n          <Navbar.End>\n            <Navbar.Item as=\"a\" active>\n              Getting Started\n            </Navbar.Item>\n            <Navbar.Item as=\"a\">APIs</Navbar.Item>\n            <Navbar.Item as=\"a\">Blog</Navbar.Item>\n            <Navbar.Item as=\"span\">\n              <Button color=\"primary\" isInverted as=\"a\" mx=\"2\">\n                <Icon\n                  library=\"fa\"\n                  name=\"github\"\n                  variant=\"brands\"\n                  ariaLabel=\"github\"\n                />\n                <Span>Github</Span>\n              </Button>\n            </Navbar.Item>\n          </Navbar.End>\n        </Navbar.Menu>\n      </Container>\n    </Navbar>\n  </Hero.Head>\n\n  <Hero.Body>\n    <Container textAlign=\"centered\">\n      <Title>Bestax</Title>\n      <SubTitle>A Bulma Component Library</SubTitle>\n    </Container>\n  </Hero.Body>\n\n  <Hero.Foot>\n    <Tabs>\n      <Container>\n        <Tabs.List>\n          <Tabs.Item>\n            <a>Elements</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Components</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Columns</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Grid</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Layout</a>\n          </Tabs.Item>\n        </Tabs.List>\n      </Container>\n    </Tabs>\n  </Hero.Foot>\n</Hero>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Hero color=\"info\">\n  <Hero.Head>\n    <Container textAlign=\"centered\" pt=\"4\">\n      <Title size=\"6\">Hero head via dot notation</Title>\n    </Container>\n  </Hero.Head>\n  <Hero.Body>\n    <Container textAlign=\"centered\">\n      <Title>Hero title</Title>\n      <SubTitle>Hero subtitle</SubTitle>\n    </Container>\n  </Hero.Body>\n  <Hero.Foot>\n    <Container textAlign=\"centered\" pb=\"4\">\n      <SubTitle size=\"6\">Hero foot via dot notation</SubTitle>\n    </Container>\n  </Hero.Foot>\n</Hero>"
+    }
+  ],
+  "accessibility": "- The hero renders as a semantic `<section>` by default.\n- Subcomponents use semantic `<div>` for layout but you can use accessible children/content.\n- Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.\n\n:::note\nWhen using fullheight or fullheight-with-navbar, ensure your layout remains keyboard navigable and visually accessible.\n:::",
+  "related": [
+    "Button",
+    "Container",
+    "Navbar",
+    "SubTitle",
+    "Tabs",
+    "Title",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-hero--default",
+  "summary": "The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.",
+  "import": "import { Hero } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Hero.tsx",
+  "rootClass": "hero",
+  "parts": [
+    {
+      "path": "Hero",
+      "summary": "The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier for the hero section (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.hero`. The other accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`, `inherit`, `current`) emit a class no CSS rule matches, so the hero renders unstyled; they log a console warning in development and will be removed from this union in the next major version.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large' | 'fullheight' | 'fullheight-with-navbar'",
+          "default": null,
+          "description": "Hero size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "fullheightWithNavbar",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use fullheight hero with a navbar offset.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Hero.Head",
+      "summary": "Top bar for navigation or branding.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier for text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Hero.Body",
+      "summary": "Main content area, vertically centered by default.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier for text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Hero.Foot",
+      "summary": "Bottom bar for tabs or actions.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier for text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-hero-body-padding",
+      "sass": "$hero-body-padding",
+      "default": "3rem 1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-body-padding-tablet",
+      "sass": "$hero-body-padding-tablet",
+      "default": "3rem 3rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-body-padding-small",
+      "sass": "$hero-body-padding-small",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-body-padding-medium",
+      "sass": "$hero-body-padding-medium",
+      "default": "9rem 4.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-body-padding-large",
+      "sass": "$hero-body-padding-large",
+      "default": "18rem 6rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-gradient-h-offset",
+      "sass": "$hero-gradient-h-offset",
+      "default": "5deg",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-gradient-s-offset",
+      "sass": "$hero-gradient-s-offset",
+      "default": "10%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-hero-gradient-l-offset",
+      "sass": "$hero-gradient-l-offset",
+      "default": "5%",
+      "scope": "component"
+    }
+  ]
+}

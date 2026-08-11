@@ -1,0 +1,240 @@
+{
+  "name": "Checkboxes",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/checkboxes",
+  "docsUrl": "https://bestax.io/docs/api/form/checkboxes",
+  "examples": [
+    {
+      "title": "Grouped Checkboxes",
+      "code": "<Checkboxes>\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n  <Checkbox> Feed the pet </Checkbox>\n  <Checkbox> Take out the trash </Checkbox>\n  <Checkbox> Clean your room </Checkbox>\n  <Checkbox> Set the table </Checkbox>\n  <Checkbox> Help with dishes </Checkbox>\n  <Checkbox> Water the plants </Checkbox>\n  <Checkbox> Put away toys </Checkbox>\n</Checkboxes>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Checkboxes label=\"Chores\">\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n</Checkboxes>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Chores\">\n      <Field.Body>\n        <Field>\n          <Checkboxes>\n            <Checkbox> Make the bed </Checkbox>\n            <Checkbox> Brush teeth </Checkbox>\n            <Checkbox> Do homework </Checkbox>\n          </Checkboxes>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Chores\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Checkboxes>\n              <Checkbox> Make the bed </Checkbox>\n              <Checkbox> Brush teeth </Checkbox>\n              <Checkbox> Do homework </Checkbox>\n            </Checkboxes>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Checkboxes name=\"frameworks\" label=\"Frameworks\">\n  <Checkboxes.Checkbox value=\"react\">React</Checkboxes.Checkbox>\n  <Checkboxes.Checkbox value=\"vue\">Vue</Checkboxes.Checkbox>\n</Checkboxes>"
+    }
+  ],
+  "accessibility": "- The group is rendered as a `<div class=\"checkboxes\" role=\"group\">` containing labeled checkboxes.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
+  "related": ["Checkbox", "Field"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes",
+  "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
+  "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Checkboxes.tsx",
+  "rootClass": "checkboxes",
+  "parts": [
+    {
+      "path": "Checkboxes",
+      "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role=\"group\"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name shared by every Checkbox in the group (via context).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string[]",
+          "default": null,
+          "description": "Currently-selected values (controlled mode).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string[]",
+          "default": null,
+          "description": "Initial selected values (uncontrolled mode).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(values: string[]) => void",
+          "default": null,
+          "description": "Fires when the selection changes; receives the new array.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Checkbox elements to render in the group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Checkboxes.Checkbox",
+      "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
+      "component": "Checkbox",
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color of the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the checkbox is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label/content for the checkbox.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

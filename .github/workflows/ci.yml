@@ -43,6 +43,14 @@ jobs:
       - name: Component catalog up to date
         run: pnpm run gen:catalog:check
 
+      # The MCP server answers from a committed index; a stale one documents
+      # props that have moved. Unlike the catalog check this reads
+      # node_modules/bulma for the SCSS, so it sits after install by necessity.
+      # `--intent-to-add` is load-bearing: the output is a directory, and
+      # `git diff --exit-code` cannot see a newly added component's file.
+      - name: MCP index up to date
+        run: pnpm run gen:mcp:check
+
       # House-convention gates (listings, docs sections, SCSS pattern,
       # stories, inline-style ratchet). Error messages name the file and fix.
       - name: Conformance checks
@@ -100,6 +108,7 @@ jobs:
             bulma-ui/coverage
             create-bestax/coverage
             bestax-migrate/coverage
+            bestax-mcp/coverage
           retention-days: 7
 
       - name: Archive Bundle Stats

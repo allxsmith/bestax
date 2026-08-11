@@ -1,0 +1,996 @@
+{
+  "name": "Navbar",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/navbar",
+  "docsUrl": "https://bestax.io/docs/api/components/navbar",
+  "examples": [
+    {
+      "title": "Complete Navbar with Burger and Menu",
+      "code": "function example() {\n  const [active, setActive] = useState(false);\n\n  return (\n    <Navbar>\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n        </Navbar.Item>\n        <Navbar.Burger\n          active={active}\n          onClick={() => setActive(a => !a)}\n          aria-label=\"menu\"\n          aria-expanded={active}\n        />\n      </Navbar.Brand>\n      <Navbar.Menu active={active}>\n        <Navbar.Start>\n          <Navbar.Item href=\"#\">Home</Navbar.Item>\n          <Navbar.Item href=\"#\">Docs</Navbar.Item>\n          <Navbar.Item href=\"#\">About</Navbar.Item>\n          <Navbar.Item href=\"#\">Contact</Navbar.Item>\n        </Navbar.Start>\n        <Navbar.End>\n          <Navbar.Item href=\"#\">Login</Navbar.Item>\n        </Navbar.End>\n      </Navbar.Menu>\n    </Navbar>\n  );\n}"
+    },
+    {
+      "title": "Brand Only",
+      "code": "<Navbar>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n  </Navbar.Brand>\n</Navbar>"
+    },
+    {
+      "title": "Burger Only",
+      "code": "<Navbar>\n  <Navbar.Burger\n    aria-label=\"menu\"\n    aria-expanded={false}\n    style={{ display: 'flex' }}\n  />\n</Navbar>"
+    },
+    {
+      "title": "Burger Active",
+      "code": "<Navbar>\n  <Navbar.Burger\n    active\n    aria-label=\"menu\"\n    aria-expanded\n    style={{ display: 'flex' }}\n  />\n</Navbar>"
+    },
+    {
+      "title": "Menu with Start and End",
+      "code": "<Navbar>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n    </Navbar.Start>\n    <Navbar.End>\n      <Navbar.Item href=\"#\">Login</Navbar.Item>\n    </Navbar.End>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Navigation Links and Dropdowns",
+      "code": "<Navbar>\n  <Navbar.Brand>\n    <Navbar.Item>\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n      <Navbar.Dropdown hoverable>\n        <Navbar.Link>More</Navbar.Link>\n        <Navbar.DropdownMenu>\n          <Navbar.Item href=\"#\">About</Navbar.Item>\n          <Navbar.Item href=\"#\">Jobs</Navbar.Item>\n          <Navbar.Item href=\"#\">Contact</Navbar.Item>\n          <Navbar.Divider />\n          <Navbar.Item href=\"#\">Report an issue</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Custom Link Component",
+      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = props => <a>{props.children}</a>;\n  return (\n    <Navbar>\n      <Navbar.Menu active>\n        <Navbar.Start>\n          <Navbar.Item as={Link} to=\"/\">\n            Home\n          </Navbar.Item>\n          <Navbar.Item as={Link} to=\"/pricing\">\n            Pricing\n          </Navbar.Item>\n        </Navbar.Start>\n      </Navbar.Menu>\n    </Navbar>\n  );\n}"
+    },
+    {
+      "title": "Transparent Navbar",
+      "code": "<Navbar transparent>{/* ...brand and menu... */}</Navbar>"
+    },
+    {
+      "title": "Fixed Navbar",
+      "code": "<Navbar fixed=\"top\">{/* ...brand and menu... */}</Navbar>"
+    },
+    {
+      "title": "Dropdown Right",
+      "code": "<Navbar>\n  <Navbar.Menu active>\n    <Navbar.End>\n      <Navbar.Dropdown hoverable right>\n        <Navbar.Link>Right Dropdown</Navbar.Link>\n        <Navbar.DropdownMenu right>\n          <Navbar.Item href=\"#\">Profile</Navbar.Item>\n          <Navbar.Item href=\"#\">Settings</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.End>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Dropup",
+      "code": "<>\n  <Hero color=\"primary\" size=\"small\">\n    <Hero.Body>\n      <Title>Hero above Navbar</Title>\n      <SubTitle>Hover \"Dropup\" below to see the menu open upward</SubTitle>\n    </Hero.Body>\n  </Hero>\n  <Navbar>\n    <Navbar.Menu active>\n      <Navbar.Start>\n        <Navbar.Dropdown hoverable up>\n          <Navbar.Link>Dropup</Navbar.Link>\n          <Navbar.DropdownMenu up>\n            <Navbar.Item href=\"#\">Up1</Navbar.Item>\n            <Navbar.Item href=\"#\">Up2</Navbar.Item>\n          </Navbar.DropdownMenu>\n        </Navbar.Dropdown>\n      </Navbar.Start>\n    </Navbar.Menu>\n  </Navbar>\n</>"
+    },
+    {
+      "title": "Dropdown without Arrow",
+      "code": "<Navbar>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Dropdown hoverable>\n        <Navbar.Link arrowless>No Arrow</Navbar.Link>\n        <Navbar.DropdownMenu>\n          <Navbar.Item href=\"#\">A</Navbar.Item>\n          <Navbar.Item href=\"#\">B</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Active Dropdown Item",
+      "code": "<Navbar>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Dropdown active>\n        <Navbar.Link>Active Dropdown</Navbar.Link>\n        <Navbar.DropdownMenu>\n          <Navbar.Item href=\"#\">A1</Navbar.Item>\n          <Navbar.Item href=\"#\">A2</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Dropdown with Divider",
+      "code": "<Navbar>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Dropdown hoverable>\n        <Navbar.Link>With Divider</Navbar.Link>\n        <Navbar.DropdownMenu>\n          <Navbar.Item href=\"#\">One</Navbar.Item>\n          <Navbar.Item href=\"#\">Two</Navbar.Item>\n          <Navbar.Divider />\n          <Navbar.Item href=\"#\">Three</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Color Modifiers",
+      "code": "function example() {\n  const colors = [\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ];\n  return (\n    <>\n      {colors.map(color => (\n        <Navbar key={color} color={color} mb=\"2\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n            </Navbar.Item>\n          </Navbar.Brand>\n          <Navbar.Menu active>\n            <Navbar.Start>\n              <Navbar.Item href=\"#\">Home</Navbar.Item>\n              <Navbar.Item href=\"#\">Docs</Navbar.Item>\n              <Navbar.Item href=\"#\">Components</Navbar.Item>\n            </Navbar.Start>\n          </Navbar.Menu>\n        </Navbar>\n      ))}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Navbar>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n    <Navbar.Burger aria-label=\"menu\" />\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n    </Navbar.Start>\n    <Navbar.End>\n      <Navbar.Item href=\"#\">Log in</Navbar.Item>\n    </Navbar.End>\n  </Navbar.Menu>\n</Navbar>"
+    }
+  ],
+  "accessibility": "- The root `Navbar` renders as `<nav role=\"navigation\" aria-label=\"main navigation\">`.\n- Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.\n- Dropdowns and menus follow Bulma's structure for keyboard and screen reader accessibility.\n\n:::note\nFor full accessibility in dropdowns, ensure that focus, keyboard navigation, and ARIA attributes are managed where needed.\n:::",
+  "related": ["Button", "Icon", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-navbar--default",
+  "summary": "The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.",
+  "import": "import { Navbar } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Navbar.tsx",
+  "rootClass": "navbar",
+  "parts": [
+    {
+      "path": "Navbar",
+      "summary": "The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the navbar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the navbar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the navbar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the navbar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "transparent",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the navbar with a transparent background.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixed",
+          "type": "'top' | 'bottom'",
+          "default": null,
+          "description": "Fixes the navbar to the top or bottom of the viewport.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Navbar content (compose with subcomponents).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Brand",
+      "summary": "For logo and branding (left side)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the brand.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the brand.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Brand content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Item",
+      "summary": "Navigation links, buttons, or custom content",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Render as a custom component (e.g., a router link).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the item is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Navbar item content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Link",
+      "summary": "Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Render as a custom component (default: 'a').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "arrowless",
+          "type": "boolean",
+          "default": "false",
+          "description": "Remove the dropdown arrow indicator.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Link content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Burger",
+      "summary": "Responsive menu toggle (mobile)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the burger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the burger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the burger is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom content inside the burger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Aria label for accessibility.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-expanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Aria expanded state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Click handler.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Menu",
+      "summary": "Collapsible content (contains `Navbar.Start` and `Navbar.End`)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the menu.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the menu.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the menu is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Menu content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Start",
+      "summary": "Left-aligned menu area",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.End",
+      "summary": "Right-aligned menu area",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Navbar.Dropdown",
+      "summary": "Dropdown parent (with options for hover, up, right, active)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "right",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown aligned right.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "up",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown opens upwards.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hoverable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown opens on hover.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown is open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Dropdown content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Navbar.DropdownMenu",
+      "summary": "Dropdown menu container",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "right",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown aligned right.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "up",
+          "type": "boolean",
+          "default": "false",
+          "description": "Dropdown opens upwards.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Dropdown menu content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Navbar.Divider",
+      "summary": "Divider in dropdown menus.",
+      "component": null,
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-navbar-height",
+      "sass": "$navbar-height",
+      "default": "3.25rem",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-navbar-h",
+      "sass": "$navbar-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-s",
+      "sass": "$navbar-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-l",
+      "sass": "$navbar-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-background-color",
+      "sass": "$navbar-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-box-shadow-size",
+      "sass": "$navbar-box-shadow-size",
+      "default": "0 0.125em 0 0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-box-shadow-color",
+      "sass": "$navbar-box-shadow-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-padding-vertical",
+      "sass": "$navbar-padding-vertical",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-padding-horizontal",
+      "sass": "$navbar-padding-horizontal",
+      "default": "2rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-z",
+      "sass": "$navbar-z",
+      "default": "30",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-fixed-z",
+      "sass": "$navbar-fixed-z",
+      "default": "30",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-background-a",
+      "sass": "$navbar-item-background-a",
+      "default": "0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-background-l",
+      "sass": "$navbar-item-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-background-l-delta",
+      "sass": "$navbar-item-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-hover-background-l-delta",
+      "sass": "$navbar-item-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-active-background-l-delta",
+      "sass": "$navbar-item-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-color-l",
+      "sass": "$navbar-item-color-l",
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-color",
+      "sass": "$navbar-item-color",
+      "default": "hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-item-color-l))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-selected-h",
+      "sass": "$navbar-item-selected-h",
+      "default": "var(--bulma-link-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-selected-s",
+      "sass": "$navbar-item-selected-s",
+      "default": "var(--bulma-link-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-selected-l",
+      "sass": "$navbar-item-selected-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-selected-background-l",
+      "sass": "$navbar-item-selected-background-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-selected-color-l",
+      "sass": "$navbar-item-selected-color-l",
+      "default": "var(--bulma-link-invert-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-item-img-max-height",
+      "sass": "$navbar-item-img-max-height",
+      "default": "1.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-burger-color",
+      "sass": "$navbar-burger-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-hover-background-color",
+      "sass": "$navbar-tab-hover-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-hover-border-bottom-color",
+      "sass": "$navbar-tab-hover-border-bottom-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-active-color",
+      "sass": "$navbar-tab-active-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-active-background-color",
+      "sass": "$navbar-tab-active-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-active-border-bottom-color",
+      "sass": "$navbar-tab-active-border-bottom-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-active-border-bottom-style",
+      "sass": "$navbar-tab-active-border-bottom-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-tab-active-border-bottom-width",
+      "sass": "$navbar-tab-active-border-bottom-width",
+      "default": "0.1875em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-background-color",
+      "sass": "$navbar-dropdown-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-border-l",
+      "sass": "$navbar-dropdown-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-border-color",
+      "sass": "$navbar-dropdown-border-color",
+      "default": "hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-dropdown-border-l))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-border-style",
+      "sass": "$navbar-dropdown-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-border-width",
+      "sass": "$navbar-dropdown-border-width",
+      "default": "0.125em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-offset",
+      "sass": "$navbar-dropdown-offset",
+      "default": "-0.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-arrow",
+      "sass": "$navbar-dropdown-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-radius",
+      "sass": "$navbar-dropdown-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-z",
+      "sass": "$navbar-dropdown-z",
+      "default": "20",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-boxed-radius",
+      "sass": "$navbar-dropdown-boxed-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-boxed-shadow",
+      "sass": "$navbar-dropdown-boxed-shadow",
+      "default": "0 0.5em 0.5em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1), 0 0 0 1px hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.1)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-item-h",
+      "sass": "$navbar-dropdown-item-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-item-s",
+      "sass": "$navbar-dropdown-item-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-item-l",
+      "sass": "$navbar-dropdown-item-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-item-background-l",
+      "sass": "$navbar-dropdown-item-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-dropdown-item-color-l",
+      "sass": "$navbar-dropdown-item-color-l",
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-divider-background-l",
+      "sass": "$navbar-divider-background-l",
+      "default": "var(--bulma-background-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-divider-height",
+      "sass": "$navbar-divider-height",
+      "default": "0.125em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-navbar-bottom-box-shadow-size",
+      "sass": "$navbar-bottom-box-shadow-size",
+      "default": "0 -0.125em 0 0",
+      "scope": "component"
+    }
+  ]
+}

@@ -3,6 +3,7 @@ packages:
   - docs
   - create-bestax
   - bestax-migrate
+  - bestax-mcp
 
 # --- Supply-chain hardening ---
 

@@ -1,0 +1,307 @@
+{
+  "name": "IconText",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/icontext",
+  "docsUrl": "https://bestax.io/docs/api/elements/icontext",
+  "examples": [
+    {
+      "title": "Single Icon + Text",
+      "code": "<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}>\n  Star\n</IconText>"
+    },
+    {
+      "title": "With Text Color",
+      "code": "<IconText\n  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}\n  textColor=\"primary\"\n>\n  Star\n</IconText>"
+    },
+    {
+      "title": "With Margin",
+      "code": "<IconText\n  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}\n  m=\"2\"\n>\n  Star\n</IconText>"
+    },
+    {
+      "title": "In a Button",
+      "code": "<Button color=\"primary\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n      ariaLabel: 'Check icon',\n    }}\n  >\n    Click Me\n  </IconText>\n</Button>"
+    },
+    {
+      "title": "In a Notification",
+      "code": "<Notification color=\"info\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'info-circle',\n      ariaLabel: 'Info icon',\n      textColor: 'dark',\n    }}\n    m=\"1\"\n  >\n    Info Notification\n  </IconText>\n</Notification>"
+    },
+    {
+      "title": "In a Tag",
+      "code": "<Tag color=\"success\" size=\"medium\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n      ariaLabel: 'Check icon',\n    }}\n  >\n    Success\n  </IconText>\n</Tag>"
+    },
+    {
+      "title": "Multiple Icons and Text",
+      "code": "<IconText\n  items={[\n    {\n      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train icon' },\n      text: 'Paris',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Budapest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Bucharest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Istanbul',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'flag-checkered',\n        ariaLabel: 'Finish icon',\n      },\n    },\n  ]}\n  mx=\"1\"\n/>"
+    },
+    {
+      "title": "Star Rating Example",
+      "code": "<Rate defaultValue={3.5} color=\"warning\" precision={0.5} showScore />"
+    },
+    {
+      "title": "Star Rating Example",
+      "code": "<IconText\n  items={[\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star-half-alt',\n        ariaLabel: 'Half star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        variant: 'regular',\n        ariaLabel: 'Empty star icon',\n      },\n      text: '3.5/5',\n    },\n  ]}\n  textColor=\"warning\"\n  mx=\"1\"\n/>"
+    },
+    {
+      "title": "With Flex",
+      "code": "<IconText\n  iconProps={{\n    library: 'fa',\n    name: 'info-circle',\n    ariaLabel: 'Info icon',\n    textColor: 'info',\n  }}\n  display=\"flex\"\n>\n  Information\n</IconText>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<IconText>\n  <IconText.Icon name=\"star\" ariaLabel=\"star icon\" />\n  <span>Starred</span>\n</IconText>"
+    }
+  ],
+  "accessibility": "- **ARIA labels:** Always set an `ariaLabel` for icons for screen readers.\n- **Order:** The icon is visually before the text by default.\n- **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.\n\n:::info\nFor star ratings or icon lists, use `items` with `iconProps` and optional `text`.\n:::",
+  "related": ["Button", "Icon", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-icontext--default",
+  "summary": "The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.",
+  "import": "import { IconText } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/IconText.tsx",
+  "rootClass": "icon-text",
+  "parts": [
+    {
+      "path": "IconText",
+      "summary": "The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.icon-text.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "iconProps",
+          "type": "IconProps",
+          "default": null,
+          "description": "Props for a single Icon component (for single icon mode).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Text for a single icon (for single icon mode).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "{ iconProps: IconProps; text?: string }[]",
+          "default": null,
+          "description": "Array of icon/text pairs (for multiple icons mode).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "IconText.Icon",
+      "summary": "The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons, Google Material Icons, Material Symbols, etc.).",
+      "component": "Icon",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": null,
+          "description": "DEPRECATED: Legacy prop, use `name` instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "library",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": "'fa'",
+          "description": "The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "features",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "libraryFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "**DEPRECATED:** Use `variant` and `features` instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'icon'",
+          "description": "ARIA label for accessibility (default: 'icon').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "React.CSSProperties",
+          "default": null,
+          "description": "Inline style object.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "containerClassName",
+          "type": "string",
+          "default": null,
+          "description": "Override the default `'icon'` container class (e.g., `'panel-icon'`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-icon-dimensions",
+      "sass": "$icon-dimensions",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-icon-dimensions-small",
+      "sass": "$icon-dimensions-small",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-icon-dimensions-medium",
+      "sass": "$icon-dimensions-medium",
+      "default": "2rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-icon-dimensions-large",
+      "sass": "$icon-dimensions-large",
+      "default": "3rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-icon-text-spacing",
+      "sass": "$icon-text-spacing",
+      "default": "0.25em",
+      "scope": "component"
+    }
+  ]
+}

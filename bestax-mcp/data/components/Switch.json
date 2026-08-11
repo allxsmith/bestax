@@ -1,0 +1,291 @@
+{
+  "name": "Switch",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/switch",
+  "docsUrl": "https://bestax.io/docs/api/form/switch",
+  "examples": [
+    {
+      "title": "Basic Switch",
+      "code": "function example() {\n  return <Switch>Enable notifications</Switch>;\n}"
+    },
+    {
+      "title": "Colors",
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch color=\"primary\" defaultChecked>\n        Primary\n      </Switch>\n      <Switch color=\"link\" defaultChecked>\n        Link\n      </Switch>\n      <Switch color=\"info\" defaultChecked>\n        Info\n      </Switch>\n      <Switch color=\"success\" defaultChecked>\n        Success\n      </Switch>\n      <Switch color=\"warning\" defaultChecked>\n        Warning\n      </Switch>\n      <Switch color=\"danger\" defaultChecked>\n        Danger\n      </Switch>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Sizes",
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch size=\"small\" defaultChecked>\n        Small\n      </Switch>\n      <Switch size=\"normal\" defaultChecked>\n        Normal\n      </Switch>\n      <Switch size=\"medium\" defaultChecked>\n        Medium\n      </Switch>\n      <Switch size=\"large\" defaultChecked>\n        Large\n      </Switch>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Rounded Style",
+      "code": "function example() {\n  return (\n    <Switch isRounded color=\"success\" defaultChecked>\n      Rounded switch\n    </Switch>\n  );\n}"
+    },
+    {
+      "title": "Thin Style",
+      "code": "function example() {\n  return (\n    <Switch isThin color=\"info\" defaultChecked>\n      Thin switch\n    </Switch>\n  );\n}"
+    },
+    {
+      "title": "Outlined Style",
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch isOutlined color=\"primary\" defaultChecked>\n        Primary outlined\n      </Switch>\n      <Switch isOutlined color=\"success\" defaultChecked>\n        Success outlined\n      </Switch>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "RTL Layout",
+      "code": "function example() {\n  return (\n    <Switch isRtl color=\"primary\" defaultChecked>\n      Label on left\n    </Switch>\n  );\n}"
+    },
+    {
+      "title": "Disabled State",
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <Switch disabled>Disabled unchecked</Switch>\n      <Switch disabled defaultChecked color=\"success\">\n        Disabled checked\n      </Switch>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Controlled Usage",
+      "code": "function example() {\n  const [isEnabled, setIsEnabled] = useState(false);\n\n  return (\n    <Block>\n      <Switch\n        color=\"primary\"\n        checked={isEnabled}\n        onChange={e => setIsEnabled(e.target.checked)}\n      >\n        Feature is {isEnabled ? 'enabled' : 'disabled'}\n      </Switch>\n      <Paragraph mt=\"2\">\n        State: <Strong>{isEnabled ? 'ON' : 'OFF'}</Strong>\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Settings Panel Example",
+      "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting = key => e => {\n    setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n  };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
+    }
+  ],
+  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- The switch can be focused and toggled with keyboard (Space/Enter)",
+  "related": [],
+  "storybook": null,
+  "summary": "The `Switch` component provides a toggle switch for boolean on/off states.",
+  "import": "import { Switch } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Switch.tsx",
+  "rootClass": "switch",
+  "parts": [
+    {
+      "path": "Switch",
+      "summary": "The `Switch` component provides a toggle switch for boolean on/off states.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color variant for the switch.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the switch.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use rounded switch style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isThin",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use thin switch style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use outlined switch style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRtl",
+          "type": "boolean",
+          "default": "false",
+          "description": "Right-to-left layout (label on left).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "passiveType",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color when the switch is in the off/passive state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Label content for the switch.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled checked state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "default": "false",
+          "description": "Default checked state for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the switch is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(event: React.ChangeEvent<HTMLInputElement>) => void",
+          "default": null,
+          "description": "Callback when switch state changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the input element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-switch-width",
+      "sass": "$switch-width",
+      "default": "2.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-height",
+      "sass": "$switch-height",
+      "default": "1.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-padding",
+      "sass": "$switch-padding",
+      "default": "0.1875em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-border-width",
+      "sass": "$switch-border-width",
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-background",
+      "sass": "$switch-background",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-circle-color",
+      "sass": "$switch-circle-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-active-color",
+      "sass": "$switch-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-radius",
+      "sass": "$switch-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-label-gap",
+      "sass": "$switch-label-gap",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-transition-duration",
+      "sass": "$switch-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-circle-shadow",
+      "sass": "$switch-circle-shadow",
+      "default": "0 2px 3px rgba(10, 10, 10, 0.1)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-focus-shadow",
+      "sass": "$switch-focus-shadow",
+      "default": "0 0 0 0.125em rgba(0, 0, 0, 0.1)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-thin-height",
+      "sass": "$switch-thin-height",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-switch-thin-circle-size",
+      "sass": "$switch-thin-circle-size",
+      "default": "1.25em",
+      "scope": "component"
+    }
+  ]
+}

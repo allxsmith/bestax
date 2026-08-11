@@ -1,0 +1,403 @@
+{
+  "name": "File",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/file",
+  "docsUrl": "https://bestax.io/docs/api/form/file",
+  "examples": [
+    {
+      "title": "Default",
+      "code": "<File buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />"
+    },
+    {
+      "title": "With Filename Display",
+      "code": "<File\n  hasName\n  fileName=\"resume.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "CTA on Right",
+      "code": "<File\n  hasName\n  isRight\n  fileName=\"contract.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Full Width",
+      "code": "<File\n  hasName\n  isFullwidth\n  fileName=\"picture.png\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Boxed",
+      "code": "<File isBoxed buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />"
+    },
+    {
+      "title": "Boxed with Name",
+      "code": "<File\n  isBoxed\n  hasName\n  fileName=\"holiday.jpg\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Colors",
+      "code": "<>\n  <File\n    color=\"primary\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    color=\"info\"\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    color=\"warning\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" />}\n  />\n  <File\n    color=\"danger\"\n    isBoxed\n    hasName\n    fileName=\"resume.pdf\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"cloud-upload-alt\" />}\n  />\n</>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <File\n    size=\"small\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File buttonLabel=\"Choose a file…\" iconLeft={<Icon name=\"upload\" />} />\n  <File\n    size=\"medium\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+    },
+    {
+      "title": "Sizes with Name",
+      "code": "<>\n  <File\n    size=\"small\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    hasName\n    fileName=\"sample.txt\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+    },
+    {
+      "title": "Sizes with Boxed",
+      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+    },
+    {
+      "title": "Sizes with Boxed and Name",
+      "code": "<>\n  <File\n    size=\"small\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"medium\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n  <File\n    size=\"large\"\n    isBoxed\n    hasName\n    fileName=\"summary.docx\"\n    buttonLabel=\"Choose a file…\"\n    iconLeft={<Icon name=\"upload\" />}\n  />\n</>"
+    },
+    {
+      "title": "Alignment: Centered",
+      "code": "<File\n  color=\"info\"\n  isCentered\n  isBoxed\n  hasName\n  fileName=\"centered.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Alignment: Right",
+      "code": "<File\n  color=\"primary\"\n  isRight\n  hasName\n  fileName=\"right.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<File\n  label=\"Document\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" />}\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <File\n            buttonLabel=\"Choose a file…\"\n            iconLeft={<Icon name=\"upload\" />}\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
+  "related": ["Field", "Icon", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-file--default",
+  "summary": "The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, \"has name\", and filename display.",
+  "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/File.tsx",
+  "rootClass": "file",
+  "parts": [
+    {
+      "path": "File",
+      "summary": "The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, \"has name\", and filename display.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the file input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the file input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isBoxed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Boxed file input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the file input expands to full width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Position the CTA on the right (with `hasName`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isCentered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Center the file input within its container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasName",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a file name indicator.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "buttonLabel",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Text on the file CTA button (defaults to \"Choose a file…\").",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Left icon element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Right icon element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inputClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fileName",
+          "type": "string",
+          "default": null,
+          "description": "File name to display.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-file-radius",
+      "sass": "$file-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-name-border-color",
+      "sass": "$file-name-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-name-border-style",
+      "sass": "$file-name-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-name-border-width",
+      "sass": "$file-name-border-width",
+      "default": "1px 1px 1px 0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-name-max-width",
+      "sass": "$file-name-max-width",
+      "default": "16em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-h",
+      "sass": "$file-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-s",
+      "sass": "$file-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-background-l",
+      "sass": "$file-background-l",
+      "default": "var(--bulma-scheme-main-ter-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-background-l-delta",
+      "sass": "$file-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-hover-background-l-delta",
+      "sass": "$file-hover-background-l-delta",
+      "default": "-5%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-active-background-l-delta",
+      "sass": "$file-active-background-l-delta",
+      "default": "-10%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-border-l",
+      "sass": "$file-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-border-l-delta",
+      "sass": "$file-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-hover-border-l-delta",
+      "sass": "$file-hover-border-l-delta",
+      "default": "-10%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-active-border-l-delta",
+      "sass": "$file-active-border-l-delta",
+      "default": "-20%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-cta-color-l",
+      "sass": "$file-cta-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-name-color-l",
+      "sass": "$file-name-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-color-l-delta",
+      "sass": "$file-color-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-hover-color-l-delta",
+      "sass": "$file-hover-color-l-delta",
+      "default": "-5%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-file-active-color-l-delta",
+      "sass": "$file-active-color-l-delta",
+      "default": "-10%",
+      "scope": "component"
+    }
+  ]
+}

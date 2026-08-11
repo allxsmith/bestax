@@ -1,0 +1,294 @@
+{
+  "name": "Avatars",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/avatars",
+  "docsUrl": "https://bestax.io/docs/api/components/avatars",
+  "examples": [
+    {
+      "title": "Default",
+      "code": "<Avatars>\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n</Avatars>"
+    },
+    {
+      "title": "Clamped with a Surplus Bubble",
+      "code": "<Avatars max={3} size=\"48x48\">\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n  <Avatar name=\"Margaret Hamilton\" />\n  <Avatar name=\"Radia Perlman\" />\n</Avatars>"
+    },
+    {
+      "title": "Localized Surplus Label",
+      "code": "<Avatars max={3} surplusLabel={count => `${count} weitere`}>\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n  <Avatar name=\"Margaret Hamilton\" />\n  <Avatar name=\"Radia Perlman\" />\n</Avatars>"
+    },
+    {
+      "title": "Uniform Shape",
+      "code": "<Avatars max={4} shape=\"square\">\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n  <Avatar name=\"Margaret Hamilton\" />\n  <Avatar name=\"Radia Perlman\" />\n</Avatars>"
+    },
+    {
+      "title": "Spacing",
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Avatars spacing=\"sm\" mb=\"4\">\n    <Avatar name=\"Ada Lovelace\" />\n    <Avatar name=\"Grace Hopper\" />\n    <Avatar name=\"Katherine Johnson\" />\n  </Avatars>\n  <Avatars spacing=\"lg\">\n    <Avatar name=\"Ada Lovelace\" />\n    <Avatar name=\"Grace Hopper\" />\n    <Avatar name=\"Katherine Johnson\" />\n  </Avatars>\n</Block>"
+    },
+    {
+      "title": "Spacing",
+      "code": "<Avatars spacing={4}>\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n</Avatars>"
+    },
+    {
+      "title": "Non-overlapping (Spaced)",
+      "code": "<Avatars spaced>\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n</Avatars>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Avatars>\n  <Avatars.Avatar name=\"Ada Lovelace\" />\n  <Avatars.Avatar name=\"Grace Hopper\" />\n  <Avatars.Avatar name=\"Katherine Johnson\" />\n</Avatars>"
+    }
+  ],
+  "accessibility": "- `Avatars` is a plain container — each child `Avatar` carries its own accessible name (see\n  [Avatar's accessibility notes](./avatar.md#accessibility)).\n- The `+N` surplus avatar gets an accessible name of `\"{N} more\"` (via its `alt`), so assistive\n  tech announces how many members are hidden. Localize it with `surplusLabel`, e.g.\n  ``surplusLabel={count => `${count} weitere`}``.\n- A focused clickable avatar is lifted above its overlapping neighbours so its focus outline\n  is never partially covered.\n- When the group represents a labelled set (e.g. \"Project members\"), give the container a\n  `role=\"group\"` and an `aria-label` describing it.",
+  "related": ["Avatar", "Badge", "Tags", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-avatars--default",
+  "summary": "The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the \"members\" list pattern.",
+  "import": "import { Avatars, Avatar } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Avatars.tsx",
+  "rootClass": "avatars",
+  "parts": [
+    {
+      "path": "Avatars",
+      "summary": "The `Avatars` component renders an overlapping/stacked group of `Avatar`s, the \"members\" list pattern.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": null,
+          "description": "Show only the first `max` children, replacing the overflow with a \"+N\" surplus avatar. A single overflow avatar is shown directly rather than as a pointless \"+1\".",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | number",
+          "default": null,
+          "description": "Uniform size applied to every child `Avatar` (and the surplus avatar).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shape",
+          "type": "'circle' | 'rounded' | 'square'",
+          "default": null,
+          "description": "Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "spacing",
+          "type": "'sm' | 'md' | 'lg' | number",
+          "default": "'md'",
+          "description": "Space between avatars: a preset or a pixel `number`. The overlap distance, or the gap when `spaced`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "spaced",
+          "type": "boolean",
+          "default": "false",
+          "description": "Lay the avatars out side by side (non-overlapping), using `spacing` as the gap.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "surplusLabel",
+          "type": "(count: number) => string",
+          "default": null,
+          "description": "Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Avatar` elements to render inside the group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Avatars.Avatar",
+      "summary": "The `Avatar` component represents a person or entity as a compact image.",
+      "component": "Avatar",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": null,
+          "description": "Image URL. On load error (or if absent), falls back to initials, then `icon`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "default": null,
+          "description": "Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=\"\"` marks a non-interactive avatar as decorative.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Derives initials and a deterministic background color when no `src` is shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "initials",
+          "type": "string",
+          "default": null,
+          "description": "Explicit initials override (else derived from `name`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Final fallback, rendered when there is no `src`, `name`, or `initials`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | number",
+          "default": null,
+          "description": "Preset size, or a pixel size when a number.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shape",
+          "type": "'circle' | 'rounded' | 'square'",
+          "default": "'circle'",
+          "description": "Avatar shape. Default `'circle'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "AvatarColor",
+          "default": null,
+          "description": "Background color for initials/icon avatars (else auto-derived from `name`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": null,
+          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "When set, renders the avatar as a link.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "default": null,
+          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rel",
+          "type": "string",
+          "default": null,
+          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "imageProps",
+          "type": "React.ImgHTMLAttributes<HTMLImageElement>",
+          "default": null,
+          "description": "Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "AvatarColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Avatar component."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-avatars-ring-color",
+      "sass": "$avatars-ring-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatars-ring-width",
+      "sass": "$avatars-ring-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatars-spacing",
+      "sass": "$avatars-spacing-md",
+      "default": "0.75rem",
+      "scope": "component"
+    }
+  ]
+}

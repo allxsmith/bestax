@@ -1,0 +1,261 @@
+{
+  "name": "Badge",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/badge",
+  "docsUrl": "https://bestax.io/docs/api/components/badge",
+  "examples": [
+    {
+      "title": "Status Dot on an Avatar",
+      "code": "<Badge dot color=\"success\" overlap=\"circle\">\n  <Avatar name=\"Ada Lovelace\" />\n</Badge>"
+    },
+    {
+      "title": "Unread Count",
+      "code": "<Badge content={128} max={99} color=\"danger\">\n  <Icon name=\"bell\" ariaLabel=\"Notifications\" />\n</Badge>"
+    },
+    {
+      "title": "Unread Mail",
+      "code": "<Badge content={4} color=\"danger\">\n  <Icon name=\"envelope\" ariaLabel=\"Inbox, 4 unread messages\" size=\"large\" />\n</Badge>"
+    },
+    {
+      "title": "Badge on a Button",
+      "code": "<Badge content={3} color=\"danger\" overlap=\"square\">\n  <Button color=\"primary\">\n    <Icon name=\"shopping-cart\" ariaLabel=\"Cart\" />\n    <span>Cart</span>\n  </Button>\n</Badge>"
+    },
+    {
+      "title": "Positions",
+      "code": "<Block display=\"flex\">\n  <Badge content={1} position=\"top-right\" mr=\"5\">\n    <Avatar name=\"A\" shape=\"square\" />\n  </Badge>\n  <Badge content={2} position=\"top-left\" mr=\"5\">\n    <Avatar name=\"B\" shape=\"square\" />\n  </Badge>\n  <Badge content={3} position=\"bottom-right\" mr=\"5\">\n    <Avatar name=\"C\" shape=\"square\" />\n  </Badge>\n  <Badge content={4} position=\"bottom-left\">\n    <Avatar name=\"D\" shape=\"square\" />\n  </Badge>\n</Block>"
+    },
+    {
+      "title": "Overlap: Circle vs Square",
+      "code": "<Block display=\"flex\">\n  <Badge content={5} overlap=\"square\" mr=\"5\">\n    <Avatar name=\"Square\" shape=\"square\" />\n  </Badge>\n  <Badge content={5} overlap=\"circle\">\n    <Avatar name=\"Circle\" shape=\"circle\" />\n  </Badge>\n</Block>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Block display=\"flex\">\n  <Badge content={1} color=\"primary\" mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={2} color=\"info\" mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={3} color=\"success\" mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={4} color=\"warning\" mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={5} color=\"danger\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n</Block>"
+    },
+    {
+      "title": "Pulse",
+      "code": "<Badge dot color=\"success\" pulse overlap=\"circle\">\n  <Avatar name=\"Ada Lovelace\" />\n</Badge>"
+    },
+    {
+      "title": "Toggling Visibility",
+      "code": "function example() {\n  const [muted, setMuted] = useState(false);\n\n  return (\n    <Block display=\"flex\" alignItems=\"center\">\n      <Badge content={4} color=\"danger\" invisible={muted} mr=\"5\">\n        <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n      </Badge>\n      <Button onClick={() => setMuted(m => !m)}>\n        {muted ? 'Show badge' : 'Hide badge'}\n      </Button>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Hidden at Zero (unless `showZero`)",
+      "code": "<Block display=\"flex\">\n  <Badge content={0} mr=\"5\">\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n  <Badge content={0} showZero>\n    <Icon name=\"bell\" ariaLabel=\"Notifications\" size=\"large\" />\n  </Badge>\n</Block>"
+    },
+    { "title": "Standalone", "code": "<Badge content={5} color=\"info\" />" },
+    {
+      "title": "Standalone, Interactive",
+      "code": "function example() {\n  const [clicks, setClicks] = useState(0);\n\n  return (\n    <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />\n  );\n}"
+    },
+    {
+      "title": "Standalone, Pulse",
+      "code": "<Badge content={5} color=\"danger\" pulse />"
+    },
+    {
+      "title": "Text Child",
+      "code": "<Badge content={3} color=\"primary\">\n  Inbox\n</Badge>"
+    },
+    {
+      "title": "Custom Node Content",
+      "code": "<Badge content={<Icon name=\"check\" />} color=\"success\">\n  <Avatar name=\"Ada Lovelace\" />\n</Badge>"
+    }
+  ],
+  "accessibility": "- A count/text badge exposes `role=\"status\"` and an `aria-label` announcing its content.\n- At `content={0}` without `showZero`, the pill is visually hidden but stays mounted as an\n  empty `role=\"status\"` node, so a later `0 -> 1` change mutates an existing live region and\n  is reliably announced (a live region inserted already populated often isn't).\n- A bare number in a `role=\"status\"` span is not enough context on its own — put the full\n  meaning on the anchor itself, e.g. `<Icon ariaLabel=\"Inbox, 4 unread messages\" />` rather than\n  relying on the badge to read out just \"4\".\n- A decorative `dot` badge is `aria-hidden`.\n- `pulse` respects `prefers-reduced-motion: reduce` and renders without animation.\n- Note the two hide mechanisms differ: the Bulma `visibility=\"invisible\"` helper hides the whole\n  wrapper (anchor included), while the `invisible` **prop** hides only the badge pill.",
+  "related": ["Avatar", "Icon", "Tag", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-badge--unread-count",
+  "summary": "The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.",
+  "import": "import { Badge } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Badge.tsx",
+  "rootClass": "badge",
+  "parts": [
+    {
+      "path": "Badge",
+      "summary": "The `Badge` component is a small status/count indicator overlaid on the corner of another element, or rendered standalone.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "badgeClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "content",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "99",
+          "description": "Numeric `content` above this renders as `\"{max}+\"`. A negative or non-integer value falls back to the default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dot",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render a small dot with no content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showZero",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show the badge when `content` is `0`. Default `false`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "BadgeColor",
+          "default": "'danger'",
+          "description": "Status color. Default `'danger'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'",
+          "default": "'top-right'",
+          "description": "Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlap",
+          "type": "'circle' | 'square'",
+          "default": "'square'",
+          "description": "Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "pulse",
+          "type": "boolean",
+          "default": "false",
+          "description": "Processing/pulse animation; no-ops under `prefers-reduced-motion: reduce`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "invisible",
+          "type": "boolean",
+          "default": "false",
+          "description": "Hide the badge pill without unmounting it (the wrapper and `children` stay visible).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The element the badge overlays. Omit to render a standalone badge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "BadgeColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Badge component."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-badge-height",
+      "sass": "$badge-height",
+      "default": "1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-min-width",
+      "sass": "$badge-min-width",
+      "default": "1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-padding",
+      "sass": "$badge-padding",
+      "default": "0 0.4em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-font-size",
+      "sass": "$badge-font-size",
+      "default": "0.7rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-radius",
+      "sass": "$badge-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-ring-color",
+      "sass": "$badge-ring-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-ring-width",
+      "sass": "$badge-ring-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-dot-size",
+      "sass": "$badge-dot-size",
+      "default": "0.65em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-inset-circle",
+      "sass": "$badge-inset-circle",
+      "default": "12%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-badge-animation-duration",
+      "sass": "$badge-animation-duration",
+      "default": "1.4s",
+      "scope": "component"
+    }
+  ]
+}

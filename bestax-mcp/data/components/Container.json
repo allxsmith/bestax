@@ -1,0 +1,149 @@
+{
+  "name": "Container",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/container",
+  "docsUrl": "https://bestax.io/docs/api/layout/container",
+  "examples": [
+    {
+      "title": "Default Container",
+      "code": "<Container>\n  <Notification color=\"primary\">\n    By default the container is <Strong>centered</Strong> on desktop viewports\n    and up.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Widescreen Container",
+      "code": "<Container widescreen>\n  <Notification color=\"primary\">\n    If <code>breakpoint=\"widescreen\"</code> the container is{' '}\n    <Strong>fullwidth</Strong> <em>until</em> the <code>widescreen</code>{' '}\n    breakpoint.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "FullHD Container",
+      "code": "<Container fullhd>\n  <Notification color=\"primary\">\n    If <code>breakpoint=\"fullhd\"</code> the container is{' '}\n    <Strong>fullwidth</Strong> <em>until</em> the <code>fullhd</code>{' '}\n    breakpoint.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Max Tablet Width",
+      "code": "<Container breakpoint=\"tablet\" isMax>\n  <Notification color=\"primary\">\n    If the container has <code>breakpoint=\"tablet\"</code> and <code>isMax</code>{' '}\n    then the container will have a <code>max-width</code> of{' '}\n    <code>tablet - container offset</code>.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Max Width Desktop",
+      "code": "<Container breakpoint=\"desktop\" isMax>\n  <Notification color=\"primary\">\n    If the container has <code>breakpoint=\"desktop\"</code> and{' '}\n    <code>isMax</code> then the container will have a <code>max-width</code> of{' '}\n    <code>desktop - container offset</code>.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Max Width Widescreen",
+      "code": "<Container breakpoint=\"widescreen\" isMax>\n  <Notification color=\"primary\">\n    If the container has <code>breakpoint=\"widescreen\"</code> and{' '}\n    <code>isMax</code> then the container will have a <code>max-width</code> of{' '}\n    <code>widescreen - container offset</code>.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Fluid Container",
+      "code": "<Container fluid>\n  <Notification color=\"primary\">\n    If the container has <code>fluid</code> it will expand to the full width of\n    the screen, with a small 32px gap on each side.\n  </Notification>\n</Container>"
+    }
+  ],
+  "accessibility": "- The container renders as a semantic `<div>` by default.\n- Use semantic HTML and accessible children within the container for best practices.",
+  "related": ["Notification", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-container--default",
+  "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
+  "import": "import { Container } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Container.tsx",
+  "rootClass": "container",
+  "parts": [
+    {
+      "path": "Container",
+      "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.container.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "fluid",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the container full-width with a 32px gap on each side.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "widescreen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the container full-width until the `widescreen` breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullhd",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the container full-width until the `fullhd` breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "breakpoint",
+          "type": "'tablet' | 'desktop' | 'widescreen'",
+          "default": null,
+          "description": "Responsive breakpoint for container (`is-tablet`, `is-desktop`, `is-widescreen`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isMax",
+          "type": "boolean",
+          "default": "false",
+          "description": "Uses Bulma's `is-max-*` class for the specified breakpoint, limiting max width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

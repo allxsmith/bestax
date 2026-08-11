@@ -32,12 +32,12 @@ But bug reports only tell you where a skill failed someone. They can't tell you 
 
 ![A graded cold-start run, drawn as pixel art: a builder robot types at a bare desk inside a test chamber while a grader robot watches through the window holding a clipboard rubric, the chamber door stamped cold start](/img/ai-loop-keeps-skills-honest-proof.png)
 
-You can't ask an agent whether the skills helped. You have to strip everything away and watch one work. One run of [our harness](https://github.com/allxsmith/bestax/tree/main/eval/skill-loop) goes like this:
+You can't ask an agent whether the skills helped. You have to strip everything away and watch one work. One run of [our harness](https://github.com/allxsmith/bestax/tree/main/eval/agent-loop) goes like this:
 
 - Scaffold a brand-new app with the current tooling: the seven skills plus the small rules file the scaffolder writes.
 - Hand a frozen brief (build this SaaS marketing site) to a cold-start agent session: fresh directory, no project history, empty memory, the library installed from the public registry. Exactly what a stranger's agent sees on day one.
 - Measure the result by machine: did it build, how many type errors, how many inline styles, how many raw CSS classes where a component prop existed, how many hand-rolled widgets, which skill files the agent actually opened.
-- Have a separate grader agent score it against a frozen [100-point rubric](https://github.com/allxsmith/bestax/blob/main/eval/skill-loop/rubric.md), under one hard rule: the machine-measured numbers are ground truth the grader may not contradict.
+- Have a separate grader agent score it against a frozen [100-point rubric](https://github.com/allxsmith/bestax/blob/main/eval/agent-loop/rubric.md), under one hard rule: the machine-measured numbers are ground truth the grader may not contradict.
 
 My favorite part is the gate at the very top of the rubric, a specific kind of paranoia. An untouched scaffold typechecks, builds, and reports zero inline styles, zero invented props, zero hand-rolled widgets. Graded naively, an agent that does nothing collects 50 of 100 points. So before anything is scored, the harness checks whether the agent modified the app at all, and zeroes the run if it didn't. Doing nothing is a failed exam, not a clean sheet.
 
@@ -47,7 +47,7 @@ My favorite part is the gate at the very top of the rubric, a specific kind of p
 
 One exam gives you a score. The interesting move is running it as a loop, because the loop is evolution with the waiting removed.
 
-Evolution needs three things. A fixed environment: the brief, the rubric, the model, and the budget caps stayed frozen for the whole experiment. Variation: after each run we read the scorecard and revised the tooling, the skills, the generated rules file, the component catalog, then rebuilt. Selection: a fresh cold agent took the same exam against the revised tooling, and revisions that didn't survive the grading didn't stay. We ran ten generations that way and [wrote everything down](https://github.com/allxsmith/bestax/blob/main/eval/skill-loop/report.md), scorecards and metrics per run.
+Evolution needs three things. A fixed environment: the brief, the rubric, the model, and the budget caps stayed frozen for the whole experiment. Variation: after each run we read the scorecard and revised the tooling, the skills, the generated rules file, the component catalog, then rebuilt. Selection: a fresh cold agent took the same exam against the revised tooling, and revisions that didn't survive the grading didn't stay. We ran ten generations that way and [wrote everything down](https://github.com/allxsmith/bestax/blob/main/eval/agent-loop/report.md), scorecards and metrics per run.
 
 |                            | First run (baseline) | Nine revised runs                                                                      |
 | -------------------------- | -------------------- | -------------------------------------------------------------------------------------- |

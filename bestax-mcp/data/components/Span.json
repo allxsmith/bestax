@@ -1,0 +1,100 @@
+{
+  "name": "Span",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/span",
+  "docsUrl": "https://bestax.io/docs/api/elements/span",
+  "examples": [
+    { "title": "Default Span", "code": "<Span>Default Span</Span>" },
+    {
+      "title": "Primary Color Span",
+      "code": "<Span textColor=\"primary\">Primary Text</Span>"
+    },
+    {
+      "title": "Success Color Span",
+      "code": "<Span textColor=\"success\">Success Text</Span>"
+    },
+    {
+      "title": "Span with Background",
+      "code": "<Span bgColor=\"warning\" p=\"2\">\n  Highlighted Text\n</Span>"
+    },
+    {
+      "title": "Large Text Span",
+      "code": "<Span textSize=\"3\">Large Span</Span>"
+    },
+    {
+      "title": "Bold Span",
+      "code": "<Span textWeight=\"bold\">Bold Span</Span>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Span textColor=\"primary\">Primary Span</Span>\n  <Span textColor=\"link\">Link Span</Span>\n  <Span textColor=\"info\">Info Span</Span>\n  <Span textColor=\"success\">Success Span</Span>\n  <Span textColor=\"warning\">Warning Span</Span>\n  <Span textColor=\"danger\">Danger Span</Span>\n</Block>"
+    },
+    {
+      "title": "Inline with Text",
+      "code": "<Paragraph>\n  This paragraph contains a <Span textColor=\"primary\">colored span</Span> and a{' '}\n  <Span textWeight=\"bold\">bold span</Span> for emphasis.\n</Paragraph>"
+    },
+    {
+      "title": "Highlighted Text",
+      "code": "<Paragraph>\n  This sentence has{' '}\n  <Span bgColor=\"warning\" textColor=\"dark\" p=\"1\">\n    highlighted text\n  </Span>{' '}\n  to draw attention.\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **Semantic Meaning:** The `<span>` element has no semantic meaning. Use it only for styling purposes.\n- **Color Contrast:** Ensure sufficient contrast between text and background colors for readability.\n- **Screen Readers:** Content inside spans is read normally by screen readers.\n\n:::info\nFor text that has semantic importance, consider using `<strong>` (Strong) or `<em>` (Emphasis) components instead.\n:::",
+  "related": ["Emphasis", "Paragraph", "Strong", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-span--default",
+  "summary": "The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.",
+  "import": "import { Span } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Span.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Span",
+      "summary": "The `Span` component renders a styled inline `<span>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the span.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

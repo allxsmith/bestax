@@ -1,0 +1,357 @@
+{
+  "name": "Grid",
+  "kind": "component",
+  "category": "grid",
+  "slug": "grid/grid",
+  "docsUrl": "https://bestax.io/docs/api/grid/grid",
+  "examples": [
+    {
+      "title": "Smart Grid",
+      "code": "<Grid>\n  {[...Array(24)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Minimum Column Width",
+      "code": "<Grid minCol={4}>\n  {[...Array(24)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\" textSize=\"7\">\n        Cell {i + 1}\n      </Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Gap",
+      "code": "<Grid gap={2}>\n  {[...Array(24)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Column Gap",
+      "code": "<Grid columnGap={2}>\n  {[...Array(24)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Row Gap",
+      "code": "<Grid rowGap={2}>\n  {[...Array(24)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Fixed Grid",
+      "code": "<Grid isFixed>\n  {[...Array(12)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Fixed Grid Cols",
+      "code": "<Grid isFixed fixedCols={4}>\n  {[...Array(12)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Fixed Grid Cols By Breakpoint",
+      "code": "<Grid\n  isFixed\n  fixedCols={4}\n  fixedColsMobile={4}\n  fixedColsTablet={6}\n  fixedColsDesktop={8}\n  fixedColsWidescreen={10}\n  fixedColsFullhd={12}\n>\n  {[...Array(12)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Fixed Grid Auto Count",
+      "code": "<Grid isFixed fixedCols=\"auto\">\n  {[...Array(16)].map((_, i) => (\n    <Cell key={i}>\n      <Notification color=\"primary\">Cell {i + 1}</Notification>\n    </Cell>\n  ))}\n</Grid>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Grid>\n  <Grid.Cell>\n    <Notification color=\"primary\">Cell 1</Notification>\n  </Grid.Cell>\n  <Grid.Cell>\n    <Notification color=\"info\">Cell 2</Notification>\n  </Grid.Cell>\n</Grid>"
+    }
+  ],
+  "accessibility": null,
+  "related": [],
+  "storybook": null,
+  "summary": "The `Grid` component provides Bulma's advanced CSS Grid layout for complex, modern layouts.",
+  "import": "import { Grid, Cell } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/grid/Grid.tsx",
+  "rootClass": "grid",
+  "parts": [
+    {
+      "path": "Grid",
+      "summary": "The `Grid` component provides Bulma's advanced CSS Grid layout for complex, modern layouts.",
+      "component": null,
+      "props": [
+        {
+          "name": "isFixed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use a fixed grid layout (`.fixed-grid > .grid`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'",
+          "default": null,
+          "description": "Main gap for grid (Bulma `is-gap-X`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "columnGap",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'",
+          "default": null,
+          "description": "Column gap for grid (`is-column-gap-X`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowGap",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'",
+          "default": null,
+          "description": "Row gap for grid (`is-row-gap-X`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "minCol",
+          "type": "BulmaMinColValue",
+          "default": null,
+          "description": "Minimum column width for the grid (`is-col-min-X`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedCols",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 'auto'",
+          "default": null,
+          "description": "For fixed grids: explicit column count (`has-X-cols`), or `'auto'` for auto-count.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedColsMobile",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+          "default": null,
+          "description": "For fixed grids: explicit column count for mobile.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedColsTablet",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+          "default": null,
+          "description": "For fixed grids: explicit column count for tablet.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedColsDesktop",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+          "default": null,
+          "description": "For fixed grids: explicit column count for desktop.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedColsWidescreen",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+          "default": null,
+          "description": "For fixed grids: explicit column count for widescreen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fixedColsFullhd",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12",
+          "default": null,
+          "description": "For fixed grids: explicit column count for fullhd.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the grid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the grid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Children to render inside the grid (usually `Cell` components).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaMinColValue",
+          "expansion": "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32",
+          "summary": "Allowed minimum column values for Bulma grid."
+        }
+      ]
+    },
+    {
+      "path": "Grid.Cell",
+      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+      "component": "Cell",
+      "props": [
+        {
+          "name": "colStart",
+          "type": "number",
+          "default": null,
+          "description": "Which column the cell starts at (Bulma: `is-col-start-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "colFromEnd",
+          "type": "number",
+          "default": null,
+          "description": "Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "colSpan",
+          "type": "number",
+          "default": null,
+          "description": "How many columns the cell will span (Bulma: `is-col-span-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowStart",
+          "type": "number",
+          "default": null,
+          "description": "Which row the cell starts at (Bulma: `is-row-start-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowFromEnd",
+          "type": "number",
+          "default": null,
+          "description": "Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowSpan",
+          "type": "number",
+          "default": null,
+          "description": "How many rows the cell will span (Bulma: `is-row-span-x`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS class names.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-grid-gap",
+      "sass": "$grip-gap",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-grid-column-min",
+      "sass": null,
+      "default": "9rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-grid-cell-column-span",
+      "sass": null,
+      "default": "1",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-grid-cell-row-span",
+      "sass": null,
+      "default": "1",
+      "scope": "component"
+    }
+  ]
+}

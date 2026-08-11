@@ -1,0 +1,284 @@
+{
+  "name": "Column",
+  "kind": "component",
+  "category": "columns",
+  "slug": "columns/column",
+  "docsUrl": "https://bestax.io/docs/api/columns/column",
+  "examples": [
+    {
+      "title": "Basic Columns Example",
+      "code": "import { Columns, Column } from '@allxsmith/bestax-bulma';\nimport { Notification } from '@allxsmith/bestax-bulma/elements/Notification';\n\n<Columns>\n  <Column>\n    <Notification color=\"primary\">First column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"info\">Second column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"link\">Third column</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"warning\">Fourth column</Notification>\n  </Column>\n</Columns>;"
+    },
+    {
+      "title": "Column Sizes",
+      "code": "<>\n  <Columns>\n    <Column size=\"four-fifths\">\n      <Notification color=\"primary\">is-four-fifths</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"three-quarters\">\n      <Notification color=\"primary\">is-three-quarters</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"two-thirds\">\n      <Notification color=\"primary\">is-two-thirds</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"three-fifths\">\n      <Notification color=\"primary\">is-three-fifths</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"half\">\n      <Notification color=\"primary\">is-half</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"two-fifths\">\n      <Notification color=\"primary\">is-two-fifths</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"one-third\">\n      <Notification color=\"primary\">is-one-third</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"one-quarter\">\n      <Notification color=\"primary\">is-one-quarter</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n\n  <Columns>\n    <Column size=\"one-fifth\">\n      <Notification color=\"primary\">is-one-fifth</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">Auto</Notification>\n    </Column>\n  </Columns>\n</>"
+    },
+    {
+      "title": "12 Column System",
+      "code": "<>\n  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (\n    <Columns key={num}>\n      <Column size={num}>\n        <Notification color=\"primary\">\n          {num === 1 ? 1 : `is-${num}`}\n        </Notification>\n      </Column>\n      {num === 11 && (\n        <Column>\n          <Notification color=\"primary\">1</Notification>\n        </Column>\n      )}\n      {num < 11 && (\n        <Column>\n          <Notification color=\"primary\">Auto</Notification>\n        </Column>\n      )}\n      {num < 10 && (\n        <Column>\n          <Notification color=\"primary\">Auto</Notification>\n        </Column>\n      )}\n    </Columns>\n  ))}\n</>"
+    },
+    {
+      "title": "Responsive Column Sizes",
+      "code": "<Columns isMobile>\n  <Column\n    sizeMobile=\"three-quarters\"\n    sizeTablet=\"two-thirds\"\n    sizeDesktop=\"half\"\n    sizeWidescreen=\"one-third\"\n    sizeFullhd=\"one-quarter\"\n  >\n    <Notification color=\"primary\">\n      <code>sizeMobile=\"three-quarters\"</code>\n      <br />\n      <code>sizeTablet=\"two-thirds\"</code>\n      <br />\n      <code>sizeDesktop=\"half\"</code>\n      <br />\n      <code>sizeWidescreen=\"one-third\"</code>\n      <br />\n      <code>sizeFullhd=\"one-quarter\"</code>\n    </Notification>\n  </Column>\n  <Column>\n    <Notification color=\"primary\">2</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"primary\">3</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"primary\">4</Notification>\n  </Column>\n  <Column>\n    <Notification color=\"primary\">5</Notification>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Offsets",
+      "code": "<>\n  <Columns isMobile>\n    <Column size=\"half\" offset=\"one-quarter\">\n      <Notification color=\"primary\">is-half is-offset-one-quarter</Notification>\n    </Column>\n  </Columns>\n  <Columns isMobile>\n    <Column size=\"three-fifths\" offset=\"one-fifth\">\n      <Notification color=\"primary\">\n        is-three-fifths is-offset-one-fifth\n      </Notification>\n    </Column>\n  </Columns>\n  <Columns isMobile>\n    <Column size={4} offset={8}>\n      <Notification color=\"primary\">is-4 is-offset-8</Notification>\n    </Column>\n  </Columns>\n  <Columns isMobile>\n    <Column size={11} offset={1}>\n      <Notification color=\"primary\">is-11 is-offset-1</Notification>\n    </Column>\n  </Columns>\n</>"
+    },
+    {
+      "title": "Narrow Columns",
+      "code": "<Columns>\n  <Column isNarrow>\n    <Notification color=\"primary\" style={{ width: 180 }}>\n      <Strong>Narrow column</Strong>\n      <br />\n      <Span>This column is only as wide as it needs to be, 180px wide.</Span>\n    </Notification>\n  </Column>\n  <Column>\n    <Notification color=\"primary\">\n      <Strong>Flexible column</Strong>\n      <br />\n      <Span>This column will take up the remaining space available.</Span>\n    </Notification>\n  </Column>\n</Columns>"
+    }
+  ],
+  "accessibility": null,
+  "related": [],
+  "storybook": null,
+  "summary": "The `Column` component provides a single responsive layout column using Bulma's flexbox-based column system.",
+  "import": "import { Column } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/columns/Column.tsx",
+  "rootClass": "column",
+  "parts": [
+    {
+      "path": "Column",
+      "summary": "The `Column` component provides a single responsive layout column using Bulma's flexbox-based column system.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the column.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the column.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Column size (see Bulma docs).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizeMobile",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Size for mobile breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizeTablet",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Size for tablet breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizeDesktop",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Size for desktop breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizeWidescreen",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Size for widescreen breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sizeFullhd",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Size for fullhd breakpoint.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offset",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for column.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offsetMobile",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for mobile.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offsetTablet",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for tablet.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offsetDesktop",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for desktop.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offsetWidescreen",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for widescreen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offsetFullhd",
+          "type": "BulmaColumnSize",
+          "default": null,
+          "description": "Offset for fullhd.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Column is only as wide as its content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowMobile",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on mobile.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowTablet",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on tablet.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowTouch",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on touch devices.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowDesktop",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on desktop.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowWidescreen",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on widescreen.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrowFullhd",
+          "type": "boolean",
+          "default": "false",
+          "description": "The column is narrow on fullhd.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Children to render inside the column.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "BulmaColumnSize",
+          "expansion": "number | 'full' | 'half' | 'one-third' | 'two-thirds' | 'one-quarter' | 'three-quarters' | 'one-fifth' | 'two-fifths' | 'three-fifths' | 'four-fifths'",
+          "summary": "Possible values for Bulma column size."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-column-gap",
+      "sass": "$column-gap",
+      "default": "0.75rem",
+      "scope": "global"
+    }
+  ]
+}

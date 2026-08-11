@@ -1,0 +1,452 @@
+{
+  "name": "Steps",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/steps",
+  "docsUrl": "https://bestax.io/docs/api/components/steps",
+  "examples": [
+    {
+      "title": "Basic Steps",
+      "code": "<Steps\n  value={1}\n  items={[{ label: 'Account' }, { label: 'Profile' }, { label: 'Complete' }]}\n/>"
+    },
+    {
+      "title": "Clickable Steps",
+      "code": "function example() {\n  const [step, setStep] = useState(1);\n  return (\n    <Block>\n      <Steps\n        value={step}\n        items={[\n          { label: 'Account', clickable: true },\n          { label: 'Profile', clickable: true },\n          { label: 'Review', clickable: true },\n          { label: 'Complete', clickable: true },\n        ]}\n        onStepClick={setStep}\n        color=\"primary\"\n      />\n      <Paragraph mt=\"4\">Current step: {step + 1}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Color Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"success\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"info\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"warning\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    color=\"danger\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
+    },
+    {
+      "title": "Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"5\">\n  <Steps\n    value={1}\n    size=\"small\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"medium\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n  <Steps\n    value={1}\n    size=\"large\"\n    items={[{ label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' }]}\n  />\n</Block>"
+    },
+    {
+      "title": "With Icons",
+      "code": "<Steps\n  value={1}\n  color=\"info\"\n  items={[\n    { label: 'Cart', icon: <Icon name=\"shopping-cart\" variant=\"solid\" /> },\n    { label: 'Shipping', icon: <Icon name=\"truck\" variant=\"solid\" /> },\n    { label: 'Payment', icon: <Icon name=\"credit-card\" variant=\"solid\" /> },\n    { label: 'Done', icon: <Icon name=\"check\" variant=\"solid\" /> },\n  ]}\n/>"
+    },
+    {
+      "title": "Vertical Layout",
+      "code": "<Steps\n  value={1}\n  vertical\n  color=\"primary\"\n  items={[\n    { label: 'Create Account' },\n    { label: 'Set Up Profile' },\n    { label: 'Choose Plan' },\n    { label: 'Start Using' },\n  ]}\n/>"
+    },
+    {
+      "title": "Rounded Markers",
+      "code": "<Steps\n  value={2}\n  rounded\n  color=\"success\"\n  items={[\n    { label: 'Order Placed' },\n    { label: 'Processing' },\n    { label: 'Shipped' },\n    { label: 'Delivered' },\n  ]}\n/>"
+    },
+    {
+      "title": "Checkout Flow Example",
+      "code": "function example() {\n  const [step, setStep] = useState(0);\n  const steps = ['Cart', 'Shipping', 'Payment', 'Confirm'];\n\n  return (\n    <Block>\n      <Steps\n        value={step}\n        items={steps.map((label, i) => ({ label, clickable: i <= step }))}\n        onStepClick={s => s <= step && setStep(s)}\n        color=\"primary\"\n      />\n      <Box mt=\"4\" p=\"4\">\n        <Title size=\"5\">{steps[step]}</Title>\n        <Paragraph>Content for the {steps[step]} step goes here.</Paragraph>\n      </Box>\n      <Buttons mt=\"4\">\n        <Button\n          onClick={() => setStep(Math.max(0, step - 1))}\n          disabled={step === 0}\n        >\n          Previous\n        </Button>\n        <Button\n          color=\"primary\"\n          onClick={() => setStep(Math.min(3, step + 1))}\n          disabled={step === 3}\n        >\n          {step === 2 ? 'Place Order' : 'Next'}\n        </Button>\n      </Buttons>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Steps value={1}>\n  <Steps.Step label=\"Account\" />\n  <Steps.Step label=\"Profile\" />\n  <Steps.Step label=\"Complete\" />\n</Steps>"
+    }
+  ],
+  "accessibility": "- Steps use `aria-current=\"step\"` on the active step\n- Clickable steps are keyboard navigable with proper focus indicators\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks",
+  "related": ["Progress"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
+  "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+  "import": "import { Steps } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Steps.tsx",
+  "rootClass": "steps",
+  "parts": [
+    {
+      "path": "Steps",
+      "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "default": "0",
+          "description": "Current active step (0-indexed).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "StepItemProps[]",
+          "default": null,
+          "description": "Array of step items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the steps.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasMarker",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show step markers. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "animated",
+          "type": "boolean",
+          "default": "true",
+          "description": "Enable animations. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rounded",
+          "type": "boolean",
+          "default": "true",
+          "description": "Use rounded markers. Default: true.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "vertical",
+          "type": "boolean",
+          "default": "false",
+          "description": "Vertical layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPosition",
+          "type": "'bottom' | 'right' | 'left'",
+          "default": "'bottom'",
+          "description": "Position of labels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileMode",
+          "type": "'minimal' | 'compact' | 'right'",
+          "default": null,
+          "description": "Mobile display mode.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showStepNumbers",
+          "type": "boolean",
+          "default": "true",
+          "description": "Displays step numbers in the markers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasNavigation",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows previous/next navigation buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "prevLabel",
+          "type": "string",
+          "default": null,
+          "description": "Label for the previous button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nextLabel",
+          "type": "string",
+          "default": null,
+          "description": "Label for the next button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPrev",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when previous button is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onNext",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when next button is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onStepClick",
+          "type": "(step: number) => void",
+          "default": null,
+          "description": "Callback when a step is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Step children (alternative to items).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Steps.Step",
+      "summary": "Individual Step component for use inside Steps.",
+      "component": null,
+      "props": [
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether this step is active",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isCompleted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether this step is completed",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Step label/title",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Icon for the step marker",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "clickable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether this step is clickable",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "default": null,
+          "description": "Click handler",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "stepNumber",
+          "type": "number",
+          "default": null,
+          "description": "Step number to display in marker (1-indexed)",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "completedIcon",
+          "type": "React.ReactNode",
+          "default": "'✓'",
+          "description": "Icon shown when the step is completed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content rendered inside the component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-steps-marker-size",
+      "sass": "$steps-marker-size",
+      "default": "2rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-size-small",
+      "sass": "$steps-marker-size-small",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-size-medium",
+      "sass": "$steps-marker-size-medium",
+      "default": "2.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-size-large",
+      "sass": "$steps-marker-size-large",
+      "default": "3rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-divider-height",
+      "sass": "$steps-divider-height",
+      "default": "0.2em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-default-color",
+      "sass": "$steps-default-color",
+      "default": "var(--bulma-grey-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-background",
+      "sass": "$steps-marker-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-font-size",
+      "sass": "$steps-marker-font-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-marker-font-weight",
+      "sass": "$steps-marker-font-weight",
+      "default": "var(--bulma-weight-bold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-title-size",
+      "sass": "$steps-title-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-title-weight",
+      "sass": "$steps-title-weight",
+      "default": "var(--bulma-weight-medium)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-title-color",
+      "sass": "$steps-title-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-title-active-color",
+      "sass": "$steps-title-active-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-title-active-weight",
+      "sass": "$steps-title-active-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-content-margin-top",
+      "sass": "$steps-content-margin-top",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-vertical-padding",
+      "sass": "$steps-vertical-padding",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-vertical-content-margin-left",
+      "sass": "$steps-vertical-content-margin-left",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-animation-duration",
+      "sass": "$steps-animation-duration",
+      "default": "0.3s",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-steps-navigation-margin-top",
+      "sass": "$steps-navigation-margin-top",
+      "default": "1rem",
+      "scope": "component"
+    }
+  ]
+}

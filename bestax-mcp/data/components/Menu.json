@@ -1,0 +1,317 @@
+{
+  "name": "Menu",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/menu",
+  "docsUrl": "https://bestax.io/docs/api/components/menu",
+  "examples": [
+    {
+      "title": "Basic Menu with Nested Lists",
+      "code": "<Menu style={{ maxWidth: 300 }}>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Administration</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Team Settings</Menu.Item>\n    <Menu.Item active>\n      Manage Your Team\n      <Menu.List>\n        <Menu.Item>Members</Menu.Item>\n        <Menu.Item>Plugins</Menu.Item>\n        <Menu.Item>Add a member</Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n    <Menu.Item>Invitations</Menu.Item>\n    <Menu.Item>Cloud Storage Environment Settings</Menu.Item>\n    <Menu.Item>Authentication</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Transactions</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Payments</Menu.Item>\n    <Menu.Item>Transfers</Menu.Item>\n    <Menu.Item>Balance</Menu.Item>\n  </Menu.List>\n</Menu>"
+    },
+    {
+      "title": "Custom Link Component",
+      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = props => <a>{props.children}</a>;\n  return (\n    <Menu>\n      <Menu.Label>App</Menu.Label>\n      <Menu.List>\n        <Menu.Item as={Link} to=\"/dashboard\">\n          Dashboard\n        </Menu.Item>\n        <Menu.Item as={Link} to=\"/settings\">\n          Settings\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  );\n}"
+    },
+    {
+      "title": "Active Menu Item",
+      "code": "<Menu>\n  <Menu.Label>Active Example</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Overview</Menu.Item>\n    <Menu.Item active>Current Page</Menu.Item>\n    <Menu.Item>Other</Menu.Item>\n  </Menu.List>\n</Menu>"
+    },
+    {
+      "title": "Deeply Nested Menu",
+      "code": "<Menu>\n  <Menu.Label>Levels</Menu.Label>\n  <Menu.List>\n    <Menu.Item>\n      Level 1\n      <Menu.List>\n        <Menu.Item>\n          Level 2\n          <Menu.List>\n            <Menu.Item>Level 3</Menu.Item>\n          </Menu.List>\n        </Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n  </Menu.List>\n</Menu>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
+    }
+  ],
+  "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
+  "related": ["Panel", "Sidebar", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-menu--basic",
+  "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
+  "import": "import { Menu } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Menu.tsx",
+  "rootClass": "menu",
+  "parts": [
+    {
+      "path": "Menu",
+      "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Menu content (labels, lists, items, etc).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Menu.Label",
+      "summary": "Bulma Menu label component.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Label content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Menu.List",
+      "summary": "MenuList applies `menu-list` class only at the top level (not for nested lists).",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "List items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <ul> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Menu.Item",
+      "summary": "MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Item content and optional nested MenuList.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Highlight item as active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "Href for link items (if rendered as `<a>`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": "'a'",
+          "description": "Custom link component (e.g. `Link` from router).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-menu-item-h",
+      "sass": "$menu-item-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-s",
+      "sass": "$menu-item-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-l",
+      "sass": "$menu-item-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-background-l",
+      "sass": "$menu-item-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-background-l-delta",
+      "sass": "$menu-item-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-hover-background-l-delta",
+      "sass": "$menu-item-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-active-background-l-delta",
+      "sass": "$menu-item-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-color-l",
+      "sass": "$menu-item-color-l",
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-radius",
+      "sass": "$menu-item-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-selected-h",
+      "sass": "$menu-item-selected-h",
+      "default": "var(--bulma-link-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-selected-s",
+      "sass": "$menu-item-selected-s",
+      "default": "var(--bulma-link-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-selected-l",
+      "sass": "$menu-item-selected-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-selected-background-l",
+      "sass": "$menu-item-selected-background-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-item-selected-color-l",
+      "sass": "$menu-item-selected-color-l",
+      "default": "var(--bulma-link-invert-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-list-border-left",
+      "sass": "$menu-list-border-left",
+      "default": "1px solid var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-list-line-height",
+      "sass": "$menu-list-line-height",
+      "default": "1.25",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-list-link-padding",
+      "sass": "$menu-list-link-padding",
+      "default": "0.5em 0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-nested-list-margin",
+      "sass": "$menu-nested-list-margin",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-nested-list-padding-left",
+      "sass": "$menu-nested-list-padding-left",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-label-color",
+      "sass": "$menu-label-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-label-font-size",
+      "sass": "$menu-label-font-size",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-label-letter-spacing",
+      "sass": "$menu-label-letter-spacing",
+      "default": "0.1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-menu-label-spacing",
+      "sass": "$menu-label-spacing",
+      "default": "1em",
+      "scope": "component"
+    }
+  ]
+}

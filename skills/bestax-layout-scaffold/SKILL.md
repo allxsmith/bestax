@@ -70,11 +70,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
-- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app — comments count:
+- **Decorative CSS is budgeted: three compact rules, ≤13 lines per app — comments count:
   at most one short inline note, never a file-header comment block — every value derived
-  from `--bulma-*`.** A marketing page gets at most one hero wash + one alternating section
-  band, applied via `className` — no resets (Bulma ships one; body/list margins are already
-  zero) and no grid textures, masks, or multi-layer backdrops; the components carry the design:
+  from `--bulma-*`.** A marketing page gets at most one hero wash, one alternating section
+  band, and one featured-card ring, applied via `className` — no resets (Bulma ships one;
+  body/list margins are already zero) and no grid textures, masks, or multi-layer backdrops;
+  the components carry the design:
 
   ```css
   .hero-wash {
@@ -87,14 +88,19 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   .section-alt {
     background: var(--bulma-scheme-main-bis); /* next band: -ter */
   }
+  .featured-ring {
+    --bulma-shadow: 0 0 0 2px var(--bulma-primary);
+  }
   ```
 
-  A highlighted/"featured" `Card`/`Box` needs **no third rule**: wrap that one element in
-  `<Theme bulmaVars={{ '--bulma-shadow': '0 0 0 2px var(--bulma-primary)' }}>`. Override the
-  **upstream token**, not the component's own var: `.card`/`.box` re-declare
-  `--bulma-card-shadow`/`--bulma-box-shadow` on their own selector, so setting those from an
-  ancestor never wins (same for `--bulma-box-radius`; `--bulma-card-radius` is a literal with
-  no ancestor route at all). The subtree stays theme- and dark-mode-aware.
+  The ring works by overriding the **upstream token**, not the component's own var: `.card`
+  and `.box` re-declare `--bulma-card-shadow`/`--bulma-box-shadow` from `--bulma-shadow` on
+  their own selector, so setting _those_ from an ancestor never wins (same for
+  `--bulma-box-radius`; `--bulma-card-radius` is a literal with no ancestor route at all).
+  It has to be a CSS rule rather than `<Theme bulmaVars={{ '--bulma-shadow': … }}>`, because
+  `bulmaVars` is a closed typed record and `--bulma-shadow` is not one of its keys — that
+  exact call **does not compile**, and it was the single most repeated invention across this
+  library's cold-start evals. Either way the subtree stays theme- and dark-mode-aware.
 
 - **CTAs on a colored hero must stay legible in both schemes.** On a fixed-color surface
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
@@ -103,6 +109,26 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   design is single-mode (a fixed light or dark look), pin it at the root —
   `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
   colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
+
+## Three components core Bulma will talk you out of
+
+Most of this library's additions get found on their own, because nothing in Bulma does the
+job. These three do not: each has a Bulma near-miss close enough to stop the search. Across
+44 cold-start builds, `Dialog` was used **zero** times and `LinkButton` in two thirds — and
+every miss shipped the "not this" column instead.
+
+| You need                                                    | Use                                                                                                                                                             | Not this                                                                                                             |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| A brief confirmation after an action, self-dismissing       | `Toast` — mount `<ToastContainer position="top-right" />` once at the app root, then `toast.success('Saved')` (also `.danger`/`.warning`/`.info`) from anywhere | `Notification`/`Message` — static page elements you have to place, position and dismiss yourself                     |
+| A confirm or alert the user must answer before anything     | `Dialog` — mount `<DialogContainer />` at the root, then `if (await dialog.confirm({ title, message })) …`                                                      | `Modal` — an empty shell; the title, message, button row and confirm/cancel wiring are all yours to rebuild          |
+| A control that reads as text or a link but _does_ something | `LinkButton` (`variant="text" \| "ghost" \| "underline"`, optional `color`)                                                                                     | `<a href="#">`/`<div onClick>` (no keyboard or screen-reader support) or `Button color="text"` (still button-shaped) |
+
+Mounting a container without ever calling `toast.*`/`dialog.*` is not usage — the container is
+the mount point, the imperative call is the thing that shows something. Both also work as
+ordinary controlled components when you would rather hold the state yourself —
+`<Toast message … duration onClose>`, `<Dialog isOpen title message type onConfirm onCancel>` —
+but in an app with more than one call site the root container plus the imperative helper is
+less wiring, not more.
 
 ## Inline style → helper prop mapping
 
@@ -157,11 +183,14 @@ inline `style`.
 - [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
 - [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
+- [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
+      action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
       with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
       `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
-- [ ] Decorative CSS ≤10 lines total incl. comments — no file-header comment (hero wash + section band), `--bulma-*`-derived;
-      no resets — Bulma ships one. A featured-card ring is a scoped `<Theme bulmaVars>`, not CSS.
+- [ ] Decorative CSS ≤13 lines total incl. comments — no file-header comment (hero wash +
+      section band + featured-card ring), `--bulma-*`-derived; no resets — Bulma ships one.
+      The ring sets `--bulma-shadow` in a CSS rule; `Theme bulmaVars` has no such key.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink
       it, run the `bestax-optimize` skill (measure first).

@@ -588,7 +588,8 @@ function typeofArrayExpansion(ts, sf, arrayName) {
   return elements.map(e => e.getText()).join(' | ');
 }
 
-function renderTypeText(ts, member, aliases, linkBase, used) {
+function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
+  const { markdown = true, refs = null } = opts;
   let text = member.type ? member.type.getText() : 'unknown';
   text = text.replace(/\s+/g, ' ').trim();
 
@@ -666,11 +667,21 @@ function renderTypeText(ts, member, aliases, linkBase, used) {
   // Pipes are emitted RAW: escapeCell() owns table escaping, and escaping in
   // both places yields a stray backslash that ends the escape and splits the
   // cell into extra columns.
+  //
+  // `markdown: false` renders the same member list for a consumer that is not
+  // a markdown page (the MCP index): no backticks, and a TYPE_DISPLAY hit
+  // becomes its bare label plus a structured `refs` entry, because a JSON
+  // consumer cannot follow a page-relative link.
   return members
     .map(member => {
       const display = TYPE_DISPLAY.find(d => d.from === member);
-      if (display) return `[${display.label}](${linkBase}${display.link}.md)`;
-      return `\`${member}\``;
+      if (display) {
+        if (refs) refs.add(display.link);
+        return markdown
+          ? `[${display.label}](${linkBase}${display.link}.md)`
+          : display.label;
+      }
+      return markdown ? `\`${member}\`` : member;
     })
     .join(' | ');
 }
@@ -850,7 +861,7 @@ function classifyHeritage(ts, checker, decl, _seen = new Set()) {
   return { ...out, seen: _seen };
 }
 
-function catchAllRow(external) {
+function catchAllRow(external, markdown = true) {
   const elements = new Set();
   let helpers = false;
   for (const e of external) {
@@ -871,7 +882,12 @@ function catchAllRow(external) {
   // a component like Skeleton that only inherits DOM attributes has nowhere
   // to send a "See Helper Props" link, and pointing there anyway describes
   // props the component doesn't accept.
-  return { text: parts.join(' and '), helpers };
+  //
+  // DOM_ELEMENT_LABELS carries its own code spans (`<td>`/`<th>` is two of
+  // them), so a structured consumer strips them from the finished sentence
+  // rather than the table being rebuilt without them.
+  const text = parts.join(' and ');
+  return { text: markdown ? text : text.replace(/`/g, ''), helpers };
 }
 
 /**
@@ -903,8 +919,10 @@ function memberRows(
   defaults,
   linkBase,
   inherited = false,
-  used = null
+  used = null,
+  opts = {}
 ) {
+  const { markdown = true } = opts;
   const rows = [];
   for (const member of decl.members ?? []) {
     if (!ts.isPropertySignature(member) && !ts.isMethodSignature(member))
@@ -937,18 +955,36 @@ function memberRows(
     const deprecated = ts
       .getJSDocTags(member)
       .find(t => t.tagName.text === 'deprecated');
-    const note = deprecated
-      ? `**Deprecated.** ${(ts.getTextOfJSDocComment(deprecated.comment) ?? '')
+    const deprecationNote = deprecated
+      ? (ts.getTextOfJSDocComment(deprecated.comment) ?? '')
           .replace(/\s+/g, ' ')
-          .trim()}`.trim()
+          .trim()
       : '';
+    const note = deprecated ? `**Deprecated.** ${deprecationNote}`.trim() : '';
+    // A TYPE_DISPLAY hit renders as a page-relative link in markdown mode; the
+    // structured consumer gets the same information as a `valuesRef` field
+    // instead, since it has no page to be relative to.
+    const refs = markdown ? null : new Set();
+    const type = renderTypeText(ts, member, aliases, linkBase, used, {
+      markdown,
+      refs,
+    });
     rows.push({
       name,
-      type: renderTypeText(ts, member, aliases, linkBase, used),
+      type,
       default: explicit ?? defaults.get(name) ?? impliedFalse,
-      description: [note, jsdocText(ts, member)].filter(Boolean).join(' '),
+      description: markdown
+        ? [note, jsdocText(ts, member)].filter(Boolean).join(' ')
+        : jsdocText(ts, member),
       inherited,
       node: member,
+      ...(markdown
+        ? {}
+        : {
+            deprecated: Boolean(deprecated),
+            deprecationNote: deprecated ? deprecationNote : null,
+            valuesRef: refs.size ? [...refs].sort()[0] : null,
+          }),
     });
   }
   return rows;
@@ -1049,9 +1085,18 @@ function pickRootClass(name, candidates) {
  * @param {string} name    Exported component name (the page's frontmatter title).
  * @param {object} [opts]
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
+ * @param {boolean} [opts.markdown=true] Render cells for a markdown table —
+ *   backticked types, page-relative links for the shared value unions, and a
+ *   `**Deprecated.**` prefix folded into the description. Pass `false` for a
+ *   structured consumer (the MCP index): plain type text, and `deprecated` /
+ *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
+ *   so the docs generator's output is unaffected.
  * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
  */
-export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
+export function extractComponent(
+  name,
+  { depth = 1, _depth = 0, markdown = true } = {}
+) {
   const { ts, program, checker } = createProgram();
   const mods = exportedModules();
   const entry = mods.get(name);
@@ -1120,7 +1165,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
       // Without this, Table rendered no sub-tables at all and the six cell
       // components' props vanished from the page.
       if (_depth === 0 && impl !== name && mods.has(impl)) {
-        const sub = extractComponent(impl, { depth, _depth: 1 });
+        const sub = extractComponent(impl, { depth, _depth: 1, markdown });
         const rootTable = sub.tables[0];
         // `component` names the standalone export. Where that export has an API
         // page of its own (`Columns.Column` -> column.md) the generator links to
@@ -1168,10 +1213,29 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
       decl
     );
     const used = new Set();
-    const rows = memberRows(ts, decl, aliases, defaults, linkBase, false, used);
+    const rowOpts = { markdown };
+    const rows = memberRows(
+      ts,
+      decl,
+      aliases,
+      defaults,
+      linkBase,
+      false,
+      used,
+      rowOpts
+    );
     for (const lit of literals) {
       rows.push(
-        ...memberRows(ts, lit, aliases, defaults, linkBase, false, used)
+        ...memberRows(
+          ts,
+          lit,
+          aliases,
+          defaults,
+          linkBase,
+          false,
+          used,
+          rowOpts
+        )
       );
     }
 
@@ -1201,7 +1265,8 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
         baseDefaults,
         linkBase,
         true,
-        used
+        used,
+        rowOpts
       )) {
         if (filter(row.name)) rows.push(row);
       }
@@ -1215,7 +1280,8 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
           baseDefaults,
           linkBase,
           true,
-          used
+          used,
+          rowOpts
         ))
           if (filter(row.name)) rows.push(row);
       }
@@ -1247,12 +1313,20 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
     // like ``never` | `number`` on slider.md — noise standing where the
     // reader needs a type. Dropping it leaves exactly what may be passed, and
     // the two boolean literals a discriminant contributes read as `boolean`.
+    // The literals below are the RENDERED members, so they carry backticks in
+    // markdown mode and not in structured mode — compare against whichever
+    // this run produced or the normalisation silently stops matching.
+    const tick = s => (markdown ? `\`${s}\`` : s);
     for (const row of byName.values()) {
       const seen = new Set();
       let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
-      if (ms.length > 1) ms = ms.filter(m => m !== '`never`');
-      if (ms.length === 2 && ms.includes('`false`') && ms.includes('`true`')) {
-        ms = ['`boolean`'];
+      if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
+      if (
+        ms.length === 2 &&
+        ms.includes(tick('false')) &&
+        ms.includes(tick('true'))
+      ) {
+        ms = [tick('boolean')];
       }
       row.type = ms.join(' | ');
     }
@@ -1289,7 +1363,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
           name === 'ref' && refTarget ? `React.Ref<${refTarget}>` : type;
         rows.push({
           name,
-          type: `\`${shown}\``,
+          type: tick(shown),
           default: null,
           description,
           synthetic: true,
@@ -1321,11 +1395,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
         takenExtra.add(name);
         extraProps.push({
           name,
-          type: m[1]
-            ? splitUnion(m[1])
-                .map(part => `\`${part}\``)
-                .join(' | ')
-            : '',
+          type: m[1] ? splitUnion(m[1]).map(tick).join(' | ') : '',
           default: m[3] ? m[3].trim() : null,
           description: m[4].replace(/\s+/g, ' ').trim(),
         });
@@ -1358,7 +1428,7 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
       summary: jsdocText(ts, implInit?.parent),
       rows,
       extraProps,
-      catchAll: catchAllRow(external),
+      catchAll: catchAllRow(external, markdown),
       helpersLink: `${linkBase}helpers/usebulmaclasses.md`,
     });
   }
@@ -1376,7 +1446,11 @@ export function extractComponent(name, { depth = 1, _depth = 0 } = {}) {
   // carries their CSS variables lives in the base module. The docs page is the
   // wrapper's, so resolve through. `_depth` stops a Base-of-a-Base chain.
   if (!rootClass && _depth === 0 && mods.has(`${name}Base`)) {
-    rootClass = extractComponent(`${name}Base`, { depth, _depth: 1 }).rootClass;
+    rootClass = extractComponent(`${name}Base`, {
+      depth,
+      _depth: 1,
+      markdown,
+    }).rootClass;
   }
 
   return {

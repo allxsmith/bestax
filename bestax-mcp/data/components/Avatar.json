@@ -1,0 +1,220 @@
+{
+  "name": "Avatar",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/avatar",
+  "docsUrl": "https://bestax.io/docs/api/components/avatar",
+  "examples": [
+    {
+      "title": "Photo with Automatic Fallback",
+      "code": "<Avatars spaced>\n  <Avatar src=\"https://github.com/allxsmith.png\" name=\"Al Smith\" size=\"64x64\" />\n  <Avatar\n    src=\"https://example.invalid/missing.jpg\"\n    name=\"Grace Hopper\"\n    size=\"64x64\"\n  />\n</Avatars>"
+    },
+    {
+      "title": "Initials",
+      "code": "<Avatars spaced>\n  <Avatar name=\"Ada Lovelace\" />\n  <Avatar name=\"Grace Hopper\" />\n  <Avatar name=\"Katherine Johnson\" />\n</Avatars>"
+    },
+    {
+      "title": "Icon Fallback",
+      "code": "<Avatar icon={<Icon name=\"user\" />} color=\"info\" shape=\"rounded\" />"
+    },
+    {
+      "title": "Shapes",
+      "code": "<Avatars spaced>\n  <Avatar name=\"Circle\" shape=\"circle\" />\n  <Avatar name=\"Rounded\" shape=\"rounded\" />\n  <Avatar name=\"Square\" shape=\"square\" />\n</Avatars>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Avatars spaced>\n  <Avatar name=\"Ada Lovelace\" size=\"24x24\" />\n  <Avatar name=\"Ada Lovelace\" size=\"32x32\" />\n  <Avatar name=\"Ada Lovelace\" size=\"48x48\" />\n  <Avatar name=\"Ada Lovelace\" size=\"64x64\" />\n  <Avatar name=\"Ada Lovelace\" size={20} />\n</Avatars>"
+    },
+    {
+      "title": "Clickable Avatar",
+      "code": "<Avatar name=\"Ada Lovelace\" href=\"https://bestax.io\" />"
+    },
+    {
+      "title": "Forwarding Props to the Image",
+      "code": "<Avatar\n  src=\"https://github.com/allxsmith.png\"\n  name=\"Al Smith\"\n  size=\"64x64\"\n  imageProps={{ loading: 'lazy' }}\n/>"
+    }
+  ],
+  "accessibility": "- Image avatars use `alt` (falling back to `name`) for their accessible name.\n- Initials/icon avatars expose `role=\"img\"` and `aria-label` (from `alt`/`name`) — unless\n  rendered as a link or button, where the native link/button role and `aria-label` are used\n  instead.\n- **Decorative avatars:** pass an explicit `alt=\"\"` when the avatar repeats information\n  already visible next to it (e.g. beside the author's name in a comment row). The image\n  stays decorative and an initials/icon avatar is skipped entirely (`aria-hidden`), avoiding\n  double-speak. The opt-out never applies to a link/button avatar — an interactive element\n  always keeps an accessible name (from `name`, or a generic `\"Avatar\"` fallback).\n- A link/button avatar with no `alt`/`name` (e.g. an API that returns only a photo URL) still\n  gets an `aria-label` fallback rather than rendering a nameless control.\n- `as=\"button\"` defaults to `type=\"button\"`, so a clickable avatar inside a form doesn't\n  submit it.\n- The default fallback icon is `aria-hidden`.",
+  "related": ["Avatars", "Badge", "Image", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-avatar--photo",
+  "summary": "The `Avatar` component represents a person or entity as a compact image.",
+  "import": "import { Avatar } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Avatar.tsx",
+  "rootClass": "avatar",
+  "parts": [
+    {
+      "path": "Avatar",
+      "summary": "The `Avatar` component represents a person or entity as a compact image.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": null,
+          "description": "Image URL. On load error (or if absent), falls back to initials, then `icon`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "alt",
+          "type": "string",
+          "default": null,
+          "description": "Alternate text for the image (used for the accessible name in every render mode). An explicit `alt=\"\"` marks a non-interactive avatar as decorative.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Derives initials and a deterministic background color when no `src` is shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "initials",
+          "type": "string",
+          "default": null,
+          "description": "Explicit initials override (else derived from `name`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Final fallback, rendered when there is no `src`, `name`, or `initials`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'16x16' | '24x24' | '32x32' | '48x48' | '64x64' | '96x96' | '128x128' | number",
+          "default": null,
+          "description": "Preset size, or a pixel size when a number.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shape",
+          "type": "'circle' | 'rounded' | 'square'",
+          "default": "'circle'",
+          "description": "Avatar shape. Default `'circle'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "AvatarColor",
+          "default": null,
+          "description": "Background color for initials/icon avatars (else auto-derived from `name`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "as",
+          "type": "React.ElementType",
+          "default": null,
+          "description": "Element/component to render as. Defaults to `'a'` when `href` is set, else `'figure'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "When set, renders the avatar as a link.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "default": null,
+          "description": "Anchor target — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rel",
+          "type": "string",
+          "default": null,
+          "description": "Anchor rel — forwarded only when rendering a link (an `a` or a custom `as` component).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "imageProps",
+          "type": "React.ImgHTMLAttributes<HTMLImageElement>",
+          "default": null,
+          "description": "Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "AvatarColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Avatar component."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-avatar-size",
+      "sass": "$avatar-size",
+      "default": "48px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatar-background",
+      "sass": "$avatar-background",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatar-color",
+      "sass": "$avatar-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatar-weight",
+      "sass": "$avatar-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-avatar-rounded-radius",
+      "sass": "$avatar-rounded-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    }
+  ]
+}

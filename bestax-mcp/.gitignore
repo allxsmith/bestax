@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Coverage
+coverage/
+
+# Generated: skill bodies copied from the monorepo's /skills at build/prepack
+# (see scripts/sync-skills.mjs). The MANIFEST — data/skills.json — IS committed,
+# and `pnpm gen:mcp:check` gates it, so a new or renamed skill still fails CI.
+# Committing the bodies too would put a second copy of ~390 KB of markdown in
+# every skill diff.
+data/skills/

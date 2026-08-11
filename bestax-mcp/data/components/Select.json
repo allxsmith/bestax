@@ -1,0 +1,526 @@
+{
+  "name": "Select",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/select",
+  "docsUrl": "https://bestax.io/docs/api/form/select",
+  "examples": [
+    {
+      "title": "Default Select",
+      "code": "<Select label=\"Default\">\n  <option value=\"\">Please select</option>\n  <option value=\"option1\">Option 1</option>\n  <option value=\"option2\">Option 2</option>\n</Select>"
+    },
+    {
+      "title": "Multi Select",
+      "code": "<Select label=\"Multi Select\" multiple multipleSize={10}>\n  <option value=\"huck\">Huckleberry Finn</option>\n  <option value=\"tom\">Tom Sawyer</option>\n  <option value=\"becky\">Becky Thatcher</option>\n  <option value=\"jim\">Jim</option>\n  <option value=\"pap\">Pap Finn</option>\n  <option value=\"duke\">The Duke</option>\n  <option value=\"king\">The King</option>\n  <option value=\"widow\">Widow Douglas</option>\n  <option value=\"judge\">Judge Thatcher</option>\n  <option value=\"sid\">Sid Sawyer</option>\n</Select>"
+    },
+    {
+      "title": "Colored Select",
+      "code": "<>\n  <Select label=\"Primary\" color=\"primary\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n  <Select label=\"Link\" color=\"link\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n  <Select label=\"Info\" color=\"info\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n  <Select label=\"Success\" color=\"success\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n  <Select label=\"Warning\" color=\"warning\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n  <Select label=\"Danger\" color=\"danger\">\n    <option value=\"1\">Option 1</option>\n    <option value=\"2\">Option 2</option>\n  </Select>\n</>"
+    },
+    {
+      "title": "Rounded Style",
+      "code": "<Select label=\"Rounded\" isRounded>\n  <option value=\"\">Please select</option>\n  <option value=\"option1\">Option 1</option>\n  <option value=\"option2\">Option 2</option>\n</Select>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <Select label=\"Small\" size=\"small\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n    <option value=\"option2\">Option 2</option>\n  </Select>\n  <Select label=\"Normal\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n    <option value=\"option2\">Option 2</option>\n  </Select>\n  <Select label=\"Medium\" size=\"medium\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n    <option value=\"option2\">Option 2</option>\n  </Select>\n  <Select label=\"Large\" size=\"large\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n    <option value=\"option2\">Option 2</option>\n  </Select>\n</>"
+    },
+    {
+      "title": "States",
+      "code": "<>\n  <Select label=\"Normal\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Hover\" isHovered>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Focus\" isFocused>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Loading\" isLoading>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n</>"
+    },
+    {
+      "title": "Loading States by Size",
+      "code": "<>\n  <Select label=\"Loading Small\" size=\"small\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Normal\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Medium\" size=\"medium\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Large\" size=\"large\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n</>"
+    },
+    {
+      "title": "Disabled",
+      "code": "<Select label=\"Disabled\" disabled>\n  <option value=\"\">Cannot change</option>\n</Select>"
+    },
+    {
+      "title": "With Icons",
+      "code": "<Select label=\"With Icons\" iconLeftName=\"person\">\n  <option value=\"huck\">Huckleberry Finn</option>\n  <option value=\"tom\">Tom Sawyer</option>\n  <option value=\"becky\">Becky Thatcher</option>\n  <option value=\"jim\">Jim</option>\n  <option value=\"pap\">Pap Finn</option>\n</Select>"
+    },
+    {
+      "title": "With Icons and Size Variations",
+      "code": "<>\n  <Select\n    label=\"With Icons Small\"\n    size=\"small\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"small\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select label=\"With Icons Normal\" iconLeftName=\"person\">\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select\n    label=\"With Icons Medium\"\n    size=\"medium\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"medium\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n  <Select\n    label=\"With Icons Large\"\n    size=\"large\"\n    iconLeftName=\"person\"\n    iconLeftSize=\"large\"\n  >\n    <option value=\"huck\">Huckleberry Finn</option>\n    <option value=\"tom\">Tom Sawyer</option>\n  </Select>\n</>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Currency\">\n      <option>$</option>\n      <option>£</option>\n      <option>€</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"text\" placeholder=\"Amount of money\" />\n  </Control>\n  <Control>\n    <Button>Transfer</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Horizontal — Select in Narrow Field",
+      "code": "<Field horizontal label=\"Department\">\n  <Field.Body>\n    <Field narrow>\n      <Control>\n        <Select isFullwidth>\n          <option>Business development</option>\n          <option>Marketing</option>\n          <option>Sales</option>\n        </Select>\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Select label=\"Country\">\n  <option value=\"\">Please select</option>\n  <option value=\"us\">United States</option>\n  <option value=\"uk\">United Kingdom</option>\n  <option value=\"ca\">Canada</option>\n</Select>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Country\">\n      <Field.Body>\n        <Field>\n          <Select>\n            <option value=\"\">Please select</option>\n            <option value=\"us\">United States</option>\n            <option value=\"uk\">United Kingdom</option>\n            <option value=\"ca\">Canada</option>\n          </Select>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Country\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"globe\">\n            <Select>\n              <option value=\"\">Please select</option>\n              <option value=\"us\">United States</option>\n              <option value=\"uk\">United Kingdom</option>\n              <option value=\"ca\">Canada</option>\n            </Select>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the `multiple` and `multipleSize` props for multi-select dropdowns.",
+  "related": ["Control", "Field"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-select--default",
+  "summary": "The `Select` component provides a Bulma-styled dropdown for selecting one or more options.",
+  "import": "import { Select, Field, Control } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Select.tsx",
+  "rootClass": "select",
+  "parts": [
+    {
+      "path": "Select",
+      "summary": "The `Select` component provides a Bulma-styled dropdown for selecting one or more options.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the select via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element when the component renders its own `Field`; dropped inside an outer `Field` (use that `Field`'s `labelProps` instead). An explicit `htmlFor` key — even `undefined` — overrides the automatic association and no id is generated.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for left icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for left icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force left icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows loading indicator.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Control size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the select.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the select.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the select.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded select corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies Bulma's is-active modifier.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Forces hovered state on the inner select.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Forces focused state on the inner select.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the select span the full width of parent.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the select.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": "false",
+          "description": "Allows multiple selections.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "multipleSize",
+          "type": "number",
+          "default": null,
+          "description": "Number of visible options in multiselect.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`<option>` elements.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLSelectElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <select> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-input-h",
+      "sass": null,
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": null,
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": null,
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": null,
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": null,
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    }
+  ]
+}

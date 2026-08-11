@@ -1,0 +1,164 @@
+{
+  "name": "Radio",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/radio",
+  "docsUrl": "https://bestax.io/docs/api/form/radio",
+  "examples": [
+    {
+      "title": "Mutually Exclusive Radios (Only One Can Be Selected)",
+      "code": "<Control>\n  <Radio name=\"mutuallyExclusive\"> Yes </Radio>\n  <Radio name=\"mutuallyExclusive\"> No </Radio>\n  <Radio name=\"mutuallyExclusive\"> Maybe </Radio>\n</Control>"
+    },
+    {
+      "title": "Default Selected Radio",
+      "code": "<Control>\n  <Radio name=\"pet\"> Cat </Radio>\n  <Radio name=\"pet\" defaultChecked>\n    {' '}\n    Dog{' '}\n  </Radio>\n</Control>"
+    },
+    {
+      "title": "Disabled Radios",
+      "code": "<Control>\n  <Radio name=\"response\" disabled>\n    {' '}\n    Attend{' '}\n  </Radio>\n  <Radio name=\"response\" disabled>\n    {' '}\n    Decline{' '}\n  </Radio>\n  <Radio name=\"response\" disabled>\n    {' '}\n    Tentative{' '}\n  </Radio>\n</Control>"
+    },
+    {
+      "title": "List of Radios (Grouped with the `Radios` Wrapper)",
+      "code": "<Radios>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Attend{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Decline{' '}\n  </Radio>\n  <Radio name=\"event\" disabled>\n    {' '}\n    Tentative{' '}\n  </Radio>\n</Radios>"
+    }
+  ],
+  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.",
+  "related": ["Field", "Radios", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-radio--mutuallyexclusive",
+  "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",
+  "import": "import { Radio, Radios, Control } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Radio.tsx",
+  "rootClass": "styled-radio",
+  "parts": [
+    {
+      "path": "Radio",
+      "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color of the radio button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the radio button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the radio is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label/content for the radio.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-radio-size",
+      "sass": "$radio-size",
+      "default": "1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-border-width",
+      "sass": "$radio-border-width",
+      "default": "2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-border-color",
+      "sass": "$radio-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-background",
+      "sass": "$radio-background",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-dot-color",
+      "sass": "$radio-dot-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-active-color",
+      "sass": "$radio-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-label-gap",
+      "sass": "$radio-label-gap",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-focus-shadow-size",
+      "sass": "$radio-focus-shadow-size",
+      "default": "0 0 0 0.125em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-radio-transition-duration",
+      "sass": "$radio-transition-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "component"
+    }
+  ]
+}

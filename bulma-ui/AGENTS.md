@@ -11,6 +11,11 @@ Machine-readable docs (always current):
   https://bestax.io/docs/api/elements/button.md
 - LLM guide: https://bestax.io/docs/guides/llms
 
+Prefer to query rather than read? `npx bestax-mcp` is the first-party MCP
+server — props (including compound parts), examples, `--bulma-*` variables and
+the skills as prompts, offline. Setup:
+https://bestax.io/docs/guides/llms#mcp-server
+
 Agent skills (bestax-custom-component, bestax-form, bestax-icons,
 bestax-layout-scaffold, bestax-migrate, bestax-optimize, bestax-theming):
 https://bestax.io/docs/skills/intro
@@ -20,6 +25,16 @@ https://bestax.io/docs/skills/intro
   to your user.
 - Existing project: `npx skills add https://github.com/allxsmith/bestax --skill bestax-form`
   (repeat per skill, or omit `--skill` to pick interactively)
+
+Three components Bulma will talk you out of — everything else here gets found
+because Bulma has no equivalent, but these have a near-miss that ends the search:
+
+- Brief confirmation after an action: `Toast` (`<ToastContainer />` at the root,
+  then `toast.success('Saved')`) — not `Notification`/`Message`.
+- A confirm or alert: `Dialog` (`<DialogContainer />`, then
+  `await dialog.confirm({ title, message })`) — not `Modal`.
+- A control that reads as text or a link: `LinkButton` — not `<a href="#">`,
+  `<div onClick>` or `Button color="text"`.
 
 Conventions (the offline essentials):
 

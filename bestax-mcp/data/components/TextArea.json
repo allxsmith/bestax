@@ -1,0 +1,483 @@
+{
+  "name": "TextArea",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/textarea",
+  "docsUrl": "https://bestax.io/docs/api/form/textarea",
+  "examples": [
+    {
+      "title": "Default",
+      "code": "<TextArea label=\"Default\" placeholder=\"e.g. Hello world\" />"
+    },
+    {
+      "title": "Row Count",
+      "code": "<TextArea label=\"Rows\" rows={10} placeholder=\"10 rows\" />"
+    },
+    {
+      "title": "Colors",
+      "code": "<>\n  <TextArea label=\"Primary\" color=\"primary\" placeholder=\"Primary textarea\" />\n  <TextArea label=\"Link\" color=\"link\" placeholder=\"Link textarea\" />\n  <TextArea label=\"Info\" color=\"info\" placeholder=\"Info textarea\" />\n  <TextArea label=\"Success\" color=\"success\" placeholder=\"Success textarea\" />\n  <TextArea label=\"Warning\" color=\"warning\" placeholder=\"Warning textarea\" />\n  <TextArea label=\"Danger\" color=\"danger\" placeholder=\"Danger textarea\" />\n</>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <TextArea label=\"Small\" size=\"small\" placeholder=\"Small textarea\" />\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Medium\" size=\"medium\" placeholder=\"Medium textarea\" />\n  <TextArea label=\"Large\" size=\"large\" placeholder=\"Large textarea\" />\n</>"
+    },
+    {
+      "title": "States",
+      "code": "<>\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Hover\" isHovered placeholder=\"Hovered textarea\" />\n  <TextArea label=\"Focus\" isFocused placeholder=\"Focused textarea\" />\n  <TextArea label=\"Loading\" isLoading placeholder=\"Loading textarea\" />\n</>"
+    },
+    {
+      "title": "Loading States by Size",
+      "code": "<>\n  <TextArea\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    placeholder=\"Small loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Normal\"\n    isLoading\n    placeholder=\"Normal loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    placeholder=\"Medium loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    placeholder=\"Large loading textarea\"\n  />\n</>"
+    },
+    {
+      "title": "Disabled & Read Only",
+      "code": "<>\n  <TextArea label=\"Disabled\" disabled placeholder=\"Disabled textarea\" />\n  <TextArea label=\"Read Only\" readOnly value=\"This content is readonly\" />\n</>"
+    },
+    {
+      "title": "Fixed Size",
+      "code": "<TextArea\n  label=\"Fixed Size\"\n  hasFixedSize\n  rows={3}\n  placeholder=\"Fixed size textarea\"\n/>"
+    },
+    {
+      "title": "Horizontal",
+      "code": "<TextArea\n  horizontal\n  label=\"Question\"\n  placeholder=\"Explain how we can help you\"\n  rows={4}\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<TextArea label=\"Message\" placeholder=\"Enter your message\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\">\n      <Field.Body>\n        <Field>\n          <TextArea placeholder=\"Enter your message\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"comment\">\n            <TextArea placeholder=\"Enter your message\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the `rows` prop to set an appropriate height for your content.",
+  "related": ["Control", "Field"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-textarea--default",
+  "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.",
+  "import": "import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/TextArea.tsx",
+  "rootClass": "textarea",
+  "parts": [
+    {
+      "path": "TextArea",
+      "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element when the component renders its own `Field`; dropped inside an outer `Field` (use that `Field`'s `labelProps` instead). An explicit `htmlFor` key — even `undefined` — overrides the automatic association and no id is generated.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows loading indicator on the wrapping Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Control size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the textarea.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the textarea.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded textarea corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders textarea as static (styled readonly).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies Bulma's is-active modifier.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hasFixedSize",
+          "type": "boolean",
+          "default": "false",
+          "description": "Fixed textarea size (no resize).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the textarea.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only textarea.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": null,
+          "description": "Number of visible text lines.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLTextAreaElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <textarea> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-textarea-padding",
+      "sass": "$textarea-padding",
+      "default": "var(--bulma-control-padding-horizontal)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-textarea-max-height",
+      "sass": "$textarea-max-height",
+      "default": "40em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-textarea-min-height",
+      "sass": "$textarea-min-height",
+      "default": "8em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-h",
+      "sass": "$input-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": "$input-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": "$input-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": "$input-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": "$input-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    }
+  ]
+}

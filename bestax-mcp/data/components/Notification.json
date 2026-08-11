@@ -1,0 +1,165 @@
+{
+  "name": "Notification",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/notification",
+  "docsUrl": "https://bestax.io/docs/api/elements/notification",
+  "examples": [
+    {
+      "title": "Default Notification",
+      "code": "<Notification>This is a default notification.</Notification>"
+    },
+    {
+      "title": "Primary Notification",
+      "code": "<Notification color=\"primary\">This is a primary notification.</Notification>"
+    },
+    {
+      "title": "Light Variant",
+      "code": "<Notification color=\"primary\" isLight>\n  This is a light primary notification.\n</Notification>"
+    },
+    {
+      "title": "Success, Warning, Danger, Info, and Link",
+      "code": "<>\n  <Notification color=\"success\">This is a success notification.</Notification>\n  <Notification color=\"warning\">This is a warning notification.</Notification>\n  <Notification color=\"danger\">This is a danger notification.</Notification>\n  <Notification color=\"info\">This is an info notification.</Notification>\n  <Notification color=\"link\">This is a link notification.</Notification>\n</>"
+    },
+    {
+      "title": "With Dismiss Button",
+      "code": "function example() {\n  const [visible, setVisible] = React.useState(true);\n\n  return (\n    <>\n      {visible && (\n        <Notification hasDelete onDelete={() => setVisible(false)}>\n          Click the delete button to dismiss this notification.\n        </Notification>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "With Margin",
+      "code": "<Notification m=\"4\">This notification has a margin.</Notification>"
+    },
+    {
+      "title": "Custom Content",
+      "code": "<Notification color=\"warning\">\n  <Strong>Warning!</Strong> This notification contains{' '}\n  <Link href=\"#\">custom content</Link>.\n</Notification>"
+    }
+  ],
+  "accessibility": "- **Delete button:** Includes `aria-label=\"Close notification\"` for screen readers.\n- **Keyboard:** The delete button is focusable and can be activated by keyboard.\n- **Content:** Use semantic HTML within the notification for best accessibility.\n\n:::tip\nAlways provide clear, actionable text inside notifications.\n:::",
+  "related": ["Delete", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-notification--default",
+  "summary": "The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.",
+  "import": "import { Notification } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Notification.tsx",
+  "rootClass": "notification",
+  "parts": [
+    {
+      "path": "Notification",
+      "summary": "The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color",
+          "default": null,
+          "description": "Bulma color modifier for the notification (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.notification`. The other accepted values (`black-bis`, `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`) emit a class no CSS rule matches, so the notification renders unstyled; they log a console warning in development and will be removed from this union in the next major version.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use the light color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasDelete",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a close (delete) button in the notification.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onDelete",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback fired when the delete button is clicked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the notification.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-notification-h",
+      "sass": null,
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-s",
+      "sass": null,
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-background-l",
+      "sass": null,
+      "default": "var(--bulma-background-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-color-l",
+      "sass": null,
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-code-background-color",
+      "sass": "$notification-code-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-radius",
+      "sass": "$notification-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-notification-padding",
+      "sass": "$notification-padding",
+      "default": "1.375em 1.5em",
+      "scope": "component"
+    }
+  ]
+}

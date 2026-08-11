@@ -1,0 +1,906 @@
+{
+  "name": "TimeInput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/datetime/timeinput",
+  "docsUrl": "https://bestax.io/docs/api/form/datetime/timeinput",
+  "examples": [
+    {
+      "title": "Basic TimeInput",
+      "code": "<TimeInput label=\"Time\" placeholder=\"HH:MM\" />"
+    },
+    {
+      "title": "Basic TimeInput",
+      "code": "<TimeInput label=\"Time\" placeholder=\"HH:MM\" openOnFocus={false} />"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput label=\"Departure\" value={v} onChange={setV} />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Departure\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "12-hour Format",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"12-hour\"\n      hourFormat=\"12\"\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "12-hour Format",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Press a / A / p / P on AM-PM\"\n      hourFormat=\"12\"\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "24-hour Format",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"24-hour\"\n      hourFormat=\"24\"\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "24-hour Format",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"24-hour\"\n      hourFormat=\"24\"\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "With Seconds",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(10, 20, 30, 0);\n  return (\n    <TimeInput\n      label=\"With seconds\"\n      enableSeconds\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "With Seconds",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(10, 20, 30, 0);\n  return (\n    <TimeInput\n      label=\"Tab through hours / minutes / seconds\"\n      enableSeconds\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Increment Steps",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"15-minute slots\"\n      incrementMinutes={15}\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Increment Steps",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"15-minute wheels — typing is free-grained\"\n      incrementMinutes={15}\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Min and Max",
+      "code": "function example() {\n  const today = new Date();\n  const min = new Date(today);\n  min.setHours(9, 0, 0, 0);\n  const max = new Date(today);\n  max.setHours(17, 0, 0, 0);\n  const dv = new Date(today);\n  dv.setHours(12, 0, 0, 0);\n  return (\n    <TimeInput\n      label=\"Office hours: 09:00 — 17:00\"\n      min={min}\n      max={max}\n      defaultValue={dv}\n    />\n  );\n}"
+    },
+    {
+      "title": "Min and Max",
+      "code": "function example() {\n  const at = (h, m) => {\n    const d = new Date();\n    d.setHours(h, m, 0, 0);\n    return d;\n  };\n  return (\n    <TimeInput\n      label=\"Typed entry clamped to 09:00 – 17:00\"\n      min={at(9, 0)}\n      max={at(17, 0)}\n      defaultValue={at(12, 0)}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Unselectable Times",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(11, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Lunch hour blocked\"\n      unselectableTimes={d => d.getHours() === 12}\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Unselectable Times",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(11, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Lunch hour rejected while typing\"\n      unselectableTimes={d => d.getHours() === 12}\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Click in, then use arrow keys\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 0, 0, 0);\n  return (\n    <TimeInput\n      label=\"Type digits — auto-advance after each segment\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Free-form (Intl format)\"\n      format={{ hour: '2-digit', minute: '2-digit' }}\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Manual Keyboard Entry",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <TimeInput\n      label=\"hh:mm:ss + AM/PM\"\n      hourFormat=\"12\"\n      enableSeconds\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Haptic-feel Feedback (audio tick + band pulse)",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Audio thunk + band pulse\"\n      audioTick\n      mobileNative={false}\n      defaultValue={v}\n    />\n  );\n}"
+    },
+    {
+      "title": "Haptic-feel Feedback (audio tick + band pulse)",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Audio thunk + band pulse\"\n      audioTick\n      mobileNative={false}\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Haptic-feel Feedback (audio tick + band pulse)",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Auto-routed haptics\"\n      haptics\n      mobileNative={false}\n      defaultValue={v}\n    />\n  );\n}"
+    },
+    {
+      "title": "Haptic-feel Feedback (audio tick + band pulse)",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Auto-routed haptics\"\n      haptics\n      mobileNative={false}\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Inline",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(8, 30, 0, 0);\n  return <TimeInput label=\"Inline\" inline defaultValue={v} />;\n}"
+    },
+    {
+      "title": "Mobile Native",
+      "code": "<TimeInput label=\"Always native\" mobileNative={true} />"
+    },
+    {
+      "title": "Mobile Native",
+      "code": "<TimeInput label=\"Always custom wheel\" mobileNative={false} />"
+    },
+    {
+      "title": "Formats",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <TimeInput label=\"HH:mm (24h, default)\" defaultValue={v} />\n      <TimeInput label=\"hh:mm A (12h)\" format=\"hh:mm A\" defaultValue={v} />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n      />\n      <TimeInput label=\"HH:mm:ss\" format=\"HH:mm:ss\" defaultValue={v} />\n      <TimeInput label=\"hh:mm:ss A\" format=\"hh:mm:ss A\" defaultValue={v} />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Formats",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n      <TimeInput\n        label=\"HH:mm (24h, default)\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm A (12h)\"\n        format=\"hh:mm A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm a (lowercase)\"\n        format=\"hh:mm a\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"HH:mm:ss\"\n        format=\"HH:mm:ss\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n      <TimeInput\n        label=\"hh:mm:ss A\"\n        format=\"hh:mm:ss A\"\n        defaultValue={v}\n        openOnFocus={false}\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Formats",
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Intl, fr-FR (display only)\"\n      format={{ hour: '2-digit', minute: '2-digit' }}\n      locale=\"fr-FR\"\n      editable={false}\n      defaultValue={v}\n      mobileNative={false}\n    />\n  );\n}"
+    },
+    {
+      "title": "Launcher Icon",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Default (left icon + right launcher)\" />\n  <TimeInput label=\"Custom launcher glyph\" triggerIconName=\"hourglass\" />\n  <TimeInput label=\"No launcher\" triggerIcon={false} />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" />\n</Block>"
+    },
+    {
+      "title": "Launcher Icon",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <TimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"hourglass\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"No launcher (press ↓ to open)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Small\" controlSize=\"small\" size=\"small\" />\n  <TimeInput label=\"Default\" />\n  <TimeInput label=\"Medium\" controlSize=\"medium\" size=\"medium\" />\n  <TimeInput label=\"Large\" controlSize=\"large\" size=\"large\" />\n</Block>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput\n    label=\"Small\"\n    controlSize=\"small\"\n    size=\"small\"\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Default\" openOnFocus={false} />\n  <TimeInput\n    label=\"Medium\"\n    controlSize=\"medium\"\n    size=\"medium\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"Large\"\n    controlSize=\"large\"\n    size=\"large\"\n    openOnFocus={false}\n  />\n</Block>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Primary\" color=\"primary\" />\n  <TimeInput label=\"Info\" color=\"info\" />\n  <TimeInput label=\"Success\" color=\"success\" />\n  <TimeInput label=\"Warning\" color=\"warning\" />\n  <TimeInput label=\"Danger\" color=\"danger\" />\n</Block>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <TimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <TimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <TimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <TimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
+    },
+    {
+      "title": "States",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <TimeInput label=\"Disabled\" disabled />\n  <TimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <TimeInput label=\"Loading\" isLoading />\n</Block>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<TimeInput label=\"Time\" placeholder=\"HH:MM\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\">\n      <Field.Body>\n        <Field>\n          <TimeInput placeholder=\"HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
+  "related": ["DateInput", "DateTimeInput", "Input"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-timeinput",
+  "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
+  "import": "import { TimeInput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/TimeInput.tsx",
+  "rootClass": "input",
+  "parts": [
+    {
+      "path": "TimeInput",
+      "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with horizontal layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for the left icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for the right icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for the right icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the left icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the right icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a loading indicator on the control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control to fill its container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the wrapping Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation text below the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color modifier for the help message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "default": null,
+          "description": "Controlled selected time (date portion is preserved).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "default": null,
+          "description": "Initial value for uncontrolled usage.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(d: Date | null) => void",
+          "default": null,
+          "description": "Fired when the value changes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable time.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable time.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make the input read-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "(see below)",
+          "description": "Token format string or `Intl.DateTimeFormat` options.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for Intl formatting.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the spinner inline (no popover).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use `<input type=\"time\">` on coarse-pointer + small-viewport devices.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when the input is focused.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "false",
+          "description": "Close the popover after a time is selected (off by default).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Popover anchor position relative to the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover into `document.body` via portal.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the input with rounded corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hourFormat",
+          "type": "'12' | '24'",
+          "default": "'24'",
+          "description": "Hour format. `'12'` shows an AM/PM toggle.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "enableSeconds",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "incrementHours",
+          "type": "number",
+          "default": "1",
+          "description": "Hour step for the spinner.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "incrementMinutes",
+          "type": "number",
+          "default": "1",
+          "description": "Minute step. Combine with `min`/`max` for slot-style pickers.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "incrementSeconds",
+          "type": "number",
+          "default": "1",
+          "description": "Second step. Default `1`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableTimes",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": "'clock'",
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Default `true`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "audioTick",
+          "type": "boolean",
+          "default": "false",
+          "description": "Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "haptics",
+          "type": "boolean",
+          "default": "false",
+          "description": "Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Form id the input belongs to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the input as required.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-input-h",
+      "sass": "$input-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": "$input-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": "$input-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": "$input-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": "$input-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    }
+  ]
+}

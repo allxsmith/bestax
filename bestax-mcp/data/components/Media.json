@@ -1,0 +1,345 @@
+{
+  "name": "Media",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/media",
+  "docsUrl": "https://bestax.io/docs/api/layout/media",
+  "examples": [
+    {
+      "title": "Default Media",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>Alexander Hamilton</Strong> <small>@hamilton</small>{' '}\n        <small>31m</small>\n        <br />\n        If men were angels, no government would be necessary. If angels were to\n        govern men, neither external nor internal controls on government would\n        be necessary.\n      </Paragraph>\n    </Content>\n    <Level isMobile>\n      <Level.Left>\n        <Level.Item as=\"a\">\n          <Icon name=\"reply\" variant=\"solid\" size=\"small\" />\n        </Level.Item>\n        <Level.Item as=\"a\">\n          <Icon name=\"retweet\" variant=\"solid\" size=\"small\" />\n        </Level.Item>\n        <Level.Item as=\"a\">\n          <Icon name=\"heart\" variant=\"solid\" size=\"small\" />\n        </Level.Item>\n      </Level.Left>\n    </Level>\n  </Media.Content>\n  <Media.Right>\n    <Delete aria-label=\"delete\" />\n  </Media.Right>\n</Media>"
+    },
+    {
+      "title": "Media With Inputs",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field>\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Level>\n      <Level.Left>\n        <Level.Item>\n          <Button as=\"a\" color=\"info\">\n            Submit\n          </Button>\n        </Level.Item>\n      </Level.Left>\n      <Level.Right>\n        <Level.Item>\n          <Checkbox>Press enter to submit</Checkbox>\n        </Level.Item>\n      </Level.Right>\n    </Level>\n  </Media.Content>\n</Media>"
+    },
+    {
+      "title": "Nested Media",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>John Jay</Strong>\n        <br />\n        The people, in their collective capacity, are the ultimate authority.\n        The Union is essential to the security of the people of America against\n        foreign danger.\n        <br />\n        <small>\n          <a>Like</a> &middot; <a>Reply</a> &middot; 3 hrs\n        </small>\n      </Paragraph>\n    </Content>\n    {/* First nested media */}\n    <Media>\n      <Media.Left>\n        <Image\n          as=\"p\"\n          size=\"48x48\"\n          src=\"https://bulma.io/assets/images/placeholders/96x96.png\"\n          alt=\"\"\n        />\n      </Media.Left>\n      <Media.Content>\n        <Content>\n          <Paragraph>\n            <Strong>James Madison</Strong>\n            <br />\n            The accumulation of all powers, legislative, executive, and\n            judiciary, in the same hands, may justly be pronounced the very\n            definition of tyranny.\n            <br />\n            <small>\n              <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs\n            </small>\n          </Paragraph>\n        </Content>\n        {/* 2nd nested media (two siblings) */}\n        <Media>\n          Experience has taught mankind the necessity of auxiliary precautions.\n        </Media>\n        <Media>Ambition must be made to counteract ambition.</Media>\n      </Media.Content>\n    </Media>\n    {/* Second nested media */}\n    <Media>\n      <Media.Left>\n        <Image\n          as=\"p\"\n          size=\"48x48\"\n          src=\"https://bulma.io/assets/images/placeholders/96x96.png\"\n          alt=\"\"\n        />\n      </Media.Left>\n      <Media.Content>\n        <Content>\n          <Paragraph>\n            <Strong>Alexander Hamilton</Strong>\n            <br />\n            Safety from external danger is the most powerful director of\n            national conduct. The desire for respect and security will always\n            influence the policy of nations.\n            <br />\n            <small>\n              <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs\n            </small>\n          </Paragraph>\n        </Content>\n      </Media.Content>\n    </Media>\n  </Media.Content>\n</Media>"
+    },
+    {
+      "title": "Media With Button Below",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field>\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Field>\n      <Control as=\"p\">\n        <Button>Post comment</Button>\n      </Control>\n    </Field>\n  </Media.Content>\n</Media>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <p>\n        <strong>John Smith</strong> <small>@johnsmith</small>\n        <br />\n        Composed entirely from the single Media import via dot notation.\n      </p>\n    </Content>\n  </Media.Content>\n  <Media.Right>\n    <Button as=\"a\" size=\"small\">\n      Reply\n    </Button>\n  </Media.Right>\n</Media>"
+    }
+  ],
+  "accessibility": "- The Media root renders as a semantic `<article>` by default. Use `as=\"div\"` for a generic container.\n- The left section is commonly used for avatars (as `<figure>`) and is screen-reader accessible.\n- Use clear and descriptive text in content and actions for best accessibility.\n\n:::note\nWhen using only icons or controls, provide `aria-label` or screen-reader-only content as appropriate.\n:::",
+  "related": [
+    "Button",
+    "Checkbox",
+    "Image",
+    "Level",
+    "TextArea",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-media--default",
+  "summary": "The `Media` component implements Bulma’s powerful media object layout for React.",
+  "import": "import { Media } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Media.tsx",
+  "rootClass": "media",
+  "parts": [
+    {
+      "path": "Media",
+      "summary": "The `Media` component implements Bulma’s powerful media object layout for React.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "'article' | 'div'",
+          "default": "'article'",
+          "description": "Element type for the root Media container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the media container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Media.Left",
+      "summary": "For avatars, thumbnails, icons (renders as `figure` or `div`)",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "'figure' | 'div'",
+          "default": "'figure'",
+          "description": "Element type to render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Media.Content",
+      "summary": "Main content (renders as `div`)",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Media.Right",
+      "summary": "Actions or controls (renders as `div`)",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-media-border-color",
+      "sass": "$media-border-color",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-border-l), 0.5)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-border-size",
+      "sass": "$media-border-size",
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-spacing",
+      "sass": "$media-spacing",
+      "default": "1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-spacing-large",
+      "sass": "$media-spacing-large",
+      "default": "1.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-content-spacing",
+      "sass": "$media-content-spacing",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-level-1-spacing",
+      "sass": "$media-level-1-spacing",
+      "default": "0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-level-1-content-spacing",
+      "sass": "$media-level-1-content-spacing",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-media-level-2-spacing",
+      "sass": "$media-level-2-spacing",
+      "default": "0.5rem",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "name": "Footer",
+  "kind": "component",
+  "category": "layout",
+  "slug": "layout/footer",
+  "docsUrl": "https://bestax.io/docs/api/layout/footer",
+  "examples": [
+    {
+      "title": "Default Footer",
+      "code": "import { Footer } from '@allxsmith/bestax-bulma';\nimport { Content } from '@allxsmith/bestax-bulma';\n\n<Footer>\n  <Content textAlign=\"centered\">\n    <Paragraph>\n      <Strong>Bestax</Strong> a Bulma component library by{' '}\n      <a href=\"https://bestax.io\">Alex Smith</a>.<br />\n      <a href=\"https://opensource.org/license/mit\">MIT Source Code License</a>\n      {', '}\n      Web content licensed{' '}\n      <a href=\"https://creativecommons.org/licenses/by-nc-sa/4.0//\">\n        CC BY NC SA 4.0\n      </a>\n      .\n    </Paragraph>\n  </Content>\n</Footer>;"
+    }
+  ],
+  "accessibility": "- Renders as a semantic `<footer>` tag by default.\n- Accepts any valid children; ensure your links and text are accessible.\n- You can use the `as=\"div\"` prop if you need a non-semantic container.\n\n:::note\nWhen using only icons or non-text content, add `aria-label` or screen-reader-only content for accessibility.\n:::",
+  "related": ["Container", "Content", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/layout-footer--default",
+  "summary": "The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.",
+  "import": "import { Footer } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/layout/Footer.tsx",
+  "rootClass": "footer",
+  "parts": [
+    {
+      "path": "Footer",
+      "summary": "The `Footer` component provides a semantic and accessible site footer for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "'footer' | 'div'",
+          "default": "'footer'",
+          "description": "The HTML tag to render as.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content inside the footer.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-footer-background-color",
+      "sass": "$footer-background-color",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-footer-color",
+      "sass": "$footer-color",
+      "default": "false",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-footer-padding",
+      "sass": "$footer-padding",
+      "default": "3rem 1.5rem 6rem",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "name": "OrderedList",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/orderedlist",
+  "docsUrl": "https://bestax.io/docs/api/elements/orderedlist",
+  "examples": [
+    {
+      "title": "Default List",
+      "code": "<Content>\n  <OrderedList>\n    <ListItem>First item</ListItem>\n    <ListItem>Second item</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Alphabetic Lowercase",
+      "code": "<Content>\n  <OrderedList type=\"a\">\n    <ListItem>First item</ListItem>\n    <ListItem>Second item</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Alphabetic Uppercase",
+      "code": "<Content>\n  <OrderedList type=\"A\">\n    <ListItem>First item</ListItem>\n    <ListItem>Second item</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Roman Numerals",
+      "code": "<Content>\n  <OrderedList type=\"I\">\n    <ListItem>First item</ListItem>\n    <ListItem>Second item</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Custom Starting Number",
+      "code": "<Content>\n  <OrderedList start={5}>\n    <ListItem>Fifth item</ListItem>\n    <ListItem>Sixth item</ListItem>\n    <ListItem>Seventh item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Reversed Order",
+      "code": "<Content>\n  <OrderedList reversed>\n    <ListItem>Third item (shown as 3)</ListItem>\n    <ListItem>Second item (shown as 2)</ListItem>\n    <ListItem>First item (shown as 1)</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Colored List",
+      "code": "<Content>\n  <OrderedList textColor=\"primary\">\n    <ListItem>First item</ListItem>\n    <ListItem>Second item</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Nested Lists",
+      "code": "<Content>\n  <OrderedList>\n    <ListItem>First item</ListItem>\n    <ListItem>\n      Second item with nested list\n      <OrderedList type=\"a\">\n        <ListItem>Nested item a</ListItem>\n        <ListItem>Nested item b</ListItem>\n      </OrderedList>\n    </ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Content>\n  <OrderedList>\n    <OrderedList.Item>First item</OrderedList.Item>\n    <OrderedList.Item>Second item</OrderedList.Item>\n  </OrderedList>\n</Content>"
+    }
+  ],
+  "accessibility": "- **List Structure:** Screen readers announce ordered lists with their numbering, helping users understand sequential content.\n- **Semantic Markup:** Using proper `<ol>` and `<li>` elements ensures accessibility for all users.\n- **Numbering Type:** The `type` attribute is announced by most screen readers, providing context about the list format.\n\n:::info\nUse `OrderedList` when the order of items is significant, such as steps in a process or ranked items.\n:::",
+  "related": ["Content", "ListItem", "UnorderedList", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-orderedlist--default",
+  "summary": "The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.",
+  "import": "import { OrderedList, ListItem } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/OrderedList.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "OrderedList",
+      "summary": "The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "List items to render inside the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'1' | 'a' | 'A' | 'i' | 'I'",
+          "default": "'1'",
+          "description": "The numbering type for the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "start",
+          "type": "number",
+          "default": null,
+          "description": "The starting number for the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "reversed",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether to reverse the list numbering.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <ol> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "OrderedList.Item",
+      "summary": "The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.",
+      "component": "ListItem",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the list item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Custom value for ordered list items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

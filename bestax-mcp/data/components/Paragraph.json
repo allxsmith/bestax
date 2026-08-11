@@ -1,0 +1,107 @@
+{
+  "name": "Paragraph",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/paragraph",
+  "docsUrl": "https://bestax.io/docs/api/elements/paragraph",
+  "examples": [
+    {
+      "title": "Default Paragraph",
+      "code": "<Paragraph>\n  This is a default paragraph. It contains some sample text to demonstrate the\n  component.\n</Paragraph>"
+    },
+    {
+      "title": "Primary Color Paragraph",
+      "code": "<Paragraph textColor=\"primary\">\n  This paragraph has primary colored text.\n</Paragraph>"
+    },
+    {
+      "title": "Centered Text",
+      "code": "<Paragraph textAlign=\"centered\">This paragraph is centered.</Paragraph>"
+    },
+    {
+      "title": "Paragraph with Background",
+      "code": "<Paragraph bgColor=\"dark\" textColor=\"white\" p=\"3\">\n  This paragraph has a dark background.\n</Paragraph>"
+    },
+    {
+      "title": "Large Text",
+      "code": "<Paragraph textSize=\"3\">This is a large paragraph.</Paragraph>"
+    },
+    {
+      "title": "Small Text",
+      "code": "<Paragraph textSize=\"7\">This is a small paragraph.</Paragraph>"
+    },
+    {
+      "title": "Justified Text",
+      "code": "<Block style={{ maxWidth: '400px' }}>\n  <Paragraph textAlign=\"justified\">\n    This paragraph has justified text alignment. Lorem ipsum dolor sit amet,\n    consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et\n    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation\n    ullamco laboris.\n  </Paragraph>\n</Block>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Paragraph textColor=\"primary\">Primary paragraph</Paragraph>\n  <Paragraph textColor=\"link\">Link paragraph</Paragraph>\n  <Paragraph textColor=\"info\">Info paragraph</Paragraph>\n  <Paragraph textColor=\"success\">Success paragraph</Paragraph>\n  <Paragraph textColor=\"warning\">Warning paragraph</Paragraph>\n  <Paragraph textColor=\"danger\">Danger paragraph</Paragraph>\n</Block>"
+    },
+    {
+      "title": "Stacked Paragraphs",
+      "code": "<Content style={{ maxWidth: '500px' }}>\n  <Paragraph>\n    First paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n  </Paragraph>\n  <Paragraph>\n    Second paragraph. Sed do eiusmod tempor incididunt ut labore et dolore magna\n    aliqua.\n  </Paragraph>\n  <Paragraph>\n    Third paragraph. Ut enim ad minim veniam, quis nostrud exercitation.\n  </Paragraph>\n</Content>"
+    },
+    {
+      "title": "Highlighted Paragraph",
+      "code": "<Paragraph bgColor=\"dark\" textColor=\"white\" p=\"4\">\n  This is a highlighted paragraph with dark background.\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **Semantic Structure:** Use paragraphs to wrap distinct blocks of text for proper document structure.\n- **Color Contrast:** Ensure sufficient contrast between text and background colors for readability.\n- **Heading Order:** Paragraphs should follow proper heading hierarchy in your document.\n\n:::info\nFor semantic emphasis within paragraphs, use `<strong>` (Strong) or `<em>` (Emphasis) components.\n:::",
+  "related": ["Content", "Emphasis", "Span", "Strong", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-paragraph--default",
+  "summary": "The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.",
+  "import": "import { Paragraph } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Paragraph.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Paragraph",
+      "summary": "The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the paragraph.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

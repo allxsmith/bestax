@@ -1,0 +1,444 @@
+{
+  "name": "Modal",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/modal",
+  "docsUrl": "https://bestax.io/docs/api/components/modal",
+  "examples": [
+    {
+      "title": "Modal Card (with title and footer)",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Modal Card Title\"\n        modalCardFoot={\n          <Buttons>\n            <Button color=\"success\">Save</Button>\n            <Button>Cancel</Button>\n          </Buttons>\n        }\n      >\n        Modal card body content goes here...\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Modal Card (title only)",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Modal Card Title Only\"\n      >\n        Modal body content...\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Modal Card (footer only)",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardFoot={<Button color=\"success\">Save</Button>}\n      >\n        Modal body content...\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Modal Content (no card title or footer)",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)}>\n        <Box>\n          <Title size=\"4\">Custom Content</Title>\n          <Paragraph>Put any content here!</Paragraph>\n        </Box>\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Explicit Modal Types",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"content\">\n        <div>Custom content modal (forced type=\"content\")</div>\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Explicit Modal Types",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal active={open} onClose={() => setOpen(false)} type=\"card\">\n        Modal card body (forced type=\"card\")\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Card>\n          <Modal.Card.Head>\n            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>\n            <Modal.Close onClick={closeModal} />\n          </Modal.Card.Head>\n          <Modal.Card.Body>\n            This modal uses the compound components API for better control and\n            readability.\n          </Modal.Card.Body>\n          <Modal.Card.Foot>\n            <Buttons>\n              <Button color=\"success\" onClick={closeModal}>\n                Save\n              </Button>\n              <Button onClick={closeModal}>Cancel</Button>\n            </Buttons>\n          </Modal.Card.Foot>\n        </Modal.Card>\n      </Modal>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const closeModal = () => setOpen(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Modal\n      </Button>\n      <Modal isActive={open}>\n        <Modal.Background onClick={closeModal} />\n        <Modal.Content>\n          <Box>\n            <Title size=\"4\">Custom Content</Title>\n            <Paragraph>Using compound components for full control!</Paragraph>\n          </Box>\n        </Modal.Content>\n        <Modal.Close variant=\"floating\" onClick={closeModal} />\n      </Modal>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- The modal root uses Bulma’s structure and ARIA roles for accessibility.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n- Keyboard/screen reader accessibility is supported, but for focus trap or escape key handling, implement those patterns in your app as needed.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
+  "related": ["Button", "Field", "Input", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-modal--modal-card",
+  "summary": "The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.",
+  "import": "import { Modal } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Modal.tsx",
+  "rootClass": "modal",
+  "parts": [
+    {
+      "path": "Modal",
+      "summary": "The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the modal is open/visible.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Alias for `active`. Whether the modal is open/visible.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback invoked to request modal close (background or close button).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the modal.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for modal content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for modal content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "modalCardTitle",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Title/header for modal-card variant. (Legacy API only)",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "modalCardFoot",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Footer for modal-card variant. (Legacy API only)",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "'card' | 'content'",
+          "default": "auto",
+          "description": "Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Modal body/content or compound components.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Modal.Background",
+      "summary": "Modal.Background - Renders the modal background overlay.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Content",
+      "summary": "Modal.Content - Renders modal content wrapper for custom content.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Card",
+      "summary": "Modal.Card - Renders modal card wrapper with compound components. Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Card.Head",
+      "summary": "Modal.Card.Head - Renders modal card header section.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Card.Title",
+      "summary": "Modal.Card.Title - Renders modal card title.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Card.Body",
+      "summary": "Modal.Card.Body - Renders modal card body section.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Card.Foot",
+      "summary": "Modal.Card.Foot - Renders modal card footer section.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes",
+      "types": []
+    },
+    {
+      "path": "Modal.Close",
+      "summary": "Modal.Close - Renders modal close button with two variant styles.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": "'large'",
+          "description": "Size of the close button (only applies to 'floating' variant).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "'delete' | 'floating'",
+          "default": "'delete'",
+          "description": "Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-modal-z",
+      "sass": "$modal-z",
+      "default": "40",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-background-background-color",
+      "sass": "$modal-background-background-color",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.86)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-content-width",
+      "sass": "$modal-content-width",
+      "default": "40rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-content-margin-mobile",
+      "sass": "$modal-content-margin-mobile",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-content-spacing-mobile",
+      "sass": "$modal-content-spacing-mobile",
+      "default": "10rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-content-spacing-tablet",
+      "sass": "$modal-content-spacing-tablet",
+      "default": "2.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-close-dimensions",
+      "sass": "$modal-close-dimensions",
+      "default": "2.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-close-right",
+      "sass": "$modal-close-right",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-close-top",
+      "sass": "$modal-close-top",
+      "default": "1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-spacing",
+      "sass": "$modal-card-spacing",
+      "default": "2.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-head-background-color",
+      "sass": "$modal-card-head-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-head-padding",
+      "sass": "$modal-card-head-padding",
+      "default": "2rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-head-radius",
+      "sass": "$modal-card-head-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-title-color",
+      "sass": "$modal-card-title-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-title-line-height",
+      "sass": "$modal-card-title-line-height",
+      "default": "1",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-title-size",
+      "sass": "$modal-card-title-size",
+      "default": "var(--bulma-size-4)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-foot-background-color",
+      "sass": "$modal-card-foot-background-color",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-foot-radius",
+      "sass": "$modal-card-foot-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-body-background-color",
+      "sass": "$modal-card-body-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-modal-card-body-padding",
+      "sass": "$modal-card-body-padding",
+      "default": "2rem",
+      "scope": "component"
+    }
+  ]
+}

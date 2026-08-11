@@ -1,0 +1,583 @@
+{
+  "name": "Input",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/input",
+  "docsUrl": "https://bestax.io/docs/api/form/input",
+  "examples": [
+    {
+      "title": "Default Input",
+      "code": "<Input label=\"Default\" placeholder=\"Default input\" />"
+    },
+    {
+      "title": "Color Inputs",
+      "code": "<>\n  <Input label=\"Primary\" color=\"primary\" placeholder=\"Primary input\" />\n  <Input label=\"Link\" color=\"link\" placeholder=\"Link input\" />\n  <Input label=\"Info\" color=\"info\" placeholder=\"Info input\" />\n  <Input label=\"Success\" color=\"success\" placeholder=\"Success input\" />\n  <Input label=\"Warning\" color=\"warning\" placeholder=\"Warning input\" />\n  <Input label=\"Danger\" color=\"danger\" placeholder=\"Danger input\" />\n</>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <Input label=\"Small\" size=\"small\" placeholder=\"Small input\" />\n  <Input label=\"Normal\" placeholder=\"Normal input\" />\n  <Input label=\"Medium\" size=\"medium\" placeholder=\"Medium input\" />\n  <Input label=\"Large\" size=\"large\" placeholder=\"Large input\" />\n</>"
+    },
+    {
+      "title": "Style: Rounded",
+      "code": "<Input label=\"Rounded\" isRounded placeholder=\"Rounded input\" />"
+    },
+    {
+      "title": "States",
+      "code": "<>\n  <Input label=\"Normal\" placeholder=\"Normal state\" />\n  <Input label=\"Hover\" isHovered placeholder=\"Hovered state\" />\n  <Input label=\"Focus\" isFocused placeholder=\"Focused state\" />\n  <Input label=\"Loading\" isLoading placeholder=\"Loading state\" />\n</>"
+    },
+    {
+      "title": "Loading States by Size",
+      "code": "<>\n  <Input\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    placeholder=\"Loading small\"\n  />\n  <Input label=\"Loading Normal\" isLoading placeholder=\"Loading normal\" />\n  <Input\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    placeholder=\"Loading medium\"\n  />\n  <Input\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    placeholder=\"Loading large\"\n  />\n</>"
+    },
+    {
+      "title": "Disabled & Read Only",
+      "code": "<>\n  <Input label=\"Disabled\" disabled placeholder=\"Disabled input\" />\n  <Input label=\"Read Only\" readOnly value=\"Read only value\" />\n</>"
+    },
+    {
+      "title": "Static State",
+      "code": "<>\n  <Input horizontal label=\"Username\" isStatic value=\"Static value\" />\n  <Input horizontal label=\"Password\" placeholder=\"Editable value\" />\n</>"
+    },
+    {
+      "title": "With Icons (Left and Right)",
+      "code": "<>\n  <Input iconLeftName=\"user\" iconRightName=\"check\" placeholder=\"With icons\" />\n  <Input\n    iconLeftName=\"envelope\"\n    iconRightName=\"exclamation-triangle\"\n    placeholder=\"Another input\"\n  />\n</>"
+    },
+    {
+      "title": "With Icons and Size Variations",
+      "code": "<>\n  <Input\n    size=\"small\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"small\"\n    iconRightName=\"check\"\n    iconRightSize=\"small\"\n    placeholder=\"Icons left/right small\"\n  />\n  <Input\n    iconLeftName=\"user\"\n    iconRightName=\"check\"\n    placeholder=\"Icons left/right normal\"\n  />\n  <Input\n    size=\"medium\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"medium\"\n    iconRightName=\"check\"\n    iconRightSize=\"medium\"\n    placeholder=\"Icons left/right medium\"\n  />\n  <Input\n    size=\"large\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"large\"\n    iconRightName=\"check\"\n    iconRightSize=\"large\"\n    placeholder=\"Icons left/right large\"\n  />\n</>"
+    },
+    {
+      "title": "Help Text Colors",
+      "code": "<>\n  <Input\n    label=\"Username\"\n    color=\"success\"\n    value=\"bulma\"\n    message=\"This username is available\"\n    messageColor=\"success\"\n    iconLeftName=\"user\"\n    iconRightName=\"check\"\n    onChange={() => {}}\n  />\n  <Input\n    label=\"Email\"\n    type=\"email\"\n    color=\"danger\"\n    value=\"hello@\"\n    message=\"This email is invalid\"\n    messageColor=\"danger\"\n    iconLeftName=\"envelope\"\n    iconRightName=\"exclamation-triangle\"\n    onChange={() => {}}\n  />\n</>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"tel\" placeholder=\"Your phone number\" />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons=\"centered\">\n  <Control>\n    <Button>Yes</Button>\n  </Control>\n  <Control>\n    <Button>Maybe</Button>\n  </Control>\n  <Control>\n    <Button>No</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Addons",
+      "code": "<Field hasAddons=\"right\">\n  <Control>\n    <Button>Yes</Button>\n  </Control>\n  <Control>\n    <Button>Maybe</Button>\n  </Control>\n  <Control>\n    <Button>No</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Group",
+      "code": "<Field grouped>\n  <Control>\n    <Button color=\"link\">Submit</Button>\n  </Control>\n  <Control>\n    <Button>Cancel</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Group",
+      "code": "<Field grouped=\"centered\">\n  <Control>\n    <Button color=\"link\">Submit</Button>\n  </Control>\n  <Control>\n    <Button>Cancel</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Group",
+      "code": "<Field grouped=\"right\">\n  <Control>\n    <Button color=\"link\">Submit</Button>\n  </Control>\n  <Control>\n    <Button>Cancel</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Group",
+      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+    },
+    {
+      "title": "Form Group",
+      "code": "<Field grouped=\"multiline\">\n  {[\n    'One',\n    'Two',\n    'Three',\n    'Four',\n    'Five',\n    'Six',\n    'Seven',\n    'Eight',\n    'Nine',\n    'Ten',\n    'Eleven',\n    'Twelve',\n    'Thirteen',\n  ].map(label => (\n    <Control key={label}>\n      <Button>{label}</Button>\n    </Control>\n  ))}\n</Field>"
+    },
+    {
+      "title": "Horizontal — Validation Error",
+      "code": "<Field horizontal label=\"Email\">\n  <Field.Body>\n    <Field>\n      <Control iconLeftName=\"envelope\" iconRightName=\"exclamation-triangle\">\n        <Input type=\"email\" color=\"danger\" value=\"hello@\" onChange={() => {}} />\n      </Control>\n      <p className=\"help is-danger\">This email is invalid</p>\n    </Field>\n  </Field.Body>\n</Field>"
+    },
+    {
+      "title": "Horizontal — Addons (Phone with Country Code)",
+      "code": "<Field horizontal label=\"Phone\">\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button isStatic>+44</Button>\n      </Control>\n      <Control isExpanded>\n        <Input type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+    },
+    {
+      "title": "Horizontal — Submit Row",
+      "code": "<>\n  <Field horizontal label=\"Name\">\n    <Field.Body>\n      <Field>\n        <Control>\n          <Input placeholder=\"Your name\" />\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n  <Field horizontal>\n    <Field.Label />\n    <Field.Body>\n      <Field>\n        <Control>\n          <Button color=\"primary\">Submit</Button>\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n</>"
+    },
+    {
+      "title": "Disabled Fieldset",
+      "code": "<fieldset disabled>\n  <Input label=\"Name\" placeholder=\"Your name\" />\n  <Input label=\"Email\" type=\"email\" placeholder=\"Your email\" />\n</fieldset>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Input label=\"Username\" placeholder=\"Enter username\" />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Username\">\n      <Field.Body>\n        <Field>\n          <Input placeholder=\"Enter username\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Username\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"user\">\n            <Input placeholder=\"Enter username\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).",
+  "related": ["Control", "Field"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
+  "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
+  "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Input.tsx",
+  "rootClass": "input",
+  "parts": [
+    {
+      "path": "Input",
+      "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element when the component renders its own `Field`; dropped inside an outer `Field` (use that `Field`'s `labelProps` instead). An explicit `htmlFor` key — even `undefined` — overrides the automatic association and no id is generated.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for left icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps",
+          "default": null,
+          "description": "Icon props for right icon.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for left icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for right icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force left icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force right icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows loading indicator.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Control size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded input corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders input as static (read only, styled).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disabled input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-input-h",
+      "sass": "$input-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": "$input-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": "$input-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": "$input-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": "$input-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    }
+  ]
+}

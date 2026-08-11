@@ -1,0 +1,604 @@
+{
+  "name": "Autocomplete",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/autocomplete",
+  "docsUrl": "https://bestax.io/docs/api/form/autocomplete",
+  "examples": [
+    {
+      "title": "Basic Autocomplete",
+      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const fruits = [\n    'Apple',\n    'Banana',\n    'Cherry',\n    'Date',\n    'Elderberry',\n    'Fig',\n    'Grape',\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={fruits}\n        placeholder=\"Search fruit...\"\n        onSelect={setSelected}\n      />\n      {selected && <Paragraph mt=\"2\">Selected: {selected}</Paragraph>}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Open on Focus",
+      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const countries = [\n    'United States',\n    'United Kingdom',\n    'Canada',\n    'Australia',\n    'Germany',\n    'France',\n  ];\n\n  return (\n    <Autocomplete\n      data={countries}\n      placeholder=\"Select a country...\"\n      openOnFocus\n      onSelect={setSelected}\n    />\n  );\n}"
+    },
+    {
+      "title": "With Clear Button",
+      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Search options...\"\n      clearable\n      onSelect={setSelected}\n    />\n  );\n}"
+    },
+    {
+      "title": "Color and Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Primary small\"\n    color=\"primary\"\n    size=\"small\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Info normal\"\n    color=\"info\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Success medium\"\n    color=\"success\"\n    size=\"medium\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Danger large\"\n    color=\"danger\"\n    size=\"large\"\n  />\n</Block>"
+    },
+    {
+      "title": "With Object Data",
+      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const users = [\n    { value: '1', label: 'John Doe', email: 'john@example.com' },\n    { value: '2', label: 'Jane Smith', email: 'jane@example.com' },\n    { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={users}\n        field=\"label\"\n        placeholder=\"Search users...\"\n        openOnFocus\n        onSelect={setSelected}\n      />\n      {selected && (\n        <Paragraph mt=\"2\">\n          Selected: {selected.label} ({selected.email})\n        </Paragraph>\n      )}\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Custom Item Template",
+      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const users = [\n    { value: '1', label: 'John Doe', role: 'Admin' },\n    { value: '2', label: 'Jane Smith', role: 'Editor' },\n    { value: '3', label: 'Bob Johnson', role: 'Viewer' },\n  ];\n\n  return (\n    <Autocomplete\n      data={users}\n      field=\"label\"\n      placeholder=\"Search users...\"\n      openOnFocus\n      onSelect={setSelected}\n      itemTemplate={item => (\n        <Block display=\"flex\" justifyContent=\"space-between\">\n          <Span>{item.label}</Span>\n          <Tag color=\"info\" light>\n            {item.role}\n          </Tag>\n        </Block>\n      )}\n    />\n  );\n}"
+    },
+    {
+      "title": "With Empty State",
+      "code": "function example() {\n  const options = ['Apple', 'Banana', 'Cherry'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Try searching 'xyz'...\"\n      empty={\n        <Paragraph textColor=\"grey\">\n          <Icon name=\"search\" variant=\"solid\" mr=\"2\" />\n          No results found\n        </Paragraph>\n      }\n    />\n  );\n}"
+    },
+    {
+      "title": "Loading State",
+      "code": "<Autocomplete data={[]} placeholder=\"Loading...\" loading />"
+    },
+    {
+      "title": "Keep First Highlighted",
+      "code": "function example() {\n  const fruits = [\n    'Apple',\n    'Apricot',\n    'Avocado',\n    'Banana',\n    'Blackberry',\n    'Blueberry',\n  ];\n\n  return (\n    <Autocomplete data={fruits} placeholder=\"Type to filter...\" keepFirst />\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Autocomplete\n  label=\"Fruit\"\n  data={['Apple', 'Banana', 'Cherry']}\n  placeholder=\"Search fruit...\"\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\">\n      <Field.Body>\n        <Field>\n          <Autocomplete\n            data={['Apple', 'Banana', 'Cherry']}\n            placeholder=\"Search fruit...\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"search\">\n            <Autocomplete\n              data={['Apple', 'Banana', 'Cherry']}\n              placeholder=\"Search fruit...\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- Full keyboard navigation support",
+  "related": ["Input", "Select", "Taginput"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-autocomplete",
+  "summary": "The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.",
+  "import": "import { Autocomplete } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Autocomplete.tsx",
+  "rootClass": "autocomplete",
+  "parts": [
+    {
+      "path": "Autocomplete",
+      "summary": "The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Applied to the inner text input (the labellable control), not the wrapper div.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "AutocompleteItem[] | string[]",
+          "default": "[]",
+          "description": "The options data to display (required).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The current input value (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "AutocompleteItem | string | null",
+          "default": null,
+          "description": "The selected item (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "field",
+          "type": "string",
+          "default": "'label'",
+          "description": "Object property to use as the display field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether to show a clear button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "false",
+          "description": "Open dropdown when input is focused.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "keepFirst",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keep first option highlighted.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "keepOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keep dropdown open after selection.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "selectOnClickOutside",
+          "type": "boolean",
+          "default": "false",
+          "description": "Select highlighted item on click outside.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxHeight",
+          "type": "number",
+          "default": "200",
+          "description": "Maximum dropdown height in pixels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dropdown",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render as dropdown style.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show loading state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the input is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "checkInfiniteScroll",
+          "type": "boolean",
+          "default": "false",
+          "description": "Enables infinite scroll detection in the dropdown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "infiniteScrollDistance",
+          "type": "number",
+          "default": "50",
+          "description": "Distance in pixels from the bottom to trigger `onInfiniteScroll`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Input color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. Forwarded to the inner `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Optional id of the form the input belongs to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the field as required for native HTML form validation.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onInput",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Callback when input value changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(item: AutocompleteItem | string | null) => void",
+          "default": null,
+          "description": "Callback when item is selected.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onActiveChange",
+          "type": "(active: boolean) => void",
+          "default": null,
+          "description": "Callback when dropdown active state changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onInfiniteScroll",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback when scrolled to bottom (infinite scroll).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemTemplate",
+          "type": "(item: AutocompleteItem | string) => React.ReactNode",
+          "default": null,
+          "description": "Custom render for items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "header",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom header in dropdown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom footer in dropdown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to show when no results.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the input element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-autocomplete-dropdown-z-index",
+      "sass": "$autocomplete-dropdown-z-index",
+      "default": "20",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-dropdown-offset",
+      "sass": "$autocomplete-dropdown-offset",
+      "default": "4px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-dropdown-background",
+      "sass": "$autocomplete-dropdown-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-dropdown-radius",
+      "sass": "$autocomplete-dropdown-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-dropdown-shadow",
+      "sass": "$autocomplete-dropdown-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-dropdown-padding-y",
+      "sass": "$autocomplete-dropdown-padding-y",
+      "default": "0.5rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-padding",
+      "sass": "$autocomplete-item-padding",
+      "default": "0.375rem 1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-color",
+      "sass": "$autocomplete-item-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-hover-background",
+      "sass": "$autocomplete-item-hover-background",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-hover-color",
+      "sass": "$autocomplete-item-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-disabled-color",
+      "sass": "$autocomplete-item-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-disabled-opacity",
+      "sass": "$autocomplete-item-disabled-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-header-footer-padding",
+      "sass": "$autocomplete-header-footer-padding",
+      "default": "0.5rem 1rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-header-footer-color",
+      "sass": "$autocomplete-header-footer-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-header-footer-size",
+      "sass": "$autocomplete-header-footer-size",
+      "default": "var(--bulma-size-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-border-color",
+      "sass": "$autocomplete-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-border-hover-color",
+      "sass": "$autocomplete-border-hover-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-icon-hover-color",
+      "sass": "$autocomplete-icon-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-loader-border-color",
+      "sass": "$autocomplete-loader-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-loader-active-color",
+      "sass": "$autocomplete-loader-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-loader-duration",
+      "sass": "$autocomplete-loader-duration",
+      "default": "0.6s",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-empty-color",
+      "sass": "$autocomplete-empty-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-scrollbar-width",
+      "sass": "$autocomplete-scrollbar-width",
+      "default": "8px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-scrollbar-track",
+      "sass": "$autocomplete-scrollbar-track",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-scrollbar-thumb",
+      "sass": "$autocomplete-scrollbar-thumb",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-scrollbar-thumb-hover",
+      "sass": "$autocomplete-scrollbar-thumb-hover",
+      "default": "var(--bulma-border-hover)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-small-padding",
+      "sass": "$autocomplete-item-small-padding",
+      "default": "0.25rem 0.75rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-medium-padding",
+      "sass": "$autocomplete-item-medium-padding",
+      "default": "0.5rem 1.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-autocomplete-item-large-padding",
+      "sass": "$autocomplete-item-large-padding",
+      "default": "0.625rem 1.5rem",
+      "scope": "component"
+    }
+  ]
+}

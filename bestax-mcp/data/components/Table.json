@@ -1,0 +1,490 @@
+{
+  "name": "Table",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/table",
+  "docsUrl": "https://bestax.io/docs/api/elements/table",
+  "examples": [
+    {
+      "title": "Default Table",
+      "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th>Name</Th>\n      <Th>Age</Th>\n      <Th>Role</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Alice</Td>\n      <Td>30</Td>\n      <Td>Engineer</Td>\n    </Tr>\n    <Tr>\n      <Td>Bob</Td>\n      <Td>28</Td>\n      <Td>Designer</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "All Modifiers",
+      "code": "<Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>\n  <Thead>\n    <Tr>\n      <Th>Column 1</Th>\n      <Th>Column 2</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Cell 1</Td>\n      <Td>Cell 2</Td>\n    </Tr>\n    <Tr>\n      <Td>Cell 3</Td>\n      <Td>Cell 4</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Responsive Table (horizontal scroll on mobile)",
+      "code": "<Table isResponsive>\n  <Thead>\n    <Tr>\n      {Array.from({ length: 20 }, (_, i) => (\n        <Th key={`col-${i + 1}`}>Column {i + 1}</Th>\n      ))}\n    </Tr>\n  </Thead>\n  <Tbody>\n    {Array.from({ length: 2 }, (_, row) => (\n      <Tr key={row}>\n        {Array.from({ length: 20 }, (_, col) => (\n          <Td key={`cell-${row + 1}-${col + 1}`}>\n            Cell {row + 1}-{col + 1}\n          </Td>\n        ))}\n      </Tr>\n    ))}\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Colored Cells",
+      "code": "<Table isBordered isFullwidth>\n  <Thead>\n    <Tr>\n      <Th>Cell Color</Th>\n      <Th>Example</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Primary</Td>\n      <Td color=\"primary\">Primary Colored Cell</Td>\n    </Tr>\n    <Tr>\n      <Td>Success</Td>\n      <Td color=\"success\">Success Colored Cell</Td>\n    </Tr>\n    {/* ...and so on for link, warning, danger, info, black, dark, light, white */}\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Highlighted Row",
+      "code": "<Table isFullwidth>\n  <Thead>\n    <Tr>\n      <Th>Team</Th>\n      <Th>Wins</Th>\n      <Th>Losses</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr isSelected>\n      <Td>Ice Wolves</Td>\n      <Td>32</Td>\n      <Td>8</Td>\n    </Tr>\n    <Tr>\n      <Td>Frost Giants</Td>\n      <Td>30</Td>\n      <Td>9</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Custom Alignment and Width",
+      "code": "<Table>\n  <Thead>\n    <Tr>\n      <Th isAligned=\"left\" width={200}>\n        Name\n      </Th>\n      <Th isAligned=\"right\">Score</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Jane Doe</Td>\n      <Td>98</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Table isStriped>\n  <Table.Thead>\n    <Table.Tr>\n      <Table.Th>Team</Table.Th>\n      <Table.Th>Points</Table.Th>\n    </Table.Tr>\n  </Table.Thead>\n  <Table.Tbody>\n    <Table.Tr>\n      <Table.Td>Maple Leafs</Table.Td>\n      <Table.Td>98</Table.Td>\n    </Table.Tr>\n  </Table.Tbody>\n</Table>"
+    }
+  ],
+  "accessibility": "- **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.\n- **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.\n- **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.\n\n:::tip\nFor responsive tables, ensure your column headers are clear and concise for small screens.\n:::",
+  "related": ["Block", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-table--default",
+  "summary": "The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.",
+  "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Table.tsx",
+  "rootClass": "table",
+  "parts": [
+    {
+      "path": "Table",
+      "summary": "The `Table` component and its subcomponents provide a highly composable, Bulma-styled table system for React.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isBordered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds borders to all cells.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStriped",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds zebra-striping to rows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isNarrow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table more compact by cutting cell padding in half.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHoverable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds a hover effect on rows.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table span the full width of its parent.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isResponsive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table horizontally scrollable on small screens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table content (should use subcomponents).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <table> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Table.Thead",
+      "summary": "Thead component for rendering a styled Bulma table header. Supports Bulma helper classes for additional styling.",
+      "component": "Thead",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table header content (rows).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <thead>/<tbody> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Table.Tbody",
+      "summary": "Tbody component for rendering a styled Bulma table body. Supports Bulma helper classes for additional styling.",
+      "component": "Tbody",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table body content (rows).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <thead>/<tbody> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Table.Tfoot",
+      "summary": "Tfoot component for rendering a styled Bulma table footer. Supports Bulma helper classes for additional styling.",
+      "component": "Tfoot",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table footer content (rows).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <thead>/<tbody> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Table.Tr",
+      "summary": "Tr component for rendering a styled Bulma table row. Supports the is-selected modifier and color modifiers.",
+      "component": "Tr",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isSelected",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the row is selected (adds Bulma's is-selected class).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "TableColor",
+          "default": null,
+          "description": "Bulma color modifier for the table row.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table row content (cells).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <tr> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "TableColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+        }
+      ]
+    },
+    {
+      "path": "Table.Th",
+      "summary": "Th component for rendering a styled Bulma table header cell. Supports alignment, width, and color modifiers.",
+      "component": "Th",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isAligned",
+          "type": "'left' | 'right' | 'centered'",
+          "default": null,
+          "description": "Text alignment for the header cell ('left', 'right', 'centered').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "string | number",
+          "default": null,
+          "description": "Width of the header cell (e.g., '100px' or 100).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "TableColor",
+          "default": null,
+          "description": "Bulma color modifier for the header cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table header cell content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <td>/<th> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "TableColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+        }
+      ]
+    },
+    {
+      "path": "Table.Td",
+      "summary": "Td component for rendering a styled Bulma table cell. Supports Bulma color modifiers and helper classes for additional styling.",
+      "component": "Td",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "TableColor",
+          "default": null,
+          "description": "Bulma color modifier for the table cell.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Table cell content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <td>/<th> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "TableColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-table-color",
+      "sass": "$table-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-background-color",
+      "sass": "$table-background-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-border-color",
+      "sass": "$table-cell-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-border-style",
+      "sass": "$table-cell-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-border-width",
+      "sass": "$table-cell-border-width",
+      "default": "0 0 1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-padding",
+      "sass": "$table-cell-padding",
+      "default": "0.5em 0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-heading-color",
+      "sass": "$table-cell-heading-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-cell-text-align",
+      "sass": "$table-cell-text-align",
+      "default": "left",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-head-cell-border-width",
+      "sass": "$table-head-cell-border-width",
+      "default": "0 0 2px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-head-cell-color",
+      "sass": "$table-head-cell-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-foot-cell-border-width",
+      "sass": "$table-foot-cell-border-width",
+      "default": "2px 0 0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-foot-cell-color",
+      "sass": "$table-foot-cell-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-head-background-color",
+      "sass": "$table-head-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-body-background-color",
+      "sass": "$table-body-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-foot-background-color",
+      "sass": "$table-foot-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-row-hover-background-color",
+      "sass": "$table-row-hover-background-color",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-row-active-background-color",
+      "sass": "$table-row-active-background-color",
+      "default": "var(--bulma-primary)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-row-active-color",
+      "sass": "$table-row-active-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-striped-row-even-background-color",
+      "sass": "$table-striped-row-even-background-color",
+      "default": "var(--bulma-scheme-main-bis)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-table-striped-row-even-hover-background-color",
+      "sass": "$table-striped-row-even-hover-background-color",
+      "default": "var(--bulma-scheme-main-ter)",
+      "scope": "component"
+    }
+  ]
+}

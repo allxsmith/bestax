@@ -1,0 +1,619 @@
+{
+  "name": "Pagination",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/pagination",
+  "docsUrl": "https://bestax.io/docs/api/components/pagination",
+  "examples": [
+    {
+      "title": "Basic Pagination",
+      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link>&laquo;</Pagination.Link>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n    <Pagination.Link>&raquo;</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <Pagination size=\"small\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"medium\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"large\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
+    },
+    {
+      "title": "Alignment",
+      "code": "<>\n  <Pagination align=\"centered\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination align=\"right\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
+    },
+    {
+      "title": "Rounded",
+      "code": "<Pagination rounded>\n  <Pagination.List>\n    <Pagination.Link>1</Pagination.Link>\n    <Pagination.Link active>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+    },
+    {
+      "title": "With Disabled",
+      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link disabled>&laquo;</Pagination.Link>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n    <Pagination.Link>&raquo;</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+    },
+    {
+      "title": "Controlled Pagination",
+      "code": "function example() {\n  const [page, setPage] = useState(1);\n  return (\n    <>\n      <Pagination>\n        <Pagination.Previous\n          disabled={page === 1}\n          onClick={() => setPage(page - 1)}\n        >\n          Previous\n        </Pagination.Previous>\n        <Pagination.Next\n          disabled={page === 5}\n          onClick={() => setPage(page + 1)}\n        >\n          Next\n        </Pagination.Next>\n        <Pagination.List>\n          {[1, 2, 3, 4, 5].map(i => (\n            <Pagination.Link\n              key={i}\n              active={i === page}\n              onClick={() => setPage(i)}\n            >\n              {i}\n            </Pagination.Link>\n          ))}\n        </Pagination.List>\n      </Pagination>\n      <Paragraph mt=\"2\">Current page: {page}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Previous/Next with Pagination List",
+      "code": "<Pagination align=\"centered\">\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link aria-label=\"Goto page 1\">1</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 45\">45</Pagination.Link>\n    <Pagination.Link active aria-label=\"Page 46\">\n      46\n    </Pagination.Link>\n    <Pagination.Link aria-label=\"Goto page 47\">47</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 86\">86</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Pagination>\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+    }
+  ],
+  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
+  "related": ["Button", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-pagination--basic",
+  "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
+  "import": "import { Pagination } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Pagination.tsx",
+  "rootClass": "pagination",
+  "parts": [
+    {
+      "path": "Pagination",
+      "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Color modifier for the pagination (renders `is-<color>`). Bulma ships no pagination color CSS, so this prop has never had a visual effect for any value. Passing it logs a console warning in development. Use `textColor` / `bgColor` instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "No `.pagination.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version."
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the pagination.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "align",
+          "type": "'centered' | 'right'",
+          "default": null,
+          "description": "Alignment for the pagination.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders pagination with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "default": null,
+          "description": "Total number of pages (for custom implementations).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "current",
+          "type": "number",
+          "default": null,
+          "description": "Current page (for controlled implementations).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPageChange",
+          "type": "(page: number) => void",
+          "default": null,
+          "description": "Callback when a page is selected.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Custom pagination content (usually subcomponents).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Pagination.Link",
+      "summary": "Page number or navigation link.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the link is for the current page.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the link is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Link content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Pagination.List",
+      "summary": "Container for page links and ellipsis.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the list.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "List items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <ul> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Pagination.Ellipsis",
+      "summary": "Ellipsis separator.",
+      "component": null,
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": []
+    },
+    {
+      "path": "Pagination.Previous",
+      "summary": "\"Previous\" navigation button.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether previous/next is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes",
+      "types": []
+    },
+    {
+      "path": "Pagination.Next",
+      "summary": "\"Next\" navigation button.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether previous/next is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-pagination-margin",
+      "sass": "$pagination-margin",
+      "default": "-0.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-min-width",
+      "sass": "$pagination-min-width",
+      "default": "var(--bulma-control-height)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-h",
+      "sass": "$pagination-item-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-s",
+      "sass": "$pagination-item-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-l",
+      "sass": "$pagination-item-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-background-l-delta",
+      "sass": "$pagination-item-background-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-hover-background-l-delta",
+      "sass": "$pagination-item-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-active-background-l-delta",
+      "sass": "$pagination-item-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-border-style",
+      "sass": "$pagination-item-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-border-width",
+      "sass": "$pagination-item-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-border-l",
+      "sass": "$pagination-item-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-border-l-delta",
+      "sass": "$pagination-item-border-l-delta",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-hover-border-l-delta",
+      "sass": "$pagination-item-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-active-border-l-delta",
+      "sass": "$pagination-item-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-focus-border-l-delta",
+      "sass": "$pagination-item-focus-border-l-delta",
+      "default": "var(--bulma-focus-border-l-delta)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-color-l",
+      "sass": "$pagination-item-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-font-size",
+      "sass": "$pagination-item-font-size",
+      "default": "1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-margin",
+      "sass": "$pagination-item-margin",
+      "default": "0.25rem",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-padding-left",
+      "sass": "$pagination-item-padding-left",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-padding-right",
+      "sass": "$pagination-item-padding-right",
+      "default": "0.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-outer-shadow-h",
+      "sass": "$pagination-item-outer-shadow-h",
+      "default": "0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-outer-shadow-s",
+      "sass": "$pagination-item-outer-shadow-s",
+      "default": "0%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-outer-shadow-l",
+      "sass": "$pagination-item-outer-shadow-l",
+      "default": "20%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-item-outer-shadow-a",
+      "sass": "$pagination-item-outer-shadow-a",
+      "default": "0.05",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-nav-padding-left",
+      "sass": "$pagination-nav-padding-left",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-nav-padding-right",
+      "sass": "$pagination-nav-padding-right",
+      "default": "0.75em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-disabled-color",
+      "sass": "$pagination-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-disabled-background-color",
+      "sass": "$pagination-disabled-background-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-disabled-border-color",
+      "sass": "$pagination-disabled-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-current-color",
+      "sass": "$pagination-current-color",
+      "default": "var(--bulma-link-invert)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-current-background-color",
+      "sass": "$pagination-current-background-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-current-border-color",
+      "sass": "$pagination-current-border-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-ellipsis-color",
+      "sass": "$pagination-ellipsis-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-shadow-inset",
+      "sass": "$pagination-shadow-inset",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.2)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-h",
+      "sass": "$pagination-selected-item-h",
+      "default": "var(--bulma-link-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-s",
+      "sass": "$pagination-selected-item-s",
+      "default": "var(--bulma-link-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-l",
+      "sass": "$pagination-selected-item-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-background-l",
+      "sass": "$pagination-selected-item-background-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-border-l",
+      "sass": "$pagination-selected-item-border-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-pagination-selected-item-color-l",
+      "sass": "$pagination-selected-item-color-l",
+      "default": "var(--bulma-link-invert-l)",
+      "scope": "component"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "name": "ListItem",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/listitem",
+  "docsUrl": "https://bestax.io/docs/api/elements/listitem",
+  "examples": [
+    {
+      "title": "Default List Item",
+      "code": "<Content>\n  <UnorderedList>\n    <ListItem>Default List Item</ListItem>\n    <ListItem>Another item</ListItem>\n  </UnorderedList>\n</Content>"
+    },
+    {
+      "title": "Colored List Item",
+      "code": "<Content>\n  <UnorderedList>\n    <ListItem textColor=\"primary\">Primary item</ListItem>\n    <ListItem textColor=\"success\">Success item</ListItem>\n    <ListItem textColor=\"warning\">Warning item</ListItem>\n    <ListItem textColor=\"danger\">Danger item</ListItem>\n  </UnorderedList>\n</Content>"
+    },
+    {
+      "title": "Custom Value in Ordered List",
+      "code": "<Content>\n  <OrderedList>\n    <ListItem>First item</ListItem>\n    <ListItem value={10}>Tenth item (custom value)</ListItem>\n    <ListItem>Eleventh item</ListItem>\n  </OrderedList>\n</Content>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Content>\n  <UnorderedList>\n    <ListItem textColor=\"primary\">Primary</ListItem>\n    <ListItem textColor=\"link\">Link</ListItem>\n    <ListItem textColor=\"info\">Info</ListItem>\n    <ListItem textColor=\"success\">Success</ListItem>\n    <ListItem textColor=\"warning\">Warning</ListItem>\n    <ListItem textColor=\"danger\">Danger</ListItem>\n  </UnorderedList>\n</Content>"
+    },
+    {
+      "title": "Spaced List Items",
+      "code": "<Content>\n  <UnorderedList>\n    <ListItem mb=\"3\">Item with extra bottom margin</ListItem>\n    <ListItem mb=\"3\">Another spaced item</ListItem>\n    <ListItem>Last item</ListItem>\n  </UnorderedList>\n</Content>"
+    },
+    {
+      "title": "In Ordered List",
+      "code": "<Content>\n  <OrderedList>\n    <ListItem>First item</ListItem>\n    <ListItem textColor=\"success\">Second item (success)</ListItem>\n    <ListItem>Third item</ListItem>\n  </OrderedList>\n</Content>"
+    }
+  ],
+  "accessibility": "- **Semantic Markup:** Using proper `<li>` elements inside `<ul>` or `<ol>` ensures correct accessibility semantics.\n- **Color Contrast:** When using colored text or backgrounds, ensure sufficient contrast for readability.\n- **Screen Readers:** List items are announced as part of the list structure by screen readers.\n\n:::info\nAlways use `ListItem` inside `UnorderedList` or `OrderedList` for proper semantic structure.\n:::",
+  "related": ["Content", "OrderedList", "UnorderedList", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-listitem--default",
+  "summary": "The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.",
+  "import": "import { ListItem, UnorderedList, OrderedList } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/ListItem.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "ListItem",
+      "summary": "The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the list item.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Custom value for ordered list items.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

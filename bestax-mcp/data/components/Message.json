@@ -1,0 +1,303 @@
+{
+  "name": "Message",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/message",
+  "docsUrl": "https://bestax.io/docs/api/components/message",
+  "examples": [
+    {
+      "title": "Message with Header (per color)",
+      "code": "<>\n  <Message color=\"primary\" title=\"Primary\">\n    This is a primary message.\n  </Message>\n  <Message color=\"link\" title=\"Link\">\n    This is a link message.\n  </Message>\n  <Message color=\"info\" title=\"Info\">\n    This is an info message.\n  </Message>\n  <Message color=\"success\" title=\"Success\">\n    This is a success message.\n  </Message>\n  <Message color=\"warning\" title=\"Warning\">\n    This is a warning message.\n  </Message>\n  <Message color=\"danger\" title=\"Danger\">\n    This is a danger message.\n  </Message>\n</>"
+    },
+    {
+      "title": "Message Body Only (no header)",
+      "code": "<>\n  <Message color=\"primary\">This is a primary message with no header.</Message>\n  <Message color=\"danger\">This is a danger message with no header.</Message>\n</>"
+    },
+    {
+      "title": "Dismissible Message",
+      "code": "function example() {\n  const [open, setOpen] = useState(true);\n\n  return (\n    <>\n      {open && (\n        <Message color=\"info\" title=\"Dismiss Me\" onClose={() => setOpen(false)}>\n          You can close this message by clicking the X button.\n        </Message>\n      )}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Sizes",
+      "code": "<>\n  <Message title=\"Default Size\">This is the default size message.</Message>\n  <Message title=\"Small\">This is a small message.</Message>\n  <Message title=\"Medium\">This is a medium message.</Message>\n  <Message title=\"Large\">This is a large message.</Message>\n</>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Message color=\"info\">\n  <Message.Header>\n    <Paragraph>Compound Component Message</Paragraph>\n    <Delete aria-label=\"delete\" />\n  </Message.Header>\n  <Message.Body>\n    <Paragraph>\n      This message is built using compound components for maximum flexibility\n      and control over each section.\n    </Paragraph>\n    <Paragraph>\n      You can include multiple paragraphs and elements in the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Message color=\"success\">\n  <Message.Body>\n    <Paragraph>\n      A simple message using only the Message.Body compound component.\n    </Paragraph>\n  </Message.Body>\n</Message>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Message color=\"warning\">\n  <Message.Header>\n    <Paragraph>Header-only message</Paragraph>\n    <Delete aria-label=\"delete\" />\n  </Message.Header>\n</Message>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Message color=\"danger\" title=\"Mixed Approach\">\n  <Message.Body bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n    <Paragraph>\n      This message uses the title prop but compound components for the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
+    }
+  ],
+  "accessibility": "- The message is rendered as `<article class=\"message\">`.\n- If `onClose` is provided, a close button with `aria-label=\"delete\"` is rendered.\n- For optimal accessibility, use clear and descriptive titles/content.\n\n:::note\nAlways provide a visible or accessible way to dismiss important, interruptive messages.\n:::",
+  "related": ["Notification", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-message--primary",
+  "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
+  "import": "import { Message } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Message.tsx",
+  "rootClass": "message",
+  "parts": [
+    {
+      "path": "Message",
+      "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Title string/node (renders header section).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color for the message (Bulma helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color for the message (Bulma helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Callback for the close (\"X\") button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Body content for the message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Message.Header",
+      "summary": "Message header compound component. Renders a `.message-header` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Header content (title, close button, etc.).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Message.Body",
+      "summary": "Message body compound component. Renders a `.message-body` element.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Message body content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-message-border-l-delta",
+      "sass": "$message-border-l-delta",
+      "default": "-20%",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-radius",
+      "sass": "$message-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-weight",
+      "sass": "$message-header-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-padding",
+      "sass": "$message-header-padding",
+      "default": "1em 1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-radius",
+      "sass": "$message-header-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-body-border-width",
+      "sass": "$message-body-border-width",
+      "default": "0 0 0 4px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-body-color",
+      "sass": "$message-body-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-body-padding",
+      "sass": "$message-body-padding",
+      "default": "1.25em 1.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-body-radius",
+      "sass": "$message-body-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-body-pre-code-background-color",
+      "sass": "$message-body-pre-code-background-color",
+      "default": "transparent",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-body-border-width",
+      "sass": "$message-header-body-border-width",
+      "default": "0",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-h",
+      "sass": "$message-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-s",
+      "sass": "$message-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-background-l",
+      "sass": "$message-background-l",
+      "default": "var(--bulma-background-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-border-l",
+      "sass": "$message-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-border-style",
+      "sass": "$message-border-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-border-width",
+      "sass": "$message-border-width",
+      "default": "0.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-color-l",
+      "sass": "$message-color-l",
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-background-l",
+      "sass": "$message-header-background-l",
+      "default": "var(--bulma-dark-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-message-header-color-l",
+      "sass": "$message-header-color-l",
+      "default": "var(--bulma-text-dark-invert-l)",
+      "scope": "component"
+    }
+  ]
+}

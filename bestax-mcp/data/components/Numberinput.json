@@ -1,0 +1,364 @@
+{
+  "name": "Numberinput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/numberinput",
+  "docsUrl": "https://bestax.io/docs/api/form/numberinput",
+  "examples": [
+    {
+      "title": "Basic Numberinput",
+      "code": "function example() {\n  const [value, setValue] = useState(5);\n  return (\n    <Block>\n      <Numberinput value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "With Min and Max",
+      "code": "function example() {\n  const [quantity, setQuantity] = useState(1);\n  return (\n    <Block>\n      <Paragraph mb=\"2\">Quantity (1-10):</Paragraph>\n      <Numberinput\n        value={quantity}\n        onChange={setQuantity}\n        min={1}\n        max={10}\n        color=\"primary\"\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Color Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"success\" />\n  <Numberinput defaultValue={5} color=\"info\" />\n  <Numberinput defaultValue={5} color=\"warning\" />\n  <Numberinput defaultValue={5} color=\"danger\" />\n</Block>"
+    },
+    {
+      "title": "Size Variants",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Numberinput defaultValue={5} size=\"small\" color=\"primary\" />\n  <Numberinput defaultValue={5} color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"medium\" color=\"primary\" />\n  <Numberinput defaultValue={5} size=\"large\" color=\"primary\" />\n</Block>"
+    },
+    {
+      "title": "Controls Position",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"4\">\n  <Block>\n    <Paragraph mb=\"1\">Both sides (default)</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"both\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Left only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"left\" color=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Right only</Paragraph>\n    <Numberinput defaultValue={5} controlsPosition=\"right\" color=\"success\" />\n  </Block>\n</Block>"
+    },
+    {
+      "title": "Rounded Buttons",
+      "code": "<Numberinput defaultValue={5} controlsRounded color=\"primary\" />"
+    },
+    {
+      "title": "Custom Step",
+      "code": "function example() {\n  const [value, setValue] = useState(0);\n  return (\n    <Block>\n      <Paragraph mb=\"2\">Step by 10:</Paragraph>\n      <Numberinput\n        value={value}\n        onChange={setValue}\n        step={10}\n        min={0}\n        max={100}\n        color=\"info\"\n      />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Read-only Input",
+      "code": "<Numberinput defaultValue={5} editable={false} color=\"primary\" />"
+    },
+    {
+      "title": "Disabled State",
+      "code": "<Numberinput defaultValue={5} disabled />"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Numberinput\n  label=\"Quantity\"\n  defaultValue={1}\n  min={1}\n  max={10}\n  color=\"primary\"\n/>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Quantity\">\n      <Field.Body>\n        <Field>\n          <Numberinput defaultValue={1} min={1} max={10} color=\"primary\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Quantity\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"hashtag\">\n            <Numberinput defaultValue={1} min={1} max={10} color=\"primary\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    }
+  ],
+  "accessibility": "- Uses native number input element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- Buttons are disabled at min/max boundaries",
+  "related": ["Input", "Slider"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-numberinput",
+  "summary": "The `Numberinput` component provides a number input with increment/decrement buttons.",
+  "import": "import { Numberinput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Numberinput.tsx",
+  "rootClass": "numberinput",
+  "parts": [
+    {
+      "path": "Numberinput",
+      "summary": "The `Numberinput` component provides a number input with increment/decrement buttons.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when no Field wrapper is rendered (inside a `Field`, or plusminus `bare`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "Controlled value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": null,
+          "description": "Default value for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "default": null,
+          "description": "Minimum allowed value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": null,
+          "description": "Maximum allowed value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "default": "1",
+          "description": "Step increment (default: 1).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'light' | 'dark'",
+          "default": null,
+          "description": "Color variant for buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inputColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color of the input field itself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlsPosition",
+          "type": "'left' | 'right' | 'both'",
+          "default": "'both'",
+          "description": "Position of +/- buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlsRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use rounded buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "compact",
+          "type": "boolean",
+          "default": "false",
+          "description": "Uses compact button spacing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bare",
+          "type": "boolean",
+          "default": "false",
+          "description": "Removes button borders and background.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "'plusminus' | 'stepper'",
+          "default": "'plusminus'",
+          "description": "Style variant for the control buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the input is disabled.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the input can be typed in.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a loading state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "exponential",
+          "type": "boolean",
+          "default": "false",
+          "description": "Enables exponential step increments when holding buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Callback when value changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the input element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-numberinput-stepper-width",
+      "sass": "$numberinput-stepper-width",
+      "default": "2.5em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-stepper-border-color",
+      "sass": "$numberinput-stepper-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-stepper-button-color",
+      "sass": "$numberinput-stepper-button-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-stepper-button-hover-color",
+      "sass": "$numberinput-stepper-button-hover-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-stepper-button-hover-bg",
+      "sass": "$numberinput-stepper-button-hover-bg",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-disabled-opacity",
+      "sass": "$numberinput-disabled-opacity",
+      "default": "0.5",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-numberinput-rounded-button-size",
+      "sass": "$numberinput-rounded-button-size",
+      "default": "2.5em",
+      "scope": "component"
+    }
+  ]
+}

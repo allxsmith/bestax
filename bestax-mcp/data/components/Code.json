@@ -1,0 +1,128 @@
+{
+  "name": "Code",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/code",
+  "docsUrl": "https://bestax.io/docs/api/elements/code",
+  "examples": [
+    {
+      "title": "Default Code",
+      "code": "<Code>console.log(\"Hello, World!\")</Code>"
+    },
+    {
+      "title": "Variable Name",
+      "code": "<Paragraph>\n  The <Code>userName</Code> variable stores the current user's name.\n</Paragraph>"
+    },
+    {
+      "title": "Function Call",
+      "code": "<Paragraph>\n  Use <Code>Array.map()</Code> to transform each element in the array.\n</Paragraph>"
+    },
+    {
+      "title": "Command Line",
+      "code": "<Paragraph>\n  Run <Code>pnpm install</Code> to install the dependencies.\n</Paragraph>"
+    },
+    {
+      "title": "Colored Code",
+      "code": "<Code textColor=\"primary\">import React from \"react\"</Code>"
+    },
+    {
+      "title": "Code with Background",
+      "code": "<Code bgColor=\"light\" p=\"1\">\n  const x = 42\n</Code>"
+    },
+    {
+      "title": "All Colors",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"2\">\n  <Code textColor=\"primary\">primary code</Code>\n  <Code textColor=\"link\">link code</Code>\n  <Code textColor=\"info\">info code</Code>\n  <Code textColor=\"success\">success code</Code>\n  <Code textColor=\"warning\">warning code</Code>\n  <Code textColor=\"danger\">danger code</Code>\n</Block>"
+    },
+    {
+      "title": "File Path",
+      "code": "<Paragraph>\n  Edit the configuration file at <Code>src/config/settings.ts</Code> to change\n  the default values.\n</Paragraph>"
+    },
+    {
+      "title": "Keyboard Shortcuts",
+      "code": "<Paragraph>\n  Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.\n</Paragraph>"
+    }
+  ],
+  "accessibility": "- **Code Semantics:** Screen readers may indicate code content differently, helping users understand it's technical content.\n- **Monospace Font:** The `<code>` element typically renders in a monospace font, aiding readability of technical content.\n- **Context:** Provide context around code snippets so users understand what the code represents.\n\n:::info\nUse `Code` for short inline snippets. For multi-line code blocks that need to preserve whitespace and formatting, use the `Pre` component.\n:::",
+  "related": ["Figure", "Paragraph", "Pre", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-code--default",
+  "summary": "The `Code` component renders a styled `<code>` element with Bulma helper class integration.",
+  "import": "import { Code } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Code.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "Code",
+      "summary": "The `Code` component renders a styled `<code>` element with Bulma helper class integration.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Code content to render inside the element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-code-family",
+      "sass": "$code-family",
+      "default": "var(--bulma-family-code)",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-code-padding",
+      "sass": "$code-padding",
+      "default": "0.25em 0.5em 0.25em",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-code-weight",
+      "sass": "$code-weight",
+      "default": "normal",
+      "scope": "global"
+    },
+    {
+      "css": "--bulma-code-size",
+      "sass": "$code-size",
+      "default": "0.875em",
+      "scope": "global"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "name": "Block",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/block",
+  "docsUrl": "https://bestax.io/docs/api/elements/block",
+  "examples": [
+    { "title": "Default Block", "code": "<Block>Default Block</Block>" },
+    {
+      "title": "Primary Text Color",
+      "code": "<Block textColor=\"primary\">Block with Primary Text</Block>"
+    },
+    {
+      "title": "Light Background",
+      "code": "<Block bgColor=\"light\">Block with Light Background</Block>"
+    },
+    {
+      "title": "Spacing and Alignment",
+      "code": "<Block m=\"4\" p=\"4\" textAlign=\"centered\">\n  Block with Margin, Padding, and Centered Text\n</Block>"
+    },
+    {
+      "title": "Custom Class",
+      "code": "<Block className=\"custom-block-class\">Block with Custom Class</Block>"
+    },
+    {
+      "title": "Viewport-Specific Text Color",
+      "code": "<Block textColor=\"primary\" viewport=\"tablet\">\n  Block with Tablet-specific Primary Text\n</Block>"
+    },
+    {
+      "title": "Interactive Block with Multiple Props",
+      "code": "<Block textColor=\"success\" bgColor=\"dark\" m=\"3\" p=\"3\" textAlign=\"right\">\n  Interactive Block\n</Block>"
+    },
+    {
+      "title": "Stacked Blocks (Demonstrating Vertical Spacing)",
+      "code": "<Block display=\"flex\" flexDirection=\"column\" gap=\"0\">\n  <Block>\n    <Notification color=\"primary\" mb={0}>\n      First Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"info\" mb={0}>\n      Second Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"success\" mb={0}>\n      Third Block\n    </Notification>\n  </Block>\n  <Block>\n    <Notification color=\"warning\" mb={0}>\n      Fourth Block\n    </Notification>\n  </Block>\n</Block>"
+    }
+  ],
+  "accessibility": "- **Content:** Use semantic HTML inside `Block` for best accessibility.\n- **Spacing:** The `.block` class is for layout only and does not affect accessibility.\n- **Contrast:** Choose text and background colors for good readability.\n\n:::info\nUse `Block` for logical, visually separated sections of content.\n:::",
+  "related": ["Box", "Content", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-block--default",
+  "summary": "The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.",
+  "import": "import { Block } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/Block.tsx",
+  "rootClass": "block",
+  "parts": [
+    {
+      "path": "Block",
+      "summary": "The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.block.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the block.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

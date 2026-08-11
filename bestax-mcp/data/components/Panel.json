@@ -1,0 +1,582 @@
+{
+  "name": "Panel",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/panel",
+  "docsUrl": "https://bestax.io/docs/api/components/panel",
+  "examples": [
+    {
+      "title": "Complete Panel (Revolutionary Figures)",
+      "code": "<Panel>\n  <Panel.Heading>Revolutionary Figures</Panel.Heading>\n  <Panel.InputBlock placeholder=\"Search\" />\n  <Panel.Tabs>\n    <a className=\"is-active\">All</a>\n    <a>Patriots</a>\n    <a>Loyalists</a>\n    <a>Battles</a>\n    <a>Documents</a>\n  </Panel.Tabs>\n  <Panel.Block active>\n    <Panel.Icon name=\"user\" variant=\"solid\" />\n    George Washington\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"user\" variant=\"solid\" />\n    Alexander Hamilton\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"user\" variant=\"solid\" />\n    Benedict Arnold\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"user\" variant=\"solid\" />\n    John Adams\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"flag\" variant=\"solid\" />\n    Battle of Saratoga\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"flag\" variant=\"solid\" />\n    Treaty of Paris\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"flag\" variant=\"solid\" />\n    Bunker Hill\n  </Panel.Block>\n  <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>\n  <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>\n</Panel>"
+    },
+    {
+      "title": "Color Variants",
+      "code": "<>\n  {[\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ].map(color => (\n    <Panel key={color} color={color}>\n      <Panel.Heading>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Panel\n      </Panel.Heading>\n      <Panel.InputBlock placeholder=\"Search\" />\n      <Panel.Block active>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        George Washington\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        Marquis de Lafayette\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        Nathanael Greene\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"flag\" variant=\"solid\" />\n        Battle of Trenton\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"flag\" variant=\"solid\" />\n        Yorktown\n      </Panel.Block>\n      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>\n    </Panel>\n  ))}\n</>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Panel>\n  <Panel.Heading>Founding Documents</Panel.Heading>\n  <Panel.Block active>\n    <Panel.Icon name=\"file\" variant=\"solid\" />\n    Declaration of Independence\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"file\" variant=\"solid\" />\n    Articles of Confederation\n  </Panel.Block>\n  <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>\n</Panel>"
+    }
+  ],
+  "accessibility": "- The root panel renders as a semantic `<nav>` for navigation/landmark.\n- Use headings, links, and buttons with appropriate labels for best accessibility.\n- The `Panel.Block` by default renders as an anchor `<a>`, but can be customized for interactive blocks.\n\n:::note\nFor keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.\n:::",
+  "related": ["Icon", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-panel--revolutionary-war",
+  "summary": "The `Panel` component implements Bulma's versatile panel block for React.",
+  "import": "import { Panel } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Panel.tsx",
+  "rootClass": "panel",
+  "parts": [
+    {
+      "path": "Panel",
+      "summary": "The `Panel` component implements Bulma's versatile panel block for React.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the panel.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Panel content (usually includes subcomponents).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Panel.Heading",
+      "summary": "Main heading (renders as `<p class=\"panel-heading\">`)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Heading content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes",
+      "types": []
+    },
+    {
+      "path": "Panel.Tabs",
+      "summary": "Panel tabs (renders as `<p class=\"panel-tabs\">`)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Tabs content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Panel.Block",
+      "summary": "Individual panel block (renders as `<a class=\"panel-block\">`)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the block is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Block content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <a> attributes",
+      "types": []
+    },
+    {
+      "path": "Panel.Icon",
+      "summary": "Icon wrapper with panel styling (renders as `<span class=\"panel-icon\"><i/></span>`). Accepts all Icon props (`name`, `variant`, `features`, etc.)",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the icon.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "default": null,
+          "description": "DEPRECATED: Legacy prop, use `name` instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "library",
+          "type": "'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols'",
+          "default": "'fa'",
+          "description": "The icon library to use ('fa' = Font Awesome, 'mdi' = Material Design Icons, 'ion' = Ionicons Web Components, 'material-icons' = Google Material Icons, 'material-symbols' = Google Material Symbols). Defaults to the value set in ConfigProvider or 'fa' if not configured.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "default": null,
+          "description": "Icon style variant (e.g. `'solid'`, `'outlined'`, `'rounded'`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "features",
+          "type": "string | string[]",
+          "default": null,
+          "description": "Additional modifiers (e.g. `'fa-lg'`, `'fa-spin'`, `'is-size-1'`).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "libraryFeatures",
+          "type": "string | string[]",
+          "default": null,
+          "description": "**DEPRECATED:** Use `variant` and `features` instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the icon container.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'icon'",
+          "description": "ARIA label for accessibility (default: 'icon').",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "React.CSSProperties",
+          "default": null,
+          "description": "Inline style object.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Panel.InputBlock",
+      "summary": "Search input with icon (renders as `<div class=\"panel-block\">`)",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "Input value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "React.ChangeEventHandler<HTMLInputElement>",
+          "default": null,
+          "description": "Input change handler.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Input placeholder.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconClassName",
+          "type": "string",
+          "default": "'fas fa-search'",
+          "description": "Icon class for left icon (default 'fas fa-search').",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes",
+      "types": []
+    },
+    {
+      "path": "Panel.CheckboxBlock",
+      "summary": "Checkbox block (renders as `<label class=\"panel-block\">`)",
+      "component": null,
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the checkbox is checked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "React.ChangeEventHandler<HTMLInputElement>",
+          "default": null,
+          "description": "Checkbox change handler.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Label/content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <label> attributes",
+      "types": []
+    },
+    {
+      "path": "Panel.ButtonBlock",
+      "summary": "Call-to-action button (renders as `<div class=\"panel-block\"><button /></div>`)",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <button> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-panel-margin",
+      "sass": "$panel-margin",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-item-border",
+      "sass": "$panel-item-border",
+      "default": "1px solid var(--bulma-border-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-radius",
+      "sass": "$panel-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-shadow",
+      "sass": "$panel-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-line-height",
+      "sass": "$panel-heading-line-height",
+      "default": "1.25",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-padding",
+      "sass": "$panel-heading-padding",
+      "default": "1em 1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-radius",
+      "sass": "$panel-heading-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-size",
+      "sass": "$panel-heading-size",
+      "default": "1.25em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-weight",
+      "sass": "$panel-heading-weight",
+      "default": "var(--bulma-weight-bold)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-tabs-font-size",
+      "sass": "$panel-tabs-font-size",
+      "default": "1em",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-tab-border-bottom-color",
+      "sass": "$panel-tab-border-bottom-color",
+      "default": "var(--bulma-border)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-tab-border-bottom-style",
+      "sass": "$panel-tab-border-bottom-style",
+      "default": "solid",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-tab-border-bottom-width",
+      "sass": "$panel-tab-border-bottom-width",
+      "default": "1px",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-tab-active-color",
+      "sass": "$panel-tab-active-color",
+      "default": "var(--bulma-link-active)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-list-item-color",
+      "sass": "$panel-list-item-color",
+      "default": "var(--bulma-text)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-list-item-hover-color",
+      "sass": "$panel-list-item-hover-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-block-color",
+      "sass": "$panel-block-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-block-hover-background-color",
+      "sass": "$panel-block-hover-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-block-active-border-left-color",
+      "sass": "$panel-block-active-border-left-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-block-active-color",
+      "sass": "$panel-block-active-color",
+      "default": "var(--bulma-link-active)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-block-active-icon-color",
+      "sass": "$panel-block-active-icon-color",
+      "default": "var(--bulma-link)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-icon-color",
+      "sass": "$panel-icon-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-h",
+      "sass": null,
+      "default": "var(--bulma-scheme-h)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-s",
+      "sass": null,
+      "default": "var(--bulma-scheme-s)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-color-l",
+      "sass": null,
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-background-l",
+      "sass": null,
+      "default": "var(--bulma-text-l)",
+      "scope": "component"
+    },
+    {
+      "css": "--bulma-panel-heading-color-l",
+      "sass": null,
+      "default": "var(--bulma-text-invert-l)",
+      "scope": "component"
+    }
+  ]
+}

@@ -169,6 +169,7 @@ cases. Before writing \`style\`, translate each declaration with this table:
   and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
 - Compose existing components before writing custom CSS; theme via \`Theme\` and \`--bulma-*\`
   variables, never hardcoded colors.
+
 - \`Navbar.Burger\`/\`Navbar.Menu\` are controlled — wire \`active\` via state on both, and pair
   \`Navbar fixed="top"\` with the \`has-navbar-fixed-top\` class on \`<html>\` (never an inline
   padding offset).
@@ -183,6 +184,22 @@ cases. Before writing \`style\`, translate each declaration with this table:
 - Before adding a dependency, match the package manager to the app's lockfile
   (\`pnpm-lock.yaml\` → pnpm, \`package-lock.json\` → npm, \`yarn.lock\` → yarn) — a mismatched
   install fails or forks the lockfile.
+
+### Three components Bulma will talk you out of
+
+Everything else here gets found because Bulma has no equivalent; these three have a near-miss
+close enough to end the search.
+
+- **Confirmation after an action** — \`Toast\`, not \`Notification\`/\`Message\`. Mount
+  \`<ToastContainer position="top-right" />\` once at the root, then \`toast.success('Saved')\`.
+- **A confirm or alert** — \`Dialog\`, not \`Modal\`. Mount \`<DialogContainer />\`, then
+  \`if (await dialog.confirm({ title, message })) …\`.
+- **A control that reads as text or a link** — \`LinkButton\`
+  (\`variant="text" \\| "ghost" \\| "underline"\`), not \`<a href="#">\`, \`<div onClick>\` or
+  \`Button color="text"\`.
+
+Mounting a container without ever calling \`toast.*\`/\`dialog.*\` does nothing. Both also work
+as controlled components (\`<Toast message … onClose>\`, \`<Dialog isOpen … onConfirm>\`).
 
 ## AI skills
 
