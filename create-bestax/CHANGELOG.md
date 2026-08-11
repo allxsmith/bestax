@@ -1,3 +1,52 @@
+## [4.0.2](https://github.com/allxsmith/bestax/compare/create-bestax@4.0.1...create-bestax@4.0.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** derive the near-miss guidance from the skill, and only when it helps ([1141cca](https://github.com/allxsmith/bestax/commit/1141ccad60459038485b13b4841fb125f904be6b))
+* **bestax-mcp:** do not split a helper-prop table cell on an escaped pipe ([bdac820](https://github.com/allxsmith/bestax/commit/bdac8207db46f2402ad6b765500be8a3af066095))
+* **bestax-mcp:** lead get_helper_props with the inline-style prohibition ([ffc627a](https://github.com/allxsmith/bestax/commit/ffc627a9ddc3f32bc823bfbc875558d1e2e18291))
+* **bestax-mcp:** make list_components point at the next step ([8ddb2fd](https://github.com/allxsmith/bestax/commit/8ddb2fdacd94e45c8e97adbbe7f5844bf98b4b46))
+* **bestax-mcp:** make tests and cached builds work from a clean checkout ([6e63820](https://github.com/allxsmith/bestax/commit/6e6382007dadce9964c86ba8d29deedb11ae2777)), closes [bestax-mcp#build](https://github.com/bestax-mcp/issues/build)
+* **bestax-mcp:** name list_components as the entry point, not search_bestax ([206380b](https://github.com/allxsmith/bestax/commit/206380b209a0d5d89b25477ff2fab6806f55ac70))
+* **bestax-mcp:** name the three near-miss components in the list_components footer ([1c7af67](https://github.com/allxsmith/bestax/commit/1c7af673cf9ba3cbd48fb6bd1cb979f80e940ba4))
+* **bestax-mcp:** route helper questions to the tool that answers them ([cd6ce12](https://github.com/allxsmith/bestax/commit/cd6ce124a1ab856896579d9b00965cbe295523ed))
+* **bestax-mcp:** validate the one input that is not ours, and bound the rest ([3e1adc9](https://github.com/allxsmith/bestax/commit/3e1adc9bb0c9d1064d66cf55e55dd75f90158c39))
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([7ae37d4](https://github.com/allxsmith/bestax/commit/7ae37d48f7a5af85bf29d21c7517abbea7c9448b))
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([384bd38](https://github.com/allxsmith/bestax/commit/384bd387639764fa346912cbe6df2d5b02cdaab6))
+* **bulma-ui:** associate the form label prop with its control via a generated id ([e6686af](https://github.com/allxsmith/bestax/commit/e6686afa28d006120d5e0dd8181e61036d7fb075))
+* **bulma-ui:** cover horizontal-layout group label association ([ef3ca9f](https://github.com/allxsmith/bestax/commit/ef3ca9f4b99a149b43f359cb8105255c9a3f2770))
+* **bulma-ui:** deprecate CSS-less color values, warn in dev, fix has-text fall-through ([fb111eb](https://github.com/allxsmith/bestax/commit/fb111eb9f08a412821efe07a77e2ba29ee9993b8))
+* **bulma-ui:** fail closed on missing process and scope color guidance to real props ([117c0c0](https://github.com/allxsmith/bestax/commit/117c0c08b5f16ad36d7e402aa714f886a7a9ef3e))
+* **bulma-ui:** honor the htmlFor opt-out in the convenience hook and tighten the association docs ([92aa622](https://github.com/allxsmith/bestax/commit/92aa622c0ebd231b41562504da6d104128207000))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([73cec33](https://github.com/allxsmith/bestax/commit/73cec33709b72f968645a951cda0fa6a664847c5))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([ca5996a](https://github.com/allxsmith/bestax/commit/ca5996a73f5b0816ff82fa4984455bb82ef6060c))
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([dce0ee7](https://github.com/allxsmith/bestax/commit/dce0ee7e2b2d5c2678e5b996437ab713cc45365b))
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([#497](https://github.com/allxsmith/bestax/issues/497)) ([5c4222e](https://github.com/allxsmith/bestax/commit/5c4222e2eca35c151a2c355e329c6b5a47a8195f))
+* **bulma-ui:** name the three near-miss components in AGENTS.md ([c63f491](https://github.com/allxsmith/bestax/commit/c63f491274ef3e5db173eb4ee5039c645df74bd1)), closes [#344](https://github.com/allxsmith/bestax/issues/344)
+* **bulma-ui:** never let labelProps.htmlFor wire a group label to a control ([3b3aaaf](https://github.com/allxsmith/bestax/commit/3b3aaafa6573bfc0c84930ee1517f402105fbc1d))
+* **create-bestax:** put the near-miss guidance where every session sees it ([6db49f3](https://github.com/allxsmith/bestax/commit/6db49f308b888f778f7454ffc934e4aa7d7b2b0d))
+* **create-bestax:** shrink the near-miss block and pin the copies together ([d582da5](https://github.com/allxsmith/bestax/commit/d582da567dc0ebc877300399ec221d83af2ec80a))
+* **create-bestax:** stop the skills teaching a Theme call that does not compile ([2935bb2](https://github.com/allxsmith/bestax/commit/2935bb273d0da959049194f1498229cbbb61cfd3))
+* **create-bestax:** teach the skills the three components Bulma hides ([22dcff7](https://github.com/allxsmith/bestax/commit/22dcff753fd0cd84751a6ea9ecffc8f811483935))
+* **docs:** give every batch run its own port — slot reuse was corrupting runs ([6ef1755](https://github.com/allxsmith/bestax/commit/6ef1755cde7d0ae3a943963ba10fc5c7a193d0fe))
+* **docs:** make the eval batch resumable after a container restart ([d56229e](https://github.com/allxsmith/bestax/commit/d56229eb4ba2db2b5313b3051362fcae21df15d0))
+
+
+### Features
+
+* **bestax-mcp:** serve component docs, props, examples and skills over MCP ([c2abcc4](https://github.com/allxsmith/bestax/commit/c2abcc40d490b3c8271e25265b5d394a1c6495ce))
+* **bulma-ui:** associate Field's label with a composed base control ([219f631](https://github.com/allxsmith/bestax/commit/219f63180f8321ed924953f5acd12e4eadcba608))
+* **docs:** aggregate-runs.mjs — distribution stats across a runs directory ([5de9c07](https://github.com/allxsmith/bestax/commit/5de9c077129229e0411aee622aff81ac9d0e1699))
+* **docs:** batch runner for the eval harness, with the concurrency fixes it needed ([f8e268c](https://github.com/allxsmith/bestax/commit/f8e268c3c54eb2b6696e637c24d54565bfa28dff))
+* **docs:** rubric v2 and a brief that demands the components beyond Bulma ([e6047be](https://github.com/allxsmith/bestax/commit/e6047be88a00df4601e56054698dc143b8151b38))
+* **docs:** show all posts in the blog sidebar ([d29e9c6](https://github.com/allxsmith/bestax/commit/d29e9c659088dc9f2dcb147c9f138d6cbdfcc67a))
+
+
+### Performance Improvements
+
+* **bestax-mcp:** stop get_helper_props costing half the session ([b865651](https://github.com/allxsmith/bestax/commit/b8656518763be5f4e1671d45b5fee5f9f1cf37df))
+
 ## [4.0.1](https://github.com/allxsmith/bestax/compare/create-bestax@4.0.0...create-bestax@4.0.1) (2026-08-04)
 
 
