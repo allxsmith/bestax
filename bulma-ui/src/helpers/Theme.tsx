@@ -7,6 +7,12 @@ const bulmaCssVars = [
   // scheme
   '--bulma-scheme-h',
   '--bulma-scheme-s',
+  '--bulma-scheme-main',
+  '--bulma-scheme-main-bis',
+  '--bulma-scheme-main-ter',
+  '--bulma-scheme-invert',
+  '--bulma-scheme-invert-bis',
+  '--bulma-scheme-invert-ter',
   '--bulma-light-l',
   '--bulma-light-invert-l',
   '--bulma-dark-l',

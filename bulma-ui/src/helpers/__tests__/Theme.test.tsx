@@ -16,6 +16,41 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--bulma-scheme-s')).toBe('51%');
   });
 
+  it('applies scheme background variables from bulmaVars to local div', () => {
+    const vars = {
+      '--bulma-scheme-main-bis': '#f2f4f8',
+      '--bulma-scheme-main-ter': '#e8ecf2',
+    };
+    const { container } = render(
+      <Theme bulmaVars={vars}>
+        <div data-testid="content">Test Content</div>
+      </Theme>
+    );
+
+    const themeDiv = container.firstChild as HTMLElement;
+    expect(themeDiv.style.getPropertyValue('--bulma-scheme-main-bis')).toBe(
+      '#f2f4f8'
+    );
+    expect(themeDiv.style.getPropertyValue('--bulma-scheme-main-ter')).toBe(
+      '#e8ecf2'
+    );
+  });
+
+  it('applies scheme background variables globally when isRoot is true', () => {
+    render(
+      <Theme bulmaVars={{ '--bulma-scheme-main-bis': '#10131a' }} isRoot>
+        <div data-testid="content">Test Content</div>
+      </Theme>
+    );
+
+    const styleElement = document.getElementById('bestax-bulma-theme-vars');
+    expect(styleElement).toBeInTheDocument();
+    expect(styleElement?.textContent).toContain(
+      '--bulma-scheme-main-bis: #10131a'
+    );
+    expect(styleElement?.textContent).toContain(':root');
+  });
+
   it('applies CSS variables from individual props to local div', () => {
     const { container } = render(
       <Theme schemeH="120" schemeS="40%">
