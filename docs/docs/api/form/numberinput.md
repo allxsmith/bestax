@@ -32,6 +32,8 @@ import { Numberinput } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+The component is exported as `Numberinput`; a deprecated `NumberInput` alias (and `NumberInputProps`) also exists for imports written with camel-case spelling — both name the same component.
+
 ### Basic Numberinput
 
 A simple number input with +/- buttons.

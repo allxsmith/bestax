@@ -531,4 +531,10 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
 
 Numberinput.displayName = 'Numberinput';
 
+/** @deprecated Use `Numberinput` — same component. */
+export const NumberInput = Numberinput;
+
+/** @deprecated Use `NumberinputProps`. */
+export type NumberInputProps = NumberinputProps;
+
 export default Numberinput;

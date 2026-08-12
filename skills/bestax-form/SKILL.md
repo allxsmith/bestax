@@ -96,6 +96,9 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers.                                           |
 
+(`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
+same components; prefer the lowercase-second-word spellings.)
+
 ## Common props
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
