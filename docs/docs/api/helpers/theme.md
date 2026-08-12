@@ -326,6 +326,7 @@ function PrefixedTheme() {
 - All Bulma CSS variables follow the `--bulma-*` naming convention
 - Use the `bulmaVars` prop when you need to set variables not covered by individual props
 - Individual props (like `primaryH`) are converted to their corresponding CSS variable names
+- `bulmaVars` also accepts the scheme surface variables — `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`, `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter` — so overriding `--bulma-scheme-main-bis`/`-ter` re-tints every scheme-background band (e.g., `<Section bgColor="scheme-main-bis">`) at once
 
 ### Performance Considerations
 

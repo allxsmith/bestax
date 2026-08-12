@@ -12,10 +12,21 @@ Everything below is public API. Where to import from depends on your context:
 Turns Bulma helper props into a class string and returns the leftover (non-helper) props.
 
 ```ts
-const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 // bulmaHelperClasses: e.g. 'has-text-primary is-size-3 m-3'
+// bulmaHelperStyles: inline styles for scheme-aware values, or undefined (see below)
 // rest: every prop that was NOT a recognized helper (safe to spread on the DOM)
 ```
+
+`bulmaHelperStyles` is `undefined` unless `backgroundColor` is one of the six
+`validSchemeColors` values (`scheme-main`, `scheme-main-bis`, `scheme-main-ter`,
+`scheme-invert`, `scheme-invert-bis`, `scheme-invert-ter`). Bulma ships no
+`has-background-scheme-*` classes, so those values emit no class; the hook returns
+`{ backgroundColor: 'var(--bulma-<value>)' }` instead — a dark-mode-safe inline style. Put it
+on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
+(`helpers/mergeBulmaStyles.ts`): the user's `style` prop wins on conflicts, and the result is
+`undefined` when both are absent so unaffected components keep an attribute-free DOM.
+(`useColorStyles` is the underlying per-concern hook.)
 
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
@@ -56,15 +67,21 @@ de-dupes. Related exports:
 Re-exported through `useBulmaClasses`. Use them to type component-specific props and to drive
 Storybook `argTypes`/tests:
 
-`validColors`, `validColorShades`, `validSizes`, `validTextSizes`, `validAlignments`,
-`validTextTransforms`, `validTextWeights`, `validFontFamilies`, `validDisplays`,
-`validVisibilities`, `validFlexDirections`, `validFlexWraps`, `validJustifyContents`,
-`validAlignContents`, `validAlignItems`, `validAlignSelfs`, `validFlexGrowShrink`,
-`validViewports`.
+`validColors`, `validColorShades`, `validSchemeColors`, `validSizes`, `validTextSizes`,
+`validAlignments`, `validTextTransforms`, `validTextWeights`, `validFontFamilies`,
+`validDisplays`, `validVisibilities`, `validFlexDirections`, `validFlexWraps`,
+`validJustifyContents`, `validAlignContents`, `validAlignItems`, `validAlignSelfs`,
+`validFlexGrowShrink`, `validViewports`.
 
 ```ts
 export type MyColor = (typeof validColors)[number];
 ```
+
+`validSchemeColors` is the scheme-background tuple consumed by `bulmaHelperStyles` (above).
+Components that support scheme backgrounds widen their own `bgColor` union with
+`(typeof validSchemeColors)[number]` — the widening is deliberate and per-component, so a
+component that has not wired `bulmaHelperStyles` onto its root element must keep the narrow
+union (a compile error beats a silent no-op).
 
 ## `ConfigProvider` / `Theme` — `helpers/Config.tsx`, `helpers/Theme.tsx`
 

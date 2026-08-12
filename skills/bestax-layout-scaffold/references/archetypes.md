@@ -155,8 +155,11 @@ the `Hero`; if it's `fixed="top"`, the same `<html class="has-navbar-fixed-top">
 applies here too.
 
 **Alternating section bands:** tint every other `Section` with a scheme step —
-`.section-alt { background: var(--bulma-scheme-main-bis); }` (next step `-ter`) — not
-`bgColor="light"`/`"white"`: those are fixed colors that stay light when dark mode flips the text.
+`bgColor="scheme-main-bis"` (next step `scheme-main-ter`) — not `bgColor="light"`/`"white"`:
+those are fixed colors that stay light when dark mode flips the text. Scheme values emit no
+class; the component renders a dark-mode-safe inline `background-color: var(--bulma-scheme-*)`
+style, so bands cost zero custom CSS. The same values work on `Hero` (and its
+`Head`/`Body`/`Foot`), `Footer`, `Container`, `Box`, and `Card`.
 
 **Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
 CTA and `color="primary" isInverted` (solid white, primary text) for a secondary. A thin

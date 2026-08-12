@@ -105,7 +105,7 @@ function ColorExamples() {
 
 ## Background Color
 
-Use the `bgColor` prop to apply background colors. It accepts the same color values as `textColor` and renders Bulma's `has-background-*` helpers. A few components accept the raw `backgroundColor` helper name instead, and `Notification` has no background prop at all: its `color` variant fills the background, so pair it with `textColor`. Each component's Props table lists the names it takes.
+Use the `bgColor` prop to apply background colors. It accepts the same color values as `textColor` and renders Bulma's `has-background-*` helpers — plus, on six surface components, the `scheme-*` values below, which render as a dark-mode-safe inline style instead of a class. A few components accept the raw `backgroundColor` helper name instead, and `Notification` has no background prop at all: its `color` variant fills the background, so pair it with `textColor`. Each component's Props table lists the names it takes.
 
 ### Standard Background Colors
 
@@ -145,6 +145,44 @@ Use the `bgColor` prop to apply background colors. It accepts the same color val
 | ------------------- | ------------------------ | ------------------- |
 | `bgColor="inherit"` | `has-background-inherit` | Inherit from parent |
 | `bgColor="current"` | `has-background-current` | Current color value |
+
+### Scheme Backgrounds (adapt to dark mode)
+
+Bulma ships no `has-background-scheme-*` classes, so these values emit **no class at all** — the component renders a dark-mode-safe inline style that tracks Bulma's scheme CSS variables. They are supported on six surface components: `Section`, `Hero` (and `Hero.Head`/`Hero.Body`/`Hero.Foot`), `Container`, `Footer`, `Box`, and `Card` (the parent, not its subcomponents). `backgroundColorShade` is ignored for scheme values — no shaded scheme variables exist.
+
+| Property                      | Emitted Inline Style                               | Background Value                   |
+| ----------------------------- | -------------------------------------------------- | ---------------------------------- |
+| `bgColor="scheme-main"`       | `background-color: var(--bulma-scheme-main)`       | The page's base surface            |
+| `bgColor="scheme-main-bis"`   | `background-color: var(--bulma-scheme-main-bis)`   | One step off the base surface      |
+| `bgColor="scheme-main-ter"`   | `background-color: var(--bulma-scheme-main-ter)`   | Two steps off the base surface     |
+| `bgColor="scheme-invert"`     | `background-color: var(--bulma-scheme-invert)`     | The inverted (opposite) surface    |
+| `bgColor="scheme-invert-bis"` | `background-color: var(--bulma-scheme-invert-bis)` | One step off the inverted surface  |
+| `bgColor="scheme-invert-ter"` | `background-color: var(--bulma-scheme-invert-ter)` | Two steps off the inverted surface |
+
+This is the zero-CSS way to build alternating page bands that stay correct in dark mode:
+
+```tsx live
+import { Section, Title, SubTitle } from '@allxsmith/bestax-bulma';
+
+function AlternatingBands() {
+  return (
+    <>
+      <Section>
+        <Title>First Band</Title>
+        <SubTitle>Default scheme-main background.</SubTitle>
+      </Section>
+      <Section bgColor="scheme-main-bis">
+        <Title>Second Band</Title>
+        <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>
+      </Section>
+      <Section bgColor="scheme-main-ter">
+        <Title>Third Band</Title>
+        <SubTitle>One step further, still zero custom CSS.</SubTitle>
+      </Section>
+    </>
+  );
+}
+```
 
 ### Example Usage
 

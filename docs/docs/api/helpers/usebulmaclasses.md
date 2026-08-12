@@ -269,6 +269,46 @@ Use the `backgroundColor` prop to set the background color. Pair it with a text 
 </Columns>
 ```
 
+### Scheme Backgrounds and `bulmaHelperStyles`
+
+The hook returns a third member, `bulmaHelperStyles`, alongside `bulmaHelperClasses` and `rest`. It is `undefined` for every input except a scheme `backgroundColor` (`scheme-main`, `scheme-main-bis`, `scheme-main-ter`, `scheme-invert`, `scheme-invert-bis`, `scheme-invert-ter`): Bulma ships no `has-background-scheme-*` classes, so those values emit no class and instead surface here as a dark-mode-safe inline style tracking Bulma's scheme CSS variables.
+
+```tsx live
+function example() {
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
+    color: 'primary',
+    backgroundColor: 'scheme-main-bis',
+    id: 'band1',
+  });
+
+  return JSON.stringify({ bulmaHelperClasses, bulmaHelperStyles, rest });
+  // bulmaHelperClasses: 'has-text-primary'
+  // bulmaHelperStyles: { backgroundColor: 'var(--bulma-scheme-main-bis)' }
+  // rest: { id: 'band1' }
+}
+```
+
+Put it on your element with `mergeBulmaStyles`, which merges the helper style with a user-supplied `style` prop (the user style wins, and the result is `undefined` when both are absent so the DOM stays untouched):
+
+```tsx live
+function example() {
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
+    backgroundColor: 'scheme-main-bis',
+    p: '4',
+  });
+
+  return (
+    <div
+      className={classNames('custom-band', bulmaHelperClasses)}
+      style={mergeBulmaStyles(bulmaHelperStyles, undefined)}
+      {...rest}
+    >
+      A dark-mode-safe surface with zero custom CSS
+    </div>
+  );
+}
+```
+
 ### Color Shade
 
 `colorShade` refines the **text color** — it pairs with the hook's `color` prop (exposed as `textColor` on components, where `color` is the component's own modifier). Here, each line steps through the primary palette:

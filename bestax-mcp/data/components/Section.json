@@ -16,6 +16,10 @@
     {
       "title": "Large Section",
       "code": "<Section size=\"large\">\n  <Title>Large Section</Title>\n  <SubTitle>\n    Divide your content into into <Strong>sections</Strong>. Tada! Make sure\n    your window is wide or you won't see a large section.\n  </SubTitle>\n</Section>"
+    },
+    {
+      "title": "Alternating Sections",
+      "code": "<>\n  <Section>\n    <Title>First Band</Title>\n    <SubTitle>Default scheme-main background.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-bis\">\n    <Title>Second Band</Title>\n    <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-ter\">\n    <Title>Third Band</Title>\n    <SubTitle>One step further, still zero custom CSS.</SubTitle>\n  </Section>\n</>"
     }
   ],
   "accessibility": "- The section renders as a semantic `<section>` for improved structure and accessibility.\n- Use headings (`<Title>`, `<SubTitle>`) and semantic content for screen reader support.\n\n:::note\nSections help organize your document outline for screen readers and SEO.\n:::",
