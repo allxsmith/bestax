@@ -82,12 +82,12 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Card](https://bestax.io/docs/api/components/card) — The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
-- [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+- [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
 - [Menu](https://bestax.io/docs/api/components/menu) — The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
 - [Message](https://bestax.io/docs/api/components/message) — The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
-- [Modal](https://bestax.io/docs/api/components/modal) — The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
+- [Modal](https://bestax.io/docs/api/components/modal) — The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.
 - [Navbar](https://bestax.io/docs/api/components/navbar) — The `Navbar` component implements Bulma's powerful, responsive navigation bar for your Bulma React UI.
 - [Pagination](https://bestax.io/docs/api/components/pagination) — The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.
 - [Panel](https://bestax.io/docs/api/components/panel) — The `Panel` component implements Bulma's versatile panel block for React.

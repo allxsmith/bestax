@@ -1,7 +1,7 @@
 ---
 title: Dialog
 sidebar_label: Dialog
-description: The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+description: The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call.
 ---
 
 # Dialog
@@ -10,7 +10,7 @@ description: The `Dialog` component provides confirmation and alert dialogs with
 
 <!-- bestax:generated overview -->
 
-The `Dialog` component provides confirmation and alert dialogs with customizable actions.
+The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call.
 
 <!-- /bestax:generated overview -->
 
@@ -330,7 +330,9 @@ function example() {
 ## Related Components
 
 - [Toast](./toast.md) - For non-blocking notifications with optional action buttons
-- [Modal](./modal.md) - For custom modal dialogs
+- [Modal](./modal.md) - The empty overlay to reach for when the body is arbitrary content you
+  are authoring yourself. `Dialog` is the ready-made confirm/alert built on top of that idea;
+  drop to `Modal` only when you need something other than a title, message and button row.
 
 ---
 

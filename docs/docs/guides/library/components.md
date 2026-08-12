@@ -371,7 +371,7 @@ An overlapping (or `spaced`) group of `Avatar`s that clamps to `max` and renders
 
 ### Modal
 
-A flexible, accessible modal dialog for dialogs, confirmations, or custom content. [View full documentation.](../../api/components/modal.md)
+An empty, accessible overlay for arbitrary content. For a confirm or alert, use [Dialog](#dialog) instead — it supplies the title, message and button row this component leaves to you. [View full documentation.](../../api/components/modal.md)
 
 ```tsx live
 function example() {

@@ -270,7 +270,7 @@ const ModalClose: React.FC<ModalCloseProps> = ({
 };
 
 /**
- * The `Modal` component provides a flexible, accessible modal dialog for your Bulma React UI.
+ * The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.
  *
  * @function
  * @param {ModalProps} props - Props for the Modal component.
