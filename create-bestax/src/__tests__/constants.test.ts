@@ -241,6 +241,16 @@ describe('constants', () => {
       expect(content).toContain('meta tags');
       expect(content).toContain('rewrite the README');
     });
+
+    it('tells agents how to recover from a strictPort collision without moving ports', () => {
+      const content = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
+      expect(content).toContain('--strictPort');
+      expect(content).toContain('lsof -ti:5173 | xargs kill');
+      expect(content).toMatch(/orphaned dev server/);
+    });
   });
 
   describe('CLAUDE_MD house style', () => {
