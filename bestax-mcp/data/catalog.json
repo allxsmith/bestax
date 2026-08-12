@@ -928,8 +928,8 @@
       "slug": "elements/tag",
       "import": "import { Tag } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 8,
-      "exampleCount": 11
+      "propCount": 9,
+      "exampleCount": 12
     },
     {
       "name": "Taginput",
@@ -950,7 +950,7 @@
       "slug": "elements/tags",
       "import": "import { Tags } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 12,
+      "propCount": 13,
       "exampleCount": 7
     },
     {

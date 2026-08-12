@@ -52,6 +52,21 @@ Set the `color` prop to apply a Bulma color modifier, such as `color="primary"`,
 <Tag color="primary">Primary Tag</Tag>
 ```
 
+### Light Tag
+
+Add the `isLight` prop to render the light variant of the chosen color — a softer, pastel version that works well for secondary status indicators.
+
+```tsx live
+<Tags>
+  <Tag color="primary" isLight>
+    Light Primary
+  </Tag>
+  <Tag color="danger" isLight>
+    Light Danger
+  </Tag>
+</Tags>
+```
+
 ### Medium and Large Tag
 
 Use the `size` prop with values like `size="medium"` or `size="large"` to adjust the tag's size for different UI contexts.
@@ -207,6 +222,7 @@ Combine `Tag` with `Tags` for grouped, multi-tag UIs.
 | `className`   | `string`                                                | —       | Additional CSS classes to apply.                  |
 | `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag.                 |
 | `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Tag size.                                         |
+| `isLight`     | `boolean`                                               | `false` | Use the light color variant.                      |
 | `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag.                            |
 | `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button).       |
 | `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag.                     |
