@@ -12,7 +12,9 @@ The source of truth is the `releaseRules` in each package's semantic-release con
 
 ## Release Rules
 
-A commit releases **only** the package its scope names:
+A commit releases **only** the package its scope names. Representative examples — the same
+`feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules apply to every package
+through its own scope:
 
 | Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp |
 | ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- |
@@ -29,10 +31,16 @@ Notes:
 
 - **Breaking changes require a `BREAKING CHANGE:` footer** in the commit body. The angular
   commit-analyzer preset does **not** parse `feat(bulma-ui)!:` bang headers.
-- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`) **must** carry a
-  scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp` — enforced by commitlint
-  ([`commitlint.config.js`](./commitlint.config.js)) via the husky `commit-msg` hook. This is
-  what guarantees the per-scope release rules can't be bypassed by an unscoped commit.
+- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) **must**
+  carry a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp` —
+  enforced by commitlint ([`commitlint.config.js`](./commitlint.config.js)) via the husky
+  `commit-msg` hook. This is what guarantees the per-scope release rules can't be bypassed by
+  an unscoped commit.
+- `revert` is scope-gated too: commit-analyzer's default rules ship
+  `{ revert: true, release: 'patch' }`, so an unscoped revert would patch-release **every**
+  package. A scoped `revert(bulma-ui): …` patch-releases only its package. Caveat: commitlint's
+  default ignores skip git-revert-style `Revert "…"` messages entirely, so keep reverts in
+  conventional form.
 - A commit scoped to `docs` never releases any package.
 
 ## Tags & Changelogs
