@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { classNames } from './classNames';
 import { useConfig } from './Config';
 import {
   createBulmaClassHelpers,
   validColors,
   validColorShades,
+  validSchemeColors,
 } from './bulmaClassHelpers';
 
 /**
@@ -22,7 +23,29 @@ export interface BulmaColorProps {
 }
 
 /**
+ * {@link BulmaColorProps} with `backgroundColor` widened to also accept the
+ * scheme color names from `validSchemeColors` (e.g., 'scheme-main-bis').
+ *
+ * Scheme values never emit a `has-background-*` class — pass them through
+ * {@link useColorStyles} (or `useBulmaClasses`' `bulmaHelperStyles` return) to
+ * get the dark-mode-safe inline `background-color: var(--bulma-scheme-*)`
+ * style instead.
+ */
+export type BulmaColorPropsWithScheme = Omit<
+  BulmaColorProps,
+  'backgroundColor'
+> & {
+  /** Background color: a Bulma color class name or a scheme color name. */
+  backgroundColor?:
+    BulmaColorProps['backgroundColor'] | (typeof validSchemeColors)[number];
+};
+
+/**
  * A hook that generates Bulma text and background color helper classes.
+ *
+ * Scheme background values (`scheme-main`, `scheme-main-bis`, …) are dropped
+ * from class emission — Bulma ships no `has-background-scheme-*` classes; use
+ * {@link useColorStyles} to render them as an inline style.
  *
  * @function useColorClasses
  * @param props - Color-related Bulma helper props.
@@ -34,7 +57,7 @@ export interface BulmaColorProps {
  * });
  * // colorClasses: 'has-text-primary has-background-info'
  */
-export const useColorClasses = (props: BulmaColorProps): string => {
+export const useColorClasses = (props: BulmaColorPropsWithScheme): string => {
   const { classPrefix } = useConfig();
 
   const { color, colorShade, backgroundColor, backgroundColorShade } = props;
@@ -72,4 +95,40 @@ export const useColorClasses = (props: BulmaColorProps): string => {
 
     return classNames(classes);
   }, [classPrefix, color, colorShade, backgroundColor, backgroundColorShade]);
+};
+
+/**
+ * A hook that generates inline styles for scheme-aware color props.
+ *
+ * When `backgroundColor` is one of the scheme color names in
+ * `validSchemeColors`, returns `{ backgroundColor: 'var(--bulma-<value>)' }` —
+ * an inline style that tracks Bulma's scheme CSS variables, so it adapts to
+ * light/dark mode with no bestax-shipped CSS. For every other input it
+ * returns `undefined` (never `{}`), so components that don't use scheme
+ * values produce identical DOM to before.
+ *
+ * `backgroundColorShade` is ignored for scheme values — Bulma defines no
+ * shaded scheme variables.
+ *
+ * @function useColorStyles
+ * @param props - Color-related Bulma helper props (scheme-aware).
+ * @returns An inline style object for scheme backgrounds, or `undefined`.
+ * @example
+ * const colorStyles = useColorStyles({ backgroundColor: 'scheme-main-bis' });
+ * // colorStyles: { backgroundColor: 'var(--bulma-scheme-main-bis)' }
+ */
+export const useColorStyles = (
+  props: BulmaColorPropsWithScheme
+): CSSProperties | undefined => {
+  const { backgroundColor } = props;
+
+  return useMemo(() => {
+    if (
+      backgroundColor &&
+      (validSchemeColors as readonly string[]).includes(backgroundColor)
+    ) {
+      return { backgroundColor: `var(--bulma-${backgroundColor})` };
+    }
+    return undefined;
+  }, [backgroundColor]);
 };

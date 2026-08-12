@@ -4,7 +4,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 
 /**
  * Bulma container breakpoints.
@@ -29,8 +31,15 @@ export interface ContainerProps
    * a colored surface.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color helper. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color helper. `scheme-*` values render as a dark-mode-safe
+   * inline `background-color: var(--bulma-scheme-*)` instead of a class.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Makes the container full-width with a 32px gap on each side. */
   fluid?: boolean;
   /** Makes the container full-width until the `widescreen` breakpoint. */
@@ -64,9 +73,10 @@ export const Container: React.FC<ContainerProps> = ({
   breakpoint,
   isMax,
   children,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -104,7 +114,11 @@ export const Container: React.FC<ContainerProps> = ({
   );
 
   return (
-    <div className={containerClasses} {...rest}>
+    <div
+      className={containerClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </div>
   );

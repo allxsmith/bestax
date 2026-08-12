@@ -277,6 +277,22 @@ export const BackgroundColors: Story = {
       <Column size="one-quarter">
         <Box bgColor="white">White</Box>
       </Column>
+      <Column size="one-quarter">
+        <Box bgColor="scheme-main">Scheme Main (dark-mode adaptive)</Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="scheme-main-bis">
+          Scheme Main Bis (dark-mode adaptive)
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="scheme-main-ter">
+          Scheme Main Ter (dark-mode adaptive)
+        </Box>
+      </Column>
+      <Column size="one-quarter">
+        <Box bgColor="scheme-invert">Scheme Invert (dark-mode adaptive)</Box>
+      </Column>
     </Columns>
   ),
 };

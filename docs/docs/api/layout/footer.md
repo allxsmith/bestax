@@ -98,15 +98,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Foote
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default    | Description                                       |
-| ----------- | ----------------------------------------------------------------------- | ---------- | ------------------------------------------------- |
-| `as`        | `'footer'` \| `'div'`                                                   | `'footer'` | The HTML tag to render as.                        |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Bulma color modifier.                             |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Background color.                                 |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —          | Text color.                                       |
-| `className` | `string`                                                                | —          | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                                       | —          | Content inside the footer.                        |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —          | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                                                            | Default    | Description                                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'footer'` \| `'div'`                                                                                           | `'footer'` | The HTML tag to render as.                                                                                                          |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —          | Bulma color modifier.                                                                                                               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —          | Background color. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —          | Text color.                                                                                                                         |
+| `className` | `string`                                                                                                        | —          | Additional CSS classes.                                                                                                             |
+| `children`  | `React.ReactNode`                                                                                               | —          | Content inside the footer.                                                                                                          |
+| `...`       | All standard HTML attributes and Bulma helper props                                                             | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                   |
 
 <!-- /bestax:generated props -->
 

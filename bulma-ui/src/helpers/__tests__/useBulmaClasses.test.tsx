@@ -41,6 +41,53 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('has-background-info');
   });
 
+  it('returns bulmaHelperStyles instead of a class for a scheme background', () => {
+    const { bulmaHelperClasses, bulmaHelperStyles } = renderUseBulmaClasses({
+      backgroundColor: 'scheme-main-bis',
+    });
+    expect(bulmaHelperStyles).toEqual({
+      backgroundColor: 'var(--bulma-scheme-main-bis)',
+    });
+    expect(bulmaHelperClasses).toBe('');
+  });
+
+  it('leaves the class string and rest untouched for a scheme background', () => {
+    const { bulmaHelperClasses, bulmaHelperStyles, rest } =
+      renderUseBulmaClasses({
+        color: 'primary',
+        backgroundColor: 'scheme-main-ter',
+        className: 'custom-class',
+      } as Record<string, string>);
+    expect(bulmaHelperClasses).toBe('has-text-primary');
+    expect(bulmaHelperStyles).toEqual({
+      backgroundColor: 'var(--bulma-scheme-main-ter)',
+    });
+    expect(rest).toEqual({ className: 'custom-class' });
+  });
+
+  it('returns bulmaHelperStyles with a classPrefix (styles are never prefixed)', () => {
+    const { bulmaHelperClasses, bulmaHelperStyles } = renderUseBulmaClasses(
+      { backgroundColor: 'scheme-invert' },
+      'bulma-'
+    );
+    expect(bulmaHelperStyles).toEqual({
+      backgroundColor: 'var(--bulma-scheme-invert)',
+    });
+    expect(bulmaHelperClasses).toBe('');
+  });
+
+  it('returns undefined bulmaHelperStyles for a regular background color', () => {
+    const { bulmaHelperStyles } = renderUseBulmaClasses({
+      backgroundColor: 'info',
+    });
+    expect(bulmaHelperStyles).toBeUndefined();
+  });
+
+  it('returns undefined bulmaHelperStyles when no backgroundColor is set', () => {
+    const { bulmaHelperStyles } = renderUseBulmaClasses({ color: 'primary' });
+    expect(bulmaHelperStyles).toBeUndefined();
+  });
+
   it('applies color with shade', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({
       color: 'primary',

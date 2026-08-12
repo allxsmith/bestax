@@ -9,7 +9,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 import { useConfig } from '../helpers/Config';
 
 /**
@@ -31,8 +33,16 @@ export interface CardProps
    * a colored surface.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color for the card. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color for the card. `scheme-*` values render as a
+   * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
+   * of a class.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Whether the card has a shadow (default: `true`). */
   hasShadow?: boolean;
   /** Card header content, rendered inside `.card-header-title`. */
@@ -115,10 +125,11 @@ const CardComponent: React.FC<CardProps> = ({
   footer,
   image,
   imageAlt,
+  style,
   ...props
 }) => {
   const { classPrefix } = useConfig();
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -157,7 +168,11 @@ const CardComponent: React.FC<CardProps> = ({
   };
 
   return (
-    <div className={cardClasses} {...rest}>
+    <div
+      className={cardClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {renderHeader(header, headerIcon, headerCentered, classPrefix)}
       {image && (
         <div className={prefixedClassNames(classPrefix, 'card-image')}>

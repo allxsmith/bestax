@@ -101,9 +101,9 @@
         },
         {
           "name": "bgColor",
-          "type": "Bulma color | 'inherit' | 'current'",
+          "type": "Bulma color | (typeof validSchemeColors)[number] | 'inherit' | 'current'",
           "default": null,
-          "description": "Background color for the card.",
+          "description": "Background color for the card. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class.",
           "required": false,
           "inherited": false,
           "deprecated": false,

@@ -121,4 +121,60 @@ describe('Section', () => {
       expect(section).toHaveClass('p-4');
     });
   });
+
+  describe('Scheme backgrounds', () => {
+    it('renders a scheme bgColor as an inline var() style, not a class', () => {
+      render(
+        <Section data-testid="section" bgColor="scheme-main-bis">
+          Section content
+        </Section>
+      );
+      const section = screen.getByTestId('section');
+      expect(section.className).not.toContain('has-background-');
+      expect(section.style.backgroundColor).toBe(
+        'var(--bulma-scheme-main-bis)'
+      );
+    });
+
+    it('renders the scheme style unchanged under a classPrefix', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Section data-testid="section" bgColor="scheme-main-ter">
+            Section content
+          </Section>
+        </ConfigProvider>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toHaveClass('bulma-section');
+      expect(section.className).not.toContain('has-background-');
+      expect(section.style.backgroundColor).toBe(
+        'var(--bulma-scheme-main-ter)'
+      );
+    });
+
+    it('lets a user style win over the scheme helper style', () => {
+      render(
+        <Section
+          data-testid="section"
+          bgColor="scheme-main-bis"
+          style={{ backgroundColor: 'red' }}
+        >
+          Section content
+        </Section>
+      );
+      const section = screen.getByTestId('section');
+      expect(section.style.backgroundColor).toBe('red');
+    });
+
+    it('renders no style attribute without a scheme bgColor or user style', () => {
+      render(
+        <Section data-testid="section" bgColor="light">
+          Section content
+        </Section>
+      );
+      const section = screen.getByTestId('section');
+      expect(section).toHaveClass('has-background-light');
+      expect(section.getAttribute('style')).toBeNull();
+    });
+  });
 });
