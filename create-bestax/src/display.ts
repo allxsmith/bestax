@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import figures from 'figures';
 import { MESSAGES } from './constants.js';
+import { detectPackageManager } from './package-manager.js';
 
 export function displayHeader(): void {
   console.log();
@@ -16,9 +17,12 @@ export function displaySuccess(targetDir: string): void {
   console.log();
   console.log(chalk.bold(MESSAGES.NEXT_STEPS));
   console.log();
+  // Mirror the package manager that invoked the CLI — `<pm> install` and
+  // `<pm> run dev` are valid for all four supported PMs.
+  const pm = detectPackageManager();
   console.log(chalk.cyan(`  cd ${targetDir}`));
-  console.log(chalk.cyan('  pnpm install'));
-  console.log(chalk.cyan('  pnpm dev'));
+  console.log(chalk.cyan(`  ${pm} install`));
+  console.log(chalk.cyan(`  ${pm} run dev`));
   console.log();
   console.log(
     chalk.gray('  Your app includes a beautiful logo-centric homepage')
