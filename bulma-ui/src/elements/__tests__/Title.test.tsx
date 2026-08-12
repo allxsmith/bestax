@@ -68,6 +68,33 @@ describe('Title Component', () => {
     expect(title.tagName).toBe('H1');
   });
 
+  test('accepts a numeric size and derives the heading level', () => {
+    render(<Title {...defaultProps} size={3} />);
+    const title = screen.getByRole('heading', { name: 'Test Title', level: 3 });
+    expect(title).toHaveClass('title is-3');
+    expect(title.tagName).toBe('H3');
+  });
+
+  test('rejects an out-of-range numeric size', () => {
+    render(
+      <Title {...defaultProps} size={7 as unknown as TitleProps['size']} />
+    );
+    const title = screen.getByRole('heading', { name: 'Test Title', level: 1 });
+    expect(title).toHaveClass('title');
+    expect(title).not.toHaveClass('is-7');
+    expect(title.tagName).toBe('H1');
+  });
+
+  test('rejects an out-of-range string size', () => {
+    render(
+      <Title {...defaultProps} size={'7' as unknown as TitleProps['size']} />
+    );
+    const title = screen.getByRole('heading', { name: 'Test Title', level: 1 });
+    expect(title).toHaveClass('title');
+    expect(title).not.toHaveClass('is-7');
+    expect(title.tagName).toBe('H1');
+  });
+
   test('applies spaced class', () => {
     render(<Title {...defaultProps} isSpaced />);
     const title = screen.getByRole('heading', { name: 'Test Title' });

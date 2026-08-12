@@ -118,6 +118,7 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 ```ts
 type BulmaColumnSize =
   | number // 1–12
+  | `${number}` // "1"–"12" — the string form is equivalent
   | 'full'
   | 'half'
   | 'one-third'
@@ -130,8 +131,8 @@ type BulmaColumnSize =
   | 'four-fifths';
 ```
 
-Numeric sizes are **numbers** — `sizeDesktop={7}`, never `"7"`; only the fraction names are
-strings. (`gap` is the exception that accepts number **or** string.)
+Numeric sizes accept a number **or** its string form — `sizeDesktop={7}` and
+`sizeDesktop="7"` are equivalent, and the fraction names are strings.
 
 > Columns **stack on mobile** by default and go side-by-side at the tablet breakpoint and up.
 > Use the per-breakpoint `size*` props to control how many cells share a row at each width.

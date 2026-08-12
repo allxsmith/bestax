@@ -8,9 +8,10 @@ import {
 
 const validSubTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
 /**
- * Valid size values for the SubTitle component (Bulma subtitle sizes).
+ * Valid size values for the SubTitle component (Bulma subtitle sizes): `'1'`–`'6'` as a string or number (`3` and `'3'` are equivalent).
  */
-export type SubTitleSize = (typeof validSubTitleSizes)[number];
+export type SubTitleSize =
+  (typeof validSubTitleSizes)[number] | 1 | 2 | 3 | 4 | 5 | 6;
 
 const validSubTitleElements = [
   'h1',
@@ -39,7 +40,7 @@ export interface SubTitleProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Size of the subtitle (Bulma sizes). */
+  /** Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). */
   size?: SubTitleSize;
   /** HTML element to render as (h1-h6 or p). */
   as?: SubTitleElement;
@@ -83,9 +84,12 @@ export const SubTitle: React.FC<SubTitleProps> = ({
   // Validate 'as' prop at runtime
   const element = validSubTitleElements.includes(as) ? as : 'h1';
 
-  // Validate 'size' prop at runtime
+  // Validate 'size' prop at runtime (numeric sizes normalize to strings)
+  const normalized = size == null ? undefined : String(size);
   const validSize =
-    size && validSubTitleSizes.includes(size) ? size : undefined;
+    normalized && (validSubTitleSizes as readonly string[]).includes(normalized)
+      ? (normalized as (typeof validSubTitleSizes)[number])
+      : undefined;
 
   const bulmaClasses = usePrefixedClassNames('subtitle', {
     [`is-${validSize}`]: validSize,

@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 14575
+          "bytes": 14625
         }
       ],
       "examples": [
@@ -132,7 +132,7 @@
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 20266
+          "bytes": 20270
         }
       ],
       "examples": [

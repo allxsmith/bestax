@@ -7,10 +7,11 @@ import {
 } from '../helpers/useBulmaClasses';
 
 /**
- * Possible values for Bulma column size.
+ * Possible values for Bulma column size: a number 1–12 (as a number or a numeric string, `7` and `"7"` are equivalent) or a named fraction.
  */
 export type BulmaColumnSize =
   | number
+  | `${number}`
   | 'full'
   | 'half'
   | 'one-third'

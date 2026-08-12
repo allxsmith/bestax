@@ -28,6 +28,16 @@ describe('Column', () => {
     expect(container.firstChild).toHaveClass('is-half');
   });
 
+  it('accepts a numeric string size', () => {
+    const { container } = render(<Column size="7" />);
+    expect(container.firstChild).toHaveClass('is-7');
+  });
+
+  it('accepts a numeric string offset', () => {
+    const { container } = render(<Column offset="3" />);
+    expect(container.firstChild).toHaveClass('is-offset-3');
+  });
+
   it('applies responsive size classes', () => {
     const { container } = render(
       <Column sizeMobile="one-third" sizeTablet="two-thirds" sizeDesktop={8} />

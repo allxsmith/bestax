@@ -60,9 +60,9 @@
         },
         {
           "name": "size",
-          "type": "'1' | '2' | '3' | '4' | '5' | '6'",
+          "type": "TitleSize",
           "default": null,
-          "description": "Size of the title (Bulma sizes).",
+          "description": "Size of the title (Bulma sizes `1`-`6`, as a string or number).",
           "required": false,
           "inherited": false,
           "deprecated": false

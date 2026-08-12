@@ -529,13 +529,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <div> attributes and Bulma helper props",
-      "types": [
-        {
-          "name": "BulmaColumnSize",
-          "expansion": "number | 'full' | 'half' | 'one-third' | 'two-thirds' | 'one-quarter' | 'three-quarters' | 'one-fifth' | 'two-fifths' | 'three-fifths' | 'four-fifths'",
-          "summary": "Possible values for Bulma column size."
-        }
-      ]
+      "types": []
     }
   ],
   "cssVars": []
