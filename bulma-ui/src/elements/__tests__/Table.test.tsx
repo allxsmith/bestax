@@ -213,3 +213,46 @@ describe('Compound components', () => {
     expect(screen.getByText('Total').closest('tfoot')).not.toBeNull();
   });
 });
+
+describe('Table fullwidth aliases', () => {
+  const body = (
+    <tbody>
+      <tr>
+        <td>Cell</td>
+      </tr>
+    </tbody>
+  );
+
+  it('applies is-fullwidth via the canonical isFullwidth prop', () => {
+    render(<Table isFullwidth>{body}</Table>);
+    expect(screen.getByRole('table')).toHaveClass('is-fullwidth');
+  });
+
+  it('applies is-fullwidth via the deprecated isFullWidth prop', () => {
+    render(<Table isFullWidth>{body}</Table>);
+    expect(screen.getByRole('table')).toHaveClass('is-fullwidth');
+  });
+
+  it('isFullwidth wins when both spellings are set', () => {
+    render(
+      <Table isFullwidth={false} isFullWidth>
+        {body}
+      </Table>
+    );
+    expect(screen.getByRole('table')).not.toHaveClass('is-fullwidth');
+  });
+
+  it('does not leak the deprecated alias onto the DOM', () => {
+    render(<Table isFullWidth>{body}</Table>);
+    expect(screen.getByRole('table')).not.toHaveAttribute('isFullWidth');
+  });
+
+  it('applies the class prefix to is-fullwidth', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Table isFullwidth>{body}</Table>
+      </ConfigProvider>
+    );
+    expect(screen.getByRole('table')).toHaveClass('bestax-is-fullwidth');
+  });
+});

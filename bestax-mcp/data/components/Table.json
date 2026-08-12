@@ -102,6 +102,16 @@
           "deprecated": false
         },
         {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the table span the full width of its parent.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
           "name": "isResponsive",
           "type": "boolean",
           "default": "false",

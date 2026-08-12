@@ -892,3 +892,69 @@ describe('Tabs deprecated color prop', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('Tabs fullwidth aliases', () => {
+  const list = (
+    <Tabs.List>
+      <Tabs.Item>
+        <a>Tab</a>
+      </Tabs.Item>
+    </Tabs.List>
+  );
+
+  it('applies is-fullwidth via the canonical isFullwidth prop', () => {
+    render(
+      <Tabs isFullwidth data-testid="tabs">
+        {list}
+      </Tabs>
+    );
+    expect(screen.getByTestId('tabs')).toHaveClass('is-fullwidth');
+  });
+
+  it('applies is-fullwidth via the deprecated isFullWidth prop', () => {
+    render(
+      <Tabs isFullWidth data-testid="tabs">
+        {list}
+      </Tabs>
+    );
+    expect(screen.getByTestId('tabs')).toHaveClass('is-fullwidth');
+  });
+
+  it('applies is-fullwidth via the deprecated fullwidth prop', () => {
+    render(
+      <Tabs fullwidth data-testid="tabs">
+        {list}
+      </Tabs>
+    );
+    expect(screen.getByTestId('tabs')).toHaveClass('is-fullwidth');
+  });
+
+  it('isFullwidth wins over isFullWidth when both are set', () => {
+    render(
+      <Tabs isFullwidth={false} isFullWidth data-testid="tabs">
+        {list}
+      </Tabs>
+    );
+    expect(screen.getByTestId('tabs')).not.toHaveClass('is-fullwidth');
+  });
+
+  it('isFullWidth wins over fullwidth when both are set', () => {
+    render(
+      <Tabs isFullWidth={false} fullwidth data-testid="tabs">
+        {list}
+      </Tabs>
+    );
+    expect(screen.getByTestId('tabs')).not.toHaveClass('is-fullwidth');
+  });
+
+  it('applies the class prefix to is-fullwidth', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Tabs isFullwidth data-testid="tabs">
+          {list}
+        </Tabs>
+      </ConfigProvider>
+    );
+    expect(screen.getByTestId('tabs')).toHaveClass('bestax-is-fullwidth');
+  });
+});

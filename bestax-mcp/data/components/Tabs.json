@@ -35,7 +35,7 @@
     },
     {
       "title": "Fullwidth Tabs",
-      "code": "<Tabs fullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>One</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Two</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Three</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Four</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs isFullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>One</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Two</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Three</a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>Four</a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Centered Boxed Tabs with Icons",
@@ -43,7 +43,7 @@
     },
     {
       "title": "Toggle Fullwidth Tabs with Icons",
-      "code": "<Tabs toggle fullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-list\" size=\"small\" />\n        <span>List</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-check\" size=\"small\" />\n        <span>Done</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-times\" size=\"small\" />\n        <span>Removed</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs toggle isFullwidth>\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-list\" size=\"small\" />\n        <span>List</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-check\" size=\"small\" />\n        <span>Done</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-times\" size=\"small\" />\n        <span>Removed</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Centered Boxed Medium Tabs with Icons",
@@ -51,7 +51,7 @@
     },
     {
       "title": "Toggle Fullwidth Large Tabs with Icons",
-      "code": "<Tabs toggle fullwidth size=\"large\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-rocket\" size=\"small\" />\n        <span>Launch</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-bell\" size=\"small\" />\n        <span>Alerts</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cogs\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
+      "code": "<Tabs toggle isFullwidth size=\"large\">\n  <Tabs.List>\n    <Tabs.Item active>\n      <a>\n        <Icon name=\"fas fa-rocket\" size=\"small\" />\n        <span>Launch</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-bell\" size=\"small\" />\n        <span>Alerts</span>\n      </a>\n    </Tabs.Item>\n    <Tabs.Item>\n      <a>\n        <Icon name=\"fas fa-cogs\" size=\"small\" />\n        <span>Settings</span>\n      </a>\n    </Tabs.Item>\n  </Tabs.List>\n</Tabs>"
     },
     {
       "title": "Compound (dot-notation) usage",
@@ -90,13 +90,33 @@
           "deprecated": false
         },
         {
-          "name": "fullwidth",
+          "name": "isFullwidth",
           "type": "boolean",
           "default": "false",
           "description": "Tabs expand to fill the horizontal space.",
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs expand to fill the horizontal space.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "fullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Tabs expand to fill the horizontal space.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
         },
         {
           "name": "boxed",

@@ -32,7 +32,7 @@ this automatically for literal values; dynamic values get TODOs.
 ## Boolean modifier convention
 
 RBC uses bare booleans (`loading`, `outlined`, `rounded`, `fullwidth`); bestax prefixes
-with `is`/`has` (`isLoading`, `isOutlined`, `isRounded`, `isFullWidth`). Per-component
+with `is`/`has` (`isLoading`, `isOutlined`, `isRounded`, `isFullwidth`). Per-component
 tables live in [component-map.md](component-map.md).
 
 ## Responsive breakpoint objects → flat per-viewport props

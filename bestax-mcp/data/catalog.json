@@ -202,7 +202,7 @@
       "slug": "elements/button",
       "import": "import { Button } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 22,
+      "propCount": 23,
       "exampleCount": 24
     },
     {
@@ -213,7 +213,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 50,
+      "propCount": 52,
       "exampleCount": 7
     },
     {
@@ -466,7 +466,7 @@
       "slug": "form/file",
       "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 21,
+      "propCount": 22,
       "exampleCount": 16
     },
     {
@@ -576,7 +576,7 @@
       "slug": "elements/linkbutton",
       "import": "import { LinkButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 20,
+      "propCount": 21,
       "exampleCount": 9
     },
     {
@@ -807,7 +807,7 @@
       "slug": "form/select",
       "import": "import { Select, Field, Control } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 28,
+      "propCount": 29,
       "exampleCount": 16
     },
     {
@@ -818,7 +818,7 @@
       "slug": "components/sidebar",
       "import": "import { Sidebar } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
+      "propCount": 22,
       "exampleCount": 8
     },
     {
@@ -906,7 +906,7 @@
       "slug": "elements/table",
       "import": "import { Table, Thead, Tbody, Tfoot, Tr, Th, Td } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 26,
+      "propCount": 27,
       "exampleCount": 7
     },
     {
@@ -917,7 +917,7 @@
       "slug": "components/tabs",
       "import": "import { Tabs } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 35,
+      "propCount": 37,
       "exampleCount": 13
     },
     {

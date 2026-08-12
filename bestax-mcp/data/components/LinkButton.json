@@ -110,13 +110,23 @@
           "deprecated": false
         },
         {
-          "name": "isFullWidth",
+          "name": "isFullwidth",
           "type": "boolean",
           "default": "false",
           "description": "Makes the button full-width.",
           "required": false,
           "inherited": true,
           "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
         },
         {
           "name": "isFocused",

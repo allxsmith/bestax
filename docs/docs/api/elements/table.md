@@ -259,17 +259,18 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                     | Default | Description                                                   |
-| -------------- | -------------------------------------------------------- | ------- | ------------------------------------------------------------- |
-| `className`    | `string`                                                 | —       | Additional CSS classes to apply.                              |
-| `isBordered`   | `boolean`                                                | `false` | Adds borders to all cells.                                    |
-| `isStriped`    | `boolean`                                                | `false` | Adds zebra-striping to rows.                                  |
-| `isNarrow`     | `boolean`                                                | `false` | Makes the table more compact by cutting cell padding in half. |
-| `isHoverable`  | `boolean`                                                | `false` | Adds a hover effect on rows.                                  |
-| `isFullwidth`  | `boolean`                                                | `false` | Makes the table span the full width of its parent.            |
-| `isResponsive` | `boolean`                                                | `false` | Makes the table horizontally scrollable on small screens.     |
-| `children`     | `React.ReactNode`                                        | —       | Table content (should use subcomponents).                     |
-| `...`          | All standard `<table>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)             |
+| Prop           | Type                                                     | Default | Description                                                                                                                        |
+| -------------- | -------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `className`    | `string`                                                 | —       | Additional CSS classes to apply.                                                                                                   |
+| `isBordered`   | `boolean`                                                | `false` | Adds borders to all cells.                                                                                                         |
+| `isStriped`    | `boolean`                                                | `false` | Adds zebra-striping to rows.                                                                                                       |
+| `isNarrow`     | `boolean`                                                | `false` | Makes the table more compact by cutting cell padding in half.                                                                      |
+| `isHoverable`  | `boolean`                                                | `false` | Adds a hover effect on rows.                                                                                                       |
+| `isFullwidth`  | `boolean`                                                | `false` | Makes the table span the full width of its parent.                                                                                 |
+| `isFullWidth`  | `boolean`                                                | `false` | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Makes the table span the full width of its parent. |
+| `isResponsive` | `boolean`                                                | `false` | Makes the table horizontally scrollable on small screens.                                                                          |
+| `children`     | `React.ReactNode`                                        | —       | Table content (should use subcomponents).                                                                                          |
+| `...`          | All standard `<table>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                  |
 
 **Subcomponents:**
 

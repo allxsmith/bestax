@@ -29,7 +29,7 @@
     { "title": "Static", "code": "<Button isStatic>Static Button</Button>" },
     {
       "title": "Full Width",
-      "code": "<Button color=\"warning\" isFullWidth>\n  Full Width Button\n</Button>"
+      "code": "<Button color=\"warning\" isFullwidth>\n  Full Width Button\n</Button>"
     },
     {
       "title": "Outlined",
@@ -161,13 +161,23 @@
           "deprecated": false
         },
         {
-          "name": "isFullWidth",
+          "name": "isFullwidth",
           "type": "boolean",
           "default": "false",
           "description": "Makes the button full-width.",
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
         },
         {
           "name": "isOutlined",

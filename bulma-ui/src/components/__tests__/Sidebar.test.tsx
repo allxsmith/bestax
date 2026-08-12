@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Sidebar } from '../Sidebar';
+import { ConfigProvider } from '../../helpers/Config';
 
 describe('Sidebar', () => {
   describe('Rendering', () => {
@@ -113,6 +114,49 @@ describe('Sidebar', () => {
         </Sidebar>
       );
       expect(screen.getByRole('dialog')).toHaveClass('is-fullwidth');
+    });
+
+    it('applies is-fullwidth and 100% width via the canonical isFullwidth prop', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} isFullwidth>
+          <div>Content</div>
+        </Sidebar>
+      );
+      const sidebar = screen.getByRole('dialog');
+      expect(sidebar).toHaveClass('is-fullwidth');
+      expect(sidebar.style.getPropertyValue('--bulma-sidebar-width')).toBe(
+        '100%'
+      );
+    });
+
+    it('isFullwidth wins over fullWidth for both the class and the width', () => {
+      render(
+        <Sidebar
+          isOpen
+          onClose={() => {}}
+          isFullwidth={false}
+          fullWidth
+          width="320px"
+        >
+          <div>Content</div>
+        </Sidebar>
+      );
+      const sidebar = screen.getByRole('dialog');
+      expect(sidebar).not.toHaveClass('is-fullwidth');
+      expect(sidebar.style.getPropertyValue('--bulma-sidebar-width')).toBe(
+        '320px'
+      );
+    });
+
+    it('applies the class prefix to is-fullwidth', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Sidebar isOpen onClose={() => {}} isFullwidth>
+            <div>Content</div>
+          </Sidebar>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('dialog')).toHaveClass('bestax-is-fullwidth');
     });
   });
 

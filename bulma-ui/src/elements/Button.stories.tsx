@@ -56,9 +56,14 @@ const meta: Meta<typeof Button> = {
       control: 'boolean',
       description: 'Makes the button non-interactive.',
     },
-    isFullWidth: {
+    isFullwidth: {
       control: 'boolean',
       description: 'Makes the button full-width.',
+    },
+    isFullWidth: {
+      control: 'boolean',
+      description:
+        'Makes the button full-width. Deprecated: use `isFullwidth` instead.',
     },
     isOutlined: {
       control: 'boolean',
@@ -264,7 +269,7 @@ export const Static: Story = {
 export const FullWidth: Story = {
   args: {
     color: 'warning',
-    isFullWidth: true,
+    isFullwidth: true,
     children: 'Full Width Button',
   },
 };

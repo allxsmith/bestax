@@ -199,3 +199,36 @@ describe('File label association (#368)', () => {
     expect(container.querySelector('input')).not.toHaveAttribute('id');
   });
 });
+
+describe('File fullwidth aliases', () => {
+  it('applies is-fullwidth via the canonical isFullwidth prop', () => {
+    const { container } = render(<File isFullwidth />);
+    expect(container.querySelector('.file')).toHaveClass('is-fullwidth');
+  });
+
+  it('applies is-fullwidth via the deprecated isFullWidth prop', () => {
+    const { container } = render(<File isFullWidth />);
+    expect(container.querySelector('.file')).toHaveClass('is-fullwidth');
+  });
+
+  it('isFullwidth wins when both spellings are set', () => {
+    const { container } = render(<File isFullwidth={false} isFullWidth />);
+    expect(container.querySelector('.file')).not.toHaveClass('is-fullwidth');
+  });
+
+  it('does not leak the deprecated alias onto the DOM input', () => {
+    const { container } = render(<File isFullWidth />);
+    expect(container.querySelector('input')).not.toHaveAttribute('isFullWidth');
+  });
+
+  it('applies the class prefix to is-fullwidth', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <File isFullwidth />
+      </ConfigProvider>
+    );
+    expect(container.querySelector('.bestax-file')).toHaveClass(
+      'bestax-is-fullwidth'
+    );
+  });
+});

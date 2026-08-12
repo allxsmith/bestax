@@ -116,8 +116,9 @@ Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
 
-⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
-`isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
+Full-width is `isFullwidth` on every component (`Button`, `Select`, `File`, `Table`, `Tabs`,
+`Sidebar`); older spellings (`isFullWidth`, `fullwidth`, `fullWidth`) still work as deprecated
+aliases — write `isFullwidth`.
 
 The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
 `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`,

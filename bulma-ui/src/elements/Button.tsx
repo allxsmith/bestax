@@ -38,6 +38,8 @@ export interface ButtonProps
   /** Makes the button non-interactive. */
   isStatic?: boolean;
   /** Makes the button full-width. */
+  isFullwidth?: boolean;
+  /** Makes the button full-width. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   isFullWidth?: boolean;
   /** Applies outlined styling (requires color). */
   isOutlined?: boolean;
@@ -91,6 +93,7 @@ export const Button: React.FC<ButtonProps> = ({
   isRounded,
   isLoading,
   isStatic,
+  isFullwidth,
   isFullWidth,
   isOutlined,
   isInverted,
@@ -131,7 +134,7 @@ export const Button: React.FC<ButtonProps> = ({
     'is-focused': isFocused,
     'is-active': isActive,
     'is-inverted': isInverted,
-    'is-fullwidth': isFullWidth,
+    'is-fullwidth': isFullwidth ?? isFullWidth,
   });
 
   // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes

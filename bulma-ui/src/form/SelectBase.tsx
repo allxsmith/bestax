@@ -36,6 +36,8 @@ export interface SelectBaseProps
   isFocused?: boolean;
   /** Makes the select span the full width of parent. */
   isFullwidth?: boolean;
+  /** Makes the select span the full width of parent. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
+  isFullWidth?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;
   /** Disables the select. */
@@ -67,6 +69,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       isHovered,
       isFocused,
       isFullwidth,
+      isFullWidth,
       className,
       disabled,
       children,
@@ -89,7 +92,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       'is-loading': isLoading,
       'is-active': isActive,
       'is-multiple': !!multiple,
-      'is-fullwidth': isFullwidth,
+      'is-fullwidth': isFullwidth ?? isFullWidth,
     });
     const selectClass = classNames(mainClass, bulmaHelperClasses, className);
 

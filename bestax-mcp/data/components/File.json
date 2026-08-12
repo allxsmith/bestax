@@ -138,6 +138,16 @@
           "deprecated": false
         },
         {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the file input expands to full width.",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
           "name": "isRight",
           "type": "boolean",
           "default": "false",

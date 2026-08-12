@@ -820,7 +820,7 @@ function MobileFirstExample() {
               displayMobile="block"
               displayTablet="none"
               color="primary"
-              fullWidth
+              isFullwidth
             >
               Mobile Actions
             </Button>

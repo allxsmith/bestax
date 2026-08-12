@@ -31,6 +31,8 @@ export interface TableProps
   isHoverable?: boolean;
   /** Makes the table span the full width of its parent. */
   isFullwidth?: boolean;
+  /** Makes the table span the full width of its parent. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
+  isFullWidth?: boolean;
   /** Makes the table horizontally scrollable on small screens. */
   isResponsive?: boolean;
   /** Table content (should use subcomponents). */
@@ -52,6 +54,7 @@ const TableComponent: React.FC<TableProps> = ({
   isNarrow,
   isHoverable,
   isFullwidth,
+  isFullWidth,
   isResponsive,
   children,
   ...props
@@ -66,7 +69,7 @@ const TableComponent: React.FC<TableProps> = ({
     'is-striped': isStriped,
     'is-narrow': isNarrow,
     'is-hoverable': isHoverable,
-    'is-fullwidth': isFullwidth,
+    'is-fullwidth': isFullwidth ?? isFullWidth,
   });
 
   const containerClass = usePrefixedClassNames('table-container');

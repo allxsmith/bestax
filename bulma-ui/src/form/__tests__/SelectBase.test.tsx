@@ -228,3 +228,48 @@ describe('Field label adoption (#495)', () => {
     expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
   });
 });
+
+describe('SelectBase fullwidth aliases', () => {
+  const option = <option value="a">Option A</option>;
+
+  it('applies is-fullwidth via the canonical isFullwidth prop', () => {
+    render(<SelectBase isFullwidth>{option}</SelectBase>);
+    expect(screen.getByRole('combobox').parentElement).toHaveClass(
+      'is-fullwidth'
+    );
+  });
+
+  it('applies is-fullwidth via the deprecated isFullWidth prop', () => {
+    render(<SelectBase isFullWidth>{option}</SelectBase>);
+    expect(screen.getByRole('combobox').parentElement).toHaveClass(
+      'is-fullwidth'
+    );
+  });
+
+  it('isFullwidth wins when both spellings are set', () => {
+    render(
+      <SelectBase isFullwidth={false} isFullWidth>
+        {option}
+      </SelectBase>
+    );
+    expect(screen.getByRole('combobox').parentElement).not.toHaveClass(
+      'is-fullwidth'
+    );
+  });
+
+  it('does not leak the deprecated alias onto the DOM', () => {
+    render(<SelectBase isFullWidth>{option}</SelectBase>);
+    expect(screen.getByRole('combobox')).not.toHaveAttribute('isFullWidth');
+  });
+
+  it('applies the class prefix to is-fullwidth', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <SelectBase isFullwidth>{option}</SelectBase>
+      </ConfigProvider>
+    );
+    expect(screen.getByRole('combobox').parentElement).toHaveClass(
+      'bestax-is-fullwidth'
+    );
+  });
+});

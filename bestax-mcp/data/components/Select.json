@@ -282,6 +282,16 @@
           "deprecated": false
         },
         {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the select span the full width of parent.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,

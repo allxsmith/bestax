@@ -160,7 +160,7 @@ function example() {
         inline
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        fullWidth
+        isFullwidth
       >
         <Sidebar.Header>
           <Sidebar.Title>Full Width Panel</Sidebar.Title>
@@ -391,22 +391,23 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                | Default   | Description                                           |
-| -------------- | --------------------------------------------------- | --------- | ----------------------------------------------------- |
-| `isOpen`       | `boolean`                                           | —         | Whether the sidebar is open (required).               |
-| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                   |
-| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'. |
-| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                          |
-| `fullWidth`    | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).              |
-| `overlay`      | `boolean`                                           | `true`    | Show overlay behind sidebar. Default: true.           |
-| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true. |
-| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Default: true.           |
-| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.             |
-| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                    |
-| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal.             |
-| `className`    | `string`                                            | —         | Additional CSS classes.                               |
-| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                 |
-| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)     |
+| Prop           | Type                                                | Default   | Description                                                                                                              |
+| -------------- | --------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `isOpen`       | `boolean`                                           | —         | Whether the sidebar is open (required).                                                                                  |
+| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                                                                                      |
+| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                                                                    |
+| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                             |
+| `isFullwidth`  | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                 |
+| `fullWidth`    | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style). |
+| `overlay`      | `boolean`                                           | `true`    | Show overlay behind sidebar. Default: true.                                                                              |
+| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                    |
+| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Default: true.                                                                              |
+| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                |
+| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                                                                       |
+| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal.                                                                                |
+| `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                  |
+| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                    |
+| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                        |
 
 **Subcomponents:**
 
