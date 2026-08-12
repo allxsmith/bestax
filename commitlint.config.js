@@ -1,9 +1,13 @@
 // Types that trigger a semantic-release in the per-package release configs
-// (bulma-ui/release.config.js, create-bestax/release.config.js). Those
-// configs key releases off the scope, and unscoped commits of these types
-// would fall back to the angular defaults and bump BOTH packages — so a
-// recognized scope is mandatory here.
-const RELEASE_TYPES = ['feat', 'fix', 'perf', 'refactor', 'style'];
+// (each package's release.config.js). Those configs key releases off the
+// scope, and unscoped commits of these types would fall back to the angular
+// defaults and bump EVERY package — so a recognized scope is mandatory here.
+// `revert` is included because commit-analyzer's default rules ship
+// `{ revert: true, release: 'patch' }`: an unscoped revert matches no
+// package's negated-scope suppression and would patch-release all of them.
+// (Residual: commitlint's default ignores skip git-revert-style
+// `Revert "..."` messages entirely — keep reverts conventional and scoped.)
+const RELEASE_TYPES = ['feat', 'fix', 'perf', 'refactor', 'style', 'revert'];
 const RELEASE_SCOPES = [
   'bulma-ui',
   'docs',

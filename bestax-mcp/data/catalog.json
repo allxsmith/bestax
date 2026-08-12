@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedFrom": { "package": "@allxsmith/bestax-bulma", "version": "5.9.0" },
+  "generatedFrom": { "package": "@allxsmith/bestax-bulma", "version": "5.9.1" },
   "docsBase": "https://bestax.io/docs",
   "categories": [
     {

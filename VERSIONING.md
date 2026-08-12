@@ -1,36 +1,47 @@
 # Independent Versioning Strategy
 
-`@allxsmith/bestax-bulma` and `create-bestax` are versioned and released **independently**.
-Each package releases only when a commit is scoped to it — the two version numbers are
-unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x).
+`@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, and `bestax-mcp` are versioned
+and released **independently**. Each package releases only when a commit is scoped to it — the
+version numbers are unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x).
 
 The source of truth is the `releaseRules` in each package's semantic-release config:
-[`bulma-ui/release.config.js`](./bulma-ui/release.config.js) and
-[`create-bestax/release.config.js`](./create-bestax/release.config.js).
+[`bulma-ui/release.config.js`](./bulma-ui/release.config.js),
+[`create-bestax/release.config.js`](./create-bestax/release.config.js),
+[`bestax-migrate/release.config.js`](./bestax-migrate/release.config.js), and
+[`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js).
 
 ## Release Rules
 
-A commit releases **only** the package its scope names:
+A commit releases **only** the package its scope names. Representative examples — the same
+`feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules apply to every package
+through its own scope:
 
-| Commit                                                            | bestax-bulma | create-bestax |
-| ----------------------------------------------------------------- | ------------ | ------------- |
-| `feat(bulma-ui): …`                                               | minor        | —             |
-| `fix(bulma-ui): …`                                                | patch        | —             |
-| `perf/refactor/style(bulma-ui): …`                                | patch        | —             |
-| `feat(create-bestax): …`                                          | —            | minor         |
-| `fix(create-bestax): …`                                           | —            | patch         |
-| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             |
-| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             |
+| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp |
+| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- |
+| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          |
+| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          |
+| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          |
+| `feat(create-bestax): …`                                          | —            | minor         | —              | —          |
+| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          |
+| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          |
+| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          |
 
 Notes:
 
 - **Breaking changes require a `BREAKING CHANGE:` footer** in the commit body. The angular
   commit-analyzer preset does **not** parse `feat(bulma-ui)!:` bang headers.
-- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`) **must** carry a
-  scope of `bulma-ui`, `docs`, or `create-bestax` — enforced by commitlint
-  ([`commitlint.config.js`](./commitlint.config.js)) via the husky `commit-msg` hook. This is
-  what guarantees the per-scope release rules can't be bypassed by an unscoped commit.
-- A commit scoped to `docs` never releases either package.
+- Commits of a releasing type (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) **must**
+  carry a scope of `bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, or `bestax-mcp` —
+  enforced by commitlint ([`commitlint.config.js`](./commitlint.config.js)) via the husky
+  `commit-msg` hook. This is what guarantees the per-scope release rules can't be bypassed by
+  an unscoped commit.
+- `revert` is scope-gated too: commit-analyzer's default rules ship
+  `{ revert: true, release: 'patch' }`, so an unscoped revert would patch-release **every**
+  package. A scoped `revert(bulma-ui): …` patch-releases only its package. Caveat: commitlint's
+  default ignores skip git-revert-style `Revert "…"` messages entirely, so keep reverts in
+  conventional form.
+- A commit scoped to `docs` never releases any package.
 
 ## Tags & Changelogs
 
@@ -38,6 +49,8 @@ Each package tags and logs its own releases:
 
 - `@allxsmith/bestax-bulma@X.Y.Z` tags, changelog at `bulma-ui/CHANGELOG.md`
 - `create-bestax@X.Y.Z` tags, changelog at `create-bestax/CHANGELOG.md`
+- `bestax-migrate@X.Y.Z` tags, changelog at `bestax-migrate/CHANGELOG.md`
+- `bestax-mcp@X.Y.Z` tags, changelog at `bestax-mcp/CHANGELOG.md`
 
 ## Release Process
 
@@ -47,7 +60,7 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
 2. If a release is due: version bump, `CHANGELOG.md` update, npm publish (OIDC trusted
    publishing — no `NPM_TOKEN`), a signed `chore(release): X.Y.Z [skip ci]` commit, git tag,
    and GitHub release.
-3. A push may release one package, both, or neither — they never bump each other.
+3. A push may release any subset of the packages — they never bump each other.
 
 `main` is ruleset-protected, so the release commit and tag are pushed by a dedicated
 GitHub App that is the ruleset's only automation bypass — not by `github-actions[bot]`.
