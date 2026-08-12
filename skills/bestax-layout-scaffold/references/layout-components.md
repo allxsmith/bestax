@@ -157,7 +157,9 @@ the column's auto height). Make the `Column` a flex container and let the card g
 ```
 
 `display`, `flexDirection`, and `flexGrow` are helper props every component accepts;
-`flexGrow` takes a string (`"1"`).
+`flexGrow` takes a string (`"1"`). `Card.*` sub-parts accept helper props too, so pinning a
+footer inside a card is `<Card display="flex" flexDirection="column">` +
+`<Card.Content flexGrow="1">` — no `Box` swap needed.
 
 ## Grid / Cell
 

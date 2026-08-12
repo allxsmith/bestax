@@ -220,7 +220,16 @@ const CardComponent: React.FC<CardProps> = ({
 /**
  * Props for the Card.Header compound component.
  */
-export interface CardHeaderProps extends React.HTMLAttributes<HTMLElement> {
+export interface CardHeaderProps
+  extends
+    React.HTMLAttributes<HTMLElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Header content. Wrap in Card.Header.Title for Bulma styling. */
@@ -232,7 +241,16 @@ export interface CardHeaderProps extends React.HTMLAttributes<HTMLElement> {
 /**
  * Props for the Card.Image compound component.
  */
-export interface CardImageProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardImageProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Image content (e.g. a `<figure>` with an `<img>`). */
@@ -242,7 +260,16 @@ export interface CardImageProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Props for the Card.Content compound component.
  */
-export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardContentProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Card body content. */
@@ -252,7 +279,16 @@ export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * Props for the Card.Footer compound component.
  */
-export interface CardFooterProps extends React.HTMLAttributes<HTMLElement> {
+export interface CardFooterProps
+  extends
+    React.HTMLAttributes<HTMLElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Footer content, typically Card.FooterItem elements. */
@@ -262,7 +298,16 @@ export interface CardFooterProps extends React.HTMLAttributes<HTMLElement> {
 /**
  * Props for the Card.FooterItem compound component.
  */
-export interface CardFooterItemProps extends React.HTMLAttributes<HTMLSpanElement> {
+export interface CardFooterItemProps
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Footer item content (link, button, text, etc.). */
@@ -272,7 +317,16 @@ export interface CardFooterItemProps extends React.HTMLAttributes<HTMLSpanElemen
 /**
  * Props for the Card.Header.Title compound component.
  */
-export interface CardHeaderTitleProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardHeaderTitleProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Title text content. */
@@ -284,7 +338,16 @@ export interface CardHeaderTitleProps extends React.HTMLAttributes<HTMLDivElemen
 /**
  * Props for the Card.Header.Icon compound component.
  */
-export interface CardHeaderIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface CardHeaderIconProps
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** Bulma color modifier (text color helper). */
+  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Background color helper. */
+  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /** Text color helper; wins over `color` when both are set. */
+  textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
   className?: string;
   /** Icon content (e.g. an icon element). */
@@ -302,9 +365,17 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   className,
   children,
   centered,
+  color,
+  bgColor,
+  textColor,
   ...props
 }) => {
   const { classPrefix } = useConfig();
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
 
   // Check if children contains a CardHeaderTitle component
   const hasHeaderTitle = React.Children.toArray(children).some(
@@ -317,7 +388,10 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   const headerClasses = usePrefixedClassNames('card-header');
 
   return (
-    <header className={classNames(headerClasses, className)} {...props}>
+    <header
+      className={classNames(headerClasses, bulmaHelperClasses, className)}
+      {...rest}
+    >
       {hasHeaderTitle ? (
         children
       ) : (
@@ -347,20 +421,31 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   className,
   children,
   centered,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <div
-    className={classNames(
-      usePrefixedClassNames('card-header-title', {
-        'is-centered': centered,
-      }),
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <div
+      className={classNames(
+        usePrefixedClassNames('card-header-title', {
+          'is-centered': centered,
+        }),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+};
 
 /**
  * Card header icon compound component. Renders a `.card-header-icon` button.
@@ -372,16 +457,30 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
 const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <button
-    className={classNames(usePrefixedClassNames('card-header-icon'), className)}
-    aria-label={props['aria-label'] || 'more options'}
-    {...props}
-  >
-    {children}
-  </button>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <button
+      className={classNames(
+        usePrefixedClassNames('card-header-icon'),
+        bulmaHelperClasses,
+        className
+      )}
+      aria-label={props['aria-label'] || 'more options'}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+};
 
 /**
  * Card image compound component. Wraps children in a `.card-image` element.
@@ -393,15 +492,29 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
 const CardImage: React.FC<CardImageProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <div
-    className={classNames(usePrefixedClassNames('card-image'), className)}
-    {...props}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <div
+      className={classNames(
+        usePrefixedClassNames('card-image'),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+};
 
 /**
  * Card content compound component. Wraps children in a `.card-content` element.
@@ -413,15 +526,29 @@ const CardImage: React.FC<CardImageProps> = ({
 const CardContent: React.FC<CardContentProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <div
-    className={classNames(usePrefixedClassNames('card-content'), className)}
-    {...props}
-  >
-    {children}
-  </div>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <div
+      className={classNames(
+        usePrefixedClassNames('card-content'),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+};
 
 /**
  * Card footer compound component. Wraps children in a `.card-footer` element.
@@ -433,15 +560,29 @@ const CardContent: React.FC<CardContentProps> = ({
 const CardFooter: React.FC<CardFooterProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <footer
-    className={classNames(usePrefixedClassNames('card-footer'), className)}
-    {...props}
-  >
-    {children}
-  </footer>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <footer
+      className={classNames(
+        usePrefixedClassNames('card-footer'),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </footer>
+  );
+};
 
 /**
  * Card footer item compound component. Wraps children in a `.card-footer-item` span.
@@ -453,15 +594,29 @@ const CardFooter: React.FC<CardFooterProps> = ({
 const CardFooterItem: React.FC<CardFooterItemProps> = ({
   className,
   children,
+  color,
+  bgColor,
+  textColor,
   ...props
-}) => (
-  <span
-    className={classNames(usePrefixedClassNames('card-footer-item'), className)}
-    {...props}
-  >
-    {children}
-  </span>
-);
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses({
+    color: textColor ?? color,
+    backgroundColor: bgColor,
+    ...props,
+  });
+  return (
+    <span
+      className={classNames(
+        usePrefixedClassNames('card-footer-item'),
+        bulmaHelperClasses,
+        className
+      )}
+      {...rest}
+    >
+      {children}
+    </span>
+  );
+};
 
 // Attach nested Title and Icon components to CardHeader
 const CardHeaderCompound = withSubComponents(CardHeader, {

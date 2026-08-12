@@ -224,7 +224,7 @@
       "slug": "components/card",
       "import": "import { Card } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 28,
+      "propCount": 49,
       "exampleCount": 13
     },
     {

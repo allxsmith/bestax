@@ -31,9 +31,10 @@ that can also be used on their own:
 
 Because the component destructures these into `bulmaHelperClasses`, callers get the full Bulma
 helper surface for free on every component built this way, and `rest` stays clean for DOM
-spreading. (Library compound sub-parts — `Card.Content`, `Modal.Card`, `Tabs.Tab`,
+spreading. (Some library compound sub-parts — `Modal.Card`, `Tabs.Tab`,
 `Message.Body` — do **not** take helper props: just `className`, HTML attributes, and their own
-few, e.g. `Tabs.Tab`'s required `index` and its built-in `icon`/`disabled` props.)
+few, e.g. `Tabs.Tab`'s required `index` and its built-in `icon`/`disabled` props. `Card.*`
+sub-parts do take them.)
 
 ## `classNames(...)` and friends — `helpers/classNames.ts`
 
