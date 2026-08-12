@@ -1,6 +1,6 @@
 {
   "name": "bestax-mcp",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "MCP server for @allxsmith/bestax-bulma — component props, examples, CSS variables and agent skills, served offline from a version-pinned index",
   "type": "module",
   "bin": {

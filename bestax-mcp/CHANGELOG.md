@@ -1,0 +1,269 @@
+# 1.0.0 (2026-08-12)
+
+
+* feat(bulma-ui)!: remove bestax-bulma-prefixed CSS variant ([94baa34](https://github.com/allxsmith/bestax/commit/94baa3489ac54587e6026a8bece9f86816af9372))
+* feat(create-bestax)!: require Node.js 18+ and align with bestax-bulma v2 ([#118](https://github.com/allxsmith/bestax/issues/118)) ([b22f183](https://github.com/allxsmith/bestax/commit/b22f183acfa2f0fa6e50b9cd399ca7cd9ac67f94))
+
+
+### Bug Fixes
+
+* add comprehensive rules to prevent bulma-ui versioning on non-bulma-ui commits ([#122](https://github.com/allxsmith/bestax/issues/122)) ([525ccfa](https://github.com/allxsmith/bestax/commit/525ccfa7beff0e46fdbc5c2e25603e562baabd67)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+* **bestax-mcp:** derive the near-miss guidance from the skill, and only when it helps ([1141cca](https://github.com/allxsmith/bestax/commit/1141ccad60459038485b13b4841fb125f904be6b))
+* **bestax-mcp:** do not split a helper-prop table cell on an escaped pipe ([bdac820](https://github.com/allxsmith/bestax/commit/bdac8207db46f2402ad6b765500be8a3af066095))
+* **bestax-mcp:** lead get_helper_props with the inline-style prohibition ([ffc627a](https://github.com/allxsmith/bestax/commit/ffc627a9ddc3f32bc823bfbc875558d1e2e18291))
+* **bestax-mcp:** make list_components point at the next step ([8ddb2fd](https://github.com/allxsmith/bestax/commit/8ddb2fdacd94e45c8e97adbbe7f5844bf98b4b46))
+* **bestax-mcp:** make tests and cached builds work from a clean checkout ([6e63820](https://github.com/allxsmith/bestax/commit/6e6382007dadce9964c86ba8d29deedb11ae2777)), closes [bestax-mcp#build](https://github.com/bestax-mcp/issues/build)
+* **bestax-mcp:** name list_components as the entry point, not search_bestax ([206380b](https://github.com/allxsmith/bestax/commit/206380b209a0d5d89b25477ff2fab6806f55ac70))
+* **bestax-mcp:** name the three near-miss components in the list_components footer ([1c7af67](https://github.com/allxsmith/bestax/commit/1c7af673cf9ba3cbd48fb6bd1cb979f80e940ba4))
+* **bestax-mcp:** route helper questions to the tool that answers them ([cd6ce12](https://github.com/allxsmith/bestax/commit/cd6ce124a1ab856896579d9b00965cbe295523ed))
+* **bestax-mcp:** validate the one input that is not ours, and bound the rest ([3e1adc9](https://github.com/allxsmith/bestax/commit/3e1adc9bb0c9d1064d66cf55e55dd75f90158c39))
+* **bestax-migrate:** give the kitchen-sink e2e a per-process scratch dir ([2211ea5](https://github.com/allxsmith/bestax/commit/2211ea514475f6cc2de7c60c1433b1797cb02199))
+* **bestax-migrate:** reject pnpm's workspace alias form instead of unwrapping it ([de6a900](https://github.com/allxsmith/bestax/commit/de6a90081c749ca8e3a761ce9cb9c1bee9e2386a))
+* **bestax-migrate:** require the pack script to exist, not just be named ([5315efe](https://github.com/allxsmith/bestax/commit/5315efe86c89205dc4ac97ec94f89b853832b696))
+* **bestax-migrate:** resolve bare workspace: and guard the catalog: protocol ([7fda9db](https://github.com/allxsmith/bestax/commit/7fda9dbd1537439edc9ec694a9a9d140c2bfc467)), closes [#417](https://github.com/allxsmith/bestax/issues/417) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** resolve workspace: specifiers before publishing ([782829a](https://github.com/allxsmith/bestax/commit/782829a7672e3a44827b53651b738ff37b3581b7)), closes [bestax-migrate#test](https://github.com/bestax-migrate/issues/test) [#412](https://github.com/allxsmith/bestax/issues/412)
+* **bestax-migrate:** stop the pack hooks excusing a catalog: devDependency ([4127ead](https://github.com/allxsmith/bestax/commit/4127ead622f052808ae17644f06af2b77ae89c56)), closes [#412-shaped](https://github.com/allxsmith/bestax/issues/412-shaped)
+* **bulma-ui:** a11y + case-insensitive Taginput matching from PR review ([d576829](https://github.com/allxsmith/bestax/commit/d57682926f510d029839e79d6ba05bd62cc20323))
+* **bulma-ui:** accept router props like `to` on Navbar.Item without casts ([#311](https://github.com/allxsmith/bestax/issues/311)) ([b78856b](https://github.com/allxsmith/bestax/commit/b78856ba62986c693e13e545dd86746f206c3ab9)), closes [#306](https://github.com/allxsmith/bestax/issues/306)
+* **bulma-ui:** Add build step to publish in ci.yml ([e3707fc](https://github.com/allxsmith/bestax/commit/e3707fcdc0c4ba59dc1d68d81fdd9dc57d4436be))
+* **bulma-ui:** add fontawesome-free as explicit devDependency ([a4a5389](https://github.com/allxsmith/bestax/commit/a4a53895f8797ca0889060403ae5d1e21cd09bec))
+* **bulma-ui:** add missing exports ([0d16633](https://github.com/allxsmith/bestax/commit/0d166338a8843df55af265d30a079858e0bf7da1))
+* **bulma-ui:** Add Skeleton to exports ([e481599](https://github.com/allxsmith/bestax/commit/e481599047bd4f094f894569656c878faca3e1ea))
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([cc3a3e2](https://github.com/allxsmith/bestax/commit/cc3a3e2416361d3da3288c97c894d700a4323a36))
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([314bc39](https://github.com/allxsmith/bestax/commit/314bc394d57b4766d20590ae6fd59fe433443c8f))
+* **bulma-ui:** another attempt to fix semantic release builds with ci.yml ([c930693](https://github.com/allxsmith/bestax/commit/c930693439e8a289f373c87a568b48fecabc53ae))
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([7ae37d4](https://github.com/allxsmith/bestax/commit/7ae37d48f7a5af85bf29d21c7517abbea7c9448b))
+* **bulma-ui:** associate Autocomplete and Taginput labels with their inner inputs ([384bd38](https://github.com/allxsmith/bestax/commit/384bd387639764fa346912cbe6df2d5b02cdaab6))
+* **bulma-ui:** associate the form label prop with its control via a generated id ([e6686af](https://github.com/allxsmith/bestax/commit/e6686afa28d006120d5e0dd8181e61036d7fb075))
+* **bulma-ui:** complete domain migration and fix semantic-release configuration ([#64](https://github.com/allxsmith/bestax/issues/64)) ([f4cd71d](https://github.com/allxsmith/bestax/commit/f4cd71d531b757465bf3227aeb5c4e98419cfb97))
+* **bulma-ui:** correct blog post examples and add Modal compound components ([#81](https://github.com/allxsmith/bestax/issues/81)) ([559c2e3](https://github.com/allxsmith/bestax/commit/559c2e30fa15580c02f014754fa3846fdd5ed2f6))
+* **bulma-ui:** correct NPM_TOKEN env variable in ci.yml ([94b48b4](https://github.com/allxsmith/bestax/commit/94b48b47aec94b83d25f94dade6af793fd7b1672))
+* **bulma-ui:** cover horizontal-layout group label association ([ef3ca9f](https://github.com/allxsmith/bestax/commit/ef3ca9f4b99a149b43f359cb8105255c9a3f2770))
+* **bulma-ui:** deprecate CSS-less color values, warn in dev, fix has-text fall-through ([fb111eb](https://github.com/allxsmith/bestax/commit/fb111eb9f08a412821efe07a77e2ba29ee9993b8))
+* **bulma-ui:** fail closed on missing process and scope color guidance to real props ([117c0c0](https://github.com/allxsmith/bestax/commit/117c0c08b5f16ad36d7e402aa714f886a7a9ef3e))
+* **bulma-ui:** Fix release.config.js to include package-lock.json ([390da59](https://github.com/allxsmith/bestax/commit/390da5938deeb9a790d063c79c2ca693f9b7d0b9))
+* **bulma-ui:** fix standalone Badge pointer-events, pulse halo, and falsy content ([#295](https://github.com/allxsmith/bestax/issues/295)) ([a9db031](https://github.com/allxsmith/bestax/commit/a9db03189c087eb0a61f56357e179296bd4cebf9)), closes [#264](https://github.com/allxsmith/bestax/issues/264)
+* **bulma-ui:** full classPrefix support across layout/grid + prefix utils ([4ce0b53](https://github.com/allxsmith/bestax/commit/4ce0b53b337ff2ff961cc18a17790ee75d860dfa))
+* **bulma-ui:** honor the htmlFor opt-out in the convenience hook and tighten the association docs ([92aa622](https://github.com/allxsmith/bestax/commit/92aa622c0ebd231b41562504da6d104128207000))
+* **bulma-ui:** improve npm package discoverability with optimized keywords and badges ([#72](https://github.com/allxsmith/bestax/issues/72)) ([8c7a696](https://github.com/allxsmith/bestax/commit/8c7a69664fcc6409096cd72b9bb006ff8edf8ddc))
+* **bulma-ui:** Initial semantic release changes ([b78d785](https://github.com/allxsmith/bestax/commit/b78d785e5d3e7aec5b49f178784aad3d97b5434c))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([73cec33](https://github.com/allxsmith/bestax/commit/73cec33709b72f968645a951cda0fa6a664847c5))
+* **bulma-ui:** keep Taginput's fallback name unless the label targets its input ([ca5996a](https://github.com/allxsmith/bestax/commit/ca5996a73f5b0816ff82fa4984455bb82ef6060c))
+* **bulma-ui:** migrate domain from bestax.cc to bestax.io ([#64](https://github.com/allxsmith/bestax/issues/64)) ([4870b1e](https://github.com/allxsmith/bestax/commit/4870b1e7d9edd7295f907ae07df9fe00f1217f46))
+* **bulma-ui:** migrate ionicons to v8 to unblock publish and Storybook ([927a55b](https://github.com/allxsmith/bestax/commit/927a55b024db8d2c9da7448a958d2a51daef3cca)), closes [#142](https://github.com/allxsmith/bestax/issues/142)
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([dce0ee7](https://github.com/allxsmith/bestax/commit/dce0ee7e2b2d5c2678e5b996437ab713cc45365b))
+* **bulma-ui:** name Rate, Checkboxes, and Radios groups from their labels via aria-labelledby ([#497](https://github.com/allxsmith/bestax/issues/497)) ([5c4222e](https://github.com/allxsmith/bestax/commit/5c4222e2eca35c151a2c355e329c6b5a47a8195f))
+* **bulma-ui:** name the three near-miss components in AGENTS.md ([c63f491](https://github.com/allxsmith/bestax/commit/c63f491274ef3e5db173eb4ee5039c645df74bd1)), closes [#344](https://github.com/allxsmith/bestax/issues/344)
+* **bulma-ui:** never let labelProps.htmlFor wire a group label to a control ([3b3aaaf](https://github.com/allxsmith/bestax/commit/3b3aaafa6573bfc0c84930ee1517f402105fbc1d))
+* **bulma-ui:** publish rewritten README to npm ([9810081](https://github.com/allxsmith/bestax/commit/981008179d96b19f692ca73c17a02ae3f5fa6298))
+* **bulma-ui:** publish with npm provenance attestation ([172da62](https://github.com/allxsmith/bestax/commit/172da62349b464d414da552058dfa4db238ab720)), closes [#180](https://github.com/allxsmith/bestax/issues/180)
+* **bulma-ui:** reference llms docs from README and package.json ([#198](https://github.com/allxsmith/bestax/issues/198)) ([db8aab3](https://github.com/allxsmith/bestax/commit/db8aab32c1c07d81071e7da0c74e811150289d40))
+* **bulma-ui:** reject predicate-blocked values during manual entry ([a8f6e28](https://github.com/allxsmith/bestax/commit/a8f6e28b92b997f0cdbb25feed0e039ecc1503b5))
+* **bulma-ui:** resolve flex item properties and Card compound component issues ([#55](https://github.com/allxsmith/bestax/issues/55)) ([e774da3](https://github.com/allxsmith/bestax/commit/e774da3b7a8890b77d7d699c5b5d0d3a20920fed))
+* **bulma-ui:** resolve flex item properties and Card compound component issues ([#55](https://github.com/allxsmith/bestax/issues/55)) ([7641a53](https://github.com/allxsmith/bestax/commit/7641a536db1c4a3928ccc7a15407b939fe205b06))
+* **bulma-ui:** resolve react-hooks v7 and [@eslint-react](https://github.com/eslint-react) findings ([14caaaf](https://github.com/allxsmith/bestax/commit/14caaafa1db777ae5ce59c512ac253968df21fc3))
+* **bulma-ui:** resolve security vulnerabilities and update dependencies ([#128](https://github.com/allxsmith/bestax/issues/128)) ([112f6e4](https://github.com/allxsmith/bestax/commit/112f6e4841fa9ea9c4ba49200984e413c1bc5f22)), closes [#127](https://github.com/allxsmith/bestax/issues/127)
+* **bulma-ui:** restrict semantic-release to bulma-ui scoped commits only ([2d67bf9](https://github.com/allxsmith/bestax/commit/2d67bf9a0ed65d1258c664ca741a1b0966445b79)), closes [#62](https://github.com/allxsmith/bestax/issues/62)
+* **bulma-ui:** retry failed Avatar src, flatten Fragment children in Avatars, RTL-safe overlap ([#297](https://github.com/allxsmith/bestax/issues/297)) ([c00b9db](https://github.com/allxsmith/bestax/commit/c00b9db6aa21fab055302fd3320dccd4c0cbc824))
+* **bulma-ui:** route every hardcoded class through the prefix helpers; add classPrefix sweep test ([#301](https://github.com/allxsmith/bestax/issues/301)) ([a50b134](https://github.com/allxsmith/bestax/commit/a50b134949e08c9c4a207dbd1890213cc3389cd5)), closes [#286](https://github.com/allxsmith/bestax/issues/286)
+* **bulma-ui:** setup gpg signing with semantic-release ([3e24722](https://github.com/allxsmith/bestax/commit/3e24722d05cd231638864eebb5ff768991633c42))
+* **bulma-ui:** strip redundant library prefix from Icon name ([#242](https://github.com/allxsmith/bestax/issues/242)) ([dbe3622](https://github.com/allxsmith/bestax/commit/dbe36221af3db5be729dd65a3d528042986ee3ec)), closes [#189](https://github.com/allxsmith/bestax/issues/189)
+* **bulma-ui:** trigger release to publish via OIDC trusted publishing ([e2d09c5](https://github.com/allxsmith/bestax/commit/e2d09c5e312df3788aa140f0e5e86370a545a989))
+* **bulma-ui:** update bundle size claims to accurate 21KB gzipped ([#66](https://github.com/allxsmith/bestax/issues/66)) ([6e381bd](https://github.com/allxsmith/bestax/commit/6e381bdc16ad5572a40983ccc079e33c7882c0c6))
+* **bulma-ui:** update package-lock.json ([853d585](https://github.com/allxsmith/bestax/commit/853d585ddfb0622c963b29b050c23f96923fad81))
+* **bulma-ui:** update package.json for better seo, exports, types, engines, funding, etc ([98cbc56](https://github.com/allxsmith/bestax/commit/98cbc5637b81c6cba560953bf95eb4c6371b4392))
+* **bulma-ui:** use createRequire for ESM compatibility in Storybook 10 ([#130](https://github.com/allxsmith/bestax/issues/130)) ([b27e60e](https://github.com/allxsmith/bestax/commit/b27e60e074dda007e76ad38d867573539b8bcb41)), closes [#129](https://github.com/allxsmith/bestax/issues/129)
+* **ci:** collect screenshots as artifacts and commit in single batch to avoid conflicts ([27b259d](https://github.com/allxsmith/bestax/commit/27b259d774d4088fa371bb7ad2688cc97d4258ab))
+* **ci:** ensure npm install uses fresh downloads with --prefer-online ([1f2e15d](https://github.com/allxsmith/bestax/commit/1f2e15ddf2c4b51094ed58d04b26decc317dfa2e))
+* **ci:** properly extract base path for recursive file search ([e0330ff](https://github.com/allxsmith/bestax/commit/e0330ff9ca0efe12ad96603cfe134307f3a09b83))
+* **ci:** use find command instead of glob module in verified-commit action ([0e2d159](https://github.com/allxsmith/bestax/commit/0e2d159177760c7285c4ddd5930f49e6ac7c5566))
+* **ci:** use npm ci for scaffolded app dependencies ([35652c8](https://github.com/allxsmith/bestax/commit/35652c8d84ecd2e1b8f5c2d0bc7b2f573d1e9717))
+* **create-bestax:** concrete inline-style → helper-prop mapping for the never-inline rule ([#357](https://github.com/allxsmith/bestax/issues/357)) ([5f72a90](https://github.com/allxsmith/bestax/commit/5f72a90eea06162f4fd5260587098df919ddc4fc)), closes [#350](https://github.com/allxsmith/bestax/issues/350) [#350](https://github.com/allxsmith/bestax/issues/350)
+* **create-bestax:** correct browser title to prioritize Bestax branding ([#106](https://github.com/allxsmith/bestax/issues/106)) ([23aa535](https://github.com/allxsmith/bestax/commit/23aa535a82639e2b5552294b03636894ed686a4d)), closes [#105](https://github.com/allxsmith/bestax/issues/105)
+* **create-bestax:** correct template path resolution from ../../ to ../ ([65b4493](https://github.com/allxsmith/bestax/commit/65b44931859e162c46bfc8cdd6e0849942778968)), closes [#78](https://github.com/allxsmith/bestax/issues/78)
+* **create-bestax:** dark-mode contrast rules in theming/layout skills and docs ([#303](https://github.com/allxsmith/bestax/issues/303)) ([490bf21](https://github.com/allxsmith/bestax/commit/490bf21ad9ee101e4f2630bf53f5b3e8ef22fc9e)), closes [#194](https://github.com/allxsmith/bestax/issues/194) [#195](https://github.com/allxsmith/bestax/issues/195)
+* **create-bestax:** exclude templates directory from linting and typecheck ([18fec0b](https://github.com/allxsmith/bestax/commit/18fec0b50fe71b2ba0bf41beb4bbb1e5bd399e22))
+* **create-bestax:** fail fast with guidance instead of hanging when stdin is not a TTY ([#293](https://github.com/allxsmith/bestax/issues/293)) ([46a172d](https://github.com/allxsmith/bestax/commit/46a172d503bb283a5fc168f397261f8afa558b19)), closes [#192](https://github.com/allxsmith/bestax/issues/192)
+* **create-bestax:** move templates into package directory and update docs ([195bf01](https://github.com/allxsmith/bestax/commit/195bf01fae72ce268a75156140912e2bc40052c3)), closes [#78](https://github.com/allxsmith/bestax/issues/78)
+* **create-bestax:** point scaffolded CLAUDE.md at llms docs; document skills ([#198](https://github.com/allxsmith/bestax/issues/198)) ([b2e0514](https://github.com/allxsmith/bestax/commit/b2e0514c0ed4a04192b56fda8e2fc23a67898f97))
+* **create-bestax:** publish with npm provenance attestation ([21ffe8f](https://github.com/allxsmith/bestax/commit/21ffe8f753419eeded407b1fa8685bcbd473fbfe)), closes [#180](https://github.com/allxsmith/bestax/issues/180)
+* **create-bestax:** put the near-miss guidance where every session sees it ([6db49f3](https://github.com/allxsmith/bestax/commit/6db49f308b888f778f7454ffc934e4aa7d7b2b0d))
+* **create-bestax:** read version from package.json instead of hardcoded value ([#109](https://github.com/allxsmith/bestax/issues/109)) ([8605699](https://github.com/allxsmith/bestax/commit/8605699141c90cfde95fba229f21e601e7723586))
+* **create-bestax:** refresh README and bump scaffolded bestax-bulma to ^5 ([4e19e86](https://github.com/allxsmith/bestax/commit/4e19e8691781cc0dce9bf6b277a4d0e90a9ec693))
+* **create-bestax:** reject dot-only project names, pin icon versions, bundle bestax-icons skill ([#310](https://github.com/allxsmith/bestax/issues/310)) ([ddff8e5](https://github.com/allxsmith/bestax/commit/ddff8e5c54b08f669aa0c34aa5a466050f8929e5))
+* **create-bestax:** scaffold @allxsmith/bestax-bulma ^4.0.0 ([1d3b802](https://github.com/allxsmith/bestax/commit/1d3b802eb7285ca05c64cfb0a44bdb96ddb2d82b))
+* **create-bestax:** scaffold bundled bestax CSS flavors, not stock Bulma ([43621dc](https://github.com/allxsmith/bestax/commit/43621dc7cebef2dd51f017feccc91a2154e1f7a3))
+* **create-bestax:** ship improved bundled skills + component catalog ([#199](https://github.com/allxsmith/bestax/issues/199)) ([a1515c2](https://github.com/allxsmith/bestax/commit/a1515c2742fa1a2b82052045674c4f1b41d0c792))
+* **create-bestax:** shrink the near-miss block and pin the copies together ([d582da5](https://github.com/allxsmith/bestax/commit/d582da567dc0ebc877300399ec221d83af2ec80a))
+* **create-bestax:** skills-sync conformance gate + theming skill reference backfill ([#326](https://github.com/allxsmith/bestax/issues/326)) ([9584133](https://github.com/allxsmith/bestax/commit/95841337838139f2e32c482641d7d6c6305800fb)), closes [#285](https://github.com/allxsmith/bestax/issues/285)
+* **create-bestax:** stop the skills teaching a Theme call that does not compile ([2935bb2](https://github.com/allxsmith/bestax/commit/2935bb273d0da959049194f1498229cbbb61cfd3))
+* **create-bestax:** synchronize version with bestax-bulma to 2.4.0 ([623ee79](https://github.com/allxsmith/bestax/commit/623ee79a5510261c7603dcb867db9baf3d7e6586)), closes [#96](https://github.com/allxsmith/bestax/issues/96)
+* **create-bestax:** teach the skills the three components Bulma hides ([22dcff7](https://github.com/allxsmith/bestax/commit/22dcff753fd0cd84751a6ea9ecffc8f811483935))
+* **create-bestax:** update template dependency to ^2.4.0 ([200971d](https://github.com/allxsmith/bestax/commit/200971d4500283a8be1d64c5bf3ca8396b76cdb1))
+* **create-bestax:** use scenario-specific screenshot directories to prevent overwrites ([#108](https://github.com/allxsmith/bestax/issues/108)) ([c675957](https://github.com/allxsmith/bestax/commit/c675957d406d0c86907da06e6bdf7d71ec975b81)), closes [#107](https://github.com/allxsmith/bestax/issues/107)
+* **create-bestax:** validate at submit in the bestax-form signup example ([0b9518f](https://github.com/allxsmith/bestax/commit/0b9518f595932182cabce5160892730079aed51c))
+* **create-bestax:** wire labeled controls in the skill showcase story ([af49a16](https://github.com/allxsmith/bestax/commit/af49a160961f09047fad1b152115ee5623d3a0ae))
+* **docs:** announce the hero copy, and stop remounting the icons ([98e2cb0](https://github.com/allxsmith/bestax/commit/98e2cb0236b68d0af54db7e8429f309d3b4cb325)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** correct Content Signals syntax in robots.txt ([#134](https://github.com/allxsmith/bestax/issues/134)) ([85dd9de](https://github.com/allxsmith/bestax/commit/85dd9de7c147b06f43b9e6a51c6c304a9530b121))
+* **docs:** correct the frozen-install translation and reject leaked fences ([1883de3](https://github.com/allxsmith/bestax/commit/1883de3ddea548e13e022a8f40787cf9624de243))
+* **docs:** drop dead nomodule ionicons fallback ([82be3e4](https://github.com/allxsmith/bestax/commit/82be3e4a1cefb5c72c79d5a30a06d013bb18cdd1))
+* **docs:** emit per-page markdown so llms.txt links resolve ([#200](https://github.com/allxsmith/bestax/issues/200)) ([7877083](https://github.com/allxsmith/bestax/commit/7877083da55d53bdc57811ddc14d5065fd0efdae))
+* **docs:** escape apostrophe in QuickStart notification text ([25d6d72](https://github.com/allxsmith/bestax/commit/25d6d7229d691245c3e2ca8475caaac7e9369478))
+* **docs:** generate llms.txt so the advertised homepage link resolves ([9fae464](https://github.com/allxsmith/bestax/commit/9fae464305595c284335eda65d721480d1accb25)), closes [#177](https://github.com/allxsmith/bestax/issues/177)
+* **docs:** give every batch run its own port — slot reuse was corrupting runs ([6ef1755](https://github.com/allxsmith/bestax/commit/6ef1755cde7d0ae3a943963ba10fc5c7a193d0fe))
+* **docs:** harden PackageManagerTabs and document how to author it ([5b0d3e6](https://github.com/allxsmith/bestax/commit/5b0d3e68389998b35a436ab6e90cc46e68949a37)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** harden the hero copy button and share the tab storage key ([9e16cd7](https://github.com/allxsmith/bestax/commit/9e16cd7e9bdd97f7ac6707a74debe2fbc6295d4c))
+* **docs:** improve homepage hero layout and button spacing ([5f7a5a7](https://github.com/allxsmith/bestax/commit/5f7a5a78faa3e51766d8f4449e93bc4d6519fde9))
+* **docs:** make the eval batch resumable after a container restart ([d56229e](https://github.com/allxsmith/bestax/commit/d56229eb4ba2db2b5313b3051362fcae21df15d0))
+* **docs:** make the hero package-manager switcher a real radiogroup ([aa14ff2](https://github.com/allxsmith/bestax/commit/aa14ff25efba2312776a430ee88b5e34ecaf52db)), closes [#434](https://github.com/allxsmith/bestax/issues/434)
+* **docs:** move robots.txt to correct deployment location ([#90](https://github.com/allxsmith/bestax/issues/90)) ([1e2aeee](https://github.com/allxsmith/bestax/commit/1e2aeee38fa01097db832b9bc7c920114db194b0))
+* **docs:** rebrand and reorganize Storybook ([#83](https://github.com/allxsmith/bestax/issues/83)) ([dfb9937](https://github.com/allxsmith/bestax/commit/dfb99379b65135bc448f6f5e267fe2f473e8e106))
+* **docs:** remove Google Analytics and add robots.txt ([94776f7](https://github.com/allxsmith/bestax/commit/94776f7a020af5411a8d679b794e09be2de7bf9e))
+* **docs:** stop cssnano stripping Font Awesome [@font-face](https://github.com/font-face), add [#3](https://github.com/allxsmith/bestax/issues/3) CSS framework blog post ([#401](https://github.com/allxsmith/bestax/issues/401)) ([5d114e1](https://github.com/allxsmith/bestax/commit/5d114e143e84a4898432e25f8a879f6b4851394c)), closes [#400](https://github.com/allxsmith/bestax/issues/400)
+* **docs:** update Storybook logo path to /img/logo.svg for deployed site ([bf59758](https://github.com/allxsmith/bestax/commit/bf59758965e12b6144d57d0fe673f648c66454cf))
+* **e2e:** correct notification CSS selectors to use contains instead of ends-with ([182acc1](https://github.com/allxsmith/bestax/commit/182acc15b6bde6b6d8869040a055d4588afb2b05))
+* implement independent package versioning strategy ([#111](https://github.com/allxsmith/bestax/issues/111)) ([7819c73](https://github.com/allxsmith/bestax/commit/7819c73414a92c10aa0bc92af0b43b183a50be97)), closes [#110](https://github.com/allxsmith/bestax/issues/110)
+* prevent bulma-ui from versioning on create-bestax commits ([#120](https://github.com/allxsmith/bestax/issues/120)) ([4dfaf9c](https://github.com/allxsmith/bestax/commit/4dfaf9ca2a9f440625827dfb4e11fc2a709561dd)), closes [#119](https://github.com/allxsmith/bestax/issues/119)
+* resolve React Hooks violations and ESLint configuration issues ([32d2931](https://github.com/allxsmith/bestax/commit/32d2931d982cfd6a56d6f5ecd9233f42dfd62b7c))
+* upgrade Turbo, Storybook, and Docusaurus dependencies ([5b4ebdd](https://github.com/allxsmith/bestax/commit/5b4ebdd5e8847de6281491a7c3dc676ceed9db29)), closes [#98](https://github.com/allxsmith/bestax/issues/98)
+
+
+### chore
+
+* **deps:** consolidate the dependabot backlog, require Node 22 in both CLIs ([#447](https://github.com/allxsmith/bestax/issues/447)) ([e68148c](https://github.com/allxsmith/bestax/commit/e68148cd3817482d7db21286ba39773ce4c2bf50)), closes [#427](https://github.com/allxsmith/bestax/issues/427) [#428](https://github.com/allxsmith/bestax/issues/428) [#431](https://github.com/allxsmith/bestax/issues/431) [#432](https://github.com/allxsmith/bestax/issues/432) [#440](https://github.com/allxsmith/bestax/issues/440) [#393](https://github.com/allxsmith/bestax/issues/393)
+
+
+### Documentation
+
+* fix stale versioning and coverage docs; drop CLAUDE.md stale-docs flags ([71c4583](https://github.com/allxsmith/bestax/commit/71c4583979d942af739bf3216f187ab454ae4a99))
+
+
+### Features
+
+* add theme system and config provider with comprehensive test coverage ([f3ca7f0](https://github.com/allxsmith/bestax/commit/f3ca7f08bc756c89d5b939c8d5e193b68578782f))
+* **bestax-mcp:** serve component docs, props, examples and skills over MCP ([c2abcc4](https://github.com/allxsmith/bestax/commit/c2abcc40d490b3c8271e25265b5d394a1c6495ce))
+* **bestax-migrate:** react-bulma-components → bestax-bulma codemod CLI, skill, and docs ([#333](https://github.com/allxsmith/bestax/issues/333)) ([e04a12b](https://github.com/allxsmith/bestax/commit/e04a12b52a473265395cd1d3fa41ac1fb55886b3)), closes [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99)
+* **bestax-migrate:** require Node 22 and take chalk 6 ([#449](https://github.com/allxsmith/bestax/issues/449)) ([4c0e1e2](https://github.com/allxsmith/bestax/commit/4c0e1e2ad4d620b196ff8a0f8b635f5e2672a935)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+* **bulma-ui:** add Avatar, Avatars, and Badge components ([#257](https://github.com/allxsmith/bestax/issues/257)) ([0817018](https://github.com/allxsmith/bestax/commit/081701874bec730b0ede42a71a69e831310df76b)), closes [#256](https://github.com/allxsmith/bestax/issues/256)
+* **bulma-ui:** add colorMode dark-mode prop to Theme ([4acc41e](https://github.com/allxsmith/bestax/commit/4acc41ea6138da3ac2051d5eacfa6d5635560c62)), closes [#174](https://github.com/allxsmith/bestax/issues/174)
+* **bulma-ui:** add consistent gap prop to Columns, aliasing gapSize ([#300](https://github.com/allxsmith/bestax/issues/300)) ([6c36455](https://github.com/allxsmith/bestax/commit/6c36455931367d8422516c5fbca227319d4552d5)), closes [#282](https://github.com/allxsmith/bestax/issues/282)
+* **bulma-ui:** add cursor helper, closeDelay prop, and polish Tooltip stories ([37945b5](https://github.com/allxsmith/bestax/commit/37945b59bb055671d392b72a06023587fd0c73fb))
+* **bulma-ui:** add extra components, form elements, and SCSS styles ([59daf28](https://github.com/allxsmith/bestax/commit/59daf2826e99b2150b1c4529a6cadc8b69620998))
+* **bulma-ui:** add HTML element wrapper components ([#135](https://github.com/allxsmith/bestax/issues/135)) ([#136](https://github.com/allxsmith/bestax/issues/136)) ([20fb16d](https://github.com/allxsmith/bestax/commit/20fb16dc69592e89ac7924d7b0e1e9cd1048fec8))
+* **bulma-ui:** add manual-entry stories for format, bounds, and blocked-value variations ([e93d51c](https://github.com/allxsmith/bestax/commit/e93d51c8f6521fdd011717c1f48264cbd6ce4c4f))
+* **bulma-ui:** add Reveal component for scroll-triggered animations ([#255](https://github.com/allxsmith/bestax/issues/255)) ([a89c574](https://github.com/allxsmith/bestax/commit/a89c5747c24969dff04ffd663d7281353abfa5d6))
+* **bulma-ui:** Add skeletons ([6c46e4b](https://github.com/allxsmith/bestax/commit/6c46e4b97a73a127406a25272ca584f2e84ea5fa))
+* **bulma-ui:** add themed Checkbox/Radio, convenience Field components, and Autocomplete cleanup ([3c57a5a](https://github.com/allxsmith/bestax/commit/3c57a5ae57276f7c50dd169b8357aceddd499f2e))
+* **bulma-ui:** add typing-first story variants for all picker property variations ([078433f](https://github.com/allxsmith/bestax/commit/078433f056d0c8cde20ae1a0a9ede50989125a45))
+* **bulma-ui:** associate Field's label with a composed base control ([219f631](https://github.com/allxsmith/bestax/commit/219f63180f8321ed924953f5acd12e4eadcba608))
+* **bulma-ui:** avatar/badge a11y batch — decorative alt, accessible names, live region, button type, surplus i18n, focus ring ([#298](https://github.com/allxsmith/bestax/issues/298)) ([508477f](https://github.com/allxsmith/bestax/commit/508477fcc79a07d6b960563e919e7a94d7da3b42)), closes [#266](https://github.com/allxsmith/bestax/issues/266) [#266](https://github.com/allxsmith/bestax/issues/266)
+* **bulma-ui:** change the default primary color to [#1](https://github.com/allxsmith/bestax/issues/1)e6b99 ([8872620](https://github.com/allxsmith/bestax/commit/8872620365809d7f00960fe57a8c9b10c27ac6c5)), closes [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99) [#1e6b99](https://github.com/allxsmith/bestax/issues/1e6b99)
+* **bulma-ui:** compound (dot-notation) sub-components for all parent/child families via shared withSubComponents helper ([#331](https://github.com/allxsmith/bestax/issues/331)) ([07516c5](https://github.com/allxsmith/bestax/commit/07516c5d12d0a09e41980151e68b2bb52ef39865))
+* **bulma-ui:** dim and blur the calendar behind the Datetimepicker time wheels ([3d90619](https://github.com/allxsmith/bestax/commit/3d90619f07cbd7030d559d8b36eef8d1093a2dac))
+* **bulma-ui:** finalize the 3.0 component set ([87ccc0e](https://github.com/allxsmith/bestax/commit/87ccc0e5b4fed5ab58d8cb076ead7c0b5de284b7))
+* **bulma-ui:** make Button and Link as prop polymorphic (React.ElementType) ([#238](https://github.com/allxsmith/bestax/issues/238)) ([ce90304](https://github.com/allxsmith/bestax/commit/ce90304091872c44c4041035672629b8b7e9fca6)), closes [#188](https://github.com/allxsmith/bestax/issues/188)
+* **bulma-ui:** require React 18 as the minimum supported version ([c7251b0](https://github.com/allxsmith/bestax/commit/c7251b0a4a1f92ab90c4eda59c60c0ee931e91e1))
+* **bulma-ui:** ship agent-discovery files in the npm tarball ([#345](https://github.com/allxsmith/bestax/issues/345)) ([4b58739](https://github.com/allxsmith/bestax/commit/4b587392df2e4f780c3f67c161f6e3eb500b2b14)), closes [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344) [#344](https://github.com/allxsmith/bestax/issues/344)
+* **ci:** add verified-commit action for GPG-signed commits ([d078dfa](https://github.com/allxsmith/bestax/commit/d078dfac4ef8eb85bc2e02f50545868f0a4e0e0d))
+* **create-bestax:** add bestax-optimize skill for shrinking built CSS ([#329](https://github.com/allxsmith/bestax/issues/329)) ([f597b9f](https://github.com/allxsmith/bestax/commit/f597b9f4c29274ae42f3d7d95cb2fb42c915024d))
+* **create-bestax:** add CLI tool with Vite templates and automated publishing ([9748c3d](https://github.com/allxsmith/bestax/commit/9748c3d28ec9bd46fe571d7ba2cc7579ad9fc0ee))
+* **create-bestax:** add controlled-Burger Navbar to the landing archetype ([#355](https://github.com/allxsmith/bestax/issues/355)) ([36d4d09](https://github.com/allxsmith/bestax/commit/36d4d094ab1103618a8f4a92ed8e4bb656c83452)), closes [#348](https://github.com/allxsmith/bestax/issues/348)
+* **create-bestax:** add cross-platform emoji support with figures ([#103](https://github.com/allxsmith/bestax/issues/103)) ([15567d9](https://github.com/allxsmith/bestax/commit/15567d92ab40e18d22c5757a576fcdb3c25a112b))
+* **create-bestax:** add README with templates location note ([8ddc73d](https://github.com/allxsmith/bestax/commit/8ddc73d9a548b948d7cac1fdbe3dc05da88afca5))
+* **create-bestax:** add visual regression testing and synchronized versioning ([17e1e22](https://github.com/allxsmith/bestax/commit/17e1e22bd114fa80c84c03a67ca8764c85ab321b)), closes [#94](https://github.com/allxsmith/bestax/issues/94)
+* **create-bestax:** agent-validated guidance for skills, scaffold CLAUDE.md, and catalog ([#365](https://github.com/allxsmith/bestax/issues/365)) ([6fd06ae](https://github.com/allxsmith/bestax/commit/6fd06ae969da99d11d677be462fd4ceee29fd5ac)), closes [#2](https://github.com/allxsmith/bestax/issues/2)
+* **create-bestax:** bestax-icons skill — teach agents the icon system ([#302](https://github.com/allxsmith/bestax/issues/302)) ([61c8ef2](https://github.com/allxsmith/bestax/commit/61c8ef2d60bb4a1ae21c673d2bfaec89e87cf21f)), closes [#287](https://github.com/allxsmith/bestax/issues/287)
+* **create-bestax:** improve favicon visibility and add distinct branding ([621590d](https://github.com/allxsmith/bestax/commit/621590d4984c964017c22daa278ef2c6b44c9183)), closes [#100](https://github.com/allxsmith/bestax/issues/100)
+* **create-bestax:** modernize templates (Vite 8, ESLint 10, TS 6) + add working lint config ([4537629](https://github.com/allxsmith/bestax/commit/4537629a82bf3d6254518389564a467b1fc71242)), closes [#167](https://github.com/allxsmith/bestax/issues/167)
+* **create-bestax:** offer to install the bestax AI skills when scaffolding ([625b7bf](https://github.com/allxsmith/bestax/commit/625b7bfdf6570f9954898bea00fc72d9e28df250)), closes [#174](https://github.com/allxsmith/bestax/issues/174)
+* **create-bestax:** require Node 22 and take chalk 6 ([#448](https://github.com/allxsmith/bestax/issues/448)) ([90fced2](https://github.com/allxsmith/bestax/commit/90fced292ffa3433159270a2267dcf18265d791e)), closes [#447](https://github.com/allxsmith/bestax/issues/447)
+* **create-bestax:** scaffold .claude/launch.json with the AI skills opt-in ([#343](https://github.com/allxsmith/bestax/issues/343)) ([189135a](https://github.com/allxsmith/bestax/commit/189135ad54675b6ade7931a8c63a03d5eb0e2549))
+* **create-bestax:** scaffold-aware CLAUDE.md with setup facts and house style ([#271](https://github.com/allxsmith/bestax/issues/271)) ([c1681b0](https://github.com/allxsmith/bestax/commit/c1681b0f1e87b65f6614e564b0878bc6d7217757))
+* **create-bestax:** set scaffolded index.html title to the project name ([#356](https://github.com/allxsmith/bestax/issues/356)) ([3bfbea3](https://github.com/allxsmith/bestax/commit/3bfbea371f33cc969892bea4796fd58da2890201)), closes [#349](https://github.com/allxsmith/bestax/issues/349) [#349](https://github.com/allxsmith/bestax/issues/349)
+* **docs:** add Google Analytics tracking for usage insights ([#68](https://github.com/allxsmith/bestax/issues/68)) ([90ab951](https://github.com/allxsmith/bestax/commit/90ab951f901df9bb71e2306b2a8ff74036d9d85a))
+* **docs:** add package-manager switches to the homepage hero ([374caf8](https://github.com/allxsmith/bestax/commit/374caf8a147c1a132655522661f1899a83ce3856))
+* **docs:** add PackageManagerTabs and register it globally ([23c9989](https://github.com/allxsmith/bestax/commit/23c998921c6ca4887c5b387951009b74a26f62eb))
+* **docs:** add pronunciation guide and dark mode support ([#58](https://github.com/allxsmith/bestax/issues/58)) ([48a8916](https://github.com/allxsmith/bestax/commit/48a8916755716d85837ac502fbf5343414d62f68))
+* **docs:** aggregate-runs.mjs — distribution stats across a runs directory ([5de9c07](https://github.com/allxsmith/bestax/commit/5de9c077129229e0411aee622aff81ac9d0e1699))
+* **docs:** batch runner for the eval harness, with the concurrency fixes it needed ([f8e268c](https://github.com/allxsmith/bestax/commit/f8e268c3c54eb2b6696e637c24d54565bfa28dff))
+* **docs:** migrate from GitHub Pages to Cloudflare Pages ([#132](https://github.com/allxsmith/bestax/issues/132)) ([2154672](https://github.com/allxsmith/bestax/commit/21546721dbc0eaa175820166f2b2b630a0516334)), closes [#131](https://github.com/allxsmith/bestax/issues/131)
+* **docs:** rubric v2 and a brief that demands the components beyond Bulma ([e6047be](https://github.com/allxsmith/bestax/commit/e6047be88a00df4601e56054698dc143b8151b38))
+* **docs:** show all posts in the blog sidebar ([d29e9c6](https://github.com/allxsmith/bestax/commit/d29e9c659088dc9f2dcb147c9f138d6cbdfcc67a))
+* **form:** add Datepicker, Timepicker, and Datetimepicker components ([c6684e6](https://github.com/allxsmith/bestax/commit/c6684e6d4f94326bc0ea0bd0f7b022de9af81074))
+
+
+### Performance Improvements
+
+* **bestax-mcp:** stop get_helper_props costing half the session ([b865651](https://github.com/allxsmith/bestax/commit/b8656518763be5f4e1671d45b5fee5f9f1cf37df))
+* **docs:** defer live previews until they scroll into view ([d6bf87b](https://github.com/allxsmith/bestax/commit/d6bf87b0311d51e1e125ef1a04f92acd4abc989d))
+* **docs:** share one parsed stylesheet set across every live preview ([feb993a](https://github.com/allxsmith/bestax/commit/feb993acb2f90ad523cf49d2562bd8a06fe540dc))
+
+
+### BREAKING CHANGES
+
+* **bestax-migrate:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1. This applies to the runtime the codemod executes
+on, not to the app being migrated.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **create-bestax:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* **deps:** create-bestax now requires Node.js 22 or newer. Node 18 and 20
+are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+
+* feat(bestax-migrate): require Node 22 and take chalk 6
+
+chalk 6 drops support for Node below 22. The API surface this package uses is
+unchanged, so no calling code changes.
+
+The version guard in src/index.ts moves ahead of every import and no longer
+depends on anything: import declarations are hoisted and evaluated before any
+statement in the module, and chalk 6 itself requires Node >= 22, so a static
+import would fail to load on exactly the runtimes the guard exists to catch.
+./cli.js is now imported dynamically for the same reason.
+
+@babel/parser deliberately stays on 7.x. Babel 8 removes the
+`deprecatedImportAssert` plugin with no replacement, and this package parses
+the legacy `import x from 'y' assert { type: 'json' }` form on purpose — a
+codemod that migrates older codebases must not crash on the syntax those
+codebases still contain. There is a regression test for it ("parses the legacy
+import-assert syntax"), which Babel 8 fails outright. jscodeshift 17 bundles
+its own Babel 7 regardless, so staying on 7 also keeps a single parser in the
+tree rather than two.
+* **deps:** bestax-migrate now requires Node.js 22 or newer. Node 18 and
+20 are both past end-of-life. Running it on an older runtime prints an explicit
+upgrade message and exits 1.
+
+Claude-Session: https://claude.ai/code/session_01TGA6sFTUGsJ6oXhfpjKEnh
+* footer requirement, and the commitlint scope rule
+- CONTRIBUTING.md: replace the type-less commit example with a
+  commitlint-valid conventional format (verified against commitlint);
+  correct all four coverage mentions to the real jest thresholds
+  (bulma-ui 99%, create-bestax 95%/78% branches); fix the npm package
+  name (@allxsmith/bestax-bulma, plus create-bestax) and link VERSIONING.md
+- CLAUDE.md: remove the stale-docs warning and asides now that the
+  underlying docs are correct; point at VERSIONING.md again
+
+Closes #206.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0131uD6QKmAij7Byk3SByyLh
+* the @allxsmith/bestax-bulma/versions/bestax-bulma-prefixed.css
+export is removed. Use versions/bestax-prefixed.css with classPrefix="bestax-".
+* **bulma-ui:** React 16 and 17 are no longer supported; the minimum
+supported React version is now 18.
+* **bulma-ui:** Snackbar has been removed and merged into Toast; use Toast
+with its positioning and queue props instead.
+* **bulma-ui:** form controls now auto-wrap in Field/Control, and Checkbox
+and Radio ship new themed visuals. See the 2.x -> 3.x migration guide.
+* This version requires Node.js 18.0.0 or higher. The CLI now enforces this requirement and will exit with an error message if running on older Node.js versions. This aligns create-bestax with the bestax-bulma v2.x ecosystem.
+
+* fix(create-bestax): correct Prettier formatting in index.ts
+* None - all changes are additive and backward compatible
