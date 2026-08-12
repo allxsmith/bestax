@@ -242,7 +242,8 @@ describe('ProjectCreator', () => {
       expect(fileSystem.ensureDirectory).toHaveBeenCalledWith('/target/path');
       expect(fileSystem.copyDirectory).toHaveBeenCalledWith(
         expect.stringContaining('vite'),
-        '/target/path'
+        '/target/path',
+        { _gitignore: '.gitignore' }
       );
     });
   });

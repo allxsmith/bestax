@@ -71,6 +71,13 @@ export async function scaffoldApp(config: ScaffoldConfig): Promise<string> {
     throw new Error(`Expected scaffold to contain ${launchJsonPath}`);
   }
 
+  // npm strips literal .gitignore from published tarballs; the CLI renames
+  // the templates' _gitignore on copy — fail loudly if that path regresses.
+  const gitignorePath = path.join(outputDir, '.gitignore');
+  if (!(await fs.pathExists(gitignorePath))) {
+    throw new Error(`Expected scaffold to contain ${gitignorePath}`);
+  }
+
   // Install dependencies in the scaffolded app with a fresh pnpm resolve.
   // --ignore-workspace: the app may live inside the monorepo tree, so treat it
   // as a standalone project rather than a workspace member.

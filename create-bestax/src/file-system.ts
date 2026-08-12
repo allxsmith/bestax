@@ -26,12 +26,23 @@ export async function ensureDirectory(targetPath: string): Promise<void> {
 
 export async function copyDirectory(
   source: string,
-  destination: string
+  destination: string,
+  renames?: Record<string, string>
 ): Promise<void> {
   if (!(await checkDirectoryExists(source))) {
     throw new Error(MESSAGES.TEMPLATE_NOT_FOUND(source));
   }
   await fs.copy(source, destination);
+  if (renames) {
+    for (const [from, to] of Object.entries(renames)) {
+      const copiedPath = path.join(destination, from);
+      if (fs.existsSync(copiedPath)) {
+        await fs.move(copiedPath, path.join(destination, to), {
+          overwrite: true,
+        });
+      }
+    }
+  }
 }
 
 export async function readJsonFile<T = unknown>(filePath: string): Promise<T> {

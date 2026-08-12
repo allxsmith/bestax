@@ -37,6 +37,13 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// npm strips literal `.gitignore` files from published tarballs, so the
+// templates track `_gitignore` instead and the scaffolder renames it back
+// on copy — otherwise published scaffolds would ship with no .gitignore.
+const TEMPLATE_RENAMES: Record<string, string> = {
+  _gitignore: '.gitignore',
+};
+
 export interface ProjectConfig {
   projectName: string;
   template: string;
@@ -101,7 +108,7 @@ export class ProjectCreator {
   async copyTemplate(template: string, targetPath: string): Promise<void> {
     const templatePath = this.getTemplatePath(template);
     await ensureDirectory(targetPath);
-    await copyDirectory(templatePath, targetPath);
+    await copyDirectory(templatePath, targetPath, TEMPLATE_RENAMES);
   }
 
   async updateIndexHtmlTitle(
