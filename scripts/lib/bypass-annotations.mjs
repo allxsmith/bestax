@@ -48,10 +48,17 @@ export const BYPASS_BLOCKS = [
   },
 ];
 
+// A marker must OPEN its comment and END at whitespace or end of line. `\b`
+// is not enough: it matches between "permanent" and a hyphen, so
+// `# bestax:permanent-ish` read as a valid permanent exemption and silently
+// disabled expiry. Anchoring also stops a marker mentioned mid-prose from
+// being mistaken for one. `[ \t]` rather than `\s` throughout, so nothing
+// spans a newline under the /m flag.
+//
 // Capture the rest of the marker line too: the contract asks for a reason, and
 // an unexplained bypass is the thing this whole gate exists to prevent.
-const REVIEW = /#\s*bestax:review\b[ \t]*(\S+)?[ \t]*(.*)$/m;
-const PERMANENT = /#\s*bestax:permanent\b[ \t]*(.*)$/m;
+const REVIEW = /^[ \t]*#[ \t]*bestax:review(?=[ \t]|$)[ \t]*(\S+)?[ \t]*(.*)$/m;
+const PERMANENT = /^[ \t]*#[ \t]*bestax:permanent(?=[ \t]|$)[ \t]*(.*)$/m;
 
 // `String.match` without /g keeps only the first hit, so counting is the only
 // way to notice a block carrying two markers — where the first would silently

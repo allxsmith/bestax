@@ -207,6 +207,42 @@ overrides:
   assert.deepEqual(findExpired(entries, '2026-08-13').expired, []);
 });
 
+test('a near-marker is not a marker', () => {
+  // `\b` matched between "permanent" and a hyphen, so this read as a valid
+  // permanent exemption and disabled expiry forever. A typo must fail CLOSED:
+  // no annotation at all, which the unannotated rule then catches.
+  for (const near of [
+    '# bestax:permanent-ish — reason',
+    '# bestax:permanently — reason',
+    '# bestax:reviewed 2026-11-13 — reason',
+    '# bestax:review-by 2026-11-13 — reason',
+  ]) {
+    const { entries } = parseBypassEntries(`
+overrides:
+  ${near}
+  'thing@1': '>=1.2.3'
+`);
+    assert.equal(entries[0].permanent, false, near);
+    assert.equal(entries[0].review, null, near);
+    assert.equal(entries[0].error, null, near);
+    assert.equal(
+      findExpired(entries, '2026-08-13').unannotated.length,
+      1,
+      `${near} must be caught as unannotated`
+    );
+  }
+});
+
+test('a marker mentioned mid-prose does not annotate', () => {
+  const { entries } = parseBypassEntries(`
+overrides:
+  # Force patched thing. See # bestax:permanent — in the contract above.
+  'thing@1': '>=1.2.3'
+`);
+  assert.equal(entries[0].permanent, false);
+  assert.equal(findExpired(entries, '2026-08-13').unannotated.length, 1);
+});
+
 test('a marker with no reason is an error', () => {
   const { entries: bare } = parseBypassEntries(`
 overrides:
