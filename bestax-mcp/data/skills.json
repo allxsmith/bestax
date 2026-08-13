@@ -6,7 +6,7 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 6627 },
+        { "id": "api", "file": "references/api.md", "bytes": 6649 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 8378 },
+        { "id": "api", "file": "references/api.md", "bytes": 8334 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 5566 }
       ],
       "examples": []
@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 14389
+          "bytes": 14687
         }
       ],
       "examples": [
@@ -132,7 +132,7 @@
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 20268
+          "bytes": 20270
         }
       ],
       "examples": [
