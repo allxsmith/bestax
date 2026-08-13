@@ -11,7 +11,7 @@ const validSubTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
  * Valid size values for the SubTitle component (Bulma subtitle sizes): `'1'`–`'6'` as a string or number (`3` and `'3'` are equivalent).
  */
 export type SubTitleSize =
-  (typeof validSubTitleSizes)[number] | 1 | 2 | 3 | 4 | 5 | 6;
+  '1' | '2' | '3' | '4' | '5' | '6' | 1 | 2 | 3 | 4 | 5 | 6;
 
 const validSubTitleElements = [
   'h1',

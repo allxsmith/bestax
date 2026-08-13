@@ -118,7 +118,18 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 ```ts
 type BulmaColumnSize =
   | number // 1–12
-  | `${number}` // "1"–"12" — the string form is equivalent
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  | '10'
+  | '11'
+  | '12' // string form, equivalent
   | 'full'
   | 'half'
   | 'one-third'

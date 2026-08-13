@@ -11,7 +11,7 @@ const validTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
  * Valid size values for the Title component (Bulma title sizes): `'1'`–`'6'` as a string or number (`3` and `'3'` are equivalent).
  */
 export type TitleSize =
-  (typeof validTitleSizes)[number] | 1 | 2 | 3 | 4 | 5 | 6;
+  '1' | '2' | '3' | '4' | '5' | '6' | 1 | 2 | 3 | 4 | 5 | 6;
 
 const validTitleElements = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'] as const;
 /**

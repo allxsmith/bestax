@@ -361,6 +361,10 @@ Narrow columns only take up as much width as their content, which can be useful 
 | `children`           | `React.ReactNode`                                                               | —       | Children to render inside the column.             |
 | `...`                | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
+**Types:**
+
+- `BulmaColumnSize`: `number` | `'1'` | `'2'` | `'3'` | `'4'` | `'5'` | `'6'` | `'7'` | `'8'` | `'9'` | `'10'` | `'11'` | `'12'` | `'full'` | `'half'` | `'one-third'` | `'two-thirds'` | `'one-quarter'` | `'three-quarters'` | `'one-fifth'` | `'two-fifths'` | `'three-fifths'` | `'four-fifths'` — Possible values for Bulma column size: a number 1–12 (as a number or a numeric string, `7` and `"7"` are equivalent) or a named fraction.
+
 <!-- /bestax:generated props -->
 
 ---
