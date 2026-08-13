@@ -77,7 +77,7 @@ check which section `@allxsmith/bestax-bulma` sits in — re-adding it as a
 plain-semver runtime dependency passes CI, so that one is on review. The skill lives at repo-root
 `skills/bestax-migrate/`. It **is** bundled into create-bestax (settled in #385): the
 original existing-sites-only policy lost to one uniform bundle, and the skill sits idle
-in a fresh scaffold until legacy imports show up. Keep `sync-skills.mjs`, the `CLAUDE_MD`
-roster in `create-bestax/src/constants.ts`, and the docs skills pages in agreement. When
-the mapping gains or loses coverage, update `skills/bestax-migrate/references/` and the
-docs migration guide in the same PR.
+in a fresh scaffold until legacy imports show up. The canonical roster of surfaces that
+must agree on bundling lives in `create-bestax/CLAUDE.md`'s sync rules — don't restate
+it here. When the mapping gains or loses coverage, update
+`skills/bestax-migrate/references/` and the docs migration guide in the same PR.
