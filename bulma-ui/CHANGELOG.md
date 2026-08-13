@@ -1,3 +1,11 @@
+# [5.11.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.10.0...@allxsmith/bestax-bulma@5.11.0) (2026-08-13)
+
+
+### Features
+
+* **bulma-ui:** allow --bulma-scheme-* overrides in Theme bulmaVars ([1b0c573](https://github.com/allxsmith/bestax/commit/1b0c573b1233dfa7ee80910de4c0c03065f5a6a6))
+* **bulma-ui:** scheme-aware bgColor values via new bulmaHelperStyles channel ([7e317d4](https://github.com/allxsmith/bestax/commit/7e317d42db16a44ff82ab5d8ebb4e632ce54aae6))
+
 # [5.10.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.9.1...@allxsmith/bestax-bulma@5.10.0) (2026-08-13)
 
 
