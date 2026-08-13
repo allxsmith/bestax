@@ -74,8 +74,12 @@ is not your PR's fault, and this is the way out:
 
 1. Force the patched version in `overrides` — scoped to the affected major (`'thing@3': '>=3.1.5 <4'`)
    rather than unscoped, so other majors in the tree are untouched.
-2. If the patch is still inside the cooldown, add the package to `minimumReleaseAgeExclude` too.
-   Without step 2 the resolver refuses the version step 1 demands.
+2. If the patch is still inside the cooldown, add it to `minimumReleaseAgeExclude` too — without
+   this the resolver refuses the version step 1 demands. **Qualify it with the exact version**
+   (`- 'fast-uri@3.1.5'`, not `- fast-uri`): a bare package name waives the cooldown for every
+   future release of that package, so a later lockfile refresh could pull in a different
+   just-published version that nobody reviewed. That is the whole defence you are stepping
+   around, so step around it as narrowly as possible.
 3. Annotate both entries with a review date — this is required, not a nicety:
 
    ```yaml

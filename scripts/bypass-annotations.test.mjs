@@ -1,13 +1,13 @@
 /**
  * Guards on the supply-chain bypass expiry parser (#391).
  *
- * The failure mode worth guarding is silent and specific: comment-block
- * association. Entries in pnpm-workspace.yaml share comment blocks on purpose
- * (the four brace-expansion majors sit under one explanation), so the parser
- * cannot simply consume a block at the first entry — but it also must not let
- * a block leak forward past an entry, or a NEW unannotated bypass inherits the
- * date of whatever happened to precede it and the gate waves it through. Both
- * directions are asserted below, because a diff review cannot tell them apart.
+ * Every failure mode here is silent and fails OPEN — the gate goes green while
+ * a bypass goes unpoliced, which is the one outcome this check exists to
+ * prevent. So the assertions below are mostly about what must NOT slip past:
+ * an entry inheriting a neighbour's date, a date-shaped non-date that never
+ * comes due, a second marker that is quietly ignored, and an unparsed line
+ * that drops every entry beneath it. A diff review cannot tell any of those
+ * apart from correct behaviour, which is why they are pinned here.
  *
  * `.mjs` and `node --test` rather than jest: these are root-level scripts with
  * no package of their own, matching how docs/scripts is covered.
@@ -168,6 +168,32 @@ overrides:
   assert.match(entries[0].error, /not a real calendar date/);
 });
 
+test('two markers of the same kind is an error, not first-wins', () => {
+  // The likely mistake: adding a fresh date above a stale one instead of
+  // replacing it. Only the first is read, so the due date vanishes silently.
+  const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-12-01 — new date, stacked on top
+  # bestax:review 2026-01-01 — stale, should have been replaced
+  'thing@1': '>=1.2.3'
+`);
+  assert.match(entries[0].error, /2 `bestax:` markers/);
+  assert.equal(entries[0].review, null);
+  assert.deepEqual(findExpired(entries, '2026-08-13').expired, []);
+  assert.equal(findExpired(entries, '2026-08-13').malformed.length, 1);
+});
+
+test('two permanent markers is likewise an error', () => {
+  const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:permanent — one reason
+  # bestax:permanent — another reason
+  'thing@1': '>=1.2.3'
+`);
+  assert.match(entries[0].error, /markers/);
+  assert.equal(entries[0].permanent, false);
+});
+
 test('both markers at once is an error, not a silent permanent', () => {
   const { entries } = parseBypassEntries(`
 overrides:
@@ -175,7 +201,8 @@ overrides:
   # bestax:permanent — incidental mention
   'thing@1': '>=1.2.3'
 `);
-  assert.match(entries[0].error, /both/);
+  assert.match(entries[0].error, /2 `bestax:` markers/);
+  // Permanent must not win the tie-break and bury the overdue date.
   assert.equal(entries[0].permanent, false);
   assert.deepEqual(findExpired(entries, '2026-08-13').expired, []);
 });

@@ -53,6 +53,12 @@ export const BYPASS_BLOCKS = [
 const REVIEW = /#\s*bestax:review\b[ \t]*(\S+)?[ \t]*(.*)$/m;
 const PERMANENT = /#\s*bestax:permanent\b[ \t]*(.*)$/m;
 
+// `String.match` without /g keeps only the first hit, so counting is the only
+// way to notice a block carrying two markers — where the first would silently
+// win and the other be ignored.
+const countMatches = (text, re) =>
+  (text.match(new RegExp(re.source, 'gm')) ?? []).length;
+
 const unquote = s => s.replace(/^['"]|['"]$/g, '');
 
 const indentOf = line => line.length - line.trimStart().length;
@@ -90,12 +96,17 @@ function readAnnotation(text) {
   const permanent = text.match(PERMANENT);
   const none = { review: null, permanent: false };
 
-  if (review && permanent) {
+  // Exactly one marker, whatever the mix. Two of the same kind is the likelier
+  // mistake in practice — adding a fresh date above a stale one instead of
+  // replacing it — and only the first would be read.
+  const total = countMatches(text, REVIEW) + countMatches(text, PERMANENT);
+  if (total > 1) {
     return {
       ...none,
       error:
-        'carries both `bestax:review` and `bestax:permanent`; permanent would ' +
-        'win and the date would never be checked. Keep exactly one.',
+        `carries ${total} \`bestax:\` markers; only the first would be read ` +
+        `and the rest silently ignored. Keep exactly one — replace a stale ` +
+        `date rather than stacking a new line above it.`,
     };
   }
   if (permanent) {
