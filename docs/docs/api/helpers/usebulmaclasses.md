@@ -299,15 +299,17 @@ function example() {
 
   return (
     <div
+      {...rest}
       className={classNames('custom-band', bulmaHelperClasses)}
       style={mergeBulmaStyles(bulmaHelperStyles, undefined)}
-      {...rest}
     >
       A dark-mode-safe surface with zero custom CSS
     </div>
   );
 }
 ```
+
+In a real component, destructure `style` out of your own props and pass it as `mergeBulmaStyles`'s second argument (as `Section` does) — if `style` stays in the object you spread, whichever comes later in JSX silently replaces the other instead of merging.
 
 ### Color Shade
 

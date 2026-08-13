@@ -160,7 +160,7 @@ Bulma ships no `has-background-scheme-*` classes, so these values emit **no clas
 | `bgColor="scheme-invert-ter"` | `background-color: var(--bulma-scheme-invert-ter)` | Two steps off the inverted surface |
 
 :::warning Invert backgrounds don't invert your text
-The `scheme-invert*` values set only the background — text keeps the page's default color, which is low-contrast on an inverted surface. Pair them with a matching foreground: a named class with `color: var(--bulma-scheme-main)` for designs that serve both modes, or an explicit `textColor` when the design is single-mode and pinned with `<Theme isRoot colorMode="…">`. The `scheme-main*` values need no pairing — they stay close to the page background.
+The `scheme-invert*` values set only the background — text keeps the page's default color, which is low-contrast on an inverted surface. Pair them with a matching foreground: a named class with `color: var(--bulma-scheme-main)` for designs that serve both modes, or an explicit `textColor` when the design is single-mode — pinned globally with `<Theme isRoot colorMode="…">`, or per surface with Bulma's `data-theme` attribute (`<Box data-theme="light" bgColor="scheme-invert" textColor="white">`). The `scheme-main*` values need no pairing — they stay close to the page background.
 :::
 
 This is the zero-CSS way to build alternating page bands that stay correct in dark mode:

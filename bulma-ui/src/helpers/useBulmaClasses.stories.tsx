@@ -291,7 +291,9 @@ export const BackgroundColors: Story = {
         </Box>
       </Column>
       <Column size="one-quarter">
-        <Box bgColor="scheme-invert">Scheme Invert (dark-mode adaptive)</Box>
+        <Box data-theme="light" bgColor="scheme-invert" textColor="white">
+          Scheme Invert (mode pinned, paired text)
+        </Box>
       </Column>
     </Columns>
   ),
