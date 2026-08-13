@@ -220,8 +220,8 @@ Read skill \`references/\` files with absolute paths — the shell's cwd is not 
 \`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering
 the command. \`--strictPort\` failing because 5173 is busy means an orphaned dev server from an
-earlier session owns the port — kill it (\`lsof -ti:5173 | xargs kill\`) and relaunch; don't
-move the app to another port.
+earlier session owns the port — kill the listener (\`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill\`)
+and relaunch; don't move the app to another port.
 
 ## Docs
 

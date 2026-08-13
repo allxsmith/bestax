@@ -248,7 +248,9 @@ describe('constants', () => {
         iconLibrary: 'none',
       });
       expect(content).toContain('--strictPort');
-      expect(content).toContain('lsof -ti:5173 | xargs kill');
+      // Listener-only: a plain `lsof -ti:5173` would also match clients
+      // connected to the port (e.g. the preview browser) and kill them.
+      expect(content).toContain('lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill');
       expect(content).toMatch(/orphaned dev server/);
     });
   });
