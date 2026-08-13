@@ -17,6 +17,7 @@ jest.unstable_mockModule('fs-extra', () => ({
     emptyDir: jest.fn(),
     ensureDir: jest.fn(),
     copy: jest.fn(),
+    move: jest.fn(),
     readJson: jest.fn(),
     writeJson: jest.fn(),
     readFile: jest.fn(),
@@ -27,6 +28,7 @@ jest.unstable_mockModule('fs-extra', () => ({
   emptyDir: jest.fn(),
   ensureDir: jest.fn(),
   copy: jest.fn(),
+  move: jest.fn(),
   readJson: jest.fn(),
   writeJson: jest.fn(),
   readFile: jest.fn(),
@@ -158,6 +160,47 @@ describe('file-system', () => {
       }
 
       expect(fs.default.copy).not.toHaveBeenCalled();
+    });
+
+    it('should rename _gitignore to .gitignore when the placeholder was copied', async () => {
+      // Call 1: the source-directory existence check; call 2: the copied
+      // placeholder in the destination.
+      (fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(true);
+
+      await copyDirectory('/source', '/target', { _gitignore: '.gitignore' });
+
+      expect(fs.default.copy).toHaveBeenCalledWith('/source', '/target');
+      expect(fs.default.move).toHaveBeenCalledWith(
+        _path.join('/target', '_gitignore'),
+        _path.join('/target', '.gitignore'),
+        { overwrite: true }
+      );
+    });
+
+    it('should skip the rename when the placeholder is absent from the destination', async () => {
+      (fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>)
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+
+      await copyDirectory('/source', '/target', { _gitignore: '.gitignore' });
+
+      expect(fs.default.copy).toHaveBeenCalledWith('/source', '/target');
+      expect(fs.default.move).not.toHaveBeenCalled();
+    });
+
+    it('should not run a rename pass when renames is omitted', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+
+      await copyDirectory('/source', '/target');
+
+      expect(fs.default.copy).toHaveBeenCalledWith('/source', '/target');
+      expect(fs.default.move).not.toHaveBeenCalled();
+      // Only the source-directory check ran — no per-entry destination checks.
+      expect(fs.default.existsSync).toHaveBeenCalledTimes(1);
     });
   });
 

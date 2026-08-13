@@ -108,17 +108,46 @@ describe('display', () => {
       expect(output).toContain(projectName);
     });
 
-    it('should include pnpm commands', () => {
-      displaySuccess('my-app');
+    describe('next-steps package manager', () => {
+      const originalUserAgent = process.env.npm_config_user_agent;
 
-      const calls = (console.log as jest.MockedFunction<typeof console.log>)
-        .mock.calls;
-      const output = calls.map(call => call.join(' ')).join('\n');
+      beforeEach(() => {
+        delete process.env.npm_config_user_agent;
+      });
 
-      // Check for pnpm commands
-      expect(output).toContain('cd my-app');
-      expect(output).toContain('pnpm install');
-      expect(output).toContain('pnpm dev');
+      afterEach(() => {
+        if (originalUserAgent === undefined) {
+          delete process.env.npm_config_user_agent;
+        } else {
+          process.env.npm_config_user_agent = originalUserAgent;
+        }
+      });
+
+      it('should fall back to npm commands without an invoking package manager', () => {
+        displaySuccess('my-app');
+
+        const calls = (console.log as jest.MockedFunction<typeof console.log>)
+          .mock.calls;
+        const output = calls.map(call => call.join(' ')).join('\n');
+
+        expect(output).toContain('cd my-app');
+        expect(output).toContain('npm install');
+        expect(output).toContain('npm run dev');
+      });
+
+      it('should mirror the invoking package manager from npm_config_user_agent', () => {
+        process.env.npm_config_user_agent =
+          'pnpm/9.12.0 npm/? node/v22.0.0 darwin arm64';
+        displaySuccess('my-app');
+
+        const calls = (console.log as jest.MockedFunction<typeof console.log>)
+          .mock.calls;
+        const output = calls.map(call => call.join(' ')).join('\n');
+
+        expect(output).toContain('cd my-app');
+        expect(output).toContain('pnpm install');
+        expect(output).toContain('pnpm run dev');
+      });
     });
 
     it('should use chalk for formatting', () => {

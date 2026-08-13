@@ -241,6 +241,18 @@ describe('constants', () => {
       expect(content).toContain('meta tags');
       expect(content).toContain('rewrite the README');
     });
+
+    it('tells agents how to recover from a strictPort collision without moving ports', () => {
+      const content = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+      });
+      expect(content).toContain('--strictPort');
+      // Listener-only: a plain `lsof -ti:5173` would also match clients
+      // connected to the port (e.g. the preview browser) and kill them.
+      expect(content).toContain('lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill');
+      expect(content).toMatch(/orphaned dev server/);
+    });
   });
 
   describe('CLAUDE_MD house style', () => {
