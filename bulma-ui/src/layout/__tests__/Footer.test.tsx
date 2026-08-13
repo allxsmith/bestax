@@ -141,4 +141,56 @@ describe('Footer', () => {
       expect(footer.tagName.toLowerCase()).toBe('div');
     });
   });
+
+  describe('Scheme backgrounds', () => {
+    it('renders a scheme bgColor as an inline var() style, not a class', () => {
+      render(
+        <Footer data-testid="footer" bgColor="scheme-main-bis">
+          Footer content
+        </Footer>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer.className).not.toContain('has-background-');
+      expect(footer.style.backgroundColor).toBe('var(--bulma-scheme-main-bis)');
+    });
+
+    it('renders the scheme style unchanged under a classPrefix', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Footer data-testid="footer" bgColor="scheme-main-ter">
+            Footer content
+          </Footer>
+        </ConfigProvider>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toHaveClass('bulma-footer');
+      expect(footer.className).not.toContain('has-background-');
+      expect(footer.style.backgroundColor).toBe('var(--bulma-scheme-main-ter)');
+    });
+
+    it('lets a user style win over the scheme helper style', () => {
+      render(
+        <Footer
+          data-testid="footer"
+          bgColor="scheme-main-bis"
+          style={{ backgroundColor: 'red' }}
+        >
+          Footer content
+        </Footer>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer.style.backgroundColor).toBe('red');
+    });
+
+    it('renders no style attribute without a scheme bgColor or user style', () => {
+      render(
+        <Footer data-testid="footer" bgColor="light">
+          Footer content
+        </Footer>
+      );
+      const footer = screen.getByTestId('footer');
+      expect(footer).toHaveClass('has-background-light');
+      expect(footer.getAttribute('style')).toBeNull();
+    });
+  });
 });

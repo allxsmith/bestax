@@ -1,6 +1,9 @@
 {
   "schemaVersion": 1,
-  "generatedFrom": { "package": "@allxsmith/bestax-bulma", "version": "5.9.1" },
+  "generatedFrom": {
+    "package": "@allxsmith/bestax-bulma",
+    "version": "5.10.0"
+  },
   "docsBase": "https://bestax.io/docs",
   "categories": [
     {
@@ -797,7 +800,7 @@
       "import": "import { Section } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 6,
-      "exampleCount": 3
+      "exampleCount": 4
     },
     {
       "name": "Select",
@@ -1061,7 +1064,7 @@
       "import": "import { useBulmaClasses } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
-      "exampleCount": 38
+      "exampleCount": 40
     },
     {
       "name": "usePrefixedClassNames",

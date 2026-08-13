@@ -4,7 +4,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 
 /**
  * Section size values for Bulma.
@@ -20,8 +22,17 @@ export interface SectionProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma background color helper. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Bulma background color helper. `scheme-*` values render as a
+   * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
+   * of a class. The `scheme-invert*` values do not change text color — pair
+   * them with a contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Section size for extra vertical spacing. */
@@ -47,9 +58,10 @@ export const Section: React.FC<SectionProps> = ({
   color,
   bgColor,
   textColor,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -67,7 +79,11 @@ export const Section: React.FC<SectionProps> = ({
   );
 
   return (
-    <section className={sectionClasses} {...rest}>
+    <section
+      className={sectionClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </section>
   );

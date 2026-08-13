@@ -113,6 +113,7 @@ export * from './grid/Cell';
 export * from './grid/Grid';
 
 export * from './helpers/classNames';
+export * from './helpers/mergeBulmaStyles';
 export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
 export * from './helpers/Config';

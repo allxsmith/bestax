@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Hero from './Hero';
+import { validColors, validSchemeColors } from '../helpers/useBulmaClasses';
 import Navbar from '../components/Navbar';
 import Tabs from '../components/Tabs';
 import Title from '../elements/Title';
@@ -13,6 +14,14 @@ const meta: Meta<typeof Hero> = {
   title: 'Layout/Hero',
   component: Hero,
   tags: ['autodocs'],
+  argTypes: {
+    bgColor: {
+      control: 'select',
+      options: [...validColors, ...validSchemeColors, 'inherit', 'current'],
+      description:
+        'Background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class (also on Hero.Head/Body/Foot).',
+    },
+  },
 };
 
 export default meta;
@@ -27,6 +36,38 @@ export const Default: StoryObj<typeof Hero> = {
           <SubTitle>Hero subtitle</SubTitle>
         </Container>
       </Hero.Body>
+    </Hero>
+  ),
+};
+
+// Dark-mode-adaptive scheme background on the hero and its subparts
+// (inline var() style, no class)
+export const SchemeBackground: StoryObj<typeof Hero> = {
+  render: () => (
+    <Hero bgColor="scheme-main-bis">
+      <Hero.Head bgColor="scheme-main-ter">
+        <Container>
+          <SubTitle size="6" p="3">
+            Hero.Head with bgColor=&quot;scheme-main-ter&quot;
+          </SubTitle>
+        </Container>
+      </Hero.Head>
+      <Hero.Body>
+        <Container>
+          <Title>Scheme background hero</Title>
+          <SubTitle>
+            bgColor=&quot;scheme-main-bis&quot; adapts to dark mode with zero
+            custom CSS.
+          </SubTitle>
+        </Container>
+      </Hero.Body>
+      <Hero.Foot bgColor="scheme-main-ter">
+        <Container>
+          <SubTitle size="6" p="3">
+            Hero.Foot with bgColor=&quot;scheme-main-ter&quot;
+          </SubTitle>
+        </Container>
+      </Hero.Foot>
     </Hero>
   ),
 };

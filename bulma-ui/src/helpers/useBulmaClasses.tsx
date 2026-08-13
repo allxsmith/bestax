@@ -1,7 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { classNames } from '../helpers/classNames';
 import { BulmaDisplayProps, BulmaViewportProps } from './bulmaClassHelpers';
-import { useColorClasses, BulmaColorProps } from './useColorClasses';
+import {
+  useColorClasses,
+  useColorStyles,
+  BulmaColorProps,
+  BulmaColorPropsWithScheme,
+} from './useColorClasses';
 import { useSpacingClasses, BulmaSpacingProps } from './useSpacingClasses';
 import {
   useTypographyClasses,
@@ -27,27 +32,51 @@ export interface BulmaClassesProps
     BulmaOtherProps {}
 
 /**
+ * {@link BulmaClassesProps} with `backgroundColor` widened to also accept the
+ * scheme color names from `validSchemeColors` (see
+ * {@link BulmaColorPropsWithScheme}). This is the input type of
+ * `useBulmaClasses`; scheme values surface as the `bulmaHelperStyles` return
+ * member instead of a class.
+ */
+export type BulmaClassesPropsWithScheme = Omit<
+  BulmaClassesProps,
+  keyof BulmaColorProps
+> &
+  BulmaColorPropsWithScheme;
+
+/**
  * A hook that generates Bulma helper classes from props and separates unhandled props.
  *
  * Composed from the per-concern mini hooks (useColorClasses, useSpacingClasses,
  * useTypographyClasses, useVisibilityClasses, useFlexboxClasses, and
  * useOtherClasses), which can also be used individually.
  *
+ * Scheme background values (`backgroundColor: 'scheme-main-bis'`, …) emit no
+ * class; they are returned as `bulmaHelperStyles` — a dark-mode-safe inline
+ * `background-color: var(--bulma-scheme-*)` style (`undefined` for all other
+ * inputs). Merge it with a user `style` prop via `mergeBulmaStyles`.
+ *
  * @function useBulmaClasses
- * @param props - Combination of BulmaClassesProps and additional props.
- * @returns An object containing the Bulma helper classes and unhandled props.
+ * @param props - Combination of BulmaClassesPropsWithScheme and additional props.
+ * @returns An object containing the Bulma helper classes, optional helper
+ * styles, and unhandled props.
  * @example
- * const { bulmaHelperClasses, rest } = useBulmaClasses({
+ * const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
  *   color: 'primary',
- *   textSize: '3',
+ *   backgroundColor: 'scheme-main-bis',
  *   className: 'custom-class'
  * });
- * // bulmaHelperClasses: 'has-text-primary is-size-3'
+ * // bulmaHelperClasses: 'has-text-primary'
+ * // bulmaHelperStyles: { backgroundColor: 'var(--bulma-scheme-main-bis)' }
  * // rest: { className: 'custom-class' }
  */
-export const useBulmaClasses = <T extends Record<string, unknown>>(
-  props: BulmaClassesProps & T
-): { bulmaHelperClasses: string; rest: Omit<T, keyof BulmaClassesProps> } => {
+export const useBulmaClasses = <T extends object>(
+  props: BulmaClassesPropsWithScheme & T
+): {
+  bulmaHelperClasses: string;
+  bulmaHelperStyles?: CSSProperties;
+  rest: Omit<T, keyof BulmaClassesProps>;
+} => {
   const {
     color,
     backgroundColor,
@@ -124,6 +153,8 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     backgroundColor,
     backgroundColorShade,
   });
+
+  const bulmaHelperStyles = useColorStyles({ backgroundColor });
 
   const spacingClasses = useSpacingClasses({
     m,
@@ -229,12 +260,13 @@ export const useBulmaClasses = <T extends Record<string, unknown>>(
     ]
   );
 
-  return { bulmaHelperClasses, rest };
+  return { bulmaHelperClasses, bulmaHelperStyles, rest };
 };
 
 export {
   validColors,
   validColorShades,
+  validSchemeColors,
   validSizes,
   validTextSizes,
   validAlignments,

@@ -44,9 +44,13 @@ color tokens or fixed-color surfaces exist:
   (`--my-canvas: var(--bulma-scheme-main)`) — or flip them yourself under **both** dark-mode
   paths: `[data-theme='dark']` **and** `@media (prefers-color-scheme: dark)` scoped to
   `:root:not([data-theme])`, since `colorMode="system"` removes the attribute (snippets in
-  `references/css-variables.md`). Alternating/tinted section bands are this case:
-  `background: var(--bulma-scheme-main-bis)` (then `-ter`), never `bgColor="light"` —
-  `light`/`white`/grey helper backgrounds are fixed colors that fight dark mode.
+  `references/css-variables.md`). Alternating/tinted section bands are first-class props:
+  `bgColor="scheme-main-bis"` (then `"scheme-main-ter"`) on `Section` (also `Hero`, `Footer`,
+  `Container`, `Box`, `Card`) renders a scheme-tracking inline background — never
+  `bgColor="light"`: `light`/`white`/grey helper backgrounds are fixed colors that fight
+  dark mode. Keep the derive-from-scheme-vars CSS for other custom surfaces. `Theme
+bulmaVars` now accepts `--bulma-scheme-main`/`-bis`/`-ter` (and the `-invert` trio)
+  overrides, so one Theme re-tints every band at once.
 - **Fixed-color surface → fixed-color content.** On a surface that never changes (a dark hero,
   a brand banner), pin the content's colors too: solid/filled buttons and explicit text colors,
   never scheme-derived defaults or thin outlines that depend on the flipping scheme.

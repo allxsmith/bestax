@@ -41,10 +41,17 @@ const meta: Meta<typeof Card> = {
         'danger',
         'light',
         'dark',
+        'scheme-main',
+        'scheme-main-bis',
+        'scheme-main-ter',
+        'scheme-invert',
+        'scheme-invert-bis',
+        'scheme-invert-ter',
         'inherit',
         'current',
       ],
-      description: 'Background color using Bulma has-background-* classes',
+      description:
+        'Background color using Bulma has-background-* classes. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class.',
     },
     hasShadow: {
       control: 'boolean',
@@ -111,6 +118,16 @@ export const WithHeader: Story = {
   args: {
     header: 'Card Header',
     children: DECLARATION_LATIN,
+  },
+};
+
+// Dark-mode-adaptive scheme background: inline var() style, no class
+export const SchemeBackground: Story = {
+  args: {
+    header: 'Scheme Background',
+    children:
+      'This card uses bgColor="scheme-main-bis" — a dark-mode-adaptive surface with zero custom CSS.',
+    bgColor: 'scheme-main-bis',
   },
 };
 

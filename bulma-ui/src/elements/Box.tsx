@@ -4,7 +4,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 
 /**
  * Props for the Box component.
@@ -25,8 +27,17 @@ export interface BoxProps
    * a colored surface.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  /** Background color helper. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color helper. `scheme-*` values render as a dark-mode-safe
+   * inline `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Whether the box has a shadow (default: true). */
   hasShadow?: boolean;
   /** Content to render inside the box. */
@@ -48,12 +59,13 @@ export const Box: React.FC<BoxProps> = ({
   bgColor,
   hasShadow = true,
   children,
+  style,
   ...props
 }) => {
   /**
    * Generates Bulma helper classes and separates out remaining props.
    */
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -66,7 +78,11 @@ export const Box: React.FC<BoxProps> = ({
   const boxClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
-    <div className={boxClasses} {...rest}>
+    <div
+      className={boxClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </div>
   );

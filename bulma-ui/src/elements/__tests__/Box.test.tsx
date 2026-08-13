@@ -217,4 +217,43 @@ describe('Box color text alias', () => {
     expect(box).toHaveClass('has-text-danger');
     expect(box).not.toHaveClass('has-text-primary');
   });
+
+  describe('Scheme backgrounds', () => {
+    it('renders a scheme bgColor as an inline var() style, not a class', () => {
+      const { container } = render(
+        <Box bgColor="scheme-main-bis">Content</Box>
+      );
+      const box = container.querySelector('.box') as HTMLElement;
+      expect(box.className).not.toContain('has-background-');
+      expect(box.style.backgroundColor).toBe('var(--bulma-scheme-main-bis)');
+    });
+
+    it('renders the scheme style unchanged under a classPrefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Box bgColor="scheme-main-ter">Content</Box>
+        </ConfigProvider>
+      );
+      const box = container.querySelector('.bulma-box') as HTMLElement;
+      expect(box.className).not.toContain('has-background-');
+      expect(box.style.backgroundColor).toBe('var(--bulma-scheme-main-ter)');
+    });
+
+    it('lets a user style win over the scheme helper style', () => {
+      const { container } = render(
+        <Box bgColor="scheme-main-bis" style={{ backgroundColor: 'red' }}>
+          Content
+        </Box>
+      );
+      const box = container.querySelector('.box') as HTMLElement;
+      expect(box.style.backgroundColor).toBe('red');
+    });
+
+    it('renders no style attribute without a scheme bgColor or user style', () => {
+      const { container } = render(<Box bgColor="light">Content</Box>);
+      const box = container.querySelector('.box') as HTMLElement;
+      expect(box).toHaveClass('has-background-light');
+      expect(box.getAttribute('style')).toBeNull();
+    });
+  });
 });

@@ -5,7 +5,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
 
 /**
@@ -37,8 +39,17 @@ export interface HeroProps
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Hero size. */
   size?: HeroSize;
-  /** Bulma background color helper. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Bulma background color helper. `scheme-*` values render as a
+   * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
+   * of a class. The `scheme-invert*` values do not change text color — pair
+   * them with a contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Use fullheight hero with a navbar offset. */
   fullheightWithNavbar?: boolean;
   /** Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`). */
@@ -60,11 +71,12 @@ const HeroComponent: React.FC<HeroProps> = ({
   bgColor,
   fullheightWithNavbar,
   children,
+  style,
   ...props
 }) => {
   warnUnstyledColor('Hero', color, ['inherit', 'current']);
 
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     backgroundColor: bgColor,
     ...props,
   });
@@ -78,7 +90,11 @@ const HeroComponent: React.FC<HeroProps> = ({
   const heroClasses = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
-    <section className={heroClasses} {...rest}>
+    <section
+      className={heroClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </section>
   );
@@ -95,8 +111,17 @@ export interface HeroHeadProps
   className?: string;
   /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color. `scheme-*` values render as a dark-mode-safe inline
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Content. */
@@ -116,9 +141,10 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
   color,
   bgColor,
   textColor,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -126,7 +152,11 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
   const mainClass = usePrefixedClassNames('hero-head');
   const heroHeadClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div className={heroHeadClasses} {...rest}>
+    <div
+      className={heroHeadClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -143,8 +173,17 @@ export interface HeroBodyProps
   className?: string;
   /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color. `scheme-*` values render as a dark-mode-safe inline
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Content. */
@@ -164,9 +203,10 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
   color,
   bgColor,
   textColor,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -174,7 +214,11 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
   const mainClass = usePrefixedClassNames('hero-body');
   const heroBodyClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div className={heroBodyClasses} {...rest}>
+    <div
+      className={heroBodyClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -191,8 +235,17 @@ export interface HeroFootProps
   className?: string;
   /** Bulma color modifier for text. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color. `scheme-*` values render as a dark-mode-safe inline
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Content. */
@@ -212,9 +265,10 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
   color,
   bgColor,
   textColor,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -222,7 +276,11 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
   const mainClass = usePrefixedClassNames('hero-foot');
   const heroFootClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div className={heroFootClasses} {...rest}>
+    <div
+      className={heroFootClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </div>
   );

@@ -1183,6 +1183,45 @@ describe('Card color text alias', () => {
     expect(card).toHaveClass('has-text-danger');
     expect(card).not.toHaveClass('has-text-primary');
   });
+
+  describe('Scheme backgrounds', () => {
+    it('renders a scheme bgColor as an inline var() style, not a class', () => {
+      const { container } = render(
+        <Card bgColor="scheme-main-bis">Content</Card>
+      );
+      const card = container.querySelector('.card') as HTMLElement;
+      expect(card.className).not.toContain('has-background-');
+      expect(card.style.backgroundColor).toBe('var(--bulma-scheme-main-bis)');
+    });
+
+    it('renders the scheme style unchanged under a classPrefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bulma-">
+          <Card bgColor="scheme-main-ter">Content</Card>
+        </ConfigProvider>
+      );
+      const card = container.querySelector('.bulma-card') as HTMLElement;
+      expect(card.className).not.toContain('has-background-');
+      expect(card.style.backgroundColor).toBe('var(--bulma-scheme-main-ter)');
+    });
+
+    it('lets a user style win over the scheme helper style', () => {
+      const { container } = render(
+        <Card bgColor="scheme-main-bis" style={{ backgroundColor: 'red' }}>
+          Content
+        </Card>
+      );
+      const card = container.querySelector('.card') as HTMLElement;
+      expect(card.style.backgroundColor).toBe('red');
+    });
+
+    it('renders no style attribute without a scheme bgColor or user style', () => {
+      const { container } = render(<Card bgColor="light">Content</Card>);
+      const card = container.querySelector('.card') as HTMLElement;
+      expect(card).toHaveClass('has-background-light');
+      expect(card.getAttribute('style')).toBeNull();
+    });
+  });
 });
 
 describe('Card sub-parts accept Bulma helper props', () => {

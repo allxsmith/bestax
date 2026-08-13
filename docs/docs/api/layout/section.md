@@ -81,6 +81,27 @@ Set the `size` prop to `"large"` for even more vertical spacing. Use this for pr
 </Section>
 ```
 
+### Alternating Sections
+
+Alternate `bgColor="scheme-main-bis"` (and `"scheme-main-ter"` for a further step) on every other Section to build page bands with zero custom CSS. Scheme values emit no class — the Section renders a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` style, so the bands stay correct when the color scheme flips.
+
+```tsx live
+<>
+  <Section>
+    <Title>First Band</Title>
+    <SubTitle>Default scheme-main background.</SubTitle>
+  </Section>
+  <Section bgColor="scheme-main-bis">
+    <Title>Second Band</Title>
+    <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>
+  </Section>
+  <Section bgColor="scheme-main-ter">
+    <Title>Third Band</Title>
+    <SubTitle>One step further, still zero custom CSS.</SubTitle>
+  </Section>
+</>
+```
+
 ---
 
 ## Accessibility
@@ -117,15 +138,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Secti
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                       |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for text.                    |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                    |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                          |
-| `size`      | `'medium'` \| `'large'`                                                 | —       | Section size for extra vertical spacing.          |
-| `className` | `string`                                                                | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                                       | —       | Section content.                                  |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                                                            | Default | Description                                                                                                                                                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for text.                                                                                                                                                                                                                   |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Bulma background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground. |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma text color helper.                                                                                                                                                                                                                         |
+| `size`      | `'medium'` \| `'large'`                                                                                         | —       | Section size for extra vertical spacing.                                                                                                                                                                                                         |
+| `className` | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                          |
+| `children`  | `React.ReactNode`                                                                                               | —       | Section content.                                                                                                                                                                                                                                 |
+| `...`       | All standard HTML attributes and Bulma helper props                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                |
 
 <!-- /bestax:generated props -->
 

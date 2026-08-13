@@ -56,6 +56,23 @@ export const validColorShades = [
 ] as const;
 
 /**
+ * Valid Bulma scheme color names for scheme-aware backgrounds.
+ *
+ * Bulma ships no `has-background-scheme-*` helper classes, so these values
+ * never emit a class — components render them as a dark-mode-safe inline
+ * `background-color: var(--bulma-<value>)` style instead.
+ * @example 'scheme-main', 'scheme-main-bis', 'scheme-invert'
+ */
+export const validSchemeColors = [
+  'scheme-main',
+  'scheme-main-bis',
+  'scheme-main-ter',
+  'scheme-invert',
+  'scheme-invert-bis',
+  'scheme-invert-ter',
+] as const;
+
+/**
  * Valid Bulma size classes for margins and paddings.
  * @example '0', '1', 'auto'
  */

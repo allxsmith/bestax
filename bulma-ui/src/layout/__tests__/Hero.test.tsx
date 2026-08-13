@@ -282,3 +282,69 @@ describe('Hero deprecated color values', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('Hero scheme backgrounds', () => {
+  it('renders a scheme bgColor as an inline var() style, not a class', () => {
+    const { container } = render(
+      <Hero bgColor="scheme-main-bis">
+        <Hero.Body>Content</Hero.Body>
+      </Hero>
+    );
+    const hero = container.querySelector('.hero') as HTMLElement;
+    expect(hero.className).not.toContain('has-background-');
+    expect(hero.style.backgroundColor).toBe('var(--bulma-scheme-main-bis)');
+  });
+
+  it('renders the scheme style unchanged under a classPrefix', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bulma-">
+        <Hero bgColor="scheme-main-ter">
+          <Hero.Body>Content</Hero.Body>
+        </Hero>
+      </ConfigProvider>
+    );
+    const hero = container.querySelector('.bulma-hero') as HTMLElement;
+    expect(hero.className).not.toContain('has-background-');
+    expect(hero.style.backgroundColor).toBe('var(--bulma-scheme-main-ter)');
+  });
+
+  it('lets a user style win over the scheme helper style', () => {
+    const { container } = render(
+      <Hero bgColor="scheme-main-bis" style={{ backgroundColor: 'red' }}>
+        <Hero.Body>Content</Hero.Body>
+      </Hero>
+    );
+    const hero = container.querySelector('.hero') as HTMLElement;
+    expect(hero.style.backgroundColor).toBe('red');
+  });
+
+  it('supports scheme bgColor on HeroHead, HeroBody, and HeroFoot', () => {
+    const { container } = render(
+      <Hero>
+        <HeroHead bgColor="scheme-main-bis">Head</HeroHead>
+        <HeroBody bgColor="scheme-main-ter">Body</HeroBody>
+        <HeroFoot bgColor="scheme-invert">Foot</HeroFoot>
+      </Hero>
+    );
+    const head = container.querySelector('.hero-head') as HTMLElement;
+    const body = container.querySelector('.hero-body') as HTMLElement;
+    const foot = container.querySelector('.hero-foot') as HTMLElement;
+    expect(head.className).not.toContain('has-background-');
+    expect(head.style.backgroundColor).toBe('var(--bulma-scheme-main-bis)');
+    expect(body.className).not.toContain('has-background-');
+    expect(body.style.backgroundColor).toBe('var(--bulma-scheme-main-ter)');
+    expect(foot.className).not.toContain('has-background-');
+    expect(foot.style.backgroundColor).toBe('var(--bulma-scheme-invert)');
+  });
+
+  it('renders no style attribute without a scheme bgColor or user style', () => {
+    const { container } = render(
+      <Hero bgColor="dark">
+        <Hero.Body>Content</Hero.Body>
+      </Hero>
+    );
+    const hero = container.querySelector('.hero') as HTMLElement;
+    expect(hero).toHaveClass('has-background-dark');
+    expect(hero.getAttribute('style')).toBeNull();
+  });
+});

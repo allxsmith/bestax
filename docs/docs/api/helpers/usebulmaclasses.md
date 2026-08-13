@@ -269,6 +269,48 @@ Use the `backgroundColor` prop to set the background color. Pair it with a text 
 </Columns>
 ```
 
+### Scheme Backgrounds and `bulmaHelperStyles`
+
+The hook returns a third member, `bulmaHelperStyles`, alongside `bulmaHelperClasses` and `rest`. It is `undefined` for every input except a scheme `backgroundColor` (`scheme-main`, `scheme-main-bis`, `scheme-main-ter`, `scheme-invert`, `scheme-invert-bis`, `scheme-invert-ter`): Bulma ships no `has-background-scheme-*` classes, so those values emit no class and instead surface here as a dark-mode-safe inline style tracking Bulma's scheme CSS variables.
+
+```tsx live
+function example() {
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
+    color: 'primary',
+    backgroundColor: 'scheme-main-bis',
+    id: 'band1',
+  });
+
+  return JSON.stringify({ bulmaHelperClasses, bulmaHelperStyles, rest });
+  // bulmaHelperClasses: 'has-text-primary'
+  // bulmaHelperStyles: { backgroundColor: 'var(--bulma-scheme-main-bis)' }
+  // rest: { id: 'band1' }
+}
+```
+
+Put it on your element with `mergeBulmaStyles`, which merges the helper style with a user-supplied `style` prop (the user style wins, and the result is `undefined` when both are absent so the DOM stays untouched):
+
+```tsx live
+function example() {
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
+    backgroundColor: 'scheme-main-bis',
+    p: '4',
+  });
+
+  return (
+    <div
+      {...rest}
+      className={classNames('custom-band', bulmaHelperClasses)}
+      style={mergeBulmaStyles(bulmaHelperStyles, undefined)}
+    >
+      A dark-mode-safe surface with zero custom CSS
+    </div>
+  );
+}
+```
+
+In a real component, destructure `style` out of your own props and pass it as `mergeBulmaStyles`'s second argument (as `Section` does) — if `style` stays in the object you spread, whichever comes later in JSX silently replaces the other instead of merging.
+
 ### Color Shade
 
 `colorShade` refines the **text color** — it pairs with the hook's `color` prop (exposed as `textColor` on components, where `color` is the component's own modifier). Here, each line steps through the primary palette:
@@ -739,35 +781,39 @@ The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples f
 ## API
 
 ```tsx
-const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 ```
 
-- **props**: An object supporting all Bulma helper class props (see table below), plus any additional props.
+- **props**: An object supporting all Bulma helper class props (see table below), plus any additional props. `backgroundColor` additionally accepts the six [`validSchemeColors`](./valid-values.md) values.
 - **bulmaHelperClasses**: A string of Bulma utility classes to be applied to your element.
+- **bulmaHelperStyles**: `React.CSSProperties | undefined` — an inline style for a scheme `backgroundColor` (see [Scheme Backgrounds](#scheme-backgrounds-and-bulmahelperstyles)); `undefined` for every other input. Apply it with [`mergeBulmaStyles`](#scheme-backgrounds-and-bulmahelperstyles) so a user `style` prop wins.
 - **rest**: An object of all remaining props (with helper props stripped out), suitable for spreading onto your component.
 
 ---
 
 ## Composable Mini-Hooks
 
-`useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of six composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string, which you can combine with the [`classNames`](./classnames.md) utility.
+`useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of seven composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string (except `useColorStyles`, which returns an inline style object or `undefined`), which you can combine with the [`classNames`](./classnames.md) utility.
 
 | Hook                   | Props Covered                                                                                                                                  | Returns                                                                                                                                                                                 |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                               | Text and background color classes, including palette shades                                                                                                                             |
+| `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                              | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                       |
 | `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                               | Margin and padding classes                                                                                                                                                              |
 | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}` | Typography classes, including responsive size/alignment variants                                                                                                                        |
 | `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile..Fullhd}`, `visibility{Mobile..Fullhd}`                                              | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
 | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                             | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
 | `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`    | Miscellaneous utility classes                                                                                                                                                           |
 
-All six hooks (and `classNames`) are exported from the package root:
+All seven hooks (plus `classNames` and `mergeBulmaStyles`) are exported from the package root:
 
 ```tsx
 import {
   useColorClasses,
+  useColorStyles,
   useSpacingClasses,
   classNames,
+  mergeBulmaStyles,
 } from '@allxsmith/bestax-bulma';
 ```
 
@@ -825,54 +871,54 @@ function example() {
 
 Below is the full list of supported props, derived from the `BulmaClassesProps` TypeScript definition:
 
-| Prop                   | Type / Example Value                                                                                                                                                                                                                                 | Effect / Example Class                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `color`                | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'light'`, `'dark'`, `'inherit'`, `'current'` | `has-text-primary`, `has-text-grey-dark`, `has-text-inherit` |
-| `backgroundColor`      | Same as `color`                                                                                                                                                                                                                                      | `has-background-warning`                                     |
-| `colorShade`           | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-text-primary-25`                                        |
-| `backgroundColorShade` | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-background-info-dark`                                   |
-| `m`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `m-4`, `m-auto`                                              |
-| `mt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mt-2`                                                       |
-| `mr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mr-6`                                                       |
-| `mb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mb-0`                                                       |
-| `ml`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `ml-auto`                                                    |
-| `mx`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mx-2`                                                       |
-| `my`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `my-5`                                                       |
-| `p`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `p-3`, `p-auto`                                              |
-| `pt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pt-1`                                                       |
-| `pr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pr-6`                                                       |
-| `pb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pb-0`                                                       |
-| `pl`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pl-4`                                                       |
-| `px`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `px-1`                                                       |
-| `py`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `py-6`                                                       |
-| `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                           | `is-size-3`                                                  |
-| `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                     | `has-text-centered`                                          |
-| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                  |
-| `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                       |
-| `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                        |
-| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'none'`                                                                                                                                                                         | `is-flex`, `is-inline-block`, `is-hidden`                    |
-| `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                    |
-| `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                      |
-| `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                        |
-| `justifyContent`       | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'start'`, `'end'`, `'left'`, `'right'`                                                                                                             | `is-justify-content-center`                                  |
-| `alignContent`         | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'stretch'`                                                                                                                                         | `is-align-content-stretch`                                   |
-| `alignItems`           | `'stretch'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'start'`, `'end'`                                                                                                                                                              | `is-align-items-center`                                      |
-| `alignSelf`            | `'auto'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'stretch'`                                                                                                                                                                        | `is-align-self-center`                                       |
-| `flexGrow`             | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-grow-1`                                             |
-| `flexShrink`           | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-shrink-0`                                           |
-| `float`                | `'left'`, `'right'`                                                                                                                                                                                                                                  | `is-pulled-left`, `is-pulled-right`                          |
-| `overflow`             | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                 |
-| `overlay`              | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                 |
-| `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                            |
-| `cursor`               | `'pointer'`, `'help'`                                                                                                                                                                                                                                | `is-clickable`, `is-cursor-help`                             |
-| `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                              |
-| `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                              |
-| `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                     |
-| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'`                                                                                                                                                                                      | Adds viewport suffix to supported properties                 |
-| `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                |
-| `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                |
-| `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                |
-| `fullHeight`           | `true`                                                                                                                                                                                                                                               | `is-full-height`                                             |
+| Prop                   | Type / Example Value                                                                                                                                                                                                                                 | Effect / Example Class                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `color`                | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'black-bis'`, `'black-ter'`, `'grey-darker'`, `'grey-dark'`, `'grey'`, `'grey-light'`, `'grey-lighter'`, `'white'`, `'light'`, `'dark'`, `'inherit'`, `'current'` | `has-text-primary`, `has-text-grey-dark`, `has-text-inherit`                                                |
+| `backgroundColor`      | Same as `color`, plus the scheme values `'scheme-main'`, `'scheme-main-bis'`, `'scheme-main-ter'`, `'scheme-invert'`, `'scheme-invert-bis'`, `'scheme-invert-ter'`                                                                                   | `has-background-warning`; scheme values emit no class — they return as the `bulmaHelperStyles` inline style |
+| `colorShade`           | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-text-primary-25`                                                                                       |
+| `backgroundColorShade` | `'00'`, `'05'`, `'10'`, `'15'`, `'20'`, `'25'`, `'30'`, `'35'`, `'40'`, `'45'`, `'50'`, `'55'`, `'60'`, `'65'`, `'70'`, `'75'`, `'80'`, `'85'`, `'90'`, `'95'`, `'invert'`, `'light'`, `'dark'`, `'soft'`, `'bold'`, `'on-scheme'`                   | `has-background-info-dark`                                                                                  |
+| `m`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `m-4`, `m-auto`                                                                                             |
+| `mt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mt-2`                                                                                                      |
+| `mr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mr-6`                                                                                                      |
+| `mb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mb-0`                                                                                                      |
+| `ml`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `ml-auto`                                                                                                   |
+| `mx`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `mx-2`                                                                                                      |
+| `my`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `my-5`                                                                                                      |
+| `p`                    | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `p-3`, `p-auto`                                                                                             |
+| `pt`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pt-1`                                                                                                      |
+| `pr`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pr-6`                                                                                                      |
+| `pb`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pb-0`                                                                                                      |
+| `pl`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `pl-4`                                                                                                      |
+| `px`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `px-1`                                                                                                      |
+| `py`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                 | `py-6`                                                                                                      |
+| `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                           | `is-size-3`                                                                                                 |
+| `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                     | `has-text-centered`                                                                                         |
+| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                            | `is-uppercase`, `is-italic`                                                                                 |
+| `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                            | `has-text-weight-bold`                                                                                      |
+| `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                  | `is-family-monospace`                                                                                       |
+| `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'none'`                                                                                                                                                                         | `is-flex`, `is-inline-block`, `is-hidden`                                                                   |
+| `visibility`           | `'hidden'`, `'sr-only'`, `'invisible'`                                                                                                                                                                                                               | `is-hidden`, `is-sr-only`, `is-invisible`                                                                   |
+| `flexDirection`        | `'row'`, `'row-reverse'`, `'column'`, `'column-reverse'`                                                                                                                                                                                             | `is-flex-direction-row`                                                                                     |
+| `flexWrap`             | `'nowrap'`, `'wrap'`, `'wrap-reverse'`                                                                                                                                                                                                               | `is-flex-wrap-nowrap`                                                                                       |
+| `justifyContent`       | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'start'`, `'end'`, `'left'`, `'right'`                                                                                                             | `is-justify-content-center`                                                                                 |
+| `alignContent`         | `'flex-start'`, `'flex-end'`, `'center'`, `'space-between'`, `'space-around'`, `'space-evenly'`, `'stretch'`                                                                                                                                         | `is-align-content-stretch`                                                                                  |
+| `alignItems`           | `'stretch'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'start'`, `'end'`                                                                                                                                                              | `is-align-items-center`                                                                                     |
+| `alignSelf`            | `'auto'`, `'flex-start'`, `'flex-end'`, `'center'`, `'baseline'`, `'stretch'`                                                                                                                                                                        | `is-align-self-center`                                                                                      |
+| `flexGrow`             | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-grow-1`                                                                                            |
+| `flexShrink`           | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                             | `is-flex-shrink-0`                                                                                          |
+| `float`                | `'left'`, `'right'`                                                                                                                                                                                                                                  | `is-pulled-left`, `is-pulled-right`                                                                         |
+| `overflow`             | `'clipped'`                                                                                                                                                                                                                                          | `is-clipped`                                                                                                |
+| `overlay`              | `true`                                                                                                                                                                                                                                               | `is-overlay`                                                                                                |
+| `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                      | `is-unselectable`                                                                                           |
+| `cursor`               | `'pointer'`, `'help'`                                                                                                                                                                                                                                | `is-clickable`, `is-cursor-help`                                                                            |
+| `radius`               | `'radiusless'`                                                                                                                                                                                                                                       | `is-radiusless`                                                                                             |
+| `shadow`               | `'shadowless'`                                                                                                                                                                                                                                       | `is-shadowless`                                                                                             |
+| `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                               | `is-mobile`, `is-narrow`                                                                                    |
+| `viewport`             | `'mobile'`, `'tablet'`, `'desktop'`, `'widescreen'`, `'fullhd'`                                                                                                                                                                                      | Adds viewport suffix to supported properties                                                                |
+| `skeleton`             | `true`                                                                                                                                                                                                                                               | `is-skeleton`                                                                                               |
+| `clearfix`             | `true`                                                                                                                                                                                                                                               | `is-clearfix`                                                                                               |
+| `relative`             | `true`                                                                                                                                                                                                                                               | `is-relative`                                                                                               |
+| `fullHeight`           | `true`                                                                                                                                                                                                                                               | `is-full-height`                                                                                            |
 
 ### Viewport-Specific Properties
 
@@ -909,7 +955,7 @@ The following properties allow you to set different values for each viewport bre
 
 ### Full TypeScript Definition
 
-`BulmaClassesProps` is composed from the six group interfaces, each of which is also exported (along with the shared `BulmaViewportProps` and `BulmaDisplayProps` types) and accepted by the corresponding [mini hook](#composable-mini-hooks):
+`BulmaClassesProps` is composed from the six group interfaces, each of which is also exported (along with the shared `BulmaViewportProps` and `BulmaDisplayProps` types) and accepted by the corresponding [mini hook](#composable-mini-hooks). The hook's parameter is the widened `BulmaClassesPropsWithScheme` — identical to `BulmaClassesProps` except that `backgroundColor` also accepts the six `validSchemeColors` values (`BulmaColorPropsWithScheme` is the color-group equivalent, accepted by `useColorClasses` and `useColorStyles`):
 
 ```ts
 export interface BulmaClassesProps
@@ -978,6 +1024,24 @@ export interface BulmaColorProps {
   backgroundColor?: BulmaColorProps['color'];
   backgroundColorShade?: BulmaColorProps['colorShade'];
 }
+
+// The scheme-aware input accepted by useBulmaClasses, useColorClasses,
+// and useColorStyles ((typeof validSchemeColors)[number] is
+// 'scheme-main' | 'scheme-main-bis' | 'scheme-main-ter'
+// | 'scheme-invert' | 'scheme-invert-bis' | 'scheme-invert-ter'):
+export type BulmaColorPropsWithScheme = Omit<
+  BulmaColorProps,
+  'backgroundColor'
+> & {
+  backgroundColor?:
+    BulmaColorProps['backgroundColor'] | (typeof validSchemeColors)[number];
+};
+
+export type BulmaClassesPropsWithScheme = Omit<
+  BulmaClassesProps,
+  keyof BulmaColorProps
+> &
+  BulmaColorPropsWithScheme;
 
 export interface BulmaSpacingProps {
   m?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';

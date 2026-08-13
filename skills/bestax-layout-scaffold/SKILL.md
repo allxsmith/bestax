@@ -70,10 +70,15 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
-- **Decorative CSS is budgeted: three compact rules, ≤13 lines per app — comments count:
+- **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
+  other `Section` (next band `scheme-main-ter`).** The scheme values render as a
+  dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and
+  still never `bgColor="light"`/`"white"`: those are fixed colors that stay light when dark
+  mode flips the text.
+- **Decorative CSS is budgeted: two compact rules, ≤10 lines per app — comments count:
   at most one short inline note, never a file-header comment block — every value derived
-  from `--bulma-*`.** A marketing page gets at most one hero wash, one alternating section
-  band, and one featured-card ring, applied via `className` — no resets (Bulma ships one;
+  from `--bulma-*`.** A marketing page gets at most one hero wash and one featured-card
+  ring, applied via `className` — no resets (Bulma ships one;
   body/list margins are already zero) and no grid textures, masks, or multi-layer backdrops;
   the components carry the design:
 
@@ -84,9 +89,6 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
       hsl(var(--bulma-primary-h) var(--bulma-primary-s) 50% / 0.2),
       transparent 60%
     );
-  }
-  .section-alt {
-    background: var(--bulma-scheme-main-bis); /* next band: -ter */
   }
   .featured-ring {
     --bulma-shadow: 0 0 0 2px var(--bulma-primary);
@@ -188,8 +190,10 @@ inline `style`.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
       with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
       `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).
-- [ ] Decorative CSS ≤13 lines total incl. comments — no file-header comment (hero wash +
-      section band + featured-card ring), `--bulma-*`-derived; no resets — Bulma ships one.
+- [ ] Alternating bands are `bgColor="scheme-main-bis"` (next band `scheme-main-ter`) on
+      every other `Section` — never band CSS, never `bgColor="light"`/`"white"`.
+- [ ] Decorative CSS ≤10 lines total incl. comments — no file-header comment (hero wash +
+      featured-card ring), `--bulma-*`-derived; no resets — Bulma ships one.
       The ring sets `--bulma-shadow` in a CSS rule; `Theme bulmaVars` has no such key.
 - [ ] Set the icon library once via `<ConfigProvider iconLibrary="…">` at the root.
 - [ ] Site built? ~800 KB raw / ~82 KB gzip CSS is the expected default-flavor size — to shrink

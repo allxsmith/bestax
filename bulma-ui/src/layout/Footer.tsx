@@ -4,7 +4,9 @@ import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
+  validSchemeColors,
 } from '../helpers/useBulmaClasses';
+import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
 
 /**
  * Props for the Footer component.
@@ -17,8 +19,17 @@ export interface FooterProps
   as?: 'footer' | 'div';
   /** Bulma color modifier. */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color. */
-  bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
+  /**
+   * Background color. `scheme-*` values render as a dark-mode-safe inline
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
+   */
+  bgColor?:
+    | (typeof validColors)[number]
+    | (typeof validSchemeColors)[number]
+    | 'inherit'
+    | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
@@ -47,9 +58,10 @@ export const Footer: React.FC<FooterProps> = ({
   color,
   bgColor,
   textColor,
+  style,
   ...props
 }) => {
-  const { bulmaHelperClasses, rest } = useBulmaClasses({
+  const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses({
     color: textColor ?? color,
     backgroundColor: bgColor,
     ...props,
@@ -58,7 +70,11 @@ export const Footer: React.FC<FooterProps> = ({
   const mainClass = usePrefixedClassNames('footer');
   const footerClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <Tag className={footerClasses} {...rest}>
+    <Tag
+      className={footerClasses}
+      style={mergeBulmaStyles(bulmaHelperStyles, style)}
+      {...rest}
+    >
       {children}
     </Tag>
   );

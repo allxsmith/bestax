@@ -1,7 +1,13 @@
 import { renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
-import { useColorClasses, BulmaColorProps } from '../useColorClasses';
+import {
+  useColorClasses,
+  useColorStyles,
+  BulmaColorProps,
+  BulmaColorPropsWithScheme,
+} from '../useColorClasses';
+import { validSchemeColors } from '../bulmaClassHelpers';
 import { ConfigProvider } from '../Config';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -9,7 +15,7 @@ import { ConfigProvider } from '../Config';
 describe('useColorClasses', () => {
   // Helper function to render the hook with props and optional config
   const renderUseColorClasses = (
-    props: BulmaColorProps,
+    props: BulmaColorPropsWithScheme,
     classPrefix?: string
   ) => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -89,6 +95,36 @@ describe('useColorClasses', () => {
     );
   });
 
+  it('emits no class for a scheme background value', () => {
+    expect(renderUseColorClasses({ backgroundColor: 'scheme-main-bis' })).toBe(
+      ''
+    );
+  });
+
+  it('emits no class for a scheme background value with classPrefix', () => {
+    expect(
+      renderUseColorClasses({ backgroundColor: 'scheme-main-bis' }, 'bulma-')
+    ).toBe('');
+  });
+
+  it('emits no class for a scheme background value with backgroundColorShade', () => {
+    expect(
+      renderUseColorClasses({
+        backgroundColor: 'scheme-main-bis',
+        backgroundColorShade: '25',
+      })
+    ).toBe('');
+  });
+
+  it('still emits the text color class alongside a scheme background value', () => {
+    expect(
+      renderUseColorClasses({
+        color: 'primary',
+        backgroundColor: 'scheme-main-ter',
+      })
+    ).toBe('has-text-primary');
+  });
+
   it('applies class prefix to color classes', () => {
     expect(renderUseColorClasses({ color: 'primary' }, 'bulma-')).toBe(
       'bulma-has-text-primary'
@@ -126,5 +162,74 @@ describe('useColorClasses', () => {
     expect(result.current).toBe('has-text-primary');
     rerender({ color: 'danger' });
     expect(result.current).toBe('has-text-danger');
+  });
+});
+
+describe('useColorStyles', () => {
+  // Helper function to render the hook with props and optional config
+  const renderUseColorStyles = (
+    props: BulmaColorPropsWithScheme,
+    classPrefix?: string
+  ) => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ConfigProvider classPrefix={classPrefix}>{children}</ConfigProvider>
+    );
+
+    return renderHook(() => useColorStyles(props), { wrapper }).result.current;
+  };
+
+  it.each(validSchemeColors)(
+    'returns the var() background style for %s',
+    scheme => {
+      expect(renderUseColorStyles({ backgroundColor: scheme })).toEqual({
+        backgroundColor: `var(--bulma-${scheme})`,
+      });
+    }
+  );
+
+  it('returns undefined for a regular background color', () => {
+    expect(renderUseColorStyles({ backgroundColor: 'light' })).toBeUndefined();
+  });
+
+  it('returns undefined when backgroundColor is undefined', () => {
+    expect(renderUseColorStyles({})).toBeUndefined();
+  });
+
+  it('is unaffected by classPrefix (styles are never prefixed)', () => {
+    expect(
+      renderUseColorStyles({ backgroundColor: 'scheme-invert' }, 'bulma-')
+    ).toEqual({
+      backgroundColor: 'var(--bulma-scheme-invert)',
+    });
+  });
+
+  it('ignores backgroundColorShade for scheme values', () => {
+    expect(
+      renderUseColorStyles({
+        backgroundColor: 'scheme-main-bis',
+        backgroundColorShade: '25',
+      })
+    ).toEqual({ backgroundColor: 'var(--bulma-scheme-main-bis)' });
+  });
+
+  it('returns the same object across rerenders with the same props', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <ConfigProvider>{children}</ConfigProvider>
+    );
+    const { result, rerender } = renderHook(
+      (props: BulmaColorPropsWithScheme) => useColorStyles(props),
+      {
+        wrapper,
+        initialProps: {
+          backgroundColor: 'scheme-main',
+        } as BulmaColorPropsWithScheme,
+      }
+    );
+    const first = result.current;
+    rerender({ backgroundColor: 'scheme-main' });
+    expect(result.current).toBe(first);
+    expect(result.current).toEqual({
+      backgroundColor: 'var(--bulma-scheme-main)',
+    });
   });
 });
