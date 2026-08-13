@@ -336,67 +336,90 @@ You can combine the traditional prop-based API with compound components:
 
 ### Card.Header
 
-| Prop        | Type                         | Default | Description                                                  |
-| ----------- | ---------------------------- | ------- | ------------------------------------------------------------ |
-| `className` | `string`                     | —       | Additional CSS classes.                                      |
-| `children`  | `React.ReactNode`            | —       | Header content. Wrap in Card.Header.Title for Bulma styling. |
-| `centered`  | `boolean`                    | `false` | Whether to center the header title text.                     |
-| `...`       | All standard HTML attributes | —       |                                                              |
+| Prop        | Type                                                                    | Default | Description                                                  |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------------ |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).                    |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                     |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set.      |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                      |
+| `children`  | `React.ReactNode`                                                       | —       | Header content. Wrap in Card.Header.Title for Bulma styling. |
+| `centered`  | `boolean`                                                               | `false` | Whether to center the header title text.                     |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)            |
 
 ### Card.Header.Title
 
-| Prop        | Type                            | Default | Description                       |
-| ----------- | ------------------------------- | ------- | --------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.           |
-| `children`  | `React.ReactNode`               | —       | Title text content.               |
-| `centered`  | `boolean`                       | `false` | Whether to center the title text. |
-| `...`       | All standard `<div>` attributes | —       |                                   |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Title text content.                                     |
+| `centered`  | `boolean`                                                               | `false` | Whether to center the title text.                       |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 ### Card.Header.Icon
 
-| Prop        | Type                               | Default | Description                          |
-| ----------- | ---------------------------------- | ------- | ------------------------------------ |
-| `className` | `string`                           | —       | Additional CSS classes.              |
-| `children`  | `React.ReactNode`                  | —       | Icon content (e.g. an icon element). |
-| `...`       | All standard `<button>` attributes | —       |                                      |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Icon content (e.g. an icon element).                    |
+| `...`       | All standard `<button>` attributes and Bulma helper props               | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 ### Card.Image
 
-| Prop        | Type                            | Default | Description                                        |
-| ----------- | ------------------------------- | ------- | -------------------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                            |
-| `children`  | `React.ReactNode`               | —       | Image content (e.g. a `<figure>` with an `<img>`). |
-| `...`       | All standard `<div>` attributes | —       |                                                    |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Image content (e.g. a `<figure>` with an `<img>`).      |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 ### Card.Content
 
-| Prop        | Type                            | Default | Description             |
-| ----------- | ------------------------------- | ------- | ----------------------- |
-| `className` | `string`                        | —       | Additional CSS classes. |
-| `children`  | `React.ReactNode`               | —       | Card body content.      |
-| `...`       | All standard `<div>` attributes | —       |                         |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Card body content.                                      |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 ### Card.Footer
 
-| Prop        | Type                         | Default | Description                                         |
-| ----------- | ---------------------------- | ------- | --------------------------------------------------- |
-| `className` | `string`                     | —       | Additional CSS classes.                             |
-| `children`  | `React.ReactNode`            | —       | Footer content, typically Card.FooterItem elements. |
-| `...`       | All standard HTML attributes | —       |                                                     |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Footer content, typically Card.FooterItem elements.     |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 ### Card.FooterItem
 
-| Prop        | Type                             | Default | Description                                     |
-| ----------- | -------------------------------- | ------- | ----------------------------------------------- |
-| `className` | `string`                         | —       | Additional CSS classes.                         |
-| `children`  | `React.ReactNode`                | —       | Footer item content (link, button, text, etc.). |
-| `...`       | All standard `<span>` attributes | —       |                                                 |
+| Prop        | Type                                                                    | Default | Description                                             |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier (text color helper).               |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper; wins over `color` when both are set. |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                                       | —       | Footer item content (link, button, text, etc.).         |
+| `...`       | All standard `<span>` attributes and Bulma helper props                 | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 <!-- /bestax:generated props -->
 
 ### Compound component props
 
 The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
+
+You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with every `Card` sub-part for utility-based styling — spacing (`m`, `p`), colors, flexbox (`display="flex"`, `flexGrow`), and more. Each sub-part also takes `color` (text color), `bgColor` (background), and `textColor` (wins over `color` when both are set).
 
 #### Card.Header
 
@@ -406,7 +429,8 @@ Renders the card header section with proper styling. When used without `Card.Hea
 
 - `className?`: Additional CSS classes
 - `centered?`: Whether to center the header content (only applies when not using `Card.Header.Title`)
-- All standard HTML attributes for `<header>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<header>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.Header.Title
 
@@ -416,7 +440,8 @@ Renders the card header title with proper styling. This provides more granular c
 
 - `className?`: Additional CSS classes
 - `centered?`: Whether to center the header title
-- All standard HTML attributes for `<div>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<div>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.Header.Icon
 
@@ -426,7 +451,8 @@ Renders the card header icon button with proper styling. This is typically place
 
 - `className?`: Additional CSS classes
 - `aria-label?`: Accessibility label (defaults to "more options")
-- All standard HTML attributes for `<button>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<button>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.Image
 
@@ -435,7 +461,8 @@ Renders the card image section.
 **Props:**
 
 - `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<div>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.Content
 
@@ -444,7 +471,8 @@ Renders the main card content section.
 **Props:**
 
 - `className?`: Additional CSS classes
-- All standard HTML attributes for `<div>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<div>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.Footer
 
@@ -453,7 +481,8 @@ Renders the card footer section.
 **Props:**
 
 - `className?`: Additional CSS classes
-- All standard HTML attributes for `<footer>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<footer>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 #### Card.FooterItem
 
@@ -462,7 +491,8 @@ Renders individual footer items with proper styling.
 **Props:**
 
 - `className?`: Additional CSS classes
-- All standard HTML attributes for `<span>`
+- `color?` / `bgColor?` / `textColor?`: [Bulma color](../helpers/valid-values.md) helpers
+- All standard HTML attributes for `<span>` and [Bulma helper props](../helpers/usebulmaclasses.md)
 
 ---
 

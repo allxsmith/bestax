@@ -96,6 +96,9 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers.                                           |
 
+(`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
+same components; prefer the lowercase-second-word spellings.)
+
 ## Common props
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
@@ -116,8 +119,10 @@ Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
 
-⚠️ Full-width casing is inconsistent across the library: `Select`, `File`, and `Table` take
-`isFullwidth` (lowercase w); `Button` alone takes `isFullWidth`; `Tabs` takes bare `fullwidth`.
+Full-width is `isFullwidth` on every component that supports it (`Button`, `LinkButton`,
+`Select`, `File`, `Table`, `Tabs`, `Sidebar`) — always write `isFullwidth`. The deprecated
+spellings compile only where they historically existed: `isFullWidth` everywhere except
+`Sidebar`, `fullwidth` on `Tabs` only, `fullWidth` on `Sidebar` only.
 
 The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
 `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`,

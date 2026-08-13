@@ -47,6 +47,37 @@ describe('Tag Component', () => {
     expect(tag).toHaveClass('tag is-rounded');
   });
 
+  test('applies is-light class via isLight', () => {
+    render(<Tag {...defaultProps} color="primary" isLight />);
+    const tag = screen.getByText('Test Tag');
+    expect(tag).toHaveClass('tag is-primary is-light');
+  });
+
+  test('does not apply is-light by default', () => {
+    render(<Tag {...defaultProps} color="primary" />);
+    const tag = screen.getByText('Test Tag');
+    expect(tag).not.toHaveClass('is-light');
+  });
+
+  test('applies is-light on the delete-button render path', () => {
+    render(<Tag {...defaultProps} isDelete isLight />);
+    const button = screen.getByRole('button', { name: 'Delete tag' });
+    expect(button).toHaveClass('tag is-delete is-light');
+  });
+
+  test('applies the class prefix to is-light', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Tag color="primary" isLight>
+          Prefixed Tag
+        </Tag>
+      </ConfigProvider>
+    );
+    const tag = screen.getByText('Prefixed Tag');
+    expect(tag).toHaveClass('bestax-tag');
+    expect(tag).toHaveClass('bestax-is-light');
+  });
+
   test('applies hoverable class', () => {
     render(<Tag {...defaultProps} isHoverable />);
     const tag = screen.getByText('Test Tag');

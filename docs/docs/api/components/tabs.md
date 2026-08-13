@@ -237,10 +237,10 @@ Combine the toggle style with rounded corners for a pill-like appearance. This e
 
 ### Fullwidth Tabs
 
-Make your tabs span the entire width of their container with the `fullwidth` prop. This example shows fullwidth tabs, which are useful for emphasizing the tab navigation or when you have many tabs to display.
+Make your tabs span the entire width of their container with the `isFullwidth` prop. This example shows fullwidth tabs, which are useful for emphasizing the tab navigation or when you have many tabs to display. (The older `fullwidth` spelling still works as a deprecated alias.)
 
 ```tsx live
-<Tabs fullwidth>
+<Tabs isFullwidth>
   <Tabs.List>
     <Tabs.Item active>
       <a>One</a>
@@ -293,10 +293,10 @@ This example combines several features: centered alignment, boxed style, and ico
 
 ### Toggle Fullwidth Tabs with Icons
 
-Enhance your toggle tabs with icons for better visual communication. This example also uses the `fullwidth` prop to make the tabs span the entire width, which is useful for mobile views or when you want to emphasize the tab bar.
+Enhance your toggle tabs with icons for better visual communication. This example also uses the `isFullwidth` prop to make the tabs span the entire width, which is useful for mobile views or when you want to emphasize the tab bar.
 
 ```tsx live
-<Tabs toggle fullwidth>
+<Tabs toggle isFullwidth>
   <Tabs.List>
     <Tabs.Item active>
       <a>
@@ -358,7 +358,7 @@ This example features centered, boxed tabs in medium size, each with an icon. It
 The final example showcases toggle tabs with fullwidth and large size, including icons. This combination is powerful for applications with complex navigation needs, ensuring that users can easily understand and access different sections.
 
 ```tsx live
-<Tabs toggle fullwidth size="large">
+<Tabs toggle isFullwidth size="large">
   <Tabs.List>
     <Tabs.Item active>
       <a>
@@ -441,7 +441,9 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `align`        | `'centered'` \| `'right'` \| `'left'`                                                                                              | —       | Tab alignment.                                                                                                                                                                                                                                                                                                                                |
 | `size`         | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Tab size.                                                                                                                                                                                                                                                                                                                                     |
-| `fullwidth`    | `boolean`                                                                                                                          | `false` | Tabs expand to fill the horizontal space.                                                                                                                                                                                                                                                                                                     |
+| `isFullwidth`  | `boolean`                                                                                                                          | `false` | Tabs expand to fill the horizontal space.                                                                                                                                                                                                                                                                                                     |
+| `isFullWidth`  | `boolean`                                                                                                                          | `false` | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Tabs expand to fill the horizontal space.                                                                                                                                                                                                                     |
+| `fullwidth`    | `boolean`                                                                                                                          | `false` | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Tabs expand to fill the horizontal space.                                                                                                                                                                                                                     |
 | `boxed`        | `boolean`                                                                                                                          | `false` | Tabs use the boxed style.                                                                                                                                                                                                                                                                                                                     |
 | `toggle`       | `boolean`                                                                                                                          | `false` | Tabs use the toggle style.                                                                                                                                                                                                                                                                                                                    |
 | `rounded`      | `boolean`                                                                                                                          | `false` | Tabs use the rounded toggle style (only with `toggle`).                                                                                                                                                                                                                                                                                       |

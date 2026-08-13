@@ -44,7 +44,7 @@ export default function LoginPage() {
                 iconLeftName="lock"
                 placeholder="••••••••"
               />
-              <Button color="primary" isFullWidth mt="4">
+              <Button color="primary" isFullwidth mt="4">
                 Sign in
               </Button>
             </Box>

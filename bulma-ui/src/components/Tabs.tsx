@@ -36,6 +36,10 @@ export interface TabsProps
   /** Tab size. */
   size?: 'small' | 'medium' | 'large';
   /** Tabs expand to fill the horizontal space. */
+  isFullwidth?: boolean;
+  /** Tabs expand to fill the horizontal space. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
+  isFullWidth?: boolean;
+  /** Tabs expand to fill the horizontal space. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   fullwidth?: boolean;
   /** Tabs use the boxed style. */
   boxed?: boolean;
@@ -104,6 +108,8 @@ export interface TabsProps
 const TabsComponent: React.FC<TabsProps> = ({
   align,
   size,
+  isFullwidth,
+  isFullWidth,
   fullwidth,
   boxed,
   toggle,
@@ -149,7 +155,7 @@ const TabsComponent: React.FC<TabsProps> = ({
     [`is-${align}`]: align,
     [`is-${size}`]: size,
     [`is-${color}`]: color,
-    'is-fullwidth': fullwidth,
+    'is-fullwidth': isFullwidth ?? isFullWidth ?? fullwidth,
     'is-boxed': boxed,
     'is-toggle': toggle,
     'is-toggle-rounded': rounded,

@@ -32,6 +32,8 @@ import { Taginput } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
+The component is exported as `Taginput`; a deprecated `TagInput` alias names the same component for imports written with camel-case spelling, and `TagInputProps` is the matching deprecated alias of the `TaginputProps` type.
+
 ### Basic Taginput
 
 Simple tag input without suggestions.

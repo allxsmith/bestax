@@ -1184,3 +1184,116 @@ describe('Card color text alias', () => {
     expect(card).not.toHaveClass('has-text-primary');
   });
 });
+
+describe('Card sub-parts accept Bulma helper props', () => {
+  type SubPartCase = {
+    name: string;
+    selector: string;
+    render: (props: Record<string, unknown>) => React.ReactElement;
+  };
+
+  const cases: SubPartCase[] = [
+    {
+      name: 'Card.Header',
+      selector: '.card-header',
+      render: props => <Card.Header {...props}>Header</Card.Header>,
+    },
+    {
+      name: 'Card.Header.Title',
+      selector: '.card-header-title',
+      render: props => <Card.Header.Title {...props}>Title</Card.Header.Title>,
+    },
+    {
+      name: 'Card.Header.Icon',
+      selector: '.card-header-icon',
+      render: props => <Card.Header.Icon {...props}>Icon</Card.Header.Icon>,
+    },
+    {
+      name: 'Card.Image',
+      selector: '.card-image',
+      render: props => <Card.Image {...props}>Image</Card.Image>,
+    },
+    {
+      name: 'Card.Content',
+      selector: '.card-content',
+      render: props => <Card.Content {...props}>Content</Card.Content>,
+    },
+    {
+      name: 'Card.Footer',
+      selector: '.card-footer',
+      render: props => <Card.Footer {...props}>Footer</Card.Footer>,
+    },
+    {
+      name: 'Card.FooterItem',
+      selector: '.card-footer-item',
+      render: props => <Card.FooterItem {...props}>Item</Card.FooterItem>,
+    },
+  ];
+
+  cases.forEach(({ name, selector, render: renderSubPart }) => {
+    describe(name, () => {
+      it('applies spacing helper props', () => {
+        const { container } = render(renderSubPart({ p: '4' }));
+        expect(container.querySelector(selector)).toHaveClass('p-4');
+      });
+
+      it('renders has-text via color alone', () => {
+        const { container } = render(renderSubPart({ color: 'primary' }));
+        expect(container.querySelector(selector)).toHaveClass(
+          'has-text-primary'
+        );
+      });
+
+      it('gives textColor precedence over color', () => {
+        const { container } = render(
+          renderSubPart({ textColor: 'danger', color: 'primary' })
+        );
+        const el = container.querySelector(selector);
+        expect(el).toHaveClass('has-text-danger');
+        expect(el).not.toHaveClass('has-text-primary');
+      });
+
+      it('applies bgColor', () => {
+        const { container } = render(renderSubPart({ bgColor: 'info' }));
+        expect(container.querySelector(selector)).toHaveClass(
+          'has-background-info'
+        );
+      });
+
+      it('still spreads unknown DOM props', () => {
+        const { container } = render(
+          renderSubPart({ 'data-testid': 'sub-part' })
+        );
+        expect(container.querySelector(selector)).toHaveAttribute(
+          'data-testid',
+          'sub-part'
+        );
+      });
+
+      it('prefixes both the part class and helper classes', () => {
+        const { container } = render(
+          <ConfigProvider classPrefix="bestax-">
+            {renderSubPart({ p: '4' })}
+          </ConfigProvider>
+        );
+        const el = container.querySelector(`.bestax-${selector.slice(1)}`);
+        expect(el).not.toBeNull();
+        expect(el).toHaveClass('bestax-p-4');
+      });
+    });
+  });
+
+  it('keeps the CardHeader quirk: className also lands on the generated title div', () => {
+    const { container } = render(
+      <Card.Header className="custom" p="2">
+        Plain header
+      </Card.Header>
+    );
+    const header = container.querySelector('.card-header');
+    expect(header).toHaveClass('custom');
+    expect(header).toHaveClass('p-2');
+    const title = container.querySelector('.card-header-title');
+    expect(title).toHaveClass('custom');
+    expect(title).not.toHaveClass('p-2');
+  });
+});

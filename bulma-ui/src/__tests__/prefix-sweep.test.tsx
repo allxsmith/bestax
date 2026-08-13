@@ -62,6 +62,7 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },
   Tabs: {

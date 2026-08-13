@@ -322,3 +322,30 @@ export const HeaderWithIcon: Story = {
     },
   },
 };
+
+export const PinnedFooter: Story = {
+  render: () => (
+    <Card display="flex" flexDirection="column">
+      <Card.Content flexGrow="1">
+        Short body text — the footer below stays pinned to the bottom of the
+        card because Card.Content grows to fill the remaining space.
+      </Card.Content>
+      <Card.Footer>
+        <Card.FooterItem>
+          <a href="#save">Save</a>
+        </Card.FooterItem>
+        <Card.FooterItem>
+          <a href="#cancel">Cancel</a>
+        </Card.FooterItem>
+      </Card.Footer>
+    </Card>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Card sub-parts accept Bulma helper props: a flex column card plus flexGrow="1" on Card.Content pins the footer without any inline styles.',
+      },
+    },
+  },
+};

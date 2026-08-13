@@ -59,7 +59,7 @@ Wraps a single input; adds icons and loading.
 ## Select / SelectBase, TextArea / TextAreaBase
 
 Same convenience/raw split as Input. `Select` supports `isLoading` (on the control), `color`,
-`size`, `isRounded`, `isFullwidth` (lowercase w — Button's is `isFullWidth`), `multiple` +
+`size`, `isRounded`, `isFullwidth`, `multiple` +
 `multipleSize`, plus the Field/Control/message props. `TextArea` adds `rows` and
 `hasFixedSize`.
 

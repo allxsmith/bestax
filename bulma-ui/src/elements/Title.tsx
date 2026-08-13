@@ -8,9 +8,10 @@ import {
 
 const validTitleSizes = ['1', '2', '3', '4', '5', '6'] as const;
 /**
- * Valid size values for the Title component (Bulma title sizes).
+ * Valid size values for the Title component (Bulma title sizes): `'1'`–`'6'` as a string or number (`3` and `'3'` are equivalent).
  */
-export type TitleSize = (typeof validTitleSizes)[number];
+export type TitleSize =
+  '1' | '2' | '3' | '4' | '5' | '6' | 1 | 2 | 3 | 4 | 5 | 6;
 
 const validTitleElements = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'] as const;
 /**
@@ -31,7 +32,7 @@ export interface TitleProps
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Size of the title (Bulma sizes). */
+  /** Size of the title (Bulma sizes `1`-`6`, as a string or number). */
   size?: TitleSize;
   /** Adds margin below the title. */
   isSpaced?: boolean;
@@ -78,8 +79,12 @@ export const Title: React.FC<TitleProps> = ({
   // Validate 'as' prop at runtime
   const element = validTitleElements.includes(as) ? as : 'h1';
 
-  // Validate 'size' prop at runtime
-  const validSize = size && validTitleSizes.includes(size) ? size : undefined;
+  // Validate 'size' prop at runtime (numeric sizes normalize to strings)
+  const normalized = size == null ? undefined : String(size);
+  const validSize =
+    normalized && (validTitleSizes as readonly string[]).includes(normalized)
+      ? (normalized as (typeof validTitleSizes)[number])
+      : undefined;
 
   const bulmaClasses = usePrefixedClassNames('title', {
     [`is-${validSize}`]: validSize,

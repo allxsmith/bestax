@@ -163,18 +163,18 @@ When using `as="p"`, the element is visually styled as a heading but semanticall
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                    | Default | Description                                              |
-| ------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
-| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                         |
-| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'`                      | —       | Size of the title (Bulma sizes).                         |
-| `isSpaced`    | `boolean`                                                               | `false` | Adds margin below the title.                             |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`       | `'h1'`  | HTML element to render as (h1-h6 or p).                  |
-| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content. |
-| `children`    | `React.ReactNode`                                                       | —       | Title content.                                           |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                       |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                 |
-| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component. |
-| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props            | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+| Prop          | Type                                                                                         | Default | Description                                                     |
+| ------------- | -------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------- |
+| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the title (Bulma sizes `1`-`6`, as a string or number). |
+| `isSpaced`    | `boolean`                                                                                    | `false` | Adds margin below the title.                                    |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (h1-h6 or p).                         |
+| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.        |
+| `children`    | `React.ReactNode`                                                                            | —       | Title content.                                                  |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                              |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                        |
+| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.        |
+| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props                                 | —       | See [Helper Props](../helpers/usebulmaclasses.md)               |
 
 <!-- /bestax:generated props -->
 

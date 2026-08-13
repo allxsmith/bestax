@@ -734,4 +734,10 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
 Taginput.displayName = 'Taginput';
 
+/** @deprecated Use `Taginput` — same component. */
+export const TagInput = Taginput;
+
+/** @deprecated Use `TaginputProps`. */
+export type TagInputProps = TaginputProps;
+
 export default Taginput;

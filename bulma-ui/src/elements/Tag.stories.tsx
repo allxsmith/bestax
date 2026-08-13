@@ -54,6 +54,10 @@ const meta: Meta<typeof Tag> = {
       control: 'select',
       options: ['normal', 'medium', 'large'],
     },
+    isLight: {
+      control: 'boolean',
+      description: 'Use the light color variant.',
+    },
     isRounded: { control: 'boolean' },
     isDelete: { control: 'boolean' },
     isHoverable: { control: 'boolean' },
@@ -86,6 +90,22 @@ export const Primary: Story = {
   args: {
     children: 'Primary Tag',
     color: 'primary',
+  },
+};
+
+export const Light: Story = {
+  args: {
+    children: 'Light Primary Tag',
+    color: 'primary',
+    isLight: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The isLight prop renders the light variant of the chosen color.',
+      },
+    },
   },
 };
 

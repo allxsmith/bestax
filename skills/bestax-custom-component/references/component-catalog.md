@@ -24,8 +24,8 @@ instead of hand-writing markup.
 - **Compound components** expose sub-parts via dot access (e.g. `Card.Header`,
   `Navbar.Item`, `Tabs.Tab`, `Hero.Body`, `Columns.Column`, `Table.Tr`); see the
   component's linked page for the full set. Sub-parts do **not** all take helper
-  props: the `Table.*`, `Menu.*`, and `Hero.*` families do (most `Navbar.*`
-  too), but `Card.*`, `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take none —
+  props: the `Card.*`, `Table.*`, `Menu.*`, and `Hero.*` families do (most
+  `Navbar.*` too), but `Modal.*`, `Tabs.*`, and `Message.*` sub-parts take none —
   just `className`, HTML attributes, and their own few (`Tabs.Tab` requires
   `index` and has built-in `icon`/`disabled` props). Put helper props on the
   parent or on an element inside (`Span`, `Paragraph`, …) instead.

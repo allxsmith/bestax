@@ -52,9 +52,14 @@ const meta: Meta<typeof Sidebar> = {
       control: 'text',
       description: 'Custom width (e.g., "300px", "80%")',
     },
-    fullWidth: {
+    isFullwidth: {
       control: 'boolean',
       description: 'Sidebar takes full width',
+    },
+    fullWidth: {
+      control: 'boolean',
+      description:
+        'Sidebar takes full width. Deprecated: use `isFullwidth` instead.',
     },
     overlay: {
       control: 'boolean',
@@ -204,7 +209,7 @@ export const FullWidth: Story = {
         <Button color="warning" onClick={() => setIsOpen(true)}>
           Open Full Width
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} fullWidth>
+        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} isFullwidth>
           <Sidebar.Header>
             <Sidebar.Title>Full Width Panel</Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />

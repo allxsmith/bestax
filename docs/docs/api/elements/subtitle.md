@@ -154,17 +154,17 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                    | Default | Description                                              |
-| ------------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------- |
-| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                         |
-| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'`                      | —       | Size of the subtitle (Bulma sizes).                      |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`       | `'h1'`  | HTML element to render as (h1-h6 or p).                  |
-| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content. |
-| `children`    | `React.ReactNode`                                                       | —       | Subtitle content.                                        |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                       |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                 |
-| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component. |
-| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props            | —       | See [Helper Props](../helpers/usebulmaclasses.md)        |
+| Prop          | Type                                                                                         | Default | Description                                                        |
+| ------------- | -------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------ |
+| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                   |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (h1-h6 or p).                            |
+| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.           |
+| `children`    | `React.ReactNode`                                                                            | —       | Subtitle content.                                                  |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                 |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                           |
+| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.           |
+| `...`         | All standard `<h1>`–`<h6>` attributes and Bulma helper props                                 | —       | See [Helper Props](../helpers/usebulmaclasses.md)                  |
 
 <!-- /bestax:generated props -->
 

@@ -118,10 +118,10 @@ When you need a button that looks interactive but isn’t clickable, use the `is
 
 ### Full Width
 
-With the `isFullWidth` prop, your button will expand to completely fill the width of its parent container. This is useful for mobile layouts, modal footers, or anywhere you want your call-to-action to be easy to find and tap.
+With the `isFullwidth` prop, your button will expand to completely fill the width of its parent container. This is useful for mobile layouts, modal footers, or anywhere you want your call-to-action to be easy to find and tap. (The `isFullWidth` spelling still works as a deprecated alias.)
 
 ```tsx live
-<Button color="warning" isFullWidth>
+<Button color="warning" isFullwidth>
   Full Width Button
 </Button>
 ```
@@ -332,7 +332,8 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Butto
 | `isRounded`   | `boolean`                                                                                                                                                   | `false`    | Makes the button rounded.                                                                                                                                             |
 | `isLoading`   | `boolean`                                                                                                                                                   | `false`    | Displays a loading spinner.                                                                                                                                           |
 | `isStatic`    | `boolean`                                                                                                                                                   | `false`    | Makes the button non-interactive.                                                                                                                                     |
-| `isFullWidth` | `boolean`                                                                                                                                                   | `false`    | Makes the button full-width.                                                                                                                                          |
+| `isFullwidth` | `boolean`                                                                                                                                                   | `false`    | Makes the button full-width.                                                                                                                                          |
+| `isFullWidth` | `boolean`                                                                                                                                                   | `false`    | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Makes the button full-width.                                                          |
 | `isOutlined`  | `boolean`                                                                                                                                                   | `false`    | Applies outlined styling (requires color).                                                                                                                            |
 | `isInverted`  | `boolean`                                                                                                                                                   | `false`    | Applies inverted styling (requires color).                                                                                                                            |
 | `isFocused`   | `boolean`                                                                                                                                                   | `false`    | Applies focused styling (visual only).                                                                                                                                |

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Taginput } from '../Taginput';
+import { Taginput, TagInput } from '../Taginput';
 import { Field } from '../Field';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
@@ -1205,5 +1205,16 @@ describe('Taginput label association (#493)', () => {
     const fieldLabel = container.querySelector('label.label');
     expect(fieldLabel).toHaveTextContent('Tags');
     expect(fieldLabel).not.toHaveAttribute('for');
+  });
+});
+
+describe('TagInput deprecated alias', () => {
+  it('is the same component as Taginput', () => {
+    expect(TagInput).toBe(Taginput);
+  });
+
+  it('renders via the alias', () => {
+    render(<TagInput value={['alpha']} />);
+    expect(screen.getByText('alpha')).toBeInTheDocument();
   });
 });

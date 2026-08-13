@@ -25,6 +25,8 @@ export interface SidebarProps
   /** Custom width of the sidebar. */
   width?: string;
   /** Sidebar takes full width (mobile-style). */
+  isFullwidth?: boolean;
+  /** Sidebar takes full width (mobile-style). @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   fullWidth?: boolean;
   /** Show overlay behind sidebar. Default: true. */
   overlay?: boolean;
@@ -73,7 +75,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       onClose,
       position = 'left',
       width = '260px',
-      fullWidth = false,
+      isFullwidth,
+      fullWidth,
       overlay = true,
       overlayClose = true,
       escapeClose = true,
@@ -88,6 +91,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const sidebarRef = useRef<HTMLElement>(null);
+    const resolvedFullwidth = isFullwidth ?? fullWidth ?? false;
 
     // Close handler
     const handleClose = useCallback(() => {
@@ -165,7 +169,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     const sidebarClasses = usePrefixedClassNames('sidebar', {
       'is-active': isOpen,
       [`is-${position}`]: position,
-      'is-fullwidth': fullWidth,
+      'is-fullwidth': resolvedFullwidth,
     });
     const backgroundClass = usePrefixedClassNames('sidebar-background', {
       'is-active': isOpen,
@@ -181,7 +185,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // Custom style for width
     const sidebarStyle: React.CSSProperties = {
       ...style,
-      '--bulma-sidebar-width': fullWidth ? '100%' : width,
+      '--bulma-sidebar-width': resolvedFullwidth ? '100%' : width,
     } as React.CSSProperties;
 
     const sidebarContent = (

@@ -46,6 +46,8 @@ export interface FileProps
   isBoxed?: boolean;
   /** Whether the file input expands to full width. */
   isFullwidth?: boolean;
+  /** Whether the file input expands to full width. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
+  isFullWidth?: boolean;
   /** Position the CTA on the right (with `hasName`). */
   isRight?: boolean;
   /** Center the file input within its container. */
@@ -89,6 +91,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       size,
       isBoxed,
       isFullwidth,
+      isFullWidth,
       isRight,
       isCentered,
       hasName,
@@ -130,7 +133,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       [`is-${color}`]: !!color,
       [`is-${size}`]: !!size,
       'is-boxed': isBoxed,
-      'is-fullwidth': isFullwidth,
+      'is-fullwidth': isFullwidth ?? isFullWidth,
       'has-name': hasName,
     });
     const fileClass = classNames(

@@ -39,6 +39,8 @@ export interface TagProps
   color?: TagColor;
   /** Tag size. */
   size?: TagSize;
+  /** Use the light color variant. */
+  isLight?: boolean;
   /** Renders a rounded tag. */
   isRounded?: boolean;
   /** Renders a delete-style tag (delete button). */
@@ -63,6 +65,7 @@ export const Tag: React.FC<TagProps> = ({
   className,
   color,
   size,
+  isLight,
   isRounded,
   isDelete,
   isHoverable,
@@ -78,6 +81,7 @@ export const Tag: React.FC<TagProps> = ({
   const bulmaClasses = usePrefixedClassNames('tag', {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
+    'is-light': isLight,
     'is-rounded': isRounded,
     'is-delete': isDelete,
     'is-hoverable': isHoverable,

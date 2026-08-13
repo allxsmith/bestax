@@ -11,6 +11,10 @@
       "code": "<Tag color=\"primary\">Primary Tag</Tag>"
     },
     {
+      "title": "Light Tag",
+      "code": "<Tags>\n  <Tag color=\"primary\" isLight>\n    Light Primary\n  </Tag>\n  <Tag color=\"danger\" isLight>\n    Light Danger\n  </Tag>\n</Tags>"
+    },
+    {
       "title": "Medium and Large Tag",
       "code": "<Tags>\n  <Tag size=\"medium\">Medium Tag</Tag>\n  <Tag size=\"large\">Large Tag</Tag>\n</Tags>"
     },
@@ -77,6 +81,15 @@
           "type": "'normal' | 'medium' | 'large'",
           "default": null,
           "description": "Tag size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use the light color variant.",
           "required": false,
           "inherited": false,
           "deprecated": false

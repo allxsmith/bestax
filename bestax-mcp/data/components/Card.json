@@ -202,6 +202,36 @@
       "component": null,
       "props": [
         {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -230,7 +260,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard HTML attributes",
+      "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },
     {
@@ -238,6 +268,36 @@
       "summary": "Card header title compound component. Renders a `.card-header-title` element.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -267,7 +327,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes",
+      "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },
     {
@@ -275,6 +335,36 @@
       "summary": "Card header icon compound component. Renders a `.card-header-icon` button.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -295,7 +385,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <button> attributes",
+      "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     },
     {
@@ -303,6 +393,36 @@
       "summary": "Card image compound component. Wraps children in a `.card-image` element.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -323,7 +443,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes",
+      "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },
     {
@@ -331,6 +451,36 @@
       "summary": "Card content compound component. Wraps children in a `.card-content` element.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -351,7 +501,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes",
+      "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
     },
     {
@@ -359,6 +509,36 @@
       "summary": "Card footer compound component. Wraps children in a `.card-footer` element.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -379,7 +559,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard HTML attributes",
+      "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },
     {
@@ -387,6 +567,36 @@
       "summary": "Card footer item compound component. Wraps children in a `.card-footer-item` span.",
       "component": null,
       "props": [
+        {
+          "name": "color",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Bulma color modifier (text color helper).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper; wins over `color` when both are set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
         {
           "name": "className",
           "type": "string",
@@ -407,7 +617,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <span> attributes",
+      "catchAll": "All standard <span> attributes and Bulma helper props",
       "types": []
     }
   ],

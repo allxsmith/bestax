@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Numberinput } from '../Numberinput';
+import { Numberinput, NumberInput } from '../Numberinput';
 import { Field } from '../Field';
 
 describe('Numberinput', () => {
@@ -992,5 +992,16 @@ describe('Numberinput label association (#368)', () => {
     expect(container.querySelector('input[type="number"]')).not.toHaveAttribute(
       'id'
     );
+  });
+});
+
+describe('NumberInput deprecated alias', () => {
+  it('is the same component as Numberinput', () => {
+    expect(NumberInput).toBe(Numberinput);
+  });
+
+  it('renders via the alias', () => {
+    const { container } = render(<NumberInput value={5} />);
+    expect(container.querySelector('input[type="number"]')).toHaveValue(5);
   });
 });

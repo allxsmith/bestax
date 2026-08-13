@@ -175,6 +175,41 @@ describe('Button Component', () => {
     });
   });
 
+  describe('Fullwidth', () => {
+    it('applies is-fullwidth via the canonical isFullwidth prop', () => {
+      render(<Button isFullwidth>Wide</Button>);
+      expect(screen.getByRole('button')).toHaveClass('is-fullwidth');
+    });
+
+    it('applies is-fullwidth via the deprecated isFullWidth prop', () => {
+      render(<Button isFullWidth>Wide</Button>);
+      expect(screen.getByRole('button')).toHaveClass('is-fullwidth');
+    });
+
+    it('isFullwidth wins when both spellings are set', () => {
+      render(
+        <Button isFullwidth={false} isFullWidth>
+          Not wide
+        </Button>
+      );
+      expect(screen.getByRole('button')).not.toHaveClass('is-fullwidth');
+    });
+
+    it('does not apply is-fullwidth by default', () => {
+      render(<Button>Default</Button>);
+      expect(screen.getByRole('button')).not.toHaveClass('is-fullwidth');
+    });
+
+    it('applies the class prefix to is-fullwidth', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Button isFullwidth>Wide</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass('bestax-is-fullwidth');
+    });
+  });
+
   describe('ClassPrefix', () => {
     it('applies classPrefix to main class', () => {
       render(

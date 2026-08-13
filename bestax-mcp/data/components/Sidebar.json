@@ -19,7 +19,7 @@
     },
     {
       "title": "Full Width (Mobile Style)",
-      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"warning\" onClick={() => setIsOpen(true)}>\n        Open Full Width\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        fullWidth\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Full Width Panel</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.List>\n              <Menu.Item href=\"#\">Home</Menu.Item>\n              <Menu.Item href=\"#\">Products</Menu.Item>\n              <Menu.Item href=\"#\">About</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      <Button color=\"warning\" onClick={() => setIsOpen(true)}>\n        Open Full Width\n      </Button>\n      <Sidebar\n        inline\n        isOpen={isOpen}\n        onClose={() => setIsOpen(false)}\n        isFullwidth\n      >\n        <Sidebar.Header>\n          <Sidebar.Title>Full Width Panel</Sidebar.Title>\n          <Sidebar.Close onClick={() => setIsOpen(false)} />\n        </Sidebar.Header>\n        <Sidebar.Body>\n          <Menu>\n            <Menu.List>\n              <Menu.Item href=\"#\">Home</Menu.Item>\n              <Menu.Item href=\"#\">Products</Menu.Item>\n              <Menu.Item href=\"#\">About</Menu.Item>\n              <Menu.Item href=\"#\">Contact</Menu.Item>\n            </Menu.List>\n          </Menu>\n        </Sidebar.Body>\n      </Sidebar>\n    </>\n  );\n}"
     },
     {
       "title": "Without Overlay",
@@ -88,13 +88,23 @@
           "deprecated": false
         },
         {
-          "name": "fullWidth",
+          "name": "isFullwidth",
           "type": "boolean",
           "default": "false",
           "description": "Sidebar takes full width (mobile-style).",
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Sidebar takes full width (mobile-style).",
+          "required": false,
+          "inherited": false,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
         },
         {
           "name": "overlay",

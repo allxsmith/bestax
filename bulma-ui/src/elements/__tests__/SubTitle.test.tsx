@@ -74,6 +74,48 @@ describe('SubTitle Component', () => {
     expect(subtitle.tagName).toBe('H1');
   });
 
+  test('accepts a numeric size and derives the heading level', () => {
+    render(<SubTitle {...defaultProps} size={3} />);
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 3,
+    });
+    expect(subtitle).toHaveClass('subtitle is-3');
+    expect(subtitle.tagName).toBe('H3');
+  });
+
+  test('rejects an out-of-range numeric size', () => {
+    render(
+      <SubTitle
+        {...defaultProps}
+        size={7 as unknown as SubTitleProps['size']}
+      />
+    );
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('subtitle');
+    expect(subtitle).not.toHaveClass('is-7');
+    expect(subtitle.tagName).toBe('H1');
+  });
+
+  test('rejects an out-of-range string size', () => {
+    render(
+      <SubTitle
+        {...defaultProps}
+        size={'7' as unknown as SubTitleProps['size']}
+      />
+    );
+    const subtitle = screen.getByRole('heading', {
+      name: 'Test SubTitle',
+      level: 1,
+    });
+    expect(subtitle).toHaveClass('subtitle');
+    expect(subtitle).not.toHaveClass('is-7');
+    expect(subtitle.tagName).toBe('H1');
+  });
+
   test('applies Bulma helper classes (e.g., margin)', () => {
     render(<SubTitle {...defaultProps} m="4" />);
     const subtitle = screen.getByRole('heading', { name: 'Test SubTitle' });

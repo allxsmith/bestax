@@ -121,6 +121,15 @@
           "deprecated": false
         },
         {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Use the light color variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "isRounded",
           "type": "boolean",
           "default": "false",

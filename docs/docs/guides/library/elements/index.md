@@ -348,7 +348,7 @@ A highly composable, Bulma-styled table system with full support for Bulma's tab
 
 ### Tag
 
-A Bulma-styled label or badge, supporting color, size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)
+A Bulma-styled label or badge, supporting color (with an `isLight` variant), size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)
 
 ```tsx live
 <Tag>Default Tag</Tag>
