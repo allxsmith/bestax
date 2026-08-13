@@ -1037,7 +1037,7 @@
       "name": "Valid value constants",
       "kind": "helper",
       "category": "helpers",
-      "purpose": "The `valid*` constant arrays enumerate the core accepted values for the shared Bulma helper props — public API you can import to build prop types and…",
+      "purpose": "The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
       "slug": "helpers/valid-values",
       "import": "import { Valid value constants } from '@allxsmith/bestax-bulma';",
       "compound": false,

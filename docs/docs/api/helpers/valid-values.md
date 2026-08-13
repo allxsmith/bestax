@@ -7,7 +7,7 @@ sidebar_label: Valid value constants
 
 ## Overview
 
-The `valid*` constant arrays enumerate the core accepted values for the shared Bulma helper props — public API you can import to build prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore unrecognized values, and every tuple member produces a helper class except `validSchemeColors`, whose values instead produce the `bulmaHelperStyles` inline style (no class). A few props accept documented extras beyond their tuple, noted in the table below: the `display*` props also take `'none'` (rendering the `is-hidden*` visibility class), and the color props also take `'inherit'` and `'current'` — so validate against the prop's TypeScript union, not the tuple alone, when you need the full contract.
+The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore unrecognized values, and every tuple member produces a helper class except `validSchemeColors`, whose values instead produce the `bulmaHelperStyles` inline style (no class). A few props accept documented extras beyond their tuple, noted in the table below: the `display*` props also take `'none'` (rendering the `is-hidden*` visibility class), and the color props also take `'inherit'` and `'current'` — so validate against the prop's TypeScript union, not the tuple alone, when you need the full contract.
 
 ---
 
