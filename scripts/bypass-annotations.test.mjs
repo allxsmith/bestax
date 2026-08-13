@@ -329,6 +329,29 @@ auditConfig:
   ]);
 });
 
+test('an unsupported header shape leaves the block unseen, not silently empty', () => {
+  // Header matching is deliberately narrow, so semantically equivalent YAML —
+  // a quoted key, or a flow sequence — matches nothing. That is safe ONLY
+  // because blocksSeen makes the absence loud; on its own the other blocks
+  // would keep entries.length nonzero and the gate would pass.
+  for (const shape of [
+    `auditConfig:\n  'ignoreGhsas':\n    - GHSA-aaaa-bbbb-cccc`,
+    `auditConfig:\n  ignoreGhsas: [GHSA-aaaa-bbbb-cccc]`,
+  ]) {
+    const { entries, blocksSeen } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-11-13 — keeps the total nonzero
+  'thing@1': '>=1.2.3'
+${shape}
+`);
+    assert.ok(entries.length > 0, 'other blocks still parse');
+    assert.ok(
+      !blocksSeen.has('ignoreGhsas'),
+      `unsupported shape must not read as found: ${shape}`
+    );
+  }
+});
+
 test('a renamed block is absent from blocksSeen, not merely empty', () => {
   // The fail-open the per-block guard closes: the other blocks keep the total
   // entry count nonzero, so only the missing KEY reveals the silent list.
