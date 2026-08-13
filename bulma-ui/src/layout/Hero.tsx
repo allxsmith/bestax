@@ -42,7 +42,8 @@ export interface HeroProps
   /**
    * Bulma background color helper. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
-   * of a class.
+   * of a class. The `scheme-invert*` values do not change text color — pair
+   * them with a contrasting foreground.
    */
   bgColor?:
     | (typeof validColors)[number]
@@ -112,7 +113,9 @@ export interface HeroHeadProps
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
-   * `background-color: var(--bulma-scheme-*)` instead of a class.
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
    */
   bgColor?:
     | (typeof validColors)[number]
@@ -172,7 +175,9 @@ export interface HeroBodyProps
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
-   * `background-color: var(--bulma-scheme-*)` instead of a class.
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
    */
   bgColor?:
     | (typeof validColors)[number]
@@ -232,7 +237,9 @@ export interface HeroFootProps
   color?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
-   * `background-color: var(--bulma-scheme-*)` instead of a class.
+   * `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
    */
   bgColor?:
     | (typeof validColors)[number]

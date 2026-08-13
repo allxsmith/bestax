@@ -108,7 +108,9 @@ export const useColorClasses = (props: BulmaColorPropsWithScheme): string => {
  * values produce identical DOM to before.
  *
  * `backgroundColorShade` is ignored for scheme values — Bulma defines no
- * shaded scheme variables.
+ * shaded scheme variables. Only the background is set: the `scheme-invert*`
+ * values do not change text color, so pair them with a contrasting
+ * foreground.
  *
  * @function useColorStyles
  * @param props - Color-related Bulma helper props (scheme-aware).

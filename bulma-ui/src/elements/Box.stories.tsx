@@ -35,10 +35,17 @@ const meta: Meta<typeof Box> = {
         'danger',
         'light',
         'dark',
+        'scheme-main',
+        'scheme-main-bis',
+        'scheme-main-ter',
+        'scheme-invert',
+        'scheme-invert-bis',
+        'scheme-invert-ter',
         'inherit',
         'current',
       ],
-      description: 'Background color using Bulma has-background-* classes',
+      description:
+        'Background color using Bulma has-background-* classes. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class.',
     },
     hasShadow: {
       control: 'boolean',
@@ -94,6 +101,14 @@ export const LightBackground: Story = {
   args: {
     children: 'Box with Light Background',
     bgColor: 'grey-light',
+  },
+};
+
+// Box with a dark-mode-adaptive scheme background (inline var() style, no class)
+export const SchemeBackground: Story = {
+  args: {
+    children: 'Box with a scheme-main-bis background (dark-mode adaptive)',
+    bgColor: 'scheme-main-bis',
   },
 };
 

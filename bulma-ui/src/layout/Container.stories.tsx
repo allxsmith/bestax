@@ -1,6 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Container } from './Container';
 import { Notification } from '../elements/Notification';
+import { validColors, validSchemeColors } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Container> = {
   title: 'Layout/Container',
@@ -8,6 +9,14 @@ const meta: Meta<typeof Container> = {
   tags: ['autodocs'],
   parameters: {
     layout: 'centered',
+  },
+  argTypes: {
+    bgColor: {
+      control: 'select',
+      options: [...validColors, ...validSchemeColors, 'inherit', 'current'],
+      description:
+        'Background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class.',
+    },
   },
 };
 
@@ -94,6 +103,16 @@ export const FluidContainer: Story = {
         expand to the full width of the screen, with a small 32px gap on each
         side.
       </Notification>
+    </Container>
+  ),
+};
+
+// Dark-mode-adaptive scheme background (inline var() style, no class)
+export const SchemeBackground: Story = {
+  render: () => (
+    <Container bgColor="scheme-main-ter" p="5">
+      This container uses <code>bgColor=&quot;scheme-main-ter&quot;</code> — a
+      dark-mode-adaptive surface with zero custom CSS.
     </Container>
   ),
 };

@@ -29,7 +29,9 @@ export interface BoxProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /**
    * Background color helper. `scheme-*` values render as a dark-mode-safe
-   * inline `background-color: var(--bulma-scheme-*)` instead of a class.
+   * inline `background-color: var(--bulma-scheme-*)` instead of a class. The
+   * `scheme-invert*` values do not change text color — pair them with a
+   * contrasting foreground.
    */
   bgColor?:
     | (typeof validColors)[number]

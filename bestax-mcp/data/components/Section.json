@@ -49,7 +49,7 @@
           "name": "bgColor",
           "type": "Bulma color | (typeof validSchemeColors)[number] | 'inherit' | 'current'",
           "default": null,
-          "description": "Bulma background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class.",
+          "description": "Bulma background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground.",
           "required": false,
           "inherited": false,
           "deprecated": false,
