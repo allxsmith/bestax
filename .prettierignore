@@ -26,3 +26,11 @@ bestax-migrate/.e2e-tmp/
 # read off these files. Same argument as the codemod fixtures above. The
 # harness's own scripts (eval/agent-loop/bin, lib) are ours and stay formatted.
 eval/agent-loop/runs-*/*/app-src/
+
+# Local agent worktrees: full checkouts of other branches that agent sessions
+# leave under .claude/. Each branch is format-checked by its own PR's CI; seen
+# from here they only re-trip root-anchored patterns above (a worktree's
+# bestax-migrate/fixtures/ no longer matches, so `pnpm format:check` fails on
+# files this file already exempts). Deliberately narrow — .claude/commands/ is
+# tracked, hand-written markdown and stays formatted.
+.claude/worktrees/
