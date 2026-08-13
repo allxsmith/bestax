@@ -72,7 +72,7 @@ overrides:
   # auto-loading follows `../` out of the source directory and discloses
   # arbitrary .map files.
   'postcss@<8.5.18': '>=8.5.18 <9'
-  # bestax:review 2026-11-13 — quarterly sweep; covers all four majors below
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched brace-expansion per major — high advisories
   # GHSA-mh99-v99m-4gvg (unbounded expansion length, OOM) and its follow-up
   # GHSA-rgw5-rvv9-x895 (DoS via unbounded intermediate arrays) both ship
@@ -85,8 +85,11 @@ overrides:
   # if one ever appears the audit gate will flag it — decide the cross-major
   # question then, against that consumer's import style.
   'brace-expansion@1': '>=1.1.18 <2'
+  # bestax:review 2026-11-13 — quarterly sweep; 2.x line, prunable on its own
   'brace-expansion@2': '>=2.1.4 <3'
+  # bestax:review 2026-11-13 — quarterly sweep; 3.x line, prunable on its own
   'brace-expansion@3': '>=3.0.6 <4'
+  # bestax:review 2026-11-13 — quarterly sweep; 5.x line, prunable on its own
   'brace-expansion@5': '>=5.0.9 <6'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
@@ -103,7 +106,7 @@ overrides:
   # Scoped to the affected 7.x major; the 6.x copy under @actions/http-client
   # is not affected. Prune once those parents require >=7.29.0 themselves.
   'undici@7': '>=7.29.0 <8'
-  # bestax:review 2026-11-13 — quarterly sweep; covers minimatch and yaml below
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched minimatch/yaml under docusaurus-plugin-llms. From 0.5.0 that
   # plugin pins its own dependencies exactly ("minimatch": "9.0.3" rather than
   # "^9.0.3"), so the range no longer floats to a patched release the way it did
@@ -113,8 +116,9 @@ overrides:
   # the affected major so the minimatch 10.x already in the tree is untouched.
   # Prune both once the plugin widens its ranges again.
   'minimatch@9': '>=9.0.7 <10'
+  # bestax:review 2026-11-13 — quarterly sweep; same plugin, separate advisory
   'yaml@2': '>=2.8.3'
-  # bestax:review 2026-11-13 — quarterly sweep; covers both majors below
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force patched js-yaml per major — high advisory GHSA-5p4m-2wfm-xmqj
   # (CVE-2026-59870): quadratic CPU consumption resolving !!omap. The 3.x copy
   # rides the jest coverage chain (babel-plugin-istanbul >
@@ -124,6 +128,7 @@ overrides:
   # range admits them — the lockfile just predates them. Prune each entry once
   # its line resolves to >=3.15.1 / >=4.3.1 without the force.
   'js-yaml@3': '>=3.15.1 <4'
+  # bestax:review 2026-11-13 — quarterly sweep; 4.x line, prunable on its own
   'js-yaml@4': '>=4.3.1 <5'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched nanoid under the vite>postcss chain (storybook build
@@ -151,10 +156,11 @@ overrides:
 # Docusaurus chain resolves to it.
 auditConfig:
   ignoreGhsas:
-    # bestax:review 2026-11-13 — quarterly sweep; covers both advisories. These
-    # are the only bypasses here with no patched version to move to, so the
-    # review is "has image-size published a fix yet", not "can we drop this".
+    # bestax:review 2026-11-13 — quarterly sweep. These are the only bypasses
+    # here with no patched version to move to, so the review is "has image-size
+    # published a fix yet", not "can we drop this".
     - GHSA-w3rx-r6r6-pgpr
+    # bestax:review 2026-11-13 — quarterly sweep; second image-size advisory
     - GHSA-5p2g-fcmc-qvqq
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages

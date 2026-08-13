@@ -35,22 +35,21 @@ overrides:
   assert.equal(entries[0].label, 'overrides');
 });
 
-test('consecutive entries share one comment block', () => {
+test('an entry directly beneath an annotated one inherits nothing', () => {
+  // The fail-open this contract exists to close: appending a bypass under an
+  // annotated neighbour, with no comment of its own, must not borrow its date.
   const { entries } = parseBypassEntries(`
 overrides:
-  # bestax:review 2026-11-13 — covers both majors
-  # Force patched thing per major.
+  # bestax:review 2026-11-13 — annotated
   'thing@1': '>=1.2.3'
-  'thing@2': '>=2.3.4'
+  'appended@2': '>=2.3.4'
 `);
   assert.equal(entries.length, 2);
-  assert.equal(entries[0].review, '2026-11-13');
-  assert.equal(entries[1].review, '2026-11-13');
+  assert.equal(byName(entries, 'thing@1').review, '2026-11-13');
+  assert.equal(byName(entries, 'appended@2').review, null);
 });
 
-test('a comment after an entry starts a new block instead of extending it', () => {
-  // The regression that makes this check decorative: without the reset, the
-  // unannotated second entry inherits the first's date and passes.
+test('a comment after an entry annotates only the next entry', () => {
   const { entries } = parseBypassEntries(`
 overrides:
   # bestax:review 2026-11-13 — annotated

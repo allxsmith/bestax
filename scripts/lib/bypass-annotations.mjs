@@ -134,12 +134,17 @@ function readAnnotation(text) {
  * Every bypass entry in the file, each with the annotation found in the comment
  * block immediately above it.
  *
- * A comment block is the run of consecutive `#` lines ending at the entry. A
- * blank line breaks the association deliberately: a comment separated from the
- * entry by whitespace is prose about the section, not that entry's annotation.
- * Entries sharing one comment block (the four brace-expansion majors) each
- * inherit it, which is why the annotation is read per entry rather than
- * consumed by the first one.
+ * A comment block is the run of consecutive `#` lines ending at the entry, and
+ * it belongs to exactly ONE entry: the block is consumed when its entry is
+ * read, so a second entry sitting directly beneath inherits nothing. Sharing
+ * one marker across a group would fail open — appending a bypass under an
+ * annotated neighbour, with no comment of its own, would silently borrow that
+ * neighbour's date. It is also wrong on the merits: `brace-expansion@1` can
+ * become droppable while `@5` is still load-bearing, so each line is its own
+ * decision and carries its own date.
+ *
+ * A blank line breaks the association too: a comment separated from the entry
+ * by whitespace is prose about the section, not that entry's annotation.
  *
  * A block ends only at a real dedent — a non-blank line indented no further
  * than its header. Ending it at the first line the entry pattern does not
@@ -159,12 +164,10 @@ export function parseBypassEntries(yaml) {
   let active = null;
   let headerIndent = 0;
   let comments = [];
-  let afterEntry = false;
 
   const endBlock = () => {
     active = null;
     comments = [];
-    afterEntry = false;
   };
 
   for (const [i, line] of lines.entries()) {
@@ -173,7 +176,6 @@ export function parseBypassEntries(yaml) {
       active = header;
       headerIndent = indentOf(line);
       comments = [];
-      afterEntry = false;
       continue;
     }
     if (!active) continue;
@@ -190,12 +192,7 @@ export function parseBypassEntries(yaml) {
       continue;
     }
     if (line.trimStart().startsWith('#')) {
-      // A comment that follows an entry opens a new block rather than
-      // extending the previous one. Without this, an unannotated entry would
-      // inherit the date of whichever annotated entry happened to precede it.
-      if (afterEntry) comments = [];
       comments.push(line);
-      afterEntry = false;
       continue;
     }
 
@@ -219,9 +216,9 @@ export function parseBypassEntries(yaml) {
       line: i + 1,
       ...readAnnotation(comments.join('\n')),
     });
-    // Consecutive entries with no comment between them share one block (the
-    // four brace-expansion majors, js-yaml 3 and 4).
-    afterEntry = true;
+    // Consume the block: it annotated this entry and nothing else. The next
+    // entry needs its own marker or it is unannotated.
+    comments = [];
   }
 
   return { entries, problems };
