@@ -32,7 +32,7 @@ import { Numberinput } from '@allxsmith/bestax-bulma';
 
 ## Usage
 
-The component is exported as `Numberinput`; a deprecated `NumberInput` alias (and `NumberInputProps`) also exists for imports written with camel-case spelling — both name the same component.
+The component is exported as `Numberinput`; a deprecated `NumberInput` alias names the same component for imports written with camel-case spelling, and `NumberInputProps` is the matching deprecated alias of the `NumberinputProps` type.
 
 ### Basic Numberinput
 
