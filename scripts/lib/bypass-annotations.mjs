@@ -27,7 +27,8 @@
 export const BYPASS_BLOCKS = [
   {
     key: 'overrides',
-    // `overrides:` sits at column 0; its entries are `key: value` pairs.
+    // `overrides:` sits at column 0; its entries are `key: value` pairs. The
+    // trailing `.*` swallows any inline comment — only the key is used.
     header: /^overrides:\s*$/,
     entry: /^\s+(.+?):\s*\S.*$/,
     label: 'overrides',
@@ -35,22 +36,99 @@ export const BYPASS_BLOCKS = [
   {
     key: 'minimumReleaseAgeExclude',
     header: /^minimumReleaseAgeExclude:\s*$/,
-    entry: /^\s+-\s*(\S+)\s*$/,
+    entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'minimumReleaseAgeExclude',
   },
   {
     key: 'ignoreGhsas',
     // Nested under `auditConfig:`, so the header itself is indented.
     header: /^\s+ignoreGhsas:\s*$/,
-    entry: /^\s+-\s*(\S+)\s*$/,
+    entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'auditConfig.ignoreGhsas',
   },
 ];
 
-const REVIEW = /#\s*bestax:review\s+(\d{4}-\d{2}-\d{2})\b/;
-const PERMANENT = /#\s*bestax:permanent\b/;
+// Capture the rest of the marker line too: the contract asks for a reason, and
+// an unexplained bypass is the thing this whole gate exists to prevent.
+const REVIEW = /#\s*bestax:review\b[ \t]*(\S+)?[ \t]*(.*)$/m;
+const PERMANENT = /#\s*bestax:permanent\b[ \t]*(.*)$/m;
 
 const unquote = s => s.replace(/^['"]|['"]$/g, '');
+
+const indentOf = line => line.length - line.trimStart().length;
+
+/**
+ * A real calendar date in ISO form, not merely ten digits shaped like one.
+ * `9999-99-99` matches a naive pattern and then sorts after every real date,
+ * so a typo would silently make a bypass permanent — the exact failure this
+ * check exists to catch.
+ */
+const isCalendarDate = s => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  // `toISOString` throws on an Invalid Date rather than returning a mismatch,
+  // which would take the whole conformance run down with a stack trace.
+  const parsed = new Date(`${s}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed.toISOString().slice(0, 10) === s;
+};
+
+// Reasons are prose, so accept any separator the house comments already use
+// (em dash, hyphen, colon) and just require some words after it.
+const hasReason = text =>
+  /[\p{L}\p{N}]{3}/u.test(text.replace(/^[\s—:-]+/, ''));
+
+/**
+ * Read the one annotation a comment block is allowed to carry.
+ *
+ * Returns `{review, permanent, error}`. Anything malformed becomes an `error`
+ * rather than a silent pass, because every malformed shape here fails OPEN:
+ * an unparsed date never arrives, and a stray `bestax:permanent` outranks a
+ * real review date.
+ */
+function readAnnotation(text) {
+  const review = text.match(REVIEW);
+  const permanent = text.match(PERMANENT);
+  const none = { review: null, permanent: false };
+
+  if (review && permanent) {
+    return {
+      ...none,
+      error:
+        'carries both `bestax:review` and `bestax:permanent`; permanent would ' +
+        'win and the date would never be checked. Keep exactly one.',
+    };
+  }
+  if (permanent) {
+    return hasReason(permanent[1])
+      ? { review: null, permanent: true, error: null }
+      : {
+          ...none,
+          error:
+            '`bestax:permanent` has no reason. Write ' +
+            '`# bestax:permanent — why this is standing policy, not debt`.',
+        };
+  }
+  if (review) {
+    if (!isCalendarDate(review[1] ?? '')) {
+      return {
+        ...none,
+        error:
+          `\`bestax:review\` date ${JSON.stringify(review[1] ?? '')} is not a ` +
+          `real calendar date in YYYY-MM-DD form. An unparseable date never ` +
+          `comes due, so this would be a permanent bypass by typo.`,
+      };
+    }
+    return hasReason(review[2])
+      ? { review: review[1], permanent: false, error: null }
+      : {
+          ...none,
+          error:
+            '`bestax:review` has a date but no reason. Write ' +
+            '`# bestax:review YYYY-MM-DD — why this date`.',
+        };
+  }
+  return { ...none, error: null };
+}
 
 /**
  * Every bypass entry in the file, each with the annotation found in the comment
@@ -63,20 +141,37 @@ const unquote = s => s.replace(/^['"]|['"]$/g, '');
  * inherit it, which is why the annotation is read per entry rather than
  * consumed by the first one.
  *
- * @returns {{name: string, block: string, label: string, line: number,
- *   review: string|null, permanent: boolean}[]}
+ * A block ends only at a real dedent — a non-blank line indented no further
+ * than its header. Ending it at the first line the entry pattern does not
+ * match would fail OPEN: one unsupported-but-valid line (`- GHSA-x # note`
+ * before inline comments were handled) would drop that entry and every entry
+ * below it, while the other blocks kept the total nonzero and the gate green.
+ * Indented lines that do not parse are reported instead, via `problems`.
+ *
+ * @returns {{entries: {name: string, block: string, label: string,
+ *   line: number, review: string|null, permanent: boolean,
+ *   error: string|null}[], problems: {line: number, why: string}[]}}
  */
 export function parseBypassEntries(yaml) {
   const entries = [];
+  const problems = [];
   const lines = yaml.split(/\r?\n/);
   let active = null;
+  let headerIndent = 0;
   let comments = [];
   let afterEntry = false;
+
+  const endBlock = () => {
+    active = null;
+    comments = [];
+    afterEntry = false;
+  };
 
   for (const [i, line] of lines.entries()) {
     const header = BYPASS_BLOCKS.find(b => b.header.test(line));
     if (header) {
       active = header;
+      headerIndent = indentOf(line);
       comments = [];
       afterEntry = false;
       continue;
@@ -87,6 +182,11 @@ export function parseBypassEntries(yaml) {
       // Blank line: ends the comment association, but not the block — the
       // audit-exceptions banner sits between `auditConfig:` and its list.
       comments = [];
+      continue;
+    }
+    if (indentOf(line) <= headerIndent) {
+      // Dedent to a sibling or parent key: the block is genuinely over.
+      endBlock();
       continue;
     }
     if (line.trimStart().startsWith('#')) {
@@ -101,44 +201,53 @@ export function parseBypassEntries(yaml) {
 
     const item = line.match(active.entry);
     if (!item) {
-      // A non-indented, non-comment line is the next top-level key.
-      active = null;
-      comments = [];
-      afterEntry = false;
+      problems.push({
+        line: i + 1,
+        why:
+          `inside \`${active.label}\` but not recognisable as an entry: ` +
+          `${JSON.stringify(line.trim())}. Teach ` +
+          `scripts/lib/bypass-annotations.mjs this shape — an unparsed line ` +
+          `here means an unpoliced bypass.`,
+      });
       continue;
     }
 
-    const text = comments.join('\n');
-    const review = text.match(REVIEW);
     entries.push({
       name: unquote(item[1].trim()),
       block: active.key,
       label: active.label,
       line: i + 1,
-      review: review ? review[1] : null,
-      permanent: PERMANENT.test(text),
+      ...readAnnotation(comments.join('\n')),
     });
     // Consecutive entries with no comment between them share one block (the
     // four brace-expansion majors, js-yaml 3 and 4).
     afterEntry = true;
   }
 
-  return entries;
+  return { entries, problems };
 }
 
 /**
- * Split parsed entries into the two failure modes and the healthy rest.
+ * Split parsed entries into the three failure modes and the healthy rest.
  *
  * `today` is passed in rather than read from the clock so the check is
  * testable and so a single run cannot disagree with itself across midnight.
  * Comparison is lexicographic on ISO dates, which is ordering-correct and
- * sidesteps timezone drift entirely: an entry is due the day it names.
+ * sidesteps timezone drift entirely: an entry is due the day it names — and
+ * `isCalendarDate` has already guaranteed both sides are really dates.
  */
 export function findExpired(entries, today) {
   const expired = [];
   const unannotated = [];
+  const malformed = [];
 
   for (const entry of entries) {
+    // A malformed annotation is neither permanent nor absent — reporting it as
+    // either would tell the author the wrong fix.
+    if (entry.error) {
+      malformed.push(entry);
+      continue;
+    }
     if (entry.permanent) continue;
     if (!entry.review) {
       unannotated.push(entry);
@@ -147,5 +256,5 @@ export function findExpired(entries, today) {
     if (entry.review <= today) expired.push(entry);
   }
 
-  return { expired, unannotated };
+  return { expired, unannotated, malformed };
 }

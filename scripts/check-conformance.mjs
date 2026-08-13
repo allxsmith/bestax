@@ -1178,7 +1178,9 @@ async function checkPublishableManifests() {
  */
 async function checkBypassExpiry() {
   const path = join(REPO, 'pnpm-workspace.yaml');
-  const entries = parseBypassEntries(await readFile(path, 'utf8'));
+  const { entries, problems } = parseBypassEntries(
+    await readFile(path, 'utf8')
+  );
   if (!entries.length) {
     return [
       'pnpm-workspace.yaml parsed to zero bypass entries — the overrides / ' +
@@ -1190,8 +1192,19 @@ async function checkBypassExpiry() {
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const { expired, unannotated } = findExpired(entries, today);
+  const { expired, unannotated, malformed } = findExpired(entries, today);
   const violations = [];
+
+  for (const { line, why } of problems) {
+    violations.push(`pnpm-workspace.yaml line ${line}: ${why}`);
+  }
+
+  for (const entry of malformed) {
+    violations.push(
+      `pnpm-workspace.yaml line ${entry.line}: ${entry.label} entry ` +
+        `"${entry.name}" ${entry.error}`
+    );
+  }
 
   for (const label of new Set(expired.map(e => e.label))) {
     const due = expired.filter(e => e.label === label);
