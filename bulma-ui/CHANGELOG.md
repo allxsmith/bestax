@@ -1,3 +1,23 @@
+# [5.10.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.9.1...@allxsmith/bestax-bulma@5.10.0) (2026-08-13)
+
+
+### Bug Fixes
+
+* **bulma-ui:** enumerate string size literals so the docs extractor keeps concrete type values ([00bfff3](https://github.com/allxsmith/bestax/commit/00bfff32ed715f8c4e9b4858be8e1f3159b71e0f))
+* **create-bestax:** document strictPort port-collision recovery in generated CLAUDE.md ([7ba0756](https://github.com/allxsmith/bestax/commit/7ba0756a59c654a1857012119352ab425d20c203)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **create-bestax:** scope the strictPort recovery kill to the TCP listener ([5fe5397](https://github.com/allxsmith/bestax/commit/5fe5397cd665fd32d693c46f4e2204b076bf73a1)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+* **create-bestax:** ship scaffold .gitignore via rename-on-copy and ignore *.tsbuildinfo ([2094086](https://github.com/allxsmith/bestax/commit/209408608e7a45d7346369e98ef106bacfc48cf8)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+
+
+### Features
+
+* **bulma-ui:** accept Bulma helper props on Card.* sub-parts ([39eb6a0](https://github.com/allxsmith/bestax/commit/39eb6a0745f2d5d6488667593eb310d9d7f64d00))
+* **bulma-ui:** accept isFullwidth on every full-width component, deprecate divergent casings ([8ae7d4c](https://github.com/allxsmith/bestax/commit/8ae7d4cccfa4d1d4169693b0eaff6bedbdc327a1))
+* **bulma-ui:** accept string sizes on Column and numeric sizes on Title and SubTitle ([6d02f67](https://github.com/allxsmith/bestax/commit/6d02f67ac14c0a448085b60527f0814f0734c6a0))
+* **bulma-ui:** add deprecated NumberInput and TagInput alias exports ([9b320de](https://github.com/allxsmith/bestax/commit/9b320de9ff4b318ebfd017df36d1740fde8012ee))
+* **bulma-ui:** add isLight to Tag ([46e446a](https://github.com/allxsmith/bestax/commit/46e446a6974d79e4afca737b3023d148101b1120))
+* **create-bestax:** print next steps for the invoking package manager ([935ff82](https://github.com/allxsmith/bestax/commit/935ff82f3efd4688027e82f3f639490eb6ad664b)), closes [#371](https://github.com/allxsmith/bestax/issues/371)
+
 ## [5.9.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.9.0...@allxsmith/bestax-bulma@5.9.1) (2026-08-11)
 
 
