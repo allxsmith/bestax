@@ -206,5 +206,5 @@ installs the bestax Agent Skills and a `CLAUDE.md`, plus a `.claude/launch.json`
 Claude Code's browser preview how to start the app's dev server (`npm run dev` on port 5173,
 with `--strictPort` so a busy port fails loudly instead of silently drifting to another port).
 If 5173 is already taken, the usual cause is an orphaned dev server from an earlier session;
-the generated CLAUDE.md tells agents to kill it (`lsof -ti:5173 | xargs kill`) rather than
-move ports. See the [LLMs guide](/docs/guides/llms) for the full AI tooling story.
+the generated CLAUDE.md tells agents to kill the listener
+(`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill`) rather than move ports. See the [LLMs guide](/docs/guides/llms) for the full AI tooling story.
