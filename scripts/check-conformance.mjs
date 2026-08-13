@@ -35,6 +35,10 @@
  *                        and names only props that really exist
  *   publishable-manifests  no published package ships a `workspace:`/`catalog:`
  *                        specifier consumers would have to resolve (#412)
+ *   bypass-expiry        every supply-chain bypass in pnpm-workspace.yaml
+ *                        carries a `# bestax:review <date>` or
+ *                        `# bestax:permanent` marker, and no review date has
+ *                        passed (#391)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname } from 'node:path';
@@ -53,6 +57,7 @@ import {
   GENERATED_EXEMPT,
   SCSS_SOURCES,
 } from './lib/api-sources.mjs';
+import { parseBypassEntries, findExpired } from './lib/bypass-annotations.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -1156,6 +1161,66 @@ async function checkPublishableManifests() {
   return violations;
 }
 
+/**
+ * Supply-chain bypasses expire (#391). `overrides`, `minimumReleaseAgeExclude`
+ * and `auditConfig.ignoreGhsas` each weaken a default we otherwise hold, and
+ * every one of them is written as temporary — but nothing made that observable,
+ * so entries outlived their stated reason until an unrelated PR happened to
+ * audit the file.
+ *
+ * Two failure modes, and the second is what gives this teeth: a review date
+ * that has arrived, and an entry with no annotation at all. Without the latter,
+ * a new bypass just omits the marker and the check is decorative.
+ *
+ * Expired entries report as ONE violation per list rather than one each: a
+ * quarterly batch coming due is a single chore, and this check already risks
+ * failing a PR that has nothing to do with dependencies.
+ */
+async function checkBypassExpiry() {
+  const path = join(REPO, 'pnpm-workspace.yaml');
+  const entries = parseBypassEntries(await readFile(path, 'utf8'));
+  if (!entries.length) {
+    return [
+      'pnpm-workspace.yaml parsed to zero bypass entries — the overrides / ' +
+        'minimumReleaseAgeExclude / auditConfig.ignoreGhsas blocks moved or ' +
+        'were renamed, and scripts/lib/bypass-annotations.mjs can no longer ' +
+        'find them. Fix the block patterns there; a silent zero would mean ' +
+        'this gate passes while policing nothing.',
+    ];
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { expired, unannotated } = findExpired(entries, today);
+  const violations = [];
+
+  for (const label of new Set(expired.map(e => e.label))) {
+    const due = expired.filter(e => e.label === label);
+    violations.push(
+      `pnpm-workspace.yaml: ${due.length} ${label} entr${
+        due.length === 1 ? 'y is' : 'ies are'
+      } due for review as of ${today} — ` +
+        due.map(e => `${e.name} (line ${e.line}, ${e.review})`).join(', ') +
+        `. For each: drop it, re-resolve, and leave it out if the resolved ` +
+        `version is unchanged and \`pnpm audit --audit-level=high\` stays ` +
+        `clean. Still load-bearing? Push its \`# bestax:review\` date out and ` +
+        `say why in the same comment.`
+    );
+  }
+
+  for (const entry of unannotated) {
+    violations.push(
+      `pnpm-workspace.yaml line ${entry.line}: ${entry.label} entry ` +
+        `"${entry.name}" has no expiry annotation. Add ` +
+        `\`# bestax:review YYYY-MM-DD — why this date\` to the comment ` +
+        `directly above it, or \`# bestax:permanent — why\` if it is a ` +
+        `deliberate standing policy rather than a patch waiting on the ` +
+        `ecosystem. See the contract at the top of pnpm-workspace.yaml.`
+    );
+  }
+
+  return violations;
+}
+
 // ---------------------------------------------------------------------------
 
 const CHECKS = {
@@ -1171,6 +1236,7 @@ const CHECKS = {
   'compound-family': checkCompoundFamily,
   'autodocs-tag': checkAutodocsTag,
   'publishable-manifests': checkPublishableManifests,
+  'bypass-expiry': checkBypassExpiry,
   'inline-style': null, // handled below (takes the flag)
 };
 
