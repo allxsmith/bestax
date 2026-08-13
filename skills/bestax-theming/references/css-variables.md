@@ -81,13 +81,14 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 
 ## Scheme, text, background, border (light/dark surfaces)
 
-| Variable                                                                    | Role                                                                                                                              |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-scheme-h`, `--bulma-scheme-s`                                      | scheme hue/saturation (`Theme`: `schemeH`, `schemeS`)                                                                             |
-| `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter` | page/surface backgrounds (main + subtle steps); `Theme bulmaVars`-overridable, and the scheme `bgColor` values render them inline |
-| `--bulma-background`                                                        | secondary background                                                                                                              |
-| `--bulma-text`, `--bulma-text-strong`, `--bulma-text-weak`                  | body / emphasized / muted text                                                                                                    |
-| `--bulma-border`, `--bulma-border-weak`                                     | borders                                                                                                                           |
+| Variable                                                                          | Role                                                                                                                                                       |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-scheme-h`, `--bulma-scheme-s`                                            | scheme hue/saturation (`Theme`: `schemeH`, `schemeS`)                                                                                                      |
+| `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`       | page/surface backgrounds (main + subtle steps); `Theme bulmaVars`-overridable, and the scheme `bgColor` values render them inline                          |
+| `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter` | inverted scheme surfaces; `Theme bulmaVars`-overridable, and the scheme `bgColor` values render them inline (pair with a foreground — see the color guide) |
+| `--bulma-background`                                                              | secondary background                                                                                                                                       |
+| `--bulma-text`, `--bulma-text-strong`, `--bulma-text-weak`                        | body / emphasized / muted text                                                                                                                             |
+| `--bulma-border`, `--bulma-border-weak`                                           | borders                                                                                                                                                    |
 
 ## Radius, typography
 

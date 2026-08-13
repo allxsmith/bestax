@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.10.0"
+    "version": "5.11.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1037,7 +1037,7 @@
       "name": "Valid value constants",
       "kind": "helper",
       "category": "helpers",
-      "purpose": "The `valid*` constant arrays enumerate every accepted value for the shared Bulma helper props — public API you can import to build prop types and validation.",
+      "purpose": "The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
       "slug": "helpers/valid-values",
       "import": "import { Valid value constants } from '@allxsmith/bestax-bulma';",
       "compound": false,

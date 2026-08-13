@@ -15,7 +15,8 @@ Turns Bulma helper props into a class string and returns the leftover (non-helpe
 const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 // bulmaHelperClasses: e.g. 'has-text-primary is-size-3 m-3'
 // bulmaHelperStyles: inline styles for scheme-aware values, or undefined (see below)
-// rest: every prop that was NOT a recognized helper (safe to spread on the DOM)
+// rest: every prop that was NOT a recognized helper; destructure your own
+// component props and `style` before spreading it on a DOM element
 ```
 
 `bulmaHelperStyles` is `undefined` unless `backgroundColor` is one of the six
