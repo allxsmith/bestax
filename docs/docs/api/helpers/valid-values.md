@@ -7,7 +7,7 @@ sidebar_label: Valid value constants
 
 ## Overview
 
-The `valid*` constant arrays enumerate every accepted value for the shared Bulma helper props — public API you can import to build prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore values outside these lists, so validating against them tells you exactly what will produce a class.
+The `valid*` constant arrays enumerate every accepted value for the shared Bulma helper props — public API you can import to build prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore values outside these lists, so validating against them tells you exactly what will produce output: a helper class for every list except `validSchemeColors`, whose values instead produce the `bulmaHelperStyles` inline style (no class).
 
 ---
 
