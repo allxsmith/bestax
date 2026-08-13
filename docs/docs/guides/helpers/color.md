@@ -163,7 +163,7 @@ Bulma ships no `has-background-scheme-*` classes, so these values emit **no clas
 The `scheme-invert*` values set only the background — text keeps the page's default color, which is low-contrast on an inverted surface. Pair them with a matching foreground: a named class with `color: var(--bulma-scheme-main)` for designs that serve both modes, or an explicit `textColor` when the design is single-mode — pinned globally with `<Theme isRoot colorMode="…">`, or per surface with Bulma's `data-theme` attribute (`<Box data-theme="light" bgColor="scheme-invert" textColor="white">`). The `scheme-main*` values need no pairing — they stay close to the page background.
 :::
 
-This is the zero-CSS way to build alternating page bands that stay correct in dark mode:
+This is the zero-CSS way to build alternating page bands that stay correct in dark mode — tint every other `Section` with `scheme-main-bis`, stepping to `scheme-main-ter` when a later band needs to go one deeper:
 
 ```tsx live
 import { Section, Title, SubTitle } from '@allxsmith/bestax-bulma';
@@ -179,9 +179,13 @@ function AlternatingBands() {
         <Title>Second Band</Title>
         <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>
       </Section>
-      <Section bgColor="scheme-main-ter">
+      <Section>
         <Title>Third Band</Title>
-        <SubTitle>One step further, still zero custom CSS.</SubTitle>
+        <SubTitle>Back on the base surface.</SubTitle>
+      </Section>
+      <Section bgColor="scheme-main-ter">
+        <Title>Fourth Band</Title>
+        <SubTitle>One step deeper, still zero custom CSS.</SubTitle>
       </Section>
     </>
   );

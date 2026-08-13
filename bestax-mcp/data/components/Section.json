@@ -19,7 +19,7 @@
     },
     {
       "title": "Alternating Sections",
-      "code": "<>\n  <Section>\n    <Title>First Band</Title>\n    <SubTitle>Default scheme-main background.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-bis\">\n    <Title>Second Band</Title>\n    <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-ter\">\n    <Title>Third Band</Title>\n    <SubTitle>One step further, still zero custom CSS.</SubTitle>\n  </Section>\n</>"
+      "code": "<>\n  <Section>\n    <Title>First Band</Title>\n    <SubTitle>Default scheme-main background.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-bis\">\n    <Title>Second Band</Title>\n    <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>\n  </Section>\n  <Section>\n    <Title>Third Band</Title>\n    <SubTitle>Back on the base surface.</SubTitle>\n  </Section>\n  <Section bgColor=\"scheme-main-ter\">\n    <Title>Fourth Band</Title>\n    <SubTitle>One step deeper, still zero custom CSS.</SubTitle>\n  </Section>\n</>"
     }
   ],
   "accessibility": "- The section renders as a semantic `<section>` for improved structure and accessibility.\n- Use headings (`<Title>`, `<SubTitle>`) and semantic content for screen reader support.\n\n:::note\nSections help organize your document outline for screen readers and SEO.\n:::",

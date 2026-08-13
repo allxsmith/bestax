@@ -83,7 +83,7 @@ Set the `size` prop to `"large"` for even more vertical spacing. Use this for pr
 
 ### Alternating Sections
 
-Alternate `bgColor="scheme-main-bis"` (and `"scheme-main-ter"` for a further step) on every other Section to build page bands with zero custom CSS. Scheme values emit no class — the Section renders a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` style, so the bands stay correct when the color scheme flips.
+Tint every other Section with `bgColor="scheme-main-bis"` to build alternating page bands with zero custom CSS (step to `"scheme-main-ter"` when a later band needs to go one deeper). Scheme values emit no class — the Section renders a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` style, so the bands stay correct when the color scheme flips.
 
 ```tsx live
 <>
@@ -95,9 +95,13 @@ Alternate `bgColor="scheme-main-bis"` (and `"scheme-main-ter"` for a further ste
     <Title>Second Band</Title>
     <SubTitle>Subtly offset, and it adapts to dark mode.</SubTitle>
   </Section>
-  <Section bgColor="scheme-main-ter">
+  <Section>
     <Title>Third Band</Title>
-    <SubTitle>One step further, still zero custom CSS.</SubTitle>
+    <SubTitle>Back on the base surface.</SubTitle>
+  </Section>
+  <Section bgColor="scheme-main-ter">
+    <Title>Fourth Band</Title>
+    <SubTitle>One step deeper, still zero custom CSS.</SubTitle>
   </Section>
 </>
 ```

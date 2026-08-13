@@ -6,7 +6,7 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 6649 },
+        { "id": "api", "file": "references/api.md", "bytes": 6711 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
@@ -127,7 +127,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 24984
+          "bytes": 25446
         },
         {
           "id": "themeable-components",
