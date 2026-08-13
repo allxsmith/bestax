@@ -164,13 +164,20 @@ function readAnnotation(text) {
  * below it, while the other blocks kept the total nonzero and the gate green.
  * Indented lines that do not parse are reported instead, via `problems`.
  *
+ * `blocksSeen` reports which headers were actually matched, so the caller can
+ * fail on a block that has moved or been renamed. A total-entries guard is not
+ * enough: one silent block still leaves the other two keeping the count
+ * nonzero, which is the same fail-open shape as the termination bug above.
+ *
  * @returns {{entries: {name: string, block: string, label: string,
  *   line: number, review: string|null, permanent: boolean,
- *   error: string|null}[], problems: {line: number, why: string}[]}}
+ *   error: string|null}[], problems: {line: number, why: string}[],
+ *   blocksSeen: Set<string>}}
  */
 export function parseBypassEntries(yaml) {
   const entries = [];
   const problems = [];
+  const blocksSeen = new Set();
   const lines = yaml.split(/\r?\n/);
   let active = null;
   let headerIndent = 0;
@@ -185,6 +192,7 @@ export function parseBypassEntries(yaml) {
     const header = BYPASS_BLOCKS.find(b => b.header.test(line));
     if (header) {
       active = header;
+      blocksSeen.add(header.key);
       headerIndent = indentOf(line);
       comments = [];
       continue;
@@ -217,6 +225,10 @@ export function parseBypassEntries(yaml) {
           `scripts/lib/bypass-annotations.mjs this shape — an unparsed line ` +
           `here means an unpoliced bypass.`,
       });
+      // An unparsed line separates a comment block from the next entry, the
+      // same way a blank line does. Keeping it would leak this line's marker
+      // onto the following entry and report the wrong defect there.
+      comments = [];
       continue;
     }
 
@@ -232,7 +244,7 @@ export function parseBypassEntries(yaml) {
     comments = [];
   }
 
-  return { entries, problems };
+  return { entries, problems, blocksSeen };
 }
 
 /**

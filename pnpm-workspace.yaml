@@ -58,7 +58,8 @@ overrides:
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
   # version is unchanged and `pnpm audit --audit-level=high` stays clean.
-  # bestax:review 2026-11-13 — all reviewed 2026-08-13; quarterly sweep
+  # Every entry below carries its own marker; this prose annotates nothing.
+  # bestax:review 2026-11-13 — quarterly sweep
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
   # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
   serialize-javascript: '>=7.0.3'

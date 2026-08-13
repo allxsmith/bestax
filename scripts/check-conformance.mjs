@@ -57,7 +57,11 @@ import {
   GENERATED_EXEMPT,
   SCSS_SOURCES,
 } from './lib/api-sources.mjs';
-import { parseBypassEntries, findExpired } from './lib/bypass-annotations.mjs';
+import {
+  BYPASS_BLOCKS,
+  parseBypassEntries,
+  findExpired,
+} from './lib/bypass-annotations.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -1178,17 +1182,22 @@ async function checkPublishableManifests() {
  */
 async function checkBypassExpiry() {
   const path = join(REPO, 'pnpm-workspace.yaml');
-  const { entries, problems } = parseBypassEntries(
+  const { entries, problems, blocksSeen } = parseBypassEntries(
     await readFile(path, 'utf8')
   );
-  if (!entries.length) {
-    return [
-      'pnpm-workspace.yaml parsed to zero bypass entries — the overrides / ' +
-        'minimumReleaseAgeExclude / auditConfig.ignoreGhsas blocks moved or ' +
-        'were renamed, and scripts/lib/bypass-annotations.mjs can no longer ' +
-        'find them. Fix the block patterns there; a silent zero would mean ' +
-        'this gate passes while policing nothing.',
-    ];
+
+  // Per block, not merely in total: one block going silent while the other two
+  // keep the count nonzero is the same fail-open the parser guards against.
+  const missing = BYPASS_BLOCKS.filter(b => !blocksSeen.has(b.key));
+  if (missing.length) {
+    return missing.map(
+      b =>
+        `pnpm-workspace.yaml: the \`${b.label}\` block was not found, so ` +
+        `nothing in it is policed. It moved or was renamed — fix its pattern ` +
+        `in scripts/lib/bypass-annotations.mjs. If the list was deliberately ` +
+        `emptied and removed, drop it from BYPASS_BLOCKS there in the same ` +
+        `change, so the gate never silently covers less than it claims.`
+    );
   }
 
   const today = new Date().toISOString().slice(0, 10);

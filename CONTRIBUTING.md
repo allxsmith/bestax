@@ -72,8 +72,12 @@ genuinely conflict: the gate demands a version the resolver won't fetch, and **e
 red**, including yours, over a transitive dependency you never touched (#391). That is expected, it
 is not your PR's fault, and this is the way out:
 
-1. Force the patched version in `overrides` — scoped to the affected major (`'thing@3': '>=3.1.5 <4'`)
-   rather than unscoped, so other majors in the tree are untouched.
+1. Force the patched version in `overrides`, scoped to the affected range rather than unscoped.
+   When each major ships its own backport, scope per major (`'thing@3': '>=3.1.5 <4'`) so the
+   other majors are untouched. When the advisory has a single patched floor across majors, use
+   an unbounded-lower selector instead (`'thing@<3.1.5': '>=3.1.5'`), as the committed
+   `postcss` and `sharp` entries do — scoping that case to whichever major the lockfile happens
+   to hold today leaves older majors unguarded if a future dependency edge pulls one in.
 2. If the patch is still inside the cooldown, add it to `minimumReleaseAgeExclude` too — without
    this the resolver refuses the version step 1 demands. **Qualify it with the exact version**
    (`- 'fast-uri@3.1.5'`, not `- fast-uri`): a bare package name waives the cooldown for every

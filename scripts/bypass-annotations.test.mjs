@@ -265,6 +265,46 @@ minimumReleaseAgeExclude:
     entries.map(e => e.name),
     ['after']
   );
+  // And it must read ITS OWN marker. An unparsed line separates the comment
+  // block from what follows, like a blank line does — otherwise the orphaned
+  // marker leaks down and `after` is reported as carrying two markers, which
+  // names a defect that isn't there and hides its real annotation.
+  assert.equal(entries[0].error, null);
+  assert.equal(entries[0].review, '2026-11-13');
+});
+
+test('every expected block is reported as seen', () => {
+  const { blocksSeen } = parseBypassEntries(`
+minimumReleaseAgeExclude:
+  # bestax:permanent — a
+  - prettier
+overrides:
+  # bestax:review 2026-11-13 — b
+  'thing@1': '>=1.2.3'
+auditConfig:
+  ignoreGhsas:
+    # bestax:review 2026-11-13 — c
+    - GHSA-aaaa-bbbb-cccc
+`);
+  assert.deepEqual([...blocksSeen].sort(), [
+    'ignoreGhsas',
+    'minimumReleaseAgeExclude',
+    'overrides',
+  ]);
+});
+
+test('a renamed block is absent from blocksSeen, not merely empty', () => {
+  // The fail-open the per-block guard closes: the other blocks keep the total
+  // entry count nonzero, so only the missing KEY reveals the silent list.
+  const { entries, blocksSeen } = parseBypassEntries(`
+minimumReleaseAgeExcludeRenamed:
+  - prettier
+overrides:
+  # bestax:review 2026-11-13 — b
+  'thing@1': '>=1.2.3'
+`);
+  assert.ok(entries.length > 0, 'total stays nonzero and hides the gap');
+  assert.ok(!blocksSeen.has('minimumReleaseAgeExclude'));
 });
 
 test('the committed pnpm-workspace.yaml satisfies its own contract', async () => {
