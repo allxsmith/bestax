@@ -75,14 +75,80 @@ jobs:
           output-file: bestax-sbom.cdx.json
           upload-release-assets: false
 
+  # Scorecard's Signed-Releases check reads GitHub *release assets* and nothing
+  # else. The npm provenance we already publish is invisible to it, so releases
+  # carrying SBOMs and no recognised signature scored 0 on that check (#404).
+  #
+  # This is a third job rather than a step bolted onto either neighbour, and the
+  # split is the whole design. Generation runs `pnpm install` and third-party
+  # actions, so it must not hold a credential. Upload holds `contents: write`,
+  # so it must not gain new third-party code. Signing needs `id-token: write`
+  # and nothing else, so it gets its own job and both existing guarantees stand.
+  #
+  # Residual risk, stated rather than papered over: `id-token: write` lets code
+  # in THIS job mint an OIDC token asserting this repository's identity, which
+  # Fulcio exchanges for a short-lived signing certificate. The job holds no
+  # repository write token, so the exposure is bounded at signing something as
+  # bestax, not at changing anything here. cosign-installer is SHA-pinned and
+  # the cosign binary is version-pinned below; that is the whole mitigation, and
+  # it is a cost-raiser rather than a proof.
+  sign-sbom:
+    name: Sign the SBOMs
+    runs-on: ubuntu-latest
+    needs: sbom
+    if: github.event_name == 'release'
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: bestax-sbom.*
+          merge-multiple: true
+
+      # cosign-release is pinned rather than left to the action's default so a
+      # future SHA bump cannot change the signing binary as a side effect.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: 'v3.0.6'
+
+      # Keyless: the certificate binds each signature to this workflow's OIDC
+      # identity, so there is no long-lived key to store, rotate, or leak.
+      #
+      # One output per SBOM. cosign v3 removed --output-signature/-certificate,
+      # leaving --bundle, which writes everything a verifier needs in the new
+      # bundle format. The `.sigstore.json` suffix is load-bearing twice over:
+      # it is what `cosign verify-blob --bundle` consumes, and it is in the
+      # signatureExtensions list of scorecard v5.5.0, which is the version
+      # scorecard-action v2.4.4 actually vendors (checked, not assumed).
+      - name: Sign the SBOMs
+        run: |
+          for f in bestax-sbom.spdx.json bestax-sbom.cdx.json; do
+            cosign sign-blob --yes --bundle "$f.sigstore.json" "$f"
+          done
+
+      # Named to match the upload job's existing `bestax-sbom.*` download
+      # pattern, so that step needs no change to collect these.
+      - name: Upload signature bundles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bestax-sbom.signatures
+          path: |
+            bestax-sbom.spdx.json.sigstore.json
+            bestax-sbom.cdx.json.sigstore.json
+          retention-days: 5
+
   # Workflow artifacts expire; a release asset is the durable, linkable copy an
   # auditor can actually cite. Isolated from generation so the write-scoped
   # token exists only on release runs, in a job that installs nothing and runs
   # no third-party code beyond the artifact download.
   attach-sbom:
-    name: Attach SBOMs to the release
+    name: Attach SBOMs and signatures to the release
     runs-on: ubuntu-latest
-    needs: sbom
+    needs: [sbom, sign-sbom]
     if: github.event_name == 'release'
     permissions:
       contents: write
@@ -102,6 +168,8 @@ jobs:
           gh release upload "$TAG" \
             bestax-sbom.spdx.json \
             bestax-sbom.cdx.json \
+            bestax-sbom.spdx.json.sigstore.json \
+            bestax-sbom.cdx.json.sigstore.json \
             --clobber --repo "$GITHUB_REPOSITORY"
 
   verify-provenance:
