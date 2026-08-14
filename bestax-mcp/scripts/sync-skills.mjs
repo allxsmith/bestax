@@ -35,7 +35,7 @@ import {
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
 import path from 'node:path';
@@ -101,26 +101,79 @@ async function fingerprintSource() {
   return hash.digest('hex');
 }
 
+// Release on interrupt. Ctrl-C during `pnpm all` is the realistic way a lock
+// gets abandoned, and node does not run `finally` blocks on a signal, so
+// without this the next run would meet a lock nobody holds. Sync calls only:
+// the process is on its way out and async cleanup would not finish.
+let holdingLock = false;
+function releaseLockSync() {
+  if (!holdingLock) return;
+  holdingLock = false;
+  try {
+    rmSync(lockDir, { recursive: true, force: true });
+  } catch {
+    // Best effort — we are already exiting.
+  }
+}
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+  process.once(signal, () => {
+    releaseLockSync();
+    process.exit(130);
+  });
+}
+
 // `mkdir` without `recursive` is atomic and fails with EEXIST if the directory
 // exists, which makes it a usable mutex with no dependency.
+//
+// There is deliberately NO automatic stale-lock reclaim, and that is the
+// subtle part. The obvious version — stat the lock, and if it looks old enough
+// delete it and retry — has a time-of-check/time-of-use hole: nothing ties the
+// delete to the *specific* lock that was observed. Two waiters can both see
+// the same abandoned lock, the first deletes it and takes ownership, and the
+// second then deletes the *fresh* lock the first is holding. Both proceed into
+// the destructive branch below, which is precisely the concurrent
+// rm-while-copying bug this file exists to prevent, now reachable only after a
+// crash and therefore much harder to reproduce.
+//
+// The freshness stamp does not rescue that case either: a killed run leaves a
+// lock but no stamp (the stamp is written last, on purpose), so both waiters
+// see a mismatch and both rebuild.
+//
+// Every cheap repair keeps a window — owner tokens, rename-to-unique, put-it-
+// back-if-it-was-not-mine all still race on the recreate. Crash-safe mutual
+// exclusion on a POSIX filesystem is genuinely hard, and a build script is the
+// wrong place to hand-roll it. So an abandoned lock is reported with the exact
+// command to fix it rather than guessed at. The signal handlers above mean the
+// common interrupt never gets here in the first place.
 async function acquireLock() {
   const deadline = Date.now() + LOCK_TIMEOUT_MS;
   for (;;) {
     try {
       await mkdir(lockDir);
+      holdingLock = true;
       return;
     } catch (err) {
       if (err.code !== 'EEXIST') throw err;
+
+      let ageMs = 0;
       try {
-        const { mtimeMs } = await stat(lockDir);
-        if (Date.now() - mtimeMs > LOCK_STALE_MS) {
-          // Left behind by a killed run; reclaim it.
-          await rm(lockDir, { recursive: true, force: true });
-          continue;
-        }
+        ageMs = Date.now() - (await stat(lockDir)).mtimeMs;
       } catch {
-        // The holder released it between our mkdir and our stat. Retry.
+        // Released between our mkdir and our stat. Retry immediately.
+        continue;
       }
+
+      // Held far longer than a sync can legitimately take, so the holder is
+      // gone. Report it now instead of burning the full timeout first.
+      if (ageMs > LOCK_STALE_MS) {
+        throw new Error(
+          `[sync-skills] the lock at ${lockDir} has been held for ` +
+            `${Math.round(ageMs / 1000)}s, which means an earlier run was killed ` +
+            `before it could clean up. Remove that directory and re-run:\n` +
+            `  rm -rf ${lockDir}`
+        );
+      }
+
       if (Date.now() > deadline) {
         throw new Error(`[sync-skills] timed out waiting for lock: ${lockDir}`);
       }
@@ -157,6 +210,7 @@ try {
     console.log(`[sync-skills] copied ${names.length} skills -> data/skills`);
   }
 } finally {
+  holdingLock = false;
   await rm(lockDir, { recursive: true, force: true });
 }
 
