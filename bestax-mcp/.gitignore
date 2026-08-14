@@ -13,3 +13,8 @@ coverage/
 # Committing the bodies too would put a second copy of ~390 KB of markdown in
 # every skill diff.
 data/skills/
+
+# Lock and freshness stamp for that copy. Must be ignored for its own sake:
+# `gen:mcp:check` does `git add --intent-to-add --all bestax-mcp/data` and then
+# diffs, so any untracked file under data/ would fail the staleness gate.
+data/.sync-skills/
