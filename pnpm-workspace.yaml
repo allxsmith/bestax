@@ -177,10 +177,13 @@ overrides:
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched webpack-dev-server (the Docusaurus dev server; dev-only,
   # never shipped) — GHSA-f5vj-f2hx-8m93 (CSRF) and GHSA-m28w-2pqf-7qgj (DoS
-  # via a malformed request), both fixed in 5.2.6. Unscoped: 5.x is the only
-  # line in the tree and 6.0.0 is a major we have not evaluated, so the `<6`
-  # bound is deliberate. Prune once Docusaurus requires >=5.2.6 itself.
-  'webpack-dev-server': '>=5.2.6 <6'
+  # via a malformed request), both fixed in 5.2.6. Scoped to the 5.x major like
+  # every other entry here. An unscoped key would also capture a parent that
+  # legitimately moves to 6.x and force it back onto the 5 line, which is a
+  # downgrade wearing a patch's clothing; the `<6` right-hand bound only ever
+  # protected consumers already on 5.x, and it cannot express "do not upgrade".
+  # Prune once Docusaurus requires >=5.2.6 itself.
+  'webpack-dev-server@5': '>=5.2.6 <6'
 
 # --- Audit exceptions (no patched release exists) ---
 
