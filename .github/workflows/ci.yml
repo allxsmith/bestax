@@ -333,25 +333,50 @@ jobs:
       #
       # No-ops when nothing released: with no version change the generator's
       # output is byte-identical and the guard exits early.
-      - name: Restamp the MCP index after a release
+      # Split across two steps for the same reason the App token is minted after
+      # install and build rather than before: a bypass-capable credential must
+      # not be in the environment while repo-owned code executes. `pnpm gen:mcp`
+      # runs scripts/gen-mcp-index.mjs and whatever it imports, so it gets no
+      # token. Only the commit-and-push step, which runs nothing from this
+      # repository, sees one.
+      - name: Regenerate the MCP index
+        id: restamp
+        run: |
+          pnpm gen:mcp
+          if git diff --quiet -- bestax-mcp/data; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "MCP index already matches the released version; nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push the MCP index restamp
+        if: steps.restamp.outputs.changed == 'true'
         env:
           # The checkout ran with persist-credentials:false, so there is no
           # pushable credential in .git/config. Authenticate the same way
           # semantic-release does above: the App token in the remote URL. It is
           # a registered bypass actor on main's ruleset; GITHUB_TOKEN is not.
+          #
+          # Passed through `env:` deliberately, NOT interpolated as `${{ }}`
+          # inside `run:`. Expression interpolation is textual substitution into
+          # the script before the shell parses it, which is the pattern GitHub's
+          # hardening guidance tells you to avoid; `env:` keeps the value out of
+          # the rendered script body.
           RESTAMP_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          pnpm gen:mcp
-          if git diff --quiet -- bestax-mcp/data; then
-            echo "MCP index already matches the released version; nothing to do."
-            exit 0
-          fi
           git add bestax-mcp/data
           # Signed and attributed by the GPG config imported above, matching the
           # release commits. Skips CI for the same reason they do: this commit
           # is correct by construction, and letting it trigger the publish job
           # again would re-run the whole release pipeline to do nothing.
-          git commit -S -m "chore(bestax-mcp): restamp index after release [skip ci]"
+          #
+          # --no-verify because `pnpm install` above installed husky's hooks
+          # into .git/hooks, and those are repo-owned code. Without it, a commit
+          # hook would execute in the one step that holds the bypass token,
+          # which is the thing this split exists to prevent. The message is
+          # machine-generated and already conventional, so nothing is lost.
+          git commit -S --no-verify -m "chore(bestax-mcp): restamp index after release [skip ci]"
           if ! git push "https://x-access-token:${RESTAMP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
             echo "::error::Packages published, but pushing the MCP index restamp to main failed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
             exit 1
