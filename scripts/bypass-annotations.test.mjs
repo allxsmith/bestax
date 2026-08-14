@@ -539,11 +539,19 @@ overrides:
 });
 
 test('the committed pnpm-workspace.yaml satisfies its own contract', async () => {
-  const { entries, problems } = parseBypassEntries(
+  const { entries, problems, blocksSeen } = parseBypassEntries(
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
   );
-  // A parser that silently matched nothing would pass every assertion below.
-  assert.ok(entries.length >= 15, `parsed only ${entries.length} entries`);
+  // A parser that silently matched nothing would pass every assertion below,
+  // so anchor on the blocks being FOUND rather than on how many bypasses
+  // happen to exist. Asserting a minimum entry count would make pruning them —
+  // the entire point of this gate — fail the suite, and the parser explicitly
+  // supports all three blocks standing empty.
+  assert.deepEqual(
+    [...blocksSeen].sort(),
+    BYPASS_BLOCKS.map(b => b.key).sort(),
+    'every bypass block must be found in the committed file'
+  );
   assert.deepEqual(problems, []);
   const { unannotated, malformed } = findExpired(entries, '2026-08-13');
   assert.deepEqual(
