@@ -304,3 +304,95 @@ jobs:
         run: |
           git log -1 --show-signature
           pnpm exec semantic-release
+
+      # A bulma-ui release bumps bulma-ui/package.json, and gen-mcp-index.mjs
+      # stamps that version into the COMMITTED bestax-mcp/data/catalog.json
+      # (`generatedFrom.version`). Nothing above regenerates it, so main was
+      # left carrying an index stamped with the previous version — and because
+      # the release commit skips CI, no run on main ever evaluated
+      # `gen:mcp:check` to notice. The damage landed on everyone else: every
+      # branch cut from main afterwards regenerates, sees the drift, and fails
+      # a check on a file it never touched (#518, #520).
+      #
+      # Why a separate step rather than @semantic-release/exec plus a git
+      # asset, which is the obvious shape: @semantic-release/git selects assets
+      # by running `git ls-files -m -o` and micromatching the result, and each
+      # release above runs with `working-directory` set to its own package. Run
+      # from bulma-ui/, `git ls-files` lists only files under bulma-ui/, so
+      # bestax-mcp/data/catalog.json can never appear in that list no matter
+      # how the asset path is written. It would silently commit nothing, which
+      # is the worst outcome available: a fix that looks applied and is not.
+      # (Same reason the `pnpm-lock.yaml` asset in bulma-ui/release.config.js
+      # has never matched — the root lockfile is outside that cwd too.)
+      #
+      # Runs last on purpose: after every publish has already succeeded, so a
+      # failure here can never cost a release. If the push fails the job goes
+      # red with the packages already published, which is the correct signal —
+      # main needs a manual restamp — rather than a silent revert to the old
+      # broken behaviour.
+      #
+      # No-ops when nothing released: with no version change the generator's
+      # output is byte-identical and the guard exits early.
+      # Split across two steps for the same reason the App token is minted after
+      # install and build rather than before: a bypass-capable credential must
+      # not be in the environment while repo-owned code executes. `pnpm gen:mcp`
+      # runs scripts/gen-mcp-index.mjs and whatever it imports, so it gets no
+      # token. Only the commit-and-push step, which runs nothing from this
+      # repository, sees one.
+      - name: Regenerate the MCP index
+        id: restamp
+        run: |
+          pnpm gen:mcp
+          # --intent-to-add mirrors gen:mcp:check exactly. The output is a
+          # directory, and `git diff` cannot see a newly added file that git
+          # has never been told about, so without this a release that somehow
+          # added a file under data/ would read as "no change" here and still
+          # fail the gate on every branch. Today only the version field moves,
+          # but a guard should match the check it exists to satisfy.
+          git add --intent-to-add --all bestax-mcp/data
+          if git diff --quiet -- bestax-mcp/data; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "MCP index already matches the released version; nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push the MCP index restamp
+        if: steps.restamp.outputs.changed == 'true'
+        env:
+          # The checkout ran with persist-credentials:false, so there is no
+          # pushable credential in .git/config. Authenticate the same way
+          # semantic-release does above: the App token in the remote URL. It is
+          # a registered bypass actor on main's ruleset; GITHUB_TOKEN is not.
+          #
+          # Passed through `env:` deliberately, NOT interpolated as `${{ }}`
+          # inside `run:`. Expression interpolation is textual substitution into
+          # the script before the shell parses it, which is the pattern GitHub's
+          # hardening guidance tells you to avoid; `env:` keeps the value out of
+          # the rendered script body.
+          RESTAMP_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git add bestax-mcp/data
+          # Signed and attributed by the GPG config imported above, matching the
+          # release commits. Skips CI for the same reason they do: this commit
+          # is correct by construction, and letting it trigger the publish job
+          # again would re-run the whole release pipeline to do nothing.
+          #
+          # `pnpm install` above put husky's hooks in .git/hooks, and those are
+          # repo-owned code. Running one here would execute it in the single
+          # step holding the bypass token, which is the thing this split exists
+          # to prevent.
+          #
+          # core.hooksPath rather than --no-verify: that flag suppresses only
+          # pre-commit and commit-msg, so it would silently stop covering this
+          # the day someone adds a prepare-commit-msg, post-commit or
+          # post-rewrite hook. Pointing hooksPath at a non-directory makes git
+          # find no hook of any name, which is the property actually wanted
+          # here — "no repo code runs in this step", not "these two hooks are
+          # skipped". Only commit-msg exists today; the point is that this
+          # keeps holding when that changes.
+          git -c core.hooksPath=/dev/null commit -S -m "chore(bestax-mcp): restamp index after release [skip ci]"
+          if ! git push "https://x-access-token:${RESTAMP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
+            echo "::error::Packages published, but pushing the MCP index restamp to main failed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
+            exit 1
+          fi
