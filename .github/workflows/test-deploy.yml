@@ -93,10 +93,11 @@ jobs:
     # it a fork PR reproduces the failure this job was guarded against: the
     # deploy on an empty token, and then Comment Preview URL, whose write
     # permission GitHub downgrades to read on a fork run whatever the
-    # `permissions:` block below says. Same idiom as ai-scan.yml,
-    # ai-triage.yml, claude-review.yml and story-screenshots.yml; they carry an
-    # extra `pull_request == null` branch only because they also run on issues.
-    # Both clauses narrow what runs — the trigger above is unchanged.
+    # `permissions:` block below says. Same bare idiom as claude-review.yml
+    # and story-screenshots.yml; ai-scan.yml and ai-triage.yml wrap it in a
+    # `pull_request == null` branch only because they also run on issues,
+    # which this workflow does not. Both clauses narrow what runs — the
+    # trigger above is unchanged.
     #
     # Only this job is guarded. `build` still runs on dependency PRs, so a bump
     # that breaks the Docusaurus or Storybook build is still caught.
