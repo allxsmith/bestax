@@ -35,6 +35,9 @@ export const BYPASS_BLOCKS = [
     empty: /^overrides:[ \t]*\{[ \t]*\}[ \t]*$/,
     emptyLiteral: 'overrides: {}',
     entry: /^\s+(.+?):\s*\S.*$/,
+    // A mapping: its pairs must be indented deeper than the key, so a line at
+    // the key's own indentation really is a sibling and ends the block.
+    list: false,
     label: 'overrides',
   },
   {
@@ -42,7 +45,9 @@ export const BYPASS_BLOCKS = [
     header: /^minimumReleaseAgeExclude:\s*$/,
     empty: /^minimumReleaseAgeExclude:[ \t]*\[[ \t]*\][ \t]*$/,
     emptyLiteral: 'minimumReleaseAgeExclude: []',
-    entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
+    // `\s*` not `\s+`: an indentless item carries no leading whitespace.
+    entry: /^\s*-\s*([^\s#]+)\s*(?:#.*)?$/,
+    list: true,
     label: 'minimumReleaseAgeExclude',
   },
   {
@@ -51,7 +56,8 @@ export const BYPASS_BLOCKS = [
     header: /^\s+ignoreGhsas:\s*$/,
     empty: /^[ \t]+ignoreGhsas:[ \t]*\[[ \t]*\][ \t]*$/,
     emptyLiteral: 'ignoreGhsas: []',
-    entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
+    entry: /^\s*-\s*([^\s#]+)\s*(?:#.*)?$/,
+    list: true,
     label: 'auditConfig.ignoreGhsas',
   },
 ];
@@ -245,7 +251,13 @@ export function parseBypassEntries(yaml) {
       comments.push(line);
       continue;
     }
-    if (indentOf(line) <= headerIndent) {
+    const indent = indentOf(line);
+    // YAML block sequences may be INDENTLESS: items sit at their key's own
+    // indentation rather than deeper. Such an item is still inside the block.
+    // Reading it as a dedent dropped the whole list — silently, since
+    // blocksSeen already held the block and no entry meant no problem either.
+    const indentlessItem = active.list && /^[ \t]*-[ \t]/.test(line);
+    if (indent < headerIndent || (indent === headerIndent && !indentlessItem)) {
       // Dedent on a real key: the block is genuinely over. Any comments picked
       // up on the way out belonged to whatever follows, so endBlock drops them.
       endBlock();

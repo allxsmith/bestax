@@ -358,6 +358,60 @@ auditConfig:
   ]);
 });
 
+test('indentless sequence items are entries, not a dedent', () => {
+  // Valid YAML: a block sequence may sit at its key's own indentation. Reading
+  // those items as a dedent dropped both lists entirely — no entries, no
+  // problems, and blocksSeen still holding both, so the gate passed green.
+  const { entries, problems } = parseBypassEntries(`
+minimumReleaseAgeExclude:
+# bestax:permanent — deterministic formatting
+- prettier
+auditConfig:
+  ignoreGhsas:
+  # bestax:review 2026-11-13 — quarterly sweep
+  - GHSA-aaaa-bbbb-cccc
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['prettier', 'GHSA-aaaa-bbbb-cccc'],
+    'indentless items must still be policed'
+  );
+  assert.equal(byName(entries, 'prettier').permanent, true);
+  assert.equal(byName(entries, 'GHSA-aaaa-bbbb-cccc').review, '2026-11-13');
+  assert.deepEqual(problems, []);
+});
+
+test('an indentless list does not swallow the next top-level list', () => {
+  // The converse risk of accepting items at header indentation: publicHoistPattern
+  // is a sibling sequence and must never be read as a bypass.
+  const { entries } = parseBypassEntries(`
+minimumReleaseAgeExclude:
+# bestax:permanent — deterministic formatting
+- prettier
+publicHoistPattern:
+- '*eslint*'
+- '*prettier*'
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['prettier']
+  );
+});
+
+test('a mapping block still ends at a same-indent sibling', () => {
+  // overrides is list:false, so nothing at its own indentation continues it.
+  const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-11-13 — sweep
+  'thing@1': '>=1.2.3'
+nodeLinker: isolated
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['thing@1']
+  );
+});
+
 test('an unindented comment does not end the block', () => {
   // YAML comments carry no structure, so column 0 is a legal place for one
   // inside an indented block. Treating it as a dedent skipped every entry
