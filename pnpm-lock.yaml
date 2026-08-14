@@ -22,7 +22,7 @@ overrides:
   js-yaml@4: '>=4.3.1 <5'
   nanoid@3: '>=3.3.18 <4'
   body-parser@1: '>=1.20.6 <2'
-  webpack-dev-server: '>=5.2.6 <6'
+  webpack-dev-server@5: '>=5.2.6 <6'
 
 importers:
 

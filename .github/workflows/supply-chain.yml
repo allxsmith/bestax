@@ -102,6 +102,35 @@ jobs:
       id-token: write
 
     steps:
+      # Rule 10: a new job ships at `block`. Being honest about what that buys
+      # here, since the rule itself insists on it: `block` does not enforce
+      # today (#487 — harden-runner fails open to `audit` on the Actions-cache
+      # miss), so this is egress *monitoring* plus a list that is already in
+      # place for when #487 lands. The three sibling jobs predate the rule and
+      # are grandfathered by its "existing live job" clause; this one does not
+      # get that.
+      #
+      # The endpoints are derived from what cosign-installer and keyless
+      # signing documentedly reach, NOT from a measured run, because this job
+      # only executes on `release: published` and cannot be exercised from a
+      # PR. Additive to harden-runner's GitHub Actions baseline, and incomplete
+      # for the same reason every other allowlist here is: #487 owns the
+      # measured set.
+      - name: Harden runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            token.actions.githubusercontent.com:443
+            results-receiver.actions.githubusercontent.com:443
+            fulcio.sigstore.dev:443
+            rekor.sigstore.dev:443
+            tuf-repo-cdn.sigstore.dev:443
+
       - name: Download SBOM artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -149,7 +178,18 @@ jobs:
     name: Attach SBOMs and signatures to the release
     runs-on: ubuntu-latest
     needs: [sbom, sign-sbom]
-    if: github.event_name == 'release'
+    # Signing is additive and must not be able to cost us the SBOMs themselves.
+    # A plain `needs: sign-sbom` would mean a transient Fulcio or Rekor outage
+    # leaves the release with no SBOM assets at all, which is strictly worse
+    # than the unsigned pair we shipped before signing existed. So the only
+    # dependency this job actually requires is `sbom`; a failed `sign-sbom`
+    # degrades to attaching the SBOMs unsigned.
+    #
+    # `!cancelled()` rather than `always()`: a cancelled release run should stay
+    # cancelled, not push assets on its way out.
+    if: >
+      !cancelled() && github.event_name == 'release' &&
+      needs.sbom.result == 'success'
     permissions:
       contents: write
 
@@ -165,12 +205,24 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
+          # The SBOMs are the guarantee that predates signing, so they go up
+          # first and on their own.
           gh release upload "$TAG" \
             bestax-sbom.spdx.json \
             bestax-sbom.cdx.json \
-            bestax-sbom.spdx.json.sigstore.json \
-            bestax-sbom.cdx.json.sigstore.json \
             --clobber --repo "$GITHUB_REPOSITORY"
+
+          # Bundles are best-effort by the job's `if`. nullglob so a missing
+          # set expands to nothing rather than to a literal pattern that
+          # `gh` would then fail to open.
+          shopt -s nullglob
+          sigs=(bestax-sbom.*.sigstore.json)
+          if [ ${#sigs[@]} -gt 0 ]; then
+            gh release upload "$TAG" "${sigs[@]}" \
+              --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            echo "::warning::No signature bundles found. SBOMs attached unsigned; Signed-Releases will score this release 0."
+          fi
 
   verify-provenance:
     name: Verify published provenance
