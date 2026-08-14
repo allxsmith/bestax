@@ -16,7 +16,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { parseBypassEntries, findExpired } from './lib/bypass-annotations.mjs';
+import {
+  BYPASS_BLOCKS,
+  parseBypassEntries,
+  findExpired,
+} from './lib/bypass-annotations.mjs';
 
 const REPO = join(import.meta.dirname, '..');
 const byName = (entries, name) => entries.find(e => e.name === name);
@@ -393,25 +397,54 @@ publicHoistPattern:
   );
 });
 
-test('an explicitly emptied list counts as seen', () => {
+test('an explicitly emptied block counts as seen, per collection type', () => {
   // Pruning the last entry must not require editing BYPASS_BLOCKS: removing a
   // block definition would unpolice that surface permanently, so an entry
   // added back later would never be checked at all.
+  //
+  // The literal differs by type: `overrides` is a MAPPING, so its empty form
+  // is `{}`. Accepting only `[]` there would reject the correct YAML and the
+  // diagnostic would be telling maintainers to write the wrong type.
+  const { entries, blocksSeen } = parseBypassEntries(`
+minimumReleaseAgeExclude: []
+overrides: {}
+auditConfig:
+  ignoreGhsas: []
+`);
+  assert.deepEqual([...blocksSeen].sort(), [
+    'ignoreGhsas',
+    'minimumReleaseAgeExclude',
+    'overrides',
+  ]);
+  assert.deepEqual(entries, [], 'empty blocks contribute no entries');
+});
+
+test('an emptied block does not swallow what follows it', () => {
   const { entries, blocksSeen } = parseBypassEntries(`
 minimumReleaseAgeExclude: []
 overrides:
   # bestax:review 2026-11-13 — sweep
   'thing@1': '>=1.2.3'
-auditConfig:
-  ignoreGhsas: []
 `);
   assert.ok(blocksSeen.has('minimumReleaseAgeExclude'));
-  assert.ok(blocksSeen.has('ignoreGhsas'));
   assert.deepEqual(
     entries.map(e => e.name),
-    ['thing@1'],
-    'an empty list contributes no entries and swallows nothing after it'
+    ['thing@1']
   );
+});
+
+test('every block declares an empty literal matching its own pattern', () => {
+  // The diagnostic quotes emptyLiteral verbatim, so a mismatch would print
+  // advice the parser itself rejects.
+  for (const block of BYPASS_BLOCKS) {
+    const line = block.emptyLiteral.startsWith('ignoreGhsas')
+      ? `  ${block.emptyLiteral}`
+      : block.emptyLiteral;
+    assert.ok(
+      block.empty.test(line),
+      `${block.key}: emptyLiteral ${JSON.stringify(block.emptyLiteral)} does not match its own empty pattern`
+    );
+  }
 });
 
 test('an unsupported header shape leaves the block unseen, not silently empty', () => {

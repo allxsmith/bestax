@@ -30,7 +30,10 @@ export const BYPASS_BLOCKS = [
     // `overrides:` sits at column 0; its entries are `key: value` pairs. The
     // trailing `.*` swallows any inline comment — only the key is used.
     header: /^overrides:\s*$/,
-    empty: /^overrides:[ \t]*\[[ \t]*\][ \t]*$/,
+    // A mapping, so its empty literal is `{}` — NOT `[]`, which would be an
+    // empty sequence and the wrong collection type for these key: value pairs.
+    empty: /^overrides:[ \t]*\{[ \t]*\}[ \t]*$/,
+    emptyLiteral: 'overrides: {}',
     entry: /^\s+(.+?):\s*\S.*$/,
     label: 'overrides',
   },
@@ -38,6 +41,7 @@ export const BYPASS_BLOCKS = [
     key: 'minimumReleaseAgeExclude',
     header: /^minimumReleaseAgeExclude:\s*$/,
     empty: /^minimumReleaseAgeExclude:[ \t]*\[[ \t]*\][ \t]*$/,
+    emptyLiteral: 'minimumReleaseAgeExclude: []',
     entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'minimumReleaseAgeExclude',
   },
@@ -46,6 +50,7 @@ export const BYPASS_BLOCKS = [
     // Nested under `auditConfig:`, so the header itself is indented.
     header: /^\s+ignoreGhsas:\s*$/,
     empty: /^[ \t]+ignoreGhsas:[ \t]*\[[ \t]*\][ \t]*$/,
+    emptyLiteral: 'ignoreGhsas: []',
     entry: /^\s+-\s*([^\s#]+)\s*(?:#.*)?$/,
     label: 'auditConfig.ignoreGhsas',
   },
