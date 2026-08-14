@@ -354,6 +354,45 @@ auditConfig:
   ]);
 });
 
+test('an unindented comment does not end the block', () => {
+  // YAML comments carry no structure, so column 0 is a legal place for one
+  // inside an indented block. Treating it as a dedent skipped every entry
+  // below it — no entry, no problem, and blocksSeen still holding the block,
+  // so the gate passed with that bypass entirely unpoliced.
+  const { entries, problems } = parseBypassEntries(`
+overrides:
+# bestax:review 2026-11-13 — unindented but valid YAML
+  'thing@1': '>=1.2.3'
+  # bestax:review 2026-11-13 — normally indented
+  'thing@2': '>=2.3.4'
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['thing@1', 'thing@2'],
+    'entries below an unindented comment must still be seen'
+  );
+  assert.equal(entries[0].review, '2026-11-13', 'and read its annotation');
+  assert.deepEqual(problems, []);
+});
+
+test('a real dedent still ends the block, even after comments', () => {
+  const { entries } = parseBypassEntries(`
+overrides:
+  # bestax:review 2026-11-13 — sweep
+  'thing@1': '>=1.2.3'
+
+# a banner comment between sections
+nodeLinker: isolated
+publicHoistPattern:
+  - '*eslint*'
+`);
+  assert.deepEqual(
+    entries.map(e => e.name),
+    ['thing@1'],
+    'publicHoistPattern entries must not be mistaken for bypasses'
+  );
+});
+
 test('an explicitly emptied list counts as seen', () => {
   // Pruning the last entry must not require editing BYPASS_BLOCKS: removing a
   // block definition would unpolice that surface permanently, so an entry

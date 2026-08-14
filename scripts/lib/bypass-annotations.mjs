@@ -231,13 +231,19 @@ export function parseBypassEntries(yaml) {
       comments = [];
       continue;
     }
-    if (indentOf(line) <= headerIndent) {
-      // Dedent to a sibling or parent key: the block is genuinely over.
-      endBlock();
-      continue;
-    }
+    // Comments BEFORE the dedent test: YAML comments carry no structure, so
+    // one at column 0 sits legally inside an indented block. Testing indent
+    // first ended the block on such a line and skipped every entry under it —
+    // silently, since blocksSeen already held the block and the other lists
+    // kept the total nonzero.
     if (line.trimStart().startsWith('#')) {
       comments.push(line);
+      continue;
+    }
+    if (indentOf(line) <= headerIndent) {
+      // Dedent on a real key: the block is genuinely over. Any comments picked
+      // up on the way out belonged to whatever follows, so endBlock drops them.
+      endBlock();
       continue;
     }
 
